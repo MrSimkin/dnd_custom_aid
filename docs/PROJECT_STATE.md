@@ -2,10 +2,10 @@
 
 **Last verified:** 2026-08-28  
 **Canonical branch:** `main`  
-**Current working branch:** `foundation/continuity-structure`  
-**Open review:** PR #1 — `Establish repository continuity and agent governance foundation`  
-**Phase:** Phase 0 — Project Foundation  
-**Status:** Foundation revised after owner review; approved operating model is ready to merge
+**Current working branch:** none  
+**Open review:** none  
+**Phase:** Phase 1 — Product Discovery and Design  
+**Status:** Foundation complete and merged; product discovery/design is the next active work
 
 ## 1. Project in one paragraph
 
@@ -15,7 +15,7 @@
 
 There is no Android application code yet.
 
-The repository foundation contains:
+The approved repository foundation is now merged into `main` and contains:
 
 - project entry point (`README.md`);
 - mandatory agent/human operating rules (`AGENTS.md`);
@@ -31,7 +31,7 @@ The repository foundation contains:
 - reusable feature, decision, and handoff templates;
 - pull-request review template.
 
-The full foundation is on `foundation/continuity-structure` and is presented in PR #1.
+PR #1, `Establish repository continuity and agent governance foundation`, was owner-approved and merged into `main` on 2026-08-28.
 
 ## 3. Approved operating model
 
@@ -86,33 +86,32 @@ These must not be treated as settled facts.
 
 ## 6. Verification performed
 
-For this foundation revision:
+For the foundation:
 
 - repository and branch contents were inspected;
 - the owner-approved governance decisions were recorded in `docs/DECISIONS.md`;
 - the conventions registry was added;
-- README, manifest, product definition, roadmap, workflow, agent rules, PR template, and current state were aligned with the approved operating model;
+- README, manifest, product definition, roadmap, workflow, agent rules, architecture record, PR template, and current state were aligned with the approved operating model;
+- branch comparison confirmed the review branch was ahead of `main` and not behind before merge;
+- PR #1 merged successfully into `main`;
 - no application build or automated app tests exist yet because there is no application code.
 
-## 7. Current blocker/gate
+## 7. Current blockers
 
-No substantive blocker remains for the repository foundation.
+There is no repository/governance blocker.
 
-PR #1 must be merged into `main` so the approved foundation becomes canonical project state.
+The project is intentionally not ready for stack selection because product discovery/design has not yet been completed.
 
-## 8. Next substantive phase
+## 8. Active phase
 
-After PR #1 is merged, begin **Phase 1 — Product Discovery and Design**.
+**Phase 1 — Product Discovery and Design** is active.
 
 The next work is not stack selection and not application scaffolding. The agent should guide the owner through product/design questions, realistic alternatives, consequences, and recommendations, recording approved results in Git.
 
 ## 9. Next action
 
-1. verify PR #1 has no conflict or missing continuity file;
-2. merge the owner-approved foundation to `main`;
-3. update this state record on `main` to mark Phase 0 complete and Phase 1 active;
-4. begin product discovery/design with the owner.
+Begin product discovery/design with the owner. Establish the product purpose and then work through player/DM use cases, alternatives, workflows, scope, and interaction design before evaluating implementation technology.
 
 ## 10. Handoff note for the next agent
 
-Do not begin Android stack selection or application coding yet. Read `AGENTS.md`, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, and `docs/PRODUCT.md`. The next substantive task is collaborative product discovery/design. Explain meaningful alternatives to the owner and persist all continuation-critical results in Git.
+Do not begin Android stack selection or application coding yet. Read `AGENTS.md`, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, and `docs/PRODUCT.md`. The active task is collaborative product discovery/design. Explain meaningful alternatives to the owner and persist all continuation-critical results in Git.
