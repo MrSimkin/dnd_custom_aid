@@ -65,6 +65,12 @@ Repository upload route:
 
 `assets/character-sheets/templates/`
 
+The current preferred upload target while PR #2 is open is branch:
+
+`discovery/initial-product-picture`
+
+GitHub web uploads can be used for these binary PDF files. After switching to that branch and opening the directory above, use **Add file → Upload files** and commit the PDFs to the current branch. If an individual PDF exceeds the browser upload limit, use Git/GitHub Desktop instead.
+
 If a PDF layout needs an owner-side change, record it in:
 
 `assets/character-sheets/CHANGE_REQUESTS.md`
