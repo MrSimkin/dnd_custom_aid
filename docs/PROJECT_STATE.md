@@ -2,10 +2,10 @@
 
 **Last verified:** 2026-08-28  
 **Canonical branch:** `main`  
-**Current working branch:** none  
-**Open review:** none  
+**Current working branch:** `discovery/initial-product-picture`  
+**Open review:** PR #2 — `Capture initial product discovery picture without promoting it to requirements`  
 **Phase:** Phase 1 — Product Discovery and Design  
-**Status:** Foundation complete and merged; product discovery/design is the next active work
+**Status:** Initial product picture captured provisionally; collaborative clarification/design is active
 
 ## 1. Project in one paragraph
 
@@ -15,23 +15,15 @@
 
 There is no Android application code yet.
 
-The approved repository foundation is now merged into `main` and contains:
+The approved repository foundation is merged into `main`. Product discovery has begun.
 
-- project entry point (`README.md`);
-- mandatory agent/human operating rules (`AGENTS.md`);
-- repository-control inventory (`MANIFEST.md`);
-- current-state tracking (this file);
-- significant decision log (`docs/DECISIONS.md`);
-- durable convention registry (`docs/CONVENTIONS.md`);
-- product/discovery/design documentation (`docs/PRODUCT.md`);
-- staged roadmap (`docs/ROADMAP.md`);
-- implementation/review/communication workflow (`docs/WORKFLOW.md`);
-- architecture record (`docs/ARCHITECTURE.md`);
-- testing/verification policy (`docs/TESTING.md`);
-- reusable feature, decision, and handoff templates;
-- pull-request review template.
+Current discovery work is on `discovery/initial-product-picture` in PR #2. That branch contains:
 
-PR #1, `Establish repository continuity and agent governance foundation`, was owner-approved and merged into `main` on 2026-08-28.
+- a provisional structured capture of the owner's first product picture;
+- a proposed manifest entry for `docs/discovery/`;
+- D-0013, reflecting the owner's explicit instruction that brainstorming must be treated as exploratory and actively discussed rather than automatically promoted into requirements.
+
+The actual feature ideas on that branch are **not yet approved product requirements**.
 
 ## 3. Approved operating model
 
@@ -47,7 +39,7 @@ The owner explicitly approved:
 - product discovery/design and alternatives are discussed before stack selection;
 - technical stack/architecture is evaluated only after enough product/design work exists to judge the alternatives properly.
 
-Formal records: D-0007, D-0008, D-0011, D-0012 and `docs/CONVENTIONS.md`.
+Formal records currently on `main`: D-0007, D-0008, D-0011, D-0012 and `docs/CONVENTIONS.md`.
 
 ## 4. Product facts already approved
 
@@ -55,46 +47,32 @@ Formal records: D-0007, D-0008, D-0011, D-0012 and `docs/CONVENTIONS.md`.
 - Device classes: phones and tablets.
 - Audiences: players and Dungeon Masters.
 
-No further product scope is approved yet.
+No further product scope has yet been promoted to approved status.
 
-## 5. What is NOT decided yet
+## 5. Current provisional discovery themes
 
-No decision has yet been approved for:
+The owner's initial exploratory picture currently includes, without yet making them approved requirements:
 
-- exact game system or supported rulesets;
-- product purpose beyond the broad audience/platform statement;
-- player workflows;
-- DM workflows;
-- initial feature set or MVP;
-- screen/navigation structure;
-- interaction design;
-- visual design;
-- native Android vs another implementation approach;
-- programming language or UI toolkit;
-- minimum Android version;
-- local data model;
-- cloud sync, accounts, multiplayer, or sharing;
-- offline requirements;
-- licensing/distribution model;
-- monetization;
-- external services;
-- privacy model;
-- exact test-device matrix;
-- coding/naming/module/testing conventions that only become meaningful after technology/design choices exist.
+- Spanish-only user-facing app;
+- player viewing/editing of character sheets;
+- DM visibility/auditability of player changes;
+- character-sheet PDF export using existing owner-provided formats/templates;
+- shared online hosted data with a free/no-cost option preferred if practical;
+- DM tablet-first access to all PCs and a quick-stat overview;
+- combat/initiative tracking and monster stat-block access;
+- user accounts and campaign enrollment;
+- a possible Windows desktop companion for basic campaign management;
+- direct Spanish consultation of both earlier and revised fifth-edition SRD content.
 
-These must not be treated as settled facts.
+The detailed provisional record is on PR #2 and must be reviewed/discussed before promotion into approved product scope.
 
-## 6. Verification performed
+## 6. Current external feasibility observations
 
-For the foundation:
+These are research observations, not technology selections:
 
-- repository and branch contents were inspected;
-- the owner-approved governance decisions were recorded in `docs/DECISIONS.md`;
-- the conventions registry was added;
-- README, manifest, product definition, roadmap, workflow, agent rules, architecture record, PR template, and current state were aligned with the approved operating model;
-- branch comparison confirmed the review branch was ahead of `main` and not behind before merge;
-- PR #1 merged successfully into `main`;
-- no application build or automated app tests exist yet because there is no application code.
+- official Spanish SRD material exists for both SRD 5.1 and SRD 5.2.1 under Creative Commons terms, making integrated Spanish SRD reference a realistic design possibility;
+- free/no-cost hosted backend tiers currently exist from multiple providers, making the owner's online-data cost target plausible for development/small-scale use;
+- no backend/provider is selected and stack evaluation remains deferred until the design is sufficiently defined.
 
 ## 7. Current blockers
 
@@ -106,12 +84,21 @@ The project is intentionally not ready for stack selection because product disco
 
 **Phase 1 — Product Discovery and Design** is active.
 
-The next work is not stack selection and not application scaffolding. The agent should guide the owner through product/design questions, realistic alternatives, consequences, and recommendations, recording approved results in Git.
+The owner is intentionally providing a broad, partially unorganized product picture. The active job is to help organize it, ask clarifying questions, identify implications, propose alternatives, recommend options, suggest useful ideas, and only then confirm product requirements.
 
 ## 9. Next action
 
-Begin product discovery/design with the owner. Establish the product purpose and then work through player/DM use cases, alternatives, workflows, scope, and interaction design before evaluating implementation technology.
+Continue the collaborative discovery conversation. Priority areas include:
+
+- exact player character-sheet workflow and what DM audit/approval means;
+- DM quick-access information and combat workflow;
+- campaign/account/enrollment model from the user's perspective;
+- role and priority of the possible Windows desktop companion;
+- desired SRD browsing/search/contextual-reference experience;
+- which ideas belong in the first usable release versus later phases.
+
+After the owner reviews the structured discovery capture, update/merge PR #2 as appropriate and then promote confirmed conclusions into authoritative product/decision documents.
 
 ## 10. Handoff note for the next agent
 
-Do not begin Android stack selection or application coding yet. Read `AGENTS.md`, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, and `docs/PRODUCT.md`. The active task is collaborative product discovery/design. Explain meaningful alternatives to the owner and persist all continuation-critical results in Git.
+Do not begin Android stack selection or application coding yet. Start from `main`, then inspect PR #2 / `discovery/initial-product-picture` for current provisional discovery material. Do not treat those feature ideas as approved requirements. Continue the collaborative clarification/design process and persist material outcomes in Git.
