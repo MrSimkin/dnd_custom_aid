@@ -1,6 +1,6 @@
 # dnd_custom_aid
 
-Android companion application project for phone and tablet, intended to support both players and Dungeon Masters.
+Personal tabletop RPG assistant project beginning with D&D, with Android phone/tablet use and a desktop-friendly administration workflow under design.
 
 ## Start here
 
@@ -9,15 +9,16 @@ This repository is designed so a new human collaborator, ChatGPT conversation, c
 Before changing anything, read these files in order:
 
 1. `AGENTS.md` — mandatory operating rules for humans and AI agents.
-2. `MANIFEST.md` — inventory of project-control files and authority boundaries.
+2. `MANIFEST.md` — map of authoritative/project-memory files.
 3. `docs/PROJECT_STATE.md` — current verified state and next action.
 4. `docs/DECISIONS.md` — significant decisions already made and decisions still pending.
 5. `docs/CONVENTIONS.md` — approved recurring project conventions.
-6. `docs/PRODUCT.md` — product scope, design/discovery approach, and unresolved questions.
+6. `docs/PRODUCT.md` — current approved product direction and unresolved questions.
 7. `docs/ROADMAP.md` — development phases and current phase.
 8. `docs/WORKFLOW.md` — how alternatives are discussed and changes are designed, implemented, tested, documented, reviewed, and merged.
 9. `docs/ARCHITECTURE.md` — architecture status and rationale when architecture work begins.
 10. `docs/TESTING.md` — verification rules and test status expectations.
+11. Relevant `docs/discovery/` notes for the active product-design discussion.
 
 Then read any feature-specific or technical files relevant to the task.
 
@@ -26,10 +27,10 @@ Then read any feature-specific or technical files relevant to the task.
 - `main` is the canonical accepted project state (D-0007).
 - Git is the project's operative memory (D-0012).
 - Repository files, not chat memory, determine durable project truth.
-- A future agent must not assume that information remembered from a prior chat is current unless it is also recorded in the repository.
-- Significant decisions must be recorded in `docs/DECISIONS.md`.
+- Significant decisions must be recorded in `docs/DECISIONS.md` and/or the appropriate authoritative product file.
 - Durable conventions must be recorded in `docs/CONVENTIONS.md`.
-- `docs/PROJECT_STATE.md` must be updated whenever meaningful work changes the project's actual state or next action.
+- `docs/PROJECT_STATE.md` must be updated whenever meaningful work changes project reality or next action.
+- Discovery notes preserve exploratory reasoning but do not override authoritative confirmed product/decision records.
 
 ## Working relationship
 
@@ -55,8 +56,10 @@ See D-0011 and `docs/ROADMAP.md`.
 
 ## Current status
 
-The repository foundation/governance rules have been owner-approved. No application architecture, technology stack, screens, feature set, visual design, or game-system-specific behavior has been approved yet.
+The project is in **Phase 1 — Product Discovery and Design**.
 
-The next substantive phase is **Product Discovery and Design**.
+Current discovery work is on branch `discovery/initial-product-picture` in PR #2. It includes the initial brainstorming plus a first clarification round covering physical/digital character sheets, audit/correction, campaign roles, mixed D&D rules and house rules, DM tablet/combat needs, the rules-clarification concept, hosted-data scale, and desktop-friendly administration.
+
+No application technology stack has been selected and no application code exists yet.
 
 See `docs/PROJECT_STATE.md` for the authoritative current status.
