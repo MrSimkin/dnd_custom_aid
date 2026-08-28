@@ -2,16 +2,20 @@
 
 What problem or work item does this change address?
 
-## What changed
+## What changed and why
 
 - ...
 
-## Owner decisions involved
+Explain the meaningful technical approach and why it was chosen.
 
-- Decision IDs: ...
-- New owner decision required: Yes / No
+## Alternatives / owner discussion
 
-If yes, explain the decision rather than silently assuming it.
+- Important alternatives considered: ...
+- Owner decision required: Yes / No
+- Decision IDs, if applicable: ...
+- Convention IDs, if applicable: ...
+
+If a consequential choice or new durable convention exists, do not silently assume it.
 
 ## Verification
 
@@ -27,11 +31,13 @@ If yes, explain the decision rather than silently assuming it.
 <commands and concise results>
 ```
 
-## Continuity updates
+## Operative-memory updates
 
 - [ ] `docs/PROJECT_STATE.md` updated
 - [ ] `docs/DECISIONS.md` updated if decisions changed
-- [ ] Product/architecture/testing docs updated if applicable
+- [ ] `docs/CONVENTIONS.md` updated if conventions changed
+- [ ] Product/architecture/testing/feature docs updated if applicable
+- [ ] Important rationale, unresolved questions, and next action are persisted in Git
 
 ## Known limitations / unresolved items
 
@@ -39,4 +45,10 @@ If yes, explain the decision rather than silently assuming it.
 
 ## Owner review summary
 
-In plain language, what will be different for the owner/user if this is merged?
+Explain clearly:
+
+- what will be different if this is merged;
+- why the approach was taken;
+- what was actually verified;
+- what remains unresolved;
+- whether any owner action is still required.
