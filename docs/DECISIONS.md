@@ -63,12 +63,12 @@ The application is intended to serve both players and Dungeon Masters.
 **Date:** 2026-08-28  
 **Decision owner:** Project owner
 
-The repository must contain the information needed for any future chat, AI, or coding agent to understand the current project state and continue from there.
+The repository must contain the information needed for any future chat, AI, coding agent, or human contributor to understand the current project state and continue from there.
 
 ### Consequences
 
 - Chat memory is not sufficient as the project record.
-- State, decisions, unresolved questions, testing status, and next actions must be kept in repository files.
+- State, decisions, unresolved questions, testing status, rationale, conventions, and next actions must be kept in repository files.
 - Significant sessions must leave a durable handoff.
 
 ---
@@ -86,6 +86,7 @@ The owner is not expected to perform the coding. AI/coding agents may implement 
 - Repository instructions must be understandable to agents as well as humans.
 - Build/test execution should be automatable wherever practical.
 - Technical documentation must be sufficient to reproduce development work.
+- Agents should carry the implementation burden rather than shifting routine coding work back to the owner.
 
 ---
 
@@ -100,44 +101,53 @@ Significant product decisions are made by the owner. Agents may recommend and ex
 ### Consequences
 
 - Important unknowns are recorded as pending decisions.
-- Agents should explain trade-offs in accessible language because the owner is not expected to be technical.
+- Explanations should respect that the owner understands programming concepts but is not a professional software developer.
+- Agents should be clear and educational without unnecessary jargon or unnecessary oversimplification.
 - Reversible low-level implementation choices may be made during approved implementation, but consequential choices must be surfaced.
 
 ---
 
-## D-0007 — `main` as canonical published branch
+## D-0007 — `main` is the canonical accepted branch
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date:** 2026-08-28  
-**Proposed by:** Initial repository foundation
+**Decision owner:** Project owner
 
-Use `main` as the canonical published project state. Substantial work is prepared on branches and merged after review/approval.
+`main` represents the latest accepted project state. Substantial work is prepared on focused branches and merged after owner review/approval, unless the owner has explicitly delegated a category of change or requested a direct `main` change.
 
-### Why proposed
+### Consequences
 
-This makes it easier for a fresh agent to know which version represents the accepted project rather than an experiment in progress.
-
-### Owner decision required
-
-Approve, modify, or reject this workflow.
+- A fresh agent can distinguish accepted project truth from experiments or work in progress.
+- Unmerged branches must not be treated as canonical state.
+- The repository state documentation must identify active work branches when relevant.
 
 ---
 
-## D-0008 — Decision boundary for routine implementation
+## D-0008 — Routine implementation autonomy with owner visibility
 
-**Status:** Proposed  
+**Status:** Approved  
 **Date:** 2026-08-28  
-**Proposed by:** Initial repository foundation
+**Decision owner:** Project owner
 
-Allow agents to make routine, reversible, low-level implementation choices that do not materially change product behavior, while requiring owner approval for significant product, UX, data/privacy, service/cost, compatibility, rules-content, and expensive-to-reverse architecture decisions.
+Agents may make routine, reversible, low-level implementation choices that do not materially change approved product behavior, while significant product, UX, data/privacy, service/cost, compatibility, rules-content, and expensive-to-reverse architecture decisions remain owner-controlled.
 
-### Why proposed
+This autonomy does **not** mean silent implementation. The agent must explain what meaningful technical work it is doing and why. When a technical choice establishes a convention or has meaningful future consequences, the owner must be involved before that choice becomes durable project practice.
 
-Requiring the owner to approve every variable name, library helper, refactor, or equivalent low-level coding choice would make agent-led development impractical. The proposed boundary preserves owner control over meaningful decisions without forcing technical micromanagement.
+### Convention rule
 
-### Owner decision required
+When a convention first becomes relevant and no approved convention exists, the agent should:
 
-Approve, tighten, or loosen this boundary.
+1. explain the realistic alternatives and consequences;
+2. recommend an option;
+3. ask the owner to approve or modify it;
+4. record the approved convention in Git;
+5. follow that convention thereafter without repeatedly asking the same question unless a change is justified.
+
+### Consequences
+
+- The owner is not asked to approve every variable, helper, or equivalent line-level implementation detail.
+- The owner remains informed about the approach being taken.
+- Durable project conventions are owner-reviewed and repository-recorded.
 
 ---
 
@@ -148,8 +158,11 @@ Approve, tighten, or loosen this boundary.
 
 No framework, language, UI toolkit, persistence approach, or minimum Android version has been chosen yet.
 
-### Decision should consider
+This decision is intentionally deferred until the product and interaction design is sufficiently understood and approved. See D-0011.
 
+### Decision should eventually consider
+
+- the approved product/design requirements;
 - long-term maintainability;
 - quality of phone/tablet support;
 - ease of automated testing;
@@ -170,4 +183,57 @@ The first usable feature set has not yet been defined.
 
 ### Decision should follow
 
-A guided discovery session with the owner after the repository foundation is approved.
+A guided discovery and design process with the owner. Features and alternatives should be discussed before they are turned into implementation requirements.
+
+---
+
+## D-0011 — Design before technology stack
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+The project will not choose the Android technology stack first. Product purpose, user workflows, behavior, relevant alternatives, and interaction/design direction must be explored and discussed with the owner before stack and architecture selection.
+
+### Required sequence
+
+1. Understand the intended product and users.
+2. Explore realistic product/interaction alternatives with the owner.
+3. Design the intended behavior and experience collaboratively.
+4. Record approved design/product decisions and unresolved questions in Git.
+5. Evaluate stack/architecture options against that design.
+6. Explain technical alternatives, trade-offs, and a recommendation.
+7. Obtain owner approval before locking in consequential stack/architecture choices.
+
+### Consequences
+
+- No framework, language, UI toolkit, persistence layer, sync architecture, or foundational service is to be selected merely to get coding started.
+- Technical architecture must serve the approved design rather than force the design to fit an arbitrary early stack choice.
+
+---
+
+## D-0012 — Git is the operative memory
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+All operative memory required to continue the project must live in the Git repository.
+
+### Operative memory includes, when relevant
+
+- approved and pending decisions;
+- project conventions;
+- current implementation state;
+- active branches/work items;
+- important rationale and trade-offs;
+- test/verification results;
+- known defects, risks, and blockers;
+- unresolved questions;
+- next actions and handoff information.
+
+### Consequences
+
+- Chat history may assist discussion, but it is not authoritative project memory.
+- A meaningful fact that exists only in a conversation is not safely persisted until it is recorded in Git.
+- At the end of meaningful work, repository documentation must be updated so a fresh agent can continue without the previous conversation.
