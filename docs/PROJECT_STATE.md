@@ -1,60 +1,76 @@
 # Project State
 
 **Last verified:** 2026-08-28  
-**Proposed canonical branch:** `main`  
+**Canonical branch:** `main`  
 **Current working branch:** `foundation/continuity-structure`  
 **Open review:** PR #1 — `Establish repository continuity and agent governance foundation`  
 **Phase:** Phase 0 — Project Foundation  
-**Status:** Continuity/governance structure complete on review branch; awaiting owner review
+**Status:** Foundation revised after owner review; approved operating model is ready to merge
 
 ## 1. Project in one paragraph
 
-`dnd_custom_aid` is intended to become an Android companion application for both phones and tablets, serving both players and Dungeon Masters. The owner is not expected to write or operate the code directly: coding, implementation, testing, and technical execution may be performed by AI/coding agents, while significant product decisions remain with the owner. The repository must contain enough durable context for a new chat, AI, or agent to resume work safely without depending on previous conversation memory.
+`dnd_custom_aid` is intended to become an Android companion application for both phones and tablets, serving both players and Dungeon Masters. The owner understands programming concepts but delegates the heavy technical execution to AI/coding agents. Agents must explain meaningful technical work and alternatives, while significant product/UX/data/privacy/cost/architecture decisions and new durable project conventions remain owner-controlled. Git is the project's operative memory: another chat, AI, agent, or human must be able to resume from repository state without relying on prior conversation memory.
 
 ## 2. What exists now
 
 There is no Android application code yet.
 
-The repository foundation now contains:
+The repository foundation contains:
 
-- a single entry point (`README.md`);
-- mandatory instructions for future agents (`AGENTS.md`);
-- a repository-control inventory (`MANIFEST.md`);
-- explicit project-state tracking (this file);
-- a durable decision log (`docs/DECISIONS.md`);
-- product-scope/discovery documentation (`docs/PRODUCT.md`);
-- a staged roadmap (`docs/ROADMAP.md`);
-- implementation/review workflow (`docs/WORKFLOW.md`);
+- project entry point (`README.md`);
+- mandatory agent/human operating rules (`AGENTS.md`);
+- repository-control inventory (`MANIFEST.md`);
+- current-state tracking (this file);
+- significant decision log (`docs/DECISIONS.md`);
+- durable convention registry (`docs/CONVENTIONS.md`);
+- product/discovery/design documentation (`docs/PRODUCT.md`);
+- staged roadmap (`docs/ROADMAP.md`);
+- implementation/review/communication workflow (`docs/WORKFLOW.md`);
 - architecture record (`docs/ARCHITECTURE.md`);
 - testing/verification policy (`docs/TESTING.md`);
 - reusable feature, decision, and handoff templates;
-- a pull-request review template.
+- pull-request review template.
 
-The full foundation is currently on `foundation/continuity-structure` and is presented for owner review in PR #1.
+The full foundation is on `foundation/continuity-structure` and is presented in PR #1.
 
-## 3. What is approved
+## 3. Approved operating model
 
-The following facts were explicitly supplied by the owner and are treated as approved:
+The owner explicitly approved:
 
-- The target is an Android application.
-- It must be usable on phones and tablets.
-- It is intended for players and Dungeon Masters.
-- AI/agents may perform coding, implementation, testing, and technical execution.
-- Significant product decisions remain with the owner.
-- The repository must be sufficient for continuity across chats, AIs, and agents.
+- `main` is the canonical accepted project state;
+- substantial work normally happens on focused branches and is merged after owner approval;
+- agents perform the technical heavy lifting;
+- the owner remains the decision owner for significant choices;
+- agents may make routine reversible implementation choices, but meaningful technical work must be explained;
+- when a new durable technical/project convention first matters, the agent discusses alternatives and recommendation with the owner, records the approved convention in Git, and then follows it consistently;
+- Git is the operative memory; continuation-critical information must not exist only in chat;
+- product discovery/design and alternatives are discussed before stack selection;
+- technical stack/architecture is evaluated only after enough product/design work exists to judge the alternatives properly.
 
-See `docs/DECISIONS.md` for the formal record.
+Formal records: D-0007, D-0008, D-0011, D-0012 and `docs/CONVENTIONS.md`.
 
-## 4. What is NOT decided yet
+## 4. Product facts already approved
+
+- Target platform: Android.
+- Device classes: phones and tablets.
+- Audiences: players and Dungeon Masters.
+
+No further product scope is approved yet.
+
+## 5. What is NOT decided yet
 
 No decision has yet been approved for:
 
 - exact game system or supported rulesets;
+- product purpose beyond the broad audience/platform statement;
+- player workflows;
+- DM workflows;
 - initial feature set or MVP;
 - screen/navigation structure;
+- interaction design;
 - visual design;
-- native Android vs another framework;
-- programming language;
+- native Android vs another implementation approach;
+- programming language or UI toolkit;
 - minimum Android version;
 - local data model;
 - cloud sync, accounts, multiplayer, or sharing;
@@ -63,45 +79,40 @@ No decision has yet been approved for:
 - monetization;
 - external services;
 - privacy model;
-- exact test-device matrix beyond the requirement to support phone and tablet;
-- whether `main`/branch review workflow D-0007 is approved;
-- whether routine implementation autonomy boundary D-0008 is approved.
+- exact test-device matrix;
+- coding/naming/module/testing conventions that only become meaningful after technology/design choices exist.
 
 These must not be treated as settled facts.
 
-## 5. Current work
+## 6. Verification performed
 
-**Active task:** owner review of the repository continuity/governance structure before application development begins.
+For this foundation revision:
 
-**Implementation state:** foundation complete on `foundation/continuity-structure`; PR #1 is open and intentionally unmerged pending owner review.
+- repository and branch contents were inspected;
+- the owner-approved governance decisions were recorded in `docs/DECISIONS.md`;
+- the conventions registry was added;
+- README, manifest, product definition, roadmap, workflow, agent rules, PR template, and current state were aligned with the approved operating model;
+- no application build or automated app tests exist yet because there is no application code.
 
-**Verification performed:** repository root and `docs/` branch contents were inspected after creation. This is documentation-only work; no application build or automated app tests exist yet because there is no application code.
+## 7. Current blocker/gate
 
-## 6. Current blockers
+No substantive blocker remains for the repository foundation.
 
-There is no technical blocker to beginning discovery once the foundation is approved.
+PR #1 must be merged into `main` so the approved foundation becomes canonical project state.
 
-The current gate is owner review of the proposed operating model.
+## 8. Next substantive phase
 
-## 7. Next owner decision
+After PR #1 is merged, begin **Phase 1 — Product Discovery and Design**.
 
-Review and decide:
+The next work is not stack selection and not application scaffolding. The agent should guide the owner through product/design questions, realistic alternatives, consequences, and recommendations, recording approved results in Git.
 
-1. **D-0007:** whether `main` should be the canonical accepted state and substantial changes should normally be developed on branches and reviewed before merge;
-2. **D-0008:** whether agents may make routine, reversible, low-level implementation choices without separate approval while significant decisions remain owner-controlled;
-3. whether the mandatory continuity/read/update structure is sufficient or should be modified.
+## 9. Next action
 
-## 8. Next implementation action
+1. verify PR #1 has no conflict or missing continuity file;
+2. merge the owner-approved foundation to `main`;
+3. update this state record on `main` to mark Phase 0 complete and Phase 1 active;
+4. begin product discovery/design with the owner.
 
-After owner approval or requested revisions:
+## 10. Handoff note for the next agent
 
-1. update D-0007/D-0008 to reflect the owner's decisions;
-2. incorporate any requested foundation changes;
-3. merge PR #1 into `main` only after owner approval;
-4. update this file to reflect the merged state;
-5. begin a structured product-discovery session with the owner;
-6. record approved product decisions before choosing/scaffolding Android architecture.
-
-## 9. Handoff note for the next agent
-
-Do not begin Android coding yet unless the owner has approved the foundation and required product/architecture decisions have been recorded. Read `AGENTS.md` and `docs/DECISIONS.md` before proposing implementation. If PR #1 remains open, treat it as proposed foundation work rather than canonical accepted state.
+Do not begin Android stack selection or application coding yet. Read `AGENTS.md`, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, and `docs/PRODUCT.md`. The next substantive task is collaborative product discovery/design. Explain meaningful alternatives to the owner and persist all continuation-critical results in Git.
