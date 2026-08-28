@@ -2,116 +2,107 @@
 
 **Last verified:** 2026-08-28  
 **Canonical branch:** `main`  
-**Current working branch:** none  
-**Open review:** none  
+**Current working branch:** `discovery/initial-product-picture`  
+**Open review:** PR #2 — `Capture initial product discovery picture without promoting it to requirements`  
 **Phase:** Phase 1 — Product Discovery and Design  
-**Status:** Foundation complete and merged; product discovery/design is the next active work
+**Status:** First product picture and first clarification round captured; further workflow design needed before MVP/stack decisions
 
 ## 1. Project in one paragraph
 
-`dnd_custom_aid` is intended to become an Android companion application for both phones and tablets, serving both players and Dungeon Masters. The owner understands programming concepts but delegates the heavy technical execution to AI/coding agents. Agents must explain meaningful technical work and alternatives, while significant product/UX/data/privacy/cost/architecture decisions and new durable project conventions remain owner-controlled. Git is the project's operative memory: another chat, AI, agent, or human must be able to resume from repository state without relying on prior conversation memory.
+`dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D. The current design centers on a paper-preferred character-sheet workflow backed by shared digital character data, DM audit/correction, a player phone/tablet backup/reprint experience, a DM tablet live-session dashboard/combat tracker, and a desktop-friendly administration surface whose implementation form is still open. End-user product content is Spanish; technical project work remains English. The project may support other game systems in the future, but current work remains focused on the D&D use case. Git is the operative memory and product/interaction design precedes stack selection.
 
 ## 2. What exists now
 
-There is no Android application code yet.
+There is still no application code or selected technology stack.
 
-The approved repository foundation is now merged into `main` and contains:
+The repository now contains, on the active discovery branch:
 
-- project entry point (`README.md`);
-- mandatory agent/human operating rules (`AGENTS.md`);
-- repository-control inventory (`MANIFEST.md`);
-- current-state tracking (this file);
-- significant decision log (`docs/DECISIONS.md`);
-- durable convention registry (`docs/CONVENTIONS.md`);
-- product/discovery/design documentation (`docs/PRODUCT.md`);
-- staged roadmap (`docs/ROADMAP.md`);
-- implementation/review/communication workflow (`docs/WORKFLOW.md`);
-- architecture record (`docs/ARCHITECTURE.md`);
-- testing/verification policy (`docs/TESTING.md`);
-- reusable feature, decision, and handoff templates;
-- pull-request review template.
+- the approved governance/continuity foundation from PR #1;
+- initial product brainstorming in `docs/discovery/2026-08-28_INITIAL_PRODUCT_PICTURE.md`;
+- first confirmed clarification round in `docs/discovery/2026-08-28_CLARIFICATIONS_01.md`;
+- updated approved product direction in `docs/PRODUCT.md`;
+- major confirmed Phase 1 decisions through D-0019 in `docs/DECISIONS.md`;
+- approved language/SRD terminology conventions in `docs/CONVENTIONS.md`;
+- reserved PDF template location at `assets/character-sheets/templates/`;
+- `assets/character-sheets/CHANGE_REQUESTS.md` for owner-side Adobe InDesign changes discovered later.
 
-PR #1, `Establish repository continuity and agent governance foundation`, was owner-approved and merged into `main` on 2026-08-28.
+## 3. Major approved product direction
 
-## 3. Approved operating model
+Current confirmed direction includes:
 
-The owner explicitly approved:
+- Android phone/tablet support remains the main application target.
+- User-facing product is Spanish; technical project/source material is English.
+- Physical printed character sheets remain preferred at the table.
+- Player app is primarily a digital backup/reference and reprint path, not a paper replacement.
+- Character data is conceptually separate from the PDF output template.
+- Player edits take effect without DM pre-approval; the DM can audit, correct and reverse them.
+- One user identity can have different roles by campaign.
+- D&D is the initial system; future other-system support should not be made unnecessarily impossible.
+- Campaigns may mix SRD 5.1 (earlier/2014-era) and SRD 5.2.1 (revised/2024-era) rules plus house rules/homebrew.
+- The app is not intended as a strict rules enforcer, D&D Beyond replacement or first-version character builder.
+- The desired SRD outcome is quick rules clarification during play; AI is only a candidate implementation idea.
+- DM live-session use is tablet-first, with PC group/current-PC quick views and initiative/combat support.
+- Players see visible initiative/current turn but not DM-hidden creatures.
+- Shared data should be hosted online and normally fit a no-cost hosted tier at the expected personal scale; backend selection remains deferred.
+- Neon/Postgres is a plausible current candidate, not a decision.
+- Desktop/laptop campaign/NPC/monster administration is a real workflow need; native Windows vs web/local-web is not decided.
 
-- `main` is the canonical accepted project state;
-- substantial work normally happens on focused branches and is merged after owner approval;
-- agents perform the technical heavy lifting;
-- the owner remains the decision owner for significant choices;
-- agents may make routine reversible implementation choices, but meaningful technical work must be explained;
-- when a new durable technical/project convention first matters, the agent discusses alternatives and recommendation with the owner, records the approved convention in Git, and then follows it consistently;
-- Git is the operative memory; continuation-critical information must not exist only in chat;
-- product discovery/design and alternatives are discussed before stack selection;
-- technical stack/architecture is evaluated only after enough product/design work exists to judge the alternatives properly.
+See `docs/PRODUCT.md` and `docs/DECISIONS.md` for authoritative detail.
 
-Formal records: D-0007, D-0008, D-0011, D-0012 and `docs/CONVENTIONS.md`.
+## 4. Current external feasibility notes
 
-## 4. Product facts already approved
+Fresh external checks performed during discovery:
 
-- Target platform: Android.
-- Device classes: phones and tablets.
-- Audiences: players and Dungeon Masters.
+- official Spanish SRD 5.1 and Spanish SRD 5.2.1 are available under CC-BY-4.0 from Wizards/D&D Beyond; any future use must follow the required attribution terms;
+- Neon currently advertises a Free plan with 0.5 GB storage per project, confirming that the owner's expected storage scale is plausible for at least one current hosted Postgres candidate;
+- these facts do not select an implementation or service.
 
-No further product scope is approved yet.
+## 5. Character sheet assets
 
-## 5. What is NOT decided yet
+Owner's custom character-sheet PDFs are produced from Adobe InDesign and are not fillable/editable PDFs.
 
-No decision has yet been approved for:
+Repository upload route:
 
-- exact game system or supported rulesets;
-- product purpose beyond the broad audience/platform statement;
-- player workflows;
-- DM workflows;
-- initial feature set or MVP;
-- screen/navigation structure;
-- interaction design;
-- visual design;
-- native Android vs another implementation approach;
-- programming language or UI toolkit;
-- minimum Android version;
-- local data model;
-- cloud sync, accounts, multiplayer, or sharing;
-- offline requirements;
-- licensing/distribution model;
-- monetization;
-- external services;
-- privacy model;
-- exact test-device matrix;
-- coding/naming/module/testing conventions that only become meaningful after technology/design choices exist.
+`assets/character-sheets/templates/`
 
-These must not be treated as settled facts.
+If a PDF layout needs an owner-side change, record it in:
 
-## 6. Verification performed
+`assets/character-sheets/CHANGE_REQUESTS.md`
 
-For the foundation:
+The PDFs are inputs/output templates; no field mapping or PDF-generation implementation has been selected yet.
 
-- repository and branch contents were inspected;
-- the owner-approved governance decisions were recorded in `docs/DECISIONS.md`;
-- the conventions registry was added;
-- README, manifest, product definition, roadmap, workflow, agent rules, architecture record, PR template, and current state were aligned with the approved operating model;
-- branch comparison confirmed the review branch was ahead of `main` and not behind before merge;
-- PR #1 merged successfully into `main`;
-- no application build or automated app tests exist yet because there is no application code.
+## 6. Active unresolved design questions
 
-## 7. Current blockers
+The next highest-priority questions are:
 
-There is no repository/governance blocker.
+1. What is the real paper-to-digital update workflow so the digital backup stays current?
+2. Should DM corrections/reversals preserve the original audit history through new reversal/correction records rather than deleting history?
+3. Confirm multiplicity interpretation: one player may have multiple PCs; first version has one DM; underlying model should or should not leave future co-DM support possible.
+4. How should campaign house rules be stored/consulted, especially when they override an official SRD answer?
+5. What is the first practical NPC/monster entry workflow on the desktop-friendly administration surface?
+6. Beyond initiative/current turn, what combat state should be persisted/synchronized in the first version?
 
-The project is intentionally not ready for stack selection because product discovery/design has not yet been completed.
+## 7. Current technical status
 
-## 8. Active phase
+No stack, framework, language, UI toolkit, database provider, authentication provider, AI provider/model, PDF library, persistence architecture, Windows/web implementation, or build system has been selected.
 
-**Phase 1 — Product Discovery and Design** is active.
+Do not begin stack selection yet.
 
-The next work is not stack selection and not application scaffolding. The agent should guide the owner through product/design questions, realistic alternatives, consequences, and recommendations, recording approved results in Git.
+## 8. Current review state
+
+PR #2 is open and intentionally unmerged while discovery material continues to be refined.
+
+The branch contains both:
+
+- provisional historical discovery material; and
+- confirmed conclusions promoted into authoritative product/decision/convention files.
+
+Before merging PR #2, the owner should review whether the current product summary accurately represents the clarified intent.
 
 ## 9. Next action
 
-Begin product discovery/design with the owner. Establish the product purpose and then work through player/DM use cases, alternatives, workflows, scope, and interaction design before evaluating implementation technology.
+Continue product discovery with the owner using the six active questions above, prioritizing the paper-to-digital character workflow and audit semantics first because they drive the core shared-character model.
 
 ## 10. Handoff note for the next agent
 
-Do not begin Android stack selection or application coding yet. Read `AGENTS.md`, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, and `docs/PRODUCT.md`. The active task is collaborative product discovery/design. Explain meaningful alternatives to the owner and persist all continuation-critical results in Git.
+Read `docs/PRODUCT.md`, `docs/DECISIONS.md`, `docs/CONVENTIONS.md` and both current discovery notes before continuing. Do not interpret the existence of a possible AI rules assistant, Neon, native Windows, or any PDF implementation idea as a technology choice. Continue collaborative product/workflow design and persist conclusions in Git.
