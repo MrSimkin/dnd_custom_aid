@@ -17,13 +17,15 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 - workflow and testing expectations exist;
 - owner has reviewed and approved or modified the operating model.
 
-**Current status:** Ready to complete once PR #1 is merged.
+**Current status:** Complete. Owner-approved foundation merged to `main` via PR #1 on 2026-08-28.
 
 ---
 
 ## Phase 1 — Product Discovery and Design
 
 **Goal:** understand and design what the first useful version should actually do before selecting the technology stack.
+
+**Current status:** Active.
 
 ### Working method
 
