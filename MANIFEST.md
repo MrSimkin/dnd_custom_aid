@@ -33,7 +33,7 @@ This file inventories the project-control files and explains when each one must 
 
 ### `docs/CONVENTIONS.md`
 
-**Role:** durable registry of owner-approved project conventions: how coding, structure, naming, testing, documentation, workflow, or similar recurring practices should be handled consistently.  
+**Role:** durable registry of owner-approved project conventions: how coding, structure, naming, testing, documentation, workflow, terminology, or similar recurring practices should be handled consistently.  
 **Update when:** a new convention is approved, an existing convention changes, or one is superseded.
 
 ### `docs/PRODUCT.md`
@@ -69,15 +69,33 @@ This file inventories the project-control files and explains when each one must 
 
 Rules:
 
-- every discovery note must state clearly that it is provisional unless/until items are promoted into approved product/decision documents;
-- future agents must not implement an item merely because it appears in a discovery note;
-- confirmed conclusions should later be reflected in `docs/PRODUCT.md`, `docs/DECISIONS.md`, and/or other authoritative files as appropriate;
-- discovery notes may remain as historical rationale after conclusions are approved.
+- every discovery note must state clearly which material is provisional and which clarifications were explicitly confirmed;
+- future agents must not implement an item merely because it appears only in a discovery note;
+- confirmed conclusions should be reflected in `docs/PRODUCT.md`, `docs/DECISIONS.md`, and/or other authoritative files as appropriate;
+- discovery notes remain useful as historical rationale after conclusions are approved.
 
 ### `docs/discovery/2026-08-28_INITIAL_PRODUCT_PICTURE.md`
 
-**Role:** first structured capture of the owner's initial product picture: Spanish-only application idea, player character-sheet workflow, DM tablet workflow, accounts/campaign enrollment, online data, possible Windows companion, and SRD 5.1/5.2.1 consultation.  
-**Status:** provisional discovery input; not an implementation specification.
+**Role:** first structured capture of the owner's initial brainstorming: Spanish-only application idea, player character-sheet workflow, DM tablet workflow, accounts/campaign enrollment, online data, possible Windows companion, and SRD consultation.  
+**Status:** historical/provisional discovery input.
+
+### `docs/discovery/2026-08-28_CLARIFICATIONS_01.md`
+
+**Role:** first clarification pass: physical-sheet/backup purpose, audit-with-correction model, campaign-scoped roles, future multi-system direction, DM quick views, combat tracker visibility, mixed SRD/house rules, rules-assistant intent, hosted-data scale, desktop administration need, language split, invitation direction and remaining questions.  
+**Status:** mixed confirmed conclusions and explicitly open questions; confirmed conclusions have been promoted to authoritative files where appropriate.
+
+## `assets/character-sheets/`
+
+**Role:** owner-provided character-sheet presentation assets and the owner-side layout change log.
+
+### `assets/character-sheets/templates/`
+
+**Role:** blank/custom PDF character-sheet templates supplied by the owner. These are presentation/output templates, not the authoritative character data model.
+
+### `assets/character-sheets/CHANGE_REQUESTS.md`
+
+**Role:** records Adobe InDesign/PDF changes that implementation/design requires from the owner.  
+**Update when:** an app requirement exposes a necessary owner-side template layout change or when such a request is completed/cancelled.
 
 ## `docs/templates/`
 
@@ -110,6 +128,7 @@ If documents appear to conflict:
 1. follow `AGENTS.md` for governance/working rules;
 2. follow `docs/DECISIONS.md` for explicitly approved significant decisions;
 3. follow `docs/CONVENTIONS.md` for approved recurring project practices;
-4. follow `docs/PROJECT_STATE.md` for current implementation/work status;
-5. treat `docs/discovery/` as provisional context unless an item is also confirmed in an authoritative file;
-6. surface any material contradiction instead of guessing.
+4. follow `docs/PRODUCT.md` for approved product requirements/direction;
+5. follow `docs/PROJECT_STATE.md` for current implementation/work status;
+6. treat `docs/discovery/` as supporting rationale/provisional context except where conclusions were also promoted to authoritative files;
+7. surface any material contradiction instead of guessing.
