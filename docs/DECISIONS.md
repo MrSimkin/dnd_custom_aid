@@ -237,3 +237,36 @@ All operative memory required to continue the project must live in the Git repos
 - Chat history may assist discussion, but it is not authoritative project memory.
 - A meaningful fact that exists only in a conversation is not safely persisted until it is recorded in Git.
 - At the end of meaningful work, repository documentation must be updated so a fresh agent can continue without the previous conversation.
+
+---
+
+## D-0013 — Discovery input is exploratory until explicitly confirmed
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+During product discovery, the owner may intentionally describe ideas in an unstructured, exploratory way. Such statements are discovery material, not automatically approved requirements.
+
+The agent/chat is expected to actively help shape those ideas rather than merely transcribe them.
+
+### Required behavior during discovery
+
+The agent should:
+
+1. preserve important raw ideas in Git with an explicit provisional/discovery status;
+2. reorganize them into coherent concepts and workflows;
+3. ask clarifying questions;
+4. identify hidden dependencies, contradictions, risks, and consequences;
+5. present realistic alternatives;
+6. recommend options and explain the reasoning;
+7. suggest useful ideas the owner may not have considered;
+8. challenge weak ideas constructively when appropriate;
+9. distinguish brainstorming from approved scope;
+10. obtain explicit owner confirmation before promoting a material idea into an approved requirement or decision.
+
+### Consequences
+
+- A future agent must not treat a discovery note as implementation authorization merely because the owner mentioned the idea.
+- Discovery discussions should be collaborative and iterative.
+- The repository should preserve both unresolved ideas and the later approved conclusions so project evolution remains understandable.
