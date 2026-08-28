@@ -4,123 +4,223 @@ This document describes the product as it is currently known. It separates appro
 
 ## 1. Approved product facts
 
-The product is:
+The current product is:
 
-- an Android application;
-- intended for both phones and tablets;
-- intended for both players and Dungeon Masters.
+- an Android application intended for both phones and tablets;
+- intended for both players and Dungeon Masters;
+- user-facing in Spanish;
+- designed for personal/small-scale use;
+- beginning with D&D because that is the owner's current game, while avoiding unnecessary core-design assumptions that would make future support for another tabletop RPG impossible.
 
-That is the full approved product scope at this stage.
+The project is not intended to become a general commercial D&D platform or a D&D Beyond replacement.
 
 ## 2. Approved discovery/design approach
 
 The project will **design before choosing the technology stack**.
 
-Before Android implementation technology is selected, the owner and agent will:
+During discovery, owner brainstorming is exploratory until clarified and confirmed. The agent is expected to reorganize ideas, ask questions, identify consequences, recommend alternatives and challenge weak assumptions rather than simply transcribing them.
 
-- clarify the problems the application should solve;
-- explore realistic feature and workflow alternatives;
-- discuss advantages, disadvantages, and consequences;
-- design intended player and DM behavior collaboratively;
-- consider phone and tablet use as part of the design rather than after implementation;
-- record approved design choices and unresolved questions in Git.
+See D-0011 and D-0013.
 
-The agent should recommend options when useful, but should not silently choose product behavior or use technical convenience to force an early design decision.
+## 3. Current product purpose
 
-See D-0011.
+The emerging product purpose is to provide a small, personal digital assistant around a primarily physical tabletop workflow.
 
-## 3. Product goal — to be defined
+The app should reduce friction during play and campaign administration without trying to replace paper character sheets, automate all D&D rules, or become a full character-building platform.
 
-A concise statement of the problem the app should solve has not yet been approved.
+The current design picture has three main usage surfaces:
 
-During discovery/design, define in plain but technically meaningful language:
+1. **Player phone/tablet:** backup/reference access to a character and the ability to maintain/reprint the latest digitally recorded character sheet.
+2. **DM tablet:** live-session quick information and combat/initiative support.
+3. **Desktop/laptop administration:** comfortable preparation/data-entry for campaign, NPC and monster information. The implementation form (native Windows, web app, local web interface, etc.) is not decided.
 
-- what problem a player should be able to solve with the app;
-- what problem a Dungeon Master should be able to solve with the app;
-- what makes this app worth using instead of notes, PDFs, existing apps, or websites;
-- what the smallest useful first release would be.
+## 4. Player experience — approved direction
 
-## 4. User groups
+The preferred table workflow uses physical printed character sheets.
 
-### Player
+The player-facing app is primarily a backup/reference/recovery tool. Players should be able to:
 
-**Approved:** players are a target audience.
+- see their latest digitally recorded character information on phone or tablet;
+- update that digital character information;
+- export/reprint the latest digitally recorded sheet as PDF using approved owner-provided templates.
 
-**Not yet defined:**
+Full guided character creation is **not part of the current first-version intent**. It may be reconsidered later.
 
-- player workflows;
-- character management;
-- rules/reference access;
-- dice or combat support;
-- campaign sharing;
-- permissions;
-- whether players can create/edit custom content.
+### Important open workflow
 
-### Dungeon Master
+The physical-sheet preference creates a key design question: how and when the digital record is kept synchronized with changes made on paper so the 'latest digital copy' is actually useful.
 
-**Approved:** Dungeon Masters are a target audience.
+## 5. Character data and PDF output — approved direction
 
-**Not yet defined:**
+Character data should be treated conceptually as structured information independent from any one PDF layout.
 
-- campaign management;
-- encounter tools;
-- NPC/creature tools;
-- custom content;
-- rules/reference access;
-- sharing with players;
-- hidden vs shared information;
-- permissions.
+The owner already has multiple custom character-sheet designs created in Adobe InDesign. Existing PDF exports are not fillable/editable PDFs.
 
-## 5. Game-system scope
+The PDF requirement is primarily:
 
-**Pending.**
+- preserve a printable backup;
+- allow the player to regenerate a lost physical sheet;
+- support multiple owner-provided sheet layouts over time.
 
-The repository name suggests a D&D-related purpose, but the exact supported game edition/system and the role of custom/homebrew content have not been formally approved in this repository. Future agents must not infer those details from the repository name alone.
+PDF template files belong under `assets/character-sheets/templates/`.
 
-## 6. Candidate discovery areas — not approved features
+If implementation reveals that a template itself needs a layout change, the required owner-side Adobe InDesign change must be recorded in `assets/character-sheets/CHANGE_REQUESTS.md` and explained to the owner.
 
-The following are questions to explore, not requirements:
+## 6. Character changes and DM oversight — approved direction
 
-- character sheets or character reference;
-- spell/reference tools;
-- creature/NPC reference;
-- custom/homebrew content;
-- campaign notes;
-- encounter or initiative support;
-- inventory/equipment;
-- dice tools;
-- player/DM sharing;
-- offline use;
-- import/export;
-- backups;
-- search and filtering;
-- tablet-specific layouts.
+Player changes should not require DM pre-approval before taking effect.
 
-No item in this list should be implemented merely because it appears here.
+The DM must be able to:
 
-## 7. Constraints currently known
+- audit player-made changes;
+- understand what changed;
+- directly correct a character when necessary;
+- reverse/undo an inappropriate or mistaken change.
 
-- The owner should not need to write application code.
-- The owner understands programming but is delegating professional-level implementation work to AI/coding agents.
-- Meaningful technical work must be explained: what is being done, why, and important alternatives/consequences.
-- New durable technical conventions must be discussed with the owner before they become project practice.
-- The project must remain resumable from repository state alone; Git is the operative memory.
-- Technology stack selection comes after sufficient product/interaction design, not before.
+The detailed audit-storage design is not yet approved. A current recommendation is to preserve history rather than deleting the original action when a DM corrects/reverses something.
 
-## 8. Product/design output required before stack selection
+## 7. Accounts, campaigns and roles — approved direction
 
-Before evaluating the Android stack as a consequential decision, discovery/design should produce enough clarity to judge technology against real needs. At minimum, this should include:
+Every user has an account/identity.
 
-1. a one-paragraph product purpose;
-2. primary player use cases;
-3. primary Dungeon Master use cases;
-4. major workflows/interactions for the first useful version;
-5. an explicitly approved MVP feature list;
-6. an explicit out-of-scope list for the MVP;
-7. intended phone/tablet behavior at a meaningful level;
-8. high-level data/privacy/offline expectations;
-9. required game-system/content constraints;
-10. acceptance criteria for the first usable release;
-11. unresolved design questions clearly marked as such.
+Roles are campaign-specific rather than permanent account types. A person may therefore be a player in one campaign and a DM in another.
 
-Approved results should be recorded here and in `docs/DECISIONS.md` where appropriate.
+A DM creates/administers a campaign and player characters are enrolled/associated with that campaign.
+
+First-version enrollment is intended to be DM-controlled through invitation mechanisms such as code, email and/or QR. Exact invitation/recovery/membership flows remain open.
+
+## 8. Future game-system scope — approved direction
+
+D&D is the initial supported game because it is what the owner currently runs.
+
+Future support for additional tabletop RPG systems may be added in a more advanced version. Current development does **not** need to implement multi-system support now, but account/campaign foundations should avoid needless D&D-only coupling when a more general design costs little or nothing.
+
+## 9. D&D rules model — approved direction
+
+The current campaign mixes rules, uses house rules/homebrew heavily, and may gradually move more toward SRD 5.2.1 over time.
+
+The application must not require a campaign to be exclusively one official SRD generation.
+
+Official project terminology:
+
+- **SRD 5.1** = earlier/2014-era fifth-edition foundation;
+- **SRD 5.2.1** = revised/2024-era fifth-edition foundation.
+
+The app is an assistant, not an automated rules enforcer or character legality checker.
+
+## 10. Rules clarification assistant — approved product goal, implementation open
+
+The desired SRD-related user outcome is quick rules clarification during play.
+
+A player or DM should be able to ask a rules question that arises during an action or combat and receive a useful response quickly.
+
+The owner has suggested AI-assisted clarification as a possible implementation idea. AI itself is **not approved as the implementation yet**, and no provider/model/service is selected.
+
+If AI is later used, a current recommended quality direction is:
+
+- retrieve/check authoritative SRD material rather than answer from model memory;
+- identify the applicable official SRD version/source;
+- say when the question is not covered by the SRD;
+- distinguish official SRD material from campaign house rules/homebrew.
+
+The feature is not intended to download the SRD merely to power automated character creation or legality checks.
+
+## 11. DM tablet workflow — approved starting design
+
+Tablet is the primary live-session DM surface.
+
+The DM needs:
+
+- access to every campaign character sheet;
+- a **PC group quick view**;
+- quick access to the currently relevant/selected PC;
+- an initiative/combat tracker;
+- quick access to NPC/monster information and stat blocks during their turns.
+
+Initial quick-view information requested by the owner:
+
+- Armor Class (AC);
+- saving throws;
+- proficiency bonus;
+- spell save DC;
+- basic/primary attack bonus or equivalent attack summary;
+- ability scores;
+- passive Perception.
+
+This first quick-view set is intentionally expected to evolve through real table use and trial-and-error.
+
+## 12. Combat tracker — approved starting behavior
+
+DM view should:
+
+- track initiative order;
+- show whose turn is active;
+- expose the active PC's quick information when relevant;
+- expose the active monster/NPC stat block or quick sheet when relevant;
+- support several relevant creatures on the same turn/initiative position through an appropriate multi-entity presentation;
+- allow the DM to hide selected creatures from the player-visible initiative order.
+
+Player view should show:
+
+- visible initiative order;
+- the currently active participant;
+- no hidden creatures.
+
+Further combat-state tracking beyond initiative/current turn remains open.
+
+## 13. Hosted/shared data — approved constraint, provider open
+
+Shared campaign data should be hosted online.
+
+For the intended personal/small-scale use, the design should aim to remain comfortably inside a no-cost hosted tier where practical. If scope grows meaningfully later, hosting cost can be reconsidered responsibly.
+
+A current candidate mentioned by the owner is Neon/Postgres, but no backend/provider is approved yet.
+
+Provider evaluation must later consider more than raw storage size, including:
+
+- authentication;
+- authorization/security;
+- audit/history needs;
+- synchronization/realtime behavior;
+- backup/recovery;
+- service limits and idle behavior;
+- maintenance burden;
+- future cost/lock-in.
+
+## 14. Desktop/laptop administration — approved need, platform open
+
+The owner expects that campaign preparation, NPC/monster entry and organization may be more comfortable from a laptop/desktop than from a tablet.
+
+A desktop-friendly administration surface is therefore a real product need to design.
+
+What is **not** decided is whether that surface should be:
+
+- a native Windows client;
+- a normal web application;
+- a local-only web interface;
+- another practical desktop-friendly approach.
+
+Technology choice must follow workflow design.
+
+## 15. Language convention
+
+All end-user-facing product content is Spanish.
+
+Technical repository documentation, source code and development material remain English. See `docs/CONVENTIONS.md` C-0006.
+
+## 16. Important unresolved design questions
+
+Current high-priority questions include:
+
+1. What is the practical paper-to-digital update workflow?
+2. Should every DM correction/reversal preserve immutable historical entries exactly as currently recommended?
+3. Confirm campaign multiplicity rules: multiple PCs per player, co-DM behavior and future extensibility.
+4. How should campaign house rules be stored and surfaced, particularly when they override an official SRD answer?
+5. What is the first useful NPC/monster data-entry workflow on the administration surface?
+6. Beyond initiative/current turn, what combat state should be synchronized/persisted in the first version?
+7. What exact invitation/recovery/account flows are appropriate for the personal-use threat model?
+8. What constitutes the smallest useful first release/MVP?
+
+## 17. Discovery source material
+
+Detailed exploratory history lives under `docs/discovery/`. Those files preserve rationale and unresolved thinking but do not override approved statements in this file or `docs/DECISIONS.md`.
