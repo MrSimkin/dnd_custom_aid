@@ -62,6 +62,23 @@ This file inventories the project-control files and explains when each one must 
 **Role:** test/verification policy and future test-state expectations.  
 **Update when:** test strategy, device matrix, commands, or release verification rules change.
 
+## `docs/discovery/`
+
+**Role:** preserves raw or partially structured product-discovery material that is useful for continuity but is **not automatically approved product scope**.  
+**Update when:** a discovery conversation introduces material ideas, questions, alternatives, observations, or unresolved concepts that a future chat/agent needs in order to continue the discussion accurately.
+
+Rules:
+
+- every discovery note must state clearly that it is provisional unless/until items are promoted into approved product/decision documents;
+- future agents must not implement an item merely because it appears in a discovery note;
+- confirmed conclusions should later be reflected in `docs/PRODUCT.md`, `docs/DECISIONS.md`, and/or other authoritative files as appropriate;
+- discovery notes may remain as historical rationale after conclusions are approved.
+
+### `docs/discovery/2026-08-28_INITIAL_PRODUCT_PICTURE.md`
+
+**Role:** first structured capture of the owner's initial product picture: Spanish-only application idea, player character-sheet workflow, DM tablet workflow, accounts/campaign enrollment, online data, possible Windows companion, and SRD 5.1/5.2.1 consultation.  
+**Status:** provisional discovery input; not an implementation specification.
+
 ## `docs/templates/`
 
 ### `FEATURE_SPEC_TEMPLATE.md`
@@ -94,4 +111,5 @@ If documents appear to conflict:
 2. follow `docs/DECISIONS.md` for explicitly approved significant decisions;
 3. follow `docs/CONVENTIONS.md` for approved recurring project practices;
 4. follow `docs/PROJECT_STATE.md` for current implementation/work status;
-5. surface any material contradiction instead of guessing.
+5. treat `docs/discovery/` as provisional context unless an item is also confirmed in an authoritative file;
+6. surface any material contradiction instead of guessing.
