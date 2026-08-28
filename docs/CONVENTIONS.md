@@ -59,6 +59,31 @@ Information required to continue the project must be persisted in the repository
 
 Source decision: D-0012.
 
+### C-0006 — Product Spanish; technical project English
+
+**Status:** Approved  
+**Date:** 2026-08-28
+
+All end-user-facing application UI, labels, messages, help/rules responses, exports intended for users, and other product-facing content should be Spanish unless a specific exception is later approved.
+
+Source code, identifiers, technical repository documentation, architecture/testing notes, development instructions, commit/PR technical prose, and agent-oriented project documentation should be English.
+
+The purpose is to keep the user experience fully accessible to the intended Spanish-speaking users while keeping development aligned with the predominantly English Android/software ecosystem and reference material.
+
+### C-0007 — Official SRD version terminology
+
+**Status:** Approved  
+**Date:** 2026-08-28
+
+Project documentation and technical discussion should refer to the official document versions:
+
+- **SRD 5.1** — the earlier/2014-era fifth-edition rules foundation;
+- **SRD 5.2.1** — the revised/2024-era fifth-edition rules foundation.
+
+When discussing them with the owner, agents should include the plain-language reminder of which generation each refers to whenever context could make the version number confusing.
+
+Do not use informal `5.0` / `5.5` labels as authoritative stored project terminology, although they may be acknowledged conversationally.
+
 ## 3. Conventions intentionally not chosen yet
 
 No convention has yet been approved for:
@@ -73,7 +98,6 @@ No convention has yet been approved for:
 - commit-message format beyond being descriptive;
 - branch naming pattern beyond using focused non-`main` branches for substantial work;
 - dependency-management style;
-- documentation language/style beyond clarity and durable continuity;
 - application architecture pattern.
 
 These must be discussed when they become relevant rather than invented prematurely.
