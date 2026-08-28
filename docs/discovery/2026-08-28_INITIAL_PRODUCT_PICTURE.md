@@ -1,25 +1,27 @@
 # Initial Product Picture — Discovery Input
 
 **Date:** 2026-08-28  
-**Status:** Provisional discovery input — NOT an approved specification  
+**Status:** Historical provisional discovery input — clarified by `2026-08-28_CLARIFICATIONS_01.md`  
 **Source:** Owner ideation during Phase 1 product discovery
 
 ## Purpose of this file
 
-This file preserves the owner's initial picture of the product without converting brainstorming into requirements. Every item below must be discussed, clarified, challenged where useful, and explicitly confirmed before it becomes approved product scope.
+This file preserves the owner's initial picture of the product without converting brainstorming into requirements. It remains useful as historical rationale.
 
-A future chat/agent must treat this file as **discovery material**, not as permission to implement features.
+Confirmed conclusions from the subsequent discussion have been promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md`, and `docs/CONVENTIONS.md`. Where this file differs from those authoritative records, the authoritative records win.
 
-## Owner's current picture
+A future chat/agent must treat this file as **historical discovery material**, not as permission to implement features.
+
+## Owner's initial picture
 
 ### Product language
 
 - User-facing application is intended to be fully in Spanish.
-- Whether this applies identically to a possible Windows companion application should be confirmed when that idea is evaluated.
+- Technical project language was not yet decided at this initial stage; it was later clarified as English for source/technical documentation.
 
 ### Player experience
 
-The owner currently imagines that players could:
+The owner initially imagined that players could:
 
 - see their character sheet;
 - update their character sheet;
@@ -27,70 +29,58 @@ The owner currently imagines that players could:
 - export the character sheet to PDF;
 - use one of several existing character-sheet formats/templates that the owner already has.
 
+Later clarification established that physical printed sheets are preferred and the player app is mainly a digital backup/reference/reprint mechanism.
+
 ### Character change oversight
 
-The owner's goal is for the DM to be able to verify player-made character-sheet changes and detect cheating or unauthorized changes.
+The owner's initial goal was for the DM to be able to verify player-made character-sheet changes and detect cheating or unauthorized changes.
 
-This implies a likely need for some form of change history/audit trail, but the exact behavior is **not decided**. Questions include:
-
-- Does the DM simply inspect history?
-- Should some changes trigger alerts?
-- Should some or all changes require DM approval?
-- What information should an audit entry contain (field, previous value, new value, timestamp, user, reason/comment, etc.)?
-- Can the DM edit/correct a player sheet directly, and if so how is that recorded?
+This originally left open whether changes would require approval. Later clarification established that player changes take effect without pre-approval and the DM instead has audit, correction and reversal powers.
 
 ### Online data
 
-The owner currently expects shared data to be stored online using a free or no-cost hosted database/backend option if practical.
+The owner initially expected shared data to be stored online using a free or no-cost hosted database/backend option if practical.
 
-The specific provider and technology must **not** be chosen during product discovery merely because a free tier exists. It should be evaluated later against the approved design, including authentication, audit history, security, synchronization, backups, limits, maintenance burden, and future cost.
+Later clarification established that the system is intended for small personal use, should normally fit a no-cost tier, and may revisit hosting cost if scope grows. Neon/Postgres was mentioned as a candidate but not selected.
 
 ### DM experience — primarily tablet
 
-The owner currently imagines the DM experience as tablet-first and including:
+The owner initially imagined the DM experience as tablet-first and including:
 
 - access to every character sheet in the campaign;
 - a quick-access view/tab containing important PC statistics so the DM does not need to ask players repeatedly;
 - a battle/initiative tracker showing whose turn it is;
 - convenient access to monster stat blocks during combat, especially when resolving monster/NPC turns.
 
-The exact set of quick-access PC statistics is not yet defined.
+Later clarification added a PC group quick view, an initial quick-stat set, and player-visible initiative with DM-hidden creatures excluded.
 
 ### Accounts and campaigns
 
-The owner currently imagines:
+The owner initially imagined:
 
 - every user has an account;
 - authentication must be reasonably secure for the intended use;
 - a DM creates a campaign;
 - player characters are enrolled/associated with that campaign.
 
-Open questions include account identity, invitations/join codes, multiple campaigns per user, multiple characters per user/campaign, DM/co-DM roles, player permissions, leaving/transferring campaigns, and recovery of account access.
+Later clarification established one user identity with campaign-scoped roles and DM-controlled enrollment direction.
 
 ### Possible Windows desktop application
 
-The owner has introduced a possible Windows desktop companion application.
+The owner initially introduced a possible Windows desktop companion application for campaign management.
 
-Current idea:
-
-- Windows desktop;
-- oriented toward general/basic campaign management;
-- examples mentioned: organizing PCs and assignments.
-
-This is an **idea to evaluate**, not approved platform scope yet. We need to determine whether Windows solves a real workflow better than the tablet/phone app and whether its benefits justify the additional product/maintenance surface.
+Later clarification reframed the real need as a **desktop/laptop-friendly administration surface** for campaign/NPC/monster preparation and entry. Whether that becomes native Windows, web, local web, or another approach remains open.
 
 ### D&D SRD reference
 
-The owner wants direct in-app consultation of the D&D rules reference for both the older fifth-edition rules and the revised 2024-era fifth-edition rules (colloquially referred to in discussion as D&D 5.0 and 5.5).
+The owner initially wanted direct consultation of both D&D fifth-edition SRD generations.
 
-Current official SRD naming should be used during design/implementation discussions:
+Official project terminology was later confirmed as:
 
-- SRD 5.1 corresponds to the earlier fifth-edition rules foundation;
-- SRD 5.2.1 corresponds to the revised 2024-era fifth-edition rules foundation.
+- **SRD 5.1** = earlier/2014-era fifth-edition foundation;
+- **SRD 5.2.1** = revised/2024-era fifth-edition foundation.
 
-The owner wants the app itself to be Spanish-only, so Spanish SRD availability/licensing and how the content is stored, searched, attributed, updated, and separated by rules version must be evaluated carefully.
-
-No implementation approach is approved yet (bundled local data, server-hosted structured content, direct web consultation, import pipeline, etc.).
+Later clarification established that the real desired outcome is quick rules clarification during play, not building a D&D Beyond replacement, automated character builder, or strict rules engine. Campaigns may mix both SRD generations and house rules/homebrew. AI-assisted clarification is only a candidate idea.
 
 ## Discovery behavior explicitly requested by the owner
 
@@ -109,26 +99,22 @@ During Phase 1, the agent must:
 - ask for explicit confirmation before promoting a material idea into approved scope;
 - persist important discussion outcomes and unresolved questions in Git.
 
-## Important design themes already visible
+This behavior is now formally recorded in D-0013.
 
-These are observations for discussion, not decisions:
+## Historical design themes visible from the first picture
 
 1. **Shared authoritative state:** campaign, users, characters and DM visibility imply synchronized shared data.
-2. **Auditability:** anti-cheating oversight likely requires immutable or tamper-resistant change history rather than only the current sheet values.
+2. **Auditability:** anti-cheating oversight requires character change history rather than only latest values.
 3. **Role-aware UX:** player and DM experiences are substantially different even though they operate on shared data.
-4. **Tablet-first DM workflow:** combat and campaign oversight may benefit from information-dense layouts distinct from phone layouts.
-5. **Character data vs PDF layout:** it may be beneficial to treat character data as structured information independent of any single PDF sheet format, then render/export into selected templates.
-6. **Rules-version coexistence:** supporting both SRD generations likely requires explicit version tagging so 5.1 and 5.2.1 content/rules are not mixed silently.
-7. **Cross-platform implications:** a Windows companion could affect later technology choices, but stack selection remains deferred until product/design scope is clear.
+4. **Tablet-first DM workflow:** combat and campaign oversight benefit from information-dense layouts distinct from phone layouts.
+5. **Character data vs PDF layout:** character data should remain independent from any one PDF output template.
+6. **Rules-version coexistence:** official SRD references need source/version identity even though campaigns may mix them.
+7. **Cross-surface administration:** desktop/laptop preparation is a workflow need, but technology remains undecided.
 
-## Questions to work through next
+## Continue from the clarification round
 
-The next discovery conversation should prioritize user workflows and authority rules before technical implementation. In particular:
+Do not restart discovery from the old questions below. Continue from:
 
-- What exactly constitutes a character-sheet change that the DM must be able to audit?
-- Which changes, if any, need DM approval?
-- What are the most important PC statistics for the DM quick view?
-- How should campaign joining/enrollment work from the user's perspective?
-- What does the owner mean by assignments in Windows campaign management?
-- Is the Windows app essential, desirable, or merely an option worth evaluating?
-- What does direct SRD consultation need to feel like: searchable encyclopedia, contextual links from sheets/stat blocks, both, or something else?
+`docs/discovery/2026-08-28_CLARIFICATIONS_01.md`
+
+and the active unresolved questions in `docs/PROJECT_STATE.md`.
