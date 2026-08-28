@@ -14,10 +14,15 @@ Before changing anything, read these files in order:
 4. `docs/PRODUCT.md` — product scope, known requirements, and unresolved questions.
 5. `docs/ROADMAP.md` — development phases and current phase.
 6. `docs/WORKFLOW.md` — how changes are proposed, implemented, tested, documented, and merged.
+7. `docs/ARCHITECTURE.md` — architecture status and rationale when architecture exists.
+8. `docs/TESTING.md` — verification rules and test status expectations.
+9. `MANIFEST.md` — inventory of project-control files and when to update them.
+
+Then read any feature-specific or technical files relevant to the task.
 
 ## Canonical source of truth
 
-- Canonical branch: `main`.
+- Proposed canonical branch: `main` (see D-0007 in `docs/DECISIONS.md`; owner approval is still pending).
 - Repository files, not chat memory, are the continuity source of truth.
 - A future agent must not assume that information remembered from a prior chat is current unless it is also recorded in the repository.
 - Significant product, UX, data, privacy, or architecture decisions must be recorded in `docs/DECISIONS.md`.
@@ -27,4 +32,6 @@ Before changing anything, read these files in order:
 
 The repository is in **Phase 0 — Project Foundation**. No application architecture, technology stack, screens, features, visual design, or game-system-specific behavior has been approved yet.
 
-See `docs/PROJECT_STATE.md` for the current authoritative status.
+The continuity/governance foundation is currently under owner review on branch `foundation/continuity-structure`.
+
+See `docs/PROJECT_STATE.md` for the authoritative current status.
