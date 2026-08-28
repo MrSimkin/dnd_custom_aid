@@ -270,3 +270,114 @@ The agent should:
 - A future agent must not treat a discovery note as implementation authorization merely because the owner mentioned the idea.
 - Discovery discussions should be collaborative and iterative.
 - The repository should preserve both unresolved ideas and the later approved conclusions so project evolution remains understandable.
+
+---
+
+## D-0014 — One user identity; campaign-scoped roles
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+A person has one user account/identity. Player/DM role is associated with campaign participation rather than being a permanent account type.
+
+### Consequences
+
+- The same user may participate differently in different campaigns.
+- Authentication identity should be separated conceptually from game/campaign role and permissions.
+- This foundation also avoids unnecessary coupling to D&D-only account types.
+
+---
+
+## D-0015 — D&D first, future game-system extensibility
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+D&D is the first supported tabletop RPG because it is what the owner currently runs. A more advanced future version may support other game systems.
+
+### Consequences
+
+- Current work does not implement multi-system support merely for hypothetical future use.
+- Shared foundations such as users/campaign membership should avoid unnecessary D&D-only assumptions when a general design is straightforward.
+- D&D-specific data/behavior may still be used where it genuinely belongs.
+
+---
+
+## D-0016 — Player edits are audited, not approval-gated
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+Player character-sheet edits take effect without requiring DM approval first.
+
+The DM must be able to audit player changes and must have the ability to correct or reverse inappropriate/mistaken changes.
+
+### Consequences
+
+- The system requires meaningful character-change history rather than storing only the latest state.
+- Detailed audit semantics (append-only history, reversal entries, retention, comments, etc.) remain to be designed.
+- A current recommendation is that correction/reversal preserve the original historical action rather than deleting it; this detail still needs explicit approval.
+
+---
+
+## D-0017 — Mixed official rules and house rules are allowed
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+A campaign is not required to be exclusively SRD 5.1 or exclusively SRD 5.2.1. The owner's campaigns may mix rules from both generations and may use substantial house rules/homebrew.
+
+Official SRD references must still identify whether they come from SRD 5.1 (earlier/2014-era foundation) or SRD 5.2.1 (revised/2024-era foundation).
+
+### Consequences
+
+- The application must not act as a strict ruleset enforcer.
+- Full guided character creation/legality validation is not part of the current first-version intent.
+- The desired SRD feature is quick rules clarification during play, not a D&D Beyond replacement.
+- AI-assisted clarification is a candidate idea only; any eventual implementation must be evaluated later.
+
+---
+
+## D-0018 — Personal-use scale and no-cost hosting target
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+The system is intended for personal use and a deliberately small foreseeable user/campaign scale.
+
+Shared data should be hosted online, and normal expected use should remain within a no-cost hosted tier where practical. If the scope meaningfully grows later, hosting cost may be reconsidered.
+
+### Consequences
+
+- 'Free forever regardless of scope' is not a requirement.
+- Backend selection is deferred until design requirements are understood.
+- Neon/Postgres is a current candidate mentioned by the owner, not an approved provider.
+
+---
+
+## D-0019 — Desktop-friendly administration is a product need; implementation form is open
+
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Decision owner:** Project owner
+
+Campaign preparation and administration—especially NPC/monster entry and organization—should have a comfortable desktop/laptop-oriented surface.
+
+### Not yet decided
+
+Whether this should be implemented as:
+
+- a native Windows application;
+- a normal web application;
+- a local web interface;
+- another desktop-friendly approach.
+
+### Consequences
+
+- The product requirement is the administration workflow, not 'Windows native' itself.
+- Technical/platform selection must follow design of the administration tasks.
