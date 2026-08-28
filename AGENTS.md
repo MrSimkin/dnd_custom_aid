@@ -2,13 +2,15 @@
 
 This file applies to every human contributor, ChatGPT conversation, coding agent, autonomous agent, or other AI working in this repository.
 
-## 1. Repository authority
+## 1. Repository authority and operative memory
 
-The repository is the project's durable source of truth.
+The repository is the project's durable source of truth **and its operative memory**.
 
 Do not rely on chat memory, hidden context, previous conversations, personal memory, or assumptions to determine the current state of the project. Those may be used only as clues; if they conflict with the repository, the repository wins until the owner explicitly decides otherwise.
 
-The canonical published branch is `main`.
+Any information needed for another chat, AI, agent, or human to continue the project must be written to the repository. Important decisions, conventions, rationale, current work, unresolved questions, verification results, known problems, and next actions must not exist only in chat history.
+
+The canonical accepted branch is `main`.
 
 ## 2. Mandatory read order before work
 
@@ -16,25 +18,28 @@ Before proposing or making changes, read:
 
 1. `README.md`
 2. `AGENTS.md`
-3. `docs/PROJECT_STATE.md`
-4. `docs/DECISIONS.md`
-5. `docs/PRODUCT.md`
-6. `docs/ROADMAP.md`
-7. `docs/WORKFLOW.md`
-8. Any architecture, testing, or feature-specific documents relevant to the task
+3. `MANIFEST.md`
+4. `docs/PROJECT_STATE.md`
+5. `docs/DECISIONS.md`
+6. `docs/PRODUCT.md`
+7. `docs/ROADMAP.md`
+8. `docs/WORKFLOW.md`
+9. Any architecture, testing, convention, or feature-specific documents relevant to the task
 
 Do not start implementation from a stale branch or from remembered context.
 
-## 3. Owner authority and decision boundary
+## 3. Owner authority and working relationship
 
-The project owner makes the final decisions about the product.
+The project owner makes the final decisions about the product and about project conventions.
+
+The owner understands programming concepts but is not a professional software developer and is delegating the heavy technical execution to AI/coding agents. Do not force the owner to perform implementation work that the agent can reasonably perform.
 
 An agent may:
 
-- explain options in plain language;
-- recommend a preferred option and explain trade-offs;
+- explain options and consequences clearly;
+- recommend a preferred option and explain why;
 - implement approved behavior;
-- make routine low-level coding choices required to implement an approved design when they do not materially change product behavior;
+- make routine low-level coding choices required to carry out an approved design, subject to the communication and convention rules below;
 - run tests, diagnose failures, refactor safely, and improve internal code quality;
 - identify missing decisions, contradictions, risks, or ambiguities.
 
@@ -53,7 +58,57 @@ An agent must obtain owner approval before locking in a **significant** decision
 
 When unsure whether a decision is significant, document it as pending and present it to the owner.
 
-## 4. No silent invention
+## 4. Explain technical work; do not silently disappear into implementation
+
+The agent doing the technical heavy lifting must keep the owner informed.
+
+Before or while carrying out meaningful technical work, explain in proportionate detail:
+
+- what is being changed;
+- why it is being changed;
+- what the important technical approach is;
+- what alternatives matter, if any;
+- what consequences or trade-offs the owner should know about.
+
+Do not hide a meaningful technical choice merely because it is implementation-level. The distinction is:
+
+- the agent may execute routine work without asking permission for every line of code;
+- the owner should still understand the approach being taken and why;
+- when a choice establishes a convention or has meaningful future consequences, discuss it with the owner before treating it as settled.
+
+Explanations should respect the owner's programming knowledge: be clear and educational without assuming professional software-engineering experience and without unnecessarily oversimplifying.
+
+## 5. Conventions are owner-reviewed and stored in Git
+
+When a coding, naming, structure, formatting, testing, documentation, branching, or similar convention first becomes relevant and no approved convention already exists:
+
+1. identify the convention choice;
+2. explain the realistic alternatives and practical consequences;
+3. give a recommendation;
+4. ask the owner to approve or modify it;
+5. record the approved convention in the repository before relying on it as durable project truth.
+
+Once an approved convention is recorded, agents should follow it without repeatedly asking the same question. Re-open the discussion only when there is a concrete reason to change the convention.
+
+Routine choices that do not establish a durable convention may be made by the agent, but they must still comply with approved conventions and the communication rule above.
+
+## 6. Design before technology stack
+
+Do not choose or scaffold the application technology stack merely because development could start.
+
+The required order is:
+
+1. understand the product problem and intended users;
+2. explore relevant product and interaction alternatives with the owner;
+3. design the intended behavior and experience with the owner;
+4. record approved product/design decisions and unresolved questions;
+5. only then evaluate technical stack/architecture options against that approved design;
+6. explain those technical options, trade-offs, and recommendation to the owner;
+7. obtain approval before locking in consequential stack/architecture choices.
+
+No Android framework, language, UI toolkit, persistence layer, sync architecture, service, or comparable foundational technology may be treated as selected before this sequence reaches the appropriate decision point.
+
+## 7. No silent invention
 
 Do not silently invent requirements.
 
@@ -66,21 +121,22 @@ Clearly distinguish:
 
 If implementation requires an unknown product behavior, prefer a reversible placeholder or stop at the decision boundary rather than embedding an assumption as fact.
 
-## 5. Change workflow
+## 8. Change workflow
 
 For substantial work:
 
 1. Verify the current state.
-2. Identify applicable approved decisions.
-3. Record any new pending decision before implementation if needed.
-4. Work on a non-canonical branch unless the owner explicitly asks for a direct `main` change.
-5. Implement the smallest coherent change.
-6. Run the relevant checks and tests.
-7. Update documentation and project state in the same change.
-8. Summarize what changed, what was tested, what remains unresolved, and any owner decision needed.
-9. Merge to `main` only after the owner approves the change or has explicitly delegated that category of change.
+2. Identify applicable approved decisions and conventions.
+3. Discuss meaningful alternatives or missing conventions with the owner when required.
+4. Record any new pending decision before implementation if needed.
+5. Work on a non-canonical branch unless the owner explicitly asks for a direct `main` change.
+6. Implement the smallest coherent change.
+7. Run the relevant checks and tests.
+8. Update documentation and operative memory in the same change.
+9. Summarize what changed, why, what was tested, what remains unresolved, and any owner decision needed.
+10. Merge to `main` only after the owner approves the change or has explicitly delegated that category of change.
 
-## 6. Definition of done
+## 9. Definition of done
 
 A change is not complete merely because code was written.
 
@@ -92,30 +148,33 @@ For a change to be considered complete:
 - documentation reflects the new reality;
 - `docs/PROJECT_STATE.md` is current;
 - important new decisions are in `docs/DECISIONS.md`;
+- approved conventions are recorded in the appropriate repository documentation;
 - unresolved items are visible and not hidden in chat history.
 
-## 7. Continuity rule
+## 10. Continuity rule
 
 At the end of every meaningful work session, leave the repository in a state where a new agent can answer these questions without reading the old chat:
 
 - What is this project?
 - What has been decided?
+- Which conventions are approved?
 - What exists now?
 - What is currently being worked on?
+- Why was the current approach chosen?
 - What was last tested?
 - What is broken or uncertain?
 - What decision is needed next?
 - What should be done next?
 
-The primary file for this handoff is `docs/PROJECT_STATE.md`.
+The primary current-state handoff file is `docs/PROJECT_STATE.md`; other authoritative details live in the files identified by `MANIFEST.md`.
 
-## 8. Technical quality
+## 11. Technical quality
 
 Prefer maintainable, readable, testable code over clever code. Keep dependencies justified. Avoid secrets in the repository. Do not commit generated credentials, API keys, signing keys, local machine paths, or personal tokens.
 
 Before adding a dependency or service that materially affects maintenance, privacy, cost, or lock-in, document the choice and obtain approval when required by Section 3.
 
-## 9. Recovery from inconsistency
+## 12. Recovery from inconsistency
 
 If repository documents disagree:
 
@@ -126,6 +185,6 @@ If repository documents disagree:
 5. Ask the owner to resolve material ambiguity.
 6. Record the resolution in the repository.
 
-## 10. Current project stage
+## 13. Current project stage
 
-The project is currently in foundation/discovery. Do not assume an Android framework, language, persistence layer, sync model, game ruleset, UI structure, or feature list until those choices are explicitly approved and recorded.
+The project is currently moving from foundation into product discovery/design. Do not begin Android stack selection or application scaffolding yet. Do not assume a framework, language, persistence layer, sync model, game ruleset, UI structure, or feature list until those choices reach the approved stage defined by the product/design process.
