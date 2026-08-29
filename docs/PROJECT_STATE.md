@@ -3,7 +3,7 @@
 **Last verified:** 2026-08-29  
 **Canonical branch:** `main`  
 **Current working branch:** `discovery/initial-product-picture`  
-**Open review:** PR #2 — `Capture initial product discovery picture without promoting it to requirements`  
+**Open review:** PR #2 — `Capture and refine initial product discovery without premature implementation`  
 **Phase:** Phase 1 — Product Discovery and Design  
 **Status:** Two clarification rounds captured; core character/audit/combat/content direction is substantially clearer, but several data/workflow questions and MVP boundaries remain open
 
