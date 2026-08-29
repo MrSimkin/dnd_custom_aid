@@ -70,19 +70,26 @@ Source code, identifiers, technical repository documentation, architecture/testi
 
 The purpose is to keep the user experience fully accessible to the intended Spanish-speaking users while keeping development aligned with the predominantly English Android/software ecosystem and reference material.
 
-### C-0007 — Official SRD version terminology
+### C-0007 — SRD source provenance and user-facing D&D edition labels
 
 **Status:** Approved  
-**Date:** 2026-08-28
+**Date:** 2026-08-29
 
-Project documentation and technical discussion should refer to the official document versions:
+Technical/project material, data provenance and rules-source identity must use the official document versions:
 
 - **SRD 5.1** — the earlier/2014-era fifth-edition rules foundation;
 - **SRD 5.2.1** — the revised/2024-era fifth-edition rules foundation.
 
-When discussing them with the owner, agents should include the plain-language reminder of which generation each refers to whenever context could make the version number confusing.
+End-user Spanish UI and rules answers should use the familiar generation labels:
 
-Do not use informal `5.0` / `5.5` labels as authoritative stored project terminology, although they may be acknowledged conversationally.
+- **D&D 5e** for the earlier/2014-era generation;
+- **D&D 5.5e** for the revised/2024-era generation.
+
+The user-facing label must not erase source provenance. Internally, the exact SRD document/version remains identifiable for retrieval, attribution, comparison and rules-assistance logic.
+
+In technical discussion with the owner, agents may mention both forms when useful, for example `D&D 5.5e (SRD 5.2.1)`.
+
+Source decisions: D-0017 and D-0023.
 
 ## 3. Conventions intentionally not chosen yet
 
