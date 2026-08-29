@@ -38,8 +38,8 @@ This file inventories the project-control files and explains when each one must 
 
 ### `docs/PRODUCT.md`
 
-**Role:** approved product scope, design/discovery approach, user groups, constraints, and explicitly unresolved product questions.  
-**Update when:** product scope, design direction, or requirements are approved or changed.
+**Role:** approved product scope, MVP, design/discovery direction, user groups, constraints, and explicitly unresolved product questions.  
+**Update when:** product scope, MVP, design direction, or requirements are approved or changed.
 
 ### `docs/ROADMAP.md`
 
@@ -87,7 +87,12 @@ Rules:
 ### `docs/discovery/2026-08-29_CLARIFICATIONS_02.md`
 
 **Role:** second clarification pass covering paper/digital reconciliation, full end-of-session character backup, grouped compensating audit history and bloat concern, ownership/control/co-DM extensibility, notes-style house rules and D&D 5e/5.5e presentation, Quick/Developed NPC examples, complete monster stat blocks, reusable creature library, combat working-state scope/offline behavior, and the remaining re-explanations needed before MVP design.  
-**Status:** mixed confirmed conclusions and explicitly open follow-up questions; confirmed conclusions are promoted to authoritative files where appropriate.
+**Status:** historical mixed confirmed conclusions/open follow-ups; its previously open high-value questions were resolved in Round 3 and promoted into authoritative files.
+
+### `docs/discovery/2026-08-29_CLARIFICATIONS_03.md`
+
+**Role:** third clarification pass closing the major Round 2 questions: PDF export with unsaved edits, initial audit-retention policy, unassigned PC records, stat-block internal granularity/extensibility, prepared vs on-the-fly encounters, account/invitation/recovery and moderation concepts, and the approved first usable release/MVP boundary.  
+**Status:** confirmed owner decisions; conclusions are promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md` and `docs/PROJECT_STATE.md`.
 
 ## `assets/character-sheets/`
 
@@ -124,7 +129,7 @@ Review checklist for substantial changes, including owner decisions, conventions
 
 ## Future application code
 
-No application-code directories are authoritative yet because product/interaction design is not complete and the Android architecture has not been chosen. When the technical foundation is approved and scaffolded, add the major code/build directories to this manifest with a one-line purpose for each.
+No application-code directories are authoritative yet because architecture/technology selection has not been approved. When the technical foundation is approved and scaffolded, add the major code/build directories to this manifest with a one-line purpose for each.
 
 ## Authority rule
 
