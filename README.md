@@ -58,7 +58,9 @@ See D-0011 and `docs/ROADMAP.md`.
 
 The project is in **Phase 1 — Product Discovery and Design**.
 
-Current discovery work is on branch `discovery/initial-product-picture` in PR #2. It includes the initial brainstorming plus a first clarification round covering physical/digital character sheets, audit/correction, campaign roles, mixed D&D rules and house rules, DM tablet/combat needs, the rules-clarification concept, hosted-data scale, and desktop-friendly administration.
+Current discovery work is on branch `discovery/initial-product-picture` in PR #2. Two clarification rounds now define substantially more of the intended product: paper-first/full digital character backup, bounded DM audit/correction, campaign-scoped roles and character ownership/control, mixed D&D 5e/5.5e rules with notes-style house rules, Quick/Developed NPC workflows, complete monster stat blocks and reusable creature administration, and a practical offline-resilient DM combat board that remains separate from persistent character-sheet state.
+
+Several questions still need design work before the MVP and technology stack can be selected, especially PDF save/export semantics, audit retention/bloat, unassigned PC records, stat-block internal granularity and prepared encounter workflow.
 
 No application technology stack has been selected and no application code exists yet.
 
