@@ -13,12 +13,12 @@ Before changing anything, read these files in order:
 3. `docs/PROJECT_STATE.md` — current verified state and next action.
 4. `docs/DECISIONS.md` — significant decisions already made and decisions still pending.
 5. `docs/CONVENTIONS.md` — approved recurring project conventions.
-6. `docs/PRODUCT.md` — current approved product direction and unresolved questions.
+6. `docs/PRODUCT.md` — current approved product direction and MVP.
 7. `docs/ROADMAP.md` — development phases and current phase.
 8. `docs/WORKFLOW.md` — how alternatives are discussed and changes are designed, implemented, tested, documented, reviewed, and merged.
 9. `docs/ARCHITECTURE.md` — architecture status and rationale when architecture work begins.
 10. `docs/TESTING.md` — verification rules and test status expectations.
-11. Relevant `docs/discovery/` notes for the active product-design discussion.
+11. Relevant `docs/discovery/` notes for historical rationale/current design context.
 
 Then read any feature-specific or technical files relevant to the task.
 
@@ -56,11 +56,13 @@ See D-0011 and `docs/ROADMAP.md`.
 
 ## Current status
 
-The project is in **Phase 1 — Product Discovery and Design**.
+The project is in **Phase 1 — Product Discovery and Design**, with the core first-use product baseline now substantially defined.
 
-Current discovery work is on branch `discovery/initial-product-picture` in PR #2. Two clarification rounds now define substantially more of the intended product: paper-first/full digital character backup, bounded DM audit/correction, campaign-scoped roles and character ownership/control, mixed D&D 5e/5.5e rules with notes-style house rules, Quick/Developed NPC workflows, complete monster stat blocks and reusable creature administration, and a practical offline-resilient DM combat board that remains separate from persistent character-sheet state.
+Current discovery work is on branch `discovery/initial-product-picture` in PR #2. Three clarification rounds now establish the paper-first/full digital character-backup workflow, grouped DM audit/correction, campaign-scoped roles and unassigned PCs, account/invitation/moderation direction, mixed broader D&D 5e/5.5e rules direction, SRD-only MVP clarification, Quick/Developed NPC workflows, complete/extensible monster stat blocks, prepared and on-the-fly encounters, offline-resilient DM combat behavior, and the approved MVP boundary.
 
-Several questions still need design work before the MVP and technology stack can be selected, especially PDF save/export semantics, audit retention/bloat, unassigned PC records, stat-block internal granularity and prepared encounter workflow.
+The seven previously highlighted product questions are resolved. `D-0010 — Initial product scope / MVP` is now **Approved**.
+
+The next major project step is to evaluate architecture and technology-stack alternatives against the approved MVP—especially Android phone/tablet behavior, desktop administration, offline combat, synchronization, PDF generation, SRD retrieval/clarification, maintainability and personal-scale/no-cost hosting—and obtain owner approval before implementation.
 
 No application technology stack has been selected and no application code exists yet.
 
