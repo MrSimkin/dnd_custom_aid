@@ -84,6 +84,11 @@ Rules:
 **Role:** first clarification pass: physical-sheet/backup purpose, audit-with-correction model, campaign-scoped roles, future multi-system direction, DM quick views, combat tracker visibility, mixed SRD/house rules, rules-assistant intent, hosted-data scale, desktop administration need, language split, invitation direction and remaining questions.  
 **Status:** mixed confirmed conclusions and explicitly open questions; confirmed conclusions have been promoted to authoritative files where appropriate.
 
+### `docs/discovery/2026-08-29_CLARIFICATIONS_02.md`
+
+**Role:** second clarification pass covering paper/digital reconciliation, full end-of-session character backup, grouped compensating audit history and bloat concern, ownership/control/co-DM extensibility, notes-style house rules and D&D 5e/5.5e presentation, Quick/Developed NPC examples, complete monster stat blocks, reusable creature library, combat working-state scope/offline behavior, and the remaining re-explanations needed before MVP design.  
+**Status:** mixed confirmed conclusions and explicitly open follow-up questions; confirmed conclusions are promoted to authoritative files where appropriate.
+
 ## `assets/character-sheets/`
 
 **Role:** owner-provided character-sheet presentation assets and the owner-side layout change log.
