@@ -25,7 +25,7 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** understand and design what the first useful version should actually do before selecting the technology stack.
 
-**Current status:** Active.
+**Current status:** Active, with the core product/MVP baseline approved after three clarification rounds. The seven previously highlighted product questions are resolved. PR #2 is still open; technical architecture has not yet been selected.
 
 ### Working method
 
@@ -52,6 +52,10 @@ For meaningful product and interaction questions:
 - acceptance criteria for the first release;
 - known unresolved design questions.
 
+### Current milestone
+
+The MVP feature boundary and major workflows are now approved in `docs/PRODUCT.md` and `docs/DECISIONS.md`. Remaining Phase 1 work, if any, should be limited to product details actually required to evaluate technical options or discovered contradictions—not reopening already resolved questions by default.
+
 ### Exit criterion
 
 The owner has approved a coherent product/design baseline that is detailed enough to evaluate technical options without forcing the design to fit an arbitrary technology choice.
@@ -62,18 +66,22 @@ The owner has approved a coherent product/design baseline that is detailed enoug
 
 ## Phase 2 — Technical Options and Foundation
 
-**Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval, then scaffold the chosen Android architecture.
+**Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval, then scaffold the chosen architecture.
 
 ### Step 1 — Evaluate with the owner
 
 Discuss relevant alternatives for matters such as:
 
-- native Android vs any realistic alternative;
-- language/UI toolkit;
+- Android implementation approach, language and UI toolkit;
+- desktop/laptop administration implementation approach;
 - supported Android baseline;
-- persistence/data approach;
-- offline behavior implementation;
-- sync/backend approach if the approved product needs one;
+- persistence/data model;
+- offline DM combat behavior;
+- synchronization/shared-data architecture;
+- authentication/authorization and personal-use threat model;
+- PDF generation/rendering;
+- SRD storage/retrieval/clarification architecture;
+- hosted backend/provider and cost/limits;
 - test architecture;
 - project/module structure and other durable conventions.
 
@@ -87,7 +95,7 @@ Expected outputs after the required choices are approved:
 - recorded coding/project conventions as they become relevant;
 - reproducible local build;
 - automated build/check commands;
-- app skeleton;
+- application skeleton appropriate to the approved surfaces;
 - phone/tablet layout foundation appropriate to the design;
 - testing foundation;
 - dependency and version management;
@@ -96,7 +104,7 @@ Expected outputs after the required choices are approved:
 
 ### Exit criterion
 
-A fresh agent can clone the repository, follow documented commands, build the app, and run baseline tests, and the technical foundation can be traced back to approved product/design needs.
+A fresh agent can clone the repository, follow documented commands, build the application foundation, and run baseline tests, and the technical foundation can be traced back to approved product/design needs.
 
 ---
 
@@ -106,9 +114,11 @@ A fresh agent can clone the repository, follow documented commands, build the ap
 
 The feature itself must be selected from the approved product/design scope.
 
+The combat tracker is currently identified as the most important live-table MVP validation surface, but the exact first vertical slice should be selected after architecture evaluation so it proves the most useful cross-cutting risks rather than being chosen arbitrarily.
+
 ### Exit criterion
 
-A real approved user task works end-to-end on representative phone and tablet configurations, with tests and documented behavior.
+A real approved user task works end-to-end on representative configurations, with tests and documented behavior.
 
 ---
 
