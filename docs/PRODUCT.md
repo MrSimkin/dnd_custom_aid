@@ -1,55 +1,62 @@
 # Product Definition
 
-This document describes the product as it is currently known. It separates approved facts from open questions so future contributors do not convert assumptions into requirements.
+This document describes the currently approved product direction. Discovery notes preserve rationale/history, but confirmed product truth belongs here and in `docs/DECISIONS.md`.
 
-## 1. Approved product facts
+## 1. Product identity
 
-The current product is:
+`dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D.
 
-- an Android application intended for both phones and tablets;
+The product is:
+
+- primarily an Android phone/tablet application;
 - intended for both players and Dungeon Masters;
 - user-facing in Spanish;
-- designed for personal/small-scale use;
-- beginning with D&D because that is the owner's current game, while avoiding unnecessary core-design assumptions that would make future support for another tabletop RPG impossible;
-- complemented by a desktop/laptop-friendly administration surface whose exact implementation form is still open.
+- supported by a desktop/laptop-friendly DM administration surface whose exact implementation form remains open;
+- designed around paper-first tabletop play rather than replacing it;
+- intentionally not a Foundry/VTT, D&D Beyond replacement, generalized campaign-builder or automatic rules-enforcement engine.
 
-The project is an **assistant**, not a replacement for paper play, Foundry/VTTs, D&D Beyond, or a generalized campaign-building platform.
+D&D is the first supported system. Future additional RPG-system support may be considered, so shared foundations should avoid unnecessary D&D-only structural dead ends when a general design is straightforward. This does not mean implementing multi-system support now.
 
-## 2. Approved discovery/design approach
+## 2. Design principle: incremental evolution without premature scope
 
-The project will **design before choosing the technology stack**.
+Product/design work precedes technology-stack selection.
 
-During discovery, owner brainstorming is exploratory until clarified and confirmed. The agent is expected to reorganize ideas, ask questions, identify consequences, recommend alternatives and challenge weak assumptions rather than simply transcribing them.
+The owner prefers incrementally evolvable designs: first-version behavior may be intentionally narrow while the underlying model avoids obvious expensive structural dead ends when doing so does not materially increase current complexity.
 
-The owner strongly prefers incrementally evolvable systems: first-version behavior may be intentionally narrow while the underlying model avoids obvious structural dead ends when doing so does not materially increase current complexity. Extensibility must not be used as an excuse for scope creep.
+Extensibility is a design quality, not permission for scope creep.
 
-See D-0011, D-0013 and D-0026.
+## 3. Primary usage surfaces
 
-## 3. Product purpose and three usage surfaces
+### Player phone/tablet
 
-The product provides a small personal digital assistant around a primarily physical tabletop workflow.
+- digital character-sheet backup/reference;
+- temporary active sheet when the physical copy is unavailable;
+- manual character-sheet editing/reconciliation;
+- PDF regeneration/export;
+- SRD-grounded rules clarification.
 
-Its purpose is to reduce friction in three places:
+### DM tablet
 
-1. **Player phone/tablet:** digital character backup/reference, temporary fallback sheet when paper is unavailable, editing/reconciliation and PDF regeneration.
-2. **DM tablet:** live-session character reference and practical initiative/combat working board.
-3. **Desktop/laptop administration:** comfortable campaign, NPC and monster preparation/data entry. The implementation form (native Windows, normal web app, local web interface, etc.) is not decided.
+- live-session PC/NPC/monster reference;
+- PC-group quick view;
+- initiative/combat tracker;
+- encounter quick/full views;
+- live encounter creation and modification.
+
+### DM desktop/laptop
+
+- basic administration;
+- comfortable manual NPC/monster data entry;
+- saved encounter preparation;
+- minimum account/campaign/PC administration required by the product workflows.
+
+The desktop implementation form—native Windows, normal web application, local web interface or another practical desktop-friendly approach—is not selected yet.
 
 ## 4. Player character workflow — paper first, digital backup
 
-The preferred table workflow uses physical printed character sheets.
+Physical printed character sheets are the preferred normal play surface.
 
-The physical sheet is normally the primary live play surface. The digital character is the durable backup/reference state.
-
-If the physical sheet is unavailable, the player may use the phone/tablet as the active sheet for that session, supported by ordinary pen-and-paper notes, and reconcile the digital character later.
-
-The application must not require players to maintain paper and digital state simultaneously during normal play.
-
-### What the digital backup represents
-
-The intended backup is the **full character sheet as of the latest digital update/end-of-session reconciliation**, not merely a permanent-build skeleton.
-
-It may therefore include transient sheet state such as:
+The digital character is a durable backup/reference copy capable of representing the **full sheet as of the latest digital update/end-of-session reconciliation**, including transient values when useful, such as:
 
 - current HP;
 - remaining spell slots;
@@ -57,375 +64,352 @@ It may therefore include transient sheet state such as:
 - consumables;
 - item charges;
 - ammunition;
-- other sheet values useful for restoring the character exactly enough to continue play.
+- other sheet values useful for reconstruction/continuation.
 
-### Update timing
+The application must not require simultaneous paper + phone bookkeeping during normal play.
 
-End of session is the normal update point, but the system remains flexible:
+If paper is unavailable, the player may temporarily use the phone/tablet as the active sheet, supported by ordinary notes, and reconcile the durable digital record later.
 
-- end-of-session update;
-- between-session update;
-- during-session update when convenient or when the digital sheet is being used.
+End of session is the normal update point, but during-session and between-session updates are allowed. Useful last-update/freshness information may be shown; no mandatory "confirm no changes" ritual is required.
 
-An automatic reminder after a session is desirable. A mandatory "confirm no changes" ritual is not.
+## 5. Character creation/editing and PDF export
 
-Useful recency information such as last update/session may be displayed, but freshness must not become a player-monitoring/enforcement system.
+MVP character creation means **manual character-sheet data entry**, not a guided/legal character builder.
 
-## 5. Character data and PDF output
+Character data is structured information independent from any specific PDF layout. The owner maintains custom sheet layouts in Adobe InDesign; existing PDFs are not fillable/editable PDFs.
 
-Character data is structured information independent from any one PDF layout.
+PDF export supports at least:
 
-The owner already has multiple custom character-sheet designs created in Adobe InDesign. Existing PDF exports are not fillable/editable PDFs.
+1. permanent/baseline-only output;
+2. full latest digital-sheet-state output including transient values where stored.
 
-The PDF requirement supports:
+### Saved state vs unsaved edits
 
-- printable backup/recovery;
-- regeneration of a lost physical sheet;
-- multiple owner-provided layouts over time;
-- at least two export intentions:
-  1. permanent/baseline data only;
-  2. full latest stored sheet state, including transient values such as current HP when present.
+`Save` and `Export` are separate operations.
 
-PDF template files belong under `assets/character-sheets/templates/`.
+Normal export uses the latest fully saved character state. If unsaved edits exist and the user starts an export, the application must warn the user that there are unsaved changes and ask whether to export anyway.
 
-If implementation reveals that a template itself needs a layout change, the required owner-side Adobe InDesign change must be recorded in `assets/character-sheets/CHANGE_REQUESTS.md` and explained to the owner.
+If the user continues, the PDF may use the currently edited/unsaved values. This does **not** save or commit them and does not create audit/history entries by itself.
 
-### Open PDF/save question
+If the user cancels, editing continues normally.
 
-The exact save/export atomicity is not yet decided. Before implementation, clarify whether PDF export reads a fully committed character update/change set only, or whether partially edited current database state can ever become printable.
+Committed multi-field character updates should be atomic/grouped change sets.
 
-## 6. Character changes and DM oversight
+PDF template files belong under `assets/character-sheets/templates/`. If implementation reveals that a template needs an owner-side layout change, it must be recorded in `assets/character-sheets/CHANGE_REQUESTS.md` and explained to the owner.
 
-Player changes take effect without DM pre-approval.
+## 6. Character changes, audit and correction
+
+Player edits take effect without DM pre-approval.
 
 The DM must be able to:
 
-- audit mechanical/rules-relevant player changes;
-- understand grouped changes rather than inspect a flood of database-field logs;
+- audit mechanical/rules-relevant changes;
+- understand related edits as grouped human-readable change sets rather than database-field noise;
 - directly correct a character;
-- reverse/undo an inappropriate or mistaken change.
+- reverse/undo inappropriate or mistaken changes.
 
-Corrections and undo use compensating history: the original change is not silently erased; the correction creates a new history entry/change set.
+Corrections and undo use compensating history: an earlier change is not silently erased; a later action restores/corrects state while preserving the original history.
 
-First-version audit visibility is DM-only.
+First-version audit visibility is DM-only. DM correction reasons are optional.
 
-The data model should not unnecessarily block a later UX where players see their own change history and the DM can also maintain private notes.
+### Retention policy
 
-DM correction/reversal reasons are optional.
+For now, retain the complete grouped mechanical change history. Do not prematurely delete, summarize, compress or archive history at the expected personal-use scale.
 
-### Open audit-retention question
+Actual audit growth should remain measurable/observable. Architecture should allow later retention, summarization, archival or compression through normal evolution if real measurements show a problem, without requiring speculative enterprise-grade retention machinery now.
 
-The owner explicitly wants to avoid history/log storage bloat. The retention/archival strategy is not yet approved and should be chosen using realistic personal-scale volume estimates rather than enterprise audit assumptions.
+## 7. Accounts, campaigns, membership and characters
 
-## 7. Accounts, campaigns, characters and roles
+Every person has one persistent user account/identity. Player/DM roles are campaign-scoped rather than permanent account types.
 
-Every user has one account/identity.
-
-Roles are campaign-specific rather than permanent account types. A person may be a player in one campaign and a DM in another.
-
-A user/player may have multiple PCs in the same campaign.
-
-### Ownership vs control
+A user may own/control multiple PCs in one campaign.
 
 Character ownership and current control are distinct:
 
-- temporary control may be reassigned without changing ownership;
-- the DM may temporarily transfer control;
-- a player may explicitly give/transfer a character permanently to another user;
-- the DM may duplicate a sheet/character when that is the practical workflow.
+- temporary control changes do not change ownership;
+- a DM may temporarily reassign control;
+- a player may explicitly transfer/give a character permanently to another user;
+- the DM may duplicate a character where useful.
 
-Inactive, dead and retired PCs remain preserved in the campaign.
+Inactive, dead and retired PCs remain preserved.
 
-### DM multiplicity
+A **PC-style character may exist without any current player account assigned**. Examples include pregenerated guest PCs, spare/replacement PCs, former-player characters and characters temporarily run by the DM. Character existence therefore must not depend on current player assignment.
 
-First version supports exactly one active DM per campaign.
+First version supports one active DM per campaign. The underlying role/membership model should not make future co-DM support unnecessarily difficult.
 
-The underlying membership/role model should avoid making future co-DM support unnecessarily difficult, but future co-DM permissions are not being designed now.
+### Invitations and recovery
 
-### Campaign enrollment
+First-version campaign enrollment is DM-controlled.
 
-First-version enrollment remains DM-controlled through invitation mechanisms such as code, email and/or QR. Exact invitation/recovery/membership flows remain open.
+Core direction:
 
-### Open ownership question
+- revocable invitation code/link;
+- QR may conveniently represent/share that same invitation;
+- email invitation may be added as convenience but is not required for the core flow;
+- standard email-based account/password recovery;
+- password recovery must not lose campaign membership/data;
+- DM may revoke/regenerate invitations;
+- no public campaign discovery or elaborate approval queue in MVP.
 
-Still decide whether a PC-style character record may exist in a campaign before/without any associated player account, such as a pregenerated guest PC or former player character temporarily run by the DM.
+### Moderation/control actions
 
-## 8. Future game-system scope
+- **Freeze PC:** preserve the character but prevent normal player use/editing until unfrozen; DM may still inspect/administer it.
+- **Kick user:** remove the user from the campaign while allowing later re-entry through a valid invitation; their characters remain preserved and may become unassigned.
+- **Ban player:** remove the user and prevent that account from rejoining that campaign until the ban is lifted; data remains preserved.
+- **Freeze account:** application-wide temporary account disable while preserving data.
 
-D&D is the initial supported game because it is what the owner currently runs.
+Campaign DMs control campaign-level actions such as PC freeze, kick and campaign ban. Application-wide account freeze belongs to application/system administration, not an ordinary campaign DM, because the same account may participate elsewhere.
 
-Future support for additional tabletop RPG systems may be added in a more advanced version. Current development does **not** implement multi-system support now, but shared user/campaign foundations should avoid needless D&D-only coupling when a general design is straightforward.
+These controls are non-destructive and reversible where appropriate.
 
-## 9. D&D rules model and source terminology
+## 8. Campaign count in MVP
 
-The owner's campaigns may mix rules from both official SRD generations and may use substantial house rules/homebrew.
+The MVP supports **one active campaign** in its product/UI workflow.
 
-The application must not require one monolithic rules generation and must not act as a strict legality/rules enforcement engine.
+This is a first-version restriction, not a structural assumption that the data model can only ever represent one campaign. Future multiple-campaign support should be addable incrementally without expensive foundational redesign.
 
-Internal source/provenance terminology:
+## 9. D&D rules sources and terminology
+
+Campaigns in the broader product direction may mix both official SRD generations and house rules.
+
+Internal/source terminology:
 
 - **SRD 5.1** — earlier/2014-era fifth-edition foundation;
 - **SRD 5.2.1** — revised/2024-era fifth-edition foundation.
 
-User-facing Spanish presentation should use the familiar edition labels:
+User-facing Spanish presentation uses:
 
 - **D&D 5e** for the earlier/2014-era generation;
 - **D&D 5.5e** for the revised/2024-era generation.
 
-Internally, the exact SRD source/version must still remain identifiable for retrieval, attribution and answer provenance.
+Source provenance must remain identifiable internally.
 
-## 10. House rules and rules clarification
+## 10. Rules clarification
 
-### House-rule storage
+The desired experience is quick natural-language rules clarification during play, not a rules engine or D&D Beyond replacement.
 
-The owner's current house rules are not highly structured.
+### MVP rule scope
 
-The current product direction is therefore **notes-style rules**, not a machine-readable rule engine and not mandatory rich categorization.
+Rules clarification is part of the MVP for both players and DM.
 
-A rule may be:
+For MVP it is **official SRD only**. A user should be able to ask a natural-language question in Spanish and receive a Spanish answer grounded only in the supported official SRD corpus, with the relevant source/version identifiable.
 
-- campaign-specific; or
-- from a reusable personal rule collection;
+This specifies the product outcome, not the implementation. AI provider/model, retrieval approach and architecture remain deferred to technology evaluation.
 
-but its scope/source must be identifiable. The reusable library is useful, but must be added incrementally rather than becoming a large first-version rules-management subsystem.
+### Broader post-MVP direction
 
-A house-rule note may identify that it overrides/modifies an official rule, ideally with assistance to find/check the relevant official source.
+House rules may later be stored as notes-style records rather than a machine-readable rules engine. A rule may be campaign-specific or reusable, with identifiable source/scope. Only the DM creates/edits campaign house rules.
 
-Only the DM creates/edits campaign house rules.
+House-rule-aware clarification and reusable house-rule libraries are outside MVP.
 
-Players do not require a browsable house-rule library.
+## 11. DM tablet quick/full views
 
-### Rules clarification experience
+The DM tablet surface needs quick and full access to campaign entities.
 
-The user-facing goal is quick **"help me clarify this"** assistance during play.
+Quick views include:
 
-When relevant, an answer may transparently distinguish:
+- individual PC;
+- PC group;
+- NPC;
+- monster;
+- encounter.
 
-- what D&D 5e / SRD 5.1 says;
-- what D&D 5.5e / SRD 5.2.1 says;
-- what the campaign rule says;
-- which rule applies in that campaign.
+Full views include:
 
-A separate temporary-ruling workflow is outside current scope.
+- full PC sheet;
+- full NPC dossier/stat information as applicable;
+- full monster stat block;
+- full encounter details.
 
-AI-assisted clarification remains a possible implementation idea, not an approved provider/model/architecture decision. If AI is eventually used, it should be grounded in authoritative retrieved source text rather than model memory and should identify source/version limitations.
+Initial PC quick-reference candidates include:
 
-Generalized homebrew content management for spells/items/classes/etc. is outside the current project scope unless separately approved.
-
-## 11. Character creation
-
-Full guided character creation/building is **not part of the current first-version intent**.
-
-It may be reconsidered later, but should not drive the current design.
-
-## 12. DM tablet workflow — approved starting design
-
-Tablet is the primary live-session DM surface.
-
-The DM needs:
-
-- access to every campaign character sheet;
-- a PC group quick view;
-- quick access to the currently relevant/selected PC;
-- an initiative/combat tracker;
-- quick access to NPC/monster stat blocks during their turns.
-
-Initial PC quick-view information includes:
-
-- Armor Class (AC);
+- Armor Class;
 - saving throws;
 - proficiency bonus;
 - spell save DC;
-- basic/primary attack bonus or equivalent attack summary;
+- primary/basic attack summary;
 - ability scores;
 - passive Perception.
 
-During combat, a focused active-PC view should include at least AC, current HP and saving throws.
+During combat, focused PC reference should include at least AC, current HP and saving throws. This quick-view design is intentionally expected to evolve through real-table use.
 
-This quick-view design is intentionally expected to evolve through real table use.
+## 12. Combat tracker — practical DM board, not VTT
 
-## 13. Combat tracker — practical board, not VTT
+The combat tracker is the central live-table MVP validation surface.
 
-The combat feature is a practical DM working board.
+### Player-visible combat information
 
-### Player view
-
-Players see:
+Players may see:
 
 - visible initiative order;
-- the currently active participant;
+- current active participant;
 - visible/public conditions.
 
-DM-hidden creatures do not appear.
+DM-hidden participants do not appear.
 
-### DM view and tracked state
+### DM working state
 
-The DM controls encounter/turn state.
+For PCs, current HP tracking by the DM is optional/not forced.
 
-For PCs:
+For NPCs/monsters, the live encounter may track:
 
-- current HP may be tracked by the DM, but it is optional/not forced;
-- fast PC reference remains available.
-
-For NPCs/monsters:
-
-- full stat block is available;
 - current HP;
 - temporary HP;
 - conditions;
 - concentration;
-- defeated/removed status;
-- short working notes where useful.
+- defeated/removed state;
+- short working notes.
 
-The DM must be able to manually override/adjust monster HP during play without the application resisting the change.
+The DM may manually override/adjust monster HP during play.
 
-### Group initiative
+### Initiative grouping
 
-Same-group creatures normally share one initiative position while each member retains individual HP/status.
+Same-group creatures normally share one initiative position while retaining individual HP/status. A creature may be split from the group into an individual initiative position when needed.
 
-The DM may exceptionally split one creature out and give it an individual initiative position.
+### Persistence/offline behavior
 
-### Persistence and offline behavior
-
-Active encounter state must survive:
+Active combat must survive:
 
 - app closure;
 - tablet restart;
 - Internet loss;
 - pausing until a later session.
 
-The DM tracker is authoritative. During Internet loss the DM continues locally; player synchronization may pause and recover later.
+The DM tracker remains authoritative. During Internet loss the DM continues locally; player synchronization may pause and recover later.
 
-### Separation from durable character sheets
-
-Combat working state does not automatically mutate the persistent player character sheet. Players later reconcile lasting/end-of-session changes.
+Combat working state does not automatically mutate persistent player character sheets. Players reconcile lasting/end-of-session character changes separately.
 
 ### Explicit first-scope exclusions
 
-Do not currently build:
-
 - death-save tracking;
-- player spell-slot/class-resource tracking;
-- automatic attack/damage calculation;
+- forced tracking of player spell slots/class resources;
+- automatic attack/damage resolution;
 - automatic rules enforcement;
-- movement/position tracking;
+- movement/position/VTT tracking;
 - automatic persistent inventory/resource consumption;
 - combat-history analytics/logging.
 
-## 14. NPC and monster administration
+## 13. NPC and monster administration
 
-### NPC types used by the owner
+The owner's NPC workflow distinguishes:
 
-The owner's useful distinction is:
+1. **Quick NPC** — compact but meaningful;
+2. **Developed NPC** — richer dossier and optionally combat-capable mechanical information.
 
-1. **Quick NPC**;
-2. **Developed NPC**.
+Creature/monster records must support presentation of a complete current D&D 5.5e Monster Manual-style stat block rather than a deliberately reduced summary.
 
-A Quick NPC is compact but meaningful, preferably supported by a desktop/web generator/creator. It is not merely a minimal name-and-note record.
+Useful search/filter directions include name, CR, type, alignment and environment.
 
-The supplied Quick NPC reference contains categories such as description, personality traits, ability scores, relationships, alignment tendencies and a plot hook.
+Broader desired capabilities include a reusable personal NPC/creature library, duplicate/modify variants, campaign reuse/copy/reference and official SRD starting templates where legally/technically practical.
 
-A Developed NPC may combine a rich narrative/campaign dossier with a combat-capable stat block. The supplied reference includes physical description, short/rich summaries, attitude, voice, apparent/real nature, motivation, DM secret, party relationship/use, access/scene/pressure/adventure-link information, visual guidance and a substantial mechanical block.
+### Stat-block internal granularity
 
-### Monster/stat-block quality
+Traits, actions and similar elements are first-class structured objects, but MVP does **not** decompose every mechanic into atomic rules-engine fields.
 
-Creature/monster records must be capable of presenting a complete current D&D 5.5e Monster Manual-style stat block rather than an intentionally reduced summary.
+Stable/useful identity such as name and category/type should be structured, while the complete mechanical description may remain formatted/rich text initially.
 
-The supplied custom-monster example follows the expected broad shape: identity/type/alignment, AC, HP, speed, abilities, saves, resistances/immunities, senses, languages, challenge, descriptive text, traits and actions.
+The data/architecture boundaries should allow deeper structured fields—attack bonus, reach, damage components, save DC, recharge, targets, etc.—to be added later through normal incremental migrations without a fundamental rewrite of monsters, encounters or combat tracking.
 
-### Reusable library and creation workflow
+Do not build a speculative full rules engine for this future possibility.
 
-Desired capabilities include:
+## 14. Encounters
 
-- personal reusable NPC/creature library;
-- reuse/reference/copy into campaigns as appropriate;
-- duplicate-and-modify variants;
-- official SRD monsters as starting templates where legally/technically possible;
-- desktop/web monster creator/generator assistant;
-- manual entry;
-- structured import;
-- paste/parse workflows over time.
+A saved encounter is an optional reusable preparation/template, not the live combat state itself and not a prerequisite for combat.
 
-These do not all need to ship in one increment.
+### Prepared flow
 
-Explicitly useful search/filter fields:
+1. DM creates/saves an encounter composition.
+2. Starting/loading it creates a **separate live encounter copy**.
+3. Changes to the live copy do not automatically modify the saved template.
 
-- name;
-- CR;
-- type;
-- alignment;
-- environment.
+The DM may freely add, remove, duplicate, replace or modify creatures/NPCs in the live encounter **before combat starts or at any point during combat**.
 
-### Open stat-block data question
+### On-the-fly flow
 
-Still decide whether attacks/traits/actions need dedicated structured subfields internally or may initially be stored as well-formatted rich-text blocks inside an otherwise structured complete stat block.
+The DM may create a new live encounter directly from scratch without a saved template and add/change participants as play develops.
 
-This is an internal data/editing question, not permission to present an incomplete stat block.
+The live encounter/combat tracker is therefore the core runtime concept. Prepared encounters are a convenient way to populate it, not a separate combat system.
 
-## 15. Encounter preparation — promising, not yet fully designed
+## 15. Desktop/laptop MVP administration
 
-The owner often prepares encounters in advance, but also improvises and may modify monsters after combat starts.
+The first desktop administration experience should prioritize functional data entry over polish.
 
-A saved composition such as "4 goblins + 1 bugbear" that can populate the live combat tracker sounds useful, but the workflow needs deeper discussion before it becomes a detailed requirement.
+MVP includes:
 
-Any future design must allow easy post-launch add/remove/change and should not assume encounters are immutable plans.
+- basic administration;
+- manual monster creation/data entry;
+- manual NPC creation/data entry;
+- saved encounter creation/editing;
+- minimum account/campaign/PC administration required by the approved workflows.
 
-## 16. Hosted/shared data
+Sophisticated NPC/monster generators, AI creature creation, advanced structured import/paste parsing and similar tooling are later increments unless a limited capability proves trivial during implementation.
 
-Shared campaign data should be hosted online.
+## 16. Shared/hosted data
 
-For the intended personal/small-scale use, the design should aim to remain comfortably inside a no-cost hosted tier where practical. If scope grows meaningfully later, hosting cost can be reconsidered.
+Shared campaign data should be hosted online and should normally fit a no-cost hosted tier at the intended personal scale where practical.
 
-Neon/Postgres remains a candidate mentioned by the owner, not an approved backend/provider.
+No provider is selected. Neon/Postgres remains only a candidate mentioned during discovery.
 
-Provider evaluation must later consider:
+Architecture evaluation must consider authentication/authorization, synchronization, offline DM combat continuation, backups/recovery, service limits, maintenance burden, cost/lock-in, PDF generation and SRD retrieval/clarification.
 
-- authentication;
-- authorization/security;
-- bounded audit/history needs;
-- synchronization/realtime behavior;
-- local/offline DM combat behavior;
-- backup/recovery;
-- service limits and idle behavior;
-- maintenance burden;
-- future cost/lock-in.
+## 17. Approved MVP boundary
 
-## 17. Desktop/laptop administration
+### Player
 
-Campaign preparation, NPC/monster entry, organization and generator/creator workflows need a comfortable desktop/laptop-oriented surface.
+- manually create/view/edit PC character sheets;
+- PDF export;
+- SRD-only natural-language rules clarification in Spanish with identifiable official source/version.
 
-What is **not** decided is whether that surface should be:
+### DM tablet/live session
 
-- a native Windows client;
-- a normal web application;
-- a local-only web interface;
-- another practical desktop-friendly approach.
+- combat tracker;
+- quick/full PC, PC-group, NPC, monster and encounter views;
+- prepared encounter → independent live encounter copy;
+- fully on-the-fly live encounters;
+- free live add/remove/modify behavior within the practical combat-board scope.
 
-Technology choice must follow workflow design.
+### DM desktop/laptop
 
-## 18. Cross-cutting state model
+- basic administration;
+- manual monster data entry;
+- manual NPC data entry;
+- saved encounter creation/editing;
+- minimum account/campaign/PC administration.
 
-The current design is usefully organized into three concepts:
+### Supporting MVP functionality
 
-1. **Durable campaign/character content** — character sheets, ownership/membership, house-rule notes, reusable NPC/creature data.
-2. **Bounded audit/history** — grouped mechanical character changes plus compensating corrections/reversals; retention policy still pending.
-3. **Live-session working state** — initiative, active turn, monster HP, conditions and similar DM scratchpad state, persisted for crash/offline/session continuation but conceptually separate from durable character sheets.
+- account/login/recovery;
+- campaign membership/invitations and minimum moderation;
+- persistence/shared data;
+- permissions/ownership/control relationships;
+- local/offline combat persistence;
+- synchronization required for DM/player shared views.
 
-This is a product/data-organizing principle, not a requirement for enterprise event sourcing or exhaustive logging.
+### Explicitly outside MVP
 
-## 19. Important unresolved design questions
+- guided/legal character builder;
+- house-rule-aware rules clarification/reusable house-rule library;
+- sophisticated NPC/monster generator;
+- AI creature creation;
+- advanced import/paste parsing;
+- multiple active campaigns in first-version UI/workflow;
+- co-DMs;
+- combat-history analytics;
+- automated combat resolution;
+- automated rules enforcement;
+- automatic combat-to-character-sheet mutation;
+- speculative sophisticated audit-retention machinery;
+- encounter balancing/CR automation;
+- additional RPG systems.
 
-Current high-priority questions are:
+## 18. Current remaining product/technical work
 
-1. **PDF/export save semantics:** what exact committed state can be exported while edits are in progress?
-2. **Audit retention/bloat:** how much grouped mechanical history is retained, summarized or archived?
-3. **Unassigned PC records:** may a PC-style character exist in a campaign without a current player account?
-4. **Stat-block internal granularity:** structured action/trait objects vs rich-text action/trait blocks.
-5. **Prepared encounter workflow:** how should saved encounter compositions launch into a flexible live tracker?
-6. **Account/invitation/recovery details:** exact personal-use flows and threat model.
-7. **MVP boundary:** which approved capabilities are first usable release vs later increments?
-8. **Technology stack/architecture:** intentionally deferred until the above product design is sufficiently coherent.
+The seven high-value product questions from Round 2 are resolved.
 
-## 20. Discovery source material
+No application technology stack or architecture is selected yet. The next major step is to evaluate architecture/technology alternatives against the approved MVP and constraints, including Android phone/tablet behavior, desktop administration, offline-resilient combat, synchronization, PDF generation, SRD retrieval/clarification, maintainability, personal-scale/no-cost hosting and future incremental extensibility.
 
-Detailed exploratory history lives under `docs/discovery/`. Those files preserve rationale, examples and unresolved thinking but do not override approved statements in this file or `docs/DECISIONS.md`.
+Consequential architecture/stack choices remain owner-controlled and must be approved before implementation begins.
+
+## 19. Discovery source material
+
+Detailed exploratory history lives under `docs/discovery/`, including `2026-08-29_CLARIFICATIONS_03.md` for the final Round 3 decisions that closed the MVP/product-question cycle. Discovery files preserve rationale and examples but do not override this approved product definition or `docs/DECISIONS.md`.
