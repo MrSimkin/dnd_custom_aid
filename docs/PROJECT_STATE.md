@@ -5,133 +5,215 @@
 **Current working branch:** `discovery/initial-product-picture`  
 **Open review:** PR #2 — `Capture and refine initial product discovery without premature implementation`  
 **Phase:** Phase 1 — Product Discovery and Design  
-**Status:** Two clarification rounds captured; core character/audit/combat/content direction is substantially clearer, but several data/workflow questions and MVP boundaries remain open
+**Status:** Three clarification rounds captured; the seven previously highlighted product questions are resolved and the MVP boundary is approved. Technology/architecture evaluation is now the next major step; no application code exists yet.
 
 ## 1. Project in one paragraph
 
-`dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D. The product centers on a paper-first player workflow backed by a full digital character copy, a DM tablet live-session/combat surface, and a desktop-friendly NPC/monster administration surface. It is explicitly not intended to replace Foundry/VTTs, D&D Beyond or normal tabletop play. Character audit/correction is practical and bounded rather than anti-cheat-focused. Live combat state is kept conceptually separate from durable character-sheet data. User-facing product content is Spanish; technical project material is English. Git is the operative memory and product/interaction design still precedes stack selection.
+`dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D. It centers on a paper-first player workflow backed by a full digital character copy, a DM tablet live-session/combat surface, and a desktop-friendly preparation/administration surface. It is explicitly not intended to replace Foundry/VTTs, D&D Beyond or normal tabletop play. User-facing product content is Spanish; technical repository material is English. Git is the operative memory. Product behavior is now sufficiently defined to begin evaluating architecture/technology alternatives, but consequential stack choices remain owner-controlled and implementation must not begin from an arbitrary unapproved stack.
 
 ## 2. What exists now
 
-There is still no application code or selected technology stack.
+There is still no application code and no selected technology stack.
 
-The active discovery branch now contains:
+The active discovery branch contains:
 
-- the approved governance/continuity foundation from PR #1;
+- approved governance/continuity foundation from PR #1;
 - initial product brainstorming in `docs/discovery/2026-08-28_INITIAL_PRODUCT_PICTURE.md`;
-- first clarification round in `docs/discovery/2026-08-28_CLARIFICATIONS_01.md`;
-- second clarification round in `docs/discovery/2026-08-29_CLARIFICATIONS_02.md`;
-- consolidated approved product direction in `docs/PRODUCT.md`;
-- major confirmed Phase 1 decisions through D-0026 in `docs/DECISIONS.md`;
-- approved language and SRD/user-facing D&D terminology conventions in `docs/CONVENTIONS.md`;
-- reserved PDF template location at `assets/character-sheets/templates/`;
-- `assets/character-sheets/CHANGE_REQUESTS.md` for owner-side Adobe InDesign changes discovered later.
+- clarification Round 1 in `docs/discovery/2026-08-28_CLARIFICATIONS_01.md`;
+- clarification Round 2 in `docs/discovery/2026-08-29_CLARIFICATIONS_02.md`;
+- clarification Round 3 in `docs/discovery/2026-08-29_CLARIFICATIONS_03.md`;
+- consolidated approved product direction and MVP in `docs/PRODUCT.md`;
+- significant product decisions in `docs/DECISIONS.md`;
+- approved conventions in `docs/CONVENTIONS.md`;
+- PDF template location at `assets/character-sheets/templates/`;
+- owner-side InDesign change log at `assets/character-sheets/CHANGE_REQUESTS.md`.
 
-Three owner-provided DOCX examples were also reviewed during Round 2 and their relevant design characteristics were captured in the discovery/product documents:
+Three owner-provided DOCX examples were reviewed during Round 2 and their relevant design characteristics were captured in repository documentation:
 
 - Quick NPC example;
 - Developed NPC example;
 - custom monster example.
 
-The binary DOCX files themselves are conversation attachments, not repository assets at this time.
+The DOCX binaries themselves remain conversation attachments rather than repository assets.
 
-## 3. Major approved product direction
+## 3. Approved MVP boundary
 
-Current confirmed direction includes:
+### Player
 
-- Android phone/tablet remains the main application target.
-- Desktop/laptop-friendly administration is also a real workflow need; native Windows vs web/local-web remains open.
-- The product is an assistant, not a VTT/D&D Beyond replacement.
-- Physical printed character sheets remain the preferred normal play surface.
-- The digital character is a backup/reference copy capable of holding full end-of-session sheet state, including transient values such as current HP/resources where useful.
-- A phone/tablet may temporarily become the player's active sheet if paper is unavailable.
-- Character updates are flexible; end-of-session is normal, but during/between-session updates are allowed. No mandatory "confirm no changes" ritual.
-- PDF output should support both baseline/permanent-data and full-latest-sheet-state intentions; exact save/export atomicity remains open.
-- Player edits take effect without DM pre-approval.
-- Character audit uses grouped mechanical change sets and compensating correction/reversal history.
-- Audit is DM-only in v1; correction reasons are optional; history retention/bloat strategy remains open.
-- One user identity can have different roles by campaign.
-- One player may have multiple PCs in a campaign.
-- Character ownership is distinct from temporary control; explicit permanent transfer is possible.
+- manually create/view/edit PC character sheets;
+- export character sheets to PDF;
+- use SRD-only natural-language rules clarification in Spanish with identifiable official source/version.
+
+Manual PC creation means sheet-style data entry, not a guided/legal character builder.
+
+### DM — tablet/live session
+
+- combat tracker;
+- quick view of individual PC, PC group, NPC, monster and encounter;
+- full view of PC sheet, NPC information, monster stat block and encounter;
+- create live encounters completely on the fly;
+- load a saved encounter into an independent live encounter copy;
+- freely add/remove/duplicate/replace/modify live participants before or during combat.
+
+### DM — desktop/laptop
+
+- basic administration;
+- manual monster data entry/creation;
+- manual NPC data entry/creation;
+- saved encounter creation/editing;
+- minimum account/campaign/PC administration required by the approved workflows.
+
+The initial desktop administration surface should prioritize functional data entry over polish.
+
+### MVP campaign restriction
+
+- one active campaign in first-version product/UI behavior;
+- this must not be encoded as an expensive structural dead end for future multiple-campaign support.
+
+### Supporting functionality required by MVP
+
+- account/login/recovery;
+- campaign membership/invitations and minimum moderation;
+- persistence/shared data;
+- ownership/control/permission relationships;
+- local/offline combat persistence;
+- synchronization needed for DM/player shared views.
+
+## 4. Confirmed Round 3 decisions
+
+### PDF/export behavior
+
+- normal export uses latest saved character state;
+- if unsaved edits exist, warn the user and ask whether to export anyway;
+- if the user continues, current unsaved values may be used for that PDF;
+- exporting unsaved values does not save/commit them and does not create audit entries;
+- `Save` and `Export` remain separate operations.
+
+### Audit retention
+
+- keep complete grouped mechanical change history initially;
+- do not prematurely build deletion/summarization/archive machinery;
+- keep actual growth observable/measurable;
+- architecture should allow later retention/archive evolution if real measurements justify it.
+
+### Unassigned PCs
+
+- PC-style characters may exist without a current player account assigned;
+- assignment/control is optional and may change without deleting the character.
+
+### Stat-block granularity
+
+- traits/actions are first-class structured objects;
+- v1 keeps complete mechanics primarily as formatted/rich descriptions rather than a full atomic rules engine;
+- deeper structured fields must be addable later through normal migrations without fundamental monster/encounter/combat redesign.
+
+### Encounter model
+
+- saved encounter = reusable preparation/template;
+- starting it creates a separate independent live encounter copy;
+- live copies may be freely changed before/during combat without automatically modifying the saved template;
+- live encounters may also be created entirely from scratch/on the fly;
+- the live encounter/combat tracker is the core runtime model.
+
+### Account/membership/moderation direction
+
+- one persistent user identity per person;
+- DM-controlled revocable invitation code/link as core campaign invitation;
+- QR may represent/share it; email invitation is optional convenience;
+- standard email-based account/password recovery;
+- campaign membership/data survives password recovery;
+- DM may revoke/regenerate invitations;
+- no public campaign discovery or elaborate approval queue in MVP;
+- **Freeze PC:** reversible campaign-level character restriction while preserving data;
+- **Kick user:** remove from campaign but allow later valid re-entry; characters remain preserved/unassigned as needed;
+- **Ban player:** prevent that account from rejoining the campaign until lifted; data remains preserved;
+- **Freeze account:** application-wide temporary disable controlled by application/system administration, not an ordinary campaign DM.
+
+## 5. Other major approved direction still in force
+
+- Android phone/tablet is the main application target.
+- Desktop/laptop administration is a real workflow need; native Windows vs web/local-web remains open.
+- Physical character sheets remain preferred for normal play.
+- Digital characters are full backup/reference copies and may contain transient end-of-session state.
+- Player edits are not DM approval-gated.
+- Audit uses grouped mechanical change sets and compensating correction/reversal history.
+- One user identity may have different campaign-scoped roles.
+- One player may have multiple PCs in one campaign.
+- Character ownership and temporary control are distinct.
 - Inactive/dead/retired PCs remain preserved.
-- First version has one active DM per campaign, but the model should not unnecessarily block future co-DMs.
-- D&D is the initial system; future other-system support should not be made unnecessarily impossible.
-- Campaigns may mix SRD 5.1 / D&D 5e and SRD 5.2.1 / D&D 5.5e plus house rules.
-- Technical provenance uses SRD document versions; user-facing answers use D&D 5e / D&D 5.5e labels.
-- House rules start as notes, not a rule engine; DM edits them; player need is quick rules clarification rather than a browsable rule library.
-- Full guided character creation remains outside current first-version intent.
-- NPC administration uses Quick and Developed NPC concepts rather than a bare minimal-NPC model.
-- Monster/creature records must be capable of complete D&D 5.5e Monster Manual-style stat blocks.
-- A reusable personal NPC/creature library, duplicate/modify workflow, official SRD starting templates where possible and a desktop/web monster creator assistant are approved directions.
-- Useful creature/NPC filters include name, CR, type, alignment and environment.
-- DM live-session use is tablet-first.
-- Player combat view shows visible initiative/current turn and visible conditions, never DM-hidden participants.
-- DM combat board may track monster/NPC current HP, temporary HP, conditions and concentration; PC HP tracking is optional.
-- Same-group creatures normally share initiative while keeping individual HP/status and may be split individually when needed.
-- The DM may manually override monster HP.
-- Combat state must survive app close/restart/network loss/session pause; DM local state remains authoritative during Internet loss.
-- Combat does not automatically mutate persistent character sheets.
-- Death saves, player spell slots/resources, automatic combat/rules resolution and combat-history analytics are outside current first scope.
-- Shared data should be hosted online and normally fit a no-cost tier at personal scale; no provider is selected.
+- First version supports one active DM per campaign while avoiding an unnecessary future co-DM dead end.
+- D&D is first; additional RPG systems are later possibilities only.
+- Broader product direction may mix SRD 5.1 / D&D 5e, SRD 5.2.1 / D&D 5.5e and house rules.
+- MVP rules clarification is deliberately SRD-only; house-rule-aware clarification is later.
+- Quick and Developed NPC concepts remain the owner-preferred NPC models.
+- Monster records must support complete current D&D 5.5e Monster Manual-style stat blocks.
+- Same-group creatures normally share initiative while retaining individual HP/status and may be split when needed.
+- DM may manually override monster HP.
+- Active combat survives app close/restart/network loss/session pause; DM local state remains authoritative during Internet loss.
+- Combat working state does not automatically mutate persistent character sheets.
+- Shared data should be hosted online and normally fit a no-cost tier at personal scale where practical; no provider is selected.
 
-See `docs/PRODUCT.md`, `docs/DECISIONS.md` and `docs/discovery/2026-08-29_CLARIFICATIONS_02.md` for detail.
+## 6. Explicit MVP exclusions
 
-## 4. Current external/technical status
+Do not currently build:
 
-No stack, framework, language, UI toolkit, database provider, authentication provider, AI provider/model, PDF library, persistence architecture, desktop implementation approach or build system has been selected.
+- guided/legal character builder;
+- house-rule-aware rules clarification/reusable house-rule library;
+- sophisticated NPC/monster generators;
+- AI creature creation;
+- advanced structured import/paste parsing;
+- multiple active campaigns in first-version UI/workflow;
+- co-DMs;
+- combat-history analytics;
+- automated combat resolution;
+- automated rules enforcement;
+- automatic combat-to-character-sheet mutation;
+- speculative sophisticated audit-retention machinery;
+- encounter balancing/CR automation;
+- additional RPG systems.
 
-Neon/Postgres remains only a candidate mentioned during discovery.
+## 7. Current technical status
 
-Do **not** begin stack selection yet.
+No stack, framework, language, Android UI toolkit, persistence architecture, hosted database provider, authentication provider, AI provider/model, PDF library, desktop implementation approach or build system has been selected.
 
-No application tests exist because there is no application code. This session changed documentation/product decisions only; verification consisted of reading the current branch/project-control files, reviewing the supplied NPC/monster examples and checking that the new decisions were recorded consistently across discovery, decision, product, convention and state documents.
+Neon/Postgres remains only a candidate mentioned during discovery, not an approved choice.
 
-## 5. Active unresolved design questions
+The rules-clarification requirement defines the outcome—Spanish natural-language questions answered from supported official SRD material with identifiable source/version—not an AI/provider implementation choice.
 
-Highest-value next discussions are now:
+No application tests exist because there is no application code.
 
-1. **PDF/export save semantics** — explain and choose whether exports can see in-progress edits or only completed atomic character updates/change sets.
-2. **Audit retention/bloat** — estimate realistic volume and choose a bounded retention/summarization/archive approach.
-3. **Unassigned PC records** — decide whether a PC-style character can exist in a campaign without a current player account.
-4. **Stat-block internal granularity** — decide structured action/trait objects vs complete rich-text action/trait blocks within an otherwise structured stat block.
-5. **Prepared encounter workflow** — explore saved encounter compositions that can populate the live tracker while preserving improvisation and live modification.
-6. **Account/invitation/recovery details** — exact personal-use flows remain open.
-7. **MVP boundary** — decide which approved capabilities belong in the first usable release versus later increments.
+## 8. Remaining design/technical questions
 
-## 6. Character sheet assets
+The previous seven high-value product questions are closed.
 
-Owner's custom character-sheet PDFs are produced from Adobe InDesign and are not fillable/editable PDFs.
+Remaining work now shifts to technical/product-detail evaluation needed before implementation, especially:
 
-Repository upload route:
+1. architecture/stack alternatives for Android + desktop administration;
+2. local/offline DM combat persistence and synchronization model;
+3. hosted shared-data/authentication approach and personal-use security/threat model;
+4. PDF generation/rendering approach against owner-provided templates;
+5. SRD storage/retrieval/clarification architecture and source provenance;
+6. practical data model boundaries consistent with approved future extensibility;
+7. testing/build/release strategy once the stack is proposed.
 
-`assets/character-sheets/templates/`
+These are not pre-approved technical choices. Consequential alternatives must be explained and approved by the owner before becoming durable architecture.
 
-The current preferred upload target while PR #2 is open is branch:
+## 9. Current review state
 
-`discovery/initial-product-picture`
+PR #2 remains open and intentionally unmerged.
 
-If a PDF layout needs an owner-side change, record it in:
+Round 3 conclusions have been recorded in discovery and are being reconciled into authoritative product/decision/state documentation on the branch. `main` remains canonical until the owner approves/merges the PR under D-0007.
 
-`assets/character-sheets/CHANGE_REQUESTS.md`
+Do not interpret the approved MVP as permission to begin application implementation before the architecture/stack evaluation and owner approval step.
 
-The PDFs are presentation/output templates; no field mapping or PDF-generation implementation has been selected yet.
+## 10. Next action
 
-## 7. Current review state
+Complete authoritative decision-log reconciliation for Round 3, verify PR #2 documentation consistency, then begin a dedicated architecture/technology evaluation against the approved MVP.
 
-PR #2 remains open and intentionally unmerged while the first discovery cycle continues.
+The architecture discussion should compare realistic alternatives against actual product requirements rather than selecting technologies by fashion or familiarity.
 
-The branch contains both historical discovery material and confirmed conclusions promoted into authoritative product/decision/convention files.
+## 11. Handoff note for the next agent
 
-Do not merge merely because Round 2 was recorded; owner review/approval of the branch/PR remains the gate for canonical `main` under D-0007.
+Start with `README.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, and the three discovery clarification rounds.
 
-## 8. Next action
-
-Continue product discovery using the seven unresolved questions above. A sensible immediate order is:
-
-1. explain the four questions the owner explicitly did not understand (PDF state, unassigned PCs, stat-block granularity, prepared encounter launch);
-2. separately work through audit retention/bloat with concrete size estimates;
-3. then define the MVP boundary before technology selection.
-
-## 9. Handoff note for the next agent
-
-Read `docs/PRODUCT.md`, `docs/DECISIONS.md`, `docs/CONVENTIONS.md` and all three current discovery notes before continuing. Do not infer a technology choice from Neon, AI rules assistance, native Windows/web ideas or any PDF implementation concept. Keep the assistant-not-replacement scope boundary visible and do not turn future extensibility into present scope creep.
+Treat Round 3 decisions as confirmed owner direction. The seven previous product questions are no longer open. Do not re-ask them unless a genuine contradiction or new requirement emerges. Do not infer technology choices from Neon, AI ideas, native Windows/web ideas or any PDF implementation concept.
