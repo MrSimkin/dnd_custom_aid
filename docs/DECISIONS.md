@@ -176,14 +176,23 @@ This decision is intentionally deferred until the product and interaction design
 
 ## D-0010 — Initial product scope / MVP
 
-**Status:** Pending  
-**Date:** 2026-08-28
+**Status:** Approved  
+**Date:** 2026-08-29  
+**Decision owner:** Project owner
 
-The first usable feature set has not yet been defined.
+The first usable release/MVP is now defined. Detailed scope is consolidated in `docs/PRODUCT.md` and further constrained by D-0027 through D-0032.
 
-### Decision should follow
+### MVP summary
 
-A guided discovery and design process with the owner. Features and alternatives should be discussed before they are turned into implementation requirements.
+- Player: manual PC character-sheet create/view/edit, PDF export, SRD-only natural-language rules clarification in Spanish.
+- DM tablet: combat tracker; quick/full PC, PC-group, NPC, monster and encounter views; prepared and on-the-fly live encounters.
+- DM desktop/laptop: basic administration; manual monster/NPC data entry; saved encounter preparation; minimum account/campaign/PC administration.
+- One active campaign in first-version product/UI behavior without hard-coding a structural single-campaign dead end.
+- Supporting account, persistence, synchronization, permissions and offline-combat functionality is included as required infrastructure.
+
+### Explicit MVP exclusions
+
+Guided/legal character building, house-rule-aware clarification, sophisticated NPC/monster generators, AI creature creation, advanced import/parsing, multiple active campaigns, co-DMs, combat-history analytics, automated combat/rules enforcement, automatic combat-to-character-sheet mutation, speculative sophisticated audit-retention machinery, encounter-balancing automation and additional RPG systems.
 
 ---
 
@@ -402,7 +411,7 @@ Updates are intentionally flexible: end of session is the normal expectation, bu
 - Do not force simultaneous paper + app bookkeeping during normal play.
 - Displaying last-update/freshness information is useful, but a formal checkpoint/no-change-confirmation workflow is not required.
 - PDF output should support both permanent/baseline-only output and full latest digital-sheet-state output.
-- The exact save/export atomicity semantics remain open and must be clarified before implementation.
+- Save/export semantics are resolved by D-0027.
 
 ---
 
@@ -424,7 +433,7 @@ Only mechanical/rules-relevant character information needs audit history. Cosmet
 
 - A player-facing "undo" may exist, but it must not silently rewrite/delete history.
 - Audit/history is for practical correction and understanding, not player policing.
-- Retention/archival limits are **still pending** because the owner explicitly wants to avoid log/storage bloat.
+- Initial retention policy is resolved by D-0028: keep complete grouped history while monitoring real growth.
 
 ---
 
@@ -446,7 +455,7 @@ First version supports exactly one active DM per campaign, but the underlying me
 
 - Do not hard-code campaign ownership around a single `dm_user_id` if a general membership/role representation is straightforward later at architecture time.
 - Future co-DM permission levels are intentionally not designed yet.
-- Whether a PC-style record may exist without any associated player account remains open.
+- Unassigned PC-style records are explicitly allowed by D-0029.
 
 ---
 
@@ -475,6 +484,7 @@ Only the DM creates/edits campaign house rules. Players do not require a browsab
 - A separate temporary-ruling-to-policy workflow is outside current scope.
 - A house-rule note may indicate that it overrides/modifies an official rule, ideally with assistance to identify the relevant source.
 - Generalized homebrew content management for spells/items/classes/etc. remains outside current scope unless separately approved.
+- House-rule-aware clarification is outside the approved MVP; MVP rules clarification is SRD-only per D-0010.
 
 ---
 
@@ -495,8 +505,9 @@ Useful search/filter fields explicitly include name, CR, type, alignment and env
 ### Consequences
 
 - Manual entry, duplication, structured import and paste/parse are all useful directions, but do not all have to ship in the same increment.
-- The exact internal granularity of actions/traits (structured objects vs rich-text blocks) remains open.
-- Prepared encounter templates need a dedicated follow-up discussion before promotion into a detailed requirement.
+- Initial action/trait granularity is resolved by D-0030.
+- Prepared/on-the-fly encounter behavior is resolved by D-0031.
+- Sophisticated generators/import/parsing remain post-MVP unless separately approved.
 
 ---
 
@@ -550,4 +561,128 @@ A useful organizing model is:
 
 - Extensibility is a design quality, not permission for scope creep.
 - Do not infer enterprise event sourcing, exhaustive telemetry or full VTT state from this separation.
-- Architecture selection remains deferred until product discovery is sufficiently complete.
+- Architecture selection follows the now-approved MVP and remains owner-controlled.
+
+---
+
+## D-0027 — PDF export may deliberately use unsaved edits without saving them
+
+**Status:** Approved  
+**Date:** 2026-08-29  
+**Decision owner:** Project owner
+
+Normal PDF export uses the latest fully saved character state.
+
+If unsaved edits exist when export is initiated, the application must warn the user that unsaved changes exist and ask whether to export anyway. If the user continues, the PDF may use the current edited/unsaved values.
+
+Exporting those values does **not** save/commit them and does not create character audit/history entries. If the user cancels, they return to editing.
+
+### Consequences
+
+- `Save` and `Export` are distinct operations.
+- Committed multi-field character updates should be atomic/grouped change sets.
+- A one-off PDF may intentionally represent unsaved current editing state after explicit warning/confirmation.
+
+---
+
+## D-0028 — Keep complete grouped audit history initially and monitor real growth
+
+**Status:** Approved  
+**Date:** 2026-08-29  
+**Decision owner:** Project owner
+
+At the expected personal-use scale, keep the complete grouped mechanical character-change history rather than prematurely deleting, summarizing, compressing or archiving it.
+
+### Consequences
+
+- Audit/history size should be measurable/observable enough to identify unexpected growth.
+- Do not build enterprise-grade retention machinery speculatively.
+- Architecture should allow later retention, summarization, archival or compression without unnecessary trauma if real measurements show a need.
+
+---
+
+## D-0029 — PC-style character records may exist without an assigned player account
+
+**Status:** Approved  
+**Date:** 2026-08-29  
+**Decision owner:** Project owner
+
+A campaign may contain a PC-style character with no current player account assigned.
+
+This covers pregenerated guest PCs, spare/replacement PCs, former-player characters, PCs temporarily run by the DM and other intentionally unassigned states.
+
+### Consequences
+
+- Character existence must not depend on current user assignment.
+- Assignment/control is a relationship that may be absent, added or changed later without deleting the character.
+
+---
+
+## D-0030 — Stat-block actions/traits are structured objects with extensible formatted mechanics
+
+**Status:** Approved  
+**Date:** 2026-08-29  
+**Decision owner:** Project owner
+
+Traits, actions and similar stat-block elements are first-class structured objects, but v1 should not decompose every mechanic into atomic rules-engine fields.
+
+Stable/useful identity such as element name and category/type should be structured, while the complete mechanical description may remain formatted/rich text initially.
+
+### Consequences
+
+- Complete stat-block presentation remains required.
+- Architecture/data boundaries should permit later deeper structured fields—attack bonus, reach, damage components, save DC, recharge, targets, etc.—through normal incremental migrations without fundamental monster/encounter/combat rewrites.
+- Do not overengineer a speculative full rules engine now.
+
+---
+
+## D-0031 — Saved encounters create independent live copies; live encounters may also be created on the fly
+
+**Status:** Approved  
+**Date:** 2026-08-29  
+**Decision owner:** Project owner
+
+A saved encounter is an optional reusable preparation/template, not the live combat state itself and not a prerequisite for combat.
+
+Starting/loading a saved encounter creates a **separate live encounter copy**. Changes to the live copy do not automatically alter the saved template.
+
+The DM may freely add, remove, duplicate, replace or modify participants before combat starts or at any point during combat.
+
+The DM may also create a live encounter directly from scratch with no saved template.
+
+### Consequences
+
+- The live encounter/combat tracker is the core runtime concept.
+- Prepared encounters are one convenient population path, not a separate combat system.
+- The design must support improvisation and creatures/NPCs joining or leaving the fray during play.
+
+---
+
+## D-0032 — Campaign invitations and reversible moderation controls
+
+**Status:** Approved  
+**Date:** 2026-08-29  
+**Decision owner:** Project owner
+
+Campaign membership remains DM-controlled.
+
+The core first-version invitation direction is a revocable invitation code/link. QR may conveniently represent/share that invitation. Email invitation may be added as convenience but is not required for the core workflow. Standard email-based account/password recovery is preferred, and password recovery must not lose campaign membership/data.
+
+DMs may revoke/regenerate invitations. Public campaign discovery and elaborate approval queues are outside the first scope.
+
+The following moderation/control concepts are approved:
+
+- **Freeze PC:** preserve a character but prevent normal player use/editing until unfrozen; DM may still inspect/administer it.
+- **Kick user:** remove the user from the campaign while allowing future valid re-entry; their characters remain preserved and may become unassigned.
+- **Ban player:** remove the user and prevent that account from rejoining that campaign until the ban is lifted; data remains preserved.
+- **Freeze account:** application-wide temporary account disable while preserving data.
+
+### Permission boundary
+
+Campaign DMs control campaign-level PC freeze, kick and campaign ban. Application-wide account freeze belongs to application/system administration, not an ordinary campaign DM, because a user identity may participate in other campaigns.
+
+### Consequences
+
+- These controls are non-destructive and reversible where appropriate.
+- Membership/moderation data must be separable from character preservation/ownership.
+- Exact authentication/security implementation remains part of architecture evaluation, not preselected here.
