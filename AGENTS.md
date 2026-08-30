@@ -21,13 +21,13 @@ Before proposing or making changes, read:
 3. `MANIFEST.md`
 4. `docs/PROJECT_STATE.md`
 5. `docs/DECISIONS.md`
-6. any approved dedicated files under `docs/decisions/` identified by `MANIFEST.md` / `PROJECT_STATE.md` as not yet consolidated
-7. `docs/CONVENTIONS.md`
-8. `docs/PRODUCT.md`
-9. `docs/ROADMAP.md`
-10. `docs/WORKFLOW.md`
-11. `docs/ARCHITECTURE.md`
-12. `docs/TESTING.md`
+6. `docs/CONVENTIONS.md`
+7. `docs/PRODUCT.md`
+8. `docs/ROADMAP.md`
+9. `docs/WORKFLOW.md`
+10. `docs/ARCHITECTURE.md`
+11. `docs/TESTING.md`
+12. relevant detailed files under `docs/decisions/` when deeper architecture rationale is needed
 13. any feature-specific documents relevant to the task
 
 Do not start implementation from a stale branch or from remembered context.
@@ -102,6 +102,16 @@ Routine choices that do not establish a durable convention may be made by the ag
 
 C-0009 is controlling: this is a personal, deliberately limited project. Prefer the **simplest safe implementation that satisfies actual approved requirements**. Do not import enterprise/SaaS architecture, security layers, observability, test ceremony, deployment machinery, generalized abstractions, or speculative scale infrastructure merely because they are common industry patterns.
 
+Concrete current examples:
+
+- do not activate Cloudflare services merely because Cloudflare provides them;
+- use HTTP/request-response and simple polling before realtime infrastructure;
+- use Desktop local Save + explicit Sync rather than building a synchronization platform;
+- keep one authoritative DM device + increasing combat sequence for MVP rather than pre-building cross-device authority generations;
+- player offline combat convenience is ephemeral local UI state, not another synchronization domain;
+- localize vendor-specific code rather than building provider abstraction frameworks;
+- support offline operation only where it provides real value.
+
 Add complexity only for a concrete requirement, observed problem, or real risk.
 
 ## 6. Design before technology; approved architecture is now the baseline
@@ -116,9 +126,9 @@ The project followed this sequence before implementation:
 6. explain those technical options, trade-offs, and recommendations;
 7. obtain owner approval before locking in consequential stack/architecture choices.
 
-That architecture-selection sequence is now complete for the initial scaffold under D-0034 through D-0043.
+That architecture-selection sequence is complete for the initial scaffold under D-0034 through D-0043, including the 2026-08-30 pre-main proportionality clarifications.
 
-Do **not** reopen approved architecture merely because older historical prose still describes it as pending. Use `docs/ARCHITECTURE.md`, `docs/PROJECT_STATE.md`, and the approved dedicated decision files as the current architecture baseline while chronological-log consolidation is pending.
+Do **not** reopen approved architecture merely because historical discovery/decision prose describes an earlier uncertainty. Follow the current `docs/DECISIONS.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `docs/CONVENTIONS.md`, and `docs/PROJECT_STATE.md` baseline.
 
 Future genuinely consequential architecture changes still require owner approval. Routine reversible implementation details may be selected under D-0008 and approved conventions.
 
@@ -148,7 +158,7 @@ For substantial work:
 7. Run the relevant checks and tests.
 8. Update documentation and operative memory in the same change.
 9. Summarize what changed, why, what was tested, what remains unresolved, and any owner decision needed.
-10. Merge to `main` only after the owner approves the change or has explicitly delegated that category of change.
+10. Merge to `main` only after the owner explicitly approves that merge or has explicitly delegated that category of merge.
 
 ## 9. Definition of done
 
@@ -161,7 +171,7 @@ For a change to be considered complete:
 - behavior has been checked at the appropriate level;
 - documentation reflects the new reality;
 - `docs/PROJECT_STATE.md` is current;
-- important new decisions are durably recorded (in `docs/DECISIONS.md` or an explicitly temporary dedicated decision checkpoint awaiting consolidation);
+- important new decisions are durably recorded;
 - approved conventions are recorded in the appropriate repository documentation;
 - unresolved items are visible and not hidden in chat history.
 
@@ -196,9 +206,9 @@ If repository documents disagree:
 
 1. Do not guess silently.
 2. Identify the contradiction.
-3. Prefer the most specific later approved decision over older general prose.
+3. Prefer the most specific later approved decision/clarification over older general prose.
 4. Prefer newer explicitly dated current-state documentation when authority is otherwise equal.
-5. During the current architecture-branch consolidation, approved `docs/decisions/D-0036...D-0043` files and `docs/ARCHITECTURE.md` control over older prose that still calls those choices unresolved.
+5. Use detailed `docs/decisions/` records for rationale, but the chronological `docs/DECISIONS.md` plus later approved amendments/clarifications control the current decision state.
 6. Ask the owner only for a genuinely material ambiguity not already resolved by an approved decision.
 7. Record the resolution in the repository.
 
@@ -206,8 +216,8 @@ If repository documents disagree:
 
 **Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline is canonical on `main` after owner-approved PR #2.
 
-**Phase 2 — foundational architecture selection is complete in substance.** D-0034 through D-0043 are owner-approved and durably recorded on the active architecture branch. No application code has been scaffolded yet.
+**Phase 2 — foundational architecture selection is complete in substance.** D-0034 through D-0043 are owner-approved and durably recorded on the active architecture branch. The pre-main proportionality audit simplified sync/offline/infrastructure interpretation without changing the selected stack. No application code has been scaffolded yet.
 
-Current work is a bounded documentation consolidation/review before the architecture branch is merged to `main` under D-0007. Draft PR #3 is the review point.
+Current work is the final contradiction/commit review before the architecture branch is presented for explicit owner merge authorization under D-0007. PR #3 is the review point.
 
-After that branch is owner-approved and merged, implementation scaffolding is authorized using the approved architecture. Do not start another broad architecture-discovery round unless a genuinely new requirement, contradiction, or expensive-to-reverse choice appears.
+After that branch is owner-approved and merged, implementation scaffolding is authorized using the approved architecture. Start with the smallest scaffold necessary to prove the foundation; do not begin another broad architecture-discovery round or activate speculative infrastructure unless a genuinely new requirement, contradiction, or expensive-to-reverse choice appears.
