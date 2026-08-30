@@ -4,7 +4,7 @@
 **Date:** 2026-08-30  
 **Decision owner:** Project owner
 
-MVP rules clarification will use the official Spanish **SRD 5.1** and **SRD 5.2.1** corpus stored as versioned, provenance-preserving sections/chunks in PostgreSQL.
+MVP rules clarification uses the official Spanish **SRD 5.1** and **SRD 5.2.1** corpus stored as versioned, provenance-preserving sections/chunks in PostgreSQL.
 
 ## Retrieval
 
@@ -26,6 +26,6 @@ MVP rules clarification will use the official Spanish **SRD 5.1** and **SRD 5.2.
 
 This is intentionally a small retrieval architecture for two known rule corpora. Do not add an embeddings pipeline, vector database, separate retrieval service, elaborate RAG platform, or additional AI provider unless measured retrieval quality or another concrete requirement justifies it.
 
-This resolves the SRD corpus storage/retrieval/clarification portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+This resolves the SRD corpus storage/retrieval/clarification portion of D-0009. D-0009 is now resolved/Approved by the complete D-0034 through D-0043 architecture set.
 
-> Safety checkpoint note: this decision is stored as a dedicated decision file on the active architecture branch so it is durable immediately. It should be consolidated into the chronological `docs/DECISIONS.md` log before the architecture branch is merged.
+> Detail-record note: this file preserves the fuller rationale for D-0041. The chronological authoritative entry is consolidated in `docs/DECISIONS.md`.
