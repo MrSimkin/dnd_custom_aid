@@ -4,7 +4,7 @@
 **Date:** 2026-08-30  
 **Decision owner:** Project owner
 
-The Android application will use **minSdk 30**, corresponding to **Android 11**.
+The Android application uses **minSdk 30**, corresponding to **Android 11**.
 
 ## Rationale
 
@@ -24,6 +24,6 @@ The owner also explicitly prioritizes a modern, polished Android UX and does not
 
 This decision follows C-0009: support the devices that actually matter to the project and avoid legacy compatibility burden that provides no practical benefit.
 
-This resolves the minimum-Android-version portion of D-0009. D-0009 remains Pending until the remaining pre-scaffolding architecture/build/testing decisions are approved.
+This resolves the minimum-Android-version portion of D-0009. D-0009 is now resolved/Approved by the complete D-0034 through D-0043 architecture set.
 
-> Safety checkpoint note: this decision is stored as a dedicated decision file on the active architecture branch and should be consolidated into the chronological `docs/DECISIONS.md` log before merge.
+> Detail-record note: this file preserves the fuller rationale for D-0042. The chronological authoritative entry is consolidated in `docs/DECISIONS.md`.
