@@ -187,4 +187,8 @@ If repository documents disagree:
 
 ## 13. Current project stage
 
-The project is currently moving from foundation into product discovery/design. Do not begin Android stack selection or application scaffolding yet. Do not assume a framework, language, persistence layer, sync model, game ruleset, UI structure, or feature list until those choices reach the approved stage defined by the product/design process.
+The product/MVP discovery baseline is now approved after three clarification rounds. D&D-first scope, the first usable feature boundary, major player/DM workflows, account/campaign direction, encounter behavior, offline combat expectations, PDF semantics, and SRD-only MVP rules clarification are recorded in `docs/PRODUCT.md` and `docs/DECISIONS.md`.
+
+The project is therefore ready to **evaluate** architecture and technology alternatives against those approved requirements. Architecture evaluation may begin; application implementation/scaffolding must not begin until consequential architecture/stack choices are explained to and approved by the owner.
+
+Do not reopen already approved product questions merely because older discovery notes describe them as unresolved. Do not assume any specific framework, language, persistence layer, sync model, hosted provider, PDF library, AI/retrieval approach, desktop implementation form, or other consequential technology until it is approved and recorded.
