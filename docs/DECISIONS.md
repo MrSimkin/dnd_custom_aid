@@ -148,30 +148,27 @@ When a convention first becomes relevant and no approved convention exists, the 
 
 ## D-0009 — Application architecture and implementation technology
 
-**Status:** Pending  
-**Date:** 2026-08-28
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Resolved:** 2026-08-30 by D-0034 through D-0043  
+**Decision owner:** Project owner
 
-No overall implementation architecture or consequential technology stack has been selected yet.
+The foundational application architecture and implementation technology needed to begin scaffolding have been selected through the Phase 2 decision sequence.
 
-This includes, as applicable, the Android framework/language/UI toolkit and minimum Android version, desktop/laptop administration implementation form, local/offline persistence approach, synchronization/shared-data architecture, hosted backend/provider, authentication provider, PDF generation approach, SRD retrieval/clarification architecture, and related foundational choices.
+The approved foundation includes:
 
-The approved product/MVP baseline is sufficiently coherent to evaluate these alternatives. Architecture evaluation is the next project phase under D-0011; owner approval remains required before a consequential option becomes selected project truth or implementation is scaffolded.
+- Neon PostgreSQL + Cloudflare + Descope hosted topology (D-0034);
+- native Kotlin + Jetpack Compose Android (D-0035);
+- native Kotlin + Compose Multiplatform Desktop DM companion (D-0036);
+- explicit relational multicampaign domain boundaries (D-0037);
+- SQLite/SQLDelight local-first persistence and project-owned synchronization (D-0038);
+- Cloudflare API/backend as the hosted data-access boundary with proportional authorization/security (D-0039);
+- local character-sheet PDF export on Android and desktop (D-0040);
+- PostgreSQL full-text SRD retrieval with replaceable LLM integration, initially Cloudflare Workers AI (D-0041);
+- Android 11 / API 30 minimum supported version (D-0042);
+- minimal shared/Android/Desktop/backend/database scaffold, TypeScript Worker backend, focused tests and simple CI (D-0043).
 
-### Decision should consider
-
-- approved product/MVP requirements;
-- Android phone/tablet quality;
-- desktop/laptop administration usability;
-- multicampaign shared-data behavior;
-- local-first/offline DM combat resilience and combat-aware synchronization;
-- authentication/authorization and personal-use security implications;
-- PDF generation requirements;
-- SRD retrieval/provenance/clarification requirements;
-- long-term maintainability and testing;
-- suitability for AI-assisted development;
-- personal-scale/no-cost hosting feasibility where practical;
-- dependency/service lock-in;
-- migration cost and reversibility.
+These choices are sufficient to move from architecture evaluation into implementation scaffolding after the architecture branch is reviewed and merged to canonical `main`. Routine reversible implementation details remain agent-autonomous under D-0008; new consequential architecture changes still require owner approval.
 
 ---
 
@@ -180,7 +177,7 @@ The approved product/MVP baseline is sufficiently coherent to evaluate these alt
 **Status:** Approved  
 **Date:** 2026-08-29  
 **Decision owner:** Project owner  
-**Amended:** 2026-08-29 by D-0033
+**Amended:** 2026-08-29 by D-0033 and 2026-08-30 by D-0040
 
 The first usable release/MVP is defined. Detailed scope is consolidated in `docs/PRODUCT.md` and further constrained/refined by later decisions.
 
@@ -188,7 +185,7 @@ The first usable release/MVP is defined. Detailed scope is consolidated in `docs
 
 - Player Android: manual PC character-sheet create/view/edit, PDF export, SRD-only natural-language rules clarification in Spanish, and campaign selection appropriate to multicampaign membership.
 - DM Android tablet: combat tracker; quick/full PC, PC-group, NPC, monster and encounter views; prepared and on-the-fly live encounters; campaign selection appropriate to multicampaign management.
-- DM desktop/laptop: basic administration; manual monster/NPC data entry; saved encounter preparation; minimum account/campaign/PC administration; multicampaign administration/selection as required.
+- DM desktop/laptop: basic administration; manual monster/NPC data entry; saved encounter preparation; minimum account/campaign/PC administration; multicampaign administration/selection as required; character-sheet PDF export under D-0040.
 - **Multicampaign:** multiple campaigns may exist and be active concurrently; one account may participate in multiple campaigns concurrently with campaign-scoped roles/permissions.
 - Supporting account, persistence, synchronization, permissions and offline-combat functionality is included as required infrastructure.
 
@@ -345,8 +342,8 @@ Shared data should be hosted online, and normal expected use should remain withi
 ### Consequences
 
 - "Free forever regardless of scope" is not a requirement.
-- Backend selection remains part of architecture evaluation.
-- Neon/Postgres is a candidate mentioned by the owner, not an approved provider.
+- The hosted provider choice was later resolved by D-0034.
+- Personal-scale proportionality is reinforced by C-0009.
 
 ---
 
@@ -355,13 +352,13 @@ Shared data should be hosted online, and normal expected use should remain withi
 **Status:** Approved  
 **Date:** 2026-08-28  
 **Decision owner:** Project owner  
-**Clarified:** 2026-08-29 by D-0033
+**Clarified:** 2026-08-29 by D-0033 and resolved technically 2026-08-30 by D-0036
 
 Campaign preparation and administration—especially NPC/monster entry and organization—must have a comfortable desktop/laptop-oriented surface.
 
-### Not yet decided
+### Implementation resolution
 
-Whether this is implemented as native Windows, normal web, local web, or another practical desktop-friendly approach. That remains a Phase 2 architecture decision.
+D-0036 selects a native **Kotlin + Compose Multiplatform Desktop** implementation. This replaces the earlier open implementation-form question without changing the product scope boundary below.
 
 ### Scope boundary
 
@@ -676,7 +673,7 @@ The owner explicitly resolved the final soft product tensions identified during 
 
 ### 1. Android vs desktop surface boundary
 
-Android is the primary at-the-table/live-use surface. Desktop/laptop is primarily a DM preparation/administration companion using the same campaign/domain data. No player desktop application, full Android/desktop feature parity, or desktop combat tracker is required in MVP. Full parity is only a possible much-later feature. Desktop implementation form remains a Phase 2 architecture choice.
+Android is the primary at-the-table/live-use surface. Desktop/laptop is primarily a DM preparation/administration companion using the same campaign/domain data. No player desktop application, full Android/desktop feature parity, or desktop combat tracker is required in MVP. Full parity is only a possible much-later feature. Desktop implementation form was subsequently selected by D-0036.
 
 ### 2. MVP is multicampaign
 
@@ -747,7 +744,7 @@ Cloudflare Access may be reconsidered later as a consolidation path if its nativ
 
 Supabase remained a strong integrated alternative but its Free-plan inactivity behavior creates an avoidable continuity risk for a sporadically used personal D&D application. A keepalive architecture was considered plausible but not preferred. Convex, Firebase as the whole backend, Turso, self-hosted Supabase and other providers were evaluated but did not provide a better combined fit for stability, dormancy, PostgreSQL portability, Android requirements, maintenance and migration. Nile is a future watch candidate if it exits public preview while retaining suitable no-pause economics.
 
-This resolves the hosted backend/database/authentication provider portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+This resolves the hosted backend/database/authentication provider portion of D-0009. The remaining portions were subsequently resolved by D-0035 through D-0043.
 
 ---
 
@@ -765,7 +762,113 @@ The primary Android application will be implemented natively in **Kotlin** using
 - Android platform capabilities may be used directly when appropriate.
 - Adaptive Compose layouts must support both phone and tablet use rather than stretching one layout across screen classes.
 - Flutter and React Native are not selected for the initial Android application.
-- Kotlin Multiplatform / Compose Multiplatform is not required for the initial architecture. Where straightforward, domain/business logic should avoid unnecessary Android coupling so later extraction into shared Kotlin modules remains possible if a real future need appears.
-- This decision does **not** yet approve the local persistence library, synchronization implementation, Android architectural pattern, minimum Android version, PDF stack or desktop delivery technology.
+- Straightforward domain/business logic should avoid unnecessary Android coupling where this enables useful sharing with the approved native desktop application without forcing UI parity.
+- This decision does not itself select local persistence, synchronization, minimum Android version, PDF stack or desktop delivery technology; those are resolved by later decisions.
 
-This resolves the Android language/framework/UI-toolkit portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+This resolves the Android language/framework/UI-toolkit portion of D-0009. The remaining portions were subsequently resolved by D-0036 through D-0043.
+
+---
+
+## D-0036 — DM desktop administration uses Kotlin + Compose Multiplatform Desktop
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0036_DESKTOP_CLIENT.md`
+
+The DM desktop/laptop preparation and administration companion is a native **Kotlin + Compose Multiplatform Desktop** application.
+
+Native packaging/distribution overhead is accepted and is not a material disadvantage for this project. The desktop application should support meaningful local/offline operation where practical. Android and desktop may share Kotlin domain/business/networking/synchronization logic selectively, but UI and feature parity are not required.
+
+---
+
+## D-0037 — Multicampaign domain boundaries use one shared relational model with explicit campaign scope
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0037_MULTICAMPAIGN_DOMAIN_BOUNDARIES.md`
+
+Use one shared relational PostgreSQL model with explicit global and campaign-scoped relationships rather than database/schema-per-campaign tenancy or provider-specific tenant models.
+
+Users exist globally; campaign roles are membership relationships; characters belong to exactly one campaign while ownership/control are separate; personal mutable reusable content is distinct from campaign copies; official versioned SRD material may be referenced canonically; saved encounters, live encounters, durable character state, audit history and live combat state remain separate domains. Mutable entities use stable globally unique IDs suitable for local/offline synchronization.
+
+---
+
+## D-0038 — Local persistence and synchronization use SQLDelight/SQLite with project-owned local-first sync
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0038_LOCAL_PERSISTENCE_AND_SYNC.md`
+
+Android and desktop use **SQLite through SQLDelight** for durable local relational persistence. Native workflows are local-first where practical, with authorized useful data cached locally.
+
+Local mutations and sync-outbox entries are persisted atomically where applicable. Project-owned synchronization passes through Cloudflare to Neon. Ordinary durable data uses stable IDs, idempotent mutation IDs, optimistic revisions and deletion tombstones rather than blind last-write-wins. Live combat uses stricter DM-authoritative lineage/generation and sequence semantics so stale hosted state cannot overwrite newer local DM state. Player combat projections remain non-authoritative.
+
+---
+
+## D-0039 — Hosted data access goes through Cloudflare with proportional authorization/security
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0039_HOSTED_API_AUTHORIZATION_BOUNDARY.md`
+
+Native clients do not connect directly to Neon and do not hold PostgreSQL credentials. Remote reads, writes and synchronization go through project-owned Cloudflare backend/API endpoints. Descope establishes identity; project-owned logic maps to the internal user and enforces domain permissions.
+
+PostgreSQL constraints/foreign keys protect relational integrity and the backend uses minimum sufficient database privileges. Blanket enterprise-style RLS, role hierarchies, duplicated authorization engines, extensive security audit infrastructure or similar machinery are **not** MVP requirements; add such measures only when a concrete project risk justifies them.
+
+---
+
+## D-0040 — Character-sheet PDF export is local on Android and DM desktop
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0040_PDF_EXPORT.md`
+
+Character-sheet PDF export is required on both Android and the native DM desktop application. Generation is local/offline from the owner's non-fillable InDesign-generated PDF templates.
+
+Android uses **PdfBox-Android** and desktop uses **Apache PDFBox**. Template/layout metadata may be shared where practical without creating a generalized cross-platform PDF subsystem. Export may deliberately use unsaved edits under D-0027 without saving them.
+
+---
+
+## D-0041 — SRD clarification uses PostgreSQL full-text retrieval first and a replaceable LLM
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0041_SRD_RETRIEVAL_AND_CLARIFICATION.md`
+
+Official Spanish **SRD 5.1** and **SRD 5.2.1** content is stored as versioned, provenance-preserving PostgreSQL sections/chunks. Initial retrieval uses PostgreSQL full-text search.
+
+Relevant official excerpts are supplied to a replaceable LLM integration, initially **Cloudflare Workers AI**. The exact model is configuration rather than architecture. MVP answers must be grounded in retrieved official SRD material and identify the applicable source/version. Embeddings/vector/hybrid retrieval are deferred unless real testing proves ordinary full-text retrieval inadequate.
+
+---
+
+## D-0042 — Minimum supported Android version is Android 11 / API 30
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0042_ANDROID_MIN_SDK.md`
+
+The Android application uses **minSdk 30 (Android 11)**. The project intentionally does not spend compatibility/testing effort on older Android releases that no actual expected user needs.
+
+This supports the owner's priority of a modern, high-quality Android UX and follows the personal-scale proportionality rule rather than maximizing hypothetical legacy-device reach.
+
+---
+
+## D-0043 — Initial project structure, backend language, testing and CI stay deliberately small
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed checkpoint:** `docs/decisions/D-0043_MINIMAL_PROJECT_STRUCTURE_AND_TESTING.md`
+
+The initial scaffold uses a small shared Kotlin Multiplatform logic/data area plus separate Android and Desktop application areas, with no shared-UI requirement. The Cloudflare Workers backend uses **TypeScript** and PostgreSQL schema/migrations remain explicit SQL.
+
+Automated tests initially focus on failures that could materially hurt the project: shared domain/synchronization/combat-authority logic, SQLDelight migration safety, and consequential backend authorization/synchronization behavior. GitHub Actions provides a simple build/test check. Coverage gates, emulator farms, staging infrastructure, automated production deployment, enterprise quality tooling and speculative module hierarchies are not required.
+
+This completes the foundational architecture/technology decision set under D-0009 and permits implementation scaffolding after owner-reviewed merge of the architecture branch into canonical `main`.
