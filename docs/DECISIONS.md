@@ -709,3 +709,63 @@ Invites are campaign-scoped, reusable until revoked/regenerated, and grant direc
 ### Authority consequence
 
 Where earlier approved wording conflicts with these eight conclusions, this later approved decision controls. `docs/PRODUCT.md` and `docs/PROJECT_STATE.md` must reflect these conclusions before PR #2 merge.
+
+---
+
+## D-0034 — Hosted backend topology uses Neon, Cloudflare and Descope with stable-service boundaries
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+The initial hosted backend topology is:
+
+- **Neon** for hosted PostgreSQL as the durable shared relational database;
+- **Cloudflare** for stable application-infrastructure services where appropriate, including web hosting, backend/API execution, database connectivity/pooling, object storage and realtime transport/coordination;
+- **Descope** for end-user authentication only.
+
+The initial architecture must not depend on Neon beta/preview backend features merely because they are temporarily free. In particular, Neon Auth, Data API, Storage, Functions or similar non-GA capabilities are not selected as foundational dependencies at this time.
+
+### Authentication and authorization boundary
+
+Descope establishes external user identity/session only. Campaign membership, DM/player role, PC ownership/control, moderation and all application/domain authorization remain represented and enforced by project-owned application logic and PostgreSQL data.
+
+The application should maintain an internal user identity independent of the external authentication provider, with a mapping from the internal user to provider identity. This preserves migration ability if the authentication provider changes.
+
+Cloudflare Access may be reconsidered later as a consolidation path if its native/non-browser authentication capability reaches stable GA and fits the Android client without requiring beta dependencies.
+
+### Provider and migration principles
+
+- PostgreSQL remains the authoritative hosted shared-data store; do not place irreplaceable domain truth in Cloudflare or Descope.
+- The active DM device remains authoritative for live local combat under D-0025/D-0033; hosted infrastructure receives synchronized/reconciled state and public projections.
+- Prefer standard/portable interfaces where practical, including PostgreSQL logical backup/migration and S3-compatible object storage.
+- Cloudflare infrastructure and Descope authentication should be wrapped behind project-owned application boundaries so they can be replaced independently when practical.
+- Personal-scale normal use should remain within no-cost tiers where practical under D-0018.
+- Future low-cost paid migration paths remain a design consideration; no provider is assumed permanent.
+
+### Rejected/secondary alternatives
+
+Supabase remained a strong integrated alternative but its Free-plan inactivity behavior creates an avoidable continuity risk for a sporadically used personal D&D application. A keepalive architecture was considered plausible but not preferred. Convex, Firebase as the whole backend, Turso, self-hosted Supabase and other providers were evaluated but did not provide a better combined fit for stability, dormancy, PostgreSQL portability, Android requirements, maintenance and migration. Nile is a future watch candidate if it exits public preview while retaining suitable no-pause economics.
+
+This resolves the hosted backend/database/authentication provider portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+
+---
+
+## D-0035 — Android client uses native Kotlin and Jetpack Compose
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+The primary Android application will be implemented natively in **Kotlin** using **Jetpack Compose** for its UI.
+
+### Consequences
+
+- Android phone/tablet quality is prioritized directly rather than through a cross-platform UI abstraction.
+- Android platform capabilities may be used directly when appropriate.
+- Adaptive Compose layouts must support both phone and tablet use rather than stretching one layout across screen classes.
+- Flutter and React Native are not selected for the initial Android application.
+- Kotlin Multiplatform / Compose Multiplatform is not required for the initial architecture. Where straightforward, domain/business logic should avoid unnecessary Android coupling so later extraction into shared Kotlin modules remains possible if a real future need appears.
+- This decision does **not** yet approve the local persistence library, synchronization implementation, Android architectural pattern, minimum Android version, PDF stack or desktop delivery technology.
+
+This resolves the Android language/framework/UI-toolkit portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
