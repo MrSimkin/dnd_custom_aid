@@ -1,12 +1,12 @@
 # Product Discovery Clarifications — Round 3
 
 **Date:** 2026-08-29  
-**Status:** Confirmed owner decisions  
+**Status:** Confirmed owner decisions; promoted to authoritative records  
 **Phase:** Phase 1 — Product Discovery and Design
 
 ## Purpose
 
-This file records the owner decisions made while closing the remaining high-value product questions after Round 2. These conclusions are confirmed, not brainstorming. They should be promoted into authoritative product/decision records before PR #2 is merged.
+This file records the owner decisions made while closing the remaining high-value product questions after Round 2. These conclusions are confirmed, not brainstorming. They have been promoted into the authoritative product/decision/state records for PR #2; this file remains the historical rationale/detail record.
 
 ---
 
@@ -219,4 +219,4 @@ The combat tracker is the most important live-table MVP validation surface. A ba
 
 The previously open questions covering PDF/export semantics, audit retention, unassigned PCs, stat-block granularity, prepared encounters, basic account/invitation/recovery behavior and MVP scope now have confirmed owner direction.
 
-Technology stack and architecture remain intentionally unselected. The next product/technical step should be to promote these conclusions into authoritative product/decision documents, reconcile any stale `Pending` wording, then evaluate architecture/stack alternatives against the now-defined MVP and approved future-extensibility constraints rather than beginning implementation from an arbitrary technology choice.
+These conclusions have been promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md`, `docs/PROJECT_STATE.md`, the roadmap and PR summary. Technology stack and architecture remain intentionally unselected. The next substantive project step after PR #2 closure is architecture/technology evaluation against the approved MVP and future-extensibility constraints, not further promotion/reconciliation of Round 3 content and not application implementation from an arbitrary technology choice.
