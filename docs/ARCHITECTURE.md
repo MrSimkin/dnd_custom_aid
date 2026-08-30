@@ -3,7 +3,7 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Not selected; evaluation is **active**.  
+**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology and MVP desktop delivery are approved, but the application architecture/technology set is not complete.  
 **Application code:** Not scaffolded.  
 **Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
 
@@ -11,12 +11,13 @@ The project has reached the architecture-evaluation gate, **not** the implementa
 
 ## Architecture decision gate
 
-Do not choose or scaffold an Android framework, language, UI toolkit, desktop implementation approach, persistence layer, sync/backend approach, minimum Android version, hosted provider, PDF library, SRD retrieval/clarification approach, or major architecture pattern merely to begin coding.
+Do not choose or scaffold an Android framework, language, UI toolkit, persistence layer, sync/backend implementation, minimum Android version, hosted provider, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
 
 The approved product baseline includes:
 
 - Android as the primary live/table surface for players and DMs;
 - an intentionally narrower desktop/laptop DM preparation/administration surface using the same shared domain data, without MVP feature-parity or desktop-combat requirements;
+- a true native desktop application as an expected later product feature in addition to a web-capable desktop surface;
 - multicampaign membership, campaign selection and campaign-scoped roles/permissions;
 - paper-first live character authority plus a durable freshness-visible digital baseline;
 - complete human-readable monster stat blocks with selective structured mechanics and additive future enrichment;
@@ -34,15 +35,65 @@ The approved product baseline includes:
 
 The technical evaluation must be discussed with the owner, including realistic alternatives, trade-offs and a recommendation. Consequential choices require owner approval before becoming project truth or being used to scaffold implementation.
 
+## Approved Phase 2 architecture decisions so far
+
+### A-0001 — Multi-client target shape
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+The target product shape is a **multi-client architecture**:
+
+- a dedicated Android client;
+- a web-capable desktop administration client;
+- an expected future **true native desktop client**.
+
+These clients are separate product surfaces centered on the same durable shared domain/backend. One client must not be treated as the implementation foundation of the others merely to maximize UI/code reuse.
+
+#### Consequences
+
+- Android may be optimized for phone/tablet and local-first live combat requirements.
+- Web administration may be optimized for large-screen preparation/data-entry workflows.
+- A future native desktop client should be able to become a first-class client without requiring replacement of the shared durable domain/backend solely because the web client existed first.
+- Shared contracts/service boundaries are expected to matter, but this decision does **not** select REST, GraphQL, RPC, WebSockets, a backend SDK, or any other protocol/mechanism.
+- This decision does **not** require three clients to be implemented in MVP. The true native desktop client remains later product scope.
+
+### A-0002 — MVP desktop administration is local-web/localhost
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+For the MVP, the desktop DM administration web client will be delivered **locally on the user's PC through a localhost application/server** rather than requiring public frontend hosting.
+
+The intended finished-user experience is launcher/application-like: the user should not need to run development commands manually merely to use the admin surface.
+
+The local web client may require Internet connectivity to access shared durable application data. Desktop offline synchronization is **not** an MVP requirement.
+
+The web client should remain suitable for later hosted deployment without fundamental product/client redesign.
+
+#### Consequences
+
+- “Local web” refers to where the desktop UI is served/run, not to relocating shared authoritative campaign/domain data onto the Windows PC.
+- Do not turn the localhost launcher/server into a second authoritative backend merely because it is local.
+- A later hosted web deployment should be an evolution of the web client rather than a total rewrite where practical.
+- A later true native desktop application remains an independent expected client under A-0001.
+- Frontend public-hosting cost is therefore not an MVP requirement; hosted shared-data/backend cost constraints remain a separate architecture decision.
+
+### Product requirement carried into architecture evaluation
+
+`docs/architecture/2026-08-30_FUTURE_DESKTOP_REQUIREMENT.md` records that a true native desktop application is an expected future product feature. That requirement predates and constrains A-0001; it does not itself select implementation technology.
+
 ## Active evaluation order
 
-Architecture evaluation begins with **overall application topology and surface relationship**, not with a framework name.
+Architecture evaluation began with **overall application topology and surface relationship**, not with a framework name.
 
-Approved evaluation sequence:
+Current sequence:
 
-1. overall Android + desktop/laptop topology and shared-domain relationship;
-2. Android client approach;
-3. desktop/laptop administration delivery approach;
+1. ~~overall Android + desktop/laptop topology and shared-domain relationship~~ — approved in A-0001;
+2. **Android client approach** — next decision;
+3. ~~MVP desktop/laptop administration delivery approach~~ — approved in A-0002;
 4. multicampaign domain/data-model boundaries;
 5. local-first combat persistence, combat authority and synchronization/reconciliation;
 6. hosted backend/database/authentication/authorization and moderation boundaries;
@@ -52,16 +103,9 @@ Approved evaluation sequence:
 
 ### Current decision under evaluation
 
-**Overall application topology / surface relationship.**
+**Android client approach.**
 
-The first comparison should evaluate realistic whole-system alternatives such as:
-
-- Android primary client + browser-based desktop administration + shared hosted backend;
-- a shared-code/cross-platform client topology where justified;
-- Android primary client + native desktop administration + shared hosted backend;
-- another topology only if it materially fits the approved requirements better.
-
-No option above is selected merely by being listed.
+The next comparison should evaluate realistic Android implementation families against the approved requirements without yet selecting adjacent backend/database/provider choices.
 
 ## Evaluation criteria
 
@@ -102,19 +146,21 @@ Architecture must not be selected on the false assumption that MVP requires:
 - Android/desktop full feature parity;
 - a player desktop application;
 - desktop combat tracking;
+- desktop offline synchronization;
 - seamless concurrent multi-device DM combat editing;
 - a full executable D&D rules engine;
 - automatic paper/digital conflict resolution;
 - house-rule-aware MVP rules clarification;
 - co-DMs within one campaign;
-- multiple RPG systems in MVP.
+- multiple RPG systems in MVP;
+- implementation of the future native desktop client during MVP.
 
 ## Future architecture record format
 
-When an architecture choice is approved, this file should record:
+As the architecture set is completed, this file should record:
 
 1. **Approved architecture summary**
-2. **Decision IDs** from `docs/DECISIONS.md`
+2. **Decision IDs / architecture decision IDs**
 3. **Alternatives considered**
 4. **Why the chosen approach fits the approved design**
 5. **Important trade-offs / rejected alternatives**
@@ -130,6 +176,8 @@ When an architecture choice is approved, this file should record:
 15. **Testing strategy relationship**
 16. **Known constraints / debt**
 17. **Migration considerations**
+
+D-0009 remains pending until the consequential architecture/technology set is sufficiently resolved; these approved sub-decisions do not imply that the entire architecture has already been selected.
 
 ## Convention relationship
 
