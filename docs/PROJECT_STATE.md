@@ -3,9 +3,9 @@
 **Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
 **Current working branch:** `implementation/local-campaign-selection`  
-**Open review:** none; no Phase 3 PR has been opened  
+**Open review:** PR #5 — `Phase 3: local Android campaign creation and selection`  
 **Phase:** Phase 3 — First Vertical Slice  
-**Status:** First vertical slice is code-complete, CI-green and manually verified on both an Android phone and tablet. Functional acceptance succeeded. Minor density feedback, landscape space utilization and future theme support are recorded as non-blocking follow-up.
+**Status:** First vertical slice is code-complete, CI-green and manually verified on both an Android phone and tablet. Functional acceptance succeeded. PR #5 is open for owner review. Minor density feedback, landscape space utilization and future theme support are recorded as non-blocking follow-up.
 
 ## 1. Canonical baseline
 
@@ -58,7 +58,7 @@ Android intentionally remains on stable SDK 36 rather than the Android 17/API 37
 
 ## 4. Last verification
 
-Final working-branch head before the documentation-only manual-verification handoff updates: `67ba34b0744dc3fc74a11b43b8a373c6e1773051`.
+Final feature code head before documentation-only manual-verification/review handoff updates: `67ba34b0744dc3fc74a11b43b8a373c6e1773051`.
 
 GitHub Actions run #28 passed on that exact revision:
 
@@ -84,6 +84,8 @@ npm run check
 - TypeScript type check: success.
 
 The campaign persistence test closes SQLite, reopens the same database file, and verifies both the campaign and active selection survive the reopen.
+
+The later documentation-only commits continue to run through the same GitHub Actions workflow; PR #5 also triggers review CI. Do not infer a code regression from documentation-only head movement; use the PR/check status for the current review head.
 
 ### Manual Android verification
 
@@ -175,8 +177,10 @@ Three owner-observed visual improvements are now known:
 
 These should be handled as subsequent UI work rather than expanding the accepted persistence slice unless the owner explicitly chooses otherwise.
 
-## 9. Immediate next action
+## 9. Current review and immediate next action
 
-The Phase 3 local campaign create/select slice has satisfied its functional automated and phone/tablet manual acceptance goals. The next repository action is to prepare/open the Phase 3 pull request for owner review.
+PR #5 (`Phase 3: local Android campaign creation and selection`) is open from `implementation/local-campaign-selection` into `main`.
+
+The slice has satisfied its functional automated and phone/tablet manual acceptance goals. The immediate next action is owner review of PR #5 and its final CI result.
 
 Merging into `main` remains a separate action and requires explicit owner approval under D-0007.
