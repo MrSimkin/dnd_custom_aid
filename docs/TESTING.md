@@ -21,7 +21,7 @@ Every meaningful implementation change should state:
 
 ## 2. Future automated verification layers
 
-The exact tools depend on the approved Android architecture, but the project should aim to cover appropriate layers such as:
+The exact tools depend on the approved architecture, but the project should aim to cover appropriate layers such as:
 
 - compilation/build checks;
 - static analysis/lint;
@@ -33,13 +33,17 @@ The exact tools depend on the approved Android architecture, but the project sho
 
 This is a quality framework, not a requirement to create every test type for every feature.
 
-## 3. Phone and tablet verification
+## 3. Phone, tablet and desktop/laptop verification
 
-Because both phone and tablet support are approved requirements, user-visible features must eventually be checked against representative configurations for both form factors.
+Because Android phone and tablet support are approved requirements, user-visible mobile features must eventually be checked against representative configurations for both form factors.
 
-The exact device/API matrix is **pending** and should be chosen after the architecture/minimum Android version decision.
+The exact Android device/API matrix is **pending** and should be chosen after the architecture/minimum Android version decision.
 
-For responsive/adaptive UI work, verification should record at minimum whether relevant layouts were checked in representative compact and larger-screen configurations.
+For responsive/adaptive mobile UI work, verification should record at minimum whether relevant layouts were checked in representative compact and larger-screen configurations.
+
+Desktop/laptop administration is also an approved MVP surface. Once its implementation form is selected, relevant administration workflows must be verified in representative supported desktop/laptop environments. The exact operating-system/browser/runtime matrix remains pending until that architecture choice is approved.
+
+Cross-surface workflows—such as shared campaign data, character visibility, encounter preparation and synchronization—should be verified end-to-end across the applicable surfaces when those capabilities exist.
 
 ## 4. Feature acceptance criteria
 
@@ -52,6 +56,8 @@ Example format:
 - Given [starting state]
 - When [user action]
 - Then [observable result]
+
+Detailed feature-level criteria may be authored incrementally with each implementation slice rather than exhaustively during product discovery.
 
 ## 5. Regression rule
 
@@ -71,10 +77,10 @@ If a branch is handed off with known failures, `docs/PROJECT_STATE.md` must iden
 
 ## 7. Manual verification
 
-Manual device/emulator checks may be necessary for UI, accessibility, interaction, layout, or platform-specific behavior. They should complement, not silently replace, reasonable automated coverage.
+Manual device/emulator/browser/desktop checks may be necessary for UI, accessibility, interaction, layout, or platform-specific behavior. They should complement, not silently replace, reasonable automated coverage.
 
 Record manual verification in concise form, including the configuration used when relevant.
 
 ## 8. Release readiness
 
-A concrete release checklist will be created once an MVP and distribution path are approved. It may include build reproducibility, regression status, data safety, privacy/security, accessibility, device coverage, and packaging/signing checks as applicable.
+A concrete release checklist will be created once the distribution path and architecture are approved. The MVP boundary is already approved; the future checklist may include build reproducibility, regression status, data safety, privacy/security, accessibility, supported mobile/desktop coverage, offline/recovery behavior, synchronization, and packaging/signing checks as applicable.
