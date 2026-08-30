@@ -7,6 +7,7 @@ This file inventories the project-control files and explains when each one must 
 ### `README.md`
 
 **Role:** project entry point and mandatory read order.  
+**Current state:** Phase 1 complete; Phase 2 architecture/technology evaluation active.  
 **Update when:** the project purpose, canonical read order, or top-level status changes.
 
 ### `AGENTS.md`
@@ -24,12 +25,13 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PROJECT_STATE.md`
 
 **Role:** authoritative snapshot of what exists now, what is being worked on, known blockers, last verification, next owner decision, and next implementation action.  
+**Current state:** Phase 2 active; next decision is overall application topology/surface relationship.  
 **Update when:** every meaningful work session changes project reality or next action.
 
 ### `docs/DECISIONS.md`
 
 **Role:** durable significant-decision log.  
-**Current state:** approved product decisions through D-0033; D-0009 remains intentionally pending for Phase 2 architecture/technology evaluation.  
+**Current state:** approved product decisions through D-0033; D-0009 remains intentionally pending for active Phase 2 architecture/technology evaluation.  
 **Update when:** a significant decision is proposed, approved, rejected, amended, or superseded.
 
 ### `docs/CONVENTIONS.md`
@@ -46,6 +48,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ROADMAP.md`
 
 **Role:** staged development plan and current phase.  
+**Current state:** Phase 1 complete; Phase 2 active.  
 **Update when:** project phases, exit criteria, or current phase materially change.
 
 ### `docs/WORKFLOW.md`
@@ -56,7 +59,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ARCHITECTURE.md`
 
 **Role:** technical architecture evaluation/record and rationale.  
-**Current state:** no architecture is selected; the approved MVP baseline is sufficient to begin architecture/technology evaluation after Phase 1 merge closure, but consequential choices remain owner-controlled and implementation has not been scaffolded.  
+**Current state:** architecture is not selected; Phase 2 evaluation is active and begins with overall application topology/surface relationship. Consequential choices remain owner-controlled and implementation has not been scaffolded.  
 **Update when:** architecture alternatives are formally evaluated, selected, or materially changed.
 
 ### `docs/TESTING.md`
@@ -66,40 +69,39 @@ This file inventories the project-control files and explains when each one must 
 
 ## `docs/discovery/`
 
-**Role:** preserves raw or partially structured product-discovery material that is useful for continuity but is **not automatically approved product scope**.  
-**Update when:** a discovery conversation introduces material ideas, questions, alternatives, observations, or unresolved concepts that a future chat/agent needs in order to continue the discussion accurately.
+**Role:** preserves historical product-discovery material and rationale. Discovery notes are **not automatically approved product scope** and do not override authoritative product/decision records.
 
 Rules:
 
-- every discovery note must state clearly which material is provisional and which clarifications were explicitly confirmed;
+- every discovery note states which material was provisional and which clarifications were explicitly confirmed;
 - future agents must not implement an item merely because it appears only in a discovery note;
-- confirmed conclusions should be reflected in `docs/PRODUCT.md`, `docs/DECISIONS.md`, and/or other authoritative files as appropriate;
+- confirmed conclusions are reflected in `docs/PRODUCT.md`, `docs/DECISIONS.md`, and/or other authoritative files;
 - discovery notes remain useful as historical rationale after conclusions are approved.
 
 ### `docs/discovery/2026-08-28_INITIAL_PRODUCT_PICTURE.md`
 
-**Role:** first structured capture of the owner's initial brainstorming: Spanish-only application idea, player character-sheet workflow, DM tablet workflow, accounts/campaign enrollment, online data, possible Windows companion, and SRD consultation.  
+**Role:** first structured capture of the owner's initial brainstorming.  
 **Status:** historical/provisional discovery input.
 
 ### `docs/discovery/2026-08-28_CLARIFICATIONS_01.md`
 
-**Role:** first clarification pass: physical-sheet/backup purpose, audit-with-correction model, campaign-scoped roles, future multi-system direction, DM quick views, combat tracker visibility, mixed SRD/house rules, rules-assistant intent, hosted-data scale, desktop administration need, language split, invitation direction and remaining questions.  
-**Status:** mixed confirmed conclusions and explicitly open questions; confirmed conclusions have been promoted to authoritative files where appropriate.
+**Role:** first clarification pass.  
+**Status:** historical mixed confirmed conclusions/open questions; later authoritative records resolve the applicable questions.
 
 ### `docs/discovery/2026-08-29_CLARIFICATIONS_02.md`
 
-**Role:** second clarification pass covering paper/digital reconciliation, full end-of-session character backup, grouped compensating audit history and bloat concern, ownership/control/co-DM extensibility, notes-style house rules and D&D 5e/5.5e presentation, Quick/Developed NPC examples, complete monster stat blocks, reusable creature library, combat working-state scope/offline behavior, and the remaining re-explanations needed before MVP design.  
-**Status:** historical mixed confirmed conclusions/open follow-ups; its previously open high-value questions were resolved in Round 3 and promoted into authoritative files.
+**Role:** second clarification pass.  
+**Status:** historical rationale; its high-value open questions were resolved later and promoted.
 
 ### `docs/discovery/2026-08-29_CLARIFICATIONS_03.md`
 
-**Role:** third clarification pass closing the major Round 2 questions: PDF export with unsaved edits, initial audit-retention policy, unassigned PC records, stat-block internal granularity/extensibility, prepared vs on-the-fly encounters, account/invitation/recovery and moderation concepts, and the approved first usable release/MVP boundary.  
-**Status:** confirmed owner decisions; promotion into authoritative product/decision/state records is complete.
+**Role:** third clarification pass closing the major Round 2 questions and MVP boundary.  
+**Status:** confirmed owner decisions; promotion into authoritative records is complete.
 
 ### `docs/discovery/2026-08-29_TENSION_RESOLUTIONS.md`
 
-**Role:** final pre-merge clarification pass resolving eight soft product tensions/underspecified boundaries: Android vs desktop scope, multicampaign MVP, mixed/homebrew campaigns vs SRD-only clarification, monster data granularity, paper vs digital authority, local-first DM combat vs hosted shared data, campaign moderation vs global account administration, and invitation/rejoin semantics.  
-**Status:** confirmed owner decisions; conclusions are promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md` (D-0033 and amended earlier decisions), `docs/PROJECT_STATE.md`, and roadmap/entry-point documentation. The discovery note remains historical rationale/detail.
+**Role:** final Phase 1 clarification pass resolving eight soft product tensions/underspecified boundaries.  
+**Status:** confirmed owner decisions; conclusions are promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md` (D-0033 and amended earlier decisions), `docs/PROJECT_STATE.md`, roadmap, architecture/testing and entry-point documentation. Historical rationale only after Phase 1 closure.
 
 ## `assets/character-sheets/`
 
@@ -147,5 +149,5 @@ If documents appear to conflict:
 3. follow `docs/CONVENTIONS.md` for approved recurring project practices;
 4. follow `docs/PRODUCT.md` for approved product requirements/direction;
 5. follow `docs/PROJECT_STATE.md` for current implementation/work status;
-6. treat `docs/discovery/` as supporting rationale/provisional context except where conclusions were also promoted to authoritative files;
+6. treat `docs/discovery/` as supporting historical rationale/provisional context except where conclusions were promoted to authoritative files;
 7. surface any material contradiction instead of guessing.
