@@ -187,8 +187,10 @@ If repository documents disagree:
 
 ## 13. Current project stage
 
-The product/MVP discovery baseline is now approved after three clarification rounds. D&D-first scope, the first usable feature boundary, major player/DM workflows, account/campaign direction, encounter behavior, offline combat expectations, PDF semantics, and SRD-only MVP rules clarification are recorded in `docs/PRODUCT.md` and `docs/DECISIONS.md`.
+**Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline, including the final multicampaign scope and eight product-tension resolutions, is canonical on `main` after owner-approved PR #2.
 
-The project is therefore ready to **evaluate** architecture and technology alternatives against those approved requirements. Architecture evaluation may begin; application implementation/scaffolding must not begin until consequential architecture/stack choices are explained to and approved by the owner.
+**Phase 2 — Architecture & Technology Evaluation is active.** The current task is to evaluate overall application topology/surface relationship first, then proceed through the architecture sequence recorded in `docs/ARCHITECTURE.md` and `docs/PROJECT_STATE.md`.
 
-Do not reopen already approved product questions merely because older discovery notes describe them as unresolved. Do not assume any specific framework, language, persistence layer, sync model, hosted provider, PDF library, AI/retrieval approach, desktop implementation form, or other consequential technology until it is approved and recorded.
+Architecture evaluation is authorized; application implementation/scaffolding is **not** yet authorized. Do not treat any framework, language, UI toolkit, persistence layer, sync model, hosted provider, database, authentication service, PDF library, AI/retrieval approach, desktop implementation form, or other consequential technology as selected until the alternatives have been explained, the owner has approved the choice, and the decision is recorded in Git.
+
+Do not reopen already approved Phase 1 product questions merely because older discovery notes describe them as unresolved. Surface only genuinely new requirements, contradictions, or architecture consequences.
