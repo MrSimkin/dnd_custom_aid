@@ -3,15 +3,47 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Not selected; evaluation is **active**.  
+**Architecture state:** Partially selected; evaluation remains **active**.  
 **Application code:** Not scaffolded.  
-**Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
+**Reason:** Phase 1 is complete and the owner has approved the hosted backend/provider topology (D-0034) and Android client approach (D-0035). Remaining consequential architecture choices must still be evaluated before implementation scaffolding.
 
-The project has reached the architecture-evaluation gate, **not** the implementation gate.
+The project remains at the architecture-evaluation gate, **not** the implementation gate.
+
+## Approved architecture choices so far
+
+### Hosted backend/provider topology — D-0034
+
+- **Neon** provides hosted PostgreSQL as the durable shared relational database.
+- **Cloudflare** provides stable application infrastructure where appropriate, including web hosting, backend/API execution, database connectivity/pooling, object storage and realtime transport/coordination.
+- **Descope** provides end-user authentication only.
+- Domain authorization remains project-owned in application logic/PostgreSQL; Descope does not own campaign roles, PC ownership/control or moderation semantics.
+- The initial architecture must not depend on Neon beta/preview backend features merely because they are temporarily free.
+- Irreplaceable domain truth must not be moved into Cloudflare or Descope.
+- Provider boundaries should preserve practical migration paths.
+- Cloudflare Access is a possible later authentication-consolidation candidate only if the needed native/non-browser path is stable/GA and fits Android requirements.
+
+### Android client — D-0035
+
+- Native **Kotlin** is the Android implementation language.
+- **Jetpack Compose** is the Android UI toolkit.
+- Phone and tablet layouts must be adaptive rather than treating tablet as a stretched phone UI.
+- Flutter and React Native are not selected for the initial Android app.
+- Kotlin Multiplatform / Compose Multiplatform is not required initially; straightforward domain code should avoid unnecessary Android coupling where that preserves a reasonable future extraction path.
+
+These approvals resolve only their corresponding portions of D-0009. D-0009 remains Pending until the remaining foundational choices are approved.
 
 ## Architecture decision gate
 
-Do not choose or scaffold an Android framework, language, UI toolkit, desktop implementation approach, persistence layer, sync/backend approach, minimum Android version, hosted provider, PDF library, SRD retrieval/clarification approach, or major architecture pattern merely to begin coding.
+Do not choose or scaffold remaining unresolved technologies merely to begin coding. Consequential choices still requiring owner approval include, as applicable:
+
+- desktop/laptop administration delivery form and web/native technology;
+- local/offline persistence technology;
+- synchronization/reconciliation implementation details;
+- multicampaign domain/data boundaries;
+- minimum Android version;
+- PDF generation/rendering technology;
+- SRD storage/retrieval/clarification architecture;
+- testing/build/CI and durable module/project conventions.
 
 The approved product baseline includes:
 
@@ -36,8 +68,6 @@ The technical evaluation must be discussed with the owner, including realistic a
 
 ## Active evaluation order
 
-Architecture evaluation begins with **overall application topology and surface relationship**, not with a framework name.
-
 Approved evaluation sequence:
 
 1. overall Android + desktop/laptop topology and shared-domain relationship;
@@ -52,16 +82,11 @@ Approved evaluation sequence:
 
 ### Current decision under evaluation
 
-**Overall application topology / surface relationship.**
+**Desktop/laptop administration delivery approach.**
 
-The first comparison should evaluate realistic whole-system alternatives such as:
+The Android client approach and hosted backend/provider topology are approved. The next comparison should determine whether the intentionally narrower DM preparation/administration surface should be delivered as a normal browser-based web application, native desktop application, local web application, or another approach that materially fits the requirements better.
 
-- Android primary client + browser-based desktop administration + shared hosted backend;
-- a shared-code/cross-platform client topology where justified;
-- Android primary client + native desktop administration + shared hosted backend;
-- another topology only if it materially fits the approved requirements better.
-
-No option above is selected merely by being listed.
+No option is selected merely by being listed.
 
 ## Evaluation criteria
 
@@ -111,7 +136,7 @@ Architecture must not be selected on the false assumption that MVP requires:
 
 ## Future architecture record format
 
-When an architecture choice is approved, this file should record:
+When the architecture set is sufficiently complete, this file should record:
 
 1. **Approved architecture summary**
 2. **Decision IDs** from `docs/DECISIONS.md`
