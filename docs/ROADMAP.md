@@ -26,7 +26,7 @@ Do not reopen resolved Phase 1 questions merely because historical discovery not
 
 **Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval for consequential choices, then scaffold the chosen architecture.
 
-**Current status:** **Architecture selection, consolidation and pre-main proportionality review complete; explicit owner merge authorization is the remaining gate before scaffolding.**
+**Current status:** **Architecture selection/consolidation/proportionality review are complete and merged to canonical `main`; initial implementation scaffolding is next.**
 
 ### Architecture selection — complete
 
@@ -46,7 +46,7 @@ Owner-approved decisions D-0034 through D-0043 establish:
 - TypeScript for the Cloudflare backend;
 - focused tests and one simple GitHub Actions CI workflow.
 
-The pre-main proportionality audit clarified implementation without changing the selected stack:
+The proportionality audit clarified implementation without changing the selected stack:
 
 - Desktop uses local **Save + explicit Sync**;
 - DM combat uses one authoritative device + increasing sequence/version; cross-device authority generations are deferred;
@@ -57,21 +57,11 @@ The pre-main proportionality audit clarified implementation without changing the
 
 C-0009 governs implementation: this is a personal/small-scale project, so choose the simplest safe solution and add complexity only for a concrete need.
 
-### Owner merge gate — current
+PR #3 merged this approved architecture checkpoint to `main` on 2026-08-30.
 
-The architecture branch has completed its consolidation/contradiction review and is represented by PR #3.
+### Scaffolding — current next task
 
-Before scaffolding:
-
-1. verify the final remote branch/PR head remains unchanged from the reviewed state;
-2. obtain explicit owner authorization to merge PR #3 into `main` under D-0007;
-3. merge only after that authorization.
-
-This is a governance gate, not another architecture-discovery round.
-
-### Scaffolding — next
-
-After the architecture branch is accepted into `main`, create the approved minimal foundation:
+Create the approved minimal foundation on a focused implementation branch under the normal workflow unless the owner explicitly requests direct `main` work:
 
 - reproducible Kotlin/Gradle project;
 - shared Kotlin logic/data module or equivalent standard structure;
