@@ -29,7 +29,8 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/DECISIONS.md`
 
 **Role:** durable significant-decision log.  
-**Update when:** a significant decision is proposed, approved, rejected, or superseded.
+**Current state:** approved product decisions through D-0033; D-0009 remains intentionally pending for Phase 2 architecture/technology evaluation.  
+**Update when:** a significant decision is proposed, approved, rejected, amended, or superseded.
 
 ### `docs/CONVENTIONS.md`
 
@@ -39,6 +40,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PRODUCT.md`
 
 **Role:** approved product scope, MVP, design/discovery direction, user groups, constraints, and current product boundaries.  
+**Current state:** final Phase 1 product baseline, including multicampaign MVP and the eight final tension resolutions.  
 **Update when:** product scope, MVP, design direction, or requirements are approved or changed.
 
 ### `docs/ROADMAP.md`
@@ -54,7 +56,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ARCHITECTURE.md`
 
 **Role:** technical architecture evaluation/record and rationale.  
-**Current state:** no architecture is selected; the approved MVP baseline is sufficient to begin architecture/technology evaluation, but consequential choices remain owner-controlled and implementation has not been scaffolded.  
+**Current state:** no architecture is selected; the approved MVP baseline is sufficient to begin architecture/technology evaluation after Phase 1 merge closure, but consequential choices remain owner-controlled and implementation has not been scaffolded.  
 **Update when:** architecture alternatives are formally evaluated, selected, or materially changed.
 
 ### `docs/TESTING.md`
@@ -93,6 +95,11 @@ Rules:
 
 **Role:** third clarification pass closing the major Round 2 questions: PDF export with unsaved edits, initial audit-retention policy, unassigned PC records, stat-block internal granularity/extensibility, prepared vs on-the-fly encounters, account/invitation/recovery and moderation concepts, and the approved first usable release/MVP boundary.  
 **Status:** confirmed owner decisions; promotion into authoritative product/decision/state records is complete.
+
+### `docs/discovery/2026-08-29_TENSION_RESOLUTIONS.md`
+
+**Role:** final pre-merge clarification pass resolving eight soft product tensions/underspecified boundaries: Android vs desktop scope, multicampaign MVP, mixed/homebrew campaigns vs SRD-only clarification, monster data granularity, paper vs digital authority, local-first DM combat vs hosted shared data, campaign moderation vs global account administration, and invitation/rejoin semantics.  
+**Status:** confirmed owner decisions; conclusions are promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md` (D-0033 and amended earlier decisions), `docs/PROJECT_STATE.md`, and roadmap/entry-point documentation. The discovery note remains historical rationale/detail.
 
 ## `assets/character-sheets/`
 
