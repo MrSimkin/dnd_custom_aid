@@ -1,6 +1,6 @@
 # dnd_custom_aid
 
-Personal tabletop RPG assistant project beginning with D&D, with Android phone/tablet live use and a desktop-friendly DM preparation/administration workflow under design.
+Personal tabletop RPG assistant project beginning with D&D, with Android phone/tablet live use and a desktop-friendly DM preparation/administration workflow.
 
 ## Start here
 
@@ -18,7 +18,7 @@ After reading this README, continue with these files in order:
 8. `docs/WORKFLOW.md` — how alternatives are discussed and changes are designed, implemented, tested, documented, reviewed, and merged.
 9. `docs/ARCHITECTURE.md` — architecture evaluation/status and rationale.
 10. `docs/TESTING.md` — verification rules and test status expectations.
-11. Relevant `docs/discovery/` notes for historical rationale/current design context.
+11. Relevant `docs/discovery/` notes only when historical rationale is needed.
 
 Then read any feature-specific or technical files relevant to the task.
 
@@ -40,8 +40,6 @@ Meaningful technical work must be explained: what is being done, why, important 
 
 ## Design before stack
 
-The project does **not** begin by selecting an Android framework or technology stack.
-
 The approved sequence is:
 
 1. understand the product and users;
@@ -52,13 +50,15 @@ The approved sequence is:
 6. obtain owner approval for consequential technology/architecture choices;
 7. then scaffold and implement.
 
-See D-0011 and `docs/ROADMAP.md`.
+Phase 1 completed steps 1–4. Phase 2 is now performing steps 5–6. Application scaffolding remains blocked until the relevant consequential choices are approved.
+
+See D-0011, D-0009 and `docs/ROADMAP.md`.
 
 ## Current status
 
-The project is closing **Phase 1 — Product Discovery and Design**. The product/MVP baseline is approved and the final pre-merge tension pass is complete; PR #2 is undergoing final documentation/mergeability verification before canonical `main` moves into Phase 2.
+**Phase 1 — Product Discovery and Design is complete.** PR #2 was owner-approved and merged into canonical `main` on 2026-08-29 at merge commit `b5a059b8e7fb9312232ad684356af05e27331b65`.
 
-Current discovery work is on branch `discovery/initial-product-picture` in PR #2. The approved baseline includes:
+The approved product baseline includes:
 
 - paper-first live character use with a durable, freshness-visible digital backup;
 - Android as the primary live/table surface;
@@ -74,10 +74,14 @@ Current discovery work is on branch `discovery/initial-product-picture` in PR #2
 
 `D-0010 — Initial product scope / MVP` and `D-0033 — Final pre-merge product tension resolutions` are **Approved**.
 
-No remaining identified product-level contradiction or behavioral ambiguity blocks Phase 1 closure. The intentionally pending foundational decision is **D-0009 — Application architecture and implementation technology**.
+## Active phase
 
-After PR #2 is owner-approved and merged, the next project step is **architecture and technology evaluation** against the approved MVP—starting with overall application topology/surface relationship, then Android, desktop administration, multicampaign data, local-first combat synchronization, authentication/security, PDF generation, SRD retrieval/clarification, maintainability/testing and personal-scale/no-cost hosting.
+**Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation is active.**
 
-No application technology stack has been selected and no application code exists yet.
+No application architecture or technology stack has been selected, and no application code has been scaffolded.
 
-See `docs/PROJECT_STATE.md` for the authoritative current status.
+The active task is to evaluate the **overall application topology/surface relationship first**, before individual frameworks or providers. After topology, evaluation proceeds through Android, desktop administration, multicampaign data boundaries, local-first combat synchronization, hosted backend/auth/security, PDF generation, SRD retrieval/clarification, and testing/build conventions.
+
+Consequential architecture/stack choices remain owner-controlled under D-0009. Do not begin implementation before those choices are discussed, approved, and recorded.
+
+See `docs/PROJECT_STATE.md` for the authoritative current status and immediate next decision.
