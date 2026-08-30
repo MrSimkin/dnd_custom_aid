@@ -5,7 +5,7 @@
 **Current working branch:** `architecture/phase2-topology`  
 **Open review:** none yet  
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Phase 1 is complete. Architecture evaluation is active on `architecture/phase2-topology`. Three architecture decisions are approved: multi-client target shape, MVP localhost desktop administration, and native Android with Kotlin + Jetpack Compose. No application code has been scaffolded and the broader architecture/technology set remains incomplete.
+**Status:** Phase 1 is complete. Architecture evaluation is active on `architecture/phase2-topology`. Four architecture decisions are approved: multi-client target shape, MVP localhost desktop administration, native Android with Kotlin + Jetpack Compose, and Room/SQLite as Android structured local persistence. No application code has been scaffolded and the broader architecture/technology set remains incomplete.
 
 ## 1. Current product baseline
 
@@ -62,7 +62,15 @@ Approved 2026-08-30.
 
 The Android client will be built natively in Kotlin using Jetpack Compose. Flutter, React Native and shared-UI Compose Multiplatform are not the starting approach. Kotlin Multiplatform may be reconsidered later for selective non-UI sharing only if concrete reuse justifies it.
 
-A-0003 does not yet select minimum Android version, local persistence technology, networking library, navigation details, dependency injection, backend/API style, synchronization implementation, or module structure.
+### A-0004 — Room/SQLite for Android structured local persistence
+
+Approved 2026-08-30.
+
+The Android client uses Room, backed by SQLite, as its primary structured on-device persistence technology. Room will persist authoritative local live-combat state and other durable structured local/cached data that must survive process/restart interruption. DataStore may later be used for small preferences/settings, but not as the primary domain/combat store.
+
+The Room schema does not need to mirror the hosted database schema. Local and hosted storage may use different representations because they have different responsibilities.
+
+A-0004 does not yet select combat snapshot/event/outbox semantics, synchronization scheduling, WorkManager usage, hosted database/provider, API style or conflict-resolution protocol.
 
 Full rationale and consequences are in `docs/ARCHITECTURE.md`.
 
@@ -74,11 +82,12 @@ Approved:
 
 - target multi-client topology;
 - local-web/localhost MVP desktop delivery;
-- native Kotlin + Jetpack Compose Android client.
+- native Kotlin + Jetpack Compose Android client;
+- Room/SQLite Android structured local persistence.
 
 Still unresolved includes:
 
-- Android/local persistence technology and on-device data strategy;
+- combat local state/change model and synchronization queue/outbox semantics;
 - minimum Android version;
 - multicampaign domain/data-model boundaries;
 - combat synchronization/reconciliation mechanism;
@@ -100,33 +109,41 @@ Current sequence:
 1. **Overall multi-client topology** — approved A-0001.
 2. **Android client approach** — approved A-0003.
 3. **MVP desktop delivery** — approved A-0002.
-4. Multicampaign domain/data-model boundaries.
-5. **Android/local-first persistence foundation and combat authority mechanics.**
+4. **Android structured local persistence technology** — approved A-0004.
+5. **Local-first combat state/change persistence and synchronization queue semantics.**
 6. Combat synchronization/reconciliation and player public projection.
-7. Hosted backend/database/authentication/authorization/moderation boundaries.
-8. PDF generation/rendering.
-9. SRD corpus storage/retrieval/clarification and provenance.
-10. Testing/build/CI and durable module/project conventions.
+7. Multicampaign domain/data-model boundaries.
+8. Hosted backend/database/authentication/authorization/moderation boundaries.
+9. PDF generation/rendering.
+10. SRD corpus storage/retrieval/clarification and provenance.
+11. Testing/build/CI and durable module/project conventions.
 
 Some adjacent items may be discussed out of numerical order where one decision materially constrains another, but do not silently select unresolved consequential technologies.
 
 ## 6. Immediate next decision
 
-The next owner-facing technical question is the **Android/local-first persistence foundation**.
+The next owner-facing technical question is **how authoritative combat changes are persisted locally and queued for synchronization**.
 
-The comparison should determine how the Android client stores authoritative live-combat state and other required local data durably on-device before network synchronization, while preserving:
+The comparison should decide whether the Android client uses:
 
-- same-device recovery after app/process/device interruption;
-- local-first DM authority;
-- explicit future synchronization semantics rather than generic last-write-wins;
-- schema evolution/migrations;
-- testability and maintainability;
-- compatibility with the later hosted/shared domain model without requiring the local database to become a second independent backend.
+- only mutable current-state snapshots;
+- a full event-sourced combat log;
+- or a hybrid model combining current-state snapshots with a durable pending-operation/outbox queue.
 
-Do not infer the hosted provider from the local persistence choice.
+The decision must preserve:
+
+- immediate local durability before network work;
+- same-device recovery after process/app/device interruption;
+- efficient current-state reads for the combat UI;
+- safe retries without duplicate remote application;
+- explicit ordering/version semantics suitable for one authoritative DM device;
+- a path to synchronized player public projections;
+- enough history for synchronization correctness without accidentally turning combat into an analytics/event-sourcing product feature.
+
+Do not infer the hosted provider or generic domain conflict strategy from this combat-specific decision.
 
 ## 7. Handoff
 
 A fresh agent should read, in order, `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and `docs/architecture/2026-08-30_FUTURE_DESKTOP_REQUIREMENT.md`.
 
-Treat Phase 1 product decisions as closed unless a genuinely new requirement or contradiction emerges. Treat A-0001 through A-0003 as approved Phase 2 architecture decisions on the active working branch. The broader D-0009 architecture decision remains incomplete; implementation/scaffolding must not begin yet.
+Treat Phase 1 product decisions as closed unless a genuinely new requirement or contradiction emerges. Treat A-0001 through A-0004 as approved Phase 2 architecture decisions on the active working branch. The broader D-0009 architecture decision remains incomplete; implementation/scaffolding must not begin yet.
