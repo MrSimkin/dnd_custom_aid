@@ -12,7 +12,7 @@ Native Android and desktop clients do **not** connect directly to Neon and do no
 - Descope is used for authentication only; campaign/application authorization remains project-owned.
 - Database credentials remain server-side and are never distributed to native clients.
 - PostgreSQL constraints and foreign keys enforce ordinary relational integrity.
-- Offline outbox mutations, revisions and DM-authoritative combat synchronization continue to follow D-0038.
+- Offline mutations, revisions and DM-authoritative combat synchronization follow the deliberately simple behavior in D-0038.
 
 ## Proportionality constraint
 
@@ -27,6 +27,6 @@ This is a personal, deliberately small-scale project, not an enterprise or comme
 
 The owner approved the Cloudflare-gateway model but explicitly reiterated that the project must not drift into enterprise-grade architecture. Future agents must evaluate safeguards by concrete value versus maintenance/implementation burden, not by whether they would be standard in a large commercial system.
 
-This resolves the remaining hosted API/data-access and authorization-enforcement portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+This resolves the hosted API/data-access and authorization-enforcement portion of D-0009. D-0009 is now resolved/Approved by the complete D-0034 through D-0043 architecture set.
 
-> Safety checkpoint note: this decision is stored as a dedicated decision file on the active architecture branch and should be consolidated into the chronological `docs/DECISIONS.md` log before merge.
+> Detail-record note: this file preserves the fuller rationale for D-0039. The chronological authoritative entry is consolidated in `docs/DECISIONS.md`.
