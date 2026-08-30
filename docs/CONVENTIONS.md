@@ -59,6 +59,38 @@ Information required to continue the project must be persisted in the repository
 
 Source decision: D-0012.
 
+### C-0006 — Product Spanish; technical project English
+
+**Status:** Approved  
+**Date:** 2026-08-28
+
+All end-user-facing application UI, labels, messages, help/rules responses, exports intended for users, and other product-facing content should be Spanish unless a specific exception is later approved.
+
+Source code, identifiers, technical repository documentation, architecture/testing notes, development instructions, commit/PR technical prose, and agent-oriented project documentation should be English.
+
+The purpose is to keep the user experience fully accessible to the intended Spanish-speaking users while keeping development aligned with the predominantly English Android/software ecosystem and reference material.
+
+### C-0007 — SRD source provenance and user-facing D&D edition labels
+
+**Status:** Approved  
+**Date:** 2026-08-29
+
+Technical/project material, data provenance and rules-source identity must use the official document versions:
+
+- **SRD 5.1** — the earlier/2014-era fifth-edition rules foundation;
+- **SRD 5.2.1** — the revised/2024-era fifth-edition rules foundation.
+
+End-user Spanish UI and rules answers should use the familiar generation labels:
+
+- **D&D 5e** for the earlier/2014-era generation;
+- **D&D 5.5e** for the revised/2024-era generation.
+
+The user-facing label must not erase source provenance. Internally, the exact SRD document/version remains identifiable for retrieval, attribution, comparison and rules-assistance logic.
+
+In technical discussion with the owner, agents may mention both forms when useful, for example `D&D 5.5e (SRD 5.2.1)`.
+
+Source decisions: D-0017 and D-0023.
+
 ## 3. Conventions intentionally not chosen yet
 
 No convention has yet been approved for:
@@ -73,7 +105,6 @@ No convention has yet been approved for:
 - commit-message format beyond being descriptive;
 - branch naming pattern beyond using focused non-`main` branches for substantial work;
 - dependency-management style;
-- documentation language/style beyond clarity and durable continuity;
 - application architecture pattern.
 
 These must be discussed when they become relevant rather than invented prematurely.
