@@ -38,12 +38,12 @@ The application will use one shared relational PostgreSQL domain model with expl
 
 - Mutable domain entities should use stable globally unique identities suitable for Android, desktop and hosted synchronization without depending on Neon-local numeric identifiers.
 - Relational campaign ownership/scope should remain explicit enough that clients can synchronize/cache selected campaigns without treating the entire account as one undifferentiated blob.
-- Exact revision/version fields, deletion/tombstone strategy, outbox design, conflict rules, local database technology and reconciliation behavior remain separate architecture decisions.
+- Exact revision/version fields, deletion/tombstone strategy, outbox design, conflict rules, local database technology and reconciliation behavior are defined or constrained by later architecture decisions, especially D-0038.
 
 ## Rationale
 
 The owner explicitly confirmed that this model matches an already-established design preference: normal relational SQL boundaries, explicit ownership and foreign-key relationships, clear campaign isolation, and avoidance of hidden/provider-specific tenancy abstractions. PostgreSQL and SQL are intentionally treated as the natural domain-storage model for this project rather than an implementation inconvenience to abstract away.
 
-This resolves the multicampaign domain/data-model-boundaries portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+This resolves the multicampaign domain/data-model-boundaries portion of D-0009. D-0009 is now resolved/Approved by the complete D-0034 through D-0043 architecture set.
 
-> Safety checkpoint note: this decision is stored as a dedicated decision file on the active architecture branch so it is durable immediately. It should be consolidated into the chronological `docs/DECISIONS.md` log before the architecture branch is merged.
+> Detail-record note: this file preserves the fuller rationale for D-0037. The chronological authoritative entry is consolidated in `docs/DECISIONS.md`.
