@@ -20,11 +20,13 @@ Before proposing or making changes, read:
 2. `AGENTS.md`
 3. `MANIFEST.md`
 4. `docs/PROJECT_STATE.md`
-5. `docs/DECISIONS.md`
-6. `docs/PRODUCT.md`
-7. `docs/ROADMAP.md`
-8. `docs/WORKFLOW.md`
-9. Any architecture, testing, convention, or feature-specific documents relevant to the task
+5. `docs/GOVERNANCE.md`
+6. `docs/DECISIONS.md`
+7. `docs/PRODUCT.md`
+8. `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`
+9. `docs/ROADMAP.md`
+10. `docs/WORKFLOW.md`
+11. Any architecture, testing, convention, or feature-specific documents relevant to the task
 
 Do not start implementation from a stale branch or from remembered context.
 
@@ -58,6 +60,8 @@ An agent must obtain owner approval before locking in a **significant** decision
 
 When unsure whether a decision is significant, document it as pending and present it to the owner.
 
+Owner approval is authoritative but **revisable**. It must not be treated as proof that every hidden implication was understood or that the decision can never be reconsidered. Follow `docs/GOVERNANCE.md` whenever a later use case, clarification, implementation discovery, or owner concern suggests that an earlier approval may be wrong, misunderstood, or inconsistent with another approved requirement.
+
 ## 4. Explain technical work; do not silently disappear into implementation
 
 The agent doing the technical heavy lifting must keep the owner informed.
@@ -77,6 +81,8 @@ Do not hide a meaningful technical choice merely because it is implementation-le
 - when a choice establishes a convention or has meaningful future consequences, discuss it with the owner before treating it as settled.
 
 Explanations should respect the owner's programming knowledge: be clear and educational without assuming professional software-engineering experience and without unnecessarily oversimplifying.
+
+For significant technical/architecture decisions, explain practical meaning, a concrete example where useful, what the choice enables or restricts, whether it can be changed later, and the likely kind of migration/refactoring cost if reversed. Do not rely on unexplained specialist implications when asking the owner to approve a consequential choice.
 
 ## 5. Conventions are owner-reviewed and stored in Git
 
@@ -126,15 +132,16 @@ If implementation requires an unknown product behavior, prefer a reversible plac
 For substantial work:
 
 1. Verify the current state.
-2. Identify applicable approved decisions and conventions.
-3. Discuss meaningful alternatives or missing conventions with the owner when required.
-4. Record any new pending decision before implementation if needed.
-5. Work on a non-canonical branch unless the owner explicitly asks for a direct `main` change.
-6. Implement the smallest coherent change.
-7. Run the relevant checks and tests.
-8. Update documentation and operative memory in the same change.
-9. Summarize what changed, why, what was tested, what remains unresolved, and any owner decision needed.
-10. Merge to `main` only after the owner approves the change or has explicitly delegated that category of change.
+2. Identify applicable approved decisions, evolution requirements, governance rules, and conventions.
+3. Check whether the new request/use case contradicts or materially strains an existing approved decision.
+4. Discuss meaningful alternatives or missing conventions with the owner when required.
+5. Record any new pending decision before implementation if needed.
+6. Work on a non-canonical branch unless the owner explicitly asks for a direct `main` change.
+7. Implement the smallest coherent change.
+8. Run the relevant checks and tests.
+9. Update documentation and operative memory in the same change.
+10. Summarize what changed, why, what was tested, what remains unresolved, and any owner decision needed.
+11. Merge to `main` only after the owner approves the change or has explicitly delegated that category of change.
 
 ## 9. Definition of done
 
@@ -147,7 +154,7 @@ For a change to be considered complete:
 - behavior has been checked at the appropriate level;
 - documentation reflects the new reality;
 - `docs/PROJECT_STATE.md` is current;
-- important new decisions are in `docs/DECISIONS.md`;
+- important new decisions are in the appropriate decision/architecture records;
 - approved conventions are recorded in the appropriate repository documentation;
 - unresolved items are visible and not hidden in chat history.
 
@@ -174,23 +181,28 @@ Prefer maintainable, readable, testable code over clever code. Keep dependencies
 
 Before adding a dependency or service that materially affects maintenance, privacy, cost, or lock-in, document the choice and obtain approval when required by Section 3.
 
-## 12. Recovery from inconsistency
+## 12. Recovery from inconsistency and misunderstood approvals
 
-If repository documents disagree:
+If repository documents disagree, a new requirement conflicts with an approved decision, or the owner indicates that an earlier approval may have been based on incomplete understanding:
 
 1. Do not guess silently.
-2. Identify the contradiction.
-3. Prefer the most specific approved decision over general prose.
-4. Prefer newer explicitly dated state over older state when both have equal authority.
-5. Ask the owner to resolve material ambiguity.
-6. Record the resolution in the repository.
+2. Identify the contradiction or affected earlier decision.
+3. Explain the conflict in practical/layman terms and state what the earlier decision was intended to protect.
+4. Prefer the most specific approved decision over general prose only when no genuine reconsideration is needed.
+5. Do **not** automatically prefer an older approval when newer product evidence shows that it may be wrong or misunderstood.
+6. Explain reversibility and likely migration/refactoring cost.
+7. Recommend keep/amend/supersede as appropriate.
+8. Ask the owner to resolve material ambiguity or approve the correction.
+9. Record the resolution and any migration obligation in the repository.
+
+See `docs/GOVERNANCE.md` for the mandatory review procedure.
 
 ## 13. Current project stage
 
 **Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline, including the final multicampaign scope and eight product-tension resolutions, is canonical on `main` after owner-approved PR #2.
 
-**Phase 2 — Architecture & Technology Evaluation is active.** The current task is to evaluate overall application topology/surface relationship first, then proceed through the architecture sequence recorded in `docs/ARCHITECTURE.md` and `docs/PROJECT_STATE.md`.
+**Phase 2 — Architecture & Technology Evaluation is active** on the focused architecture branch identified in `docs/PROJECT_STATE.md`. Architecture sub-decisions already approved on that branch are recorded in `docs/ARCHITECTURE.md`; the broader D-0009 foundation remains incomplete.
 
-Architecture evaluation is authorized; application implementation/scaffolding is **not** yet authorized. Do not treat any framework, language, UI toolkit, persistence layer, sync model, hosted provider, database, authentication service, PDF library, AI/retrieval approach, desktop implementation form, or other consequential technology as selected until the alternatives have been explained, the owner has approved the choice, and the decision is recorded in Git.
+Architecture evaluation is authorized; application implementation/scaffolding is **not** yet authorized. Do not treat any unresolved hosted provider, database, authentication service, API style, PDF library, AI/retrieval approach, native-desktop framework, or other consequential technology as selected until the alternatives have been explained, the owner has approved the choice, and the decision is recorded in Git.
 
-Do not reopen already approved Phase 1 product questions merely because older discovery notes describe them as unresolved. Surface only genuinely new requirements, contradictions, or architecture consequences.
+Do not reopen already approved Phase 1 product questions merely because older discovery notes describe them as unresolved. However, **do** reopen an approval when a genuinely new requirement, contradiction, misunderstood implication, or implementation consequence triggers the review rules in `docs/GOVERNANCE.md`.
