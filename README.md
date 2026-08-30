@@ -41,7 +41,7 @@ Meaningful technical work must be explained. New durable conventions are discuss
 
 C-0009 is controlling: **this is a personal/small-scale project. Prefer the simplest safe solution that satisfies real requirements and do not add enterprise machinery without a concrete reason.**
 
-The 2026-08-30 pre-main proportionality audit made that concrete: do not build generalized sync/realtime/provider-abstraction infrastructure just because it is technically possible.
+The 2026-08-30 proportionality audit made that concrete: do not build generalized sync/realtime/provider-abstraction infrastructure just because it is technically possible.
 
 ## Design before implementation
 
@@ -55,7 +55,7 @@ The approved sequence is:
 6. consolidate/review the architecture branch;
 7. scaffold and implement incrementally.
 
-Phase 1 completed the product/design work. The consequential Phase 2 architecture choices D-0034 through D-0043 are owner-approved. The pre-main consolidation and proportionality review are complete on the architecture branch.
+Phase 1 completed the product/design work. Phase 2 architecture choices D-0034 through D-0043, including the proportionality clarifications, were owner-approved and merged to canonical `main` through PR #3 on 2026-08-30.
 
 ## Approved product baseline
 
@@ -96,8 +96,8 @@ See `docs/ARCHITECTURE.md` for the full current architecture record.
 
 ## Current status
 
-**Phase 1 is complete and merged. Phase 2 architecture selection, consolidation and proportionality review are complete on the working branch. No application code has been scaffolded yet.**
+**Phase 1 and the Phase 2 architecture checkpoint are complete and canonical on `main`. No application code has been scaffolded yet.**
 
-PR #3 is the formal owner review point. The remaining gate is explicit owner authorization to merge that branch into canonical `main`; completion of architecture work does not itself authorize the merge.
+The next project action is the **initial implementation scaffold**. Substantial scaffold work should begin on a focused non-`main` implementation branch under the normal workflow unless the owner explicitly requests otherwise.
 
-After owner-authorized merge of PR #3 into `main`, the next project action is the **initial implementation scaffold**, not another broad architecture-discovery round.
+Do not begin another broad architecture-discovery round or activate deferred infrastructure without a concrete new requirement.
