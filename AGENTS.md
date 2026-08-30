@@ -126,7 +126,7 @@ The project followed this sequence before implementation:
 6. explain those technical options, trade-offs, and recommendations;
 7. obtain owner approval before locking in consequential stack/architecture choices.
 
-That architecture-selection sequence is complete for the initial scaffold under D-0034 through D-0043, including the 2026-08-30 pre-main proportionality clarifications.
+That architecture-selection sequence is complete for the initial scaffold under D-0034 through D-0043, including the 2026-08-30 proportionality clarifications.
 
 Do **not** reopen approved architecture merely because historical discovery/decision prose describes an earlier uncertainty. Follow the current `docs/DECISIONS.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `docs/CONVENTIONS.md`, and `docs/PROJECT_STATE.md` baseline.
 
@@ -216,8 +216,8 @@ If repository documents disagree:
 
 **Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline is canonical on `main` after owner-approved PR #2.
 
-**Phase 2 — foundational architecture selection is complete in substance.** D-0034 through D-0043 are owner-approved and durably recorded on the active architecture branch. The pre-main proportionality audit simplified sync/offline/infrastructure interpretation without changing the selected stack. No application code has been scaffolded yet.
+**Phase 2 — foundational architecture selection/consolidation is complete and canonical on `main`.** Owner-approved PR #3 merged D-0034 through D-0043 and the 2026-08-30 proportionality clarifications. No application code has been scaffolded yet.
 
-Current work is the final contradiction/commit review before the architecture branch is presented for explicit owner merge authorization under D-0007. PR #3 is the review point.
+The current task is the **initial implementation scaffold**. Substantial scaffold work should begin on a focused non-`main` branch under Section 8 unless the owner explicitly requests direct `main` work.
 
-After that branch is owner-approved and merged, implementation scaffolding is authorized using the approved architecture. Start with the smallest scaffold necessary to prove the foundation; do not begin another broad architecture-discovery round or activate speculative infrastructure unless a genuinely new requirement, contradiction, or expensive-to-reverse choice appears.
+Start with the smallest scaffold necessary to prove the foundation. Do not begin another broad architecture-discovery round or activate speculative infrastructure unless a genuinely new requirement, contradiction, or expensive-to-reverse choice appears.
