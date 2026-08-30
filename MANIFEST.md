@@ -7,7 +7,7 @@ This file inventories the project-control files and explains when each one must 
 ### `README.md`
 
 **Role:** project entry point and mandatory read order.  
-**Current state:** Phase 1 product discovery complete; Phase 2 foundational architecture selected; documentation consolidation/review is the final gate before implementation scaffolding.  
+**Current state:** Phase 1 product discovery complete; Phase 2 foundational architecture selected and documentation consolidation complete; PR #3 is the owner merge-review gate before implementation scaffolding.  
 **Update when:** the project purpose, canonical read order, or top-level status changes.
 
 ### `AGENTS.md`
@@ -25,20 +25,20 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PROJECT_STATE.md`
 
 **Role:** authoritative snapshot of what exists now, what is being worked on, known blockers, last verification, next owner decision, and next implementation action.  
-**Current state:** foundational architecture D-0034 through D-0043 is approved; no application code exists yet; documentation consolidation/review precedes scaffolding.  
+**Current state:** foundational architecture D-0034 through D-0043 is approved and consolidated; no application code exists yet; PR #3 owner review/merge precedes scaffolding.  
 **Update when:** every meaningful work session changes project reality or next action.
 
 ### `docs/DECISIONS.md`
 
 **Role:** chronological significant-decision log.  
-**Current state:** chronological consolidation currently reaches D-0035; approved architecture decisions D-0036 through D-0043 are durably stored under `docs/decisions/` and must be consolidated here before the architecture branch is merged. D-0009's older Pending wording is therefore known stale documentation, not an unresolved architecture choice.  
+**Current state:** D-0009 is resolved/Approved and Phase 2 architecture decisions are consolidated through D-0043.  
 **Update when:** a significant decision is proposed, approved, rejected, amended, superseded, or consolidated from a dedicated safety-checkpoint file.
 
 ### `docs/decisions/`
 
-**Role:** dedicated safety-checkpoint files for consequential architecture decisions approved during the active Phase 2 branch before chronological-log consolidation.  
-**Current state:** D-0036 through D-0043 are approved and authoritative checkpoints pending consolidation into `docs/DECISIONS.md`.  
-**Update when:** a consequential decision needs immediate durable capture before the main chronological log is consolidated.
+**Role:** detailed safety-checkpoint/rationale files for consequential architecture decisions.  
+**Current state:** D-0036 through D-0043 remain as detailed approved records and are also summarized chronologically in `docs/DECISIONS.md`.  
+**Update when:** a consequential decision benefits from a dedicated detailed record or immediate durable capture.
 
 ### `docs/CONVENTIONS.md`
 
@@ -49,13 +49,13 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PRODUCT.md`
 
 **Role:** approved product scope, MVP, design/discovery direction, user groups, constraints, and current product boundaries.  
-**Current state:** final Phase 1 product baseline. Later architecture decisions clarify that the DM desktop is native Kotlin/Compose Multiplatform and that character-sheet PDF export is required on both Android and desktop; stale older wording must be consolidated before merge.  
+**Current state:** aligned with the approved Phase 2 architecture where it affects product-facing surface descriptions, including native DM desktop delivery and PDF export on both Android and desktop.  
 **Update when:** product scope, MVP, design direction, or requirements are approved or changed.
 
 ### `docs/ROADMAP.md`
 
 **Role:** staged development plan and current phase.  
-**Current state:** Phase 1 complete; Phase 2 architecture selection complete in substance; implementation scaffolding follows documentation consolidation/review.  
+**Current state:** Phase 1 complete; Phase 2 architecture selection complete; owner merge review precedes implementation scaffolding.  
 **Update when:** project phases, exit criteria, or current phase materially change.
 
 ### `docs/WORKFLOW.md`
@@ -72,7 +72,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/TESTING.md`
 
 **Role:** test/verification policy and future test-state expectations across approved application surfaces.  
-**Current state:** must be aligned during the final consolidation with D-0043's deliberately small risk-focused testing/CI approach before scaffolding.  
+**Current state:** aligned with D-0043's deliberately small, risk-focused automated testing and simple CI approach.  
 **Update when:** test strategy, device/environment matrix, commands, or release verification rules change.
 
 ## `docs/discovery/`
@@ -153,9 +153,9 @@ No application-code directories exist yet. D-0043 approves a deliberately small 
 If documents appear to conflict:
 
 1. follow `AGENTS.md` for governance/working rules;
-2. follow explicitly approved significant decisions, including dedicated `docs/decisions/` checkpoints not yet consolidated into `docs/DECISIONS.md`;
+2. follow `docs/DECISIONS.md` for approved significant decisions and the detailed matching `docs/decisions/` record where useful;
 3. follow `docs/CONVENTIONS.md` for approved recurring project practices;
-4. follow `docs/PRODUCT.md` for approved product requirements/direction, subject to later approved decision amendments;
+4. follow `docs/PRODUCT.md` for approved product requirements/direction;
 5. follow `docs/PROJECT_STATE.md` for current implementation/work status;
 6. treat `docs/discovery/` as supporting historical rationale/provisional context except where conclusions were promoted to authoritative files;
 7. surface any material contradiction instead of guessing.
