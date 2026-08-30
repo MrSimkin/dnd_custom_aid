@@ -27,6 +27,8 @@ Extensibility is a design quality, not permission for scope creep.
 
 ## 3. Primary usage surfaces
 
+Android and desktop/laptop are intentionally asymmetric surfaces for the foreseeable scope. Android is the primary at-the-table/live-use surface; desktop/laptop is primarily a DM preparation/administration companion using the same campaign/domain data rather than a separate product or data silo.
+
 ### Player phone/tablet
 
 - digital character-sheet backup/reference;
@@ -50,11 +52,15 @@ Extensibility is a design quality, not permission for scope creep.
 - saved encounter preparation;
 - minimum account/campaign/PC administration required by the product workflows.
 
-The desktop implementation form—native Windows, normal web application, local web interface or another practical desktop-friendly approach—is not selected yet.
+The desktop implementation form—native Windows, normal web application, local web interface or another practical desktop-friendly approach—is not selected yet and remains a Phase 2 architecture/technology decision.
+
+Desktop is **not required to duplicate the whole Android application** in MVP or near-term scope. No player desktop application is required in the MVP. Android/desktop feature parity is only a possible much-later evolution, not a current implementation goal. The desktop surface does **not** require the combat tracker in the MVP. If some additional Android functionality becomes naturally available on desktop at negligible cost, that does not make feature parity a requirement.
 
 ## 4. Player character workflow — paper first, digital backup
 
 Physical printed character sheets are the preferred normal play surface.
+
+During normal paper-first play, **paper is the authoritative live-session state**. The digital character represents the **latest intentionally saved/reconciled digital state**, which may be older than the current physical-table state.
 
 The digital character is a durable backup/reference copy capable of representing the **full sheet as of the latest digital update/end-of-session reconciliation**, including transient values when useful, such as:
 
@@ -66,11 +72,17 @@ The digital character is a durable backup/reference copy capable of representing
 - ammunition;
 - other sheet values useful for reconstruction/continuation.
 
-The application must not require simultaneous paper + phone bookkeeping during normal play.
+The application must not require simultaneous paper + phone bookkeeping during normal play and must not assume that an older digital value supersedes a newer change written only on paper.
 
-If paper is unavailable, the player may temporarily use the phone/tablet as the active sheet, supported by ordinary notes, and reconcile the durable digital record later.
+The application should show meaningful **last updated / freshness information** so users do not mistake an old digital backup for current live truth.
 
-End of session is the normal update point, but during-session and between-session updates are allowed. Useful last-update/freshness information may be shown; no mandatory "confirm no changes" ritual is required.
+If paper is unavailable, the player may temporarily use the phone/tablet as the active authoritative working sheet, supported by ordinary notes, and reconcile the durable digital record later.
+
+When the player performs the normal end-of-session reconciliation, the resulting saved digital state becomes the new durable baseline/backup. Returning later to paper should use the latest reconciled/exported state as the starting point.
+
+The application does **not** attempt automatic conflict merging between paper and digital because it cannot observe changes written only on paper.
+
+End of session is the normal update point, but during-session and between-session updates are allowed. No mandatory "confirm no changes" ritual is required.
 
 ## 5. Character creation/editing and PDF export
 
@@ -122,6 +134,8 @@ Actual audit growth should remain measurable/observable. Architecture should all
 
 Every person has one persistent user account/identity. Player/DM roles are campaign-scoped rather than permanent account types.
 
+The MVP is **multicampaign**. Multiple campaigns may exist and be active concurrently. A user account may participate in multiple campaigns concurrently, with independent campaign-scoped roles and permissions. The application therefore requires coherent campaign selection/switching behavior in the MVP.
+
 A user may own/control multiple PCs in one campaign.
 
 Character ownership and current control are distinct:
@@ -135,42 +149,64 @@ Inactive, dead and retired PCs remain preserved.
 
 A **PC-style character may exist without any current player account assigned**. Examples include pregenerated guest PCs, spare/replacement PCs, former-player characters and characters temporarily run by the DM. Character existence therefore must not depend on current player assignment.
 
-First version supports one active DM per campaign. The underlying role/membership model should not make future co-DM support unnecessarily difficult.
+First version supports one active DM **per campaign**. The underlying role/membership model should not make future co-DM support unnecessarily difficult.
 
 ### Invitations and recovery
 
 First-version campaign enrollment is DM-controlled.
 
-Core direction:
-
-- revocable invitation code/link;
-- QR may conveniently represent/share that same invitation;
-- email invitation may be added as convenience but is not required for the core flow;
-- standard email-based account/password recovery;
-- password recovery must not lose campaign membership/data;
-- DM may revoke/regenerate invitations;
-- no public campaign discovery or elaborate approval queue in MVP.
+- An invitation belongs to **one specific campaign** and grants no rights in any other campaign.
+- A signed-in user who follows a valid invitation joins directly; there is no second DM-approval step after the invitation has been deliberately issued.
+- If the person is not signed in, the application asks them to sign in/create an account and then continues the same invitation flow rather than discarding it.
+- The same campaign invite code/link may be used by **multiple people** until the DM revokes/regenerates it.
+- Regenerating the invitation invalidates the previous code/link.
+- A banned account cannot use an otherwise valid invitation to rejoin that campaign.
+- A kicked account may rejoin later through a currently valid invitation because Kick is removal, not a ban.
+- Rejoining preserves identity/history continuity and must not create duplicate user/character/history records.
+- Joining a campaign does **not** automatically assign ownership/control of a PC; membership and character assignment remain separate.
+- MVP invitations do **not** require mandatory expiration dates. Optional expiry, one-use invites, named invites, invitation audit and similar controls may be added later if useful.
+- QR is another representation/delivery form of the same invite link/code, not a separate invitation mechanism.
+- Email invitation, if supported, is a delivery convenience for that same invitation rather than a different membership workflow.
+- Standard email-based account/password recovery is preferred, and password recovery must not lose campaign membership/data.
+- No public campaign discovery or elaborate approval queue is required in MVP.
 
 ### Moderation/control actions
 
-- **Freeze PC:** preserve the character but prevent normal player use/editing until unfrozen; DM may still inspect/administer it.
-- **Kick user:** remove the user from the campaign while allowing later re-entry through a valid invitation; their characters remain preserved and may become unassigned.
-- **Ban player:** remove the user and prevent that account from rejoining that campaign until the ban is lifted; data remains preserved.
-- **Freeze account:** application-wide temporary account disable while preserving data.
+Campaign moderation and application-wide account administration are separate authority layers.
 
-Campaign DMs control campaign-level actions such as PC freeze, kick and campaign ban. Application-wide account freeze belongs to application/system administration, not an ordinary campaign DM, because the same account may participate elsewhere.
+A campaign DM can administer **only their campaign** and may:
 
-These controls are non-destructive and reversible where appropriate.
+- **Freeze PC:** preserve the character but prevent normal player use/editing until unfrozen; DM may still inspect/administer it;
+- **Kick user:** remove the user from the campaign while allowing later re-entry through a valid invitation; their characters remain preserved and may become unassigned;
+- **Ban player:** remove the user and prevent that account from rejoining that campaign until the ban is lifted; data remains preserved;
+- revoke/regenerate campaign invitations.
+
+A campaign DM **cannot freeze, delete, disable or otherwise control the user's global application account**. Campaign kick/ban does not affect the user's other campaigns. A frozen PC remains preserved and campaign-scoped.
+
+**Freeze account** belongs only to application/system administration. It is a global, reversible disable of application login/use while preserving campaigns, characters, audit history, ownership records, memberships and other data. Restoring the account restores those preserved relationships unless an independent campaign-level ban, kick, PC freeze or other moderation state still applies.
+
+Campaign moderation state and global account state must therefore remain separate.
+
+At present, the project owner happens to be the **only DM and the only application administrator**. This is an operational fact, not permission to hard-code `DM = application administrator` into the domain model.
+
+These controls are non-destructive and reversible where appropriate. Account deletion remains conceptually separate from account freeze.
 
 ## 8. Campaign count in MVP
 
-The MVP supports **one active campaign** in its product/UI workflow.
+The previous one-active-campaign MVP restriction is withdrawn.
 
-This is a first-version restriction, not a structural assumption that the data model can only ever represent one campaign. Future multiple-campaign support should be addable incrementally without expensive foundational redesign.
+The MVP is **multicampaign**:
+
+- multiple campaigns may exist and be active concurrently;
+- users may belong to multiple campaigns concurrently;
+- characters, NPCs, encounters, memberships, permissions, audit history and other campaign-scoped data retain explicit campaign association;
+- the UI includes sufficient campaign selection/switching behavior to use this capability coherently.
+
+This scope change deliberately avoids building a temporary single-campaign restriction that would immediately need to be removed to approach the intended real product.
 
 ## 9. D&D rules sources and terminology
 
-Campaigns in the broader product direction may mix both official SRD generations and house rules.
+Campaigns may freely mix both official SRD generations and house rules/homebrew from day one. Character, NPC and monster data must not reject content merely because it is not "legal SRD". The application is not a rules enforcer.
 
 Internal/source terminology:
 
@@ -192,7 +228,11 @@ The desired experience is quick natural-language rules clarification during play
 
 Rules clarification is part of the MVP for both players and DM.
 
-For MVP it is **official SRD only**. A user should be able to ask a natural-language question in Spanish and receive a Spanish answer grounded only in the supported official SRD corpus, with the relevant source/version identifiable.
+For MVP it is **official SRD only**. A user should be able to ask a natural-language question in Spanish and receive a Spanish answer grounded only in the supported official SRD corpus.
+
+The MVP assistant may answer from **both supported official SRDs** and must clearly identify whether relevant information comes from D&D 5e / SRD 5.1 or D&D 5.5e / SRD 5.2.1.
+
+The MVP rules assistant does **not** automatically know or apply campaign house rules. If a campaign rule differs from an official SRD rule, the DM/player applies the campaign rule manually for now. The assistant must not present campaign homebrew as if it were official SRD content.
 
 This specifies the product outcome, not the implementation. AI provider/model, retrieval approach and architecture remain deferred to technology evaluation.
 
@@ -200,7 +240,7 @@ This specifies the product outcome, not the implementation. AI provider/model, r
 
 House rules may later be stored as notes-style records rather than a machine-readable rules engine. A rule may be campaign-specific or reusable, with identifiable source/scope. Only the DM creates/edits campaign house rules.
 
-House-rule-aware clarification and reusable house-rule libraries are outside MVP.
+House-rule-aware clarification and reusable house-rule libraries are outside MVP. A later house-rule-aware answer may transparently distinguish official-source rules from the campaign-specific rule actually used.
 
 ## 11. DM tablet quick/full views
 
@@ -266,18 +306,27 @@ The DM may manually override/adjust monster HP during play.
 
 Same-group creatures normally share one initiative position while retaining individual HP/status. A creature may be split from the group into an individual initiative position when needed.
 
-### Persistence/offline behavior
+### Persistence, authority and offline behavior
 
-Active combat must survive:
+**Shared durable campaign/domain data is normally hosted and synchronized online.** An active live encounter/combat, however, has **one authoritative DM working state at a time**.
 
-- app closure;
-- tablet restart;
-- Internet loss;
-- pausing until a later session.
+While combat is active, every DM action must be committed **locally first**, so Internet loss does not interrupt play. Cloud/server synchronization is secondary and opportunistic: it provides sharing and recovery, but successful server contact is not required to continue combat.
 
-The DM tracker remains authoritative. During Internet loss the DM continues locally; player synchronization may pause and recover later.
+When connectivity returns, the authoritative local DM live-combat state must **not** be replaced by an older remote snapshot. Combat synchronization requires explicit combat-aware semantics rather than generic last-write-wins behavior.
 
-Combat working state does not automatically mutate persistent player character sheets. Players reconcile lasting/end-of-session character changes separately.
+Player devices receive the latest successfully synchronized **public projection** of combat. If connectivity disappears, their view may become stale while the DM continues normally.
+
+If a player loses Internet, the player may locally update their own tracker/view for temporary continuity. Those changes are **provisional and non-authoritative**. When connectivity returns, the player-side view is replaced/reconciled to the authoritative DM combat state; provisional player edits must never overwrite the DM state.
+
+The DM should be able to tell whether the active combat is **saved locally**, **synced**, or **waiting to sync**.
+
+The MVP supports persistence/recovery on the **same DM device** and synchronizes live combat to hosted storage whenever possible. Seamless simultaneous multi-device DM editing is not required. If a later version supports moving an active combat to another DM device, it should use an explicit transfer/resume or authority-handoff mechanism rather than concurrent authoritative editing.
+
+Changes to reusable monster/NPC definitions or saved encounter templates while combat is running do not silently rewrite the independent live copy.
+
+Combat working state does not automatically mutate persistent player character sheets, and persistent sheet changes do not automatically rewrite the combat tracker. Players reconcile lasting/end-of-session character changes separately.
+
+**Hosted data is the durable shared home; the active DM device is the live-combat authority while running that encounter.**
 
 ### Explicit first-scope exclusions
 
@@ -287,7 +336,8 @@ Combat working state does not automatically mutate persistent player character s
 - automatic rules enforcement;
 - movement/position/VTT tracking;
 - automatic persistent inventory/resource consumption;
-- combat-history analytics/logging.
+- combat-history analytics/logging;
+- seamless concurrent multi-device DM combat editing.
 
 ## 13. NPC and monster administration
 
@@ -296,7 +346,9 @@ The owner's NPC workflow distinguishes:
 1. **Quick NPC** — compact but meaningful;
 2. **Developed NPC** — richer dossier and optionally combat-capable mechanical information.
 
-Creature/monster records must support presentation of a complete current D&D 5.5e Monster Manual-style stat block rather than a deliberately reduced summary.
+Creature/monster records must be capable of representing and presenting the **entire current D&D 5.5e Monster Manual-style stat block**, with nothing important omitted.
+
+Core stable fields should be structured where useful, including name, CR, type, size, alignment, AC, HP, speeds, ability scores, saves, skills, senses, languages, resistances/immunities and similar data.
 
 Useful search/filter directions include name, CR, type, alignment and environment.
 
@@ -304,13 +356,15 @@ Broader desired capabilities include a reusable personal NPC/creature library, d
 
 ### Stat-block internal granularity
 
-Traits, actions and similar elements are first-class structured objects, but MVP does **not** decompose every mechanic into atomic rules-engine fields.
+Traits, actions, bonus actions, reactions, legendary actions and similar elements are **individual first-class structured records** with identity/category and ordering, but MVP does **not** decompose every mechanic into atomic rules-engine fields.
 
-Stable/useful identity such as name and category/type should be structured, while the complete mechanical description may remain formatted/rich text initially.
+Their complete mechanical wording may remain formatted/rich text initially. The application does **not** need to understand that wording as executable rules.
 
-The data/architecture boundaries should allow deeper structured fields—attack bonus, reach, damage components, save DC, recharge, targets, etc.—to be added later through normal incremental migrations without a fundamental rewrite of monsters, encounters or combat tracking.
+Combat tracking may use selected structured values—such as HP, AC, conditions and initiative—without requiring every action/trait to be machine-interpretable.
 
-Do not build a speculative full rules engine for this future possibility.
+Later versions may progressively add fields such as attack bonus, reach, damage components, save DC, recharge and targets where they provide real product value. The current architecture must not impede that enrichment: deeper mechanics should be additive through normal incremental migrations rather than requiring replacement of monster, encounter or combat models.
+
+The principle is **complete for humans, selectively structured for software**. Do not build a speculative full rules engine merely for future possibility.
 
 ## 14. Encounters
 
@@ -342,15 +396,21 @@ MVP includes:
 - saved encounter creation/editing;
 - minimum account/campaign/PC administration required by the approved workflows.
 
+The desktop MVP does **not** require a player-facing desktop application, full Android feature parity or the combat tracker. Desktop remains primarily preparation/administration; broader parity may be considered much later.
+
 Sophisticated NPC/monster generators, AI creature creation, advanced structured import/paste parsing and similar tooling are later increments unless a limited capability proves trivial during implementation.
 
 ## 16. Shared/hosted data
 
-Shared campaign data should be hosted online and should normally fit a no-cost hosted tier at the intended personal scale where practical.
+Shared durable campaign/domain data should be hosted online and should normally fit a no-cost hosted tier at the intended personal scale where practical.
+
+Characters, NPCs, monster definitions, saved encounters, campaign membership and similar durable data have a shared hosted representation. Android and desktop/laptop surfaces use this same campaign/domain data according to their approved workflows and permissions.
+
+Live combat is the deliberate exception in authority semantics: hosted storage is its durable shared/recovery home, but the active DM device remains authoritative while that encounter is running and commits locally first.
 
 No provider is selected. Neon/Postgres remains only a candidate mentioned during discovery.
 
-Architecture evaluation must consider authentication/authorization, synchronization, offline DM combat continuation, backups/recovery, service limits, maintenance burden, cost/lock-in, PDF generation and SRD retrieval/clarification.
+Architecture evaluation must consider authentication/authorization, multicampaign synchronization, offline DM combat continuation and reconciliation, backups/recovery, service limits, maintenance burden, cost/lock-in, PDF generation and SRD retrieval/clarification.
 
 ## 17. Approved MVP boundary
 
@@ -358,7 +418,8 @@ Architecture evaluation must consider authentication/authorization, synchronizat
 
 - manually create/view/edit PC character sheets;
 - PDF export;
-- SRD-only natural-language rules clarification in Spanish with identifiable official source/version.
+- SRD-only natural-language rules clarification in Spanish with identifiable official source/version;
+- campaign selection appropriate to multicampaign membership.
 
 ### DM tablet/live session
 
@@ -366,7 +427,8 @@ Architecture evaluation must consider authentication/authorization, synchronizat
 - quick/full PC, PC-group, NPC, monster and encounter views;
 - prepared encounter → independent live encounter copy;
 - fully on-the-fly live encounters;
-- free live add/remove/modify behavior within the practical combat-board scope.
+- free live add/remove/modify behavior within the practical combat-board scope;
+- campaign selection appropriate to multicampaign management.
 
 ### DM desktop/laptop
 
@@ -374,12 +436,14 @@ Architecture evaluation must consider authentication/authorization, synchronizat
 - manual monster data entry;
 - manual NPC data entry;
 - saved encounter creation/editing;
-- minimum account/campaign/PC administration.
+- minimum account/campaign/PC administration;
+- multicampaign administration/selection as required by the approved workflows.
 
 ### Supporting MVP functionality
 
 - account/login/recovery;
-- campaign membership/invitations and minimum moderation;
+- **multicampaign** creation/membership/selection;
+- campaign invitations and minimum moderation;
 - persistence/shared data;
 - permissions/ownership/control relationships;
 - local/offline combat persistence;
@@ -392,24 +456,37 @@ Architecture evaluation must consider authentication/authorization, synchronizat
 - sophisticated NPC/monster generator;
 - AI creature creation;
 - advanced import/paste parsing;
-- multiple active campaigns in first-version UI/workflow;
-- co-DMs;
+- co-DMs within the same campaign;
 - combat-history analytics;
 - automated combat resolution;
 - automated rules enforcement;
 - automatic combat-to-character-sheet mutation;
 - speculative sophisticated audit-retention machinery;
 - encounter balancing/CR automation;
-- additional RPG systems.
+- additional RPG systems;
+- player desktop application/full Android-desktop parity;
+- desktop combat tracker requirement;
+- seamless concurrent multi-device DM combat editing.
 
 ## 18. Current remaining product/technical work
 
-The seven high-value product questions from Round 2 are resolved.
+The original discovery clarification rounds and the final pre-merge product-tension pass are complete. The latter explicitly resolved:
 
-No application technology stack or architecture is selected yet. The next major step is to evaluate architecture/technology alternatives against the approved MVP and constraints, including Android phone/tablet behavior, desktop administration, offline-resilient combat, synchronization, PDF generation, SRD retrieval/clarification, maintainability, personal-scale/no-cost hosting and future incremental extensibility.
+- Android live use vs desktop administration boundaries;
+- multicampaign MVP scope;
+- mixed/homebrew campaign freedom vs SRD-only MVP clarification;
+- complete monster stat blocks vs selective machine structure;
+- paper live authority vs durable digital character state;
+- local-first authoritative DM combat vs hosted shared data;
+- campaign moderation vs application-wide account administration;
+- campaign invitation/rejoin semantics.
+
+No additional product-level contradiction or unresolved behavioral tension remains from the final audit pass.
+
+No application technology stack or architecture is selected yet. The next major step, after Phase 1 merge closure, is to evaluate architecture/technology alternatives against the approved MVP and constraints, including Android phone/tablet behavior, desktop administration, multicampaign shared data, offline-resilient combat, synchronization, PDF generation, SRD retrieval/clarification, maintainability, personal-scale/no-cost hosting and future incremental extensibility.
 
 Consequential architecture/stack choices remain owner-controlled and must be approved before implementation begins.
 
 ## 19. Discovery source material
 
-Detailed exploratory history lives under `docs/discovery/`, including `2026-08-29_CLARIFICATIONS_03.md` for the final Round 3 decisions that closed the MVP/product-question cycle. Discovery files preserve rationale and examples but do not override this approved product definition or `docs/DECISIONS.md`.
+Detailed exploratory history lives under `docs/discovery/`, including `2026-08-29_CLARIFICATIONS_03.md` and `2026-08-29_TENSION_RESOLUTIONS.md`. Discovery files preserve rationale and examples but do not override this approved product definition or `docs/DECISIONS.md`.
