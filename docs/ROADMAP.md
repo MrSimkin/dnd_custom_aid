@@ -25,7 +25,7 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** understand and design what the first useful version should actually do before selecting the technology stack.
 
-**Current status:** Active, with the core product/MVP baseline approved after three clarification rounds. The seven previously highlighted product questions are resolved. PR #2 is still open; technical architecture has not yet been selected.
+**Current status:** Product/MVP baseline complete pending final PR #2 consistency/merge closure. The seven previously highlighted product questions are resolved; technical architecture has not yet been selected.
 
 ### Working method
 
@@ -49,18 +49,22 @@ For meaningful product and interaction questions:
 - content/rules-system scope;
 - high-level offline/data/privacy expectations;
 - meaningful phone/tablet behavior expectations;
-- acceptance criteria for the first release;
+- high-level first-release success/validation intent;
 - known unresolved design questions.
+
+Detailed feature-level acceptance criteria do **not** need to be exhaustively authored during Phase 1. They must be defined before the corresponding implementation slice is considered complete, using `docs/templates/FEATURE_SPEC_TEMPLATE.md` and the testing rules as appropriate.
 
 ### Current milestone
 
-The MVP feature boundary and major workflows are now approved in `docs/PRODUCT.md` and `docs/DECISIONS.md`. Remaining Phase 1 work, if any, should be limited to product details actually required to evaluate technical options or discovered contradictions—not reopening already resolved questions by default.
+The MVP feature boundary and major workflows are approved in `docs/PRODUCT.md` and `docs/DECISIONS.md`. The product baseline is sufficiently coherent to evaluate technical options. Remaining Phase 1 work is repository/PR closure and any genuine contradiction discovered by audit—not reopening already resolved questions by default.
 
 ### Exit criterion
 
 The owner has approved a coherent product/design baseline that is detailed enough to evaluate technical options without forcing the design to fit an arbitrary technology choice.
 
-**Important:** do not select or scaffold the Android technology stack during this phase merely to start coding.
+This criterion is satisfied by the approved Round 3 baseline; Phase 1 becomes formally complete when PR #2 is consistency-checked, owner-approved and merged to canonical `main`.
+
+**Important:** architecture evaluation may begin after Phase 1 closure, but do not scaffold implementation before consequential architecture/stack choices are approved.
 
 ---
 
@@ -97,6 +101,7 @@ Expected outputs after the required choices are approved:
 - automated build/check commands;
 - application skeleton appropriate to the approved surfaces;
 - phone/tablet layout foundation appropriate to the design;
+- desktop/laptop administration foundation appropriate to the approved architecture;
 - testing foundation;
 - dependency and version management;
 - CI where useful;
@@ -112,7 +117,7 @@ A fresh agent can clone the repository, follow documented commands, build the ap
 
 **Goal:** implement one small end-to-end feature that proves the architecture and product workflow.
 
-The feature itself must be selected from the approved product/design scope.
+The feature itself must be selected from the approved product/design scope and must have explicit observable acceptance criteria before it is considered complete.
 
 The combat tracker is currently identified as the most important live-table MVP validation surface, but the exact first vertical slice should be selected after architecture evaluation so it proves the most useful cross-cutting risks rather than being chosen arbitrarily.
 
@@ -140,6 +145,7 @@ Potential areas include, as applicable to the approved product:
 
 - regression testing;
 - phone/tablet usability checks;
+- desktop/laptop administration checks;
 - accessibility review;
 - data migration/recovery checks;
 - performance;
