@@ -38,7 +38,7 @@ This file inventories the project-control files and explains when each one must 
 
 ### `docs/PRODUCT.md`
 
-**Role:** approved product scope, MVP, design/discovery direction, user groups, constraints, and explicitly unresolved product questions.  
+**Role:** approved product scope, MVP, design/discovery direction, user groups, constraints, and current product boundaries.  
 **Update when:** product scope, MVP, design direction, or requirements are approved or changed.
 
 ### `docs/ROADMAP.md`
@@ -53,14 +53,14 @@ This file inventories the project-control files and explains when each one must 
 
 ### `docs/ARCHITECTURE.md`
 
-**Role:** technical architecture record and rationale.  
-**Current state:** architecture not selected; it must follow sufficient product/design work.  
+**Role:** technical architecture evaluation/record and rationale.  
+**Current state:** no architecture is selected; the approved MVP baseline is sufficient to begin architecture/technology evaluation, but consequential choices remain owner-controlled and implementation has not been scaffolded.  
 **Update when:** architecture alternatives are formally evaluated, selected, or materially changed.
 
 ### `docs/TESTING.md`
 
-**Role:** test/verification policy and future test-state expectations.  
-**Update when:** test strategy, device matrix, commands, or release verification rules change.
+**Role:** test/verification policy and future test-state expectations across approved application surfaces.  
+**Update when:** test strategy, device/environment matrix, commands, or release verification rules change.
 
 ## `docs/discovery/`
 
@@ -92,7 +92,7 @@ Rules:
 ### `docs/discovery/2026-08-29_CLARIFICATIONS_03.md`
 
 **Role:** third clarification pass closing the major Round 2 questions: PDF export with unsaved edits, initial audit-retention policy, unassigned PC records, stat-block internal granularity/extensibility, prepared vs on-the-fly encounters, account/invitation/recovery and moderation concepts, and the approved first usable release/MVP boundary.  
-**Status:** confirmed owner decisions; conclusions are promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md` and `docs/PROJECT_STATE.md`.
+**Status:** confirmed owner decisions; promotion into authoritative product/decision/state records is complete.
 
 ## `assets/character-sheets/`
 
