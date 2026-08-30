@@ -3,7 +3,7 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, and native Android client approach are approved, but the application architecture/technology set is not complete.  
+**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, native Android client approach, and Android local persistence technology are approved, but the application architecture/technology set is not complete.  
 **Application code:** Not scaffolded.  
 **Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
 
@@ -11,7 +11,7 @@ The project has reached the architecture-evaluation gate, **not** the implementa
 
 ## Architecture decision gate
 
-Do not choose or scaffold unresolved persistence, sync/backend implementation, minimum Android version, hosted provider, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
+Do not choose or scaffold unresolved synchronization semantics, backend/provider, minimum Android version, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
 
 The approved product baseline includes:
 
@@ -100,6 +100,28 @@ Kotlin Multiplatform remains a possible later, selective technique for extractin
 - Do not introduce Kotlin Multiplatform complexity speculatively. Re-evaluate it only when concrete reusable logic exists and another implemented client would benefit.
 - This decision does **not** select minimum Android version, local database/persistence technology, navigation details, dependency injection, networking library, backend/API style, synchronization implementation, or project/module structure.
 
+### A-0004 — Android structured local persistence uses Room / SQLite
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+The Android client will use **Room**, backed by SQLite, as its primary structured on-device persistence technology.
+
+Room is responsible for durable relational Android data that must survive process death/restart, including authoritative local live-combat state and other structured local/cached data that later approved repository/synchronization design requires.
+
+Small settings/preferences may later use DataStore where appropriate, but DataStore is not the primary domain/combat store.
+
+The local Room schema is **not required to mirror the hosted database schema**. Local and hosted storage have different responsibilities and may use different representations while preserving explicit domain/contracts between layers.
+
+#### Consequences
+
+- Live combat state can be committed to durable local storage before network synchronization.
+- Android UI/domain reads that must remain offline-capable can be backed by a local source of truth rather than depending on a successful network request.
+- Room migrations must be treated as real persistent-data migrations once implementation begins.
+- Do not introduce SQLDelight or another cross-platform persistence abstraction merely because a future native desktop client is planned; the future desktop client may choose its own local persistence technology.
+- This decision does **not** yet select combat snapshot/event/outbox semantics, synchronization scheduling, WorkManager usage, hosted database/provider, API style, or conflict-resolution protocol.
+
 ### Product requirement carried into architecture evaluation
 
 `docs/architecture/2026-08-30_FUTURE_DESKTOP_REQUIREMENT.md` records that a true native desktop application is an expected future product feature. That requirement predates and constrains A-0001; it does not itself select implementation technology.
@@ -113,19 +135,20 @@ Current sequence:
 1. ~~overall Android + desktop/laptop topology and shared-domain relationship~~ — approved in A-0001;
 2. ~~Android client approach~~ — approved in A-0003;
 3. ~~MVP desktop/laptop administration delivery approach~~ — approved in A-0002;
-4. multicampaign domain/data-model boundaries;
-5. **Android/local-first persistence foundation and combat authority mechanics**;
+4. ~~Android structured local persistence technology~~ — approved in A-0004;
+5. **local-first combat state/change persistence and synchronization queue semantics**;
 6. combat synchronization/reconciliation and player public projection;
-7. hosted backend/database/authentication/authorization and moderation boundaries;
-8. PDF generation/rendering;
-9. SRD corpus storage/retrieval/clarification and provenance;
-10. testing/build/CI and durable module/project conventions.
+7. multicampaign domain/data-model boundaries;
+8. hosted backend/database/authentication/authorization and moderation boundaries;
+9. PDF generation/rendering;
+10. SRD corpus storage/retrieval/clarification and provenance;
+11. testing/build/CI and durable module/project conventions.
 
 ### Current decision under evaluation
 
-**Android/local-first persistence foundation.**
+**Local-first combat state/change persistence and synchronization queue semantics.**
 
-The next comparison should determine how authoritative live combat state and other required local Android data are persisted safely on-device before network synchronization, without yet selecting the hosted backend/provider.
+The next comparison should determine how authoritative combat state changes are committed locally and represented for later synchronization/retry, without yet selecting the hosted backend/provider or generic conflict strategy for all domain data.
 
 ## Evaluation criteria
 
@@ -174,7 +197,8 @@ Architecture must not be selected on the false assumption that MVP requires:
 - co-DMs within one campaign;
 - multiple RPG systems in MVP;
 - implementation of the future native desktop client during MVP;
-- Kotlin Multiplatform or shared UI simply because a future native desktop client is planned.
+- Kotlin Multiplatform or shared UI simply because a future native desktop client is planned;
+- identical local and hosted database schemas.
 
 ## Future architecture record format
 
