@@ -4,7 +4,6 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import io.github.mrsimkin.dndcustomaid.shared.ScaffoldStatus
 
 fun main() = application {
     Window(
@@ -12,7 +11,7 @@ fun main() = application {
         title = "dnd_custom_aid",
     ) {
         MaterialTheme {
-            Text(ScaffoldStatus.message)
+            Text("dnd_custom_aid desktop")
         }
     }
 }
