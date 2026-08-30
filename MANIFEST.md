@@ -7,7 +7,7 @@ This file inventories the project-control files and explains when each one must 
 ### `README.md`
 
 **Role:** project entry point and mandatory read order.  
-**Current state:** Phase 1 product discovery complete; Phase 2 foundational architecture selected; pre-main proportionality cleanup/final review precedes implementation scaffolding.  
+**Current state:** Phase 1 product discovery complete; Phase 2 foundational architecture selected; consolidation/proportionality review complete; explicit owner merge authorization is the remaining gate before implementation scaffolding.  
 **Update when:** the project purpose, canonical read order, or top-level status changes.
 
 ### `AGENTS.md`
@@ -26,13 +26,13 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PROJECT_STATE.md`
 
 **Role:** authoritative snapshot of what exists now, what is being worked on, known blockers, last verification, next owner decision, and next implementation action.  
-**Current state:** foundational architecture D-0034 through D-0043 is approved; pre-main proportionality clarifications simplify sync/offline/infrastructure behavior; no application code exists yet.  
+**Current state:** foundational architecture D-0034 through D-0043 is approved and simplified by the pre-main proportionality audit; no application code exists yet; explicit owner PR #3 merge authorization precedes scaffolding.  
 **Update when:** every meaningful work session changes project reality or next action.
 
 ### `docs/DECISIONS.md`
 
 **Role:** chronological significant-decision log.  
-**Current state:** D-0009 is resolved/Approved and Phase 2 architecture decisions are consolidated through D-0043; the pre-main cleanup must leave the earlier sync/combat wording consistent with the approved simplifications before merge.  
+**Current state:** D-0009 is resolved/Approved and Phase 2 architecture decisions are consolidated through D-0043, including the 2026-08-30 proportionality clarifications to combat/sync/infrastructure behavior.  
 **Update when:** a significant decision is proposed, approved, rejected, amended, superseded, or materially clarified.
 
 ### `docs/decisions/`
@@ -44,7 +44,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/CONVENTIONS.md`
 
 **Role:** durable registry of owner-approved recurring project conventions.  
-**Current state:** includes C-0008 (use representative SQL when useful for owner review) and C-0009 (personal-scale proportionality), now clarified to prefer HTTP before realtime, localized provider code over abstraction frameworks, selective offline support, and small application-specific sync behavior.  
+**Current state:** includes C-0008 (use representative SQL when useful for owner review) and C-0009 (personal-scale proportionality), clarified to prefer HTTP before realtime, localized provider code over abstraction frameworks, selective offline support, and small application-specific sync behavior.  
 **Update when:** a new convention is approved, an existing convention changes, or one is superseded.
 
 ### `docs/PRODUCT.md`
@@ -56,7 +56,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ROADMAP.md`
 
 **Role:** staged development plan and current phase.  
-**Current state:** Phase 1 complete; Phase 2 architecture selection complete; owner merge review precedes implementation scaffolding.  
+**Current state:** Phase 1 complete; Phase 2 architecture selection/consolidation/proportionality review complete; explicit owner merge authorization precedes implementation scaffolding.  
 **Update when:** project phases, exit criteria, or current phase materially change.
 
 ### `docs/WORKFLOW.md`
@@ -67,7 +67,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ARCHITECTURE.md`
 
 **Role:** current approved architecture record and rationale.  
-**Current state:** foundational architecture D-0034 through D-0043 is selected and explicitly simplified under C-0009 for the initial scaffold.  
+**Current state:** foundational architecture D-0034 through D-0043 is selected and explicitly simplified under C-0009 for the initial scaffold; merge authorization is the remaining gate.  
 **Update when:** architecture is materially changed or a consequential clarification affects implementation meaning.
 
 ### `docs/TESTING.md`
