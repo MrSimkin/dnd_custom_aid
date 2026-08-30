@@ -88,11 +88,11 @@ private fun CampaignScreen(repository: CampaignRepository) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "Campaigns",
+                            text = "Campañas",
                             style = MaterialTheme.typography.headlineMedium,
                         )
                         Text(
-                            text = "Choose the campaign you want to use on this device.",
+                            text = "Elige la campaña que quieres usar en este dispositivo.",
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
@@ -101,7 +101,7 @@ private fun CampaignScreen(repository: CampaignRepository) {
                 if (campaigns.isEmpty()) {
                     item {
                         Text(
-                            text = "No campaigns yet. Use + to create one.",
+                            text = "Aún no hay campañas. Usa + para crear una.",
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }
@@ -164,7 +164,7 @@ private fun CampaignCard(
                 )
                 if (isActive) {
                     Text(
-                        text = "Active campaign",
+                        text = "Campaña activa",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -183,12 +183,12 @@ private fun CreateCampaignDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New campaign") },
+        title = { Text("Nueva campaña") },
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Campaign name") },
+                label = { Text("Nombre de la campaña") },
                 singleLine = true,
             )
         },
@@ -197,12 +197,12 @@ private fun CreateCampaignDialog(
                 onClick = { onCreate(name) },
                 enabled = normalizedName.isNotEmpty(),
             ) {
-                Text("Create")
+                Text("Crear")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancelar")
             }
         },
     )
