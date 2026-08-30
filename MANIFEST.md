@@ -25,13 +25,13 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PROJECT_STATE.md`
 
 **Role:** authoritative snapshot of what exists now, what is being worked on, known blockers, last verification, next owner decision, and next implementation action.  
-**Current state:** Phase 2 active; next decision is overall application topology/surface relationship.  
+**Current state:** Phase 2 active; hosted backend/provider topology and Android client are approved; next decision is desktop/laptop administration delivery approach.  
 **Update when:** every meaningful work session changes project reality or next action.
 
 ### `docs/DECISIONS.md`
 
 **Role:** durable significant-decision log.  
-**Current state:** approved product decisions through D-0033; D-0009 remains intentionally pending for active Phase 2 architecture/technology evaluation.  
+**Current state:** approved product decisions through D-0033 plus Phase 2 architecture approvals D-0034 (Neon + Cloudflare + Descope topology) and D-0035 (native Kotlin + Jetpack Compose Android). D-0009 remains intentionally pending for the unresolved architecture/technology choices.  
 **Update when:** a significant decision is proposed, approved, rejected, amended, or superseded.
 
 ### `docs/CONVENTIONS.md`
@@ -59,7 +59,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ARCHITECTURE.md`
 
 **Role:** technical architecture evaluation/record and rationale.  
-**Current state:** architecture is not selected; Phase 2 evaluation is active and begins with overall application topology/surface relationship. Consequential choices remain owner-controlled and implementation has not been scaffolded.  
+**Current state:** architecture is partially selected: hosted backend/provider topology and Android client approach are approved; evaluation continues with the desktop/laptop administration delivery approach. Application code remains unscaffolded.  
 **Update when:** architecture alternatives are formally evaluated, selected, or materially changed.
 
 ### `docs/TESTING.md`
@@ -138,7 +138,7 @@ Review checklist for substantial changes, including owner decisions, conventions
 
 ## Future application code
 
-No application-code directories are authoritative yet because architecture/technology selection has not been approved. When the technical foundation is approved and scaffolded, add the major code/build directories to this manifest with a one-line purpose for each.
+No application-code directories are authoritative yet because the complete architecture/technology foundation has not been approved. When the technical foundation is sufficiently approved and scaffolded, add the major code/build directories to this manifest with a one-line purpose for each.
 
 ## Authority rule
 
