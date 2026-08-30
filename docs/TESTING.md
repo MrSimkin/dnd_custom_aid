@@ -24,8 +24,8 @@ At scaffolding/early implementation, automated tests should concentrate on:
 
 - shared Kotlin domain logic where mistakes could corrupt or misrepresent state;
 - SQLDelight schema/migration correctness;
-- outbox, idempotent-mutation, revision/conflict and ordinary synchronization behavior;
-- DM live-combat authority/reconciliation behavior;
+- outbox, idempotent-mutation, revision/conflict and ordinary synchronization behavior that actually exists in MVP;
+- DM live-combat sequence/authority behavior;
 - consequential Cloudflare backend authentication/authorization and synchronization behavior;
 - compilation/build checks for Android, desktop and backend code.
 
@@ -59,7 +59,14 @@ Automated UI tests may be added for a workflow when they solve a concrete regres
 
 The DM desktop client is native Kotlin + Compose Multiplatform Desktop. Verify the actual supported desktop environment(s) used by the project and the keyboard/mouse workflows that matter.
 
-MVP verification does **not** require player desktop behavior, Android/desktop feature parity, or desktop combat tracking.
+Desktop synchronization tests should reflect the approved simple model:
+
+- **Save** persists locally even when offline;
+- **Sync** sends pending local changes and retrieves applicable remote changes;
+- failed Sync does not lose local saved work;
+- a later Sync can retry pending changes safely.
+
+MVP verification does **not** require player desktop behavior, Android/desktop feature parity, desktop combat tracking, or a continuous background-sync service.
 
 ## 6. Multicampaign verification
 
@@ -77,15 +84,25 @@ Relevant implementation must verify campaign isolation and selection, including 
 
 These behaviors are high-value automated-test targets because failure can lose or corrupt useful state:
 
-- local mutation and outbox persistence remain coherent;
+- local mutation and outbox persistence remain coherent where the outbox is used;
 - duplicate/idempotent mutations do not apply twice;
 - stale ordinary revisions are detected rather than blindly overwriting newer data;
 - active DM combat survives same-device interruption/restart once that persistence exists;
 - network loss does not prevent the DM from continuing combat;
-- older hosted combat state cannot replace newer authoritative DM state;
-- player public/provisional combat state never gains authority over DM combat;
+- the DM combat sequence/version rejects delayed older updates and older hosted state cannot replace newer authoritative DM state;
+- no authority-generation/handoff machinery is accidentally treated as an MVP requirement;
 - reusable monster/NPC/template edits do not silently mutate an already-running live encounter;
 - combat state and durable character-sheet state remain separate.
+
+### Player offline combat convenience
+
+Player offline behavior is intentionally tiny and should be verified as such:
+
+- while offline, the player can locally advance the displayed turn and add/remove visible conditions;
+- those local changes are never uploaded and never enter the sync outbox;
+- they never affect DM-authoritative combat state;
+- reconnecting replaces/discards the temporary local view with the latest DM public projection;
+- durability across player-app restart is not required.
 
 ## 8. Character/PDF workflow verification
 
@@ -107,14 +124,22 @@ Where relevant, verify:
 - campaign homebrew is not silently presented as official SRD content;
 - ordinary PostgreSQL full-text retrieval is measured against real questions before adding vector/embedding machinery.
 
-## 10. Regression rule
+## 10. Infrastructure proportionality verification
+
+The initial implementation should remain simple enough that verification does **not** assume infrastructure we deliberately deferred.
+
+- ordinary HTTP/request-response and simple polling/refresh are the default;
+- WebSockets, Durable Objects, queues, R2 or other Cloudflare services are tested only if a later concrete feature actually introduces them;
+- provider-specific code may be localized, but tests should not require generalized provider-abstraction frameworks that do not exist.
+
+## 11. Regression rule
 
 When fixing a reproducible defect, add an automated regression test when that test is practical and useful. If it is not, record the manual verification used.
 
-## 11. Test failures are project state
+## 12. Test failures are project state
 
 If a branch is handed off with known failures, `docs/PROJECT_STATE.md` must identify the failing check/command, a useful error summary, current diagnosis if known, and the recommended next action.
 
-## 12. Proportionality
+## 13. Proportionality
 
 C-0009 controls this document as much as the rest of the architecture: testing exists to protect this application and its data, not to simulate the process requirements of a commercial enterprise product.
