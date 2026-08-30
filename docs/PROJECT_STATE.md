@@ -5,7 +5,7 @@
 **Current working branch:** `architecture/approved-backend-and-android`  
 **Open review:** none  
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Architecture evaluation is active. Hosted backend/provider topology, Android client approach, native desktop administration delivery and multicampaign domain/data boundaries are owner-approved and committed remotely; no application code has been scaffolded yet. The next owner-facing architecture decision is local persistence, offline scope, synchronization and reconciliation.
+**Status:** Architecture evaluation is active. Hosted backend/provider topology, Android client approach, native desktop administration delivery, multicampaign domain/data boundaries, and local persistence/offline synchronization architecture are owner-approved and committed remotely; no application code has been scaffolded yet. The next owner-facing architecture decision is hosted API/data-access and authorization-enforcement boundaries.
 
 ## 1. Current product baseline
 
@@ -25,7 +25,7 @@ Approved product shape:
 - Campaign moderation and global application administration are separate authority layers.
 - Campaign invitations are campaign-scoped, reusable until revoked/regenerated, and permit direct join without a second DM approval step.
 
-Detailed authoritative behavior lives in `docs/PRODUCT.md` and approved decisions in `docs/DECISIONS.md`; D-0036 and D-0037 are also durably checkpointed in `docs/decisions/` pending chronological-log consolidation before merge.
+Detailed authoritative behavior lives in `docs/PRODUCT.md` and approved decisions in `docs/DECISIONS.md`; D-0036, D-0037 and D-0038 are also durably checkpointed in `docs/decisions/` pending chronological-log consolidation before merge.
 
 ## 2. Approved Phase 2 architecture choices
 
@@ -52,7 +52,6 @@ Detailed authoritative behavior lives in `docs/PRODUCT.md` and approved decision
 - Installer/update/distribution overhead is explicitly accepted by the owner and is not considered a material disadvantage.
 - The owner prefers avoiding unnecessary online dependency; the desktop design should permit meaningful local/offline operation.
 - Android and desktop may selectively share Kotlin domain/business/networking/synchronization code, but UI parity is neither required nor desired.
-- Exact desktop local persistence, offline scope and synchronization/reconciliation remain unresolved.
 
 ### Multicampaign domain/data boundaries — D-0037
 
@@ -63,7 +62,19 @@ Detailed authoritative behavior lives in `docs/PRODUCT.md` and approved decision
 - Mutable personal reusable content and campaign content are distinct; campaign use normally creates an independent copy retaining provenance.
 - Immutable/versioned official SRD content may be referenced canonically and copied when customized.
 - Saved encounters, live encounters, durable character state, grouped character history and live combat state remain distinct domains.
-- Mutable entities should have stable globally unique identities suitable for local/offline synchronization.
+- Mutable entities have stable globally unique identities suitable for local/offline synchronization.
+
+### Local persistence and synchronization — D-0038
+
+- Android and desktop use **SQLite via SQLDelight** as the durable local relational persistence layer.
+- Native clients are local-first where practical and synchronize through the project-owned Cloudflare backend/API to Neon PostgreSQL.
+- Authorized useful data may be cached locally for offline workflows; authorization boundaries remain intact.
+- Local changes and pending outbox entries are committed atomically where applicable.
+- Ordinary durable data uses stable global IDs, idempotent mutations, revision-based optimistic concurrency and deletion tombstones rather than blind last-write-wins.
+- Ambiguous normal conflicts are detected for explicit reconciliation.
+- Live combat uses stricter authoritative DM-device lineage/generation plus ordered sequence semantics; stale hosted state cannot overwrite newer authoritative DM state.
+- Player combat projections remain non-authoritative.
+- Android and desktop may share SQLDelight/domain/sync Kotlin code selectively.
 
 D-0009 remains intentionally Pending because several consequential architecture choices remain unresolved.
 
@@ -78,13 +89,13 @@ Approved:
 - authentication provider: Descope, authentication only;
 - Android language/UI: Kotlin + Jetpack Compose;
 - DM desktop delivery: native Kotlin + Compose Multiplatform Desktop;
-- multicampaign data/domain boundary model: one shared relational PostgreSQL model with explicit global/campaign scope.
+- multicampaign data/domain boundary model: one shared relational PostgreSQL model with explicit global/campaign scope;
+- local persistence: SQLite via SQLDelight on Android and desktop;
+- sync architecture: project-owned local-first outbox/revision/tombstone synchronization, with separate DM-authoritative combat reconciliation.
 
 Still unresolved:
 
-- local Android/desktop persistence technology and offline data scope;
-- normal durable-data synchronization/conflict behavior;
-- combat synchronization/reconciliation implementation;
+- hosted API/data-access and exact authorization-enforcement boundary;
 - minimum Android version;
 - PDF generation/rendering technology;
 - SRD storage/retrieval/clarification implementation;
@@ -96,13 +107,15 @@ Implementation/scaffolding remains blocked until the required architecture set i
 
 - Shared durable domain data is hosted in PostgreSQL.
 - Domain data uses explicit relational global/campaign ownership rather than provider-specific tenancy or giant campaign blobs.
-- Active DM combat remains locally authoritative under D-0025/D-0033 and synchronizes opportunistically.
-- Desktop preparation should not require continuous connectivity where local/offline operation can be supported reasonably.
+- Native clients use durable local SQLite persistence and should not unnecessarily depend on continuous connectivity.
+- Active DM combat remains locally authoritative under D-0025/D-0033 and uses stricter synchronization semantics than ordinary durable data.
+- Ordinary synchronized data must detect stale revisions rather than silently use generic last-write-wins.
 - Descope identity is separate from internal application identity and domain authorization.
 - Irreplaceable domain truth must not live only in Cloudflare or Descope.
 - Prefer stable/GA capabilities over avoidable beta/preview dependencies.
 - Prefer no-cost personal-scale operation where practical while preserving low-cost paid and migration paths.
 - Share Kotlin code selectively when useful; do not force Android and desktop UI/feature parity.
+- Owner-facing relational/data-model explanations should include representative SQL when useful under C-0008.
 - Avoid speculative future-system complexity until a real requirement justifies it.
 
 ## 5. Architecture evaluation order
@@ -117,32 +130,31 @@ Implementation/scaffolding remains blocked until the required architecture set i
 8. SRD corpus storage/retrieval/clarification and provenance;
 9. testing/build/CI and durable project/module conventions.
 
-Items 2, 3, 4 and the provider portion of item 6 are now approved. The current next decision is item 5, expanded to cover shared local/offline persistence and ordinary durable-data synchronization as needed by both native clients.
+Items 2, 3, 4, 5 and the provider portion of item 6 are now approved. The current next decision is the remaining hosted API/data-access and authorization-enforcement portion of item 6.
 
 ## 6. Immediate next decision
 
-Evaluate **local persistence, offline data scope, synchronization and reconciliation across Android and desktop**.
+Evaluate **hosted API/data-access and authorization-enforcement boundaries**.
 
-The evaluation must distinguish ordinary durable-domain synchronization from live-combat authority. It should determine:
+The evaluation must determine:
 
-- the local relational persistence technology for Android and desktop;
-- which campaign/domain data is cached or editable offline on each client;
-- how local mutations are durably queued before network success;
-- how stable IDs, revisions and deletion/tombstone semantics work;
-- how normal durable-data conflicts are detected/resolved;
-- how active DM combat uses stricter authority/reconciliation so older remote state can never overwrite newer authoritative local DM state;
-- how player public projections sync without gaining authority over DM combat;
-- how users see saved-local/sync-pending/synced/freshness state;
-- what Kotlin code can reasonably be shared between Android and desktop.
+- whether native clients ever connect directly to Neon or all remote database interaction flows through Cloudflare;
+- how Descope tokens are verified and mapped to internal application users;
+- where campaign membership/role, PC ownership/control, moderation and global-account-freeze authorization are enforced;
+- whether PostgreSQL Row Level Security is used, and if so as primary authorization or defense in depth;
+- how the server accepts/rejects idempotent offline outbox mutations and stale revisions safely;
+- how privileged application-administration operations are isolated from normal campaign-DM authority;
+- what database credentials/roles are held by Cloudflare/backend components and what privileges they receive;
+- how the design remains inspectable/testable and reasonably portable away from current providers.
 
-Do not assume that one generic last-write-wins mechanism is appropriate for all domains.
+No native client should receive privileged database credentials merely for convenience.
 
 ## 7. Durable checkpoint
 
-The approved backend/provider, Android-client, native-desktop and multicampaign-domain decisions are committed to the remote branch `architecture/approved-backend-and-android`. This branch remains the active safety checkpoint for the current Phase 2 architecture session until review/merge.
+The approved backend/provider, Android-client, native-desktop, multicampaign-domain and SQLDelight/local-first synchronization decisions are committed to the remote branch `architecture/approved-backend-and-android`. This branch remains the active safety checkpoint for the current Phase 2 architecture session until review/merge.
 
 ## 8. Handoff
 
-A fresh agent should read, in order, `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and the dedicated files in `docs/decisions/` that have not yet been consolidated into the chronological decision log.
+A fresh agent should read, in order, `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/CONVENTIONS.md`, and the dedicated files in `docs/decisions/` that have not yet been consolidated into the chronological decision log.
 
-Treat Phase 1 product decisions as closed unless a genuinely new requirement or contradiction emerges. Continue Phase 2 from local persistence/offline synchronization and reconciliation. Consequential choices remain owner-controlled.
+Treat Phase 1 product decisions as closed unless a genuinely new requirement or contradiction emerges. Continue Phase 2 from hosted API/data-access and authorization-enforcement boundaries. Consequential choices remain owner-controlled.
