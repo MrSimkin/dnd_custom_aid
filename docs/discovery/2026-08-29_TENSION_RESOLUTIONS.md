@@ -71,3 +71,26 @@ The owner prefers implementing multicampaign behavior in the MVP because it is c
 - The rules assistant must not present campaign homebrew as if it were official SRD content.
 - Mixed/homebrew campaign records must remain usable even when the rules assistant cannot interpret or validate those rules.
 - Later house-rule-aware clarification may combine official provenance with campaign-specific overrides, but that capability is explicitly outside the MVP.
+
+---
+
+## 4. Complete monster stat blocks vs selective structured mechanics
+
+**Confirmed resolution:** monster records must be complete for human use while the MVP structures only the mechanics that provide practical software value; future enrichment must remain possible without architectural obstruction.
+
+1. A monster record must be capable of representing and displaying the **entire stat block**, with nothing important omitted.
+2. Core stable fields should be structured where useful, including name, CR, type, size, alignment, AC, HP, speeds, ability scores, saves, skills, senses, languages, resistances/immunities and similar stable stat-block data.
+3. Traits, actions, bonus actions, reactions, legendary actions and similar elements are **individual structured records** with ordering/category.
+4. Their complete mechanical wording may remain formatted text in the MVP.
+5. The application does **not** need to understand that formatted text as executable rules.
+6. Combat tracking may use selected structured values—such as HP, AC, conditions and initiative—without requiring every action or trait to be machine-interpretable.
+7. Later versions may progressively add structured fields such as attack bonus, reach, save DC, damage components, recharge and targets where those fields provide actual product value.
+8. The current architecture must not impede that future enrichment.
+
+### Consequences
+
+- "Complete stat block" is a presentation/data-completeness requirement, not a requirement for a full rules engine.
+- The MVP should avoid both extremes: one undifferentiated giant stat-block blob and premature atomic normalization of every game-mechanics clause.
+- Stable structured fields and first-class action/trait records should support search, display, encounter use and combat reference now.
+- Deeper structured mechanics should be additive through ordinary evolution/migrations rather than requiring replacement of monster, encounter or combat models.
+- Human-readable completeness takes priority over speculative machine interpretation in the MVP.
