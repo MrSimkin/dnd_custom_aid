@@ -4,143 +4,142 @@
 
 There is no application code or build system yet, so there are no executable project tests at this stage.
 
-This document defines how testing information must be recorded once implementation begins.
+D-0043 defines the initial testing attitude: protect the failures that would materially hurt this personal project, keep CI small, and rely on practical real-device/manual verification for visual UX rather than building an enterprise test program.
 
 ## 1. Core rule
 
 Never claim a test passed unless it was actually executed successfully against the relevant revision.
 
-Every meaningful implementation change should state:
+Every meaningful implementation change should state concisely:
 
 - what was tested;
 - how it was tested;
-- what passed;
-- what failed;
-- what was not tested;
+- what passed or failed;
+- what was not tested when that matters;
 - relevant environment/device information when it matters.
 
-## 2. Future automated verification layers
+## 2. Initial automated verification scope
 
-The exact tools depend on the approved architecture, but the project should aim to cover appropriate layers such as:
+At scaffolding/early implementation, automated tests should concentrate on:
 
-- compilation/build checks;
-- static analysis/lint;
-- unit tests for business logic;
-- data/persistence tests;
-- synchronization/reconciliation tests;
-- authorization/permission tests;
-- UI/component tests where valuable;
-- end-to-end/instrumented tests for critical workflows;
-- CI checks for merge candidates.
+- shared Kotlin domain logic where mistakes could corrupt or misrepresent state;
+- SQLDelight schema/migration correctness;
+- outbox, idempotent-mutation, revision/conflict and ordinary synchronization behavior that actually exists in MVP;
+- DM live-combat sequence/authority behavior;
+- consequential Cloudflare backend authentication/authorization and synchronization behavior;
+- compilation/build checks for Android, desktop and backend code.
 
-This is a quality framework, not a requirement to create every test type for every feature.
+This is deliberately **not** a requirement to automate every UI interaction, every feature, or every implementation detail.
 
-## 3. Phone, tablet and desktop/laptop verification
+## 3. CI
 
-Because Android phone and tablet support are approved requirements, user-visible mobile features must eventually be checked against representative configurations for both form factors.
+Use one simple GitHub Actions workflow for relevant pushes/pull requests. It should perform the practical Kotlin/Gradle and TypeScript/backend build/test checks available at that stage.
 
-The exact Android device/API matrix is **pending** and should be chosen after the architecture/minimum Android version decision.
+CI is a safety check, not a deployment system.
 
-For responsive/adaptive mobile UI work, verification should record at minimum whether relevant layouts were checked in representative compact and larger-screen configurations.
+Initial CI does **not** require:
 
-Desktop/laptop DM administration is also an approved MVP surface. Once its implementation form is selected, relevant administration workflows must be verified in representative supported desktop/laptop environments. The exact operating-system/browser/runtime matrix remains pending until that architecture choice is approved.
+- coverage-percentage gates;
+- SonarQube or similar enterprise quality tooling;
+- Android emulator/device farms;
+- large API-version matrices;
+- staging infrastructure;
+- automatic production deployment;
+- automated release/installer publishing before it provides real value.
 
-Desktop testing must reflect the approved asymmetric scope: MVP verification does **not** require player desktop behavior, Android/desktop feature parity, or desktop combat tracking unless a later decision adds those features.
+## 4. Android device verification
 
-Cross-surface workflows—such as shared campaign data, character visibility, encounter preparation and synchronization—should be verified end-to-end across the applicable surfaces when those capabilities exist.
+The approved Android minimum is **Android 11 / API 30** under D-0042.
 
-## 4. Multicampaign verification
+Android UX is a priority, so visual/layout/interaction work should be checked manually on the actual relevant phone and tablet devices whenever practical. Representative compact/phone and larger/tablet layouts matter more than hypothetical support for obsolete Android versions.
 
-Because multicampaign is part of the MVP, testing must cover relevant isolation and selection behavior once implemented, including as applicable:
+Automated UI tests may be added for a workflow when they solve a concrete regression problem; they are not a blanket requirement.
 
-- multiple campaigns can coexist and remain independently usable;
-- one account can participate in multiple campaigns concurrently;
-- campaign selection/switching opens the intended campaign context;
-- campaign-scoped roles and permissions do not leak across campaigns;
-- Kick/Ban/Freeze PC affects only the intended campaign/character scope;
-- a campaign ban does not affect unrelated campaign membership;
-- global account freeze is evaluated separately from campaign moderation;
-- campaign-scoped characters/NPCs/encounters/history remain associated with the correct campaign;
-- invitation codes/links enroll only into their owning campaign.
+## 5. Desktop verification
 
-## 5. Local-first combat and synchronization verification
+The DM desktop client is native Kotlin + Compose Multiplatform Desktop. Verify the actual supported desktop environment(s) used by the project and the keyboard/mouse workflows that matter.
 
-The combat tracker is the most important live-table MVP validation surface and needs explicit failure/reconnection testing.
+Desktop synchronization tests should reflect the approved simple model:
 
-Once implemented, representative tests should verify as applicable:
+- **Save** persists locally even when offline;
+- **Sync** sends pending local changes and retrieves applicable remote changes;
+- failed Sync does not lose local saved work;
+- a later Sync can retry pending changes safely.
 
-- DM combat changes commit locally before requiring server acknowledgement;
-- active combat survives app close/reopen and device restart on the same DM device;
-- the DM can continue combat during network loss;
-- sync status distinguishes at least locally saved, synchronized and waiting-to-sync states;
-- reconnecting cannot replace newer authoritative DM combat state with an older remote snapshot;
-- reusable monster/NPC definitions or saved encounter edits do not silently mutate an already-running live encounter;
-- combat changes do not automatically mutate persistent character sheets and persistent sheet edits do not silently rewrite active combat;
-- player devices receive only the approved public combat projection;
-- an offline player may maintain provisional local tracker/view changes without becoming authoritative;
-- after reconnection, provisional player state yields to/reconciles to authoritative DM state and cannot overwrite it;
-- simultaneous authoritative DM editing from multiple devices is not accidentally enabled by ordinary sync behavior.
+MVP verification does **not** require player desktop behavior, Android/desktop feature parity, desktop combat tracking, or a continuous background-sync service.
 
-If explicit future DM-device transfer/resume is implemented, it requires its own authority-handoff tests; that behavior is not part of the MVP baseline.
+## 6. Multicampaign verification
 
-## 6. Character paper/digital workflow verification
+Relevant implementation must verify campaign isolation and selection, including as applicable:
 
-Where relevant, character workflow tests should verify:
+- multiple campaigns coexist independently;
+- one account can participate in multiple campaigns;
+- campaign-scoped roles/permissions do not leak;
+- character/NPC/encounter/history data remains attached to the correct campaign;
+- Kick/Ban/Freeze PC affects only its intended campaign/character scope;
+- global account freeze remains separate from campaign moderation;
+- invitations enroll only into their owning campaign.
 
-- last-updated/freshness information reflects the latest saved/reconciled digital state;
-- digital state is not presented as proof that unobserved paper-only changes do not exist;
-- using the app as the active sheet works without requiring a paper copy;
-- end-of-session/deliberate reconciliation creates the new durable digital baseline;
-- no automatic paper/digital merge is implied or attempted;
-- Save and Export remain distinct, including the approved unsaved-export warning path.
+## 7. Local-first synchronization and combat verification
 
-## 7. Rules/content verification
+These behaviors are high-value automated-test targets because failure can lose or corrupt useful state:
 
-Where relevant, tests should verify:
+- local mutation and outbox persistence remain coherent where the outbox is used;
+- duplicate/idempotent mutations do not apply twice;
+- stale ordinary revisions are detected rather than blindly overwriting newer data;
+- active DM combat survives same-device interruption/restart once that persistence exists;
+- network loss does not prevent the DM from continuing combat;
+- the DM combat sequence/version rejects delayed older updates and older hosted state cannot replace newer authoritative DM state;
+- no authority-generation/handoff machinery is accidentally treated as an MVP requirement;
+- reusable monster/NPC/template edits do not silently mutate an already-running live encounter;
+- combat state and durable character-sheet state remain separate.
 
-- campaign data can contain mixed D&D 5e/SRD 5.1, D&D 5.5e/SRD 5.2.1 and homebrew content without legality rejection;
-- the application does not enforce SRD legality merely because the rules assistant uses SRD sources;
-- MVP rules clarification is grounded only in supported official SRD material;
-- source/version provenance distinguishes SRD 5.1 from SRD 5.2.1 when relevant;
-- campaign house rules are not silently injected into MVP clarification answers;
-- complete monster stat blocks can be represented/displayed while individual action/trait mechanics remain formatted text where no deeper structure exists.
+### Player offline combat convenience
 
-## 8. Feature acceptance criteria
+Player offline behavior is intentionally tiny and should be verified as such:
 
-Every substantial user-visible feature should have explicit acceptance criteria before it is called complete.
+- while offline, the player can locally advance the displayed turn and add/remove visible conditions;
+- those local changes are never uploaded and never enter the sync outbox;
+- they never affect DM-authoritative combat state;
+- reconnecting replaces/discards the temporary local view with the latest DM public projection;
+- durability across player-app restart is not required.
 
-Acceptance criteria should describe observable behavior rather than implementation details.
+## 8. Character/PDF workflow verification
 
-Example format:
+Where relevant, verify:
 
-- Given [starting state]
-- When [user action]
-- Then [observable result]
+- last-updated/freshness reflects the latest saved/reconciled digital character state;
+- Save and Export remain distinct;
+- the approved unsaved-export warning path works;
+- exporting unsaved values does not commit/save them;
+- Android and desktop PDF export work locally/offline against the approved template mapping;
+- paper-only changes are not falsely claimed to be observed or automatically merged.
 
-Detailed feature-level criteria may be authored incrementally with each implementation slice rather than exhaustively during product discovery.
+## 9. SRD clarification verification
 
-## 9. Regression rule
+Where relevant, verify:
 
-When fixing a reproducible defect, add an automated regression test when practical. If no automated regression test is practical, document why and record the manual verification used.
+- retrieval is grounded in the supported official Spanish SRD 5.1 / SRD 5.2.1 corpus;
+- source/version provenance is preserved in answers;
+- campaign homebrew is not silently presented as official SRD content;
+- ordinary PostgreSQL full-text retrieval is measured against real questions before adding vector/embedding machinery.
 
-## 10. Test failures
+## 10. Infrastructure proportionality verification
 
-A failing test is project state, not chat trivia.
+The initial implementation should remain simple enough that verification does **not** assume infrastructure we deliberately deferred.
 
-If a branch is handed off with known failures, `docs/PROJECT_STATE.md` must identify:
+- ordinary HTTP/request-response and simple polling/refresh are the default;
+- WebSockets, Durable Objects, queues, R2 or other Cloudflare services are tested only if a later concrete feature actually introduces them;
+- provider-specific code may be localized, but tests should not require generalized provider-abstraction frameworks that do not exist.
 
-- failing command/test;
-- relevant error summary;
-- whether the failure existed before the change;
-- current diagnosis if known;
-- next recommended action.
+## 11. Regression rule
 
-## 11. Manual verification
+When fixing a reproducible defect, add an automated regression test when that test is practical and useful. If it is not, record the manual verification used.
 
-Manual device/emulator/browser/desktop checks may be necessary for UI, accessibility, interaction, layout, network-loss/reconnection behavior, or platform-specific behavior. They should complement, not silently replace, reasonable automated coverage.
+## 12. Test failures are project state
 
-Record manual verification in concise form, including the configuration used when relevant.
+If a branch is handed off with known failures, `docs/PROJECT_STATE.md` must identify the failing check/command, a useful error summary, current diagnosis if known, and the recommended next action.
 
-## 12. Release readiness
+## 13. Proportionality
 
-A concrete release checklist will be created once the distribution path and architecture are approved. The MVP boundary is already approved; the future checklist may include build reproducibility, regression status, data safety, privacy/security, accessibility, supported mobile/desktop coverage, multicampaign isolation, offline/recovery behavior, synchronization/reconciliation, backup/export behavior, and packaging/signing checks as applicable.
+C-0009 controls this document as much as the rest of the architecture: testing exists to protect this application and its data, not to simulate the process requirements of a commercial enterprise product.

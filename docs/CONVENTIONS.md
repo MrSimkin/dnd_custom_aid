@@ -91,13 +91,50 @@ In technical discussion with the owner, agents may mention both forms when usefu
 
 Source decisions: D-0017 and D-0023.
 
+### C-0008 — Explain relational/data-model decisions with SQL when useful
+
+**Status:** Approved  
+**Date:** 2026-08-30
+
+When discussing database schemas, queries, migrations, synchronization metadata or other relational/data-model behavior with the owner, agents should show concise representative SQL whenever it materially improves understanding.
+
+Framework annotations, ORM abstractions or implementation terminology should not be used as the only explanation when the same idea can be made clearer through SQL. SQL examples are explanatory unless an approved schema/migration explicitly makes them authoritative implementation artifacts.
+
+This convention exists because SQL is a useful technical communication language for the owner and helps them review architecture decisions directly.
+
+Source decision: D-0038 and explicit owner instruction during its approval.
+
+### C-0009 — Personal-scale proportionality; avoid enterprise overengineering
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Clarified:** 2026-08-30 by the pre-main architecture proportionality audit
+
+The project is a personal, deliberately limited tool. Architecture, security, observability, administration, deployment and data-management mechanisms should be the **simplest approach that safely satisfies approved requirements**.
+
+Do not add enterprise-grade layers, generalized infrastructure, elaborate role hierarchies, duplicated safeguards, speculative scale machinery or operational processes merely because they are common in commercial SaaS systems. Add complexity only when a concrete requirement, measurable risk or real implementation problem justifies it.
+
+Concrete consequences for implementation include:
+
+- selecting a provider or platform does **not** authorize scaffolding all of its available services;
+- start with ordinary HTTP/request-response behavior and simple polling/refresh before realtime infrastructure;
+- do not create provider-abstraction factories/frameworks merely to make a hypothetical future migration elegant; localize vendor-specific code sensibly instead;
+- do not build a generalized synchronization platform when small application-specific Save/Sync/outbox/revision behavior is sufficient;
+- offline capability is selective and should exist where it materially benefits real workflows, not as a universal requirement for every feature;
+- prefer simple human conflict handling for rare genuine concurrent edits over speculative automatic merge systems;
+- project documentation should remain sufficient for continuity but should not grow into ceremony for routine reversible implementation choices.
+
+When presenting technical decisions to the owner, prioritize the materially relevant trade-offs and avoid exhaustive treatment of enterprise-only concerns unless they could realistically affect this project.
+
+Source decisions: D-0038, D-0039, D-0043 and repeated explicit owner instruction during Phase 2.
+
 ## 3. Conventions intentionally not chosen yet
 
 No convention has yet been approved for:
 
 - programming language style;
-- identifier/naming style beyond whatever a future chosen language strongly requires;
-- package/module structure;
+- identifier/naming style beyond whatever a chosen language strongly requires;
+- detailed package/module naming beyond the few high-level areas approved by D-0043;
 - UI/component naming;
 - formatting tool;
 - linting tool;
@@ -105,9 +142,9 @@ No convention has yet been approved for:
 - commit-message format beyond being descriptive;
 - branch naming pattern beyond using focused non-`main` branches for substantial work;
 - dependency-management style;
-- application architecture pattern.
+- detailed application presentation architecture pattern.
 
-These must be discussed when they become relevant rather than invented prematurely.
+These should be discussed only when they first become materially relevant rather than invented prematurely.
 
 ## 4. Adding a convention
 

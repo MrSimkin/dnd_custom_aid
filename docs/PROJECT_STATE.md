@@ -1,129 +1,156 @@
 # Project State
 
-**Last verified:** 2026-08-29  
+**Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
-**Current working branch:** none  
-**Open review:** none  
-**Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Phase 1 is complete. PR #2 was owner-approved and merged into `main` at `b5a059b8e7fb9312232ad684356af05e27331b65`. The approved MVP is multicampaign. Architecture evaluation is now active; no application architecture, technology stack, framework, provider, or application code has been selected/scaffolded yet.
+**Current working branch:** `architecture/approved-backend-and-android`  
+**Open review:** draft PR #3 — `Finalize approved Phase 2 architecture decisions`  
+**Phase:** Phase 2 — architecture selection, consolidation and proportionality review complete; owner merge authorization pending  
+**Status:** Foundational architecture D-0034 through D-0043 is owner-approved, consolidated and simplified under C-0009. No application code has been scaffolded yet.
 
-## 1. Current product baseline
+## 1. Approved product baseline
 
 `dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D.
 
-Approved product shape:
+- Android phone/tablet is the primary live/table surface.
+- Desktop/laptop is a native DM preparation/administration companion with meaningful local/offline capability.
+- MVP is multicampaign with campaign-scoped roles/permissions.
+- Paper is normally live character authority; digital is the latest intentionally saved/reconciled durable baseline.
+- Mixed D&D 5e/SRD 5.1, D&D 5.5e/SRD 5.2.1 and homebrew campaign content is allowed; the app is not a rules enforcer.
+- Live combat is local-first and DM-authoritative; hosted sync is secondary/opportunistic and stale remote state cannot overwrite newer authoritative local state.
+- Character-sheet PDF export is required on both Android and DM desktop.
+- Campaign moderation and application-global administration remain distinct.
 
-- Android phone/tablet is the primary at-the-table/live-use surface.
-- Desktop/laptop is an intentionally narrower DM preparation/administration companion using the same shared campaign/domain data.
-- The MVP is **multicampaign**.
-- Paper is normally the authoritative live character surface; the latest intentionally reconciled digital character is the durable backup/reference baseline and exposes freshness/last-update information.
-- Campaigns may mix D&D 5e/SRD 5.1, D&D 5.5e/SRD 5.2.1 and homebrew; the application is not a rules enforcer.
-- MVP rules clarification is official-SRD-only, may use both supported SRDs, answers in Spanish, and preserves source/version provenance.
-- Monster records are complete for human use while mechanics are selectively structured and future additive enrichment must remain possible.
-- Live combat is local-first and DM-authoritative: DM actions commit locally first, hosted sync is secondary/opportunistic, and older remote state must not overwrite newer authoritative DM state.
-- Player offline combat-view edits are provisional and yield to authoritative DM state on reconnection.
-- Campaign moderation and global application administration are separate authority layers.
-- Campaign invitations are campaign-scoped, reusable until revoked/regenerated, and permit direct join without a second DM approval step.
+## 2. Approved Phase 2 architecture
 
-Detailed authoritative behavior lives in `docs/PRODUCT.md` and approved decisions through D-0033 in `docs/DECISIONS.md`.
+### D-0034 — Providers
+- Neon PostgreSQL for hosted durable relational data.
+- Cloudflare Worker/API as the initial hosted application gateway/backend.
+- Descope for authentication only.
+- Workers AI is used only for the SRD clarification feature when implemented.
+- R2, Durable Objects, WebSockets, queues and other Cloudflare services are deferred until an implemented feature actually needs them.
 
-## 2. Phase 1 closure
+### D-0035 — Android
+- Native Kotlin + Jetpack Compose.
 
-Phase 1 — Product Discovery and Design is **complete**.
+### D-0036 — Desktop
+- Native Kotlin + Compose Multiplatform Desktop.
+- Offline-capable preparation/administration through local SQLite/SQLDelight.
+- Desktop MVP behavior is deliberately simple: **Save locally; Sync explicitly**.
+- Failed Sync retains local saved work; continuous background sync is not required.
 
-The owner explicitly resolved the final eight product tensions before merge:
+### D-0037 — Domain boundaries
+- One shared relational PostgreSQL model with explicit global/campaign scope.
+- Global internal users; campaign membership/roles; characters belong to one campaign; ownership/control are separate.
+- Personal reusable content, campaign copies, official SRD sources, saved encounters, live encounters, character state/history and combat state remain appropriately distinct.
 
-1. Android live use vs desktop administration;
-2. multicampaign MVP scope;
-3. mixed/homebrew campaigns vs official-SRD-only MVP clarification;
-4. complete monster records vs selective structured mechanics;
-5. paper live authority vs durable digital state;
-6. local-first DM combat vs hosted/shared data;
-7. campaign moderation vs global account administration;
-8. invitation lifecycle and rejoining.
+### D-0038 — Local persistence/sync
+- SQLite via SQLDelight on Android and desktop.
+- Offline/local-first support is selective, not universal.
+- Ordinary synchronization is small and application-specific: outbox where needed, stable IDs, idempotent mutations, optimistic revisions and simple tombstones.
+- Rare genuine ordinary conflicts may be surfaced to the user rather than handled by a generalized merge engine.
+- DM combat uses one authoritative DM device and an increasing combat sequence/version for MVP.
+- Authority generations/lineages are deferred until an actual cross-device DM transfer/handoff feature exists.
+- Player offline combat convenience is only ephemeral local **Next turn** plus add/remove visible conditions; it is never uploaded and is replaced by DM state on reconnect.
+- HTTP request/response and simple refresh/polling are preferred before realtime transport.
 
-The final audit found no remaining product-level contradiction or behavioral ambiguity from the identified Phase 1 set. D-0009 remains intentionally pending because it is the Phase 2 architecture/technology decision, not unresolved product behavior.
+### D-0039 — Hosted API/authorization
+- Native clients do not connect directly to Neon or hold DB credentials.
+- Remote data access flows through Cloudflare backend/API.
+- Descope identity maps to internal application identity; domain authorization remains project-owned.
+- Use ordinary PostgreSQL integrity constraints and minimum sufficient server-side privileges.
+- Do not introduce blanket enterprise-style RLS/role/security machinery without a concrete need.
 
-PR #2 was merged by normal merge commit:
+### D-0040 — PDF export
+- Android and DM desktop both generate character-sheet PDFs locally/offline.
+- Android uses PdfBox-Android; desktop uses Apache PDFBox.
+- Owner InDesign-generated PDFs remain presentation templates, not the data model.
 
-- PR: #2 — `Capture and refine initial product discovery without premature implementation`;
-- merged: 2026-08-29;
-- merge commit: `b5a059b8e7fb9312232ad684356af05e27331b65`;
-- pre-merge branch state: 59 commits ahead, 0 behind `main`;
-- pre-merge GitHub status: `mergeable: true`.
+### D-0041 — SRD retrieval/clarification
+- Official Spanish SRD 5.1 and SRD 5.2.1 are stored as versioned/provenance-preserving PostgreSQL chunks.
+- Retrieval initially uses PostgreSQL full-text search.
+- Relevant excerpts are sent to a replaceable LLM integration, initially Cloudflare Workers AI.
+- No embeddings/vector database unless real testing proves ordinary full-text retrieval insufficient.
 
-## 3. Current technical state
+### D-0042 — Android compatibility floor
+- `minSdk = 30` / Android 11.
+- Optimize for the real device set and modern Android UX instead of hypothetical legacy support.
 
-No application code exists yet.
+### D-0043 — Initial code/test structure
+- Keep a few obvious code areas: shared Kotlin logic, Android app, desktop app, TypeScript Cloudflare backend, and SQL/database work.
+- Share logic only where genuinely common; do not share UI merely for symmetry.
+- Automated tests protect consequential data/sync/combat-sequence/backend behavior and database migrations.
+- One simple GitHub Actions build/test workflow; no enterprise testing/deployment ceremony.
+- Provider replaceability means sensible code locality, not provider-abstraction factories/frameworks.
 
-No choice has been made for:
+## 3. Governing implementation attitude
 
-- overall application topology;
-- Android language/framework/UI toolkit or minimum Android version;
-- desktop/laptop administration implementation form;
-- local persistence technology;
-- synchronization architecture;
-- hosted backend/database provider;
-- authentication provider;
-- PDF generation/rendering technology;
-- SRD storage/retrieval/clarification implementation;
-- build system, project/module layout, test stack, or CI.
+C-0009 is controlling: this is a personal, deliberately limited project. Use the **simplest safe architecture that satisfies actual approved requirements**. Do not add commercial-SaaS/enterprise layers, generalized infrastructure or speculative scale machinery merely because they are industry patterns.
 
-Named technologies mentioned during discovery, including Neon/Postgres, remain candidates only and are **not approved project choices**.
+The pre-main proportionality audit made that principle concrete:
 
-## 4. Phase 2 objective
+- provider selected ≠ activate every provider service;
+- HTTP before realtime;
+- Save+Sync instead of a Desktop sync platform;
+- one DM device + sequence instead of pre-building distributed authority handoff;
+- ephemeral player offline convenience instead of player conflict reconciliation;
+- selective offline support rather than universal offline behavior;
+- localized vendor integration rather than abstraction-framework ceremony.
 
-Phase 2 is now **active**.
+C-0008 remains active: use concise representative SQL when it helps the owner review relational/data decisions.
 
-The objective is to evaluate realistic architecture/technology alternatives against the approved product baseline, explain trade-offs and recommendations to the owner, obtain approval for consequential choices, record those choices in Git, and only then scaffold implementation.
+## 4. Architecture gate
 
-Implementation/scaffolding is still blocked until the required architecture decisions are approved.
+The consequential architecture questions tracked by D-0009 are resolved by D-0034 through D-0043. The pre-main proportionality audit does not reopen D-0009; it simplifies the implementation meaning of already-approved decisions.
 
-## 5. Architecture evaluation order
+The authoritative control docs have been aligned to the simplified interpretation:
 
-Begin with **overall application topology and surface relationship**, not with individual framework names.
+- `README.md`
+- `AGENTS.md`
+- `MANIFEST.md`
+- `docs/DECISIONS.md`
+- `docs/CONVENTIONS.md`
+- `docs/PRODUCT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/ROADMAP.md`
+- `docs/TESTING.md`
+- detailed D-0036 through D-0043 records under `docs/decisions/`
 
-Recommended sequence:
+No further broad architecture discovery is required before the first scaffold.
 
-1. overall Android + desktop/laptop topology and shared-domain relationship;
-2. Android client approach;
-3. desktop/laptop administration delivery approach;
-4. multicampaign domain/data boundaries;
-5. local-first combat persistence, authority, synchronization and reconciliation;
-6. hosted backend/database/authentication/authorization/moderation boundaries;
-7. PDF generation/rendering;
-8. SRD corpus storage/retrieval/clarification and provenance;
-9. testing/build/CI and durable project/module conventions.
+## 5. Verification status
 
-## 6. Immediate next decision
+The working branch contains documentation/decision work only; no application implementation code has been scaffolded.
 
-The next owner-facing architecture question is **overall application topology**.
+The final review confirmed the intended simplified behavior in the committed files, including:
 
-Compare realistic whole-system shapes before choosing specific technologies. At minimum, evaluation should consider variants such as:
+- ephemeral/non-uploaded player offline Next-turn/condition changes;
+- one authoritative DM device + increasing combat sequence/version;
+- no MVP authority-generation/lineage mechanism;
+- Desktop local Save + explicit Sync;
+- HTTP/polling before realtime infrastructure;
+- no initial R2/Durable Objects/WebSockets/queues unless a real feature later needs them;
+- no generalized provider-abstraction or synchronization framework.
 
-- Android primary client + browser-based desktop administration + shared hosted backend;
-- a shared-code/cross-platform client strategy where justified;
-- Android primary client + native desktop administration + shared hosted backend;
-- another topology only if it materially fits the approved requirements better.
+The branch must remain unchanged between the final owner review and merge; if the head changes, re-verify before merging.
 
-Evaluation must consider:
+## 6. Immediate next work
 
-- Android phone/tablet live-use quality;
-- desktop administration comfort without requiring parity;
-- multicampaign shared data and permissions;
-- local-first authoritative DM combat;
-- player public-projection sync and offline reconciliation;
-- authentication/security/moderation boundaries;
-- PDF generation;
-- SRD-only Spanish clarification and provenance;
-- personal-scale/no-cost hosting practicality;
-- maintainability, testability and AI-assisted development;
-- migration cost and future extensibility without speculative scope creep.
+PR #3 is the formal owner review point.
 
-Do **not** select Kotlin, Compose, Flutter, React Native, Electron, Tauri, Firebase, Supabase, Neon/Postgres, a web framework, PDF library, AI provider, or any other consequential implementation technology before the relevant architecture comparison and owner approval.
+The remaining gate is **explicit owner authorization to merge PR #3 into canonical `main` under D-0007**. Architecture approval, cleanup completion, or a recommendation to merge do not themselves authorize that operation.
 
-## 7. Handoff
+After owner-authorized merge:
 
-A fresh agent should read, in order, `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and relevant discovery notes only when historical rationale is needed.
+1. verify `main` contains the approved architecture checkpoint;
+2. begin the initial implementation scaffold from canonical `main`;
+3. implement only the approved minimal foundation first, not broad MVP feature buildout simultaneously.
 
-Treat Phase 1 product decisions as closed unless a genuinely new requirement or contradiction emerges. The active task is Phase 2 architecture evaluation, starting with overall topology. Consequential choices remain owner-controlled.
+## 7. Durable checkpoint
+
+The active remote safety checkpoint is `architecture/approved-backend-and-android`. All architecture decisions, consolidation and proportionality-audit changes are committed remotely on that branch.
+
+## 8. Handoff
+
+A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, and `docs/TESTING.md`. Read detailed `docs/decisions/` records only when deeper rationale is useful.
+
+Treat D-0034 through D-0043 and their 2026-08-30 proportionality clarifications as the approved architecture baseline. The next gate is owner authorization/merge of PR #3, followed by scaffolding. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.

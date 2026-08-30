@@ -21,16 +21,20 @@ Before proposing or making changes, read:
 3. `MANIFEST.md`
 4. `docs/PROJECT_STATE.md`
 5. `docs/DECISIONS.md`
-6. `docs/PRODUCT.md`
-7. `docs/ROADMAP.md`
-8. `docs/WORKFLOW.md`
-9. Any architecture, testing, convention, or feature-specific documents relevant to the task
+6. `docs/CONVENTIONS.md`
+7. `docs/PRODUCT.md`
+8. `docs/ROADMAP.md`
+9. `docs/WORKFLOW.md`
+10. `docs/ARCHITECTURE.md`
+11. `docs/TESTING.md`
+12. relevant detailed files under `docs/decisions/` when deeper architecture rationale is needed
+13. any feature-specific documents relevant to the task
 
 Do not start implementation from a stale branch or from remembered context.
 
 ## 3. Owner authority and working relationship
 
-The project owner makes the final decisions about the product and about project conventions.
+The project owner makes the final decisions about the product and consequential project conventions/architecture.
 
 The owner understands programming concepts but is not a professional software developer and is delegating the heavy technical execution to AI/coding agents. Do not force the owner to perform implementation work that the agent can reasonably perform.
 
@@ -78,6 +82,8 @@ Do not hide a meaningful technical choice merely because it is implementation-le
 
 Explanations should respect the owner's programming knowledge: be clear and educational without assuming professional software-engineering experience and without unnecessarily oversimplifying.
 
+C-0008 additionally requires representative SQL when it materially improves the owner's understanding of relational/data-model behavior.
+
 ## 5. Conventions are owner-reviewed and stored in Git
 
 When a coding, naming, structure, formatting, testing, documentation, branching, or similar convention first becomes relevant and no approved convention already exists:
@@ -92,21 +98,39 @@ Once an approved convention is recorded, agents should follow it without repeate
 
 Routine choices that do not establish a durable convention may be made by the agent, but they must still comply with approved conventions and the communication rule above.
 
-## 6. Design before technology stack
+### Personal-scale proportionality
 
-Do not choose or scaffold the application technology stack merely because development could start.
+C-0009 is controlling: this is a personal, deliberately limited project. Prefer the **simplest safe implementation that satisfies actual approved requirements**. Do not import enterprise/SaaS architecture, security layers, observability, test ceremony, deployment machinery, generalized abstractions, or speculative scale infrastructure merely because they are common industry patterns.
 
-The required order is:
+Concrete current examples:
+
+- do not activate Cloudflare services merely because Cloudflare provides them;
+- use HTTP/request-response and simple polling before realtime infrastructure;
+- use Desktop local Save + explicit Sync rather than building a synchronization platform;
+- keep one authoritative DM device + increasing combat sequence for MVP rather than pre-building cross-device authority generations;
+- player offline combat convenience is ephemeral local UI state, not another synchronization domain;
+- localize vendor-specific code rather than building provider abstraction frameworks;
+- support offline operation only where it provides real value.
+
+Add complexity only for a concrete requirement, observed problem, or real risk.
+
+## 6. Design before technology; approved architecture is now the baseline
+
+The project followed this sequence before implementation:
 
 1. understand the product problem and intended users;
 2. explore relevant product and interaction alternatives with the owner;
 3. design the intended behavior and experience with the owner;
 4. record approved product/design decisions and unresolved questions;
-5. only then evaluate technical stack/architecture options against that approved design;
-6. explain those technical options, trade-offs, and recommendation to the owner;
-7. obtain approval before locking in consequential stack/architecture choices.
+5. evaluate technical stack/architecture options against that approved design;
+6. explain those technical options, trade-offs, and recommendations;
+7. obtain owner approval before locking in consequential stack/architecture choices.
 
-No Android framework, language, UI toolkit, persistence layer, sync architecture, service, or comparable foundational technology may be treated as selected before this sequence reaches the appropriate decision point.
+That architecture-selection sequence is complete for the initial scaffold under D-0034 through D-0043, including the 2026-08-30 pre-main proportionality clarifications.
+
+Do **not** reopen approved architecture merely because historical discovery/decision prose describes an earlier uncertainty. Follow the current `docs/DECISIONS.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `docs/CONVENTIONS.md`, and `docs/PROJECT_STATE.md` baseline.
+
+Future genuinely consequential architecture changes still require owner approval. Routine reversible implementation details may be selected under D-0008 and approved conventions.
 
 ## 7. No silent invention
 
@@ -134,7 +158,7 @@ For substantial work:
 7. Run the relevant checks and tests.
 8. Update documentation and operative memory in the same change.
 9. Summarize what changed, why, what was tested, what remains unresolved, and any owner decision needed.
-10. Merge to `main` only after the owner approves the change or has explicitly delegated that category of change.
+10. Merge to `main` only after the owner explicitly approves that merge or has explicitly delegated that category of merge.
 
 ## 9. Definition of done
 
@@ -147,7 +171,7 @@ For a change to be considered complete:
 - behavior has been checked at the appropriate level;
 - documentation reflects the new reality;
 - `docs/PROJECT_STATE.md` is current;
-- important new decisions are in `docs/DECISIONS.md`;
+- important new decisions are durably recorded;
 - approved conventions are recorded in the appropriate repository documentation;
 - unresolved items are visible and not hidden in chat history.
 
@@ -174,23 +198,26 @@ Prefer maintainable, readable, testable code over clever code. Keep dependencies
 
 Before adding a dependency or service that materially affects maintenance, privacy, cost, or lock-in, document the choice and obtain approval when required by Section 3.
 
+Technical quality must remain proportionate under C-0009. "More architecture" is not automatically "better architecture."
+
 ## 12. Recovery from inconsistency
 
 If repository documents disagree:
 
 1. Do not guess silently.
 2. Identify the contradiction.
-3. Prefer the most specific approved decision over general prose.
-4. Prefer newer explicitly dated state over older state when both have equal authority.
-5. Ask the owner to resolve material ambiguity.
-6. Record the resolution in the repository.
+3. Prefer the most specific later approved decision/clarification over older general prose.
+4. Prefer newer explicitly dated current-state documentation when authority is otherwise equal.
+5. Use detailed `docs/decisions/` records for rationale, but the chronological `docs/DECISIONS.md` plus later approved amendments/clarifications control the current decision state.
+6. Ask the owner only for a genuinely material ambiguity not already resolved by an approved decision.
+7. Record the resolution in the repository.
 
 ## 13. Current project stage
 
-**Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline, including the final multicampaign scope and eight product-tension resolutions, is canonical on `main` after owner-approved PR #2.
+**Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline is canonical on `main` after owner-approved PR #2.
 
-**Phase 2 — Architecture & Technology Evaluation is active.** The current task is to evaluate overall application topology/surface relationship first, then proceed through the architecture sequence recorded in `docs/ARCHITECTURE.md` and `docs/PROJECT_STATE.md`.
+**Phase 2 — foundational architecture selection is complete in substance.** D-0034 through D-0043 are owner-approved and durably recorded on the active architecture branch. The pre-main proportionality audit simplified sync/offline/infrastructure interpretation without changing the selected stack. No application code has been scaffolded yet.
 
-Architecture evaluation is authorized; application implementation/scaffolding is **not** yet authorized. Do not treat any framework, language, UI toolkit, persistence layer, sync model, hosted provider, database, authentication service, PDF library, AI/retrieval approach, desktop implementation form, or other consequential technology as selected until the alternatives have been explained, the owner has approved the choice, and the decision is recorded in Git.
+Current work is the final contradiction/commit review before the architecture branch is presented for explicit owner merge authorization under D-0007. PR #3 is the review point.
 
-Do not reopen already approved Phase 1 product questions merely because older discovery notes describe them as unresolved. Surface only genuinely new requirements, contradictions, or architecture consequences.
+After that branch is owner-approved and merged, implementation scaffolding is authorized using the approved architecture. Start with the smallest scaffold necessary to prove the foundation; do not begin another broad architecture-discovery round or activate speculative infrastructure unless a genuinely new requirement, contradiction, or expensive-to-reverse choice appears.

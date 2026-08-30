@@ -148,30 +148,38 @@ When a convention first becomes relevant and no approved convention exists, the 
 
 ## D-0009 — Application architecture and implementation technology
 
-**Status:** Pending  
-**Date:** 2026-08-28
+**Status:** Approved  
+**Date:** 2026-08-28  
+**Resolved:** 2026-08-30 by D-0034 through D-0043  
+**Clarified:** 2026-08-30 by the owner-approved pre-main proportionality audit  
+**Decision owner:** Project owner
 
-No overall implementation architecture or consequential technology stack has been selected yet.
+The foundational application architecture and implementation technology needed to begin scaffolding have been selected through the Phase 2 decision sequence.
 
-This includes, as applicable, the Android framework/language/UI toolkit and minimum Android version, desktop/laptop administration implementation form, local/offline persistence approach, synchronization/shared-data architecture, hosted backend/provider, authentication provider, PDF generation approach, SRD retrieval/clarification architecture, and related foundational choices.
+The approved foundation includes:
 
-The approved product/MVP baseline is sufficiently coherent to evaluate these alternatives. Architecture evaluation is the next project phase under D-0011; owner approval remains required before a consequential option becomes selected project truth or implementation is scaffolded.
+- Neon PostgreSQL + Cloudflare + Descope hosted topology (D-0034);
+- native Kotlin + Jetpack Compose Android (D-0035);
+- native Kotlin + Compose Multiplatform Desktop DM companion (D-0036);
+- explicit relational multicampaign domain boundaries (D-0037);
+- SQLite/SQLDelight local persistence and deliberately small project-owned synchronization (D-0038);
+- Cloudflare Worker/API as the hosted data-access boundary with proportional authorization/security (D-0039);
+- local character-sheet PDF export on Android and desktop (D-0040);
+- PostgreSQL full-text SRD retrieval with replaceable LLM integration, initially Cloudflare Workers AI (D-0041);
+- Android 11 / API 30 minimum supported version (D-0042);
+- minimal shared/Android/Desktop/backend/database scaffold, TypeScript Worker backend, focused tests and simple CI (D-0043).
 
-### Decision should consider
+The pre-main proportionality audit clarified the implementation meaning without changing that stack:
 
-- approved product/MVP requirements;
-- Android phone/tablet quality;
-- desktop/laptop administration usability;
-- multicampaign shared-data behavior;
-- local-first/offline DM combat resilience and combat-aware synchronization;
-- authentication/authorization and personal-use security implications;
-- PDF generation requirements;
-- SRD retrieval/provenance/clarification requirements;
-- long-term maintainability and testing;
-- suitability for AI-assisted development;
-- personal-scale/no-cost hosting feasibility where practical;
-- dependency/service lock-in;
-- migration cost and reversibility.
+- Desktop uses local **Save + explicit Sync** rather than a continuous synchronization platform;
+- ordinary sync remains application-specific: stable IDs, idempotent mutations, optimistic revisions, a small outbox where needed, and simple tombstones;
+- one DM device is authoritative for active combat in MVP, with an increasing combat sequence/version; authority-generation/handoff machinery is deferred;
+- player offline combat convenience is only ephemeral local Next-turn/visible-condition state and is never uploaded;
+- ordinary HTTP/request-response and simple polling/refresh precede realtime infrastructure;
+- provider replaceability means sensible code locality rather than generalized provider-abstraction frameworks;
+- offline behavior is selective, not universal.
+
+These choices are sufficient to move from architecture evaluation into implementation scaffolding after the architecture branch is reviewed and explicitly merged to canonical `main` by the owner. Routine reversible implementation details remain agent-autonomous under D-0008; new consequential architecture changes still require owner approval.
 
 ---
 
@@ -180,21 +188,21 @@ The approved product/MVP baseline is sufficiently coherent to evaluate these alt
 **Status:** Approved  
 **Date:** 2026-08-29  
 **Decision owner:** Project owner  
-**Amended:** 2026-08-29 by D-0033
+**Amended:** 2026-08-29 by D-0033 and 2026-08-30 by D-0040
 
 The first usable release/MVP is defined. Detailed scope is consolidated in `docs/PRODUCT.md` and further constrained/refined by later decisions.
 
 ### MVP summary
 
-- Player Android: manual PC character-sheet create/view/edit, PDF export, SRD-only natural-language rules clarification in Spanish, and campaign selection appropriate to multicampaign membership.
+- Player Android: manual PC character-sheet create/view/edit, PDF export, SRD-only natural-language rules clarification in Spanish, campaign selection appropriate to multicampaign membership, and the public combat projection behavior defined by D-0025/D-0033.
 - DM Android tablet: combat tracker; quick/full PC, PC-group, NPC, monster and encounter views; prepared and on-the-fly live encounters; campaign selection appropriate to multicampaign management.
-- DM desktop/laptop: basic administration; manual monster/NPC data entry; saved encounter preparation; minimum account/campaign/PC administration; multicampaign administration/selection as required.
+- DM desktop/laptop: basic administration; manual monster/NPC data entry; saved encounter preparation; minimum account/campaign/PC administration; multicampaign administration/selection as required; character-sheet PDF export under D-0040.
 - **Multicampaign:** multiple campaigns may exist and be active concurrently; one account may participate in multiple campaigns concurrently with campaign-scoped roles/permissions.
-- Supporting account, persistence, synchronization, permissions and offline-combat functionality is included as required infrastructure.
+- Supporting account, persistence, deliberately simple synchronization, permissions and offline-combat functionality is included as required infrastructure.
 
 ### Explicit MVP exclusions
 
-Guided/legal character building, house-rule-aware clarification, sophisticated NPC/monster generators, AI creature creation, advanced import/parsing, co-DMs within the same campaign, combat-history analytics, automated combat/rules enforcement, automatic combat-to-character-sheet mutation, speculative sophisticated audit-retention machinery, encounter-balancing automation, additional RPG systems, player desktop/full Android-desktop parity, desktop combat-tracker requirement, and seamless concurrent multi-device DM combat editing.
+Guided/legal character building, house-rule-aware clarification, sophisticated NPC/monster generators, AI creature creation, advanced import/parsing, co-DMs within the same campaign, combat-history analytics, automated combat/rules enforcement, automatic combat-to-character-sheet mutation, speculative sophisticated audit-retention machinery, encounter-balancing automation, additional RPG systems, player desktop/full Android-desktop parity, desktop combat-tracker requirement, seamless concurrent multi-device DM combat editing, and generalized synchronization/realtime/provider-abstraction infrastructure without a concrete need.
 
 **Multiple active campaigns are not an MVP exclusion.**
 
@@ -345,8 +353,8 @@ Shared data should be hosted online, and normal expected use should remain withi
 ### Consequences
 
 - "Free forever regardless of scope" is not a requirement.
-- Backend selection remains part of architecture evaluation.
-- Neon/Postgres is a candidate mentioned by the owner, not an approved provider.
+- The hosted provider choice was later resolved by D-0034.
+- Personal-scale proportionality is reinforced by C-0009.
 
 ---
 
@@ -355,13 +363,13 @@ Shared data should be hosted online, and normal expected use should remain withi
 **Status:** Approved  
 **Date:** 2026-08-28  
 **Decision owner:** Project owner  
-**Clarified:** 2026-08-29 by D-0033
+**Clarified:** 2026-08-29 by D-0033 and resolved technically 2026-08-30 by D-0036
 
 Campaign preparation and administration—especially NPC/monster entry and organization—must have a comfortable desktop/laptop-oriented surface.
 
-### Not yet decided
+### Implementation resolution
 
-Whether this is implemented as native Windows, normal web, local web, or another practical desktop-friendly approach. That remains a Phase 2 architecture decision.
+D-0036 selects a native **Kotlin + Compose Multiplatform Desktop** implementation. This replaces the earlier open implementation-form question without changing the product scope boundary below.
 
 ### Scope boundary
 
@@ -480,7 +488,7 @@ Useful search/filter fields include name, CR, type, alignment and environment.
 **Status:** Approved  
 **Date:** 2026-08-29  
 **Decision owner:** Project owner  
-**Clarified:** 2026-08-29 by D-0033
+**Clarified:** 2026-08-29 by D-0033 and 2026-08-30 by the pre-main proportionality audit
 
 The combat feature is a practical DM combat board, not a VTT or comprehensive D&D automation engine.
 
@@ -497,18 +505,20 @@ Same-group creatures normally share initiative while retaining individual HP/sta
 - Shared durable domain data is normally hosted/synchronized online.
 - An active live encounter has one authoritative DM working state at a time.
 - DM combat actions commit **locally first**; successful server contact is not required to continue play.
-- Cloud sync is secondary/opportunistic for sharing and recovery.
-- On reconnection, an older remote combat snapshot must not overwrite newer authoritative local DM state; combat requires explicit combat-aware reconciliation rather than generic last-write-wins.
+- Hosted synchronization is secondary/opportunistic for sharing and recovery.
+- For MVP, one DM device is authoritative and authoritative combat updates use a simple increasing combat sequence/version so delayed older state cannot overwrite newer DM state.
+- Authority-generation/lineage machinery is not an MVP requirement; it is deferred until an actual cross-device DM transfer/handoff feature exists.
 - Player devices receive the latest successfully synchronized public projection.
-- Offline player tracker edits are provisional/non-authoritative and are replaced/reconciled to the DM state after reconnection; they must never overwrite DM authority.
+- If a player loses connectivity, only a tiny ephemeral local convenience layer is allowed: locally advance **Next turn** and locally add/remove visible conditions. These temporary changes are never uploaded, never enter the sync outbox, and are discarded/replaced by the latest DM projection on reconnect.
+- Durability of those temporary player tweaks across app restart is not required.
 - The DM should be able to see whether combat is saved locally, synced or waiting to sync.
 - MVP supports same-DM-device persistence/recovery and hosted synchronization where possible, not seamless concurrent multi-device DM editing.
-- Future cross-device DM continuation should use explicit transfer/resume/authority handoff.
+- Future cross-device DM continuation should use explicit transfer/resume/authority handoff when that feature is actually implemented.
 - Combat working state remains separate from persistent character-sheet state.
 
 ### Explicit first-scope exclusions
 
-Death-save tracking, forced player spell-slot/resource tracking, automatic attack/damage/rules enforcement, automatic persistent inventory/resource consumption, combat-history analytics/logging, and seamless concurrent multi-device DM combat editing.
+Death-save tracking, forced player spell-slot/resource tracking, automatic attack/damage/rules enforcement, automatic persistent inventory/resource consumption, combat-history analytics/logging, seamless concurrent multi-device DM combat editing, and pre-built distributed DM-authority handoff machinery.
 
 ---
 
@@ -670,13 +680,14 @@ At present, the project owner is the only DM and only application administrator,
 
 **Status:** Approved  
 **Date:** 2026-08-29  
-**Decision owner:** Project owner
+**Decision owner:** Project owner  
+**Clarified:** 2026-08-30 by the pre-main proportionality audit for item 6
 
 The owner explicitly resolved the final soft product tensions identified during the Phase 1 audit. This decision clarifies/amends earlier decisions where noted and supersedes any older wording inconsistent with the following conclusions.
 
 ### 1. Android vs desktop surface boundary
 
-Android is the primary at-the-table/live-use surface. Desktop/laptop is primarily a DM preparation/administration companion using the same campaign/domain data. No player desktop application, full Android/desktop feature parity, or desktop combat tracker is required in MVP. Full parity is only a possible much-later feature. Desktop implementation form remains a Phase 2 architecture choice.
+Android is the primary at-the-table/live-use surface. Desktop/laptop is primarily a DM preparation/administration companion using the same campaign/domain data. No player desktop application, full Android/desktop feature parity, or desktop combat tracker is required in MVP. Full parity is only a possible much-later feature. Desktop implementation form was subsequently selected by D-0036.
 
 ### 2. MVP is multicampaign
 
@@ -696,7 +707,9 @@ During normal paper-first play, paper is live authority. The digital character i
 
 ### 6. Local-first DM combat vs hosted shared data
 
-Hosted storage is the durable shared home, but an active encounter has one authoritative DM working state at a time. DM actions commit locally first and sync opportunistically. Older remote state cannot overwrite newer authoritative local state. Player offline tracker edits are provisional and yield to DM authority on reconnection. Same-device DM recovery is required; concurrent multi-device DM authority is not.
+Hosted storage is the durable shared home, but an active encounter has one authoritative DM working state at a time. DM actions commit locally first and sync opportunistically. For MVP, one DM device is authoritative and a simple increasing combat sequence/version is sufficient to reject older delayed state; authority-generation/handoff machinery is deferred until actual cross-device DM transfer exists.
+
+Player offline combat behavior is intentionally tiny: while disconnected, the player may locally press **Next turn** and add/remove visible conditions over the last public projection. These local changes are ephemeral, never uploaded, never authoritative, and are discarded/replaced by the DM projection when connectivity returns. Same-device DM recovery is required; concurrent multi-device DM authority is not.
 
 ### 7. Campaign moderation vs global account administration
 
@@ -708,4 +721,192 @@ Invites are campaign-scoped, reusable until revoked/regenerated, and grant direc
 
 ### Authority consequence
 
-Where earlier approved wording conflicts with these eight conclusions, this later approved decision controls. `docs/PRODUCT.md` and `docs/PROJECT_STATE.md` must reflect these conclusions before PR #2 merge.
+Where earlier approved wording conflicts with these eight conclusions or their later approved clarifications, the later wording controls. `docs/PRODUCT.md`, `docs/ARCHITECTURE.md` and `docs/PROJECT_STATE.md` must reflect the current interpretation.
+
+---
+
+## D-0034 — Hosted backend topology uses Neon, Cloudflare and Descope with stable-service boundaries
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Clarified:** 2026-08-30 by the pre-main proportionality audit
+
+The initial hosted backend topology is:
+
+- **Neon** for hosted PostgreSQL as the durable shared relational database;
+- **Cloudflare Worker/API** as the initial project-owned backend/data-access gateway;
+- **Descope** for end-user authentication only.
+
+Cloudflare may provide additional stable services later where a concrete implemented feature needs them, but selecting Cloudflare does **not** mean scaffolding R2, Durable Objects, WebSockets, queues, caches or other services in the initial foundation. Workers AI is used only for the approved SRD clarification flow when that feature is implemented.
+
+The initial architecture must not depend on Neon beta/preview backend features merely because they are temporarily free. In particular, Neon Auth, Data API, Storage, Functions or similar non-GA capabilities are not selected as foundational dependencies at this time.
+
+### Authentication and authorization boundary
+
+Descope establishes external user identity/session only. Campaign membership, DM/player role, PC ownership/control, moderation and all application/domain authorization remain represented and enforced by project-owned application logic and PostgreSQL data.
+
+The application maintains an internal user identity independent of the external authentication provider, with a mapping from the internal user to provider identity. This preserves migration ability if the authentication provider changes.
+
+Cloudflare Access may be reconsidered later only if it becomes a stable, clearly useful fit; it is not part of the initial native-client authentication design.
+
+### Provider and migration principles
+
+- PostgreSQL remains the authoritative hosted shared-data store; do not place irreplaceable domain truth in Cloudflare or Descope.
+- The active DM device remains authoritative for live local combat under D-0025/D-0033; hosted infrastructure receives synchronized state/public projections.
+- Prefer standard/portable interfaces where practical, including PostgreSQL logical backup/migration and S3-compatible object storage **if object storage is actually introduced later**.
+- Keep Cloudflare/Descope-specific integration code reasonably localized so replacement remains practical if needed; do **not** build generalized provider factories/adapter frameworks merely for hypothetical migration elegance.
+- Personal-scale normal use should remain within no-cost tiers where practical under D-0018.
+- Future low-cost paid migration paths remain a design consideration; no provider is assumed permanent.
+
+### Rejected/secondary alternatives
+
+Supabase remained a strong integrated alternative but its Free-plan inactivity behavior creates an avoidable continuity risk for a sporadically used personal D&D application. A keepalive architecture was considered plausible but not preferred. Convex, Firebase as the whole backend, Turso, self-hosted Supabase and other providers were evaluated but did not provide a better combined fit for stability, dormancy, PostgreSQL portability, Android requirements, maintenance and migration. Nile is a future watch candidate if it exits public preview while retaining suitable no-pause economics.
+
+This resolves the hosted backend/database/authentication provider portion of D-0009. The remaining portions were subsequently resolved by D-0035 through D-0043.
+
+---
+
+## D-0035 — Android client uses native Kotlin and Jetpack Compose
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+The primary Android application will be implemented natively in **Kotlin** using **Jetpack Compose** for its UI.
+
+### Consequences
+
+- Android phone/tablet quality is prioritized directly rather than through a cross-platform UI abstraction.
+- Android platform capabilities may be used directly when appropriate.
+- Adaptive Compose layouts must support both phone and tablet use rather than stretching one layout across screen classes.
+- Flutter and React Native are not selected for the initial Android application.
+- Straightforward domain/business logic should avoid unnecessary Android coupling where this enables useful sharing with the approved native desktop application without forcing UI parity.
+- This decision does not itself select local persistence, synchronization, minimum Android version, PDF stack or desktop delivery technology; those are resolved by later decisions.
+
+This resolves the Android language/framework/UI-toolkit portion of D-0009. The remaining portions were subsequently resolved by D-0036 through D-0043.
+
+---
+
+## D-0036 — DM desktop administration uses Kotlin + Compose Multiplatform Desktop
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Clarified:** 2026-08-30 by the pre-main proportionality audit  
+**Detailed record:** `docs/decisions/D-0036_DESKTOP_CLIENT.md`
+
+The DM desktop/laptop preparation and administration companion is a native **Kotlin + Compose Multiplatform Desktop** application.
+
+Native packaging/distribution overhead is accepted and is not a material disadvantage for this project. The desktop application supports meaningful local/offline preparation through SQLite/SQLDelight. Android and desktop may share Kotlin logic selectively, but UI and feature parity are not required.
+
+Desktop MVP synchronization is deliberately simple: **Save** writes work to local SQLite and **Sync** sends pending local changes/retrieves applicable remote changes. A failed Sync leaves local saved work intact; continuous background sync is not an MVP requirement.
+
+---
+
+## D-0037 — Multicampaign domain boundaries use one shared relational model with explicit campaign scope
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0037_MULTICAMPAIGN_DOMAIN_BOUNDARIES.md`
+
+Use one shared relational PostgreSQL model with explicit global and campaign-scoped relationships rather than database/schema-per-campaign tenancy or provider-specific tenant models.
+
+Users exist globally; campaign roles are membership relationships; characters belong to exactly one campaign while ownership/control are separate; personal mutable reusable content is distinct from campaign copies; official versioned SRD material may be referenced canonically; saved encounters, live encounters, durable character state, audit history and live combat state remain separate domains. Mutable entities use stable globally unique IDs suitable for local/offline synchronization.
+
+---
+
+## D-0038 — Local persistence and synchronization use SQLDelight/SQLite with deliberately simple project-owned sync
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Amended:** 2026-08-30 by the pre-main proportionality audit  
+**Detailed record:** `docs/decisions/D-0038_LOCAL_PERSISTENCE_AND_SYNC.md`
+
+Android and desktop use **SQLite through SQLDelight** for durable local relational persistence. Offline/local-first behavior is selective and is used where it provides real product value rather than as a universal requirement.
+
+Ordinary synchronization is small and application-specific: local mutation + outbox persistence is atomic where applicable; mutable data uses stable IDs, idempotent mutation IDs, optimistic revisions and simple deletion tombstones; rare genuine conflicts may be surfaced to a human instead of requiring a generalized merge engine.
+
+Desktop MVP uses local **Save + explicit Sync** rather than a continuous background synchronization platform.
+
+Live combat uses one authoritative DM device plus a simple increasing combat sequence/version for MVP. Older delayed state cannot overwrite newer authoritative DM state. **Authority generations/lineages are deferred** until a real cross-device DM transfer/handoff feature is implemented.
+
+Player offline combat convenience is not a synchronization domain: local Next-turn and visible-condition changes are ephemeral, never uploaded, never enter the outbox, and are discarded/replaced on reconnect.
+
+Start with ordinary HTTP request/response and simple polling/refresh. WebSockets, Durable Objects, queues or other realtime coordination are deferred until actual use proves the simpler transport inadequate.
+
+---
+
+## D-0039 — Hosted data access goes through Cloudflare with proportional authorization/security
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0039_HOSTED_API_AUTHORIZATION_BOUNDARY.md`
+
+Native clients do not connect directly to Neon and do not hold PostgreSQL credentials. Remote reads, writes and synchronization go through project-owned Cloudflare backend/API endpoints. Descope establishes identity; project-owned logic maps to the internal user and enforces domain permissions.
+
+PostgreSQL constraints/foreign keys protect relational integrity and the backend uses minimum sufficient database privileges. Blanket enterprise-style RLS, role hierarchies, duplicated authorization engines, extensive security audit infrastructure or similar machinery are **not** MVP requirements; add such measures only when a concrete project risk justifies them.
+
+---
+
+## D-0040 — Character-sheet PDF export is local on Android and DM desktop
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0040_PDF_EXPORT.md`
+
+Character-sheet PDF export is required on both Android and the native DM desktop application. Generation is local/offline from the owner's non-fillable InDesign-generated PDF templates.
+
+Android uses **PdfBox-Android** and desktop uses **Apache PDFBox**. Template/layout metadata may be shared where practical without creating a generalized cross-platform PDF subsystem. Export may deliberately use unsaved edits under D-0027 without saving them.
+
+---
+
+## D-0041 — SRD clarification uses PostgreSQL full-text retrieval first and a replaceable LLM
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0041_SRD_RETRIEVAL_AND_CLARIFICATION.md`
+
+Official Spanish **SRD 5.1** and **SRD 5.2.1** content is stored as versioned, provenance-preserving PostgreSQL sections/chunks. Initial retrieval uses PostgreSQL full-text search.
+
+Relevant official excerpts are supplied to a replaceable LLM integration, initially **Cloudflare Workers AI**. The exact model is configuration rather than architecture. MVP answers must be grounded in retrieved official SRD material and identify the applicable source/version. Embeddings/vector/hybrid retrieval are deferred unless real testing proves ordinary full-text retrieval inadequate.
+
+---
+
+## D-0042 — Minimum supported Android version is Android 11 / API 30
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0042_ANDROID_MIN_SDK.md`
+
+The Android application uses **minSdk 30 (Android 11)**. The project intentionally does not spend compatibility/testing effort on older Android releases that no actual expected user needs.
+
+This supports the owner's priority of a modern, high-quality Android UX and follows the personal-scale proportionality rule rather than maximizing hypothetical legacy-device reach.
+
+---
+
+## D-0043 — Initial project structure, backend language, testing and CI stay deliberately small
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Clarified:** 2026-08-30 by the pre-main proportionality audit  
+**Detailed record:** `docs/decisions/D-0043_MINIMAL_PROJECT_STRUCTURE_AND_TESTING.md`
+
+The initial scaffold uses a small shared Kotlin logic/data area plus separate Android and Desktop application areas, with no shared-UI requirement. The Cloudflare Worker backend uses **TypeScript** and PostgreSQL schema/migrations remain explicit SQL.
+
+Initial hosted infrastructure is essentially native clients → Cloudflare Worker/API → Neon PostgreSQL, plus Descope authentication and Workers AI only when the SRD clarification feature is implemented. R2, Durable Objects, WebSockets, queues and similar services are not scaffolded without a concrete need.
+
+Provider replaceability means keeping vendor-specific integration code reasonably localized, not creating provider factories/generalized abstraction frameworks.
+
+Automated tests initially focus on failures that could materially hurt the project: shared domain/synchronization behavior that actually exists, DM combat sequence/authority, SQLDelight migration safety, and consequential backend authorization/synchronization behavior. GitHub Actions provides a simple build/test check.
+
+Coverage gates, emulator farms, staging infrastructure, automated production deployment, enterprise quality tooling, generalized synchronization platforms, universal offline support and speculative module hierarchies are not required.
+
+This completes the foundational architecture/technology decision set under D-0009 and permits implementation scaffolding after explicit owner-reviewed merge of the architecture branch into canonical `main`.

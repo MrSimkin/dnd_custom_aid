@@ -6,17 +6,6 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** make the repository safe for long-running, multi-chat, multi-agent development.
 
-### Exit criteria
-
-- repository entry point exists;
-- agent operating rules exist;
-- current-state tracking exists;
-- durable decision log exists;
-- durable conventions registry exists;
-- product discovery boundaries exist;
-- workflow and testing expectations exist;
-- owner has reviewed and approved or modified the operating model.
-
 **Current status:** Complete. Owner-approved foundation merged to `main` via PR #1 on 2026-08-28.
 
 ---
@@ -25,31 +14,11 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** understand and design what the first useful version should actually do before selecting the technology stack.
 
-**Current status:** **Complete.** The approved product/MVP baseline, including the final eight-item tension-resolution pass and multicampaign scope, was merged to canonical `main` via PR #2 on 2026-08-29 (`b5a059b8e7fb9312232ad684356af05e27331b65`).
+**Current status:** **Complete.** The approved product/MVP baseline was merged to canonical `main` via PR #2 on 2026-08-29.
 
-### Outputs achieved
+The result includes multicampaign scope, paper/digital authority, Android/desktop surface responsibilities, local-first DM combat authority, moderation/invitation semantics, NPC/monster/encounter direction, and sufficient product clarity to evaluate architecture.
 
-- product purpose and boundaries;
-- player and Dungeon Master use cases;
-- major workflows and interaction model;
-- approved MVP and explicit non-MVP list;
-- content/rules-system scope;
-- multicampaign membership/selection behavior;
-- paper/digital authority semantics;
-- desktop-vs-Android surface responsibilities;
-- local-first combat authority/synchronization behavior;
-- account/moderation/invitation semantics;
-- NPC/monster/encounter direction;
-- high-level offline/data/privacy expectations;
-- sufficient product clarity to evaluate architecture without forcing the design to fit an arbitrary stack.
-
-Detailed feature-level acceptance criteria do **not** need to have been exhaustively authored during Phase 1. They must be defined before the corresponding implementation slice is considered complete, using `docs/templates/FEATURE_SPEC_TEMPLATE.md` and the testing rules as appropriate.
-
-### Exit criterion
-
-The owner has approved a coherent product/design baseline detailed enough to evaluate technical options.
-
-**Result:** satisfied and merged. Do not reopen resolved Phase 1 questions merely because historical discovery notes describe earlier uncertainty; reopen only for a genuinely new requirement or contradiction.
+Do not reopen resolved Phase 1 questions merely because historical discovery notes describe earlier uncertainty; reopen only for a genuinely new requirement or contradiction.
 
 ---
 
@@ -57,50 +26,69 @@ The owner has approved a coherent product/design baseline detailed enough to eva
 
 **Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval for consequential choices, then scaffold the chosen architecture.
 
-**Current status:** **Active — architecture/technology evaluation.** No architecture or stack is selected and no application code has been scaffolded.
+**Current status:** **Architecture selection, consolidation and pre-main proportionality review complete; explicit owner merge authorization is the remaining gate before scaffolding.**
 
-### Step 1 — Evaluate with the owner
+### Architecture selection — complete
 
-Start with **overall application topology/surface relationship**, then discuss relevant alternatives for matters such as:
+Owner-approved decisions D-0034 through D-0043 establish:
 
-1. overall Android + desktop/laptop topology and shared-domain relationship;
-2. Android implementation approach, language and UI toolkit;
-3. desktop/laptop administration implementation approach without requiring feature parity;
-4. supported Android baseline;
-5. multicampaign persistence/domain-data model;
-6. local-first authoritative DM combat persistence;
-7. combat-aware synchronization/shared-data architecture, including provisional player offline views;
-8. hosted backend/database and authentication/authorization/moderation boundaries;
-9. PDF generation/rendering;
-10. SRD 5.1 + SRD 5.2.1 storage/retrieval/clarification architecture;
-11. test architecture;
-12. project/module structure and other durable conventions.
+- Neon PostgreSQL + Cloudflare + Descope provider topology;
+- native Android Kotlin + Jetpack Compose;
+- native Kotlin + Compose Multiplatform Desktop DM administration;
+- Android 11 / API 30 minimum;
+- explicit relational multicampaign domain boundaries;
+- SQLDelight/SQLite local persistence on Android/desktop;
+- deliberately small project-owned synchronization;
+- Cloudflare Worker/API as the hosted gateway, with proportional rather than enterprise-grade authorization/security machinery;
+- local/offline PDF export on Android and desktop;
+- PostgreSQL full-text retrieval over official Spanish SRD 5.1 / SRD 5.2.1 with an initially Cloudflare Workers AI answer layer;
+- a small shared/Android/desktop/backend/database implementation shape;
+- TypeScript for the Cloudflare backend;
+- focused tests and one simple GitHub Actions CI workflow.
 
-For each consequential choice, explain practical alternatives, trade-offs and a recommendation before owner approval.
+The pre-main proportionality audit clarified implementation without changing the selected stack:
 
-### Step 2 — Scaffold after approval
+- Desktop uses local **Save + explicit Sync**;
+- DM combat uses one authoritative device + increasing sequence/version; cross-device authority generations are deferred;
+- player offline combat convenience is only ephemeral local Next-turn/visible-condition state and is discarded on reconnect;
+- ordinary HTTP/polling comes before realtime infrastructure;
+- provider-specific code is localized without generalized provider abstraction frameworks;
+- offline capability is selective rather than universal.
 
-Expected outputs after the required choices are approved:
+C-0009 governs implementation: this is a personal/small-scale project, so choose the simplest safe solution and add complexity only for a concrete need.
 
-- recorded technology/architecture decisions;
-- recorded coding/project conventions as they become relevant;
-- reproducible local build;
-- automated build/check commands;
-- application skeleton appropriate to the approved asymmetric surfaces;
-- phone/tablet layout foundation appropriate to the design;
-- desktop/laptop administration foundation appropriate to the approved architecture;
-- multicampaign shared-data foundation;
-- local-first combat persistence/synchronization foundation;
-- testing foundation;
-- dependency and version management;
-- CI where useful;
-- developer/agent setup instructions.
+### Owner merge gate — current
 
-### Exit criterion
+The architecture branch has completed its consolidation/contradiction review and is represented by PR #3.
+
+Before scaffolding:
+
+1. verify the final remote branch/PR head remains unchanged from the reviewed state;
+2. obtain explicit owner authorization to merge PR #3 into `main` under D-0007;
+3. merge only after that authorization.
+
+This is a governance gate, not another architecture-discovery round.
+
+### Scaffolding — next
+
+After the architecture branch is accepted into `main`, create the approved minimal foundation:
+
+- reproducible Kotlin/Gradle project;
+- shared Kotlin logic/data module or equivalent standard structure;
+- Android application shell;
+- Desktop application shell;
+- SQLDelight local database foundation;
+- TypeScript Cloudflare Worker/backend shell;
+- PostgreSQL migration/data-loading area;
+- baseline focused automated tests;
+- one simple CI workflow;
+- developer/agent setup/build instructions.
+
+Do **not** scaffold R2, Durable Objects, WebSockets, queues, generalized provider abstractions, a background desktop synchronization platform, or other deferred infrastructure merely because it may be useful someday.
+
+### Phase 2 exit criterion
 
 A fresh agent can clone the repository, follow documented commands, build the approved application foundation and run baseline tests, with the technical foundation traceable to approved product/design needs.
-
-**Important:** evaluation is active, but implementation/scaffolding must not begin until the relevant consequential architecture/stack choices are approved.
 
 ---
 
@@ -108,9 +96,9 @@ A fresh agent can clone the repository, follow documented commands, build the ap
 
 **Goal:** implement one small end-to-end feature that proves the architecture and product workflow.
 
-The feature itself must be selected from the approved product/design scope and must have explicit observable acceptance criteria before it is considered complete.
+The feature itself must come from approved scope and have explicit observable acceptance criteria before it is considered complete.
 
-The combat tracker is currently identified as the most important live-table MVP validation surface, but the exact first vertical slice should be selected after architecture evaluation so it proves the most useful cross-cutting risks rather than being chosen arbitrarily.
+The combat tracker remains the most important live-table MVP validation surface, but the exact first vertical slice should be selected after scaffolding so it proves the most useful cross-cutting risk rather than being chosen arbitrarily.
 
 ### Exit criterion
 
@@ -122,8 +110,6 @@ A real approved user task works end-to-end on representative configurations, wit
 
 **Goal:** implement the remaining approved MVP scope incrementally.
 
-### Working principle
-
 Prefer complete, testable slices over many half-finished screens. Each feature should have explicit acceptance criteria and leave project-state documentation current.
 
 ---
@@ -132,24 +118,22 @@ Prefer complete, testable slices over many half-finished screens. Each feature s
 
 **Goal:** make the first release dependable enough for real use.
 
-Potential areas include, as applicable to the approved product:
+Potential areas include, only as applicable:
 
 - regression testing;
-- phone/tablet usability checks;
-- desktop/laptop administration checks;
-- multicampaign navigation/isolation checks;
-- cross-surface shared-data checks;
-- local-first combat/offline/reconnection checks;
-- provisional player-view reconciliation checks;
+- real phone/tablet usability checks;
+- desktop administration checks;
+- multicampaign navigation/isolation;
+- cross-surface shared-data behavior;
+- local-first combat/offline/reconnection behavior;
+- verification that ephemeral player offline turn/condition changes are discarded on reconnect and never affect DM authority;
 - accessibility review;
-- data migration/recovery checks;
-- performance;
+- data migration/recovery;
+- performance where observed to matter;
 - backup/export behavior;
 - crash handling;
-- privacy/security review;
+- proportionate privacy/security review;
 - packaging/release process.
-
-Only applicable items become requirements.
 
 ---
 
@@ -157,6 +141,6 @@ Only applicable items become requirements.
 
 **Goal:** add features based on owner priorities and actual usage while preserving continuity and compatibility.
 
-Possible later directions already distinguished from MVP include broader Android/desktop feature parity, player desktop access, desktop combat tracking, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, and other approved future expansions.
+Possible later directions already distinguished from MVP include broader Android/desktop feature parity, player desktop access, desktop combat tracking, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, realtime transport if actually needed, and other approved future expansions.
 
 Every significant expansion should go through the same sequence: alternatives/discussion → decision/design → specification → implementation → testing → Git continuity update → owner review.

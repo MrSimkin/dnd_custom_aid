@@ -11,7 +11,7 @@ The product is:
 - primarily an Android phone/tablet application;
 - intended for both players and Dungeon Masters;
 - user-facing in Spanish;
-- supported by a desktop/laptop-friendly DM administration surface whose exact implementation form remains open;
+- supported by a native desktop/laptop DM preparation/administration companion under D-0036;
 - designed around paper-first tabletop play rather than replacing it;
 - intentionally not a Foundry/VTT, D&D Beyond replacement, generalized campaign-builder or automatic rules-enforcement engine.
 
@@ -50,9 +50,10 @@ Android and desktop/laptop are intentionally asymmetric surfaces for the foresee
 - basic administration;
 - comfortable manual NPC/monster data entry;
 - saved encounter preparation;
-- minimum account/campaign/PC administration required by the product workflows.
+- minimum account/campaign/PC administration required by the product workflows;
+- character-sheet PDF regeneration/export.
 
-The desktop implementation form—native Windows, normal web application, local web interface or another practical desktop-friendly approach—is not selected yet and remains a Phase 2 architecture/technology decision.
+The desktop implementation form is selected under D-0036: a native **Kotlin + Compose Multiplatform Desktop** application, with meaningful local/offline operation where practical.
 
 Desktop is **not required to duplicate the whole Android application** in MVP or near-term scope. No player desktop application is required in the MVP. Android/desktop feature parity is only a possible much-later evolution, not a current implementation goal. The desktop surface does **not** require the combat tracker in the MVP. If some additional Android functionality becomes naturally available on desktop at negligible cost, that does not make feature parity a requirement.
 
@@ -90,7 +91,7 @@ MVP character creation means **manual character-sheet data entry**, not a guided
 
 Character data is structured information independent from any specific PDF layout. The owner maintains custom sheet layouts in Adobe InDesign; existing PDFs are not fillable/editable PDFs.
 
-PDF export supports at least:
+PDF export is available on both Android and the DM desktop companion under D-0040 and supports at least:
 
 1. permanent/baseline-only output;
 2. full latest digital-sheet-state output including transient values where stored.
@@ -234,7 +235,7 @@ The MVP assistant may answer from **both supported official SRDs** and must clea
 
 The MVP rules assistant does **not** automatically know or apply campaign house rules. If a campaign rule differs from an official SRD rule, the DM/player applies the campaign rule manually for now. The assistant must not present campaign homebrew as if it were official SRD content.
 
-This specifies the product outcome, not the implementation. AI provider/model, retrieval approach and architecture remain deferred to technology evaluation.
+The approved technical implementation is recorded in D-0041: versioned/provenance-preserving PostgreSQL chunks, PostgreSQL full-text retrieval first, and a replaceable LLM integration initially using Cloudflare Workers AI. That technical choice does not change the product rule that answers must be grounded in supported official SRD material.
 
 ### Broader post-MVP direction
 
@@ -310,13 +311,18 @@ Same-group creatures normally share one initiative position while retaining indi
 
 **Shared durable campaign/domain data is normally hosted and synchronized online.** An active live encounter/combat, however, has **one authoritative DM working state at a time**.
 
-While combat is active, every DM action must be committed **locally first**, so Internet loss does not interrupt play. Cloud/server synchronization is secondary and opportunistic: it provides sharing and recovery, but successful server contact is not required to continue combat.
+While combat is active, every DM action is committed **locally first**, so Internet loss does not interrupt play. Server synchronization is secondary and opportunistic: it provides sharing and recovery, but successful server contact is not required to continue combat.
 
-When connectivity returns, the authoritative local DM live-combat state must **not** be replaced by an older remote snapshot. Combat synchronization requires explicit combat-aware semantics rather than generic last-write-wins behavior.
+For MVP, one DM device is authoritative for the active encounter and authoritative combat updates use a simple increasing combat sequence/version. This is sufficient to reject delayed older updates and prevents an older hosted snapshot from replacing newer local DM state. A future explicit DM-device transfer/handoff may add additional authority-generation mechanics if and when that feature exists; they are not an MVP requirement.
 
 Player devices receive the latest successfully synchronized **public projection** of combat. If connectivity disappears, their view may become stale while the DM continues normally.
 
-If a player loses Internet, the player may locally update their own tracker/view for temporary continuity. Those changes are **provisional and non-authoritative**. When connectivity returns, the player-side view is replaced/reconciled to the authoritative DM combat state; provisional player edits must never overwrite the DM state.
+If a player loses Internet, the app may provide a tiny **ephemeral local convenience layer** over that last received projection:
+
+- locally advance the displayed turn with **Next turn**;
+- locally add or remove visible conditions.
+
+These temporary changes are not uploaded, do not enter synchronization, and never become authoritative. When connectivity returns, the temporary player view is discarded/replaced by the latest DM public projection. Durability of those temporary tweaks across player-app restart is not required.
 
 The DM should be able to tell whether the active combat is **saved locally**, **synced**, or **waiting to sync**.
 
@@ -394,7 +400,10 @@ MVP includes:
 - manual monster creation/data entry;
 - manual NPC creation/data entry;
 - saved encounter creation/editing;
-- minimum account/campaign/PC administration required by the approved workflows.
+- minimum account/campaign/PC administration required by the approved workflows;
+- character-sheet PDF regeneration/export.
+
+Desktop work is saved to local SQLite. MVP synchronization is deliberately understandable and user-driven: **Save** preserves work locally, while **Sync** sends pending local changes and retrieves applicable remote changes when connectivity is available. A failed Sync does not discard local work. A continuous background synchronization service is not required.
 
 The desktop MVP does **not** require a player-facing desktop application, full Android feature parity or the combat tracker. Desktop remains primarily preparation/administration; broader parity may be considered much later.
 
@@ -408,9 +417,15 @@ Characters, NPCs, monster definitions, saved encounters, campaign membership and
 
 Live combat is the deliberate exception in authority semantics: hosted storage is its durable shared/recovery home, but the active DM device remains authoritative while that encounter is running and commits locally first.
 
-No provider is selected. Neon/Postgres remains only a candidate mentioned during discovery.
+The approved hosted topology is D-0034: **Neon PostgreSQL** for durable shared relational data, **Cloudflare** for the project-owned backend/API and additional infrastructure only when actually needed, and **Descope** for authentication only. Native clients do not connect directly to Neon under D-0039.
 
-Architecture evaluation must consider authentication/authorization, multicampaign synchronization, offline DM combat continuation and reconciliation, backups/recovery, service limits, maintenance burden, cost/lock-in, PDF generation and SRD retrieval/clarification.
+For the initial implementation, the hosted application path should remain essentially **native clients → Cloudflare Worker/API → Neon PostgreSQL**. Ordinary HTTP request/response plus simple refresh/polling is preferred before realtime transport. R2, Durable Objects, WebSockets, queues or similar services are deferred until an implemented feature demonstrates a concrete need.
+
+The approved architecture also includes local SQLite/SQLDelight persistence and deliberately small project-owned synchronization under D-0038. Desktop uses Save+Sync; DM combat is local-first with one authoritative device and an increasing combat sequence; rare ordinary conflicts may be surfaced simply rather than requiring a generalized merge engine.
+
+Provider replaceability means keeping vendor-specific code reasonably localized. It does **not** require provider factories or generalized abstraction frameworks for hypothetical migrations.
+
+Offline support is selective: character/local preparation/combat/PDF workflows receive it where it provides real value, while inherently hosted workflows such as campaign joining, invitation management, account recovery and rules-AI clarification may require connectivity.
 
 ## 17. Approved MVP boundary
 
@@ -419,7 +434,8 @@ Architecture evaluation must consider authentication/authorization, multicampaig
 - manually create/view/edit PC character sheets;
 - PDF export;
 - SRD-only natural-language rules clarification in Spanish with identifiable official source/version;
-- campaign selection appropriate to multicampaign membership.
+- campaign selection appropriate to multicampaign membership;
+- view the DM's public combat projection, with only ephemeral local Next-turn/visible-condition convenience while temporarily offline.
 
 ### DM tablet/live session
 
@@ -437,7 +453,9 @@ Architecture evaluation must consider authentication/authorization, multicampaig
 - manual NPC data entry;
 - saved encounter creation/editing;
 - minimum account/campaign/PC administration;
-- multicampaign administration/selection as required by the approved workflows.
+- multicampaign administration/selection as required by the approved workflows;
+- character-sheet PDF regeneration/export;
+- local Save plus explicit Sync for shared durable work.
 
 ### Supporting MVP functionality
 
@@ -447,7 +465,7 @@ Architecture evaluation must consider authentication/authorization, multicampaig
 - persistence/shared data;
 - permissions/ownership/control relationships;
 - local/offline combat persistence;
-- synchronization required for DM/player shared views.
+- deliberately simple synchronization required for DM/player shared views.
 
 ### Explicitly outside MVP
 
@@ -466,7 +484,8 @@ Architecture evaluation must consider authentication/authorization, multicampaig
 - additional RPG systems;
 - player desktop application/full Android-desktop parity;
 - desktop combat tracker requirement;
-- seamless concurrent multi-device DM combat editing.
+- seamless concurrent multi-device DM combat editing;
+- generalized synchronization/realtime/provider-abstraction infrastructure without a concrete need.
 
 ## 18. Current remaining product/technical work
 
@@ -483,9 +502,9 @@ The original discovery clarification rounds and the final pre-merge product-tens
 
 No additional product-level contradiction or unresolved behavioral tension remains from the final audit pass.
 
-No application technology stack or architecture is selected yet. The next major step, after Phase 1 merge closure, is to evaluate architecture/technology alternatives against the approved MVP and constraints, including Android phone/tablet behavior, desktop administration, multicampaign shared data, offline-resilient combat, synchronization, PDF generation, SRD retrieval/clarification, maintainability, personal-scale/no-cost hosting and future incremental extensibility.
+The foundational Phase 2 architecture/technology choices are owner-approved under D-0034 through D-0043. The pre-main proportionality audit further clarified those existing choices without introducing a new architecture layer: player offline combat state is tiny and ephemeral, Desktop uses Save+Sync, DM combat does not pre-build authority generations, ordinary HTTP precedes realtime infrastructure, provider code is localized without abstraction-framework ceremony, and offline support is selective.
 
-Consequential architecture/stack choices remain owner-controlled and must be approved before implementation begins.
+After the documentation consolidation/contradiction sweep is complete, the remaining gate before implementation scaffolding is owner-authorized merge of the architecture branch into canonical `main`.
 
 ## 19. Discovery source material
 
