@@ -91,6 +91,19 @@ In technical discussion with the owner, agents may mention both forms when usefu
 
 Source decisions: D-0017 and D-0023.
 
+### C-0008 — Explain relational/data-model decisions with SQL when useful
+
+**Status:** Approved  
+**Date:** 2026-08-30
+
+When discussing database schemas, queries, migrations, synchronization metadata or other relational/data-model behavior with the owner, agents should show concise representative SQL whenever it materially improves understanding.
+
+Framework annotations, ORM abstractions or implementation terminology should not be used as the only explanation when the same idea can be made clearer through SQL. SQL examples are explanatory unless an approved schema/migration explicitly makes them authoritative implementation artifacts.
+
+This convention exists because SQL is a useful technical communication language for the owner and helps them review architecture decisions directly.
+
+Source decision: D-0038 and explicit owner instruction during its approval.
+
 ## 3. Conventions intentionally not chosen yet
 
 No convention has yet been approved for:
