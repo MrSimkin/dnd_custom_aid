@@ -3,10 +3,10 @@
 ## Current status
 
 **Phase:** Phase 2 architecture selection — **complete for initial scaffolding**  
-**Architecture state:** Foundational choices approved.  
+**Architecture state:** Foundational choices approved and simplified by pre-main proportionality audit.  
 **Application code:** Not scaffolded yet.
 
-Approved Phase 2 choices are D-0034 through D-0043. Together they resolve the consequential architecture questions originally tracked under D-0009 sufficiently to begin implementation scaffolding.
+Approved Phase 2 choices are D-0034 through D-0043. Together they resolve the consequential architecture questions originally tracked under D-0009 sufficiently to begin implementation scaffolding after owner-approved merge into canonical `main`.
 
 The project deliberately targets a **personal/small-scale architecture**. C-0009 is controlling: choose the simplest safe implementation that satisfies real approved requirements and do not import enterprise-grade complexity without a concrete reason.
 
@@ -15,10 +15,26 @@ The project deliberately targets a **personal/small-scale architecture**. C-0009
 ### D-0034 — Hosted providers
 
 - **Neon PostgreSQL** — durable hosted relational database.
-- **Cloudflare** — stable complementary backend/API, connectivity/pooling, object storage and realtime coordination where useful.
+- **Cloudflare Worker/API** — project-owned hosted application gateway/backend.
 - **Descope** — authentication only.
+- **Cloudflare Workers AI** — initial LLM provider only for the approved SRD clarification feature when implemented.
+- Other Cloudflare services such as R2, Durable Objects, WebSockets, queues or caches are **not part of the initial scaffold merely because Cloudflare can provide them**. Add one only for a concrete implemented need.
 - Avoid foundational dependence on beta/preview provider features merely because they are temporarily free.
-- Keep provider boundaries reasonably replaceable.
+- Keep vendor-specific integration code reasonably localized; do not build generalized provider-abstraction frameworks for hypothetical migrations.
+
+Initial hosted path:
+
+```text
+Android / Desktop
+       │
+       ▼
+Cloudflare Worker/API
+       │
+       ▼
+Neon PostgreSQL
+```
+
+Descope supplies authentication identity to the client/backend flow; it does not own campaign/domain authorization.
 
 ### D-0035 — Android client
 
@@ -29,7 +45,9 @@ The project deliberately targets a **personal/small-scale architecture**. C-0009
 ### D-0036 — DM desktop client
 
 - Native **Kotlin + Compose Multiplatform Desktop**.
-- Desktop preparation/administration should support meaningful local/offline use.
+- Desktop preparation/administration supports meaningful local/offline work through local SQLite/SQLDelight.
+- Desktop MVP persistence/synchronization is deliberately understandable: **Save locally; Sync explicitly**.
+- Failed Sync does not lose locally saved work; continuous background sync is not an MVP requirement.
 - Android and desktop may share Kotlin logic selectively without sharing UI or requiring feature parity.
 
 ### D-0037 — Domain/data boundaries
@@ -44,13 +62,33 @@ The project deliberately targets a **personal/small-scale architecture**. C-0009
 ### D-0038 — Local persistence and synchronization
 
 - Android and desktop use **SQLite via SQLDelight**.
-- Native workflows are local-first where practical.
+- Offline/local-first support is **selective** and exists where it provides real value, not as a universal product requirement.
 - Authorized useful subsets may be cached for offline work.
-- Local mutation + outbox persistence is atomic where applicable.
+- Local mutation + small sync-outbox persistence is atomic where applicable.
 - Project-owned synchronization goes through Cloudflare to Neon.
-- Ordinary durable data uses stable global IDs, idempotent mutations, revisions and tombstones; avoid blind last-write-wins.
-- Live combat uses separate DM-authoritative lineage/sequence semantics so stale hosted state cannot overwrite newer local DM state.
-- Player combat projections remain non-authoritative.
+- Ordinary durable data uses stable global IDs, idempotent mutations, optimistic revisions and simple deletion tombstones; avoid blind last-write-wins.
+- Rare genuine edit conflicts may be surfaced to the human rather than requiring a generalized automatic merge engine.
+
+#### DM live combat
+
+- One DM device is authoritative for an active encounter in MVP.
+- DM actions commit locally first and continue without network access.
+- Authoritative combat updates use a simple increasing combat sequence/version so delayed older state cannot overwrite newer DM state.
+- **Authority generations/lineages are deferred** until an actual cross-device DM transfer/handoff feature exists.
+- Seamless concurrent authoritative editing by multiple DM devices is outside MVP.
+
+#### Player offline combat convenience
+
+While offline, a player may use only a tiny ephemeral local convenience layer over the last public projection:
+
+- **Next turn** locally;
+- add/remove visible conditions locally.
+
+Those temporary changes are never uploaded, never enter the sync outbox, never gain authority, and are discarded/replaced by the DM public projection when connectivity returns. Durability across player-app restart is not required.
+
+#### Transport
+
+Start with ordinary HTTP request/response and simple refresh/polling. WebSockets, Durable Objects, queues and other realtime coordination are deferred unless actual use proves HTTP insufficient.
 
 ### D-0039 — Hosted API/authorization boundary
 
@@ -96,35 +134,34 @@ Initial implementation is deliberately small:
 
 Exact generated folder/module names may vary slightly if standard tooling makes that sensible. The boundaries matter more than literal names.
 
-Testing initially protects material risks: domain/sync behavior, combat authority, stale revisions/idempotency, SQLDelight migrations, and consequential backend auth/sync behavior. Android/desktop visual quality relies substantially on practical manual testing on the real relevant devices.
+Testing initially protects material risks: domain/sync behavior that actually exists, combat sequence/authority, stale revisions/idempotency, SQLDelight migrations, and consequential backend auth/sync behavior. Android/desktop visual quality relies substantially on practical manual testing on the real relevant devices.
 
-Use one simple GitHub Actions build/test workflow. No coverage gates, emulator farm, staging ceremony, automatic production deployment, enterprise quality platform or speculative module hierarchy is required.
+Use one simple GitHub Actions build/test workflow. No coverage gates, emulator farm, staging ceremony, automatic production deployment, enterprise quality platform, provider-abstraction framework, generalized synchronization platform or speculative module hierarchy is required.
 
 ## Governing architecture principles
 
 - **Personal/small-scale proportionality:** C-0009.
 - Shared durable domain truth lives in PostgreSQL; active DM combat is locally authoritative while running.
-- Native applications should remain useful offline where reasonable.
+- Native applications should remain useful offline where that is genuinely useful, not everywhere by default.
 - No privileged database credentials on clients.
 - Authentication identity is distinct from domain authorization.
 - Prefer stable/GA dependencies and reasonable migration paths.
 - Share Kotlin code only where it genuinely reduces duplication; do not force cross-platform UI parity.
 - Explain relational/data-model choices with representative SQL when useful under C-0008.
+- Selecting a provider does not imply activating every service it offers.
+- Provider replaceability means sensible code locality, not abstraction-framework ceremony.
 - Add complexity only in response to an actual requirement, measured problem or concrete risk.
 
 ## Architecture gate consequence
 
-The architecture-selection gate is complete for the **initial scaffold**. D-0009 should now be treated as resolved/Approved by D-0034 through D-0043.
+The architecture-selection gate is complete for the **initial scaffold**. D-0009 is resolved/Approved by D-0034 through D-0043.
+
+The pre-main proportionality audit did not replace the architecture. It simplified how approved synchronization, offline behavior and Cloudflare capabilities are implemented so the scaffold does not kill a fly with a bazooka.
 
 Low-level reversible implementation details may be chosen during scaffolding under D-0008 and existing conventions. A genuinely new consequential architecture/product choice must still be surfaced to the owner rather than silently assumed.
 
 ## Immediate next action
 
-Before implementation begins, perform a short **documentation consolidation/review** on the active architecture branch:
+Finish the contradiction/read-order review of this architecture branch, ensure all simplifications are committed remotely, and present PR #3 for the owner's explicit merge authorization under D-0007.
 
-1. consolidate D-0036 through D-0043 into the chronological `docs/DECISIONS.md` log and change D-0009's old Pending wording to resolved/Approved;
-2. remove or amend stale product/state wording that still says desktop delivery/PDF or architecture choices are undecided;
-3. verify `MANIFEST.md`, `docs/PRODUCT.md`, `docs/PROJECT_STATE.md`, `docs/CONVENTIONS.md` and the decision log agree on the approved baseline;
-4. review the architecture branch against `main` before merge under D-0007.
-
-That consolidation is documentation cleanup of already-approved decisions, not a new architecture exercise.
+After that owner-authorized merge, the next task is **initial implementation scaffolding**, not another broad architecture-discovery round.
