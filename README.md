@@ -41,25 +41,6 @@ Meaningful technical work must be explained. New durable conventions are discuss
 
 C-0009 is controlling: **this is a personal/small-scale project. Prefer the simplest safe solution that satisfies real requirements and do not add enterprise machinery without a concrete reason.**
 
-The 2026-08-30 proportionality audit made that concrete: do not build generalized sync/realtime/provider-abstraction infrastructure just because it is technically possible.
-
-## Approved product baseline
-
-The product baseline includes:
-
-- paper-first live character use with a durable, freshness-visible digital backup;
-- Android as the primary live/table surface;
-- a native desktop/laptop DM preparation/administration companion;
-- multicampaign MVP behavior with campaign-scoped roles and moderation;
-- grouped DM audit/correction and preserved/unassigned PCs;
-- campaign invitations/rejoining with reusable revocable campaign invites;
-- mixed D&D 5e/5.5e/homebrew campaign freedom while MVP rules clarification remains official-SRD-only;
-- Quick/Developed NPC workflows and complete/extensible monster stat blocks;
-- prepared and on-the-fly encounters;
-- local-first authoritative DM combat with opportunistic hosted synchronization;
-- player combat public view with only ephemeral local **Next turn** and visible-condition convenience while temporarily offline, discarded on reconnect;
-- local character-sheet PDF export on both Android and desktop.
-
 ## Approved architecture snapshot
 
 - Android: **Kotlin + Jetpack Compose**, minimum Android 11 / API 30.
@@ -70,27 +51,25 @@ The product baseline includes:
 - Backend/API: **Cloudflare Worker**, implemented in TypeScript.
 - Authentication: **Descope**; application/domain authorization remains project-owned.
 - Native clients never connect directly to Neon or hold DB credentials.
-- Ordinary synchronization is deliberately small: stable IDs, idempotent mutations, revisions, a small outbox where needed, and simple tombstones.
-- Active DM combat uses one authoritative DM device plus an increasing combat sequence/version in MVP; authority-generation/handoff machinery is deferred.
-- Ordinary HTTP/request-response and simple polling/refresh come before WebSockets/Durable Objects/realtime infrastructure.
-- Provider replaceability means keeping vendor-specific code reasonably localized, not building provider abstraction frameworks.
-- PDF export: PdfBox-Android on Android and Apache PDFBox on desktop, local/offline.
-- SRD clarification: official Spanish SRD 5.1 + SRD 5.2.1 in PostgreSQL, initial full-text retrieval, initially Cloudflare Workers AI for grounded answers; no vector machinery unless testing proves it necessary.
+- HTTP/request-response and simple polling/refresh come before realtime infrastructure.
+- Provider replaceability means sensible code locality, not provider-abstraction frameworks.
 
-See `docs/ARCHITECTURE.md` for the full architecture record.
+See `docs/ARCHITECTURE.md` for the full record.
 
-## Implemented scaffold
+## Implemented technical foundation
 
-The focused branch `implementation/initial-scaffold` now contains the minimal buildable foundation approved by D-0043:
+PR #4 merged the initial scaffold into canonical `main` on 2026-08-30.
+
+The repository now contains:
 
 - `shared/` — one Kotlin Multiplatform shared module with SQLDelight foundation and smoke tests;
-- `androidApp/` — Android Kotlin/Jetpack Compose application shell;
-- `desktopApp/` — Kotlin/Compose Multiplatform Desktop application shell;
+- `androidApp/` — Android Kotlin/Jetpack Compose application shell using stable Material 3;
+- `desktopApp/` — Kotlin/Compose Multiplatform Desktop shell using the stable Material line rather than an alpha-only Desktop Material 3 dependency;
 - `backend/` — TypeScript Cloudflare Worker shell with a minimal health endpoint;
-- `database/` — PostgreSQL migration/data-loading area, intentionally without speculative domain schema;
+- `database/` — PostgreSQL migration/data-loading area without speculative domain schema;
 - `.github/workflows/scaffold-check.yml` — one simple build/test workflow.
 
-The scaffold intentionally does **not** yet implement authentication, campaigns, characters, combat, PDF export, SRD retrieval, Neon integration, realtime transport, R2, Durable Objects, queues, or deployment automation.
+The scaffold intentionally does **not** yet implement authentication, hosted synchronization, campaigns, characters, combat, PDF export, SRD retrieval, realtime transport, or deployment automation.
 
 ## Development prerequisites
 
@@ -102,25 +81,23 @@ Current scaffold prerequisites:
 - Node.js 22;
 - npm.
 
-`minSdk` remains API 30 / Android 11. The scaffold currently uses stable Android compile/target SDK 36 rather than depending on the Android 17/API 37 preview SDK channel.
+`minSdk` remains API 30 / Android 11. Android stays on the stable SDK 36 path instead of depending on the Android 17/API 37 preview SDK channel.
 
-A Gradle wrapper JAR is not currently committed because the available repository connector could not safely transfer the official binary wrapper JAR. CI therefore provisions pinned Gradle 9.5 directly. Local development currently needs Gradle 9.5 available on PATH until the wrapper is added through a normal local Git workflow.
+A Gradle wrapper JAR is not currently committed because the repository connector could not safely transfer the official binary wrapper JAR. CI provisions pinned Gradle 9.5 directly; a normal local Git workflow can add the standard wrapper later.
 
 ## Build and verification commands
-
-From repository root:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-Run the desktop shell locally with:
+Desktop shell:
 
 ```bash
 gradle :desktopApp:run
 ```
 
-Backend checks:
+Backend:
 
 ```bash
 cd backend
@@ -128,20 +105,10 @@ npm install
 npm run check
 ```
 
-Run the local Worker development server with:
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-The same core Kotlin and backend checks are executed by GitHub Actions. See `docs/TESTING.md` for the current verified revision and test status.
+See `docs/TESTING.md` for the latest verified revision.
 
 ## Current status
 
-**Phase 1 and architecture selection are canonical on `main`. The initial scaffold is implemented and CI-verified on `implementation/initial-scaffold`, pending owner review/merge into `main`.**
+**Phases 0–2 are complete and canonical on `main`. Phase 3 — the first real vertical slice — is now current.**
 
-No broad MVP feature implementation has begun. After the scaffold is accepted into `main`, the next meaningful task is selecting and implementing the first small end-to-end vertical slice from approved scope.
-
-Do not begin another broad architecture-discovery round or activate deferred infrastructure without a concrete new requirement.
+The first selected slice is intentionally small: **local Android campaign creation and active-campaign selection**, backed by shared Kotlin + SQLDelight. It should not introduce Descope, Neon, hosted sync, realtime, PDF, or SRD infrastructure.

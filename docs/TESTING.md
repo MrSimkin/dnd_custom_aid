@@ -2,7 +2,7 @@
 
 ## Current status
 
-The initial implementation scaffold now exists on `implementation/initial-scaffold` and has executable CI/build checks. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
+The initial scaffold is canonical on `main` after PR #4. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
 
 ## 1. Core rule
 
@@ -20,25 +20,11 @@ Every meaningful implementation change should state concisely:
 
 ### Kotlin / Android / Desktop / SQLDelight
 
-From repository root:
-
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-The current scaffold CI uses:
-
-- JDK 17;
-- Gradle 9.5;
-- Android SDK platform 36.
-
-This command currently checks:
-
-- shared Kotlin compilation;
-- SQLDelight code generation;
-- the in-memory SQLite smoke schema/query test;
-- Android debug APK assembly;
-- Desktop compilation/build.
+Current scaffold CI uses JDK 17, Gradle 9.5 and Android SDK platform 36.
 
 ### Backend
 
@@ -52,112 +38,60 @@ This runs Wrangler type generation and TypeScript type checking.
 
 ## 3. Last successful verification
 
-Final pre-handoff scaffold code revision:
+Final scaffold branch head:
 
-`335cf523785a7f503186acd1057ebce72c121b27`
+`2f8746de1053bf97cc18d7a522f2027e91879251`
 
-GitHub Actions run #9 completed successfully on that exact revision:
+GitHub Actions run #14 passed on that exact revision:
 
-- `kotlin` job — **success**;
-- `backend` job — **success**.
+- shared Kotlin compilation — success;
+- SQLDelight generation/in-memory SQLite smoke test — success;
+- Android debug APK assembly — success;
+- Desktop build — success;
+- backend Wrangler/TypeScript check — success.
 
-The immediately preceding CI runs were also used during scaffold diagnosis. Early failures were resolved before the verified checkpoint; they are not current blockers.
+PR #4 then merged that exact head into `main` as merge commit `d50409270db52df05508f91363bf76385030a77d`.
 
-## 4. Known non-blocking tooling note
+## 4. Known non-blocking tooling notes
 
-The current Kotlin/AGP toolchain warns that the KMP `androidLibrary` target DSL used in `shared` is deprecated in favor of a newer API. The current official Kotlin KMP application template still uses the same block, so this project intentionally leaves the green scaffold unchanged until the supported transition is clearer.
+The KMP `androidLibrary` target DSL used by `shared` currently emits a deprecation warning. The current official Kotlin KMP application template still uses the same API, so the project deliberately does not churn a green foundation merely to silence a tooling-transition warning.
 
-Do not suppress or workaround that warning with custom infrastructure merely for cosmetic cleanliness.
+The Gradle wrapper JAR is not currently committed because the repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the wrapper later.
 
-A committed Gradle wrapper JAR is also not currently present because the repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. This is a local-developer convenience gap, not a test failure.
+## 5. Phase 3 campaign-slice verification
 
-## 5. Initial automated verification scope
+The first vertical slice should add focused verification for behavior that actually exists:
 
-As real features appear, automated tests should concentrate on:
+- creating a campaign with a nonblank trimmed name succeeds;
+- blank/whitespace-only campaign names are rejected;
+- multiple campaigns persist independently;
+- duplicate display names are allowed without identity collision;
+- selecting an active campaign persists locally;
+- changing the active campaign replaces the previous active selection;
+- reopening the database/application can recover campaigns and active selection.
 
-- shared Kotlin domain logic where mistakes could corrupt/misrepresent state;
-- SQLDelight schema/migration correctness;
-- outbox/idempotent mutation/revision behavior **once implemented**;
-- DM live-combat sequence/authority behavior **once implemented**;
-- consequential backend authentication/authorization/sync behavior **once implemented**;
-- Android/Desktop/backend compilation/build checks.
-
-Do not create tests for infrastructure or behavior that does not yet exist.
+Do not add tests for hosted synchronization, membership, roles or other features excluded from the slice.
 
 ## 6. CI
 
-Use one simple GitHub Actions workflow for relevant pushes/pull requests.
+Use one simple GitHub Actions workflow for relevant pushes/pull requests. CI is a safety check, not deployment.
 
-CI is a safety check, not deployment.
-
-Initial CI does not require:
-
-- coverage gates;
-- SonarQube;
-- emulator/device farms;
-- broad API-version matrices;
-- staging infrastructure;
-- automatic production deployment;
-- automated installer/release publishing;
-- giant screenshot suites.
+Initial CI does not require coverage gates, SonarQube, emulator farms, broad API matrices, staging, automatic production deployment, automated release publishing, or giant screenshot suites.
 
 ## 7. Android device verification
 
 Approved minimum is Android 11 / API 30.
 
-Manual real-device UX testing becomes important once a meaningful UI workflow exists. Compact phone and larger tablet layouts matter more than hypothetical obsolete Android versions.
+Manual real-device UX testing becomes meaningful with the Phase 3 campaign workflow. Check at least the actual relevant phone/tablet form factor(s) when practical; automated UI infrastructure is not required merely to prove the first slice.
 
-The current scaffold has **not** received meaningful device UX testing because its UI is only a shell.
+## 8. Future focused verification
 
-## 8. Desktop verification
+As later features actually appear, add tests for consequential SQLDelight migrations, sync/outbox/idempotency, combat sequence authority, backend auth/authz, PDF behavior, and SRD grounding. Do not create tests for infrastructure or behavior that does not exist.
 
-The DM desktop client is native Kotlin + Compose Multiplatform Desktop. Build verification is currently automated; keyboard/mouse workflow verification should begin once real desktop features exist.
-
-Desktop synchronization tests later should reflect the approved simple model:
-
-- Save persists locally;
-- Sync sends pending local changes and retrieves applicable remote changes;
-- failed Sync does not lose local work;
-- later Sync can retry safely.
-
-Do not build/test a continuous background-sync service unless the product later requires one.
-
-## 9. Local-first synchronization and combat verification
-
-When those features exist, high-value tests include:
-
-- coherent local mutation/outbox persistence;
-- duplicate mutations not applying twice;
-- stale ordinary revisions detected rather than blindly overwriting newer data;
-- DM combat surviving same-device interruption/restart;
-- network loss not preventing DM continuation;
-- increasing combat sequence/version rejecting delayed older updates;
-- no accidental MVP authority-generation/handoff machinery;
-- player offline Next-turn/visible-condition changes remaining ephemeral, never uploaded, and discarded on reconnect.
-
-## 10. Character/PDF verification
-
-When implemented, verify:
-
-- saved/freshness state is accurate;
-- Save and Export remain distinct;
-- unsaved-export warning works;
-- exporting unsaved values does not save them;
-- Android/Desktop PDF export works offline against approved template mappings.
-
-## 11. SRD clarification verification
-
-When implemented, verify:
-
-- retrieval is grounded in supported official Spanish SRD 5.1 / 5.2.1;
-- source/version provenance is preserved;
-- homebrew is not silently presented as official SRD;
-- PostgreSQL full-text retrieval is tested before adding vector/embedding machinery.
-
-## 12. Regression rule
+## 9. Regression rule
 
 When fixing a reproducible defect, add a focused automated regression test when practical/useful. Otherwise record the manual verification used.
 
-## 13. Proportionality
+## 10. Proportionality
 
 C-0009 controls testing: protect this application's useful behavior and data, not an imaginary commercial compliance process.

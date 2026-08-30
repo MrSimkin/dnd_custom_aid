@@ -2,16 +2,16 @@
 
 **Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
-**Current working branch:** `implementation/initial-scaffold`  
-**Open review:** scaffold PR to be created after this handoff commit  
-**Phase:** Phase 2 — scaffold implementation complete and verified; review/merge is the remaining Phase 2 gate  
-**Status:** Minimal implementation foundation exists on the focused branch and passes CI. No broad MVP feature implementation has begun.
+**Current working branch:** `main` — Phase 3 feature branch to be created next  
+**Open review:** none; PR #4 merged 2026-08-30  
+**Phase:** Phase 3 — First Vertical Slice  
+**Status:** Architecture and minimal scaffold are canonical and CI-verified. No broad MVP feature implementation has begun.
 
 ## 1. Canonical baseline
 
-The approved product and architecture baseline remains D-0034 through D-0043 plus the 2026-08-30 C-0009 proportionality clarifications already merged to `main` through PR #3.
+The approved product/architecture baseline is D-0034 through D-0043 plus the 2026-08-30 C-0009 proportionality clarifications.
 
-Key implementation constraints remain:
+Key implementation constraints:
 
 - personal/small-scale project; simplest safe solution first;
 - Android native Kotlin + Jetpack Compose, minimum API 30;
@@ -19,65 +19,59 @@ Key implementation constraints remain:
 - SQLite + SQLDelight selectively for useful local/offline behavior;
 - Desktop Save locally + explicit Sync;
 - Cloudflare Worker/HTTP first; realtime/storage extras only when a real feature needs them;
-- Neon PostgreSQL for hosted relational data;
-- Descope authentication only when authentication is implemented;
+- Neon PostgreSQL and Descope are approved but should not be activated before a feature needs hosted data/authentication;
 - no generalized provider/sync frameworks;
 - one authoritative DM combat device + increasing sequence/version for MVP;
 - player offline turn/condition convenience is ephemeral and never synchronized.
 
-## 2. Implemented scaffold
+## 2. Canonical scaffold
 
-Branch `implementation/initial-scaffold` currently contains:
+PR #4 merged on 2026-08-30. Merge commit: `d50409270db52df05508f91363bf76385030a77d`.
 
-- `shared/` — one Kotlin Multiplatform shared module;
-- SQLDelight starter database/schema generation and an in-memory SQLite smoke test;
+`main` now contains:
+
+- `shared/` — one Kotlin Multiplatform module;
+- SQLDelight starter database/code generation and an in-memory SQLite smoke test;
 - `androidApp/` — native Android Kotlin/Jetpack Compose shell;
 - `desktopApp/` — Kotlin/Compose Multiplatform Desktop shell;
-- `backend/` — TypeScript Cloudflare Worker shell with a minimal health endpoint;
+- `backend/` — TypeScript Cloudflare Worker shell with a minimal `/health` endpoint;
 - `database/` — PostgreSQL migration/data-loading area without speculative domain tables;
-- `.github/workflows/scaffold-check.yml` — one simple CI workflow.
+- one simple GitHub Actions workflow.
 
-No real campaign/character/combat/auth/PDF/SRD/realtime/domain implementation exists yet.
+Android uses stable Material 3. Desktop remains on the stable Compose Material line because the current official KMP Material 3 path uses a separate alpha dependency; no alpha dependency was added merely for UI symmetry.
 
-## 3. Current toolchain
+## 3. Toolchain
 
-The verified scaffold uses:
+- JDK 17
+- Gradle 9.5
+- Kotlin 2.4.10
+- Android Gradle Plugin 9.3.2
+- Android `minSdk 30`, compile/target SDK 36
+- stable AndroidX Compose BOM path
+- Compose Multiplatform 1.12.0 for Desktop
+- SQLDelight 2.3.2
+- Node.js 22 in CI
+- TypeScript 6.0.3
+- Wrangler 4.127.1
 
-- JDK 17;
-- Gradle 9.5;
-- Kotlin 2.4.10;
-- Android Gradle Plugin 9.3.2;
-- Android `minSdk 30`, compile/target SDK 36;
-- Android Jetpack Compose through the stable AndroidX Compose BOM path;
-- Compose Multiplatform 1.12.0 for Desktop;
-- SQLDelight 2.3.2;
-- Node.js 22 in CI;
-- TypeScript 6.0.3;
-- Wrangler 4.127.1.
+Android intentionally remains on stable SDK 36 rather than the Android 17/API 37 preview SDK channel.
 
-Android intentionally stays on stable SDK 36 for this scaffold rather than depending on Android 17/API 37 preview-channel tooling. This does not change the approved Android 11/API 30 minimum.
+## 4. Last verification
 
-## 4. Verification
+Final scaffold branch head: `2f8746de1053bf97cc18d7a522f2027e91879251`.
 
-Final pre-handoff scaffold code head verified: `335cf523785a7f503186acd1057ebce72c121b27`.
-
-GitHub Actions run #9 completed successfully on that exact head:
-
-### Kotlin job — success
+GitHub Actions run #14 passed on that exact head:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-This verifies:
+- shared Kotlin: success;
+- SQLDelight generation/smoke test: success;
+- Android debug assembly: success;
+- Desktop build: success.
 
-- shared Kotlin compilation;
-- SQLDelight code generation;
-- in-memory SQLite smoke schema/query test;
-- Android debug APK assembly;
-- Desktop compilation/build.
-
-### Backend job — success
+Backend:
 
 ```bash
 cd backend
@@ -85,45 +79,61 @@ npm install
 npm run check
 ```
 
-This verifies Wrangler type generation and TypeScript type checking.
+- Wrangler type generation: success;
+- TypeScript type check: success.
 
-No emulator/device UX test has been performed yet because the scaffold contains no meaningful user workflow.
+No meaningful device UX testing has occurred yet because only shell UI exists.
 
-## 5. Known non-blocking tooling note
+## 5. Known non-blocking tooling notes
 
-The current Kotlin/AGP toolchain emits a deprecation warning for the KMP Android library target DSL used by the `shared` module. The current official Kotlin KMP application template still uses the same `androidLibrary` block, so the project deliberately does not churn a green scaffold merely to silence that tooling-transition warning.
+- The KMP `androidLibrary` target DSL currently emits a deprecation warning; the current official Kotlin KMP application template still uses that API, so no custom workaround is warranted.
+- The Gradle wrapper JAR is not committed because the available repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the standard wrapper later.
 
-There is also currently no committed Gradle wrapper JAR because the repository connector could not safely transfer the official binary wrapper JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the standard wrapper later without changing architecture.
+Neither blocks Phase 3.
 
-Neither item blocks the scaffold.
-
-## 6. Explicit non-implementation
-
-Do not infer that architecture selections are already wired merely because their folders/providers were approved. The scaffold does **not** yet contain:
+## 6. Explicitly not implemented yet
 
 - Descope authentication;
 - Neon/Hyperdrive connection;
-- R2;
-- Durable Objects;
-- WebSockets;
-- queues;
+- R2 / Durable Objects / WebSockets / queues;
 - Workers AI;
 - PDFBox integration;
-- campaign/character/NPC/monster/encounter/combat domain schema;
 - synchronization outbox/revision behavior;
+- campaign/character/NPC/monster/encounter/combat domain models;
 - deployment/release automation.
 
-Introduce these only through concrete approved vertical slices/features.
+Do not infer implementation merely from approved architecture.
 
-## 7. Immediate next action
+## 7. Phase 3 first vertical slice
 
-1. Commit this scaffold handoff documentation to `implementation/initial-scaffold`.
-2. Open the scaffold PR against `main`.
-3. Audit the complete branch diff, CI status, and mergeability.
-4. Merge only under owner authorization/delegation.
-5. After scaffold acceptance into `main`, Phase 2 closes.
-6. Select the first deliberately small Phase 3 vertical slice based on architectural value versus implementation cost.
+Selected slice: **local Android campaign creation and active-campaign selection**.
 
-## 8. Next-phase principle
+Why this slice:
 
-The first vertical slice should prove a useful real workflow rather than activate infrastructure for its own sake. Prefer the smallest slice that exercises meaningful shared domain logic + local persistence + one real UI surface. Add hosted/auth/sync pieces only if that selected user workflow genuinely needs them.
+- campaign selection is already approved MVP behavior;
+- it creates a real user workflow rather than more infrastructure;
+- it proves Android Material 3 UI + shared Kotlin + SQLDelight persistence;
+- campaign identity becomes a useful parent boundary for later character/combat data;
+- it avoids Descope, Neon, hosted synchronization, realtime, PDF and SRD work.
+
+Initial slice boundary:
+
+1. Android shows locally stored campaigns.
+2. User can create a campaign with a nonblank name.
+3. Campaign persists locally.
+4. User can select one campaign as active.
+5. Active selection persists locally across app restart.
+6. Duplicate campaign names are allowed; identity is by stable ID.
+
+Explicitly out of scope for this slice:
+
+- rename/delete;
+- invites/membership/roles;
+- remote accounts;
+- hosted campaign synchronization;
+- desktop campaign UI;
+- characters, encounters or combat.
+
+## 8. Immediate next action
+
+Create a focused Phase 3 branch from current `main` and implement the local campaign create/select slice. Keep the data model minimal and add only tests needed to protect campaign creation, persistence and active selection.

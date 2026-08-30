@@ -4,17 +4,13 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 ## Phase 0 — Project Foundation
 
-**Goal:** make the repository safe for long-running, multi-chat, multi-agent development.
-
-**Status:** Complete. Merged to `main` through PR #1 on 2026-08-28.
+**Status:** Complete. Merged through PR #1 on 2026-08-28.
 
 ---
 
 ## Phase 1 — Product Discovery and Design
 
-**Goal:** understand/design the first useful version before selecting technology.
-
-**Status:** Complete. Approved product/MVP baseline merged to `main` through PR #2 on 2026-08-29.
+**Status:** Complete. Approved product/MVP baseline merged through PR #2 on 2026-08-29.
 
 ---
 
@@ -22,27 +18,10 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** select proportionate architecture, scaffold it, verify it, and make the repository ready for incremental feature development.
 
-**Status:** **Scaffold implementation complete and CI-verified on `implementation/initial-scaffold`; review/merge is the remaining Phase 2 gate.**
+**Status:** **Complete.** Architecture checkpoint merged through PR #3; audited minimal scaffold merged through PR #4 on 2026-08-30.
 
-### Architecture selection — complete
+The canonical scaffold provides:
 
-D-0034 through D-0043 establish the approved provider/client/data/testing baseline. The 2026-08-30 C-0009 proportionality audit further requires:
-
-- Desktop local Save + explicit Sync;
-- one authoritative DM combat device + sequence/version;
-- ephemeral player offline turn/condition convenience only;
-- HTTP/polling before realtime;
-- localized provider code rather than generalized abstractions;
-- selective offline capability;
-- no speculative Cloudflare services or synchronization platform.
-
-Architecture checkpoint merged through PR #3 on 2026-08-30.
-
-### Scaffolding — implemented and verified
-
-The focused scaffold branch now provides:
-
-- reproducible root Gradle configuration;
 - one shared Kotlin Multiplatform module;
 - Android Jetpack Compose application shell;
 - Compose Multiplatform Desktop application shell;
@@ -52,11 +31,7 @@ The focused scaffold branch now provides:
 - one simple GitHub Actions workflow;
 - documented setup/build/test commands.
 
-The final scaffold code head `335cf523785a7f503186acd1057ebce72c121b27` passed the Kotlin/Android/Desktop/SQLDelight and backend CI jobs.
-
-### Phase 2 exit criterion
-
-Phase 2 closes when the verified scaffold is accepted into canonical `main` and repository status documentation reflects that merge.
+C-0009 remains controlling: no speculative Cloudflare services, provider abstractions, sync platform, realtime transport, or other infrastructure without a concrete feature need.
 
 ---
 
@@ -64,20 +39,44 @@ Phase 2 closes when the verified scaffold is accepted into canonical `main` and 
 
 **Goal:** implement one small real user workflow end-to-end to prove the foundation without prematurely activating the whole architecture.
 
-The first slice should:
+**Status:** **Current.** First slice selected: local Android campaign creation and active-campaign selection.
 
-- be useful on its own;
-- exercise meaningful shared domain logic and local persistence;
-- produce a real UI interaction on at least one intended client surface;
-- have explicit observable acceptance criteria;
-- avoid hosted/auth/realtime complexity unless the workflow genuinely needs it;
-- remain small enough to diagnose architecture mistakes cheaply.
+### Slice boundary
 
-Candidate slices should be compared after scaffold acceptance. A local-first character-record slice is a strong candidate because it can prove shared Kotlin + SQLDelight + real UI without requiring authentication, Neon, Descope, or realtime infrastructure immediately. The final slice selection remains a product/implementation decision, not an automatic consequence of this roadmap.
+The slice should prove:
 
-### Exit criterion
+- a real Android Material 3 workflow;
+- shared Kotlin domain/data behavior;
+- SQLDelight persistence;
+- locally durable active-campaign selection.
 
-A real approved user task works end-to-end on representative configuration(s), with focused tests and documented behavior.
+Initial behavior:
+
+1. show locally stored campaigns;
+2. create a campaign using a nonblank name;
+3. persist it locally;
+4. select a campaign as active;
+5. persist active selection across app restart;
+6. allow duplicate display names because identity is by stable ID.
+
+Explicitly excluded from this slice:
+
+- rename/delete;
+- invites, membership and roles;
+- Descope/authentication;
+- Neon/hosted sync;
+- realtime infrastructure;
+- desktop campaign UI;
+- characters, NPCs, encounters or combat;
+- PDF and SRD features.
+
+### Why this slice first
+
+Campaign selection is already approved MVP behavior and forms a useful parent boundary for later records. It proves UI + shared logic + local persistence without forcing hosted infrastructure or the much larger character/combat models into the first feature.
+
+### Phase 3 exit criterion
+
+A real approved campaign create/select task works end-to-end on Android with focused persistence tests and documented behavior.
 
 ---
 

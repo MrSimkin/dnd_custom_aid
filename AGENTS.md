@@ -204,10 +204,8 @@ If repository documents disagree:
 
 ## 13. Current project stage
 
-**Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline is canonical on `main` after PR #2.
+**Phases 0–2 are complete and canonical on `main`.** PR #4 merged the audited, CI-green minimal application scaffold on 2026-08-30.
 
-**Phase 2 — architecture selection is canonical on `main`, and the minimal implementation scaffold is complete and CI-verified on `implementation/initial-scaffold`.** The scaffold provides working Android, Desktop, shared SQLDelight, backend, database-migration and CI foundations without broad feature implementation.
+**Phase 3 — First Vertical Slice is current.** The selected first slice is local Android campaign creation and active-campaign selection, using the smallest useful cross-section of Android UI + shared Kotlin + SQLDelight persistence.
 
-The remaining Phase 2 gate is review/acceptance of that scaffold into canonical `main`. After acceptance, proceed to Phase 3 by selecting one deliberately small vertical slice from approved product scope.
-
-The first slice should prove a real workflow with the smallest useful cross-section of UI + shared logic + persistence. Do not automatically activate authentication, hosted sync, realtime, PDF, SRD, or other infrastructure unless the selected slice genuinely requires it.
+Do not automatically activate authentication, hosted synchronization, realtime, PDF, SRD or other deferred infrastructure. Add each only when a concrete approved slice genuinely requires it.
