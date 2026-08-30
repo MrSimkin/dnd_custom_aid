@@ -3,7 +3,7 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology and MVP desktop delivery are approved, but the application architecture/technology set is not complete.  
+**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, and native Android client approach are approved, but the application architecture/technology set is not complete.  
 **Application code:** Not scaffolded.  
 **Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
 
@@ -11,7 +11,7 @@ The project has reached the architecture-evaluation gate, **not** the implementa
 
 ## Architecture decision gate
 
-Do not choose or scaffold an Android framework, language, UI toolkit, persistence layer, sync/backend implementation, minimum Android version, hosted provider, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
+Do not choose or scaffold unresolved persistence, sync/backend implementation, minimum Android version, hosted provider, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
 
 The approved product baseline includes:
 
@@ -81,6 +81,25 @@ The web client should remain suitable for later hosted deployment without fundam
 - A later true native desktop application remains an independent expected client under A-0001.
 - Frontend public-hosting cost is therefore not an MVP requirement; hosted shared-data/backend cost constraints remain a separate architecture decision.
 
+### A-0003 — Native Android client: Kotlin + Jetpack Compose
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+The Android client will be developed **natively in Kotlin using Jetpack Compose** as its UI toolkit.
+
+The Android application begins as an Android-focused client rather than a Flutter, React Native, or shared-UI Compose Multiplatform application.
+
+Kotlin Multiplatform remains a possible later, selective technique for extracting/sharing non-UI logic **only if real reuse with another client justifies it**.
+
+#### Consequences
+
+- Android-specific phone/tablet UX, lifecycle, local persistence, networking and offline-combat behavior may use the native Android platform directly.
+- Cross-platform UI reuse is not an architectural goal because A-0001 intentionally treats Android, web and future native desktop as separate product surfaces.
+- Do not introduce Kotlin Multiplatform complexity speculatively. Re-evaluate it only when concrete reusable logic exists and another implemented client would benefit.
+- This decision does **not** select minimum Android version, local database/persistence technology, navigation details, dependency injection, networking library, backend/API style, synchronization implementation, or project/module structure.
+
 ### Product requirement carried into architecture evaluation
 
 `docs/architecture/2026-08-30_FUTURE_DESKTOP_REQUIREMENT.md` records that a true native desktop application is an expected future product feature. That requirement predates and constrains A-0001; it does not itself select implementation technology.
@@ -92,20 +111,21 @@ Architecture evaluation began with **overall application topology and surface re
 Current sequence:
 
 1. ~~overall Android + desktop/laptop topology and shared-domain relationship~~ — approved in A-0001;
-2. **Android client approach** — next decision;
+2. ~~Android client approach~~ — approved in A-0003;
 3. ~~MVP desktop/laptop administration delivery approach~~ — approved in A-0002;
 4. multicampaign domain/data-model boundaries;
-5. local-first combat persistence, combat authority and synchronization/reconciliation;
-6. hosted backend/database/authentication/authorization and moderation boundaries;
-7. PDF generation/rendering;
-8. SRD corpus storage/retrieval/clarification and provenance;
-9. testing/build/CI and durable module/project conventions.
+5. **Android/local-first persistence foundation and combat authority mechanics**;
+6. combat synchronization/reconciliation and player public projection;
+7. hosted backend/database/authentication/authorization and moderation boundaries;
+8. PDF generation/rendering;
+9. SRD corpus storage/retrieval/clarification and provenance;
+10. testing/build/CI and durable module/project conventions.
 
 ### Current decision under evaluation
 
-**Android client approach.**
+**Android/local-first persistence foundation.**
 
-The next comparison should evaluate realistic Android implementation families against the approved requirements without yet selecting adjacent backend/database/provider choices.
+The next comparison should determine how authoritative live combat state and other required local Android data are persisted safely on-device before network synchronization, without yet selecting the hosted backend/provider.
 
 ## Evaluation criteria
 
@@ -153,7 +173,8 @@ Architecture must not be selected on the false assumption that MVP requires:
 - house-rule-aware MVP rules clarification;
 - co-DMs within one campaign;
 - multiple RPG systems in MVP;
-- implementation of the future native desktop client during MVP.
+- implementation of the future native desktop client during MVP;
+- Kotlin Multiplatform or shared UI simply because a future native desktop client is planned.
 
 ## Future architecture record format
 
