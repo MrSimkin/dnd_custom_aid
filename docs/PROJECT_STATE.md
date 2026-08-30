@@ -5,7 +5,7 @@
 **Current working branch:** `implementation/local-campaign-selection`  
 **Open review:** none; no Phase 3 PR has been opened  
 **Phase:** Phase 3 — First Vertical Slice  
-**Status:** First vertical slice is code-complete and CI-green on the working branch. Manual Android device/emulator UX verification is still pending.
+**Status:** First vertical slice is code-complete and CI-green on the working branch. The Android UI now follows the approved Spanish product-language convention. Manual Android device/emulator UX verification is still pending.
 
 ## 1. Canonical baseline
 
@@ -58,9 +58,9 @@ Android intentionally remains on stable SDK 36 rather than the Android 17/API 37
 
 ## 4. Last verification
 
-Latest verified feature code head: `bb38ddaeadf326bee68cee24ee4f328ced446498`.
+Latest verified feature code head: `c909cd34f34137b2ce74691fe195dfd48f6a02f2`.
 
-GitHub Actions run #22 passed on that exact head:
+GitHub Actions run #25 passed on that exact head:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
@@ -69,7 +69,8 @@ gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktr
 - shared Kotlin and campaign repository tests: success;
 - SQLDelight generation: success;
 - Android debug assembly: success;
-- Desktop build: success.
+- Desktop build: success;
+- Android debug APK artifact upload: success.
 
 Backend:
 
@@ -121,6 +122,7 @@ Implemented on `implementation/local-campaign-selection`:
 6. User can select one campaign as active.
 7. Active selection persists locally across database reopen/app restart at the storage level.
 8. Android uses a single simple `LazyColumn` campaign screen; no navigation framework, ViewModel layer, DI container, coroutine stack or reactive database extension was added for this slice.
+9. End-user campaign UI text is Spanish under C-0006.
 
 Local schema is intentionally limited to:
 
