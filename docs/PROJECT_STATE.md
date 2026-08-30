@@ -2,10 +2,10 @@
 
 **Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
-**Current working branch:** `main` — Phase 3 feature branch to be created next  
-**Open review:** none; PR #4 merged 2026-08-30  
+**Current working branch:** `implementation/local-campaign-selection`  
+**Open review:** none; no Phase 3 PR has been opened  
 **Phase:** Phase 3 — First Vertical Slice  
-**Status:** Architecture and minimal scaffold are canonical and CI-verified. No broad MVP feature implementation has begun.
+**Status:** First vertical slice is code-complete and CI-green on the working branch. Manual Android device/emulator UX verification is still pending.
 
 ## 1. Canonical baseline
 
@@ -28,10 +28,10 @@ Key implementation constraints:
 
 PR #4 merged on 2026-08-30. Merge commit: `d50409270db52df05508f91363bf76385030a77d`.
 
-`main` now contains:
+`main` contains the verified Phase 2 scaffold:
 
 - `shared/` — one Kotlin Multiplatform module;
-- SQLDelight starter database/code generation and an in-memory SQLite smoke test;
+- SQLDelight starter database/code generation;
 - `androidApp/` — native Android Kotlin/Jetpack Compose shell;
 - `desktopApp/` — Kotlin/Compose Multiplatform Desktop shell;
 - `backend/` — TypeScript Cloudflare Worker shell with a minimal `/health` endpoint;
@@ -58,16 +58,16 @@ Android intentionally remains on stable SDK 36 rather than the Android 17/API 37
 
 ## 4. Last verification
 
-Final scaffold branch head: `2f8746de1053bf97cc18d7a522f2027e91879251`.
+Latest verified feature code head: `bb38ddaeadf326bee68cee24ee4f328ced446498`.
 
-GitHub Actions run #14 passed on that exact head:
+GitHub Actions run #22 passed on that exact head:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-- shared Kotlin: success;
-- SQLDelight generation/smoke test: success;
+- shared Kotlin and campaign repository tests: success;
+- SQLDelight generation: success;
 - Android debug assembly: success;
 - Desktop build: success.
 
@@ -82,7 +82,9 @@ npm run check
 - Wrangler type generation: success;
 - TypeScript type check: success.
 
-No meaningful device UX testing has occurred yet because only shell UI exists.
+The campaign persistence test closes SQLite, reopens the same database file, and verifies both the campaign and active selection survive the reopen.
+
+Manual Android device/emulator UX verification has not yet occurred.
 
 ## 5. Known non-blocking tooling notes
 
@@ -99,7 +101,8 @@ Neither blocks Phase 3.
 - Workers AI;
 - PDFBox integration;
 - synchronization outbox/revision behavior;
-- campaign/character/NPC/monster/encounter/combat domain models;
+- character/NPC/monster/encounter/combat domain models;
+- hosted campaign synchronization, membership or roles;
 - deployment/release automation.
 
 Do not infer implementation merely from approved architecture.
@@ -108,22 +111,23 @@ Do not infer implementation merely from approved architecture.
 
 Selected slice: **local Android campaign creation and active-campaign selection**.
 
-Why this slice:
-
-- campaign selection is already approved MVP behavior;
-- it creates a real user workflow rather than more infrastructure;
-- it proves Android Material 3 UI + shared Kotlin + SQLDelight persistence;
-- campaign identity becomes a useful parent boundary for later character/combat data;
-- it avoids Descope, Neon, hosted synchronization, realtime, PDF and SRD work.
-
-Initial slice boundary:
+Implemented on `implementation/local-campaign-selection`:
 
 1. Android shows locally stored campaigns.
 2. User can create a campaign with a nonblank name.
-3. Campaign persists locally.
-4. User can select one campaign as active.
-5. Active selection persists locally across app restart.
-6. Duplicate campaign names are allowed; identity is by stable ID.
+3. Campaign names are trimmed before persistence.
+4. Campaigns use stable UUID identity; duplicate display names remain valid distinct campaigns.
+5. Campaigns persist in local SQLite through SQLDelight.
+6. User can select one campaign as active.
+7. Active selection persists locally across database reopen/app restart at the storage level.
+8. Android uses a single simple `LazyColumn` campaign screen; no navigation framework, ViewModel layer, DI container, coroutine stack or reactive database extension was added for this slice.
+
+Local schema is intentionally limited to:
+
+```sql
+campaign(id, name)
+app_state(singleton, active_campaign_id)
+```
 
 Explicitly out of scope for this slice:
 
@@ -136,4 +140,6 @@ Explicitly out of scope for this slice:
 
 ## 8. Immediate next action
 
-Create a focused Phase 3 branch from current `main` and implement the local campaign create/select slice. Keep the data model minimal and add only tests needed to protect campaign creation, persistence and active selection.
+Manually verify the Android campaign workflow on an emulator or physical device: launch, create at least two campaigns, select each in turn, restart the app, and confirm the active selection remains correct and the screen behaves acceptably on the intended phone/tablet form factors.
+
+After manual UX verification, the branch can be prepared for review. Creating a PR and merging remain separate repository actions and require their normal authorization.
