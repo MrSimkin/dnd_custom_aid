@@ -3,10 +3,10 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Partially selected; evaluation remains active.  
+**Architecture state:** Nearly complete; final pre-scaffolding conventions remain.  
 **Application code:** Not scaffolded.
 
-Approved Phase 2 choices now include D-0034 through D-0041. The project deliberately targets a personal/small-scale architecture: choose the simplest safe implementation that satisfies approved requirements and do not import enterprise-grade complexity without a concrete reason (C-0009).
+Approved Phase 2 choices now include D-0034 through D-0042. The project deliberately targets a personal/small-scale architecture: choose the simplest safe implementation that satisfies approved requirements and do not import enterprise-grade complexity without a concrete reason (C-0009).
 
 ## Approved architecture choices
 
@@ -51,7 +51,7 @@ Approved Phase 2 choices now include D-0034 through D-0041. The project delibera
 - Descope establishes identity; application logic maps it to the internal user and enforces domain permissions.
 - PostgreSQL constraints/foreign keys enforce structural relational integrity.
 - Use the minimum sufficient runtime database privileges.
-- **Do not build blanket enterprise-style RLS, role hierarchies, duplicated authorization engines, extensive security audit infrastructure or similar machinery unless a concrete project risk justifies it.** RLS is optional/selective, not an MVP requirement.
+- Do not build blanket enterprise-style RLS, role hierarchies, duplicated authorization engines, extensive security audit infrastructure or similar machinery unless a concrete project risk justifies it. RLS is optional/selective, not an MVP requirement.
 
 ### D-0040 — PDF export
 - Character-sheet PDF export is required on **Android and DM desktop**.
@@ -68,7 +68,13 @@ Approved Phase 2 choices now include D-0034 through D-0041. The project delibera
 - MVP answers are grounded in retrieved official SRD content, in Spanish, with source/version identification.
 - Embeddings/vector/hybrid retrieval are deferred unless testing proves ordinary full-text retrieval inadequate.
 
-These decisions resolve their respective portions of D-0009. D-0009 remains Pending until the remaining foundational choices are approved.
+### D-0042 — Minimum Android version
+- **minSdk 30 / Android 11**.
+- Android 10 and earlier are intentionally unsupported.
+- The floor reflects the actual relevant device set and the owner's preference for a modern, polished Android UX rather than hypothetical legacy coverage.
+- `compileSdk` and `targetSdk` remain maintenance/tooling values and may advance independently.
+
+These decisions resolve their respective portions of D-0009. D-0009 remains Pending only until the minimal pre-scaffolding project/build/testing conventions are approved and the architecture set is consolidated.
 
 ## Governing architecture principles
 
@@ -80,23 +86,21 @@ These decisions resolve their respective portions of D-0009. D-0009 remains Pend
 - Prefer stable/GA dependencies and reasonable migration paths.
 - Share Kotlin code where it genuinely reduces duplication; do not force cross-platform UI parity.
 - Explain relational/data-model choices with representative SQL when useful under C-0008.
+- Favor modern Android UX over unused legacy-device coverage.
 
-## Remaining consequential decisions
+## Remaining consequential decision
 
-1. Minimum Android version.
-2. Testing/build/CI and only the durable module/project conventions needed before scaffolding.
+**Testing/build/CI and only the durable module/project conventions needed before scaffolding.**
 
-Avoid turning these into enterprise design exercises. Resolve only what is necessary to build the approved personal MVP safely and maintainably.
+This should be intentionally small. Decide only the minimum structure needed so AI agents can scaffold, build and test the Android + desktop Kotlin project consistently without prematurely designing a large modular architecture.
 
 ## Current decision under evaluation
 
-**Minimum Android version (`minSdk`).**
-
-Choose the lowest Android API level worth supporting given the already-selected stable dependencies and the personal-project maintenance goal. This is distinct from `compileSdk` and `targetSdk`, which should follow current Android tooling/Play requirements as appropriate. Do not support older Android versions merely for theoretical reach if doing so creates disproportionate compatibility work.
+Determine the minimal Gradle/Kotlin Multiplatform project shape, shared-code boundary, baseline automated tests/checks, and CI behavior required before application code is scaffolded. Avoid speculative feature modules, enterprise clean-architecture layers, release pipelines, coverage gates, elaborate environments or other ceremony not justified by the personal MVP.
 
 ## Important non-requirements
 
-MVP does not require Android/desktop parity, player desktop support, desktop combat tracking, concurrent multi-device DM editing, a full D&D rules engine, automatic paper/digital merge, house-rule-aware rules clarification, co-DMs, multiple RPG systems, enterprise-grade security/observability, or speculative scale infrastructure.
+MVP does not require Android/desktop parity, player desktop support, desktop combat tracking, concurrent multi-device DM editing, a full D&D rules engine, automatic paper/digital merge, house-rule-aware rules clarification, co-DMs, multiple RPG systems, enterprise-grade security/observability, speculative scale infrastructure, or enterprise CI/release governance.
 
 ## Convention relationship
 
