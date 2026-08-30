@@ -4,12 +4,12 @@
 **Canonical branch:** `main`  
 **Current working branch:** `discovery/initial-product-picture`  
 **Open review:** PR #2 — `Capture and refine initial product discovery without premature implementation`  
-**Phase:** Phase 1 — Product Discovery and Design  
-**Status:** Three clarification rounds captured; the seven previously highlighted product questions are resolved, the MVP boundary is approved, and Round 3 decisions are reconciled into authoritative repository documents. No application code or technology stack exists yet.
+**Phase:** Phase 1 — Product Discovery and Design (closure)  
+**Status:** Product/MVP baseline approved; final consistency audit completed; stale Phase-1 wording corrected; discovery branch reconciled with current `main` and is 0 commits behind. No application code or technology stack exists yet.
 
 ## 1. Project in one paragraph
 
-`dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D. It centers on a paper-first player workflow backed by a full digital character copy, a DM tablet live-session/combat surface, and a desktop-friendly preparation/administration surface. It is not intended to replace Foundry/VTTs, D&D Beyond or normal tabletop play. User-facing product content is Spanish; technical repository material is English. Git is the operative memory. The product baseline is now sufficiently coherent to evaluate architecture/technology alternatives, but consequential stack choices remain owner-controlled and no implementation should begin from an unapproved stack.
+`dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D. It centers on a paper-first player workflow backed by a full digital character copy, a DM tablet live-session/combat surface, and a desktop-friendly preparation/administration surface. It is not intended to replace Foundry/VTTs, D&D Beyond or normal tabletop play. User-facing product content is Spanish; technical repository material is English. Git is the operative memory. The product baseline is sufficiently coherent to evaluate architecture/technology alternatives, but consequential stack choices remain owner-controlled and no implementation should begin from an unapproved stack.
 
 ## 2. What exists now
 
@@ -22,6 +22,8 @@ The active branch contains:
 - authoritative approved product/MVP direction in `docs/PRODUCT.md`;
 - approved significant decisions through D-0032 in `docs/DECISIONS.md`;
 - approved conventions in `docs/CONVENTIONS.md`;
+- architecture-evaluation readiness in `docs/ARCHITECTURE.md`;
+- phone/tablet and future desktop/laptop verification expectations in `docs/TESTING.md`;
 - character-sheet template/change-request locations under `assets/character-sheets/`.
 
 Three owner-provided DOCX examples—Quick NPC, Developed NPC and custom monster—were reviewed during Round 2 and their relevant design characteristics were captured in repository documentation. The binaries themselves remain conversation attachments rather than repository assets.
@@ -93,7 +95,7 @@ Approved controls are **Freeze PC**, **Kick user**, **Ban player**, and applicat
 
 ### MVP boundary
 
-`D-0010 — Initial product scope / MVP` is now Approved. Rules clarification is SRD-only in MVP; one active campaign is a first-version UI/business restriction; combat tracker is the most important live-table validation surface.
+`D-0010 — Initial product scope / MVP` is Approved. Rules clarification is SRD-only in MVP; one active campaign is a first-version UI/business restriction; combat tracker is the most important live-table validation surface.
 
 ## 5. Other major approved direction still in force
 
@@ -139,9 +141,38 @@ The rules-clarification requirement specifies the product outcome—Spanish natu
 
 No application tests exist because there is no application code.
 
-## 8. Remaining work before implementation
+## 8. Phase 1 consistency audit performed
 
-The previous seven product questions are closed. The next major work is **architecture/technology evaluation**, especially:
+The final audit reviewed the authority/lifecycle chain across `AGENTS.md`, README, manifest, decisions, product definition, project state, roadmap, architecture, testing, workflow, conventions, Round 3 discovery record and PR #2.
+
+Corrections made during the audit:
+
+- `AGENTS.md` no longer says the project is only entering discovery; it now permits architecture evaluation while still blocking unapproved implementation/scaffolding.
+- D-0003 now points to the later approved role/permission model instead of describing permissions as unresolved.
+- D-0009 now represents the full pending application-architecture/technology decision rather than only an Android-stack placeholder, and explicitly states that evaluation may begin.
+- `docs/ARCHITECTURE.md` now says the project has reached the architecture-evaluation gate and includes Android, desktop administration, offline/sync, auth, PDF and SRD requirements.
+- `docs/ROADMAP.md` clarifies that Phase 1 has satisfied its product baseline and that detailed feature-level acceptance criteria are authored incrementally before/with implementation slices rather than exhaustively during discovery.
+- `docs/TESTING.md` now includes the approved desktop/laptop administration surface and future cross-surface verification.
+- Round 3 and `MANIFEST.md` now state that promotion of Round 3 decisions into authoritative records is complete.
+- README orientation/read-order wording is aligned with `AGENTS.md`.
+
+No substantive contradiction was found in the approved MVP/product behavior during the second pass.
+
+## 9. Branch/merge reconciliation
+
+The discovery branch had become one commit behind `main` because `main` received an early project-state bookkeeping commit after the branch split. That commit did not contain competing product decisions; its state text was superseded by the much newer branch documentation.
+
+The branch was reconciled with current `main` using an explicit merge commit while preserving the newer discovery-branch state where the same project-state file overlapped.
+
+Verification after reconciliation:
+
+- compare base: current `main` commit `03d8bc3fdcc54cde9e29f9fc977235944e8b3d48`;
+- discovery branch is ahead of `main` and **0 commits behind**;
+- GitHub raw PR mergeability was still recalculating (`mergeable: null`, `mergeable_state: unknown`) immediately after the reconciliation; this is a GitHub computation state, not evidence of a remaining branch divergence.
+
+## 10. Remaining work before implementation
+
+The previous seven product questions are closed. The next major work after PR #2 is merged is **architecture/technology evaluation**, especially:
 
 1. Android + desktop administration architecture alternatives;
 2. local/offline DM combat persistence and synchronization;
@@ -151,18 +182,18 @@ The previous seven product questions are closed. The next major work is **archit
 6. data-model boundaries that preserve approved incremental extensibility;
 7. testing/build/release strategy once a stack is proposed.
 
-Consequential technical alternatives must be explained to and approved by the owner before becoming durable architecture.
+Consequential technical alternatives must be explained to and approved by the owner before becoming durable architecture or implementation foundation.
 
-## 9. Current review state and next action
+## 11. Current review state and next action
 
-PR #2 remains open and intentionally unmerged. Round 3 is now reconciled into `docs/PRODUCT.md`, `docs/DECISIONS.md`, `docs/PROJECT_STATE.md`, `README.md`, `MANIFEST.md` and the PR description.
+PR #2 remains open and intentionally unmerged. The product/MVP baseline and final consistency corrections are recorded on the discovery branch, which is reconciled with current `main`.
 
 `main` remains canonical until the owner approves/merges PR #2 under D-0007.
 
-**Next action:** verify PR #2 documentation consistency, then conclude/merge the discovery PR when owner-approved and begin a dedicated architecture/technology evaluation. Do not begin application implementation before consequential architecture/stack choices are reviewed and approved.
+**Next action:** re-check GitHub's mergeability calculation after the reconciliation; if clean, present the final audit result to the owner and merge PR #2 only with owner approval. After merge, update canonical project state to Phase 1 complete / Phase 2 architecture evaluation active.
 
-## 10. Handoff note
+## 12. Handoff note
 
-A fresh agent should read `README.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, `docs/PRODUCT.md` and the three clarification rounds.
+A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md` and the three clarification rounds.
 
 Treat Round 3 conclusions as confirmed owner direction. The seven previous product questions are no longer open. Do not re-ask them unless a genuine contradiction or new requirement emerges. Do not infer technology choices from Neon, AI ideas, native Windows/web ideas or any PDF implementation concept.
