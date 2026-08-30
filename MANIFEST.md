@@ -7,13 +7,13 @@ This file inventories the project-control files and explains when each one must 
 ### `README.md`
 
 **Role:** project entry point and mandatory read order.  
-**Current state:** Phase 1 product discovery complete; Phase 2 foundational architecture selected; consolidation/proportionality review complete; explicit owner merge authorization is the remaining gate before implementation scaffolding.  
+**Current state:** Phase 1 product discovery and Phase 2 foundational architecture are complete and canonical on `main`; initial implementation scaffolding is next.  
 **Update when:** the project purpose, canonical read order, or top-level status changes.
 
 ### `AGENTS.md`
 
 **Role:** mandatory operating rules for humans and AI/coding agents.  
-**Current state:** aligned to the approved architecture and C-0009 simplification rules; `main` merge remains owner-controlled.  
+**Current state:** aligned to the approved architecture and C-0009 simplification rules; substantial implementation work should use a focused branch unless the owner explicitly requests direct `main` work.  
 **Update when:** project governance, authority boundaries, required workflow, communication rules, or continuity rules change.
 
 ### `MANIFEST.md`
@@ -26,7 +26,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PROJECT_STATE.md`
 
 **Role:** authoritative snapshot of what exists now, what is being worked on, known blockers, last verification, next owner decision, and next implementation action.  
-**Current state:** foundational architecture D-0034 through D-0043 is approved and simplified by the pre-main proportionality audit; no application code exists yet; explicit owner PR #3 merge authorization precedes scaffolding.  
+**Current state:** foundational architecture D-0034 through D-0043 and the proportionality clarifications are canonical on `main`; no application code exists yet; initial scaffolding is next.  
 **Update when:** every meaningful work session changes project reality or next action.
 
 ### `docs/DECISIONS.md`
@@ -56,7 +56,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ROADMAP.md`
 
 **Role:** staged development plan and current phase.  
-**Current state:** Phase 1 complete; Phase 2 architecture selection/consolidation/proportionality review complete; explicit owner merge authorization precedes implementation scaffolding.  
+**Current state:** Phase 1 and the architecture-selection portion of Phase 2 are complete; initial implementation scaffolding is the next Phase 2 task.  
 **Update when:** project phases, exit criteria, or current phase materially change.
 
 ### `docs/WORKFLOW.md`
@@ -67,7 +67,7 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ARCHITECTURE.md`
 
 **Role:** current approved architecture record and rationale.  
-**Current state:** foundational architecture D-0034 through D-0043 is selected and explicitly simplified under C-0009 for the initial scaffold; merge authorization is the remaining gate.  
+**Current state:** foundational architecture D-0034 through D-0043 is selected, simplified under C-0009, and canonical on `main`.  
 **Update when:** architecture is materially changed or a consequential clarification affects implementation meaning.
 
 ### `docs/TESTING.md`
