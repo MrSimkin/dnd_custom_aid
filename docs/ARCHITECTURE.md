@@ -3,7 +3,7 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, native Android client approach, Android local persistence technology, and local combat/outbox persistence semantics are approved, but the application architecture/technology set is not complete.  
+**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, native Android client approach, Android local persistence technology, local combat/outbox persistence semantics, and DM combat authority/reconnect semantics are approved, but the application architecture/technology set is not complete.  
 **Application code:** Not scaffolded.  
 **Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
 
@@ -11,7 +11,7 @@ The project has reached the architecture-evaluation gate, **not** the implementa
 
 ## Architecture decision gate
 
-Do not choose or scaffold unresolved synchronization/reconciliation semantics, backend/provider, minimum Android version, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
+Do not choose or scaffold unresolved backend/provider, minimum Android version, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, multicampaign domain boundaries, or other unresolved foundational technology merely to begin coding.
 
 The approved product baseline includes:
 
@@ -120,7 +120,7 @@ The local Room schema is **not required to mirror the hosted database schema**. 
 - Android UI/domain reads that must remain offline-capable can be backed by a local source of truth rather than depending on a successful network request.
 - Room migrations must be treated as real persistent-data migrations once implementation begins.
 - Do not introduce SQLDelight or another cross-platform persistence abstraction merely because a future native desktop client is planned; the future desktop client may choose its own local persistence technology.
-- This decision does **not** yet select synchronization scheduling, WorkManager usage, hosted database/provider, API style, or conflict-resolution protocol.
+- This decision does **not** yet select synchronization scheduling, WorkManager usage, hosted database/provider, API style, or generic conflict-resolution protocol.
 
 ### A-0005 — Active combat uses durable current state plus a synchronization outbox
 
@@ -145,7 +145,35 @@ The outbox is **synchronization infrastructure**, not a permanent combat-history
 - Encounter-local sequence/revision information is used for ordering rather than depending on device wall-clock timestamps as the authority.
 - Current combat state remains directly queryable; the application does not reconstruct normal state by replaying a permanent event history.
 - Whole-state snapshots may still be transmitted or stored where useful; A-0005 does not require every remote sync to be a fine-grained command.
-- A-0005 does **not** yet determine server-side authority tokens/epochs, acknowledgement protocol, remote revision handling, snapshot-repair behavior, synchronization scheduling/WorkManager policy, or player public-projection transport. Those are the next synchronization/reconciliation decisions.
+
+### A-0006 — Single authoritative DM combat writer with ordered acknowledgement and repair
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+Each active encounter has one explicit **authoritative DM device/session identity**. The hosted service accepts authoritative live-combat mutations only from that current authority.
+
+Authoritative operations use the stable operation identities and encounter-local monotonic ordering/revision information established by A-0005. The hosted side tracks accepted/acknowledged progress so a reconnecting authoritative client can safely resend missing operations. Duplicate retries of the same operation must be idempotent rather than applying the logical change twice.
+
+On reconnect, an older hosted snapshot must **never automatically overwrite newer authoritative local DM state** merely because the hosted copy is online. Normal recovery first brings the hosted copy forward using the authoritative client's pending ordered operations.
+
+If operation replay cannot restore a coherent hosted state, the current valid authoritative DM may perform an **authoritative full-snapshot repair**, replacing/repairing the hosted live-combat copy from the current local authoritative snapshot together with the corresponding authority/revision context.
+
+Authority does **not** expire merely because connectivity is lost. The current DM device remains locally authoritative while offline. Another device cannot silently seize live-combat authority in MVP.
+
+The authority identity and required local metadata are persisted sufficiently for **same-device restart/recovery**. Future cross-device takeover/transfer must be explicit rather than inferred from timeouts or last-writer behavior and remains later scope.
+
+Player combat clients are not authoritative combat writers. They consume the latest synchronized public projection. Any player-side offline tracker edits remain provisional/local and yield to the synchronized authoritative DM projection on reconnect; they must not enter the authoritative DM mutation stream.
+
+#### Consequences
+
+- Generic last-write-wins is explicitly unsuitable for authoritative live combat.
+- Server acknowledgement/retry semantics must understand operation identity and encounter ordering rather than relying on timestamps alone.
+- A stale DM device/session lacking current authority cannot repair or authoritatively mutate hosted live combat.
+- Network outages do not create automatic authority expiration, avoiding split-brain simply because the server temporarily cannot see the current tablet.
+- MVP deliberately prefers one writer plus explicit future handoff over simultaneous authoritative DM editing.
+- The exact token format, API protocol, transport, authentication mechanism, server implementation and synchronization scheduler remain unresolved implementation choices.
 
 ### Product requirement carried into architecture evaluation
 
@@ -162,18 +190,19 @@ Current sequence:
 3. ~~MVP desktop/laptop administration delivery approach~~ — approved in A-0002;
 4. ~~Android structured local persistence technology~~ — approved in A-0004;
 5. ~~local-first combat state/change persistence and synchronization queue semantics~~ — approved in A-0005;
-6. **combat synchronization/reconciliation and player public projection**;
-7. multicampaign domain/data-model boundaries;
+6. ~~combat authority/reconnect semantics~~ — approved in A-0006;
+7. **multicampaign domain/data-model boundaries**;
 8. hosted backend/database/authentication/authorization and moderation boundaries;
-9. PDF generation/rendering;
-10. SRD corpus storage/retrieval/clarification and provenance;
-11. testing/build/CI and durable module/project conventions.
+9. player public-projection transport/delivery details and synchronization scheduling where still unresolved;
+10. PDF generation/rendering;
+11. SRD corpus storage/retrieval/clarification and provenance;
+12. testing/build/CI and durable module/project conventions.
 
 ### Current decision under evaluation
 
-**Combat synchronization/reconciliation and DM authority semantics.**
+**Multicampaign domain/data-model boundaries.**
 
-The next comparison should define how the hosted side recognizes the authoritative DM combat writer, orders/acknowledges retries, prevents stale remote state from overwriting newer local DM state, and recovers synchronization after reconnect while preserving the approved one-authority model. Player public projection should then be defined against that authoritative synchronized state.
+The next comparison should define which concepts are global/account-scoped, campaign-scoped, reusable personal-library content, and live-session scoped so that multicampaign isolation, ownership/control, moderation, reuse and future client contracts remain coherent without duplicating whole objects unnecessarily.
 
 ## Evaluation criteria
 
@@ -224,7 +253,8 @@ Architecture must not be selected on the false assumption that MVP requires:
 - implementation of the future native desktop client during MVP;
 - Kotlin Multiplatform or shared UI simply because a future native desktop client is planned;
 - identical local and hosted database schemas;
-- permanent event sourcing for combat merely because an outbox exists.
+- permanent event sourcing for combat merely because an outbox exists;
+- authority expiry solely from temporary connectivity loss.
 
 ## Future architecture record format
 
