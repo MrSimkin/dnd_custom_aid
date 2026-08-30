@@ -4,8 +4,8 @@
 **Canonical branch:** `main`  
 **Current working branch:** `architecture/approved-backend-and-android`  
 **Open review:** none  
-**Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Architecture evaluation is nearly complete. D-0034 through D-0042 are owner-approved and committed remotely; no application code has been scaffolded yet. The final owner-facing pre-scaffolding decision is the minimal project/module/build/testing/CI structure.
+**Phase:** Phase 2 — architecture selection complete; documentation consolidation/review before scaffolding  
+**Status:** Foundational architecture D-0034 through D-0043 is owner-approved and committed remotely. No application code has been scaffolded yet.
 
 ## 1. Approved product baseline
 
@@ -65,39 +65,43 @@
 
 ### D-0042 — Android compatibility floor
 - `minSdk = 30` / Android 11.
-- Older Android versions are intentionally unsupported because the actual relevant users/devices do not require them.
-- The owner prioritizes a modern, polished Android UX over theoretical legacy-device reach.
+- Optimize for the real device set and modern Android UX instead of hypothetical legacy support.
+
+### D-0043 — Initial code/test structure
+- Keep a few obvious code areas: shared Kotlin logic, Android app, desktop app, TypeScript Cloudflare backend, and SQL/database work.
+- Share logic only where genuinely common; do not share UI merely for symmetry.
+- Automated tests protect consequential data/sync/combat-authority/backend behavior and database migrations.
+- One simple GitHub Actions build/test workflow; no enterprise testing/deployment ceremony.
 
 ## 3. Governing implementation attitude
 
-C-0009 is explicit: this is a personal, deliberately limited project. Use the **simplest safe architecture that satisfies actual approved requirements**. Do not add commercial-SaaS/enterprise layers, generalized infrastructure or speculative scale machinery merely because they are industry patterns.
+C-0009 is controlling: this is a personal, deliberately limited project. Use the **simplest safe architecture that satisfies actual approved requirements**. Do not add commercial-SaaS/enterprise layers, generalized infrastructure or speculative scale machinery merely because they are industry patterns.
 
 C-0008 remains active: use concise representative SQL when it helps the owner review relational/data decisions.
 
-## 4. Still unresolved before scaffolding
+## 4. Architecture gate
 
-Only the minimal **project/module structure, build, testing and CI conventions** needed to scaffold safely remain to be approved.
+The consequential architecture questions tracked by D-0009 are now sufficiently resolved by D-0034 through D-0043 to begin scaffolding after documentation consolidation/review.
 
-D-0009 remains Pending until that final architecture/convention block is resolved and the architecture decisions are consolidated.
+`docs/DECISIONS.md` still contains older chronological wording in D-0009 and currently stops its consolidated architecture entries at D-0035. The dedicated approved decision files under `docs/decisions/` are authoritative checkpoints until that consolidation is completed. This is documentation debt, not an unresolved architecture choice.
 
-## 5. Immediate next decision
+## 5. Immediate next work
 
-Choose the smallest practical Gradle/Kotlin project structure and verification baseline that allows AI agents to:
+Perform one bounded documentation consolidation/review before scaffolding:
 
-- build Android and desktop consistently;
-- share Kotlin domain/persistence/synchronization logic where useful;
-- keep Android and desktop UI separate;
-- test the relational/sync/combat-authority logic that can cause real data loss or corruption;
-- run reproducible automated checks on GitHub without creating an enterprise CI/release pipeline.
+- consolidate D-0036 through D-0043 into `docs/DECISIONS.md` and mark D-0009 resolved/Approved;
+- amend stale `docs/PRODUCT.md` wording that still describes desktop implementation form as undecided and ensure desktop PDF export is visible;
+- verify `MANIFEST.md`, `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md` and this file agree;
+- compare the active architecture branch to `main` for owner review/merge under D-0007.
 
-Do not create speculative feature-module hierarchies, coverage bureaucracy, multiple deployment environments or generalized platform abstractions before they are needed.
+After that checkpoint, the next project phase is **initial implementation scaffolding**, not further broad architecture discovery.
 
 ## 6. Durable checkpoint
 
-The active remote safety checkpoint is `architecture/approved-backend-and-android`. Approved architecture decisions D-0036 through D-0042 are stored as dedicated files under `docs/decisions/` pending consolidation into the chronological `docs/DECISIONS.md` log before merge.
+The active remote safety checkpoint is `architecture/approved-backend-and-android`. D-0036 through D-0043 are stored as dedicated approved files under `docs/decisions/` pending chronological-log consolidation.
 
 ## 7. Handoff
 
-A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`, and the dedicated files in `docs/decisions/` not yet consolidated.
+A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`, and all dedicated files under `docs/decisions/` not yet consolidated.
 
-Continue Phase 2 from the final minimal project/module/build/testing/CI decision. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
+Do not reopen approved architecture merely because older summary wording has not yet been cleaned up. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
