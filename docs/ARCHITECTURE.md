@@ -5,7 +5,7 @@
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
 **Architecture state:** Partially selected; evaluation remains **active**.  
 **Application code:** Not scaffolded.  
-**Reason:** Phase 1 is complete and the owner has approved the hosted backend/provider topology (D-0034) and Android client approach (D-0035). Remaining consequential architecture choices must still be evaluated before implementation scaffolding.
+**Reason:** Phase 1 is complete and the owner has approved the hosted backend/provider topology (D-0034), Android client approach (D-0035), and native desktop administration delivery approach (D-0036). Remaining consequential architecture choices must still be evaluated before implementation scaffolding.
 
 The project remains at the architecture-evaluation gate, **not** the implementation gate.
 
@@ -14,7 +14,7 @@ The project remains at the architecture-evaluation gate, **not** the implementat
 ### Hosted backend/provider topology — D-0034
 
 - **Neon** provides hosted PostgreSQL as the durable shared relational database.
-- **Cloudflare** provides stable application infrastructure where appropriate, including web hosting, backend/API execution, database connectivity/pooling, object storage and realtime transport/coordination.
+- **Cloudflare** provides stable application infrastructure where appropriate, including backend/API execution, database connectivity/pooling, object storage and realtime transport/coordination.
 - **Descope** provides end-user authentication only.
 - Domain authorization remains project-owned in application logic/PostgreSQL; Descope does not own campaign roles, PC ownership/control or moderation semantics.
 - The initial architecture must not depend on Neon beta/preview backend features merely because they are temporarily free.
@@ -28,7 +28,16 @@ The project remains at the architecture-evaluation gate, **not** the implementat
 - **Jetpack Compose** is the Android UI toolkit.
 - Phone and tablet layouts must be adaptive rather than treating tablet as a stretched phone UI.
 - Flutter and React Native are not selected for the initial Android app.
-- Kotlin Multiplatform / Compose Multiplatform is not required initially; straightforward domain code should avoid unnecessary Android coupling where that preserves a reasonable future extraction path.
+- Straightforward domain/business code should avoid unnecessary Android coupling where this preserves useful future sharing without forcing cross-platform UI parity.
+
+### DM desktop administration — D-0036
+
+- The DM desktop/laptop preparation and administration companion is a native **Kotlin + Compose Multiplatform Desktop** application.
+- Native packaging, installers and update/distribution overhead are explicitly accepted by the owner and are not considered material disadvantages for this project.
+- The owner values avoiding unnecessary continuous-online dependency; the desktop architecture should therefore permit meaningful local/offline operation.
+- Native implementation does not itself settle local persistence, offline data scope or synchronization/conflict behavior; those remain separate architecture decisions.
+- Android and desktop may share Kotlin domain/business/networking/synchronization code selectively where useful, but they must not be forced into shared UI or feature parity.
+- Cloudflare remains backend infrastructure; a hosted browser frontend is no longer required for the desktop companion.
 
 These approvals resolve only their corresponding portions of D-0009. D-0009 remains Pending until the remaining foundational choices are approved.
 
@@ -36,10 +45,9 @@ These approvals resolve only their corresponding portions of D-0009. D-0009 rema
 
 Do not choose or scaffold remaining unresolved technologies merely to begin coding. Consequential choices still requiring owner approval include, as applicable:
 
-- desktop/laptop administration delivery form and web/native technology;
-- local/offline persistence technology;
+- multicampaign domain/data-model boundaries;
+- local/offline persistence technology and scope for Android and desktop;
 - synchronization/reconciliation implementation details;
-- multicampaign domain/data boundaries;
 - minimum Android version;
 - PDF generation/rendering technology;
 - SRD storage/retrieval/clarification architecture;
@@ -48,7 +56,7 @@ Do not choose or scaffold remaining unresolved technologies merely to begin codi
 The approved product baseline includes:
 
 - Android as the primary live/table surface for players and DMs;
-- an intentionally narrower desktop/laptop DM preparation/administration surface using the same shared domain data, without MVP feature-parity or desktop-combat requirements;
+- a native desktop/laptop DM preparation/administration companion using the same shared domain data, without MVP feature-parity or desktop-combat requirements;
 - multicampaign membership, campaign selection and campaign-scoped roles/permissions;
 - paper-first live character authority plus a durable freshness-visible digital baseline;
 - complete human-readable monster stat blocks with selective structured mechanics and additive future enrichment;
@@ -82,43 +90,28 @@ Approved evaluation sequence:
 
 ### Current decision under evaluation
 
-**Desktop/laptop administration delivery approach.**
+**Multicampaign domain/data-model boundaries.**
 
-The Android client approach and hosted backend/provider topology are approved. The next comparison should determine whether the intentionally narrower DM preparation/administration surface should be delivered as a normal browser-based web application, native desktop application, local web application, or another approach that materially fits the requirements better.
+The client/platform choices and hosted provider topology are now sufficiently established to define which data belongs to a user, campaign, reusable personal library, character, saved encounter, live encounter and application-global scope before choosing local persistence and synchronization technology.
 
-No option is selected merely by being listed.
+The model must preserve the already-approved distinctions between account identity, campaign membership/role, character ownership/control, campaign moderation, reusable personal content, durable character state, grouped character history, and authoritative live combat working state.
 
 ## Evaluation criteria
 
 Evaluate options against criteria such as:
 
-- fit to approved product workflows;
-- Android phone/tablet UI quality;
-- desktop/laptop administration usability without unnecessary parity work;
-- coherent multicampaign data isolation/selection and campaign-scoped permissions;
-- one-authority local-first DM combat behavior;
-- same-device combat persistence/recovery;
-- combat-aware synchronization where older remote state cannot overwrite newer authoritative DM state;
-- public player-projection synchronization and provisional offline-player reconciliation;
-- authentication/authorization fit and security implications;
-- separation of campaign moderation from global application administration;
-- PDF rendering/generation suitability;
-- SRD 5.1 + SRD 5.2.1 storage/retrieval/provenance and Spanish clarification suitability;
-- freedom to store mixed/homebrew game content without turning the application into a rules enforcer;
-- complete monster representation with future additive mechanic enrichment;
-- maintainability;
-- testability;
-- stability/maturity;
-- documentation and ecosystem quality;
-- suitability for AI-assisted implementation;
-- performance requirements if known;
-- dependency/service lock-in risk;
-- privacy implications;
-- personal-scale/no-cost hosting feasibility where practical;
-- build reproducibility;
-- long-term migration cost and approved incremental extensibility.
-
-Do not treat this list as implying that every criterion is equally important; importance depends on the approved product design.
+- clear campaign isolation without duplicating global identities;
+- one user participating in multiple campaigns concurrently with different campaign roles;
+- character ownership/control remaining separate from campaign membership;
+- reusable personal NPC/creature/rule-library content without accidental campaign coupling;
+- campaign-specific copies/references where appropriate;
+- durable character state separated from live combat working state;
+- audit/history relationships that survive ownership/control changes and rejoining;
+- invitation, kick, ban and global-account-freeze semantics;
+- local persistence and synchronization friendliness across Android and desktop;
+- avoidance of hard-coded single-DM assumptions where a general membership model is straightforward;
+- PostgreSQL relational integrity and migration maintainability;
+- future additive extensibility without implementing speculative systems now.
 
 ## Important non-requirements
 
@@ -139,7 +132,7 @@ Architecture must not be selected on the false assumption that MVP requires:
 When the architecture set is sufficiently complete, this file should record:
 
 1. **Approved architecture summary**
-2. **Decision IDs** from `docs/DECISIONS.md`
+2. **Decision IDs** from `docs/DECISIONS.md` and dedicated architecture decision checkpoints pending consolidation
 3. **Alternatives considered**
 4. **Why the chosen approach fits the approved design**
 5. **Important trade-offs / rejected alternatives**
