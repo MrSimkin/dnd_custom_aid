@@ -50,3 +50,24 @@ The owner prefers implementing multicampaign behavior in the MVP because it is c
 - The MVP requires sufficient campaign selection/switching UX to use the multicampaign capability coherently.
 - The old wording in D-0010, `docs/PRODUCT.md`, `docs/PROJECT_STATE.md`, PR #2 and related documentation that describes one active campaign as an MVP restriction is now stale and must be superseded/promoted before merge.
 - This changes product scope but does not itself select any architecture, data technology or UI implementation approach.
+
+---
+
+## 3. Mixed campaign rules vs SRD-only MVP rules clarification
+
+**Confirmed resolution:** campaigns may use mixed official generations and homebrew from day one, while the MVP rules assistant remains limited to supported official SRD sources and does not enforce rules.
+
+1. A campaign may freely use mixed D&D 5e / SRD 5.1, D&D 5.5e / SRD 5.2.1 and homebrew rules from day one.
+2. Character, NPC and monster data must not reject content merely because it is not "legal SRD".
+3. The application is not a rules enforcer.
+4. The MVP rules assistant may answer from both supported official SRDs and must clearly identify whether relevant information comes from D&D 5e / SRD 5.1 or D&D 5.5e / SRD 5.2.1.
+5. The MVP rules assistant does **not** automatically know or apply campaign house rules.
+6. If a campaign rule differs from an official SRD rule, the DM/player is responsible for applying the campaign rule manually in the MVP.
+7. House-rule-aware rules answers are a later feature.
+
+### Consequences
+
+- Campaign data/content flexibility and rules-assistant knowledge scope are separate concerns.
+- The rules assistant must not present campaign homebrew as if it were official SRD content.
+- Mixed/homebrew campaign records must remain usable even when the rules assistant cannot interpret or validate those rules.
+- Later house-rule-aware clarification may combine official provenance with campaign-specific overrides, but that capability is explicitly outside the MVP.
