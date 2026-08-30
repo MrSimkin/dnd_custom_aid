@@ -2,7 +2,8 @@
 
 **Status:** Approved  
 **Date:** 2026-08-30  
-**Decision owner:** Project owner
+**Decision owner:** Project owner  
+**Clarified:** 2026-08-30 by the pre-main proportionality audit
 
 The DM desktop/laptop preparation and administration companion will be a native desktop application implemented in **Kotlin** with **Compose Multiplatform Desktop**.
 
@@ -17,11 +18,12 @@ A browser-only administration surface was considered and is not selected. The ow
 - Android remains native Kotlin + Jetpack Compose under D-0035; this decision does not turn the Android application into a generic cross-platform UI.
 - Android and desktop may share Kotlin domain/business/networking/synchronization code selectively where that reduces duplication without forcing UI parity or inappropriate coupling.
 - The desktop UI remains purpose-built for keyboard/mouse/large-screen DM preparation and administration rather than copying the Android UI.
-- The desktop application should permit meaningful local/offline operation rather than unnecessarily requiring continuous connectivity.
-- **Native does not itself guarantee offline behavior.** Exact desktop local persistence technology, offline data scope, synchronization, conflict handling and reconciliation remain separate architecture decisions.
+- The desktop application supports meaningful local/offline preparation through its local SQLite/SQLDelight database.
+- Desktop MVP synchronization is deliberately simple and user-driven: **Save** persists the work locally; **Sync** sends pending local changes and retrieves applicable remote changes when connectivity is available. A failed Sync leaves the local saved work intact for a later retry.
+- A continuous background synchronization service is not an MVP requirement for desktop.
 - Desktop combat tracking, player desktop support and Android/desktop full feature parity remain outside MVP unless separately approved.
 - Descope remains the selected authentication provider. Native desktop authentication may use standards-based browser/OIDC/OAuth flows as appropriate; exact implementation remains an implementation-level decision unless it introduces a consequential new dependency.
-- Cloudflare remains selected for suitable backend/API/object-storage/realtime infrastructure under D-0034, but no desktop web frontend hosting is required by this decision.
+- Cloudflare remains selected for the project-owned backend/API under D-0034; no desktop web frontend hosting is required by this decision.
 
 ## Alternatives considered
 
@@ -29,6 +31,6 @@ A browser-only administration surface was considered and is not selected. The ow
 - Tauri/web-shell desktop: adds a native packaging layer without enough benefit over a native Kotlin desktop application for this project.
 - Local web application: adds local-server/installation complexity without enough advantage over Compose Multiplatform Desktop.
 
-This resolves the desktop/laptop administration delivery-form portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+This resolves the desktop/laptop administration delivery-form portion of D-0009. D-0009 is now resolved/Approved by the complete D-0034 through D-0043 architecture set.
 
-> Safety checkpoint note: this decision is stored as a dedicated decision file on the active architecture branch so it is durable immediately. It should also be consolidated into the chronological `docs/DECISIONS.md` log before the architecture branch is merged.
+> Detail-record note: this file preserves the fuller rationale for D-0036. The chronological authoritative entry is consolidated in `docs/DECISIONS.md`.
