@@ -3,7 +3,7 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, native Android client approach, and Android local persistence technology are approved, but the application architecture/technology set is not complete.  
+**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, native Android client approach, Android local persistence technology, and local combat/outbox persistence semantics are approved, but the application architecture/technology set is not complete.  
 **Application code:** Not scaffolded.  
 **Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
 
@@ -11,7 +11,7 @@ The project has reached the architecture-evaluation gate, **not** the implementa
 
 ## Architecture decision gate
 
-Do not choose or scaffold unresolved synchronization semantics, backend/provider, minimum Android version, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
+Do not choose or scaffold unresolved synchronization/reconciliation semantics, backend/provider, minimum Android version, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, or other unresolved foundational technology merely to begin coding.
 
 The approved product baseline includes:
 
@@ -120,7 +120,32 @@ The local Room schema is **not required to mirror the hosted database schema**. 
 - Android UI/domain reads that must remain offline-capable can be backed by a local source of truth rather than depending on a successful network request.
 - Room migrations must be treated as real persistent-data migrations once implementation begins.
 - Do not introduce SQLDelight or another cross-platform persistence abstraction merely because a future native desktop client is planned; the future desktop client may choose its own local persistence technology.
-- This decision does **not** yet select combat snapshot/event/outbox semantics, synchronization scheduling, WorkManager usage, hosted database/provider, API style, or conflict-resolution protocol.
+- This decision does **not** yet select synchronization scheduling, WorkManager usage, hosted database/provider, API style, or conflict-resolution protocol.
+
+### A-0005 — Active combat uses durable current state plus a synchronization outbox
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner
+
+Active combat uses a **hybrid current-state + durable outbox model** on Android.
+
+Room stores the durable current live-combat state/snapshot used for normal reads, rendering and same-device recovery. Every locally committed combat change that requires remote synchronization also creates a durable pending synchronization operation in an outbox **as part of the same local database transaction**.
+
+The UI may treat the DM action as locally saved only after the current-state mutation and corresponding required outbox entry have committed together.
+
+Each outbox operation must have a stable unique identity and explicit encounter-local ordering/revision information sufficient for later ordered, retryable and idempotent synchronization semantics.
+
+The outbox is **synchronization infrastructure**, not a permanent combat-history log and not an event-sourced domain model. Successfully synchronized operations may later be removed or compacted according to the synchronization design.
+
+#### Consequences
+
+- A process/app interruption after a local DM action does not lose either the resulting current combat state or the knowledge that remote synchronization may still be pending.
+- Retrying a network request can later be made idempotent because the same logical operation retains the same operation identity.
+- Encounter-local sequence/revision information is used for ordering rather than depending on device wall-clock timestamps as the authority.
+- Current combat state remains directly queryable; the application does not reconstruct normal state by replaying a permanent event history.
+- Whole-state snapshots may still be transmitted or stored where useful; A-0005 does not require every remote sync to be a fine-grained command.
+- A-0005 does **not** yet determine server-side authority tokens/epochs, acknowledgement protocol, remote revision handling, snapshot-repair behavior, synchronization scheduling/WorkManager policy, or player public-projection transport. Those are the next synchronization/reconciliation decisions.
 
 ### Product requirement carried into architecture evaluation
 
@@ -136,8 +161,8 @@ Current sequence:
 2. ~~Android client approach~~ — approved in A-0003;
 3. ~~MVP desktop/laptop administration delivery approach~~ — approved in A-0002;
 4. ~~Android structured local persistence technology~~ — approved in A-0004;
-5. **local-first combat state/change persistence and synchronization queue semantics**;
-6. combat synchronization/reconciliation and player public projection;
+5. ~~local-first combat state/change persistence and synchronization queue semantics~~ — approved in A-0005;
+6. **combat synchronization/reconciliation and player public projection**;
 7. multicampaign domain/data-model boundaries;
 8. hosted backend/database/authentication/authorization and moderation boundaries;
 9. PDF generation/rendering;
@@ -146,9 +171,9 @@ Current sequence:
 
 ### Current decision under evaluation
 
-**Local-first combat state/change persistence and synchronization queue semantics.**
+**Combat synchronization/reconciliation and DM authority semantics.**
 
-The next comparison should determine how authoritative combat state changes are committed locally and represented for later synchronization/retry, without yet selecting the hosted backend/provider or generic conflict strategy for all domain data.
+The next comparison should define how the hosted side recognizes the authoritative DM combat writer, orders/acknowledges retries, prevents stale remote state from overwriting newer local DM state, and recovers synchronization after reconnect while preserving the approved one-authority model. Player public projection should then be defined against that authoritative synchronized state.
 
 ## Evaluation criteria
 
@@ -198,7 +223,8 @@ Architecture must not be selected on the false assumption that MVP requires:
 - multiple RPG systems in MVP;
 - implementation of the future native desktop client during MVP;
 - Kotlin Multiplatform or shared UI simply because a future native desktop client is planned;
-- identical local and hosted database schemas.
+- identical local and hosted database schemas;
+- permanent event sourcing for combat merely because an outbox exists.
 
 ## Future architecture record format
 
