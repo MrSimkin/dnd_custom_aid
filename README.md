@@ -12,13 +12,13 @@ After reading this README, continue with these files in order:
 2. `MANIFEST.md` — map of authoritative/project-memory files.
 3. `docs/PROJECT_STATE.md` — current verified state and next action.
 4. `docs/DECISIONS.md` — chronological significant-decision log.
-5. `docs/decisions/` — approved dedicated architecture-decision checkpoints not yet consolidated into the chronological log.
-6. `docs/CONVENTIONS.md` — approved recurring project conventions.
-7. `docs/PRODUCT.md` — current approved product direction and MVP, subject to later approved decision amendments.
-8. `docs/ROADMAP.md` — development phases and current phase.
-9. `docs/WORKFLOW.md` — how changes are designed, implemented, tested, documented, reviewed, and merged.
-10. `docs/ARCHITECTURE.md` — current approved architecture record and rationale.
-11. `docs/TESTING.md` — verification rules and test status expectations.
+5. `docs/CONVENTIONS.md` — approved recurring project conventions.
+6. `docs/PRODUCT.md` — current approved product direction and MVP.
+7. `docs/ROADMAP.md` — development phases and current phase.
+8. `docs/WORKFLOW.md` — how changes are designed, implemented, tested, documented, reviewed, and merged.
+9. `docs/ARCHITECTURE.md` — current approved architecture record and rationale.
+10. `docs/TESTING.md` — verification rules and test status expectations.
+11. Relevant `docs/decisions/` files when detailed architecture rationale is useful.
 12. Relevant `docs/discovery/` notes only when historical rationale is needed.
 
 Then read any feature-specific or technical files relevant to the task.
@@ -28,7 +28,7 @@ Then read any feature-specific or technical files relevant to the task.
 - `main` is the canonical accepted project state (D-0007).
 - Git is the project's operative memory (D-0012).
 - Repository files, not chat memory, determine durable project truth.
-- Significant approved decisions must be recorded durably; during the current architecture branch, D-0036 through D-0043 are stored under `docs/decisions/` pending chronological-log consolidation.
+- Significant approved decisions are recorded in `docs/DECISIONS.md`; detailed Phase 2 checkpoints also remain under `docs/decisions/`.
 - Durable conventions belong in `docs/CONVENTIONS.md`.
 - `docs/PROJECT_STATE.md` is the authoritative current-state/next-action snapshot.
 - Discovery notes preserve exploratory reasoning but do not override confirmed product/decision records.
@@ -53,7 +53,7 @@ The approved sequence is:
 6. consolidate/review the architecture branch;
 7. scaffold and implement incrementally.
 
-Phase 1 completed the product/design work. The consequential Phase 2 architecture choices D-0034 through D-0043 are now owner-approved. The project is at step 6: bounded documentation consolidation/review before the first scaffold.
+Phase 1 completed the product/design work. The consequential Phase 2 architecture choices D-0034 through D-0043 are owner-approved and documentation consolidation is complete. The project is now at the owner review/merge gate before the first scaffold.
 
 ## Approved product baseline
 
@@ -89,8 +89,8 @@ See `docs/ARCHITECTURE.md` for the full current architecture record.
 
 ## Current status
 
-**Phase 1 is complete and merged. Phase 2 architecture selection is complete in substance. No application code has been scaffolded yet.**
+**Phase 1 is complete and merged. Phase 2 architecture selection and documentation consolidation are complete. No application code has been scaffolded yet.**
 
-The active branch is being consolidated/reviewed before merge to canonical `main`. Older wording in `docs/DECISIONS.md`/`docs/PRODUCT.md` may still describe some architecture choices as undecided; approved D-0036 through D-0043 and `docs/PROJECT_STATE.md` control until that documentation cleanup is complete.
+PR #3 is the formal owner review point for merging the approved Phase 2 architecture branch into canonical `main`.
 
-After the architecture branch is accepted into `main`, the next project action is the **initial implementation scaffold**, not another broad architecture-discovery round.
+After PR #3 is accepted into `main`, the next project action is the **initial implementation scaffold**, not another broad architecture-discovery round.
