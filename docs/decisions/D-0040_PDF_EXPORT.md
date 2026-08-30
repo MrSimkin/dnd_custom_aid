@@ -17,7 +17,7 @@ Character-sheet PDF export is required on both the Android application and the n
 
 ## Scope correction
 
-Earlier MVP summaries listed PDF regeneration/export explicitly under the player Android surface and did not list it under DM desktop administration. The owner has now explicitly required desktop PDF export as well. This decision therefore amends that surface-level omission without requiring Android/desktop feature parity generally.
+Earlier MVP summaries listed PDF regeneration/export explicitly under the player Android surface and did not list it under DM desktop administration. The owner explicitly required desktop PDF export as well. This decision therefore amends that surface-level omission without requiring Android/desktop feature parity generally.
 
 ## Template handling
 
@@ -29,6 +29,6 @@ Earlier MVP summaries listed PDF regeneration/export explicitly under the player
 
 No server-side PDF service, HTML-to-PDF subsystem, fillable-PDF form engine, or enterprise document pipeline is required for the current personal-scale project.
 
-This resolves the PDF generation/rendering portion of D-0009. D-0009 remains Pending until the remaining consequential architecture choices are approved.
+This resolves the PDF generation/rendering portion of D-0009. D-0009 is now resolved/Approved by the complete D-0034 through D-0043 architecture set.
 
-> Safety checkpoint note: this decision is stored as a dedicated decision file on the active architecture branch and should be consolidated into the chronological `docs/DECISIONS.md` log before merge.
+> Detail-record note: this file preserves the fuller rationale for D-0040. The chronological authoritative entry is consolidated in `docs/DECISIONS.md`.
