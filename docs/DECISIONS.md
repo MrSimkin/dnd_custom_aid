@@ -52,8 +52,9 @@ The application is intended to serve both players and Dungeon Masters.
 
 ### Consequences
 
-- Future discovery must identify which functions are shared and which differ by role.
-- No permissions or role-switching behavior is implied yet.
+- Role-specific workflows and permissions are now refined by later approved decisions, especially D-0014, D-0016, D-0022, D-0025 and D-0032.
+- Player/DM role is campaign-scoped rather than a permanent account type.
+- Future agents must use the newer specific role/permission decisions rather than treating this early audience decision as an unresolved permissions statement.
 
 ---
 
@@ -151,26 +152,34 @@ When a convention first becomes relevant and no approved convention exists, the 
 
 ---
 
-## D-0009 — Android implementation technology
+## D-0009 — Application architecture and implementation technology
 
 **Status:** Pending  
 **Date:** 2026-08-28
 
-No framework, language, UI toolkit, persistence approach, or minimum Android version has been chosen yet.
+No overall implementation architecture or consequential technology stack has been selected yet.
 
-This decision is intentionally deferred until the product and interaction design is sufficiently understood and approved. See D-0011.
+This includes, as applicable, the Android framework/language/UI toolkit and minimum Android version, desktop/laptop administration implementation form, local/offline persistence approach, synchronization/shared-data architecture, hosted backend/provider, authentication provider, PDF generation approach, SRD retrieval/clarification architecture, and related foundational choices.
 
-### Decision should eventually consider
+The approved product/MVP baseline is now sufficiently coherent to begin evaluating these alternatives. Architecture evaluation is the next project phase under D-0011; owner approval remains required before a consequential option becomes selected project truth or implementation is scaffolded.
 
-- the approved product/design requirements;
+### Decision should consider
+
+- the approved product/MVP requirements;
+- Android phone/tablet quality;
+- desktop/laptop administration usability;
+- local/offline DM combat resilience;
+- synchronization/shared-data needs;
+- authentication/authorization and personal-use security implications;
+- PDF generation requirements;
+- SRD retrieval/provenance/clarification requirements;
 - long-term maintainability;
-- quality of phone/tablet support;
 - ease of automated testing;
 - maturity and documentation;
 - suitability for AI-assisted development;
-- offline/local-data needs once known;
-- cost and lock-in;
-- reversibility.
+- personal-scale/no-cost hosting feasibility where practical;
+- dependency/service lock-in;
+- migration cost and reversibility.
 
 ---
 
