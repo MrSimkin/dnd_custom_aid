@@ -148,3 +148,31 @@ The owner prefers implementing multicampaign behavior in the MVP because it is c
 - The UI must communicate DM combat persistence/sync status clearly enough to distinguish local safety from successful cloud synchronization.
 - Hosted combat copies support sharing/recovery but do not outrank a newer authoritative local DM state merely because the server is reachable.
 - Cross-device DM authority transfer remains a future feature and must not be accidentally implemented as unrestricted concurrent editing.
+
+---
+
+## 7. Campaign moderation vs application-wide account administration
+
+**Confirmed resolution:** campaign moderation and global application-account administration are separate authority layers, even though the owner currently happens to hold both roles.
+
+1. A campaign DM can administrate **only their campaign**.
+2. A campaign DM may **Freeze a PC**, **Kick a member**, **Ban a member from that campaign**, and **revoke/regenerate campaign invitations**.
+3. A campaign DM **cannot freeze, delete, disable, or otherwise control a user's global application account**.
+4. A campaign ban does not affect the user's participation in other campaigns.
+5. A campaign kick does not affect the user's participation in other campaigns.
+6. A frozen PC remains preserved and campaign-scoped.
+7. **Freeze Account** belongs only to the application administrator.
+8. Account freeze is global: application login/use is blocked while the user's data is preserved.
+9. Account freeze is **reversible**.
+10. Freezing an account must not delete campaigns, characters, audit history, ownership records, memberships or other preserved relationships.
+11. If an account is restored, its preserved relationships return normally unless an independent campaign-level ban, kick, PC freeze or other campaign moderation state still applies.
+12. Campaign moderation state and global account state must be stored and evaluated separately.
+13. At present, the project owner is the **only DM and the only application administrator**.
+
+### Consequences
+
+- The fact that one person currently holds both authorities is an operational fact, not permission to hard-code `DM = application administrator` into the domain model.
+- Multicampaign behavior requires campaign moderation to remain scoped to the relevant campaign.
+- Global account freeze is a system/application-administration action, not a DM action.
+- Account deletion is conceptually separate from Freeze Account; Freeze Account means disable while preserving data.
+- The MVP does not require an elaborate multi-administrator management subsystem merely because application-administrator authority is modeled separately.
