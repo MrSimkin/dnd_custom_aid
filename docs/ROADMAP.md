@@ -25,7 +25,7 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** understand and design what the first useful version should actually do before selecting the technology stack.
 
-**Current status:** Product/MVP baseline complete pending final PR #2 consistency/merge closure. The seven previously highlighted product questions are resolved; technical architecture has not yet been selected.
+**Current status:** Product/MVP baseline complete pending final PR #2 merge closure. The original clarification rounds and final eight-item product-tension pass are resolved; the MVP is now explicitly multicampaign. Technical architecture has not yet been selected.
 
 ### Working method
 
@@ -47,8 +47,9 @@ For meaningful product and interaction questions:
 - MVP feature list;
 - explicit non-MVP list;
 - content/rules-system scope;
+- multicampaign membership/selection behavior;
 - high-level offline/data/privacy expectations;
-- meaningful phone/tablet behavior expectations;
+- meaningful phone/tablet and desktop-role expectations;
 - high-level first-release success/validation intent;
 - known unresolved design questions.
 
@@ -56,15 +57,17 @@ Detailed feature-level acceptance criteria do **not** need to be exhaustively au
 
 ### Current milestone
 
-The MVP feature boundary and major workflows are approved in `docs/PRODUCT.md` and `docs/DECISIONS.md`. The product baseline is sufficiently coherent to evaluate technical options. Remaining Phase 1 work is repository/PR closure and any genuine contradiction discovered by audit—not reopening already resolved questions by default.
+The MVP feature boundary and major workflows are approved in `docs/PRODUCT.md` and `docs/DECISIONS.md`. The final tension pass resolved Android-vs-desktop scope, multicampaign, mixed/homebrew-vs-SRD assistant scope, monster-structure depth, paper-vs-digital authority, local-first combat authority, moderation boundaries, and invitation/rejoin semantics.
+
+The product baseline is sufficiently coherent to evaluate technical options. Remaining Phase 1 work is repository/PR closure and final verification—not reopening already resolved product questions by default.
 
 ### Exit criterion
 
 The owner has approved a coherent product/design baseline that is detailed enough to evaluate technical options without forcing the design to fit an arbitrary technology choice.
 
-This criterion is satisfied by the approved Round 3 baseline; Phase 1 becomes formally complete when PR #2 is consistency-checked, owner-approved and merged to canonical `main`.
+This criterion is satisfied by the approved product baseline; Phase 1 becomes formally complete when PR #2 is consistency-checked, owner-approved and merged to canonical `main`.
 
-**Important:** architecture evaluation may begin after Phase 1 closure, but do not scaffold implementation before consequential architecture/stack choices are approved.
+**Important:** architecture evaluation begins after Phase 1 closure, but do not scaffold implementation before consequential architecture/stack choices are approved.
 
 ---
 
@@ -74,17 +77,17 @@ This criterion is satisfied by the approved Round 3 baseline; Phase 1 becomes fo
 
 ### Step 1 — Evaluate with the owner
 
-Discuss relevant alternatives for matters such as:
+Start with **overall application topology/surface relationship**, then discuss relevant alternatives for matters such as:
 
 - Android implementation approach, language and UI toolkit;
-- desktop/laptop administration implementation approach;
+- desktop/laptop administration implementation approach without requiring feature parity;
 - supported Android baseline;
-- persistence/data model;
-- offline DM combat behavior;
-- synchronization/shared-data architecture;
-- authentication/authorization and personal-use threat model;
+- multicampaign persistence/data model;
+- local-first authoritative DM combat behavior;
+- combat-aware synchronization/shared-data architecture, including provisional player offline views;
+- authentication/authorization, campaign-scoped moderation and application-admin boundaries;
 - PDF generation/rendering;
-- SRD storage/retrieval/clarification architecture;
+- SRD 5.1 + SRD 5.2.1 storage/retrieval/clarification architecture;
 - hosted backend/provider and cost/limits;
 - test architecture;
 - project/module structure and other durable conventions.
@@ -99,9 +102,11 @@ Expected outputs after the required choices are approved:
 - recorded coding/project conventions as they become relevant;
 - reproducible local build;
 - automated build/check commands;
-- application skeleton appropriate to the approved surfaces;
+- application skeleton appropriate to the approved asymmetric surfaces;
 - phone/tablet layout foundation appropriate to the design;
 - desktop/laptop administration foundation appropriate to the approved architecture;
+- multicampaign shared-data foundation;
+- local-first combat persistence/synchronization foundation;
 - testing foundation;
 - dependency and version management;
 - CI where useful;
@@ -146,10 +151,13 @@ Potential areas include, as applicable to the approved product:
 - regression testing;
 - phone/tablet usability checks;
 - desktop/laptop administration checks;
+- multicampaign navigation/isolation checks;
+- cross-surface shared-data checks;
+- local-first combat/offline/reconnection checks;
+- provisional player-view reconciliation checks;
 - accessibility review;
 - data migration/recovery checks;
 - performance;
-- offline behavior;
 - backup/export behavior;
 - crash handling;
 - privacy/security review;
@@ -162,5 +170,7 @@ Only applicable items become requirements.
 ## Phase 6 — Post-MVP Evolution
 
 **Goal:** add features based on owner priorities and actual usage while preserving continuity and compatibility.
+
+Possible later directions already distinguished from MVP include broader Android/desktop feature parity, player desktop access, desktop combat tracking, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, and other approved future expansions.
 
 Every significant expansion should go through the same sequence: alternatives/discussion → decision/design → specification → implementation → testing → Git continuity update → owner review.
