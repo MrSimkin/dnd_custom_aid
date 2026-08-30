@@ -104,6 +104,19 @@ This convention exists because SQL is a useful technical communication language 
 
 Source decision: D-0038 and explicit owner instruction during its approval.
 
+### C-0009 — Personal-scale proportionality; avoid enterprise overengineering
+
+**Status:** Approved  
+**Date:** 2026-08-30
+
+The project is a personal, deliberately limited tool. Architecture, security, observability, administration, deployment and data-management mechanisms should be the **simplest approach that safely satisfies approved requirements**.
+
+Do not add enterprise-grade layers, generalized infrastructure, elaborate role hierarchies, duplicated safeguards, speculative scale machinery or operational processes merely because they are common in commercial SaaS systems. Add complexity only when a concrete requirement, measurable risk or real implementation problem justifies it.
+
+When presenting technical decisions to the owner, prioritize the materially relevant trade-offs and avoid exhaustive treatment of enterprise-only concerns unless they could realistically affect this project.
+
+Source decision: D-0039 and repeated explicit owner instruction during Phase 2.
+
 ## 3. Conventions intentionally not chosen yet
 
 No convention has yet been approved for:
