@@ -25,74 +25,58 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** understand and design what the first useful version should actually do before selecting the technology stack.
 
-**Current status:** Product/MVP baseline complete pending final PR #2 merge closure. The original clarification rounds and final eight-item product-tension pass are resolved; the MVP is now explicitly multicampaign. Technical architecture has not yet been selected.
+**Current status:** **Complete.** The approved product/MVP baseline, including the final eight-item tension-resolution pass and multicampaign scope, was merged to canonical `main` via PR #2 on 2026-08-29 (`b5a059b8e7fb9312232ad684356af05e27331b65`).
 
-### Working method
+### Outputs achieved
 
-For meaningful product and interaction questions:
-
-1. identify the problem or design choice;
-2. explore realistic alternatives with the owner;
-3. explain practical consequences and trade-offs;
-4. recommend an option when justified;
-5. let the owner decide;
-6. record approved results and unresolved questions in Git.
-
-### Expected outputs
-
-- product purpose;
-- player use cases;
-- Dungeon Master use cases;
+- product purpose and boundaries;
+- player and Dungeon Master use cases;
 - major workflows and interaction model;
-- MVP feature list;
-- explicit non-MVP list;
+- approved MVP and explicit non-MVP list;
 - content/rules-system scope;
 - multicampaign membership/selection behavior;
+- paper/digital authority semantics;
+- desktop-vs-Android surface responsibilities;
+- local-first combat authority/synchronization behavior;
+- account/moderation/invitation semantics;
+- NPC/monster/encounter direction;
 - high-level offline/data/privacy expectations;
-- meaningful phone/tablet and desktop-role expectations;
-- high-level first-release success/validation intent;
-- known unresolved design questions.
+- sufficient product clarity to evaluate architecture without forcing the design to fit an arbitrary stack.
 
-Detailed feature-level acceptance criteria do **not** need to be exhaustively authored during Phase 1. They must be defined before the corresponding implementation slice is considered complete, using `docs/templates/FEATURE_SPEC_TEMPLATE.md` and the testing rules as appropriate.
-
-### Current milestone
-
-The MVP feature boundary and major workflows are approved in `docs/PRODUCT.md` and `docs/DECISIONS.md`. The final tension pass resolved Android-vs-desktop scope, multicampaign, mixed/homebrew-vs-SRD assistant scope, monster-structure depth, paper-vs-digital authority, local-first combat authority, moderation boundaries, and invitation/rejoin semantics.
-
-The product baseline is sufficiently coherent to evaluate technical options. Remaining Phase 1 work is repository/PR closure and final verification—not reopening already resolved product questions by default.
+Detailed feature-level acceptance criteria do **not** need to have been exhaustively authored during Phase 1. They must be defined before the corresponding implementation slice is considered complete, using `docs/templates/FEATURE_SPEC_TEMPLATE.md` and the testing rules as appropriate.
 
 ### Exit criterion
 
-The owner has approved a coherent product/design baseline that is detailed enough to evaluate technical options without forcing the design to fit an arbitrary technology choice.
+The owner has approved a coherent product/design baseline detailed enough to evaluate technical options.
 
-This criterion is satisfied by the approved product baseline; Phase 1 becomes formally complete when PR #2 is consistency-checked, owner-approved and merged to canonical `main`.
-
-**Important:** architecture evaluation begins after Phase 1 closure, but do not scaffold implementation before consequential architecture/stack choices are approved.
+**Result:** satisfied and merged. Do not reopen resolved Phase 1 questions merely because historical discovery notes describe earlier uncertainty; reopen only for a genuinely new requirement or contradiction.
 
 ---
 
 ## Phase 2 — Technical Options and Foundation
 
-**Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval, then scaffold the chosen architecture.
+**Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval for consequential choices, then scaffold the chosen architecture.
+
+**Current status:** **Active — architecture/technology evaluation.** No architecture or stack is selected and no application code has been scaffolded.
 
 ### Step 1 — Evaluate with the owner
 
 Start with **overall application topology/surface relationship**, then discuss relevant alternatives for matters such as:
 
-- Android implementation approach, language and UI toolkit;
-- desktop/laptop administration implementation approach without requiring feature parity;
-- supported Android baseline;
-- multicampaign persistence/data model;
-- local-first authoritative DM combat behavior;
-- combat-aware synchronization/shared-data architecture, including provisional player offline views;
-- authentication/authorization, campaign-scoped moderation and application-admin boundaries;
-- PDF generation/rendering;
-- SRD 5.1 + SRD 5.2.1 storage/retrieval/clarification architecture;
-- hosted backend/provider and cost/limits;
-- test architecture;
-- project/module structure and other durable conventions.
+1. overall Android + desktop/laptop topology and shared-domain relationship;
+2. Android implementation approach, language and UI toolkit;
+3. desktop/laptop administration implementation approach without requiring feature parity;
+4. supported Android baseline;
+5. multicampaign persistence/domain-data model;
+6. local-first authoritative DM combat persistence;
+7. combat-aware synchronization/shared-data architecture, including provisional player offline views;
+8. hosted backend/database and authentication/authorization/moderation boundaries;
+9. PDF generation/rendering;
+10. SRD 5.1 + SRD 5.2.1 storage/retrieval/clarification architecture;
+11. test architecture;
+12. project/module structure and other durable conventions.
 
-For each consequential choice, explain practical trade-offs and recommendation before approval.
+For each consequential choice, explain practical alternatives, trade-offs and a recommendation before owner approval.
 
 ### Step 2 — Scaffold after approval
 
@@ -114,7 +98,9 @@ Expected outputs after the required choices are approved:
 
 ### Exit criterion
 
-A fresh agent can clone the repository, follow documented commands, build the application foundation, and run baseline tests, and the technical foundation can be traced back to approved product/design needs.
+A fresh agent can clone the repository, follow documented commands, build the approved application foundation and run baseline tests, with the technical foundation traceable to approved product/design needs.
+
+**Important:** evaluation is active, but implementation/scaffolding must not begin until the relevant consequential architecture/stack choices are approved.
 
 ---
 
