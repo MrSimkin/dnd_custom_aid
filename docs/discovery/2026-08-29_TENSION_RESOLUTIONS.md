@@ -117,3 +117,34 @@ The owner prefers implementing multicampaign behavior in the MVP because it is c
 - Digital storage must not silently overwrite unobserved paper changes merely because its timestamp or sync state is newer.
 - Freshness information is a meaningful UX requirement, not only decorative metadata.
 - No paper/digital conflict-resolution engine is required for the MVP.
+
+---
+
+## 6. DM-local authoritative combat vs hosted/shared campaign data
+
+**Confirmed resolution:** hosted storage is the durable shared home for campaign/domain data, while an active combat has a single authoritative DM-device working state that commits locally first and synchronizes opportunistically.
+
+1. **Shared durable campaign/domain data is normally hosted and synchronized online.** Characters, NPCs, monster definitions, saved encounters, campaign membership and similar data have a shared durable representation.
+2. An **active live encounter/combat has one authoritative DM working state** at a time.
+3. While combat is active, every DM action must be committed **locally first**, so loss of Internet does not interrupt play.
+4. Cloud/server synchronization of that combat state is **secondary and opportunistic**. It provides sharing and recovery, but successful server contact is not required to continue combat.
+5. When connectivity returns, the DM's authoritative local live-combat state must **not be replaced by an older remote combat snapshot**. Reconciliation needs explicit combat-aware semantics rather than generic last-write-wins behavior.
+6. Player devices receive the **latest successfully synchronized public projection** of combat—initiative/current turn/public conditions and other approved public state. If connectivity disappears, their view may temporarily become stale while the DM continues normally.
+7. Persistent character-sheet changes and live-combat state remain separate. Changing a PC's persistent sheet HP does **not automatically rewrite the combat tracker**, and combat HP changes do not automatically rewrite the persistent character sheet.
+8. Changes to reusable definitions while a combat is running do not silently rewrite the live copy. Editing a base monster/NPC or saved encounter affects its durable source, not an already-running independent encounter.
+9. The DM should be able to tell whether the active combat is **saved locally**, **synced**, or **waiting to sync**.
+10. If players lose Internet, they may locally update their own tracker/view for temporary continuity. Those player-side offline changes are **provisional and non-authoritative**. When connectivity returns, the player view is replaced/reconciled to the authoritative combat state supplied by the DM side; player provisional edits must not overwrite the DM's authoritative state.
+11. The MVP supports persistence/recovery on the **same DM device**.
+12. The live combat should synchronize to hosted storage whenever possible.
+13. The MVP does **not** require seamless simultaneous multi-device DM editing.
+14. If a later version supports moving an active encounter to another DM device, it should use an explicit transfer/resume or authority-handoff mechanism rather than concurrent authoritative editing.
+15. **Hosted data is the durable shared home; the active DM device is the live-combat authority while running that encounter.**
+
+### Consequences
+
+- Live combat requires purpose-built offline-first/local-first synchronization semantics rather than treating combat as an ordinary cloud CRUD document.
+- Exactly one DM authority should exist for a live encounter at a time in the MVP.
+- Player-side offline tracker edits are convenience-only local working state and are disposable when the authoritative DM projection becomes available again.
+- The UI must communicate DM combat persistence/sync status clearly enough to distinguish local safety from successful cloud synchronization.
+- Hosted combat copies support sharing/recovery but do not outrank a newer authoritative local DM state merely because the server is reachable.
+- Cross-device DM authority transfer remains a future feature and must not be accidentally implemented as unrestricted concurrent editing.
