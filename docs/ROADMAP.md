@@ -26,7 +26,7 @@ Do not reopen resolved Phase 1 questions merely because historical discovery not
 
 **Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval for consequential choices, then scaffold the chosen architecture.
 
-**Current status:** **Architecture selection complete; documentation consolidation/review in progress before scaffolding.**
+**Current status:** **Architecture selection complete; final pre-main proportionality/contradiction review before scaffolding.**
 
 ### Architecture selection — complete
 
@@ -37,27 +37,36 @@ Owner-approved decisions D-0034 through D-0043 establish:
 - native Kotlin + Compose Multiplatform Desktop DM administration;
 - Android 11 / API 30 minimum;
 - explicit relational multicampaign domain boundaries;
-- SQLDelight/SQLite local-first persistence on Android/desktop;
-- project-owned synchronization with separate DM-authoritative combat semantics;
-- Cloudflare API as the hosted gateway, with proportional rather than enterprise-grade authorization/security machinery;
+- SQLDelight/SQLite local persistence on Android/desktop;
+- deliberately small project-owned synchronization;
+- Cloudflare Worker/API as the hosted gateway, with proportional rather than enterprise-grade authorization/security machinery;
 - local/offline PDF export on Android and desktop;
 - PostgreSQL full-text retrieval over official Spanish SRD 5.1 / SRD 5.2.1 with an initially Cloudflare Workers AI answer layer;
 - a small shared/Android/desktop/backend/database implementation shape;
 - TypeScript for the Cloudflare backend;
 - focused tests and one simple GitHub Actions CI workflow.
 
+The pre-main proportionality audit clarified implementation without changing the selected stack:
+
+- Desktop uses local **Save + explicit Sync**;
+- DM combat uses one authoritative device + increasing sequence/version; cross-device authority generations are deferred;
+- player offline combat convenience is only ephemeral local Next-turn/visible-condition state and is discarded on reconnect;
+- ordinary HTTP/polling comes before realtime infrastructure;
+- provider-specific code is localized without generalized provider abstraction frameworks;
+- offline capability is selective rather than universal.
+
 C-0009 governs implementation: this is a personal/small-scale project, so choose the simplest safe solution and add complexity only for a concrete need.
 
-### Documentation consolidation/review — current work
+### Final pre-main review — current work
 
 Before scaffolding:
 
-- consolidate D-0036 through D-0043 into the chronological decision log and mark D-0009 resolved;
-- remove stale older product wording contradicted by approved architecture decisions;
-- verify current-state, manifest, architecture, testing and conventions agree;
-- review/merge the architecture branch under D-0007.
+- complete the contradiction/read-order sweep;
+- verify every approved simplification is committed remotely;
+- update PR #3 to describe the final branch accurately;
+- obtain explicit owner authorization before merge to `main` under D-0007.
 
-This is documentation cleanup, not another architecture-discovery round.
+This is cleanup/review, not another architecture-discovery round.
 
 ### Scaffolding — next
 
@@ -73,6 +82,8 @@ After the architecture branch is accepted into `main`, create the approved minim
 - baseline focused automated tests;
 - one simple CI workflow;
 - developer/agent setup/build instructions.
+
+Do **not** scaffold R2, Durable Objects, WebSockets, queues, generalized provider abstractions, a background desktop synchronization platform, or other deferred infrastructure merely because it may be useful someday.
 
 ### Phase 2 exit criterion
 
@@ -114,7 +125,7 @@ Potential areas include, only as applicable:
 - multicampaign navigation/isolation;
 - cross-surface shared-data behavior;
 - local-first combat/offline/reconnection behavior;
-- provisional player-view reconciliation;
+- verification that ephemeral player offline turn/condition changes are discarded on reconnect and never affect DM authority;
 - accessibility review;
 - data migration/recovery;
 - performance where observed to matter;
@@ -129,6 +140,6 @@ Potential areas include, only as applicable:
 
 **Goal:** add features based on owner priorities and actual usage while preserving continuity and compatibility.
 
-Possible later directions already distinguished from MVP include broader Android/desktop feature parity, player desktop access, desktop combat tracking, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, and other approved future expansions.
+Possible later directions already distinguished from MVP include broader Android/desktop feature parity, player desktop access, desktop combat tracking, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, realtime transport if actually needed, and other approved future expansions.
 
 Every significant expansion should go through the same sequence: alternatives/discussion → decision/design → specification → implementation → testing → Git continuity update → owner review.
