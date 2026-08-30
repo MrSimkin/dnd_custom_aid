@@ -11,7 +11,7 @@ The product is:
 - primarily an Android phone/tablet application;
 - intended for both players and Dungeon Masters;
 - user-facing in Spanish;
-- supported by a desktop/laptop-friendly DM administration surface whose exact implementation form remains open;
+- supported by a native desktop/laptop DM preparation/administration companion under D-0036;
 - designed around paper-first tabletop play rather than replacing it;
 - intentionally not a Foundry/VTT, D&D Beyond replacement, generalized campaign-builder or automatic rules-enforcement engine.
 
@@ -50,9 +50,10 @@ Android and desktop/laptop are intentionally asymmetric surfaces for the foresee
 - basic administration;
 - comfortable manual NPC/monster data entry;
 - saved encounter preparation;
-- minimum account/campaign/PC administration required by the product workflows.
+- minimum account/campaign/PC administration required by the product workflows;
+- character-sheet PDF regeneration/export.
 
-The desktop implementation form—native Windows, normal web application, local web interface or another practical desktop-friendly approach—is not selected yet and remains a Phase 2 architecture/technology decision.
+The desktop implementation form is selected under D-0036: a native **Kotlin + Compose Multiplatform Desktop** application, with meaningful local/offline operation where practical.
 
 Desktop is **not required to duplicate the whole Android application** in MVP or near-term scope. No player desktop application is required in the MVP. Android/desktop feature parity is only a possible much-later evolution, not a current implementation goal. The desktop surface does **not** require the combat tracker in the MVP. If some additional Android functionality becomes naturally available on desktop at negligible cost, that does not make feature parity a requirement.
 
@@ -90,7 +91,7 @@ MVP character creation means **manual character-sheet data entry**, not a guided
 
 Character data is structured information independent from any specific PDF layout. The owner maintains custom sheet layouts in Adobe InDesign; existing PDFs are not fillable/editable PDFs.
 
-PDF export supports at least:
+PDF export is available on both Android and the DM desktop companion under D-0040 and supports at least:
 
 1. permanent/baseline-only output;
 2. full latest digital-sheet-state output including transient values where stored.
@@ -234,7 +235,7 @@ The MVP assistant may answer from **both supported official SRDs** and must clea
 
 The MVP rules assistant does **not** automatically know or apply campaign house rules. If a campaign rule differs from an official SRD rule, the DM/player applies the campaign rule manually for now. The assistant must not present campaign homebrew as if it were official SRD content.
 
-This specifies the product outcome, not the implementation. AI provider/model, retrieval approach and architecture remain deferred to technology evaluation.
+The approved technical implementation is recorded in D-0041: versioned/provenance-preserving PostgreSQL chunks, PostgreSQL full-text retrieval first, and a replaceable LLM integration initially using Cloudflare Workers AI. That technical choice does not change the product rule that answers must be grounded in supported official SRD material.
 
 ### Broader post-MVP direction
 
@@ -394,7 +395,8 @@ MVP includes:
 - manual monster creation/data entry;
 - manual NPC creation/data entry;
 - saved encounter creation/editing;
-- minimum account/campaign/PC administration required by the approved workflows.
+- minimum account/campaign/PC administration required by the approved workflows;
+- character-sheet PDF regeneration/export.
 
 The desktop MVP does **not** require a player-facing desktop application, full Android feature parity or the combat tracker. Desktop remains primarily preparation/administration; broader parity may be considered much later.
 
@@ -408,9 +410,9 @@ Characters, NPCs, monster definitions, saved encounters, campaign membership and
 
 Live combat is the deliberate exception in authority semantics: hosted storage is its durable shared/recovery home, but the active DM device remains authoritative while that encounter is running and commits locally first.
 
-No provider is selected. Neon/Postgres remains only a candidate mentioned during discovery.
+The approved hosted topology is D-0034: **Neon PostgreSQL** for durable shared relational data, **Cloudflare** for suitable stable backend/API/connectivity/object-storage/realtime infrastructure, and **Descope** for authentication only. Native clients do not connect directly to Neon under D-0039.
 
-Architecture evaluation must consider authentication/authorization, multicampaign synchronization, offline DM combat continuation and reconciliation, backups/recovery, service limits, maintenance burden, cost/lock-in, PDF generation and SRD retrieval/clarification.
+The approved architecture also includes local SQLite/SQLDelight persistence and project-owned synchronization under D-0038, with stricter DM-authoritative reconciliation for live combat.
 
 ## 17. Approved MVP boundary
 
@@ -437,7 +439,8 @@ Architecture evaluation must consider authentication/authorization, multicampaig
 - manual NPC data entry;
 - saved encounter creation/editing;
 - minimum account/campaign/PC administration;
-- multicampaign administration/selection as required by the approved workflows.
+- multicampaign administration/selection as required by the approved workflows;
+- character-sheet PDF regeneration/export.
 
 ### Supporting MVP functionality
 
@@ -483,9 +486,9 @@ The original discovery clarification rounds and the final pre-merge product-tens
 
 No additional product-level contradiction or unresolved behavioral tension remains from the final audit pass.
 
-No application technology stack or architecture is selected yet. The next major step, after Phase 1 merge closure, is to evaluate architecture/technology alternatives against the approved MVP and constraints, including Android phone/tablet behavior, desktop administration, multicampaign shared data, offline-resilient combat, synchronization, PDF generation, SRD retrieval/clarification, maintainability, personal-scale/no-cost hosting and future incremental extensibility.
+The foundational Phase 2 architecture/technology choices are now owner-approved under D-0034 through D-0043, including Android/desktop implementation, local persistence/synchronization, hosted providers/API boundary, PDF export, SRD clarification, Android 11 minimum support, and the minimal scaffold/testing structure.
 
-Consequential architecture/stack choices remain owner-controlled and must be approved before implementation begins.
+The remaining work before implementation scaffolding is bounded documentation consolidation/review and merge of the approved architecture branch into canonical `main`. No new architecture decision is required for that cleanup.
 
 ## 19. Discovery source material
 
