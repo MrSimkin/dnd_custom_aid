@@ -94,3 +94,26 @@ The owner prefers implementing multicampaign behavior in the MVP because it is c
 - Stable structured fields and first-class action/trait records should support search, display, encounter use and combat reference now.
 - Deeper structured mechanics should be additive through ordinary evolution/migrations rather than requiring replacement of monster, encounter or combat models.
 - Human-readable completeness takes priority over speculative machine interpretation in the MVP.
+
+---
+
+## 5. Paper-first live authority vs complete digital character state
+
+**Confirmed resolution:** live-session authority follows the surface actually being used for play, while the latest intentionally saved/reconciled digital record is the durable backup baseline.
+
+1. During normal paper-first play, **paper is the authoritative live-session state**.
+2. Digital represents the **latest digitally recorded/reconciled state**, not necessarily the current physical-table state.
+3. The application should show a **last updated / freshness indication** so users do not mistake an old digital backup for current live truth.
+4. There is no automatic assumption that digital values supersede newer paper notes.
+5. When the player performs the normal end-of-session reconciliation, the resulting saved digital state becomes the **new durable baseline/backup**.
+6. If the player is actively using the application instead of paper for a session, the digital sheet may temporarily be the live authoritative working state.
+7. Returning later to paper should use the latest reconciled/exported state as the starting point.
+8. The application does **not** attempt automatic conflict merging between paper and digital because it cannot observe changes written only on paper.
+
+### Consequences
+
+- "Authoritative" has two contexts: live-session authority and durable stored authority.
+- Paper-first play does not make digital data disposable; digital remains the durable reconstruction/reference baseline after reconciliation.
+- Digital storage must not silently overwrite unobserved paper changes merely because its timestamp or sync state is newer.
+- Freshness information is a meaningful UX requirement, not only decorative metadata.
+- No paper/digital conflict-resolution engine is required for the MVP.
