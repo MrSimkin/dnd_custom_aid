@@ -7,7 +7,7 @@ upsert:
 INSERT OR REPLACE INTO app_meta(key, value)
 VALUES (?, ?);
 
-findByKey:
-SELECT *
+findValueByKey:
+SELECT value
 FROM app_meta
 WHERE key = ?;
