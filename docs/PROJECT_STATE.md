@@ -5,7 +5,7 @@
 **Current working branch:** `architecture/phase2-topology`  
 **Open review:** none yet  
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Phase 1 is complete. Architecture evaluation is active on `architecture/phase2-topology`. Architecture decisions A-0001 through A-0007 are approved on the working branch. New governance rules explicitly make approvals revisable when later evidence exposes misunderstood implications or contradictions. No application code has been scaffolded and the broader architecture/technology foundation remains incomplete.
+**Status:** Phase 1 is complete. Architecture evaluation is active on `architecture/phase2-topology`. Architecture decisions A-0001 through A-0008 are approved on the working branch. A-0009 (Supabase as the initial hosted application platform) is a documented proposal only and was **not approved** before the session paused. New governance rules explicitly make approvals revisable when later evidence exposes misunderstood implications or contradictions. No application code has been scaffolded and the broader architecture/technology foundation remains incomplete.
 
 ## 1. Current product baseline
 
@@ -118,6 +118,18 @@ Automatic cross-campaign propagation must always be intentional. Live encounters
 
 Full rationale and consequences are in `docs/ARCHITECTURE.md`; future product expectations are in `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`.
 
+### A-0008 — Hosted durable database engine: PostgreSQL
+
+Approved 2026-08-30.
+
+The shared hosted durable relational database engine is **PostgreSQL**. This selects the database engine only; it does not select Supabase, Neon, another host, authentication, API style, backend runtime, realtime transport or client access strategy.
+
+PostgreSQL fits the project's relational/integrity needs and broad tooling/hosting ecosystem. The owner's strong SQL/PostgreSQL experience is an additional practical advantage because it reduces inspection, debugging, analysis and migration-review friction, but it is not the sole rationale.
+
+Provider portability should remain reasonable where practical through repository-owned migrations and avoidance of unnecessary provider-specific coupling. Moving between PostgreSQL hosts should be easier than abandoning PostgreSQL entirely; the latter remains possible but may be expensive.
+
+Detailed rationale is in `docs/architecture/A-0008_POSTGRESQL_HOSTED_DATABASE.md`.
+
 ## 5. Current technical state
 
 No application code exists yet.
@@ -130,12 +142,12 @@ Approved foundation so far:
 - Room/SQLite Android structured local persistence;
 - hybrid combat current-state + outbox local model;
 - single-authority DM combat/reconnect protocol principles;
-- evolvable multicampaign/reuse domain boundaries.
+- evolvable multicampaign/reuse domain boundaries;
+- PostgreSQL as the hosted durable database engine.
 
 Still unresolved includes:
 
-- hosted backend/service approach;
-- hosted relational database/provider;
+- hosted backend/application platform/provider around PostgreSQL;
 - authentication/authorization implementation;
 - API/service protocol/contracts and Android networking approach;
 - player public-projection transport and sync scheduling details;
@@ -146,7 +158,7 @@ Still unresolved includes:
 - SRD storage/retrieval/clarification implementation;
 - build/module structure, test stack and CI.
 
-Named technologies mentioned earlier, including Neon/Postgres, Supabase, Firebase and similar services, are candidates only unless separately approved.
+**Supabase is currently only a proposal (A-0009), not approved.** Neon remains a serious alternative. PostgreSQL itself is approved under A-0008.
 
 ## 6. Architecture evaluation order
 
@@ -159,37 +171,34 @@ Current sequence:
 5. **Local combat state + synchronization outbox** — approved A-0005.
 6. **Combat authority/reconnect semantics** — approved A-0006.
 7. **Multicampaign/reuse domain boundaries** — approved A-0007.
-8. **Hosted backend/database/authentication/authorization/moderation + API/service approach.**
-9. Player public-projection transport and synchronization scheduling details.
-10. Minimum Android version and remaining Android infrastructure choices where needed.
-11. Local web implementation framework/launcher details.
-12. PDF generation/rendering.
-13. SRD corpus storage/retrieval/clarification and provenance.
-14. Testing/build/CI and durable project/module conventions.
+8. **Hosted database engine** — PostgreSQL approved A-0008.
+9. **Hosted application platform/provider + authentication/authorization/moderation + API/service approach** — active; A-0009 Supabase is proposed only.
+10. Player public-projection transport and synchronization scheduling details.
+11. Minimum Android version and remaining Android infrastructure choices where needed.
+12. Local web implementation framework/launcher details.
+13. PDF generation/rendering.
+14. SRD corpus storage/retrieval/clarification and provenance.
+15. Testing/build/CI and durable project/module conventions.
 
 Some adjacent items may be discussed out of numerical order where one decision materially constrains another, but do not silently select unresolved consequential technologies.
 
-## 7. Immediate next decision
+## 7. Immediate next decision / exact resume point
 
-The next owner-facing architecture question is the **hosted backend/database/authentication foundation**.
+The session stopped immediately after **Supabase was recommended but before the owner approved or rejected it**.
 
-Compare realistic small-scale/no-cost approaches against:
+The next owner-facing architecture decision is therefore the **hosted application platform/provider around PostgreSQL**.
 
-- relational multicampaign/domain requirements;
-- multiple independent clients and future native desktop;
-- explicit authorization/campaign moderation boundaries;
-- campaign invitation/rejoin semantics;
-- combat authority/revision/idempotency requirements;
-- public player projections;
-- client-independent service/API evolution;
-- backup/export/migration feasibility and provider lock-in;
-- personal-scale $0 hosting feasibility where practical;
-- maintenance/operational burden for an AI-assisted personal project.
+Current comparison state:
 
-Because provider capabilities, pricing/free tiers and supported features change over time, use current vendor documentation when making this comparison.
+- **Supabase — proposed recommendation, NOT approved.** Strength: integrated PostgreSQL + Auth + RLS integration + server-side functions + Realtime can reduce MVP infrastructure/operational burden. Important limitation identified: current Free-plan projects may pause after sufficient inactivity and can require the owner to manually resume the project from the dashboard before online shared functionality returns. Provider-specific auth/RLS/realtime/functions would also increase migration cost if tightly coupled.
+- **Neon — serious alternative.** Strength: PostgreSQL-first model and scale-to-zero/idle behavior are attractive for an infrequently used personal application. Trade-off: the project would likely need to assemble/host more surrounding API/auth/realtime infrastructure itself, increasing MVP complexity and maintenance burden.
+
+Full unapproved proposal/rationale is recorded in `docs/architecture/A-0009_SUPABASE_HOSTED_PLATFORM_PROPOSAL.md`.
+
+When resuming, current vendor documentation/free-tier behavior should be rechecked if enough time has passed for provider capabilities or pricing to change. Do **not** infer Supabase from the fact that it was recommended.
 
 ## 8. Handoff
 
-A fresh agent should read, in order, `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/GOVERNANCE.md`, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and relevant architecture/discovery notes only when rationale is needed.
+A fresh agent should read, in order, `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/GOVERNANCE.md`, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/architecture/A-0008_POSTGRESQL_HOSTED_DATABASE.md`, `docs/architecture/A-0009_SUPABASE_HOSTED_PLATFORM_PROPOSAL.md`, `docs/TESTING.md`, and relevant architecture/discovery notes only when rationale is needed.
 
-Treat Phase 1 product decisions as closed unless a genuinely new requirement, contradiction, misunderstood implication, or implementation discovery triggers `docs/GOVERNANCE.md`. Treat A-0001 through A-0007 as approved Phase 2 architecture decisions on the active working branch. The broader D-0009 architecture decision remains incomplete; implementation/scaffolding must not begin yet.
+Treat Phase 1 product decisions as closed unless a genuinely new requirement, contradiction, misunderstood implication, or implementation discovery triggers `docs/GOVERNANCE.md`. Treat A-0001 through A-0008 as approved Phase 2 architecture decisions on the active working branch. Treat A-0009 as **Proposed / NOT approved**. The broader D-0009 architecture decision remains incomplete; implementation/scaffolding must not begin yet.
