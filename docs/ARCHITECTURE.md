@@ -2,11 +2,11 @@
 
 ## Current status
 
-**Phase:** Phase 2 architecture selection — **complete for initial scaffolding**  
+**Phase:** Phase 3 — First Vertical Slice  
 **Architecture state:** Foundational choices approved, consolidated and simplified by the pre-main proportionality audit.  
-**Application code:** Not scaffolded yet.
+**Application code:** Phase 2 scaffold is canonical on `main`; the first local Android campaign slice is implemented on `implementation/local-campaign-selection`.
 
-Approved Phase 2 choices are D-0034 through D-0043. Together they resolve the consequential architecture questions originally tracked under D-0009 sufficiently to begin implementation scaffolding after explicit owner-approved merge into canonical `main`.
+Approved Phase 2 choices are D-0034 through D-0043. Together they resolve the consequential architecture questions originally tracked under D-0009. The current Phase 3 campaign slice uses the approved Android + shared Kotlin + SQLDelight foundation without requiring any new consequential architecture decision.
 
 The project deliberately targets a **personal/small-scale architecture**. C-0009 is controlling: choose the simplest safe implementation that satisfies real approved requirements and do not import enterprise-grade complexity without a concrete reason.
 
@@ -154,16 +154,20 @@ Use one simple GitHub Actions build/test workflow. No coverage gates, emulator f
 
 ## Architecture gate consequence
 
-The architecture-selection gate is complete for the **initial scaffold**. D-0009 is resolved/Approved by D-0034 through D-0043.
+The architecture-selection gate is complete. D-0009 is resolved/Approved by D-0034 through D-0043.
 
-The pre-main proportionality audit did not replace the architecture. It simplified how approved synchronization, offline behavior and Cloudflare capabilities are implemented so the scaffold does not kill a fly with a bazooka.
+The pre-main proportionality audit did not replace the architecture. It simplified how approved synchronization, offline behavior and Cloudflare capabilities are implemented so the project does not kill a fly with a bazooka.
 
-Low-level reversible implementation details may be chosen during scaffolding under D-0008 and existing conventions. A genuinely new consequential architecture/product choice must still be surfaced to the owner rather than silently assumed.
+Low-level reversible implementation details may be chosen during feature implementation under D-0008 and existing conventions. A genuinely new consequential architecture/product choice must still be surfaced to the owner rather than silently assumed.
 
-## Immediate next action
+## Current implementation consequence
 
-The architecture/consolidation/proportionality review is complete on the working branch. PR #3 is the formal review point.
+The Phase 3 local campaign create/select slice deliberately exercises only the architecture it actually needs:
 
-The remaining gate is **explicit owner authorization to merge PR #3 into canonical `main` under D-0007**. No merge is implied by architecture approval or by completion of this review.
+- Android Jetpack Compose UI;
+- shared Kotlin campaign behavior;
+- local SQLite/SQLDelight persistence.
 
-After that owner-authorized merge, the next task is **initial implementation scaffolding**, not another broad architecture-discovery round.
+It does **not** activate Descope, Neon, hosted synchronization, realtime infrastructure, PDF, SRD retrieval or additional Cloudflare services. That is intentional and consistent with C-0009.
+
+The next architecture work should arise from a concrete later feature requirement, not from reopening the completed Phase 2 architecture selection.
