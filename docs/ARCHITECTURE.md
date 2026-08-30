@@ -3,10 +3,10 @@
 ## Current status
 
 **Phase:** Phase 2 architecture selection — **complete for initial scaffolding**  
-**Architecture state:** Foundational choices approved and simplified by pre-main proportionality audit.  
+**Architecture state:** Foundational choices approved, consolidated and simplified by the pre-main proportionality audit.  
 **Application code:** Not scaffolded yet.
 
-Approved Phase 2 choices are D-0034 through D-0043. Together they resolve the consequential architecture questions originally tracked under D-0009 sufficiently to begin implementation scaffolding after owner-approved merge into canonical `main`.
+Approved Phase 2 choices are D-0034 through D-0043. Together they resolve the consequential architecture questions originally tracked under D-0009 sufficiently to begin implementation scaffolding after explicit owner-approved merge into canonical `main`.
 
 The project deliberately targets a **personal/small-scale architecture**. C-0009 is controlling: choose the simplest safe implementation that satisfies real approved requirements and do not import enterprise-grade complexity without a concrete reason.
 
@@ -162,6 +162,8 @@ Low-level reversible implementation details may be chosen during scaffolding und
 
 ## Immediate next action
 
-Finish the contradiction/read-order review of this architecture branch, ensure all simplifications are committed remotely, and present PR #3 for the owner's explicit merge authorization under D-0007.
+The architecture/consolidation/proportionality review is complete on the working branch. PR #3 is the formal review point.
+
+The remaining gate is **explicit owner authorization to merge PR #3 into canonical `main` under D-0007**. No merge is implied by architecture approval or by completion of this review.
 
 After that owner-authorized merge, the next task is **initial implementation scaffolding**, not another broad architecture-discovery round.
