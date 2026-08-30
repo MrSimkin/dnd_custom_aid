@@ -5,7 +5,7 @@
 **Current working branch:** `architecture/approved-backend-and-android`  
 **Open review:** none  
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Architecture evaluation is active. D-0034 through D-0039 are owner-approved and committed remotely; no application code has been scaffolded yet. The next owner-facing architecture decision is PDF generation/rendering.
+**Status:** Architecture evaluation is active. D-0034 through D-0041 are owner-approved and committed remotely; no application code has been scaffolded yet. The next owner-facing architecture decision is minimum Android version.
 
 ## 1. Approved product baseline
 
@@ -17,6 +17,7 @@
 - Paper is normally live character authority; digital is the latest intentionally saved/reconciled durable baseline.
 - Mixed D&D 5e/SRD 5.1, D&D 5.5e/SRD 5.2.1 and homebrew campaign content is allowed; the app is not a rules enforcer.
 - Live combat is local-first and DM-authoritative; hosted sync is secondary/opportunistic and stale remote state cannot overwrite newer authoritative local state.
+- Character-sheet PDF export is required on both Android and DM desktop.
 - Campaign moderation and application-global administration remain distinct.
 
 ## 2. Approved Phase 2 architecture
@@ -51,37 +52,40 @@
 - Use ordinary PostgreSQL integrity constraints and minimum sufficient server-side privileges.
 - Do not introduce blanket enterprise-style RLS/role/security machinery without a concrete need.
 
+### D-0040 — PDF export
+- Android and DM desktop both generate character-sheet PDFs locally/offline.
+- Android uses PdfBox-Android; desktop uses Apache PDFBox.
+- Owner InDesign-generated PDFs remain presentation templates, not the data model.
+
+### D-0041 — SRD retrieval/clarification
+- Official Spanish SRD 5.1 and SRD 5.2.1 are stored as versioned/provenance-preserving PostgreSQL chunks.
+- Retrieval initially uses PostgreSQL full-text search.
+- Relevant excerpts are sent to a replaceable LLM integration, initially Cloudflare Workers AI.
+- No embeddings/vector database unless real testing proves ordinary full-text retrieval insufficient.
+
 ## 3. Governing implementation attitude
 
-C-0009 is now explicit: this is a personal, deliberately limited project. Use the **simplest safe architecture that satisfies actual approved requirements**. Do not add commercial-SaaS/enterprise layers, generalized infrastructure or speculative scale machinery merely because they are industry patterns.
+C-0009 is explicit: this is a personal, deliberately limited project. Use the **simplest safe architecture that satisfies actual approved requirements**. Do not add commercial-SaaS/enterprise layers, generalized infrastructure or speculative scale machinery merely because they are industry patterns.
 
 C-0008 also remains active: use concise representative SQL when it helps the owner review relational/data decisions.
 
 ## 4. Still unresolved before scaffolding
 
-- PDF generation/rendering technology and template strategy.
-- SRD corpus storage/retrieval/clarification architecture.
-- Minimum Android version where relevant.
+- Minimum Android version (`minSdk`).
 - Testing/build/CI and only the module/project conventions actually needed to scaffold safely.
 
 D-0009 remains Pending until the required architecture set is complete.
 
 ## 5. Immediate next decision
 
-Evaluate **PDF generation/rendering** narrowly against the approved personal-project requirements:
-
-- character-sheet export must work without requiring continuous connectivity;
-- normal export uses the latest saved character state;
-- if unsaved edits exist, the user may deliberately export current edited values without saving them or creating audit history;
-- owner-provided/custom PDF character-sheet assets should be usable where practical;
-- avoid commercial licensing, server-side dependency and unnecessary cross-platform abstraction unless they provide a concrete benefit.
+Choose the **minimum Android API level** narrowly against the selected dependency floor and real maintenance needs. `minSdk` is separate from `compileSdk`/`targetSdk`; do not support obsolete Android versions merely for theoretical reach.
 
 ## 6. Durable checkpoint
 
-The active remote safety checkpoint is `architecture/approved-backend-and-android`. Approved architecture decisions D-0036 through D-0039 are also stored as dedicated files under `docs/decisions/` pending consolidation into the chronological `docs/DECISIONS.md` log before merge.
+The active remote safety checkpoint is `architecture/approved-backend-and-android`. Approved architecture decisions D-0036 through D-0041 are stored as dedicated files under `docs/decisions/` pending consolidation into the chronological `docs/DECISIONS.md` log before merge.
 
 ## 7. Handoff
 
 A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`, and the dedicated files in `docs/decisions/` not yet consolidated.
 
-Continue Phase 2 from PDF generation/rendering. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
+Continue Phase 2 from minimum Android version. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
