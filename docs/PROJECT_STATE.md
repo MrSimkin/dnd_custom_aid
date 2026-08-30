@@ -5,7 +5,7 @@
 **Current working branch:** `discovery/initial-product-picture`  
 **Open review:** PR #2 — `Capture and refine initial product discovery without premature implementation`  
 **Phase:** Phase 1 — Product Discovery and Design (closure)  
-**Status:** Product/MVP baseline approved; final consistency audit completed; stale Phase-1 wording corrected; discovery branch reconciled with current `main` and is 0 commits behind. No application code or technology stack exists yet.
+**Status:** Product/MVP baseline approved; final consistency audit completed; stale Phase-1 wording corrected; discovery branch reconciled with current `main`; GitHub reports PR #2 mergeable/clean. No application code or technology stack exists yet.
 
 ## 1. Project in one paragraph
 
@@ -67,35 +67,13 @@ Account/login/recovery, campaign membership/invitations/moderation, persistence/
 
 ## 4. Round 3 decisions now authoritative
 
-### PDF export vs unsaved edits
-
-Normal export uses latest saved state. If unsaved edits exist, warn the user and ask whether to export anyway. If accepted, current unsaved values may be used for that PDF without saving/committing them or creating audit entries. `Save` and `Export` are separate operations. See D-0027.
-
-### Audit retention
-
-Keep complete grouped mechanical history initially; monitor actual growth; add retention/archive/compression only if real measurements justify it. Avoid speculative enterprise retention machinery while keeping later evolution practical. See D-0028.
-
-### Unassigned PCs
-
-PC-style characters may exist without a current player assignment. Assignment/control is an optional/changeable relationship, not a prerequisite for character existence. See D-0029.
-
-### Stat-block granularity
-
-Traits/actions are first-class structured objects, but v1 keeps complete mechanics primarily as formatted descriptions rather than a full atomic rules engine. Deeper structured fields should remain incrementally addable later without fundamental rewrite. See D-0030.
-
-### Encounter model
-
-Saved encounters are reusable templates. Starting one creates an independent live encounter copy. Live encounters may be changed freely before/during combat, and may also be created entirely on the fly without a saved template. See D-0031.
-
-### Accounts/invitations/moderation
-
-Core direction: one persistent identity; DM-controlled revocable invitation code/link; QR as convenient sharing; email invitation optional; standard email-based recovery; DM invitation revoke/regenerate; no public campaign discovery/elaborate approval queue in MVP.
-
-Approved controls are **Freeze PC**, **Kick user**, **Ban player**, and application-level **Freeze account**. Campaign DMs control campaign actions; application-wide account freeze is system/application administration. Data is preserved and controls are reversible where appropriate. See D-0032.
-
-### MVP boundary
-
-`D-0010 — Initial product scope / MVP` is Approved. Rules clarification is SRD-only in MVP; one active campaign is a first-version UI/business restriction; combat tracker is the most important live-table validation surface.
+- **PDF export vs unsaved edits:** normal export uses latest saved state; unsaved values may be exported only after warning/confirmation and are not saved/audited by export. See D-0027.
+- **Audit retention:** keep complete grouped mechanical history initially, monitor real growth, and add retention/archive/compression only if measurements justify it. See D-0028.
+- **Unassigned PCs:** PC-style characters may exist without a current player assignment. See D-0029.
+- **Stat-block granularity:** traits/actions are structured objects with complete formatted mechanics initially; deeper structured fields remain incrementally addable. See D-0030.
+- **Encounter model:** saved encounters create independent live copies; live encounters may also be created entirely on the fly and changed freely. See D-0031.
+- **Accounts/invitations/moderation:** DM-controlled revocable invitation link/code with QR convenience, email recovery, Freeze PC, Kick user, Ban player, and application-level Freeze account. See D-0032.
+- **MVP boundary:** D-0010 is Approved. Rules clarification is SRD-only in MVP; one active campaign is a first-version UI/business restriction; combat tracker is the most important live-table validation surface.
 
 ## 5. Other major approved direction still in force
 
@@ -145,18 +123,18 @@ No application tests exist because there is no application code.
 
 The final audit reviewed the authority/lifecycle chain across `AGENTS.md`, README, manifest, decisions, product definition, project state, roadmap, architecture, testing, workflow, conventions, Round 3 discovery record and PR #2.
 
-Corrections made during the audit:
+Corrections made:
 
-- `AGENTS.md` no longer says the project is only entering discovery; it now permits architecture evaluation while still blocking unapproved implementation/scaffolding.
+- `AGENTS.md` no longer says the project is only entering discovery; it now permits architecture evaluation while blocking unapproved implementation/scaffolding.
 - D-0003 now points to the later approved role/permission model instead of describing permissions as unresolved.
 - D-0009 now represents the full pending application-architecture/technology decision rather than only an Android-stack placeholder, and explicitly states that evaluation may begin.
-- `docs/ARCHITECTURE.md` now says the project has reached the architecture-evaluation gate and includes Android, desktop administration, offline/sync, auth, PDF and SRD requirements.
-- `docs/ROADMAP.md` clarifies that Phase 1 has satisfied its product baseline and that detailed feature-level acceptance criteria are authored incrementally before/with implementation slices rather than exhaustively during discovery.
+- `docs/ARCHITECTURE.md` now says the architecture-evaluation gate has been reached and includes Android, desktop administration, offline/sync, auth, PDF and SRD requirements.
+- `docs/ROADMAP.md` clarifies Phase 1 closure and that detailed feature-level acceptance criteria are authored incrementally before/with implementation slices rather than exhaustively during discovery.
 - `docs/TESTING.md` now includes the approved desktop/laptop administration surface and future cross-surface verification.
-- Round 3 and `MANIFEST.md` now state that promotion of Round 3 decisions into authoritative records is complete.
+- Round 3 and `MANIFEST.md` state that promotion of Round 3 decisions into authoritative records is complete.
 - README orientation/read-order wording is aligned with `AGENTS.md`.
 
-No substantive contradiction was found in the approved MVP/product behavior during the second pass.
+**Audit result:** no substantive contradiction was found in the approved MVP/product behavior during the second pass.
 
 ## 9. Branch/merge reconciliation
 
@@ -168,7 +146,9 @@ Verification after reconciliation:
 
 - compare base: current `main` commit `03d8bc3fdcc54cde9e29f9fc977235944e8b3d48`;
 - discovery branch is ahead of `main` and **0 commits behind**;
-- GitHub raw PR mergeability was still recalculating (`mergeable: null`, `mergeable_state: unknown`) immediately after the reconciliation; this is a GitHub computation state, not evidence of a remaining branch divergence.
+- GitHub raw PR state reports **`mergeable: true`** and **`mergeable_state: clean`**.
+
+There is therefore no remaining branch-divergence/merge-conflict blocker.
 
 ## 10. Remaining work before implementation
 
@@ -186,11 +166,11 @@ Consequential technical alternatives must be explained to and approved by the ow
 
 ## 11. Current review state and next action
 
-PR #2 remains open and intentionally unmerged. The product/MVP baseline and final consistency corrections are recorded on the discovery branch, which is reconciled with current `main`.
+PR #2 remains open and intentionally unmerged. The product/MVP baseline and final consistency corrections are recorded on the discovery branch. The branch is reconciled with current `main`, 0 commits behind, and GitHub reports the PR cleanly mergeable.
 
 `main` remains canonical until the owner approves/merges PR #2 under D-0007.
 
-**Next action:** re-check GitHub's mergeability calculation after the reconciliation; if clean, present the final audit result to the owner and merge PR #2 only with owner approval. After merge, update canonical project state to Phase 1 complete / Phase 2 architecture evaluation active.
+**Next action:** present the final audit result to the owner. If the owner approves, merge PR #2. After merge, immediately update canonical project state to **Phase 1 complete / Phase 2 architecture evaluation active** before beginning the architecture discussion.
 
 ## 12. Handoff note
 
