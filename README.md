@@ -28,7 +28,7 @@ Then read any feature-specific or technical files relevant to the task.
 - `main` is the canonical accepted project state (D-0007).
 - Git is the project's operative memory (D-0012).
 - Repository files, not chat memory, determine durable project truth.
-- Significant approved decisions are recorded in `docs/DECISIONS.md`; detailed Phase 2 checkpoints also remain under `docs/decisions/`.
+- Significant approved decisions are recorded in `docs/DECISIONS.md`; detailed Phase 2 records remain under `docs/decisions/` for deeper rationale.
 - Durable conventions belong in `docs/CONVENTIONS.md`.
 - `docs/PROJECT_STATE.md` is the authoritative current-state/next-action snapshot.
 - Discovery notes preserve exploratory reasoning but do not override confirmed product/decision records.
@@ -40,6 +40,8 @@ AI/coding agents perform the heavy technical execution. The owner remains the de
 Meaningful technical work must be explained. New durable conventions are discussed with the owner when they first arise, then recorded and followed consistently.
 
 C-0009 is controlling: **this is a personal/small-scale project. Prefer the simplest safe solution that satisfies real requirements and do not add enterprise machinery without a concrete reason.**
+
+The 2026-08-30 pre-main proportionality audit made that concrete: do not build generalized sync/realtime/provider-abstraction infrastructure just because it is technically possible.
 
 ## Design before implementation
 
@@ -53,7 +55,7 @@ The approved sequence is:
 6. consolidate/review the architecture branch;
 7. scaffold and implement incrementally.
 
-Phase 1 completed the product/design work. The consequential Phase 2 architecture choices D-0034 through D-0043 are owner-approved and documentation consolidation is complete. The project is now at the owner review/merge gate before the first scaffold.
+Phase 1 completed the product/design work. The consequential Phase 2 architecture choices D-0034 through D-0043 are owner-approved. The branch is now in its final proportionality/consolidation review before the first scaffold.
 
 ## Approved product baseline
 
@@ -68,19 +70,24 @@ The product baseline includes:
 - mixed D&D 5e/5.5e/homebrew campaign freedom while MVP rules clarification remains official-SRD-only;
 - Quick/Developed NPC workflows and complete/extensible monster stat blocks;
 - prepared and on-the-fly encounters;
-- local-first authoritative DM combat with opportunistic hosted synchronization and provisional player views;
+- local-first authoritative DM combat with opportunistic hosted synchronization;
+- player combat public view with only ephemeral local **Next turn** and visible-condition convenience while temporarily offline, discarded on reconnect;
 - local character-sheet PDF export on both Android and desktop.
 
 ## Approved architecture snapshot
 
 - Android: **Kotlin + Jetpack Compose**, minimum Android 11 / API 30.
 - Desktop DM administration: **Kotlin + Compose Multiplatform Desktop**.
-- Local persistence: **SQLite + SQLDelight**, local-first where practical.
+- Local persistence: **SQLite + SQLDelight** where offline/local behavior provides real value.
+- Desktop MVP: **Save locally + explicit Sync**; failed Sync never discards local work.
 - Hosted database: **Neon PostgreSQL**.
-- Backend/API: **Cloudflare Workers**, implemented in TypeScript.
+- Backend/API: **Cloudflare Worker**, implemented in TypeScript.
 - Authentication: **Descope**; application/domain authorization remains project-owned.
 - Native clients never connect directly to Neon or hold DB credentials.
-- Synchronization is project-owned; ordinary data uses revision/idempotency safeguards while active combat uses stricter DM-authority semantics.
+- Ordinary synchronization is deliberately small: stable IDs, idempotent mutations, revisions, a small outbox where needed, and simple tombstones.
+- Active DM combat uses one authoritative DM device plus an increasing combat sequence/version in MVP; authority-generation/handoff machinery is deferred.
+- Ordinary HTTP/request-response and simple polling/refresh come before WebSockets/Durable Objects/realtime infrastructure.
+- Provider replaceability means keeping vendor-specific code reasonably localized, not building provider abstraction frameworks.
 - PDF export: PdfBox-Android on Android and Apache PDFBox on desktop, local/offline.
 - SRD clarification: official Spanish SRD 5.1 + SRD 5.2.1 in PostgreSQL, initial full-text retrieval, initially Cloudflare Workers AI for grounded answers; no vector machinery unless testing proves it necessary.
 - Initial project/testing structure is deliberately small under D-0043/C-0009.
@@ -89,8 +96,8 @@ See `docs/ARCHITECTURE.md` for the full current architecture record.
 
 ## Current status
 
-**Phase 1 is complete and merged. Phase 2 architecture selection and documentation consolidation are complete. No application code has been scaffolded yet.**
+**Phase 1 is complete and merged. Phase 2 architecture selection is complete in substance. No application code has been scaffolded yet.**
 
-PR #3 is the formal owner review point for merging the approved Phase 2 architecture branch into canonical `main`.
+PR #3 is the formal owner review point for merging the approved and simplified Phase 2 architecture branch into canonical `main` after the final contradiction/commit verification.
 
-After PR #3 is accepted into `main`, the next project action is the **initial implementation scaffold**, not another broad architecture-discovery round.
+After owner-authorized merge of PR #3 into `main`, the next project action is the **initial implementation scaffold**, not another broad architecture-discovery round.
