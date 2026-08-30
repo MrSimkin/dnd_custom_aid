@@ -4,8 +4,8 @@
 **Canonical branch:** `main`  
 **Current working branch:** `architecture/approved-backend-and-android`  
 **Open review:** draft PR #3 — `Finalize approved Phase 2 architecture decisions`  
-**Phase:** Phase 2 — architecture selection complete; pre-main proportionality cleanup and final review  
-**Status:** Foundational architecture D-0034 through D-0043 is owner-approved. A pre-main audit simplified synchronization/offline/infrastructure implementation without changing the selected stack. No application code has been scaffolded yet.
+**Phase:** Phase 2 — architecture selection, consolidation and proportionality review complete; owner merge authorization pending  
+**Status:** Foundational architecture D-0034 through D-0043 is owner-approved, consolidated and simplified under C-0009. No application code has been scaffolded yet.
 
 ## 1. Approved product baseline
 
@@ -102,24 +102,55 @@ C-0008 remains active: use concise representative SQL when it helps the owner re
 
 The consequential architecture questions tracked by D-0009 are resolved by D-0034 through D-0043. The pre-main proportionality audit does not reopen D-0009; it simplifies the implementation meaning of already-approved decisions.
 
-`docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/CONVENTIONS.md` and the detailed D-0036–D-0043 records are being aligned to this simplified interpretation before canonical merge.
+The authoritative control docs have been aligned to the simplified interpretation:
+
+- `README.md`
+- `AGENTS.md`
+- `MANIFEST.md`
+- `docs/DECISIONS.md`
+- `docs/CONVENTIONS.md`
+- `docs/PRODUCT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/ROADMAP.md`
+- `docs/TESTING.md`
+- detailed D-0036 through D-0043 records under `docs/decisions/`
 
 No further broad architecture discovery is required before the first scaffold.
 
-## 5. Immediate next work
+## 5. Verification status
 
-Finish the bounded consolidation/contradiction sweep, verify every change is committed remotely, and update PR #3 to reflect the final simplified architecture.
+The working branch contains documentation/decision work only; no application implementation code has been scaffolded.
 
-Then the remaining gate is explicit owner authorization to merge PR #3 into canonical `main` under D-0007.
+The final review confirmed the intended simplified behavior in the committed files, including:
 
-After that merge, begin the initial implementation scaffold from the newly canonical architecture state. The first scaffold should implement only the approved foundation, not begin broad MVP feature buildout simultaneously.
+- ephemeral/non-uploaded player offline Next-turn/condition changes;
+- one authoritative DM device + increasing combat sequence/version;
+- no MVP authority-generation/lineage mechanism;
+- Desktop local Save + explicit Sync;
+- HTTP/polling before realtime infrastructure;
+- no initial R2/Durable Objects/WebSockets/queues unless a real feature later needs them;
+- no generalized provider-abstraction or synchronization framework.
 
-## 6. Durable checkpoint
+The branch must remain unchanged between the final owner review and merge; if the head changes, re-verify before merging.
 
-The active remote safety checkpoint is `architecture/approved-backend-and-android`. All architecture work and pre-main audit simplifications must be committed remotely before merge is proposed.
+## 6. Immediate next work
 
-## 7. Handoff
+PR #3 is the formal owner review point.
 
-A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`, `docs/ROADMAP.md`, `docs/TESTING.md`, and the detailed architecture records under `docs/decisions/` when deeper rationale is needed.
+The remaining gate is **explicit owner authorization to merge PR #3 into canonical `main` under D-0007**. Architecture approval, cleanup completion, or a recommendation to merge do not themselves authorize that operation.
 
-Treat D-0034 through D-0043 as approved architecture, with the 2026-08-30 proportionality clarifications controlling where older wording is more elaborate. The next gate is owner review/merge of PR #3, followed by scaffolding. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
+After owner-authorized merge:
+
+1. verify `main` contains the approved architecture checkpoint;
+2. begin the initial implementation scaffold from canonical `main`;
+3. implement only the approved minimal foundation first, not broad MVP feature buildout simultaneously.
+
+## 7. Durable checkpoint
+
+The active remote safety checkpoint is `architecture/approved-backend-and-android`. All architecture decisions, consolidation and proportionality-audit changes are committed remotely on that branch.
+
+## 8. Handoff
+
+A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, and `docs/TESTING.md`. Read detailed `docs/decisions/` records only when deeper rationale is useful.
+
+Treat D-0034 through D-0043 and their 2026-08-30 proportionality clarifications as the approved architecture baseline. The next gate is owner authorization/merge of PR #3, followed by scaffolding. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
