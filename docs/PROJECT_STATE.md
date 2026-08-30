@@ -2,153 +2,128 @@
 
 **Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
-**Current working branch:** `main` — no implementation branch created yet  
-**Open review:** none; PR #3 merged 2026-08-30  
-**Phase:** Phase 2 — architecture accepted on canonical `main`; initial implementation scaffolding is next  
-**Status:** Foundational architecture D-0034 through D-0043 and the pre-main C-0009 proportionality clarifications are canonical on `main`. No application code has been scaffolded yet.
+**Current working branch:** `implementation/initial-scaffold`  
+**Open review:** scaffold PR to be created after this handoff commit  
+**Phase:** Phase 2 — scaffold implementation complete and verified; review/merge is the remaining Phase 2 gate  
+**Status:** Minimal implementation foundation exists on the focused branch and passes CI. No broad MVP feature implementation has begun.
 
-## 1. Approved product baseline
+## 1. Canonical baseline
 
-`dnd_custom_aid` is a personal/small-scale tabletop RPG assistant beginning with D&D.
+The approved product and architecture baseline remains D-0034 through D-0043 plus the 2026-08-30 C-0009 proportionality clarifications already merged to `main` through PR #3.
 
-- Android phone/tablet is the primary live/table surface.
-- Desktop/laptop is a native DM preparation/administration companion with meaningful local/offline capability.
-- MVP is multicampaign with campaign-scoped roles/permissions.
-- Paper is normally live character authority; digital is the latest intentionally saved/reconciled durable baseline.
-- Mixed D&D 5e/SRD 5.1, D&D 5.5e/SRD 5.2.1 and homebrew campaign content is allowed; the app is not a rules enforcer.
-- Live combat is local-first and DM-authoritative; hosted sync is secondary/opportunistic and stale remote state cannot overwrite newer authoritative local state.
-- Character-sheet PDF export is required on both Android and DM desktop.
-- Campaign moderation and application-global administration remain distinct.
+Key implementation constraints remain:
 
-## 2. Approved Phase 2 architecture
+- personal/small-scale project; simplest safe solution first;
+- Android native Kotlin + Jetpack Compose, minimum API 30;
+- native Kotlin + Compose Multiplatform Desktop;
+- SQLite + SQLDelight selectively for useful local/offline behavior;
+- Desktop Save locally + explicit Sync;
+- Cloudflare Worker/HTTP first; realtime/storage extras only when a real feature needs them;
+- Neon PostgreSQL for hosted relational data;
+- Descope authentication only when authentication is implemented;
+- no generalized provider/sync frameworks;
+- one authoritative DM combat device + increasing sequence/version for MVP;
+- player offline turn/condition convenience is ephemeral and never synchronized.
 
-### D-0034 — Providers
-- Neon PostgreSQL for hosted durable relational data.
-- Cloudflare Worker/API as the initial hosted application gateway/backend.
-- Descope for authentication only.
-- Workers AI is used only for the SRD clarification feature when implemented.
-- R2, Durable Objects, WebSockets, queues and other Cloudflare services are deferred until an implemented feature actually needs them.
+## 2. Implemented scaffold
 
-### D-0035 — Android
-- Native Kotlin + Jetpack Compose.
+Branch `implementation/initial-scaffold` currently contains:
 
-### D-0036 — Desktop
-- Native Kotlin + Compose Multiplatform Desktop.
-- Offline-capable preparation/administration through local SQLite/SQLDelight.
-- Desktop MVP behavior is deliberately simple: **Save locally; Sync explicitly**.
-- Failed Sync retains local saved work; continuous background sync is not required.
+- `shared/` — one Kotlin Multiplatform shared module;
+- SQLDelight starter database/schema generation and an in-memory SQLite smoke test;
+- `androidApp/` — native Android Kotlin/Jetpack Compose shell;
+- `desktopApp/` — Kotlin/Compose Multiplatform Desktop shell;
+- `backend/` — TypeScript Cloudflare Worker shell with a minimal health endpoint;
+- `database/` — PostgreSQL migration/data-loading area without speculative domain tables;
+- `.github/workflows/scaffold-check.yml` — one simple CI workflow.
 
-### D-0037 — Domain boundaries
-- One shared relational PostgreSQL model with explicit global/campaign scope.
-- Global internal users; campaign membership/roles; characters belong to one campaign; ownership/control are separate.
-- Personal reusable content, campaign copies, official SRD sources, saved encounters, live encounters, character state/history and combat state remain appropriately distinct.
+No real campaign/character/combat/auth/PDF/SRD/realtime/domain implementation exists yet.
 
-### D-0038 — Local persistence/sync
-- SQLite via SQLDelight on Android and desktop.
-- Offline/local-first support is selective, not universal.
-- Ordinary synchronization is small and application-specific: outbox where needed, stable IDs, idempotent mutations, optimistic revisions and simple tombstones.
-- Rare genuine ordinary conflicts may be surfaced to the user rather than handled by a generalized merge engine.
-- DM combat uses one authoritative DM device and an increasing combat sequence/version for MVP.
-- Authority generations/lineages are deferred until an actual cross-device DM transfer/handoff feature exists.
-- Player offline combat convenience is only ephemeral local **Next turn** plus add/remove visible conditions; it is never uploaded and is replaced by DM state on reconnect.
-- HTTP request/response and simple refresh/polling are preferred before realtime transport.
+## 3. Current toolchain
 
-### D-0039 — Hosted API/authorization
-- Native clients do not connect directly to Neon or hold DB credentials.
-- Remote data access flows through Cloudflare backend/API.
-- Descope identity maps to internal application identity; domain authorization remains project-owned.
-- Use ordinary PostgreSQL integrity constraints and minimum sufficient server-side privileges.
-- Do not introduce blanket enterprise-style RLS/role/security machinery without a concrete need.
+The verified scaffold uses:
 
-### D-0040 — PDF export
-- Android and DM desktop both generate character-sheet PDFs locally/offline.
-- Android uses PdfBox-Android; desktop uses Apache PDFBox.
-- Owner InDesign-generated PDFs remain presentation templates, not the data model.
+- JDK 17;
+- Gradle 9.5;
+- Kotlin 2.4.10;
+- Android Gradle Plugin 9.3.2;
+- Android `minSdk 30`, compile/target SDK 36;
+- Android Jetpack Compose through the stable AndroidX Compose BOM path;
+- Compose Multiplatform 1.12.0 for Desktop;
+- SQLDelight 2.3.2;
+- Node.js 22 in CI;
+- TypeScript 6.0.3;
+- Wrangler 4.127.1.
 
-### D-0041 — SRD retrieval/clarification
-- Official Spanish SRD 5.1 and SRD 5.2.1 are stored as versioned/provenance-preserving PostgreSQL chunks.
-- Retrieval initially uses PostgreSQL full-text search.
-- Relevant excerpts are sent to a replaceable LLM integration, initially Cloudflare Workers AI.
-- No embeddings/vector database unless real testing proves ordinary full-text retrieval insufficient.
+Android intentionally stays on stable SDK 36 for this scaffold rather than depending on Android 17/API 37 preview-channel tooling. This does not change the approved Android 11/API 30 minimum.
 
-### D-0042 — Android compatibility floor
-- `minSdk = 30` / Android 11.
-- Optimize for the real device set and modern Android UX instead of hypothetical legacy support.
+## 4. Verification
 
-### D-0043 — Initial code/test structure
-- Keep a few obvious code areas: shared Kotlin logic, Android app, desktop app, TypeScript Cloudflare backend, and SQL/database work.
-- Share logic only where genuinely common; do not share UI merely for symmetry.
-- Automated tests protect consequential data/sync/combat-sequence/backend behavior and database migrations.
-- One simple GitHub Actions build/test workflow; no enterprise testing/deployment ceremony.
-- Provider replaceability means sensible code locality, not provider-abstraction factories/frameworks.
+Final pre-handoff scaffold code head verified: `335cf523785a7f503186acd1057ebce72c121b27`.
 
-## 3. Governing implementation attitude
+GitHub Actions run #9 completed successfully on that exact head:
 
-C-0009 is controlling: this is a personal, deliberately limited project. Use the **simplest safe architecture that satisfies actual approved requirements**. Do not add commercial-SaaS/enterprise layers, generalized infrastructure or speculative scale machinery merely because they are industry patterns.
+### Kotlin job — success
 
-The pre-main proportionality audit made that principle concrete:
+```bash
+gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+```
 
-- provider selected ≠ activate every provider service;
-- HTTP before realtime;
-- Save+Sync instead of a Desktop sync platform;
-- one DM device + sequence instead of pre-building distributed authority handoff;
-- ephemeral player offline convenience instead of player conflict reconciliation;
-- selective offline support rather than universal offline behavior;
-- localized vendor integration rather than abstraction-framework ceremony.
+This verifies:
 
-C-0008 remains active: use concise representative SQL when it helps the owner review relational/data decisions.
+- shared Kotlin compilation;
+- SQLDelight code generation;
+- in-memory SQLite smoke schema/query test;
+- Android debug APK assembly;
+- Desktop compilation/build.
 
-## 4. Architecture gate
+### Backend job — success
 
-The consequential architecture questions tracked by D-0009 are resolved by D-0034 through D-0043. The proportionality audit simplified the implementation meaning of those approved decisions without reopening the selected stack.
+```bash
+cd backend
+npm install
+npm run check
+```
 
-PR #3 merged the approved architecture and proportionality clarifications into canonical `main` on 2026-08-30. Merge commit: `a57930da0e1d0ed79c0e9b5cdb62bf24129f6f1f`.
+This verifies Wrangler type generation and TypeScript type checking.
 
-No further broad architecture discovery is required before the first scaffold.
+No emulator/device UX test has been performed yet because the scaffold contains no meaningful user workflow.
 
-## 5. Verification status
+## 5. Known non-blocking tooling note
 
-`main` was verified after the PR #3 merge. No application implementation code exists yet.
+The current Kotlin/AGP toolchain emits a deprecation warning for the KMP Android library target DSL used by the `shared` module. The current official Kotlin KMP application template still uses the same `androidLibrary` block, so the project deliberately does not churn a green scaffold merely to silence that tooling-transition warning.
 
-The canonical documents confirm the intended simplified behavior, including:
+There is also currently no committed Gradle wrapper JAR because the repository connector could not safely transfer the official binary wrapper JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the standard wrapper later without changing architecture.
 
-- ephemeral/non-uploaded player offline Next-turn/condition changes;
-- one authoritative DM device + increasing combat sequence/version;
-- no MVP authority-generation/lineage mechanism;
-- Desktop local Save + explicit Sync;
-- HTTP/polling before realtime infrastructure;
-- no initial R2/Durable Objects/WebSockets/queues unless a real feature later needs them;
-- no generalized provider-abstraction or synchronization framework.
+Neither item blocks the scaffold.
 
-## 6. Immediate next work
+## 6. Explicit non-implementation
 
-The next project task is the **initial implementation scaffold** from canonical `main`.
+Do not infer that architecture selections are already wired merely because their folders/providers were approved. The scaffold does **not** yet contain:
 
-Before substantial scaffold changes, create a focused non-`main` implementation branch under the normal workflow unless the owner explicitly requests direct `main` work.
+- Descope authentication;
+- Neon/Hyperdrive connection;
+- R2;
+- Durable Objects;
+- WebSockets;
+- queues;
+- Workers AI;
+- PDFBox integration;
+- campaign/character/NPC/monster/encounter/combat domain schema;
+- synchronization outbox/revision behavior;
+- deployment/release automation.
 
-The scaffold should establish only the approved minimal foundation:
+Introduce these only through concrete approved vertical slices/features.
 
-1. reproducible Kotlin/Gradle structure;
-2. shared Kotlin logic/data area;
-3. Android application shell;
-4. Desktop application shell;
-5. SQLDelight local database foundation;
-6. TypeScript Cloudflare Worker/backend shell;
-7. PostgreSQL migration/data-loading area;
-8. baseline focused tests;
-9. one simple CI workflow;
-10. developer/agent build/setup instructions.
+## 7. Immediate next action
 
-Do not start broad MVP feature implementation at the same time, and do not activate deferred infrastructure merely because it is available.
+1. Commit this scaffold handoff documentation to `implementation/initial-scaffold`.
+2. Open the scaffold PR against `main`.
+3. Audit the complete branch diff, CI status, and mergeability.
+4. Merge only under owner authorization/delegation.
+5. After scaffold acceptance into `main`, Phase 2 closes.
+6. Select the first deliberately small Phase 3 vertical slice based on architectural value versus implementation cost.
 
-## 7. Durable checkpoint
+## 8. Next-phase principle
 
-Canonical checkpoint: `main` at merge commit `a57930da0e1d0ed79c0e9b5cdb62bf24129f6f1f`, plus this post-merge status update.
-
-The previous architecture branch/PR remains historical review evidence; it is no longer the operative working state.
-
-## 8. Handoff
-
-A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, and `docs/TESTING.md`. Read detailed `docs/decisions/` records only when deeper rationale is useful.
-
-Treat D-0034 through D-0043 and their 2026-08-30 proportionality clarifications as canonical architecture. The next task is the minimal initial scaffold. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
+The first vertical slice should prove a useful real workflow rather than activate infrastructure for its own sake. Prefer the smallest slice that exercises meaningful shared domain logic + local persistence + one real UI surface. Add hosted/auth/sync pieces only if that selected user workflow genuinely needs them.

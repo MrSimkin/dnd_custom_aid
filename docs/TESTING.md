@@ -2,9 +2,7 @@
 
 ## Current status
 
-There is no application code or build system yet, so there are no executable project tests at this stage.
-
-D-0043 defines the initial testing attitude: protect the failures that would materially hurt this personal project, keep CI small, and rely on practical real-device/manual verification for visual UX rather than building an enterprise test program.
+The initial implementation scaffold now exists on `implementation/initial-scaffold` and has executable CI/build checks. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
 
 ## 1. Core rule
 
@@ -18,128 +16,148 @@ Every meaningful implementation change should state concisely:
 - what was not tested when that matters;
 - relevant environment/device information when it matters.
 
-## 2. Initial automated verification scope
+## 2. Scaffold verification commands
 
-At scaffolding/early implementation, automated tests should concentrate on:
+### Kotlin / Android / Desktop / SQLDelight
 
-- shared Kotlin domain logic where mistakes could corrupt or misrepresent state;
+From repository root:
+
+```bash
+gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+```
+
+The current scaffold CI uses:
+
+- JDK 17;
+- Gradle 9.5;
+- Android SDK platform 36.
+
+This command currently checks:
+
+- shared Kotlin compilation;
+- SQLDelight code generation;
+- the in-memory SQLite smoke schema/query test;
+- Android debug APK assembly;
+- Desktop compilation/build.
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run check
+```
+
+This runs Wrangler type generation and TypeScript type checking.
+
+## 3. Last successful verification
+
+Final pre-handoff scaffold code revision:
+
+`335cf523785a7f503186acd1057ebce72c121b27`
+
+GitHub Actions run #9 completed successfully on that exact revision:
+
+- `kotlin` job — **success**;
+- `backend` job — **success**.
+
+The immediately preceding CI runs were also used during scaffold diagnosis. Early failures were resolved before the verified checkpoint; they are not current blockers.
+
+## 4. Known non-blocking tooling note
+
+The current Kotlin/AGP toolchain warns that the KMP `androidLibrary` target DSL used in `shared` is deprecated in favor of a newer API. The current official Kotlin KMP application template still uses the same block, so this project intentionally leaves the green scaffold unchanged until the supported transition is clearer.
+
+Do not suppress or workaround that warning with custom infrastructure merely for cosmetic cleanliness.
+
+A committed Gradle wrapper JAR is also not currently present because the repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. This is a local-developer convenience gap, not a test failure.
+
+## 5. Initial automated verification scope
+
+As real features appear, automated tests should concentrate on:
+
+- shared Kotlin domain logic where mistakes could corrupt/misrepresent state;
 - SQLDelight schema/migration correctness;
-- outbox, idempotent-mutation, revision/conflict and ordinary synchronization behavior that actually exists in MVP;
-- DM live-combat sequence/authority behavior;
-- consequential Cloudflare backend authentication/authorization and synchronization behavior;
-- compilation/build checks for Android, desktop and backend code.
+- outbox/idempotent mutation/revision behavior **once implemented**;
+- DM live-combat sequence/authority behavior **once implemented**;
+- consequential backend authentication/authorization/sync behavior **once implemented**;
+- Android/Desktop/backend compilation/build checks.
 
-This is deliberately **not** a requirement to automate every UI interaction, every feature, or every implementation detail.
+Do not create tests for infrastructure or behavior that does not yet exist.
 
-## 3. CI
+## 6. CI
 
-Use one simple GitHub Actions workflow for relevant pushes/pull requests. It should perform the practical Kotlin/Gradle and TypeScript/backend build/test checks available at that stage.
+Use one simple GitHub Actions workflow for relevant pushes/pull requests.
 
-CI is a safety check, not a deployment system.
+CI is a safety check, not deployment.
 
-Initial CI does **not** require:
+Initial CI does not require:
 
-- coverage-percentage gates;
-- SonarQube or similar enterprise quality tooling;
-- Android emulator/device farms;
-- large API-version matrices;
+- coverage gates;
+- SonarQube;
+- emulator/device farms;
+- broad API-version matrices;
 - staging infrastructure;
 - automatic production deployment;
-- automated release/installer publishing before it provides real value.
+- automated installer/release publishing;
+- giant screenshot suites.
 
-## 4. Android device verification
+## 7. Android device verification
 
-The approved Android minimum is **Android 11 / API 30** under D-0042.
+Approved minimum is Android 11 / API 30.
 
-Android UX is a priority, so visual/layout/interaction work should be checked manually on the actual relevant phone and tablet devices whenever practical. Representative compact/phone and larger/tablet layouts matter more than hypothetical support for obsolete Android versions.
+Manual real-device UX testing becomes important once a meaningful UI workflow exists. Compact phone and larger tablet layouts matter more than hypothetical obsolete Android versions.
 
-Automated UI tests may be added for a workflow when they solve a concrete regression problem; they are not a blanket requirement.
+The current scaffold has **not** received meaningful device UX testing because its UI is only a shell.
 
-## 5. Desktop verification
+## 8. Desktop verification
 
-The DM desktop client is native Kotlin + Compose Multiplatform Desktop. Verify the actual supported desktop environment(s) used by the project and the keyboard/mouse workflows that matter.
+The DM desktop client is native Kotlin + Compose Multiplatform Desktop. Build verification is currently automated; keyboard/mouse workflow verification should begin once real desktop features exist.
 
-Desktop synchronization tests should reflect the approved simple model:
+Desktop synchronization tests later should reflect the approved simple model:
 
-- **Save** persists locally even when offline;
-- **Sync** sends pending local changes and retrieves applicable remote changes;
-- failed Sync does not lose local saved work;
-- a later Sync can retry pending changes safely.
+- Save persists locally;
+- Sync sends pending local changes and retrieves applicable remote changes;
+- failed Sync does not lose local work;
+- later Sync can retry safely.
 
-MVP verification does **not** require player desktop behavior, Android/desktop feature parity, desktop combat tracking, or a continuous background-sync service.
+Do not build/test a continuous background-sync service unless the product later requires one.
 
-## 6. Multicampaign verification
+## 9. Local-first synchronization and combat verification
 
-Relevant implementation must verify campaign isolation and selection, including as applicable:
+When those features exist, high-value tests include:
 
-- multiple campaigns coexist independently;
-- one account can participate in multiple campaigns;
-- campaign-scoped roles/permissions do not leak;
-- character/NPC/encounter/history data remains attached to the correct campaign;
-- Kick/Ban/Freeze PC affects only its intended campaign/character scope;
-- global account freeze remains separate from campaign moderation;
-- invitations enroll only into their owning campaign.
+- coherent local mutation/outbox persistence;
+- duplicate mutations not applying twice;
+- stale ordinary revisions detected rather than blindly overwriting newer data;
+- DM combat surviving same-device interruption/restart;
+- network loss not preventing DM continuation;
+- increasing combat sequence/version rejecting delayed older updates;
+- no accidental MVP authority-generation/handoff machinery;
+- player offline Next-turn/visible-condition changes remaining ephemeral, never uploaded, and discarded on reconnect.
 
-## 7. Local-first synchronization and combat verification
+## 10. Character/PDF verification
 
-These behaviors are high-value automated-test targets because failure can lose or corrupt useful state:
+When implemented, verify:
 
-- local mutation and outbox persistence remain coherent where the outbox is used;
-- duplicate/idempotent mutations do not apply twice;
-- stale ordinary revisions are detected rather than blindly overwriting newer data;
-- active DM combat survives same-device interruption/restart once that persistence exists;
-- network loss does not prevent the DM from continuing combat;
-- the DM combat sequence/version rejects delayed older updates and older hosted state cannot replace newer authoritative DM state;
-- no authority-generation/handoff machinery is accidentally treated as an MVP requirement;
-- reusable monster/NPC/template edits do not silently mutate an already-running live encounter;
-- combat state and durable character-sheet state remain separate.
-
-### Player offline combat convenience
-
-Player offline behavior is intentionally tiny and should be verified as such:
-
-- while offline, the player can locally advance the displayed turn and add/remove visible conditions;
-- those local changes are never uploaded and never enter the sync outbox;
-- they never affect DM-authoritative combat state;
-- reconnecting replaces/discards the temporary local view with the latest DM public projection;
-- durability across player-app restart is not required.
-
-## 8. Character/PDF workflow verification
-
-Where relevant, verify:
-
-- last-updated/freshness reflects the latest saved/reconciled digital character state;
+- saved/freshness state is accurate;
 - Save and Export remain distinct;
-- the approved unsaved-export warning path works;
-- exporting unsaved values does not commit/save them;
-- Android and desktop PDF export work locally/offline against the approved template mapping;
-- paper-only changes are not falsely claimed to be observed or automatically merged.
+- unsaved-export warning works;
+- exporting unsaved values does not save them;
+- Android/Desktop PDF export works offline against approved template mappings.
 
-## 9. SRD clarification verification
+## 11. SRD clarification verification
 
-Where relevant, verify:
+When implemented, verify:
 
-- retrieval is grounded in the supported official Spanish SRD 5.1 / SRD 5.2.1 corpus;
-- source/version provenance is preserved in answers;
-- campaign homebrew is not silently presented as official SRD content;
-- ordinary PostgreSQL full-text retrieval is measured against real questions before adding vector/embedding machinery.
+- retrieval is grounded in supported official Spanish SRD 5.1 / 5.2.1;
+- source/version provenance is preserved;
+- homebrew is not silently presented as official SRD;
+- PostgreSQL full-text retrieval is tested before adding vector/embedding machinery.
 
-## 10. Infrastructure proportionality verification
+## 12. Regression rule
 
-The initial implementation should remain simple enough that verification does **not** assume infrastructure we deliberately deferred.
-
-- ordinary HTTP/request-response and simple polling/refresh are the default;
-- WebSockets, Durable Objects, queues, R2 or other Cloudflare services are tested only if a later concrete feature actually introduces them;
-- provider-specific code may be localized, but tests should not require generalized provider-abstraction frameworks that do not exist.
-
-## 11. Regression rule
-
-When fixing a reproducible defect, add an automated regression test when that test is practical and useful. If it is not, record the manual verification used.
-
-## 12. Test failures are project state
-
-If a branch is handed off with known failures, `docs/PROJECT_STATE.md` must identify the failing check/command, a useful error summary, current diagnosis if known, and the recommended next action.
+When fixing a reproducible defect, add a focused automated regression test when practical/useful. Otherwise record the manual verification used.
 
 ## 13. Proportionality
 
-C-0009 controls this document as much as the rest of the architecture: testing exists to protect this application and its data, not to simulate the process requirements of a commercial enterprise product.
+C-0009 controls testing: protect this application's useful behavior and data, not an imaginary commercial compliance process.

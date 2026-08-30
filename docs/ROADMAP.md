@@ -6,101 +6,86 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 **Goal:** make the repository safe for long-running, multi-chat, multi-agent development.
 
-**Current status:** Complete. Owner-approved foundation merged to `main` via PR #1 on 2026-08-28.
+**Status:** Complete. Merged to `main` through PR #1 on 2026-08-28.
 
 ---
 
 ## Phase 1 — Product Discovery and Design
 
-**Goal:** understand and design what the first useful version should actually do before selecting the technology stack.
+**Goal:** understand/design the first useful version before selecting technology.
 
-**Current status:** **Complete.** The approved product/MVP baseline was merged to canonical `main` via PR #2 on 2026-08-29.
-
-The result includes multicampaign scope, paper/digital authority, Android/desktop surface responsibilities, local-first DM combat authority, moderation/invitation semantics, NPC/monster/encounter direction, and sufficient product clarity to evaluate architecture.
-
-Do not reopen resolved Phase 1 questions merely because historical discovery notes describe earlier uncertainty; reopen only for a genuinely new requirement or contradiction.
+**Status:** Complete. Approved product/MVP baseline merged to `main` through PR #2 on 2026-08-29.
 
 ---
 
-## Phase 2 — Technical Options and Foundation
+## Phase 2 — Technical Foundation
 
-**Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval for consequential choices, then scaffold the chosen architecture.
+**Goal:** select proportionate architecture, scaffold it, verify it, and make the repository ready for incremental feature development.
 
-**Current status:** **Architecture selection/consolidation/proportionality review are complete and merged to canonical `main`; initial implementation scaffolding is next.**
+**Status:** **Scaffold implementation complete and CI-verified on `implementation/initial-scaffold`; review/merge is the remaining Phase 2 gate.**
 
 ### Architecture selection — complete
 
-Owner-approved decisions D-0034 through D-0043 establish:
+D-0034 through D-0043 establish the approved provider/client/data/testing baseline. The 2026-08-30 C-0009 proportionality audit further requires:
 
-- Neon PostgreSQL + Cloudflare + Descope provider topology;
-- native Android Kotlin + Jetpack Compose;
-- native Kotlin + Compose Multiplatform Desktop DM administration;
-- Android 11 / API 30 minimum;
-- explicit relational multicampaign domain boundaries;
-- SQLDelight/SQLite local persistence on Android/desktop;
-- deliberately small project-owned synchronization;
-- Cloudflare Worker/API as the hosted gateway, with proportional rather than enterprise-grade authorization/security machinery;
-- local/offline PDF export on Android and desktop;
-- PostgreSQL full-text retrieval over official Spanish SRD 5.1 / SRD 5.2.1 with an initially Cloudflare Workers AI answer layer;
-- a small shared/Android/desktop/backend/database implementation shape;
-- TypeScript for the Cloudflare backend;
-- focused tests and one simple GitHub Actions CI workflow.
+- Desktop local Save + explicit Sync;
+- one authoritative DM combat device + sequence/version;
+- ephemeral player offline turn/condition convenience only;
+- HTTP/polling before realtime;
+- localized provider code rather than generalized abstractions;
+- selective offline capability;
+- no speculative Cloudflare services or synchronization platform.
 
-The proportionality audit clarified implementation without changing the selected stack:
+Architecture checkpoint merged through PR #3 on 2026-08-30.
 
-- Desktop uses local **Save + explicit Sync**;
-- DM combat uses one authoritative device + increasing sequence/version; cross-device authority generations are deferred;
-- player offline combat convenience is only ephemeral local Next-turn/visible-condition state and is discarded on reconnect;
-- ordinary HTTP/polling comes before realtime infrastructure;
-- provider-specific code is localized without generalized provider abstraction frameworks;
-- offline capability is selective rather than universal.
+### Scaffolding — implemented and verified
 
-C-0009 governs implementation: this is a personal/small-scale project, so choose the simplest safe solution and add complexity only for a concrete need.
+The focused scaffold branch now provides:
 
-PR #3 merged this approved architecture checkpoint to `main` on 2026-08-30.
-
-### Scaffolding — current next task
-
-Create the approved minimal foundation on a focused implementation branch under the normal workflow unless the owner explicitly requests direct `main` work:
-
-- reproducible Kotlin/Gradle project;
-- shared Kotlin logic/data module or equivalent standard structure;
-- Android application shell;
-- Desktop application shell;
-- SQLDelight local database foundation;
-- TypeScript Cloudflare Worker/backend shell;
+- reproducible root Gradle configuration;
+- one shared Kotlin Multiplatform module;
+- Android Jetpack Compose application shell;
+- Compose Multiplatform Desktop application shell;
+- SQLDelight local database foundation and smoke test;
+- TypeScript Cloudflare Worker shell;
 - PostgreSQL migration/data-loading area;
-- baseline focused automated tests;
-- one simple CI workflow;
-- developer/agent setup/build instructions.
+- one simple GitHub Actions workflow;
+- documented setup/build/test commands.
 
-Do **not** scaffold R2, Durable Objects, WebSockets, queues, generalized provider abstractions, a background desktop synchronization platform, or other deferred infrastructure merely because it may be useful someday.
+The final scaffold code head `335cf523785a7f503186acd1057ebce72c121b27` passed the Kotlin/Android/Desktop/SQLDelight and backend CI jobs.
 
 ### Phase 2 exit criterion
 
-A fresh agent can clone the repository, follow documented commands, build the approved application foundation and run baseline tests, with the technical foundation traceable to approved product/design needs.
+Phase 2 closes when the verified scaffold is accepted into canonical `main` and repository status documentation reflects that merge.
 
 ---
 
 ## Phase 3 — First Vertical Slice
 
-**Goal:** implement one small end-to-end feature that proves the architecture and product workflow.
+**Goal:** implement one small real user workflow end-to-end to prove the foundation without prematurely activating the whole architecture.
 
-The feature itself must come from approved scope and have explicit observable acceptance criteria before it is considered complete.
+The first slice should:
 
-The combat tracker remains the most important live-table MVP validation surface, but the exact first vertical slice should be selected after scaffolding so it proves the most useful cross-cutting risk rather than being chosen arbitrarily.
+- be useful on its own;
+- exercise meaningful shared domain logic and local persistence;
+- produce a real UI interaction on at least one intended client surface;
+- have explicit observable acceptance criteria;
+- avoid hosted/auth/realtime complexity unless the workflow genuinely needs it;
+- remain small enough to diagnose architecture mistakes cheaply.
+
+Candidate slices should be compared after scaffold acceptance. A local-first character-record slice is a strong candidate because it can prove shared Kotlin + SQLDelight + real UI without requiring authentication, Neon, Descope, or realtime infrastructure immediately. The final slice selection remains a product/implementation decision, not an automatic consequence of this roadmap.
 
 ### Exit criterion
 
-A real approved user task works end-to-end on representative configurations, with tests and documented behavior.
+A real approved user task works end-to-end on representative configuration(s), with focused tests and documented behavior.
 
 ---
 
 ## Phase 4 — MVP Buildout
 
-**Goal:** implement the remaining approved MVP scope incrementally.
+**Goal:** implement remaining approved MVP scope incrementally.
 
-Prefer complete, testable slices over many half-finished screens. Each feature should have explicit acceptance criteria and leave project-state documentation current.
+Prefer complete testable slices over many half-finished screens. Introduce hosted sync/auth/provider integrations only when the corresponding slice needs them.
 
 ---
 
@@ -108,19 +93,17 @@ Prefer complete, testable slices over many half-finished screens. Each feature s
 
 **Goal:** make the first release dependable enough for real use.
 
-Potential areas include, only as applicable:
+Potential areas, only as observed/needed:
 
 - regression testing;
-- real phone/tablet usability checks;
-- desktop administration checks;
-- multicampaign navigation/isolation;
-- cross-surface shared-data behavior;
-- local-first combat/offline/reconnection behavior;
-- verification that ephemeral player offline turn/condition changes are discarded on reconnect and never affect DM authority;
-- accessibility review;
+- real phone/tablet usability;
+- desktop administration workflows;
+- multicampaign isolation;
+- local-first/offline/reconnection behavior;
+- PDF/export verification;
+- accessibility;
 - data migration/recovery;
-- performance where observed to matter;
-- backup/export behavior;
+- performance where measured to matter;
 - crash handling;
 - proportionate privacy/security review;
 - packaging/release process.
@@ -129,8 +112,6 @@ Potential areas include, only as applicable:
 
 ## Phase 6 — Post-MVP Evolution
 
-**Goal:** add features based on owner priorities and actual usage while preserving continuity and compatibility.
+**Goal:** add features based on actual priorities/usage while preserving continuity.
 
-Possible later directions already distinguished from MVP include broader Android/desktop feature parity, player desktop access, desktop combat tracking, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, realtime transport if actually needed, and other approved future expansions.
-
-Every significant expansion should go through the same sequence: alternatives/discussion → decision/design → specification → implementation → testing → Git continuity update → owner review.
+Possible later directions include broader Android/desktop parity, player desktop, desktop combat, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, realtime transport if proven useful, and other owner-approved expansions.

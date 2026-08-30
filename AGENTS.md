@@ -114,19 +114,9 @@ Concrete current examples:
 
 Add complexity only for a concrete requirement, observed problem, or real risk.
 
-## 6. Design before technology; approved architecture is now the baseline
+## 6. Design before technology; approved architecture is the baseline
 
-The project followed this sequence before implementation:
-
-1. understand the product problem and intended users;
-2. explore relevant product and interaction alternatives with the owner;
-3. design the intended behavior and experience with the owner;
-4. record approved product/design decisions and unresolved questions;
-5. evaluate technical stack/architecture options against that approved design;
-6. explain those technical options, trade-offs, and recommendations;
-7. obtain owner approval before locking in consequential stack/architecture choices.
-
-That architecture-selection sequence is complete for the initial scaffold under D-0034 through D-0043, including the 2026-08-30 proportionality clarifications.
+The initial architecture-selection sequence is complete under D-0034 through D-0043, including the 2026-08-30 proportionality clarifications.
 
 Do **not** reopen approved architecture merely because historical discovery/decision prose describes an earlier uncertainty. Follow the current `docs/DECISIONS.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `docs/CONVENTIONS.md`, and `docs/PROJECT_STATE.md` baseline.
 
@@ -177,7 +167,7 @@ For a change to be considered complete:
 
 ## 10. Continuity rule
 
-At the end of every meaningful work session, leave the repository in a state where a new agent can answer these questions without reading the old chat:
+At the end of every meaningful work session, leave the repository in a state where a new agent can answer:
 
 - What is this project?
 - What has been decided?
@@ -208,16 +198,16 @@ If repository documents disagree:
 2. Identify the contradiction.
 3. Prefer the most specific later approved decision/clarification over older general prose.
 4. Prefer newer explicitly dated current-state documentation when authority is otherwise equal.
-5. Use detailed `docs/decisions/` records for rationale, but the chronological `docs/DECISIONS.md` plus later approved amendments/clarifications control the current decision state.
+5. Use detailed `docs/decisions/` records for rationale, but the chronological `docs/DECISIONS.md` plus later approved amendments/clarifications control current decision state.
 6. Ask the owner only for a genuinely material ambiguity not already resolved by an approved decision.
 7. Record the resolution in the repository.
 
 ## 13. Current project stage
 
-**Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline is canonical on `main` after owner-approved PR #2.
+**Phase 1 — Product Discovery and Design is complete.** The approved product/MVP baseline is canonical on `main` after PR #2.
 
-**Phase 2 — foundational architecture selection/consolidation is complete and canonical on `main`.** Owner-approved PR #3 merged D-0034 through D-0043 and the 2026-08-30 proportionality clarifications. No application code has been scaffolded yet.
+**Phase 2 — architecture selection is canonical on `main`, and the minimal implementation scaffold is complete and CI-verified on `implementation/initial-scaffold`.** The scaffold provides working Android, Desktop, shared SQLDelight, backend, database-migration and CI foundations without broad feature implementation.
 
-The current task is the **initial implementation scaffold**. Substantial scaffold work should begin on a focused non-`main` branch under Section 8 unless the owner explicitly requests direct `main` work.
+The remaining Phase 2 gate is review/acceptance of that scaffold into canonical `main`. After acceptance, proceed to Phase 3 by selecting one deliberately small vertical slice from approved product scope.
 
-Start with the smallest scaffold necessary to prove the foundation. Do not begin another broad architecture-discovery round or activate speculative infrastructure unless a genuinely new requirement, contradiction, or expensive-to-reverse choice appears.
+The first slice should prove a real workflow with the smallest useful cross-section of UI + shared logic + persistence. Do not automatically activate authentication, hosted sync, realtime, PDF, SRD, or other infrastructure unless the selected slice genuinely requires it.
