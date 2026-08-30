@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -78,48 +77,47 @@ private fun CampaignScreen(repository: CampaignRepository) {
                 .padding(scaffoldPadding),
             contentAlignment = Alignment.TopCenter,
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .widthIn(max = 720.dp)
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(horizontal = 20.dp),
+                contentPadding = PaddingValues(top = 24.dp, bottom = 88.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text(
-                    text = "Campaigns",
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-                Text(
-                    text = "Choose the campaign you want to use on this device.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Campaigns",
+                            style = MaterialTheme.typography.headlineMedium,
+                        )
+                        Text(
+                            text = "Choose the campaign you want to use on this device.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
 
                 if (campaigns.isEmpty()) {
-                    Text(
-                        text = "No campaigns yet. Use + to create one.",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                    item {
+                        Text(
+                            text = "No campaigns yet. Use + to create one.",
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentPadding = PaddingValues(bottom = 88.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        items(
-                            items = campaigns,
-                            key = { campaign -> campaign.id.toString() },
-                        ) { campaign ->
-                            CampaignCard(
-                                campaign = campaign,
-                                isActive = campaign.id == activeCampaignId,
-                                onSelect = {
-                                    repository.setActiveCampaign(campaign.id)
-                                    reload()
-                                },
-                            )
-                        }
+                    items(
+                        items = campaigns,
+                        key = { campaign -> campaign.id.toString() },
+                    ) { campaign ->
+                        CampaignCard(
+                            campaign = campaign,
+                            isActive = campaign.id == activeCampaignId,
+                            onSelect = {
+                                repository.setActiveCampaign(campaign.id)
+                                reload()
+                            },
+                        )
                     }
                 }
             }
