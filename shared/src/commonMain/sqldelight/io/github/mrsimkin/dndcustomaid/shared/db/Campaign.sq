@@ -23,10 +23,8 @@ FROM campaign
 WHERE id = ?;
 
 setActiveCampaign:
-INSERT INTO app_state(singleton, active_campaign_id)
-VALUES (1, ?)
-ON CONFLICT(singleton) DO UPDATE
-SET active_campaign_id = excluded.active_campaign_id;
+INSERT OR REPLACE INTO app_state(singleton, active_campaign_id)
+VALUES (1, ?);
 
 selectActiveCampaign:
 SELECT campaign.id, campaign.name
