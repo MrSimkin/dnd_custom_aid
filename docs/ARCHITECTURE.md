@@ -3,15 +3,15 @@
 ## Current status
 
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Architecture state:** Partially decided; evaluation is **active**. Overall multi-client target topology, MVP desktop delivery, native Android client approach, Android local persistence technology, local combat/outbox persistence semantics, and DM combat authority/reconnect semantics are approved, but the application architecture/technology set is not complete.  
+**Architecture state:** Partially decided; evaluation is **active**. A-0001 through A-0007 are approved, covering multi-client topology, MVP localhost desktop delivery, native Android, Room/SQLite local persistence, local combat outbox semantics, DM combat authority/reconnect semantics, and evolvable multicampaign/reuse domain boundaries. The broader architecture/technology set is not complete.  
 **Application code:** Not scaffolded.  
-**Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
+**Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033), with additional approved evolution constraints in `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`.
 
 The project has reached the architecture-evaluation gate, **not** the implementation gate.
 
 ## Architecture decision gate
 
-Do not choose or scaffold unresolved backend/provider, minimum Android version, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, multicampaign domain boundaries, or other unresolved foundational technology merely to begin coding.
+Do not choose or scaffold unresolved hosted backend/provider, hosted database, authentication/authorization implementation, minimum Android version, PDF library, SRD retrieval/clarification approach, API protocol/style, desktop native framework, web framework/launcher runtime, or other unresolved foundational technology merely to begin coding.
 
 The approved product baseline includes:
 
@@ -19,6 +19,7 @@ The approved product baseline includes:
 - an intentionally narrower desktop/laptop DM preparation/administration surface using the same shared domain data, without MVP feature-parity or desktop-combat requirements;
 - a true native desktop application as an expected later product feature in addition to a web-capable desktop surface;
 - multicampaign membership, campaign selection and campaign-scoped roles/permissions;
+- deliberate future cross-campaign reuse/link/update/transfer capabilities defined in `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`;
 - paper-first live character authority plus a durable freshness-visible digital baseline;
 - complete human-readable monster stat blocks with selective structured mechanics and additive future enrichment;
 - local-first authoritative DM combat persistence;
@@ -33,7 +34,9 @@ The approved product baseline includes:
 - personal/small-scale hosting and cost expectations;
 - future-extensibility constraints that must not become present scope creep.
 
-The technical evaluation must be discussed with the owner, including realistic alternatives, trade-offs and a recommendation. Consequential choices require owner approval before becoming project truth or being used to scaffold implementation.
+The technical evaluation must be discussed with the owner, including realistic alternatives, trade-offs, practical examples, reversibility/migration consequences, and a recommendation. Consequential choices require owner approval before becoming project truth or being used to scaffold implementation.
+
+Approvals are revisable under `docs/GOVERNANCE.md`; later requirements or clearer understanding may trigger deliberate amendment/supersession rather than blind preservation of an earlier architecture choice.
 
 ## Approved Phase 2 architecture decisions so far
 
@@ -175,9 +178,74 @@ Player combat clients are not authoritative combat writers. They consume the lat
 - MVP deliberately prefers one writer plus explicit future handoff over simultaneous authoritative DM editing.
 - The exact token format, API protocol, transport, authentication mechanism, server implementation and synchronization scheduler remain unresolved implementation choices.
 
-### Product requirement carried into architecture evaluation
+### A-0007 — Explicit, evolvable ownership/context boundaries with deliberate cross-campaign reuse
 
-`docs/architecture/2026-08-30_FUTURE_DESKTOP_REQUIREMENT.md` records that a true native desktop application is an expected future product feature. That requirement predates and constrains A-0001; it does not itself select implementation technology.
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Approval note:** Owner explicitly requested that this decision remain reviewable under `docs/GOVERNANCE.md` if later implications prove misunderstood or undesirable.
+
+The domain must keep **ownership/context boundaries explicit** without turning those boundaries into permanent walls that prevent legitimate future cross-campaign continuity.
+
+The architecture distinguishes conceptually between:
+
+- application/user identity and global account state;
+- campaign participation, roles, permissions, moderation and campaign-specific context/state;
+- reusable personal-library/source content;
+- official/versioned reference content;
+- live-session encounter state.
+
+This is a **domain-boundary principle, not a frozen database schema**.
+
+#### Reusable NPC/creature behavior
+
+The same conceptual NPC or creature may legitimately appear in multiple campaigns, including simultaneous campaigns.
+
+The model must preserve the possibility of deliberate reuse relationships such as:
+
+1. **independent copy** — campaign use can diverge from the source;
+2. **linked + manual update** — provenance/linkage is retained and an explicit future **Update from Library** action can refresh/adopt changes;
+3. **selected live link** — some records may deliberately follow future source-library changes automatically.
+
+Automatic propagation must be intentional/explicit. Sharing an origin or identity must not by itself cause hidden cross-campaign mutation.
+
+Campaign-specific context/state may differ even when a reusable/canonical NPC identity is shared across campaigns.
+
+Exact MVP support for these three modes is not implied; `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md` records them as expected future capabilities that the architecture should not structurally prevent.
+
+#### Characters across campaigns
+
+Character identity must not be structurally imprisoned inside one campaign forever.
+
+The future product must be able to support both:
+
+- **copying** a character into another campaign when an independent resulting character is desired; and
+- explicitly **moving/transferring the same character** between campaigns while retaining durable identity and relevant continuity/history.
+
+The exact rules for simultaneous campaign participation, historical association, audit visibility, permissions and ownership/control during movement remain future product/design decisions. A-0007 requires architectural feasibility, not premature implementation of those workflows.
+
+#### Official/reference content
+
+Immutable/versioned official source content may retain stable source/version identity and provenance. Source/version should be explicit rather than silently mutating historical meaning.
+
+#### Live-session isolation remains unchanged
+
+A live encounter remains campaign-associated but is an independent runtime working state under D-0031/A-0005/A-0006. Editing a library source, campaign NPC/monster definition, or saved encounter must not silently rewrite an encounter already in progress, even when the source relationship is otherwise live-linked outside the running encounter.
+
+#### Reversibility/evolution consequence
+
+Future requirements may refine the schema, add relationship types, introduce linking/update/transfer workflows, or require data migrations. Those changes are allowed. The architecture should avoid both extremes:
+
+- hidden coupling where changes unexpectedly leak across campaigns; and
+- rigid isolation where legitimate shared identity, updating or transfer becomes a fundamental rewrite.
+
+### Product requirements carried into architecture evaluation
+
+- `docs/architecture/2026-08-30_FUTURE_DESKTOP_REQUIREMENT.md` records that a true native desktop application is an expected future product feature.
+- `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md` records expected future cross-campaign reuse/link/update/transfer capabilities.
+- `docs/GOVERNANCE.md` requires active contradiction detection and deliberate review of approvals when later evidence exposes misunderstood implications.
+
+These requirements constrain architecture evaluation without automatically expanding MVP implementation scope.
 
 ## Active evaluation order
 
@@ -191,18 +259,22 @@ Current sequence:
 4. ~~Android structured local persistence technology~~ — approved in A-0004;
 5. ~~local-first combat state/change persistence and synchronization queue semantics~~ — approved in A-0005;
 6. ~~combat authority/reconnect semantics~~ — approved in A-0006;
-7. **multicampaign domain/data-model boundaries**;
-8. hosted backend/database/authentication/authorization and moderation boundaries;
+7. ~~multicampaign/reuse domain boundaries~~ — approved in A-0007;
+8. **hosted backend/database/authentication/authorization/moderation boundaries and API/service approach**;
 9. player public-projection transport/delivery details and synchronization scheduling where still unresolved;
-10. PDF generation/rendering;
-11. SRD corpus storage/retrieval/clarification and provenance;
-12. testing/build/CI and durable module/project conventions.
+10. minimum Android version and remaining Android infrastructure choices where needed;
+11. local web implementation framework/launcher details;
+12. PDF generation/rendering;
+13. SRD corpus storage/retrieval/clarification and provenance;
+14. testing/build/CI and durable module/project conventions.
 
 ### Current decision under evaluation
 
-**Multicampaign domain/data-model boundaries.**
+**Hosted backend/database/authentication/authorization foundation.**
 
-The next comparison should define which concepts are global/account-scoped, campaign-scoped, reusable personal-library content, and live-session scoped so that multicampaign isolation, ownership/control, moderation, reuse and future client contracts remain coherent without duplicating whole objects unnecessarily.
+The next comparison should evaluate realistic personal-scale/no-cost hosted approaches against the approved requirements, including relational domain data, multicampaign authorization, invitation/moderation rules, client-independent service boundaries, future native/web clients, combat authority/revision semantics, backup/migration/lock-in, and operational burden.
+
+No provider or API style is selected merely because it appears as a candidate.
 
 ## Evaluation criteria
 
@@ -212,6 +284,7 @@ Evaluate options against criteria such as:
 - Android phone/tablet UI quality;
 - desktop/laptop administration usability without unnecessary parity work;
 - coherent multicampaign data isolation/selection and campaign-scoped permissions;
+- deliberate cross-campaign reuse/link/update/transfer evolution;
 - one-authority local-first DM combat behavior;
 - same-device combat persistence/recovery;
 - combat-aware synchronization where older remote state cannot overwrite newer authoritative DM state;
@@ -251,6 +324,7 @@ Architecture must not be selected on the false assumption that MVP requires:
 - co-DMs within one campaign;
 - multiple RPG systems in MVP;
 - implementation of the future native desktop client during MVP;
+- implementation of every future library-link/update/PC-transfer workflow in MVP;
 - Kotlin Multiplatform or shared UI simply because a future native desktop client is planned;
 - identical local and hosted database schemas;
 - permanent event sourcing for combat merely because an outbox exists;
@@ -283,3 +357,5 @@ D-0009 remains pending until the consequential architecture/technology set is su
 ## Convention relationship
 
 Architecture and project-structure conventions that become durable must also be recorded in `docs/CONVENTIONS.md` when appropriate. The owner should be consulted when such a convention first becomes relevant.
+
+If a later concrete requirement exposes that an approved architecture decision was based on a misunderstood implication, follow `docs/GOVERNANCE.md`: surface the conflict, explain reversibility/cost, and deliberately amend/supersede rather than silently preserving or silently violating the old decision.
