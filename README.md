@@ -6,7 +6,7 @@ Personal tabletop RPG assistant project beginning with D&D, with Android phone/t
 
 This repository is designed so a new human collaborator, ChatGPT conversation, coding agent, or other AI can resume the project from the repository alone.
 
-Before changing anything, read these files in order:
+After reading this README, continue with these files in order:
 
 1. `AGENTS.md` — mandatory operating rules for humans and AI agents.
 2. `MANIFEST.md` — map of authoritative/project-memory files.
@@ -16,7 +16,7 @@ Before changing anything, read these files in order:
 6. `docs/PRODUCT.md` — current approved product direction and MVP.
 7. `docs/ROADMAP.md` — development phases and current phase.
 8. `docs/WORKFLOW.md` — how alternatives are discussed and changes are designed, implemented, tested, documented, reviewed, and merged.
-9. `docs/ARCHITECTURE.md` — architecture status and rationale when architecture work begins.
+9. `docs/ARCHITECTURE.md` — architecture evaluation/status and rationale.
 10. `docs/TESTING.md` — verification rules and test status expectations.
 11. Relevant `docs/discovery/` notes for historical rationale/current design context.
 
@@ -56,13 +56,13 @@ See D-0011 and `docs/ROADMAP.md`.
 
 ## Current status
 
-The project is in **Phase 1 — Product Discovery and Design**, with the core first-use product baseline now substantially defined.
+The project is closing **Phase 1 — Product Discovery and Design**. The core first-use product/MVP baseline is approved; PR #2 is undergoing final consistency/merge closure before canonical `main` moves into Phase 2.
 
-Current discovery work is on branch `discovery/initial-product-picture` in PR #2. Three clarification rounds now establish the paper-first/full digital character-backup workflow, grouped DM audit/correction, campaign-scoped roles and unassigned PCs, account/invitation/moderation direction, mixed broader D&D 5e/5.5e rules direction, SRD-only MVP clarification, Quick/Developed NPC workflows, complete/extensible monster stat blocks, prepared and on-the-fly encounters, offline-resilient DM combat behavior, and the approved MVP boundary.
+Current discovery work is on branch `discovery/initial-product-picture` in PR #2. Three clarification rounds establish the paper-first/full digital character-backup workflow, grouped DM audit/correction, campaign-scoped roles and unassigned PCs, account/invitation/moderation direction, mixed broader D&D 5e/5.5e rules direction, SRD-only MVP clarification, Quick/Developed NPC workflows, complete/extensible monster stat blocks, prepared and on-the-fly encounters, offline-resilient DM combat behavior, and the approved MVP boundary.
 
-The seven previously highlighted product questions are resolved. `D-0010 — Initial product scope / MVP` is now **Approved**.
+The seven previously highlighted product questions are resolved. `D-0010 — Initial product scope / MVP` is **Approved**.
 
-The next major project step is to evaluate architecture and technology-stack alternatives against the approved MVP—especially Android phone/tablet behavior, desktop administration, offline combat, synchronization, PDF generation, SRD retrieval/clarification, maintainability and personal-scale/no-cost hosting—and obtain owner approval before implementation.
+The next major project step is **architecture and technology evaluation** against the approved MVP—especially Android phone/tablet behavior, desktop administration, offline combat, synchronization, authentication/security, PDF generation, SRD retrieval/clarification, maintainability and personal-scale/no-cost hosting. Architecture evaluation is permitted after Phase 1 closure; application implementation/scaffolding still requires owner-approved consequential architecture choices first.
 
 No application technology stack has been selected and no application code exists yet.
 
