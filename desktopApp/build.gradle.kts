@@ -11,7 +11,7 @@ kotlin {
 dependencies {
     implementation(projects.shared)
     implementation(compose.desktop.currentOs)
-    implementation(compose.material)
+    implementation(libs.compose.multiplatform.material)
 }
 
 compose.desktop {
