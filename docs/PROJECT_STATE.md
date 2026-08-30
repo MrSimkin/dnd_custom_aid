@@ -1,11 +1,11 @@
 # Project State
 
-**Last verified:** 2026-08-29  
+**Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
-**Current working branch:** none  
+**Current working branch:** `architecture/approved-backend-and-android`  
 **Open review:** none  
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Phase 1 is complete. PR #2 was owner-approved and merged into `main` at `b5a059b8e7fb9312232ad684356af05e27331b65`. The approved MVP is multicampaign. Architecture evaluation is now active; no application architecture, technology stack, framework, provider, or application code has been selected/scaffolded yet.
+**Status:** Architecture evaluation is active. Hosted backend/provider topology and Android client approach are now owner-approved and recorded; no application code has been scaffolded yet. The next owner-facing architecture decision is desktop/laptop administration delivery approach.
 
 ## 1. Current product baseline
 
@@ -25,105 +25,108 @@ Approved product shape:
 - Campaign moderation and global application administration are separate authority layers.
 - Campaign invitations are campaign-scoped, reusable until revoked/regenerated, and permit direct join without a second DM approval step.
 
-Detailed authoritative behavior lives in `docs/PRODUCT.md` and approved decisions through D-0033 in `docs/DECISIONS.md`.
+Detailed authoritative behavior lives in `docs/PRODUCT.md` and approved decisions in `docs/DECISIONS.md`.
 
-## 2. Phase 1 closure
+## 2. Approved Phase 2 architecture choices
 
-Phase 1 — Product Discovery and Design is **complete**.
+### Hosted backend/provider topology — D-0034
 
-The owner explicitly resolved the final eight product tensions before merge:
+- **Neon** is selected for hosted PostgreSQL as the durable shared relational database.
+- **Cloudflare** is selected as the preferred stable complementary application-infrastructure platform for web hosting, API/backend execution, database connectivity/pooling, object storage and realtime transport/coordination where appropriate.
+- **Descope** is selected for authentication only.
+- Campaign roles, ownership/control, moderation and application authorization remain project-owned in PostgreSQL/application logic.
+- The initial architecture must not depend on Neon beta/preview backend features merely because they are temporarily free.
+- Provider boundaries must preserve practical migration options; no provider is assumed permanent.
 
-1. Android live use vs desktop administration;
-2. multicampaign MVP scope;
-3. mixed/homebrew campaigns vs official-SRD-only MVP clarification;
-4. complete monster records vs selective structured mechanics;
-5. paper live authority vs durable digital state;
-6. local-first DM combat vs hosted/shared data;
-7. campaign moderation vs global account administration;
-8. invitation lifecycle and rejoining.
+### Android client — D-0035
 
-The final audit found no remaining product-level contradiction or behavioral ambiguity from the identified Phase 1 set. D-0009 remains intentionally pending because it is the Phase 2 architecture/technology decision, not unresolved product behavior.
+- Native **Kotlin** is selected for Android.
+- **Jetpack Compose** is selected for Android UI.
+- Phone and tablet layouts must be adaptive.
+- Flutter and React Native are not selected for the initial app.
+- Kotlin Multiplatform is not required initially, though unnecessary Android coupling in domain/business logic should be avoided where straightforward.
 
-PR #2 was merged by normal merge commit:
-
-- PR: #2 — `Capture and refine initial product discovery without premature implementation`;
-- merged: 2026-08-29;
-- merge commit: `b5a059b8e7fb9312232ad684356af05e27331b65`;
-- pre-merge branch state: 59 commits ahead, 0 behind `main`;
-- pre-merge GitHub status: `mergeable: true`.
+D-0009 remains intentionally Pending because several consequential architecture choices remain unresolved.
 
 ## 3. Current technical state
 
 No application code exists yet.
 
-No choice has been made for:
+Approved:
 
-- overall application topology;
-- Android language/framework/UI toolkit or minimum Android version;
-- desktop/laptop administration implementation form;
-- local persistence technology;
-- synchronization architecture;
-- hosted backend/database provider;
-- authentication provider;
+- hosted database/provider: Neon PostgreSQL;
+- application-infrastructure provider: Cloudflare for suitable stable services;
+- authentication provider: Descope, authentication only;
+- Android language/UI: Kotlin + Jetpack Compose.
+
+Still unresolved:
+
+- desktop/laptop administration implementation form and technology;
+- multicampaign domain/data-model boundaries;
+- local Android persistence technology;
+- combat synchronization/reconciliation implementation;
+- minimum Android version;
 - PDF generation/rendering technology;
 - SRD storage/retrieval/clarification implementation;
-- build system, project/module layout, test stack, or CI.
+- build system details, project/module layout, test stack and CI.
 
-Named technologies mentioned during discovery, including Neon/Postgres, remain candidates only and are **not approved project choices**.
+Implementation/scaffolding remains blocked until the required architecture set is sufficiently complete and owner-approved.
 
-## 4. Phase 2 objective
+## 4. Current architecture principles
 
-Phase 2 is now **active**.
-
-The objective is to evaluate realistic architecture/technology alternatives against the approved product baseline, explain trade-offs and recommendations to the owner, obtain approval for consequential choices, record those choices in Git, and only then scaffold implementation.
-
-Implementation/scaffolding is still blocked until the required architecture decisions are approved.
+- Shared durable domain data is hosted in PostgreSQL.
+- Active DM combat remains locally authoritative under D-0025/D-0033 and synchronizes opportunistically.
+- Descope identity is separate from internal application identity and domain authorization.
+- Irreplaceable domain truth must not live only in Cloudflare or Descope.
+- Prefer stable/GA capabilities over avoidable beta/preview dependencies.
+- Prefer no-cost personal-scale operation where practical while preserving low-cost paid and migration paths.
+- Avoid speculative cross-platform or future-system complexity until a real requirement justifies it.
 
 ## 5. Architecture evaluation order
-
-Begin with **overall application topology and surface relationship**, not with individual framework names.
-
-Recommended sequence:
 
 1. overall Android + desktop/laptop topology and shared-domain relationship;
 2. Android client approach;
 3. desktop/laptop administration delivery approach;
-4. multicampaign domain/data boundaries;
+4. multicampaign domain/data-model boundaries;
 5. local-first combat persistence, authority, synchronization and reconciliation;
-6. hosted backend/database/authentication/authorization/moderation boundaries;
+6. hosted backend/database/authentication/authorization and moderation boundaries;
 7. PDF generation/rendering;
 8. SRD corpus storage/retrieval/clarification and provenance;
 9. testing/build/CI and durable project/module conventions.
 
+Items 2 and the provider portion of item 6 are now approved. The current next decision is item 3.
+
 ## 6. Immediate next decision
 
-The next owner-facing architecture question is **overall application topology**.
+Evaluate the **desktop/laptop DM administration delivery approach**.
 
-Compare realistic whole-system shapes before choosing specific technologies. At minimum, evaluation should consider variants such as:
+Compare at least:
 
-- Android primary client + browser-based desktop administration + shared hosted backend;
-- a shared-code/cross-platform client strategy where justified;
-- Android primary client + native desktop administration + shared hosted backend;
-- another topology only if it materially fits the approved requirements better.
+- normal browser-based web application;
+- native desktop application;
+- local web application;
+- another option only if it materially fits the approved requirements better.
 
-Evaluation must consider:
+The desktop surface is intentionally narrower than Android and is primarily for DM preparation/administration: monster/NPC entry and organization, saved encounter preparation, campaign/account/PC administration and related desktop-friendly workflows. It does not require player desktop support, full Android parity or desktop combat tracking in MVP.
 
-- Android phone/tablet live-use quality;
-- desktop administration comfort without requiring parity;
-- multicampaign shared data and permissions;
-- local-first authoritative DM combat;
-- player public-projection sync and offline reconciliation;
-- authentication/security/moderation boundaries;
-- PDF generation;
-- SRD-only Spanish clarification and provenance;
-- personal-scale/no-cost hosting practicality;
-- maintainability, testability and AI-assisted development;
-- migration cost and future extensibility without speculative scope creep.
+Evaluation should consider:
 
-Do **not** select Kotlin, Compose, Flutter, React Native, Electron, Tauri, Firebase, Supabase, Neon/Postgres, a web framework, PDF library, AI provider, or any other consequential implementation technology before the relevant architecture comparison and owner approval.
+- comfortable keyboard/mouse data-entry workflows;
+- deployment/update burden;
+- reuse of the approved Cloudflare/backend topology;
+- security/authentication fit with Descope;
+- offline requirements, if any, for desktop preparation;
+- maintainability and AI-assisted development;
+- free/low-cost hosting feasibility;
+- future migration and extensibility;
+- avoidance of unnecessary duplicate application logic.
 
-## 7. Handoff
+## 7. Durable checkpoint
+
+The approved backend/provider and Android-client decisions are committed to the remote branch `architecture/approved-backend-and-android`. This branch is the active safety checkpoint for the current Phase 2 architecture session until review/merge.
+
+## 8. Handoff
 
 A fresh agent should read, in order, `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, and relevant discovery notes only when historical rationale is needed.
 
-Treat Phase 1 product decisions as closed unless a genuinely new requirement or contradiction emerges. The active task is Phase 2 architecture evaluation, starting with overall topology. Consequential choices remain owner-controlled.
+Treat Phase 1 product decisions as closed unless a genuinely new requirement or contradiction emerges. Continue Phase 2 from the desktop/laptop administration delivery decision. Consequential choices remain owner-controlled.
