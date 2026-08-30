@@ -5,7 +5,7 @@
 **Current working branch:** `architecture/approved-backend-and-android`  
 **Open review:** none  
 **Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
-**Status:** Architecture evaluation is active. D-0034 through D-0041 are owner-approved and committed remotely; no application code has been scaffolded yet. The next owner-facing architecture decision is minimum Android version.
+**Status:** Architecture evaluation is nearly complete. D-0034 through D-0042 are owner-approved and committed remotely; no application code has been scaffolded yet. The final owner-facing pre-scaffolding decision is the minimal project/module/build/testing/CI structure.
 
 ## 1. Approved product baseline
 
@@ -63,29 +63,41 @@
 - Relevant excerpts are sent to a replaceable LLM integration, initially Cloudflare Workers AI.
 - No embeddings/vector database unless real testing proves ordinary full-text retrieval insufficient.
 
+### D-0042 — Android compatibility floor
+- `minSdk = 30` / Android 11.
+- Older Android versions are intentionally unsupported because the actual relevant users/devices do not require them.
+- The owner prioritizes a modern, polished Android UX over theoretical legacy-device reach.
+
 ## 3. Governing implementation attitude
 
 C-0009 is explicit: this is a personal, deliberately limited project. Use the **simplest safe architecture that satisfies actual approved requirements**. Do not add commercial-SaaS/enterprise layers, generalized infrastructure or speculative scale machinery merely because they are industry patterns.
 
-C-0008 also remains active: use concise representative SQL when it helps the owner review relational/data decisions.
+C-0008 remains active: use concise representative SQL when it helps the owner review relational/data decisions.
 
 ## 4. Still unresolved before scaffolding
 
-- Minimum Android version (`minSdk`).
-- Testing/build/CI and only the module/project conventions actually needed to scaffold safely.
+Only the minimal **project/module structure, build, testing and CI conventions** needed to scaffold safely remain to be approved.
 
-D-0009 remains Pending until the required architecture set is complete.
+D-0009 remains Pending until that final architecture/convention block is resolved and the architecture decisions are consolidated.
 
 ## 5. Immediate next decision
 
-Choose the **minimum Android API level** narrowly against the selected dependency floor and real maintenance needs. `minSdk` is separate from `compileSdk`/`targetSdk`; do not support obsolete Android versions merely for theoretical reach.
+Choose the smallest practical Gradle/Kotlin project structure and verification baseline that allows AI agents to:
+
+- build Android and desktop consistently;
+- share Kotlin domain/persistence/synchronization logic where useful;
+- keep Android and desktop UI separate;
+- test the relational/sync/combat-authority logic that can cause real data loss or corruption;
+- run reproducible automated checks on GitHub without creating an enterprise CI/release pipeline.
+
+Do not create speculative feature-module hierarchies, coverage bureaucracy, multiple deployment environments or generalized platform abstractions before they are needed.
 
 ## 6. Durable checkpoint
 
-The active remote safety checkpoint is `architecture/approved-backend-and-android`. Approved architecture decisions D-0036 through D-0041 are stored as dedicated files under `docs/decisions/` pending consolidation into the chronological `docs/DECISIONS.md` log before merge.
+The active remote safety checkpoint is `architecture/approved-backend-and-android`. Approved architecture decisions D-0036 through D-0042 are stored as dedicated files under `docs/decisions/` pending consolidation into the chronological `docs/DECISIONS.md` log before merge.
 
 ## 7. Handoff
 
 A fresh agent should read `README.md`, `AGENTS.md`, `MANIFEST.md`, this file, `docs/DECISIONS.md`, `docs/PRODUCT.md`, `docs/ARCHITECTURE.md`, `docs/CONVENTIONS.md`, and the dedicated files in `docs/decisions/` not yet consolidated.
 
-Continue Phase 2 from minimum Android version. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
+Continue Phase 2 from the final minimal project/module/build/testing/CI decision. Apply C-0009 aggressively: personal-scale proportionality beats enterprise completeness.
