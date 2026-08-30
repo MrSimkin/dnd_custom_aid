@@ -13,7 +13,7 @@ class DatabaseSmokeTest {
 
         database.appMetaQueries.upsert("scaffold", "ok")
 
-        assertEquals("ok", database.appMetaQueries.findByKey("scaffold").executeAsOne().value)
+        assertEquals("ok", database.appMetaQueries.findValueByKey("scaffold").executeAsOne())
         driver.close()
     }
 }
