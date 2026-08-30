@@ -13,7 +13,7 @@ This file inventories the project-control files and explains when each one must 
 ### `AGENTS.md`
 
 **Role:** mandatory operating rules for humans and AI/coding agents.  
-**Update when:** project governance, authority boundaries, required workflow, communication rules, or continuity rules change.
+**Update when:** project governance, authority boundaries, required workflow, communication rules, contradiction-review duties, or continuity rules change.
 
 ### `MANIFEST.md`
 
@@ -25,14 +25,20 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PROJECT_STATE.md`
 
 **Role:** authoritative snapshot of what exists now, what is being worked on, known blockers, last verification, next owner decision, and next implementation action.  
-**Current state:** Phase 2 active; next decision is overall application topology/surface relationship.  
+**Current state:** Phase 2 active on the focused architecture branch; architecture sub-decisions A-0001 through A-0007 are approved and implementation remains blocked pending the remaining foundation choices.  
 **Update when:** every meaningful work session changes project reality or next action.
+
+### `docs/GOVERNANCE.md`
+
+**Role:** mandatory rule for revisable owner approvals, contradiction detection, explanation duty, and correction/supersession procedure.  
+**Current state:** approved 2026-08-30.  
+**Update when:** the project changes how misunderstood approvals, contradictory requirements, reversibility, or supersession/migration are handled.
 
 ### `docs/DECISIONS.md`
 
-**Role:** durable significant-decision log.  
-**Current state:** approved product decisions through D-0033; D-0009 remains intentionally pending for active Phase 2 architecture/technology evaluation.  
-**Update when:** a significant decision is proposed, approved, rejected, amended, or superseded.
+**Role:** durable significant product/project decision log.  
+**Current state:** approved product decisions through D-0033; D-0009 remains intentionally pending while Phase 2 architecture/technology sub-decisions are recorded in `docs/ARCHITECTURE.md`.  
+**Update when:** a significant logged decision is proposed, approved, rejected, amended, or superseded.
 
 ### `docs/CONVENTIONS.md`
 
@@ -45,6 +51,12 @@ This file inventories the project-control files and explains when each one must 
 **Current state:** final Phase 1 product baseline, including multicampaign MVP and the eight final tension resolutions.  
 **Update when:** product scope, MVP, design direction, or requirements are approved or changed.
 
+### `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`
+
+**Role:** approved expected future product capabilities that are not necessarily MVP scope but must constrain architecture so the project does not create avoidable structural dead ends.  
+**Current state:** cross-campaign reusable NPC/creature identity, intentional independent/manual-update/live-link reuse modes, and future PC copy or move/transfer are recorded.  
+**Update when:** expected future product evolution materially changes or a future capability is promoted into current/MVP scope.
+
 ### `docs/ROADMAP.md`
 
 **Role:** staged development plan and current phase.  
@@ -53,14 +65,14 @@ This file inventories the project-control files and explains when each one must 
 
 ### `docs/WORKFLOW.md`
 
-**Role:** approved discussion, design, implementation, verification, review, merge, and operative-memory workflow.  
+**Role:** approved discussion, decision review, design, implementation, verification, review, merge, and operative-memory workflow.  
 **Update when:** working process changes.
 
 ### `docs/ARCHITECTURE.md`
 
 **Role:** technical architecture evaluation/record and rationale.  
-**Current state:** architecture is not selected; Phase 2 evaluation is active and begins with overall application topology/surface relationship. Consequential choices remain owner-controlled and implementation has not been scaffolded.  
-**Update when:** architecture alternatives are formally evaluated, selected, or materially changed.
+**Current state:** Phase 2 architecture is partially decided through A-0007; consequential remaining foundation choices are still under evaluation and application code has not been scaffolded.  
+**Update when:** architecture alternatives are formally evaluated, selected, amended, or materially changed.
 
 ### `docs/TESTING.md`
 
@@ -75,7 +87,7 @@ Rules:
 
 - every discovery note states which material was provisional and which clarifications were explicitly confirmed;
 - future agents must not implement an item merely because it appears only in a discovery note;
-- confirmed conclusions are reflected in `docs/PRODUCT.md`, `docs/DECISIONS.md`, and/or other authoritative files;
+- confirmed conclusions are reflected in `docs/PRODUCT.md`, `docs/DECISIONS.md`, `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md`, and/or other authoritative files;
 - discovery notes remain useful as historical rationale after conclusions are approved.
 
 ### `docs/discovery/2026-08-28_INITIAL_PRODUCT_PICTURE.md`
@@ -102,6 +114,12 @@ Rules:
 
 **Role:** final Phase 1 clarification pass resolving eight soft product tensions/underspecified boundaries.  
 **Status:** confirmed owner decisions; conclusions are promoted into `docs/PRODUCT.md`, `docs/DECISIONS.md` (D-0033 and amended earlier decisions), `docs/PROJECT_STATE.md`, roadmap, architecture/testing and entry-point documentation. Historical rationale only after Phase 1 closure.
+
+## `docs/architecture/`
+
+### `docs/architecture/2026-08-30_FUTURE_DESKTOP_REQUIREMENT.md`
+
+**Role:** records the expected future true native desktop application as a product requirement/architecture-evaluation constraint without selecting implementation technology.
 
 ## `assets/character-sheets/`
 
@@ -138,16 +156,18 @@ Review checklist for substantial changes, including owner decisions, conventions
 
 ## Future application code
 
-No application-code directories are authoritative yet because architecture/technology selection has not been approved. When the technical foundation is approved and scaffolded, add the major code/build directories to this manifest with a one-line purpose for each.
+No application-code directories are authoritative yet because the architecture/technology foundation has not been sufficiently completed. When the technical foundation is approved and scaffolded, add the major code/build directories to this manifest with a one-line purpose for each.
 
 ## Authority rule
 
-If documents appear to conflict:
+If documents appear to conflict or a later requirement appears inconsistent with an earlier approval:
 
-1. follow `AGENTS.md` for governance/working rules;
-2. follow `docs/DECISIONS.md` for explicitly approved significant decisions;
-3. follow `docs/CONVENTIONS.md` for approved recurring project practices;
-4. follow `docs/PRODUCT.md` for approved product requirements/direction;
-5. follow `docs/PROJECT_STATE.md` for current implementation/work status;
-6. treat `docs/discovery/` as supporting historical rationale/provisional context except where conclusions were promoted to authoritative files;
-7. surface any material contradiction instead of guessing.
+1. follow `AGENTS.md` and `docs/GOVERNANCE.md` for governance/working/review rules;
+2. follow `docs/DECISIONS.md` for explicitly approved logged significant decisions, subject to deliberate amendment/supersession under governance;
+3. follow `docs/ARCHITECTURE.md` for approved Phase 2 architecture sub-decisions;
+4. follow `docs/CONVENTIONS.md` for approved recurring project practices;
+5. follow `docs/PRODUCT.md` for approved current product requirements/direction;
+6. follow `docs/PRODUCT_EVOLUTION_REQUIREMENTS.md` for approved future-evolution constraints that architecture must preserve;
+7. follow `docs/PROJECT_STATE.md` for current implementation/work status;
+8. treat `docs/discovery/` as supporting historical rationale/provisional context except where conclusions were promoted to authoritative files;
+9. surface any material contradiction instead of guessing or blindly preserving an older approval.
