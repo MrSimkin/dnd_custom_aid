@@ -7,12 +7,13 @@ This file inventories the project-control files and explains when each one must 
 ### `README.md`
 
 **Role:** project entry point and mandatory read order.  
-**Current state:** Phase 1 product discovery complete; Phase 2 foundational architecture selected and documentation consolidation complete; PR #3 is the owner merge-review gate before implementation scaffolding.  
+**Current state:** Phase 1 product discovery complete; Phase 2 foundational architecture selected; pre-main proportionality cleanup/final review precedes implementation scaffolding.  
 **Update when:** the project purpose, canonical read order, or top-level status changes.
 
 ### `AGENTS.md`
 
 **Role:** mandatory operating rules for humans and AI/coding agents.  
+**Current state:** aligned to the approved architecture and C-0009 simplification rules; `main` merge remains owner-controlled.  
 **Update when:** project governance, authority boundaries, required workflow, communication rules, or continuity rules change.
 
 ### `MANIFEST.md`
@@ -25,31 +26,31 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/PROJECT_STATE.md`
 
 **Role:** authoritative snapshot of what exists now, what is being worked on, known blockers, last verification, next owner decision, and next implementation action.  
-**Current state:** foundational architecture D-0034 through D-0043 is approved and consolidated; no application code exists yet; PR #3 owner review/merge precedes scaffolding.  
+**Current state:** foundational architecture D-0034 through D-0043 is approved; pre-main proportionality clarifications simplify sync/offline/infrastructure behavior; no application code exists yet.  
 **Update when:** every meaningful work session changes project reality or next action.
 
 ### `docs/DECISIONS.md`
 
 **Role:** chronological significant-decision log.  
-**Current state:** D-0009 is resolved/Approved and Phase 2 architecture decisions are consolidated through D-0043.  
-**Update when:** a significant decision is proposed, approved, rejected, amended, superseded, or consolidated from a dedicated safety-checkpoint file.
+**Current state:** D-0009 is resolved/Approved and Phase 2 architecture decisions are consolidated through D-0043; the pre-main cleanup must leave the earlier sync/combat wording consistent with the approved simplifications before merge.  
+**Update when:** a significant decision is proposed, approved, rejected, amended, superseded, or materially clarified.
 
 ### `docs/decisions/`
 
-**Role:** detailed safety-checkpoint/rationale files for consequential architecture decisions.  
-**Current state:** D-0036 through D-0043 remain as detailed approved records and are also summarized chronologically in `docs/DECISIONS.md`.  
-**Update when:** a consequential decision benefits from a dedicated detailed record or immediate durable capture.
+**Role:** detailed rationale files for consequential Phase 2 architecture decisions.  
+**Current state:** D-0036 through D-0043 remain as detailed approved records and are summarized chronologically in `docs/DECISIONS.md`. They are rationale/detail records, not a second pending decision queue.  
+**Update when:** a consequential decision benefits from a dedicated detailed record or its detailed rationale materially changes.
 
 ### `docs/CONVENTIONS.md`
 
 **Role:** durable registry of owner-approved recurring project conventions.  
-**Current state:** includes C-0008 (use representative SQL when useful for owner review) and C-0009 (personal-scale proportionality; avoid enterprise overengineering).  
+**Current state:** includes C-0008 (use representative SQL when useful for owner review) and C-0009 (personal-scale proportionality), now clarified to prefer HTTP before realtime, localized provider code over abstraction frameworks, selective offline support, and small application-specific sync behavior.  
 **Update when:** a new convention is approved, an existing convention changes, or one is superseded.
 
 ### `docs/PRODUCT.md`
 
 **Role:** approved product scope, MVP, design/discovery direction, user groups, constraints, and current product boundaries.  
-**Current state:** aligned with the approved Phase 2 architecture where it affects product-facing surface descriptions, including native DM desktop delivery and PDF export on both Android and desktop.  
+**Current state:** aligned with native DM desktop delivery, Android+desktop PDF export, Desktop Save+Sync, one-DM-device combat sequencing, and ephemeral player offline turn/condition convenience.  
 **Update when:** product scope, MVP, design direction, or requirements are approved or changed.
 
 ### `docs/ROADMAP.md`
@@ -66,13 +67,13 @@ This file inventories the project-control files and explains when each one must 
 ### `docs/ARCHITECTURE.md`
 
 **Role:** current approved architecture record and rationale.  
-**Current state:** foundational architecture D-0034 through D-0043 is selected and sufficient for the initial scaffold.  
-**Update when:** architecture is materially changed or a new consequential architecture choice is approved.
+**Current state:** foundational architecture D-0034 through D-0043 is selected and explicitly simplified under C-0009 for the initial scaffold.  
+**Update when:** architecture is materially changed or a consequential clarification affects implementation meaning.
 
 ### `docs/TESTING.md`
 
 **Role:** test/verification policy and future test-state expectations across approved application surfaces.  
-**Current state:** aligned with D-0043's deliberately small, risk-focused automated testing and simple CI approach.  
+**Current state:** aligned with D-0043's deliberately small, risk-focused automated testing and with the simplified Save+Sync/combat-sequence/player-ephemeral behavior.  
 **Update when:** test strategy, device/environment matrix, commands, or release verification rules change.
 
 ## `docs/discovery/`
@@ -148,14 +149,17 @@ Review checklist for substantial changes, including owner decisions, conventions
 
 No application-code directories exist yet. D-0043 approves a deliberately small initial scaffold with the equivalent of shared Kotlin logic, Android app, desktop app, TypeScript Cloudflare backend, and SQL/database areas. Add the actual generated paths to this manifest when scaffolding creates them.
 
+Do not add R2/Durable Objects/WebSockets/queues/provider-abstraction infrastructure to the manifest merely because those technologies are available; only list infrastructure that the repository actually adopts for a concrete feature.
+
 ## Authority rule
 
 If documents appear to conflict:
 
 1. follow `AGENTS.md` for governance/working rules;
-2. follow `docs/DECISIONS.md` for approved significant decisions and the detailed matching `docs/decisions/` record where useful;
-3. follow `docs/CONVENTIONS.md` for approved recurring project practices;
-4. follow `docs/PRODUCT.md` for approved product requirements/direction;
-5. follow `docs/PROJECT_STATE.md` for current implementation/work status;
-6. treat `docs/discovery/` as supporting historical rationale/provisional context except where conclusions were promoted to authoritative files;
-7. surface any material contradiction instead of guessing.
+2. follow `docs/DECISIONS.md` for approved significant decisions and later approved clarifications;
+3. use matching `docs/decisions/` files for deeper rationale/details;
+4. follow `docs/CONVENTIONS.md` for approved recurring project practices;
+5. follow `docs/PRODUCT.md` for approved product requirements/direction;
+6. follow `docs/PROJECT_STATE.md` for current implementation/work status;
+7. treat `docs/discovery/` as supporting historical rationale/provisional context except where conclusions were promoted to authoritative files;
+8. surface any material contradiction instead of guessing.
