@@ -2,17 +2,18 @@
 
 ## Current status
 
-**Architecture state:** Not selected; evaluation is ready to begin after Phase 1 merge closure.  
+**Phase:** Phase 2 — Technical Options and Foundation / Architecture & Technology Evaluation  
+**Architecture state:** Not selected; evaluation is **active**.  
 **Application code:** Not scaffolded.  
-**Reason:** The approved product/MVP baseline is now sufficiently coherent to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
+**Reason:** Phase 1 is complete and the approved product/MVP baseline is detailed enough to evaluate consequential architecture and technology alternatives against real requirements (D-0010, D-0011, D-0033).
 
-This is intentional. The project has reached the architecture-evaluation gate, not the implementation gate.
+The project has reached the architecture-evaluation gate, **not** the implementation gate.
 
 ## Architecture decision gate
 
 Do not choose or scaffold an Android framework, language, UI toolkit, desktop implementation approach, persistence layer, sync/backend approach, minimum Android version, hosted provider, PDF library, SRD retrieval/clarification approach, or major architecture pattern merely to begin coding.
 
-The approved product baseline now provides enough information to evaluate technical alternatives against real needs, including:
+The approved product baseline includes:
 
 - Android as the primary live/table surface for players and DMs;
 - an intentionally narrower desktop/laptop DM preparation/administration surface using the same shared domain data, without MVP feature-parity or desktop-combat requirements;
@@ -26,30 +27,43 @@ The approved product baseline now provides enough information to evaluate techni
 - campaign-scoped moderation separated from application-wide account administration;
 - campaign invitation/rejoin semantics;
 - PDF generation/export semantics;
-- SRD-only MVP natural-language clarification across both supported official SRDs with source provenance;
+- official-SRD-only MVP natural-language clarification across both supported SRDs with source provenance;
 - mixed/homebrew campaign content without rules enforcement;
 - personal/small-scale hosting and cost expectations;
 - future-extensibility constraints that must not become present scope creep.
 
-The technical evaluation must be discussed with the owner, including realistic alternatives, trade-offs, and a recommendation. Consequential choices require owner approval before becoming project truth or being used to scaffold implementation.
+The technical evaluation must be discussed with the owner, including realistic alternatives, trade-offs and a recommendation. Consequential choices require owner approval before becoming project truth or being used to scaffold implementation.
 
-## Evaluation order
+## Active evaluation order
 
-Architecture evaluation should begin with **overall application topology and surface relationship**, not with a framework name.
+Architecture evaluation begins with **overall application topology and surface relationship**, not with a framework name.
 
-Recommended order:
+Approved evaluation sequence:
 
 1. overall Android + desktop/laptop topology and shared-domain relationship;
 2. Android client approach;
 3. desktop/laptop administration delivery approach;
-4. multicampaign domain/data model boundaries;
+4. multicampaign domain/data-model boundaries;
 5. local-first combat persistence, combat authority and synchronization/reconciliation;
 6. hosted backend/database/authentication/authorization and moderation boundaries;
 7. PDF generation/rendering;
 8. SRD corpus storage/retrieval/clarification and provenance;
 9. testing/build/CI and durable module/project conventions.
 
-## Evaluation criteria for architecture choices
+### Current decision under evaluation
+
+**Overall application topology / surface relationship.**
+
+The first comparison should evaluate realistic whole-system alternatives such as:
+
+- Android primary client + browser-based desktop administration + shared hosted backend;
+- a shared-code/cross-platform client topology where justified;
+- Android primary client + native desktop administration + shared hosted backend;
+- another topology only if it materially fits the approved requirements better.
+
+No option above is selected merely by being listed.
+
+## Evaluation criteria
 
 Evaluate options against criteria such as:
 
@@ -60,7 +74,7 @@ Evaluate options against criteria such as:
 - one-authority local-first DM combat behavior;
 - same-device combat persistence/recovery;
 - combat-aware synchronization where older remote state cannot overwrite newer authoritative DM state;
-- public player projection synchronization and provisional offline-player reconciliation;
+- public player-projection synchronization and provisional offline-player reconciliation;
 - authentication/authorization fit and security implications;
 - separation of campaign moderation from global application administration;
 - PDF rendering/generation suitability;
@@ -81,7 +95,7 @@ Evaluate options against criteria such as:
 
 Do not treat this list as implying that every criterion is equally important; importance depends on the approved product design.
 
-## Important non-requirements during architecture evaluation
+## Important non-requirements
 
 Architecture must not be selected on the false assumption that MVP requires:
 
