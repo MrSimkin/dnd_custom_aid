@@ -176,3 +176,32 @@ The owner prefers implementing multicampaign behavior in the MVP because it is c
 - Global account freeze is a system/application-administration action, not a DM action.
 - Account deletion is conceptually separate from Freeze Account; Freeze Account means disable while preserving data.
 - The MVP does not require an elaborate multi-administrator management subsystem merely because application-administrator authority is modeled separately.
+
+---
+
+## 8. Campaign invitation lifecycle and rejoining
+
+**Confirmed resolution:** campaign invitations are campaign-scoped, reusable until revoked/regenerated, and grant direct campaign membership without a second DM-approval step; membership remains separate from PC ownership/control.
+
+1. An invitation belongs to **one specific campaign**.
+2. A valid invitation allows a user to join that campaign; it does **not** grant rights in any other campaign.
+3. A signed-in user who follows a valid invitation joins directly. There is **no second DM approval step** after the DM has deliberately issued the invitation.
+4. If the person is not signed in, the application asks them to sign in/create their account and then **continues the same invitation flow** rather than requiring a new invitation.
+5. The same invitation code/link may be used by **multiple people** until the DM revokes/regenerates it.
+6. Regenerating the invitation invalidates the previous code/link.
+7. A **banned** account cannot use an otherwise valid invitation to rejoin that campaign.
+8. A **kicked** account may rejoin later through a currently valid invitation because Kick is removal, not a ban.
+9. Rejoining does not destroy or recreate preserved character/history data. Existing preserved relationships can be restored/reattached according to campaign permissions rather than creating duplicate identities.
+10. Joining a campaign does **not automatically assign ownership/control of a PC**. Membership and character assignment remain separate.
+11. MVP invitations do **not need mandatory expiration dates**. DM revocation/regeneration is sufficient.
+12. Later versions may add optional expiry, one-use invites, named invites, invitation audit and similar controls if useful, but they are not required now.
+13. QR is another representation/delivery form of the same invite link/code, not a separate invitation mechanism.
+14. Email invitation, if supported, is a delivery convenience for that same invitation and does not create a different membership workflow.
+
+### Consequences
+
+- Invitation validity is determined by campaign scope, current invite generation/revocation state and campaign ban state.
+- The MVP does not require per-recipient invitation records merely to enroll a small table of players.
+- Authentication may interrupt the invitation flow, but it must not conceptually discard the invite intent.
+- Campaign membership, PC ownership and PC control remain independent relationships.
+- Rejoining should preserve identity/history continuity instead of duplicating campaign-scoped records.
