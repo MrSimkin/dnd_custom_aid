@@ -1,14 +1,14 @@
 # Product Design Tension Resolutions
 
 **Date:** 2026-08-29  
-**Status:** Confirmed owner decisions in progress  
+**Status:** Confirmed owner decisions; promoted to authoritative records  
 **Phase:** Phase 1 — final pre-merge clarification
 
 ## Purpose
 
-This note records explicit owner resolutions of soft design tensions identified during the final PR #2 audit. These are not speculative questions: each numbered section is added only after the owner confirms the intended product behavior.
+This note records explicit owner resolutions of soft design tensions identified during the final PR #2 audit. These are not speculative questions: each numbered section records behavior explicitly confirmed by the owner.
 
-Once this pass is complete, confirmed conclusions must be promoted into the authoritative product/decision/state documents before PR #2 is merged.
+Promotion is complete: the conclusions below are reflected in the authoritative product/decision/state records, especially `docs/PRODUCT.md`, `docs/DECISIONS.md` (D-0033 and amended earlier decisions), and `docs/PROJECT_STATE.md`. This file remains detailed historical rationale for the final Phase 1 clarification pass.
 
 ---
 
@@ -48,7 +48,7 @@ The owner prefers implementing multicampaign behavior in the MVP because it is c
 - The DM/owner may manage multiple campaigns rather than having to archive or replace one before using another.
 - Characters, NPCs, encounters, campaign membership, permissions, audit history and other campaign-scoped data must retain explicit campaign association.
 - The MVP requires sufficient campaign selection/switching UX to use the multicampaign capability coherently.
-- The old wording in D-0010, `docs/PRODUCT.md`, `docs/PROJECT_STATE.md`, PR #2 and related documentation that describes one active campaign as an MVP restriction is now stale and must be superseded/promoted before merge.
+- The old one-active-campaign wording has been superseded in D-0010, `docs/PRODUCT.md`, `docs/PROJECT_STATE.md`, roadmap/entry-point documentation, and the final decision consolidation D-0033.
 - This changes product scope but does not itself select any architecture, data technology or UI implementation approach.
 
 ---
