@@ -1,0 +1,13 @@
+{
+  "name": "dnd-custom-aid-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "wrangler types && tsc --noEmit",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "wrangler": "4.127.1"
+  }
+}

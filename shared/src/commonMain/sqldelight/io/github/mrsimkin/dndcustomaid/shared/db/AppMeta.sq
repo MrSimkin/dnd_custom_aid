@@ -1,0 +1,13 @@
+CREATE TABLE app_meta (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+upsert:
+INSERT OR REPLACE INTO app_meta(key, value)
+VALUES (?, ?);
+
+findByKey:
+SELECT *
+FROM app_meta
+WHERE key = ?;
