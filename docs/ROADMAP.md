@@ -26,7 +26,7 @@ Do not reopen resolved Phase 1 questions merely because historical discovery not
 
 **Goal:** evaluate technical alternatives against the approved product/design baseline, obtain owner approval for consequential choices, then scaffold the chosen architecture.
 
-**Current status:** **Architecture selection complete; final pre-main proportionality/contradiction review before scaffolding.**
+**Current status:** **Architecture selection, consolidation and pre-main proportionality review complete; explicit owner merge authorization is the remaining gate before scaffolding.**
 
 ### Architecture selection — complete
 
@@ -57,16 +57,17 @@ The pre-main proportionality audit clarified implementation without changing the
 
 C-0009 governs implementation: this is a personal/small-scale project, so choose the simplest safe solution and add complexity only for a concrete need.
 
-### Final pre-main review — current work
+### Owner merge gate — current
+
+The architecture branch has completed its consolidation/contradiction review and is represented by PR #3.
 
 Before scaffolding:
 
-- complete the contradiction/read-order sweep;
-- verify every approved simplification is committed remotely;
-- update PR #3 to describe the final branch accurately;
-- obtain explicit owner authorization before merge to `main` under D-0007.
+1. verify the final remote branch/PR head remains unchanged from the reviewed state;
+2. obtain explicit owner authorization to merge PR #3 into `main` under D-0007;
+3. merge only after that authorization.
 
-This is cleanup/review, not another architecture-discovery round.
+This is a governance gate, not another architecture-discovery round.
 
 ### Scaffolding — next
 
