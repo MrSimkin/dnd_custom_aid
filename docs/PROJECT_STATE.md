@@ -5,7 +5,7 @@
 **Current working branch:** `implementation/local-campaign-selection`  
 **Open review:** none; no Phase 3 PR has been opened  
 **Phase:** Phase 3 — First Vertical Slice  
-**Status:** First vertical slice is code-complete, CI-green and manually verified on an Android phone. Functional acceptance succeeded. Minor density feedback and future theme support are recorded as non-blocking follow-up.
+**Status:** First vertical slice is code-complete, CI-green and manually verified on both an Android phone and tablet. Functional acceptance succeeded. Minor density feedback, landscape space utilization and future theme support are recorded as non-blocking follow-up.
 
 ## 1. Canonical baseline
 
@@ -58,7 +58,7 @@ Android intentionally remains on stable SDK 36 rather than the Android 17/API 37
 
 ## 4. Last verification
 
-Final working-branch head before this documentation-only handoff update: `67ba34b0744dc3fc74a11b43b8a373c6e1773051`.
+Final working-branch head before the documentation-only manual-verification handoff updates: `67ba34b0744dc3fc74a11b43b8a373c6e1773051`.
 
 GitHub Actions run #28 passed on that exact revision:
 
@@ -96,15 +96,20 @@ On 2026-08-30 the owner installed the CI-built debug APK on an Android phone and
 - Spanish user-facing campaign UI was present;
 - no functional blocker was reported.
 
-Owner UX feedback from that verification:
+Owner UX feedback from phone verification:
 
 - the campaign screen uses more empty/dead space than desired; a somewhat more compact information density is preferred;
 - the screen otherwise looks acceptable;
 - theme support should be implemented in future UI work.
 
-These are non-blocking follow-up items, not failures of the Phase 3 persistence slice.
+The owner then repeated a visual/usability check on an Android tablet:
 
-Tablet manual verification has not yet occurred. It is useful when practical because phone and tablet are both supported targets, but it does not currently block preparing this simple first slice for review.
+- the portrait/tablet presentation was not excessively stretched;
+- the current screen worked acceptably as implemented;
+- landscape leaves substantial unused space;
+- the owner noted that the value of a more elaborate landscape layout can be judged better once the application has more on-screen elements.
+
+The tablet result is accepted. Landscape space utilization is a non-blocking responsive-layout follow-up, not a failure of this first slice.
 
 ## 5. Known non-blocking tooling notes
 
@@ -142,7 +147,7 @@ Implemented on `implementation/local-campaign-selection`:
 7. Active selection persists locally across database reopen/app restart at the storage level.
 8. Android uses a single simple `LazyColumn` campaign screen; no navigation framework, ViewModel layer, DI container, coroutine stack or reactive database extension was added for this slice.
 9. End-user campaign UI text is Spanish under C-0006.
-10. The workflow has been manually validated on an Android phone.
+10. The workflow has been manually validated on both an Android phone and tablet.
 
 Local schema is intentionally limited to:
 
@@ -162,17 +167,16 @@ Explicitly out of scope for this slice:
 
 ## 8. Non-blocking UI follow-up
 
-Two owner-requested visual improvements are now known:
+Three owner-observed visual improvements are now known:
 
 1. Increase information density / reduce unnecessary empty space in the campaign screen and future UI where appropriate.
-2. Add application theme support. Theme behavior itself has not yet been specified; exact choices such as system/light/dark/custom themes should be discussed before implementation so a durable UX convention is not silently invented.
+2. Improve use of horizontal space in tablet landscape when future screens contain enough content to justify an adaptive layout.
+3. Add application theme support. Theme behavior itself has not yet been specified; exact choices such as system/light/dark/custom themes should be discussed before implementation so a durable UX convention is not silently invented.
 
 These should be handled as subsequent UI work rather than expanding the accepted persistence slice unless the owner explicitly chooses otherwise.
 
 ## 9. Immediate next action
 
-The Phase 3 local campaign create/select slice has satisfied its functional automated and phone-manual acceptance goals. The next repository action is to prepare/open the Phase 3 pull request for owner review.
-
-Optional before or during review: repeat a brief visual check on an Android tablet if one is readily available. Tablet verification is useful but not currently a blocker for this deliberately simple screen.
+The Phase 3 local campaign create/select slice has satisfied its functional automated and phone/tablet manual acceptance goals. The next repository action is to prepare/open the Phase 3 pull request for owner review.
 
 Merging into `main` remains a separate action and requires explicit owner approval under D-0007.
