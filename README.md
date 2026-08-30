@@ -55,7 +55,7 @@ The approved sequence is:
 6. consolidate/review the architecture branch;
 7. scaffold and implement incrementally.
 
-Phase 1 completed the product/design work. The consequential Phase 2 architecture choices D-0034 through D-0043 are owner-approved. The branch is now in its final proportionality/consolidation review before the first scaffold.
+Phase 1 completed the product/design work. The consequential Phase 2 architecture choices D-0034 through D-0043 are owner-approved. The pre-main consolidation and proportionality review are complete on the architecture branch.
 
 ## Approved product baseline
 
@@ -96,8 +96,8 @@ See `docs/ARCHITECTURE.md` for the full current architecture record.
 
 ## Current status
 
-**Phase 1 is complete and merged. Phase 2 architecture selection is complete in substance. No application code has been scaffolded yet.**
+**Phase 1 is complete and merged. Phase 2 architecture selection, consolidation and proportionality review are complete on the working branch. No application code has been scaffolded yet.**
 
-PR #3 is the formal owner review point for merging the approved and simplified Phase 2 architecture branch into canonical `main` after the final contradiction/commit verification.
+PR #3 is the formal owner review point. The remaining gate is explicit owner authorization to merge that branch into canonical `main`; completion of architecture work does not itself authorize the merge.
 
 After owner-authorized merge of PR #3 into `main`, the next project action is the **initial implementation scaffold**, not another broad architecture-discovery round.
