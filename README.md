@@ -1,6 +1,6 @@
 # dnd_custom_aid
 
-Personal tabletop RPG assistant project beginning with D&D, with Android phone/tablet use and a desktop-friendly administration workflow under design.
+Personal tabletop RPG assistant project beginning with D&D, with Android phone/tablet live use and a desktop-friendly DM preparation/administration workflow under design.
 
 ## Start here
 
@@ -56,13 +56,27 @@ See D-0011 and `docs/ROADMAP.md`.
 
 ## Current status
 
-The project is closing **Phase 1 — Product Discovery and Design**. The core first-use product/MVP baseline is approved; PR #2 is undergoing final consistency/merge closure before canonical `main` moves into Phase 2.
+The project is closing **Phase 1 — Product Discovery and Design**. The product/MVP baseline is approved and the final pre-merge tension pass is complete; PR #2 is undergoing final documentation/mergeability verification before canonical `main` moves into Phase 2.
 
-Current discovery work is on branch `discovery/initial-product-picture` in PR #2. Three clarification rounds establish the paper-first/full digital character-backup workflow, grouped DM audit/correction, campaign-scoped roles and unassigned PCs, account/invitation/moderation direction, mixed broader D&D 5e/5.5e rules direction, SRD-only MVP clarification, Quick/Developed NPC workflows, complete/extensible monster stat blocks, prepared and on-the-fly encounters, offline-resilient DM combat behavior, and the approved MVP boundary.
+Current discovery work is on branch `discovery/initial-product-picture` in PR #2. The approved baseline includes:
 
-The seven previously highlighted product questions are resolved. `D-0010 — Initial product scope / MVP` is **Approved**.
+- paper-first live character use with a durable, freshness-visible digital backup;
+- Android as the primary live/table surface;
+- a narrower desktop/laptop DM preparation/administration companion using the same shared domain data;
+- **multicampaign MVP behavior** with campaign-scoped roles and moderation;
+- grouped DM audit/correction and preserved/unassigned PCs;
+- campaign invitations/rejoining with reusable revocable campaign invites;
+- mixed D&D 5e/5.5e/homebrew campaign freedom while MVP rules clarification remains official-SRD-only;
+- Quick/Developed NPC workflows and complete/extensible monster stat blocks;
+- prepared and on-the-fly encounters;
+- local-first authoritative DM combat with opportunistic hosted synchronization and provisional offline player views;
+- the approved MVP/non-MVP boundary.
 
-The next major project step is **architecture and technology evaluation** against the approved MVP—especially Android phone/tablet behavior, desktop administration, offline combat, synchronization, authentication/security, PDF generation, SRD retrieval/clarification, maintainability and personal-scale/no-cost hosting. Architecture evaluation is permitted after Phase 1 closure; application implementation/scaffolding still requires owner-approved consequential architecture choices first.
+`D-0010 — Initial product scope / MVP` and `D-0033 — Final pre-merge product tension resolutions` are **Approved**.
+
+No remaining identified product-level contradiction or behavioral ambiguity blocks Phase 1 closure. The intentionally pending foundational decision is **D-0009 — Application architecture and implementation technology**.
+
+After PR #2 is owner-approved and merged, the next project step is **architecture and technology evaluation** against the approved MVP—starting with overall application topology/surface relationship, then Android, desktop administration, multicampaign data, local-first combat synchronization, authentication/security, PDF generation, SRD retrieval/clarification, maintainability/testing and personal-scale/no-cost hosting.
 
 No application technology stack has been selected and no application code exists yet.
 
