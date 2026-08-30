@@ -6,7 +6,7 @@
 **Architecture state:** Partially selected; evaluation remains active.  
 **Application code:** Not scaffolded.
 
-Approved Phase 2 choices now include D-0034 through D-0039. The project deliberately targets a personal/small-scale architecture: choose the simplest safe implementation that satisfies approved requirements and do not import enterprise-grade complexity without a concrete reason (C-0009).
+Approved Phase 2 choices now include D-0034 through D-0041. The project deliberately targets a personal/small-scale architecture: choose the simplest safe implementation that satisfies approved requirements and do not import enterprise-grade complexity without a concrete reason (C-0009).
 
 ## Approved architecture choices
 
@@ -53,6 +53,21 @@ Approved Phase 2 choices now include D-0034 through D-0039. The project delibera
 - Use the minimum sufficient runtime database privileges.
 - **Do not build blanket enterprise-style RLS, role hierarchies, duplicated authorization engines, extensive security audit infrastructure or similar machinery unless a concrete project risk justifies it.** RLS is optional/selective, not an MVP requirement.
 
+### D-0040 — PDF export
+- Character-sheet PDF export is required on **Android and DM desktop**.
+- Generation is local/offline from owner-controlled non-fillable PDF templates.
+- Android uses **PdfBox-Android**; desktop uses **Apache PDFBox**.
+- Template/layout metadata may be shared where practical without inventing a generalized cross-platform PDF subsystem.
+- Export may deliberately use unsaved edits under D-0027 without saving them.
+
+### D-0041 — SRD retrieval and clarification
+- Official Spanish **SRD 5.1** and **SRD 5.2.1** are stored as versioned/provenance-preserving PostgreSQL sections/chunks.
+- Initial retrieval uses PostgreSQL full-text search rather than a vector database.
+- Retrieved official excerpts are supplied to a replaceable LLM integration, initially **Cloudflare Workers AI**.
+- Exact model is configuration, not architecture.
+- MVP answers are grounded in retrieved official SRD content, in Spanish, with source/version identification.
+- Embeddings/vector/hybrid retrieval are deferred unless testing proves ordinary full-text retrieval inadequate.
+
 These decisions resolve their respective portions of D-0009. D-0009 remains Pending until the remaining foundational choices are approved.
 
 ## Governing architecture principles
@@ -68,18 +83,16 @@ These decisions resolve their respective portions of D-0009. D-0009 remains Pend
 
 ## Remaining consequential decisions
 
-1. PDF generation/rendering.
-2. SRD corpus storage/retrieval/clarification and provenance.
-3. Minimum Android version where it materially affects implementation.
-4. Testing/build/CI and durable module/project conventions needed before scaffolding.
+1. Minimum Android version.
+2. Testing/build/CI and only the durable module/project conventions needed before scaffolding.
 
 Avoid turning these into enterprise design exercises. Resolve only what is necessary to build the approved personal MVP safely and maintainably.
 
 ## Current decision under evaluation
 
-**PDF generation/rendering.**
+**Minimum Android version (`minSdk`).**
 
-The decision should determine how the native Android app (and desktop where useful) produces the approved character-sheet PDF export, including the already-approved rule that export may use current unsaved edits without committing them. The solution should work without requiring continuous connectivity, should fit the owner-provided PDF/template assets where practical, and should avoid commercial licensing or unnecessarily complex server-side rendering unless clearly justified.
+Choose the lowest Android API level worth supporting given the already-selected stable dependencies and the personal-project maintenance goal. This is distinct from `compileSdk` and `targetSdk`, which should follow current Android tooling/Play requirements as appropriate. Do not support older Android versions merely for theoretical reach if doing so creates disproportionate compatibility work.
 
 ## Important non-requirements
 
