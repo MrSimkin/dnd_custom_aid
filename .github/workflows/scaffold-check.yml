@@ -22,6 +22,12 @@ jobs:
           gradle-version: "9.5.0"
       - name: Build and test Kotlin surfaces
         run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: dnd-custom-aid-debug-apk
+          path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          if-no-files-found: error
 
   backend:
     runs-on: ubuntu-latest

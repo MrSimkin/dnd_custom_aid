@@ -1,0 +1,33 @@
+CREATE TABLE campaign (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE TABLE app_state (
+    singleton INTEGER NOT NULL PRIMARY KEY CHECK (singleton = 1),
+    active_campaign_id TEXT REFERENCES campaign(id)
+);
+
+insertCampaign:
+INSERT INTO campaign(id, name)
+VALUES (?, ?);
+
+selectAllCampaigns:
+SELECT id, name
+FROM campaign
+ORDER BY name COLLATE NOCASE, id;
+
+selectCampaignById:
+SELECT id, name
+FROM campaign
+WHERE id = ?;
+
+setActiveCampaign:
+INSERT OR REPLACE INTO app_state(singleton, active_campaign_id)
+VALUES (1, ?);
+
+selectActiveCampaign:
+SELECT campaign.id, campaign.name
+FROM app_state
+JOIN campaign ON campaign.id = app_state.active_campaign_id
+WHERE app_state.singleton = 1;
