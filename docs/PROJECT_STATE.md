@@ -5,7 +5,7 @@
 **Current working branch:** none; next Phase 4 feature branch not yet selected  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 is complete and canonical on `main` after PR #5. The first Phase 4 slice now requires owner prioritization.
+**Status:** Phase 3 is complete and canonical on `main` after PR #5. Post-merge CI is green. The first Phase 4 slice now requires owner prioritization.
 
 ## 1. Canonical baseline
 
@@ -58,7 +58,9 @@ app_state(singleton, active_campaign_id)
 
 ## 3. Verification
 
-PR #5 final review CI passed on head `124626aa6f0fabd449ee5823c1651e3cc01f3e70`:
+PR #5 final review CI passed on head `124626aa6f0fabd449ee5823c1651e3cc01f3e70`.
+
+Post-merge GitHub Actions run #34 also passed on canonical merge commit `dc1304080f0b71bcb44690b5ee317f3877385286`:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
@@ -72,6 +74,8 @@ npm install
 npm run check
 ```
 
+Successful checks include shared Kotlin/campaign tests, SQLDelight generation, Android debug assembly, Desktop build, APK artifact upload, Wrangler type generation and TypeScript type checking.
+
 Verified behavior includes campaign-name validation/trimming, duplicate-name identity separation, campaign persistence, active-campaign switching and database close/reopen recovery.
 
 Manual Android verification on 2026-08-30 passed on both a phone and tablet:
@@ -82,7 +86,7 @@ Manual Android verification on 2026-08-30 passed on both a phone and tablet:
 - tablet presentation was acceptable;
 - landscape worked but underused horizontal space.
 
-A post-merge `main` CI run was triggered for merge commit `dc1304080f0b71bcb44690b5ee317f3877385286`; backend passed and the Kotlin/Android/Desktop job was still running when the Phase 4 documentation transition began. Subsequent documentation-only commits also trigger the same CI workflow.
+Documentation-only Phase 4 transition commits made after `dc130408...` also trigger CI but do not change application behavior.
 
 ## 4. Known non-blocking follow-up
 
