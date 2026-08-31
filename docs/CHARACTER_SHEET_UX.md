@@ -46,8 +46,8 @@ What passed:
 Required changes:
 
 - the hit-die `dX` selector is too narrow in practice and can render vertically stacked, e.g. `d` above `8`; `d8`, `d10`, etc. must stay on one line;
-- `Artífice` is currently appended at the end of the list; it should participate in normal alphabetical ordering;
-- `Otro` should remain the final escape-path entry rather than being alphabetized with real class names.
+- `Artífice` should participate in normal alphabetical ordering;
+- `Otro` remains the final escape-path entry rather than being alphabetized with real class names.
 
 The quantity-before-die logic is otherwise accepted.
 
@@ -61,10 +61,23 @@ The quantity-before-die logic is otherwise accepted.
 
 #### Fonts
 
-- Manrope remains acceptable.
-- Barlow Condensed remains a useful candidate.
-- Atkinson Hyperlegible Next looked wrong in V3; it may have rendered/loaded poorly and is **not accepted in its current result**.
-- Owner requested another **condensed** family candidate as replacement/alternative.
+V3 clarification supersedes the earlier three-font interpretation.
+
+- Manrope remains an accepted normal-width sans candidate.
+- Barlow Condensed remains an accepted condensed candidate.
+- IBM Plex Sans Condensed is accepted as an **additional condensed candidate** for the next QA pass.
+- Atkinson Hyperlegible Next can be removed.
+- The owner wants Atkinson replaced by another **normal-width sans**, not another condensed font.
+- **Sora** is the current proposed V4 normal-width sans candidate and should be tested before final acceptance.
+
+The intended V4 comparison is therefore:
+
+1. Manrope — sans;
+2. Sora — sans candidate replacing Atkinson;
+3. Barlow Condensed — condensed;
+4. IBM Plex Sans Condensed — condensed.
+
+No serif option is wanted.
 
 #### Themes
 
@@ -81,11 +94,15 @@ Confirmed good:
 - every skill shows its associated ability abbreviation;
 - skill rows are substantially smaller than V2;
 - the compact proficiency/training control type is liked;
-- changing `Competente` / `Pericia` does not alter the stored numeric skill modifier.
+- changing `Competente` / `Pericia` did not alter the stored numeric skill modifier in V3.
 
-Required refinement:
+Approved next presentation refinement for the compact training control:
 
-- keep the current compact training-control **interaction type**, but its abbreviated letters/state indication are not clear enough and should be made more legible/obvious.
+- no proficiency: **empty box**;
+- `Competente`: **checked box**;
+- `Pericia`: **double-check style box/indicator**.
+
+The interaction type should remain; the problem was the non-intuitive abbreviated letters, not the selector itself. The expanded menu may continue to spell out the full Spanish states.
 
 ### Habilidades — Por atributo
 
@@ -104,54 +121,64 @@ The current dropdown/gear mechanism works, but owner requested a more direct **t
 
 This remains a user/device presentation preference, not character mechanics data.
 
+### Icon-only controls
+
+V3 currently renders some actions such as Back and Settings through text glyphs. This makes their geometry change with user font scaling.
+
+Approved correction:
+
+- Back, Settings/gear and similar icon-only actions should use proper icon-button controls;
+- their icon/touch-target geometry should remain stable when application text size changes;
+- they should not be ordinary text glyphs controlled by the typography scale.
+
 ### Keyboard / IME
 
-**PASS in V3.**
-
-The keyboard no longer obstructs lower content during editing. Preserve this behavior.
+**PASS in V3.** Preserve this behavior.
 
 ### Navigation/state recreation
 
-**PASS in V3.**
-
-The previous rotation and screen-off/on state-loss defect is fixed. Preserve current character/tab/draft state across normal Android recreation.
+**PASS in V3.** Preserve current character/tab/draft state across normal Android recreation.
 
 ### Landscape
 
-**PASS / acceptable in V3.**
-
-The owner reported no issue with the current landscape behavior and no recurrence of the earlier dynamic-class grouping disruption.
+**PASS / acceptable in V3.** No recurrence of the earlier dynamic-class grouping disruption.
 
 ### Persistence
 
-**PASS in V3.**
+**PASS in V3.** Saved character values and presentation preference persistence behaved correctly in the tested workflow.
 
-Saved character values and presentation preference persistence behaved correctly in the tested workflow.
+### Clarification of the earlier `no modifiers / abbreviations` note
 
-### Owner note requiring clarification
+The owner clarified the earlier shorthand note as follows:
 
-Owner additionally wrote:
+1. The current digital sheet is missing the **ability modifier** beside each ability score. These modifiers are standard derived values and should be automatic rather than separately entered.
+2. Saving throws also have proficiency. Their presentation therefore needs a proficiency control, but the owner does **not** want the exact same three-state control used for skills.
+3. Several compact labels are over-abbreviated and hard to recognize. Examples called out were `Perc. pas.` for `Percepción pasiva` and `Comp.` for `Bonificador por competencia`.
+4. The owner explicitly requested that the character-creation section of the SRD be checked to ensure the digital sheet reflects the rules context rather than merely reproducing arbitrary fields.
 
-> `no modifiers on sheet, some over abreviations`
+The official Spanish SRD 5.2.1 character-creation section confirms:
 
-The exact visual meaning is not yet sufficiently clear to convert safely into an implementation requirement. Preserve this wording in the QA record and clarify it before changing code specifically for that point.
+- each ability score has a corresponding `modificador por característica` and that modifier is written beside the score;
+- a proficient saving throw adds the character's `bonificador por competencia` to the relevant ability modifier;
+- a non-proficient saving throw normally uses the relevant ability modifier;
+- a proficient skill adds the proficiency bonus to the associated ability modifier;
+- `Percepción pasiva = 10 + modificador para pruebas de Sabiduría (Percepción)`;
+- `Iniciativa` uses the Dexterity modifier in the ordinary character-creation calculation;
+- `CD de salvación de conjuros` follows a standard formula once the spellcasting ability is known.
+
+Presentation consequence already approved: show automatic ability modifiers and add a distinct saving-throw proficiency control. A broader derived-value/storage decision remains pending because it changes the durable character model rather than only the UI.
 
 ### Referencia de combate
 
-The owner considers `Referencia de combate` a **good group**, but finds its internal order strange and asked for comparison against the custom paper sheets.
+The owner accepts `Referencia de combate` as a good semantic group and has now **approved** the proposed internal order after comparison against the paper sheets:
 
-Current V3 portrait ordering is:
+1. **Core reference:** `CA` · `Iniciativa` · `Velocidad`;
+2. **Health:** `PG actuales` · `PG máximos` · `PG temporales`;
+3. **Secondary reference:** `Bonificador por competencia` · `Percepción pasiva` · `CD de salvación de conjuros`.
 
-1. CA, Inic., Vel.
-2. PG máx., PG act., PG temp.
-3. Comp., Perc. pas., CD conj.
+Portrait and landscape may use different geometry, but subgroup identity and internal order should remain stable.
 
-Current wide ordering begins:
-
-1. CA, Inic., Vel., PG máx., PG act.
-2. PG temp., Comp., Perc. pas., CD conj.
-
-The stored paper references use stronger semantic clustering than this wide-row sequence. See section 3 for the paper-derived comparison and next recommendation.
+Avoid unnecessary hard-to-recognize abbreviations. `CA` and `PG` are conventional enough to remain where useful; `Comp.` and `Perc. pas.` should be replaced with clearer/full labels where practical. Spanish SRD terminology is the naming reference.
 
 ## 2. Second intended-device QA — revised phone editor (historical)
 
@@ -213,37 +240,23 @@ The paper designs therefore already contain both digital presentation concepts n
 
 ### 3.3 Combat-reference order comparison
 
-The custom sheets suggest **semantic subgroups**, not a single left-to-right numeric sequence:
+The custom sheets support semantic subgroups rather than a single flattened numeric sequence:
 
-- immediate combat/reference values such as AC, initiative and speed are visually close;
-- HP values are a distinct health cluster;
-- proficiency belongs with fast character reference but does not need to interrupt the HP group;
-- hit dice are visually associated with the combat/resource cluster in the paper sheets, but in the digital app they already have a strong home in each class row, so duplicating them is unnecessary;
-- passive Perception and spell save DC are useful quick-reference values but are conceptually secondary to AC/initiative/speed/HP.
+- immediate combat/reference values such as CA, initiative and speed are visually close;
+- HP values form a distinct health cluster;
+- proficiency belongs with fast reference but does not need to interrupt the HP group;
+- hit dice already have a strong digital home in the class rows and need not be duplicated;
+- passive Perception and spell save DC are useful secondary quick-reference values.
 
-Recommended digital ordering for the next pass:
+The approved next-pass digital organization is therefore:
 
-**Portrait**
+**Core reference:** `CA` · `Iniciativa` · `Velocidad`  
+**Health:** `PG actuales` · `PG máximos` · `PG temporales`  
+**Secondary reference:** `Bonificador por competencia` · `Percepción pasiva` · `CD de salvación de conjuros`
 
-1. `CA` · `Inic.` · `Vel.`
-2. `PG act.` · `PG máx.` · `PG temp.`
-3. `Comp.` · `Perc. pas.` · `CD conj.`
+This order is now owner-approved.
 
-This keeps the current useful three-row logic but changes HP to **current → maximum → temporary**, which is more natural for quick digital reading while keeping all HP together.
-
-**Wide / landscape**
-
-Do not flatten the sequence into an arbitrary five-field first row. Preserve the same semantic blocks horizontally, for example:
-
-- core reference: `CA` · `Inic.` · `Vel.`;
-- health: `PG act.` · `PG máx.` · `PG temp.`;
-- secondary reference: `Comp.` · `Perc. pas.` · `CD conj.`.
-
-The exact visual geometry can adapt to width, but subgroup identity should remain stable.
-
-This recommendation is derived from the owner's paper-sheet grouping and the V3 QA comment; it is **not yet owner-approved as the final order**.
-
-## 4. Design principles derived from the paper references
+## 4. Design principles derived from the paper references and SRD review
 
 1. **Relationship by proximity.** Related fields should be spatially grouped.
 2. **Dense does not mean unstructured.** Compact fields still need semantic hierarchy.
@@ -251,20 +264,30 @@ This recommendation is derived from the owner's paper-sheet grouping and the V3 
 4. **Alternative views are legitimate.** The paper sheets demonstrate more than one valid ability/save/skill organization.
 5. **Use digital affordances.** Tabs, compact selectors, segmented controls, conditional fields and responsive layout can outperform literal paper reproduction.
 6. **Keep global and sheet-specific preferences distinct.** Theme/font belong in app Settings; skills/attribute organization is a sheet-presentation preference.
+7. **Do not make users re-enter deterministic rules values without a reason.** Standard derived character-sheet numbers should be calculated from their source data when the product has enough information, while the personal/homebrew requirement still needs an explicit exception strategy.
+8. **Use recognizable terminology.** Prefer official Spanish SRD terms or conventionally understood D&D abbreviations over space-saving abbreviations that obscure meaning.
 
 ## 5. Current next-build target
 
-Do not open/merge the character-foundation PR yet. The next focused presentation pass should preserve all V3 functional successes and address only the remaining QA items:
+Do not open/merge the character-foundation PR yet.
+
+Before coding the SRD-derived mechanical changes, obtain owner approval for the durable calculation/exception model described in the current conversation and project state.
+
+After that, V4 should preserve all V3 functional successes and address the remaining presentation items:
 
 - slightly reduce class/box internal padding;
 - keep `d8`, `d10`, etc. on one line in the hit-die selector;
 - alphabetize `Artífice` with the class list while keeping `Otro` last;
 - make >100% font scaling visually sound in menus/layout;
-- replace/retest Atkinson with another condensed font candidate;
+- remove Atkinson;
+- add IBM Plex Sans Condensed as the additional condensed option;
+- test Sora as the replacement normal-width sans alongside Manrope;
 - make `Gris claro` visibly distinct from `Claro`;
 - make `Morado oscuro` clearly purple and distinct from ordinary dark;
 - replace the skills/attribute dropdown with a compact two-state segmented/slider-like selector;
-- retain the compact skill-training control while making its state abbreviation/indicator clearer;
-- revise `Referencia de combate` ordering/grouping using section 3.3 as the proposed direction;
-- clarify the owner note `no modifiers on sheet, some over abreviations` before implementing a specific change for it;
+- retain the compact skill-training interaction while using empty/check/double-check states;
+- replace text-glyph Back/Settings actions with proper icon buttons unaffected by font scaling;
+- display automatic ability modifiers next to ability scores;
+- add a distinct saving-throw proficiency control consistent with the approved durable calculation model;
+- apply the approved combat-reference subgroup ordering and clearer terminology;
 - preserve passing keyboard/IME, recreation/navigation, landscape and persistence behavior.
