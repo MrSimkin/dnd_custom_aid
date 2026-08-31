@@ -159,7 +159,7 @@ private fun DndCustomAidApp(
                     )
                 }
             } else {
-                CharacterEditorScreenV3(
+                CharacterEditorScreenV4(
                     characterId = characterId,
                     repository = characterRepository,
                     preferences = preferences,
@@ -225,7 +225,10 @@ private fun CampaignScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
                             Text(
                                 text = "Campañas",
                                 style = MaterialTheme.typography.headlineMedium,
@@ -235,9 +238,7 @@ private fun CampaignScreen(
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
-                        TextButton(onClick = onOpenSettings) {
-                            Text("⚙ Ajustes")
-                        }
+                        StableSettingsIconButton(onClick = onOpenSettings)
                     }
                 }
 
