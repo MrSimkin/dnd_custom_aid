@@ -71,33 +71,46 @@ A future character-check/validation feature is deferred until late development a
 - `CharacterRepository` create/list/read/save behavior;
 - persistence tests covering the full 18-skill set, campaign isolation, multiclass + independent hit dice, database reopen, permissive gifted values and Phase 3 database migration;
 - Android campaign → character list → character editor flow;
-- Spanish editor UI for classes/hit dice, abilities, combat reference, saves and skills.
+- Spanish editor UI for classes/hit dice, abilities, combat reference, saves and skills;
+- stable CI-only debug signing so future test APK artifacts can update one another in place.
 
 CI evidence:
 
 - run #47 / head `c805eb29043c42ad8c6b14ba35ff8ec449a93999`: shared character data/tests green;
-- run #50 / head `8ac4d56a8d27f162b83ba6accd8b8a1af48cd6ea`: final Android character UI/navigation revision green;
-- run #51 / head `70ae2e0f276f996f92b94ed664ba41cdd902970e`: migration-preservation test, shared tests, SQLDelight generation, Android debug build/APK, Desktop build and backend checks all green.
+- run #50 / head `8ac4d56a8d27f162b83ba6accd8b8a1af48cd6ea`: Android character UI/navigation revision green;
+- run #51 / head `70ae2e0f276f996f92b94ed664ba41cdd902970e`: migration-preservation test, shared tests, SQLDelight generation, Android debug build/APK, Desktop build and backend checks all green;
+- runs #57 and #58: stable debug-signing setup green; APK signing certificate is identical across separate CI runs (`SHA-256 bb96ed194bee843eecfa2a6c2c076f169672ee84437177d62010eae11bb6ce4b`).
 
-Run #51 produced artifact `dnd-custom-aid-debug-apk` (artifact ID `9742083738`).
+The stable signing material is deliberately public/debug-only test material. It must never be reused as a production/release signing key.
 
-## 6. Remaining acceptance gate
+## 6. Phase 3 debug-signature transition
+
+The Phase 3 APK previously installed by the owner was signed with an ephemeral GitHub-runner debug key. The new stable CI debug key is necessarily different; Android therefore cannot normally install the new APK over that old Phase 3 package.
+
+This means one clean uninstall/reinstall is required at this transition. Existing on-device Phase 3 test data will be removed by that uninstall.
+
+The Phase 3→character-schema data migration is still covered by the automated migration test: it creates the old campaign-only schema, preserves an existing campaign through `AppDatabase.Schema.migrate`, then successfully uses the new character tables.
+
+After installing the new stable-signed APK, future CI test APKs using this signing identity can update it in place, allowing real device migration/persistence testing across subsequent development builds.
+
+## 7. Remaining manual acceptance gate
 
 Automated validation is complete for the implemented code. Before PR review, manual device verification remains:
 
-1. install the new debug APK **over** the existing Phase 3 installation, without uninstalling first;
-2. confirm existing campaigns and active-campaign selection remain;
-3. enter the active campaign's `Personajes` screen;
+1. uninstall the old Phase 3 debug app once because its signing identity differs;
+2. install the new stable-signed character-foundation APK;
+3. create/select a campaign and enter `Personajes`;
 4. create a character;
 5. add at least two classes with different hit-die sizes and remaining hit dice;
 6. edit ability scores, combat-reference values, saving throws and several skills, including proficiency/expertise markers;
-7. save, leave the editor, reopen the character and confirm values remain;
-8. fully close/restart the app and confirm character data remains;
-9. sanity-check usability on phone and tablet, especially the much richer tablet/landscape layout.
+7. deliberately enter at least one unusual/gifted mechanical value to confirm the UI accepts it;
+8. save, leave the editor, reopen the character and confirm values remain;
+9. fully close/restart the app and confirm campaign/character data remains;
+10. sanity-check usability on phone and tablet, especially tablet/landscape now that the app has a richer screen.
 
-Do not open or merge a PR until this manual upgrade/UX check is complete and owner review occurs.
+Do not open or merge a PR until this manual UX/persistence check is complete and owner review occurs.
 
-## 7. Explicitly deferred from this first character slice
+## 8. Explicitly deferred from this first character slice
 
 - spell lists and spell slots;
 - inventory/equipment/currencies;
@@ -112,13 +125,13 @@ Do not open or merge a PR until this manual upgrade/UX check is complete and own
 - automatic legality/rules enforcement or character checking;
 - combat tracker implementation itself.
 
-## 8. Known non-blocking UI follow-up
+## 9. Known non-blocking UI follow-up
 
 - Increase information density where useful.
 - Improve wide/tablet-landscape use once richer screens provide enough content to design around.
 - Add theme support after exact behavior is specified.
 - The current character editor is intentionally a functional first layout; visual organization should be judged on real phone/tablet use before becoming a durable sheet-layout convention.
 
-## 9. Immediate next action
+## 10. Immediate next action
 
-Owner manually installs/tests the run #51 APK over the Phase 3 build on phone/tablet. Record results and any concrete UX/data issues on this branch. After acceptance and any focused fixes, prepare a PR for explicit owner review. The following major product slice remains the DM combat tracker.
+Owner installs/tests the stable-signed character-foundation APK on phone/tablet and reports concrete UX/data issues. Record results on this branch. After acceptance and any focused fixes, prepare a PR for explicit owner review. The following major product slice remains the DM combat tracker.
