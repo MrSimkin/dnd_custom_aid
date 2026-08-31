@@ -107,3 +107,27 @@ internal fun StableSettingsIconButton(
         }
     }
 }
+
+@Composable
+internal fun StableDragHandle(
+    modifier: Modifier = Modifier,
+    contentDescription: String = "Reordenar",
+) {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    Canvas(
+        modifier = modifier
+            .size(40.dp)
+            .semantics { this.contentDescription = contentDescription },
+    ) {
+        val stroke = 2.dp.toPx()
+        listOf(0.32f, 0.5f, 0.68f).forEach { yFraction ->
+            drawLine(
+                color = color,
+                start = Offset(size.width * 0.25f, size.height * yFraction),
+                end = Offset(size.width * 0.75f, size.height * yFraction),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+    }
+}
