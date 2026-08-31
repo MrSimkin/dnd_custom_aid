@@ -5,7 +5,7 @@
 **Current working branch:** `implementation/character-data-foundation`  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 character data/persistence is functionally accepted on Android phone. The third character-sheet UX iteration is now implemented and CI-green; **manual owner phone QA is the current acceptance gate before any PR/merge**.
+**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 character data/persistence is functionally accepted on Android phone. V3 manual phone QA passed the functional/regression gate and validated the current tabs, keyboard, lifecycle-state preservation, landscape behavior and persistence. **A smaller V4 presentation-polish pass is still required before PR/merge.**
 
 ## 1. Canonical baseline
 
@@ -93,128 +93,94 @@ The first editor validated the character model, persistence and workflow, but wa
 **Result:** NEEDS CHANGES.  
 **Persistence regression:** pass.
 
-Accepted improvements:
+This pass drove V3 requirements: six abilities in one row, compact classes/hit dice, exact class selector, skill→ability labels, two skills/attribute views, global Settings, keyboard/IME correction, lifecycle/navigation restoration and stable landscape grouping.
 
-- editor visibly more compact and organized;
-- no presentation regression versus first editor;
-- numeric-field behavior acceptable;
-- hit-die selector improved;
-- skill training selector functional/understandable;
-- landscape generally liked;
-- readability good;
-- persistence remained correct.
+## 7. D-0045 presentation decisions after V3 QA
 
-Remaining findings that drove V3:
+### Tabs
 
-- all six ability scores should fit in one row;
-- class entries should be much denser and use natural `3d10` ordering;
-- class selector must use exact Spanish SRD 5.2.1 classes plus `Artífice` and `Otro` custom;
-- skill rows/training controls need more density;
-- each skill should show its associated ability;
-- support **By skills** and **By attribute**, with By skills default and the preference stored per user/device rather than per character;
-- keyboard still hid lower content;
-- dynamic classes disrupted landscape visual grouping;
-- rotation and screen off/on returned to the campaign/start page;
-- tabbed organization was wanted;
-- global Settings should include typography scale, font family/style and themes.
-
-The saving-throw “pin” is resolved: the supplied paper PDFs were the intended reference and there is no additional hidden requirement.
-
-## 7. D-0045 decisions now resolved for V3
-
-Approved initial tabs:
+Accepted:
 
 1. **Resumen** — fast-reference overview.
 2. **Habilidades** — abilities/saves/skills relationship area.
 
-Future tabs are added only when their feature domains are actually implemented; no empty speculative tabs.
+The owner confirmed both labels and the tabbed structure are understandable and preferable to the earlier continuous form.
 
-Approved skill presentation:
+### Skill presentation
 
-- **By skills** is the default;
-- **By attribute** is the alternate;
-- this is a user/device presentation preference, not character data;
-- the sheet-local gear is the intended control.
+- **Por habilidades / By skills** is the default;
+- **Por atributo / By attribute** is the alternate;
+- both structures passed V3 QA;
+- the preference remains user/device presentation state rather than character mechanics data;
+- the current dropdown works, but the next iteration should use a compact two-state segmented/slider-like selector with a visible active indicator.
 
-Approved class selector:
+### Class selector
 
 - exact Spanish class list from official SRD 5.2.1;
 - plus `Artífice`;
-- plus `Otro`, which exposes an open custom/homebrew field.
-
-Approved first global Settings:
-
-- font scale: **80 / 90 / 100 / 115 / 130%**;
-- default scale: **100%**;
-- fonts: **Manrope**, **Atkinson Hyperlegible Next**, **Barlow Condensed**;
-- no serif option;
-- themes: **System, Light, Dark, Light Gray, Dark Purple**;
-- Dark Purple is an explicit owner-preferred theme option.
-
-The three fonts are intentionally an initial reversible set: owner QA may replace them later without changing the settings model.
-
-Still intentionally unresolved:
-
-- whether changing skill proficiency/training should recalculate the stored final numeric skill modifier. V3 therefore leaves the final modifier independent.
-- final visual styling beyond the already approved hierarchy/density direction.
-
-## 8. Third character-editor implementation (V3)
-
-V3 is implemented on the working branch and routes the Android app through `CharacterEditorScreenV3`.
-
-### Navigation/lifecycle
-
-- root screen, selected campaign and selected character IDs use saveable state;
-- editor tab and unsaved editor draft use saveable state;
-- ordinary Activity/configuration recreation is intended to preserve the current workflow instead of returning to the campaign page;
-- `adjustResize`, IME padding, navigation-bar padding and extra lower scroll space are combined to address the previous software-keyboard obstruction.
-
-### `Resumen`
-
-- compact persistent editor header with back, character identity, save and global settings access;
-- identity/status group;
-- compact multiclass rows;
-- all six ability scores in one row;
-- dense combat/reference grouping.
-
-### Classes / hit dice
-
-- one compact row per class where practical;
-- exact Spanish SRD 5.2.1 selector plus `Artífice` and `Otro`;
-- `Otro` exposes an open custom class field;
-- level is compact;
-- hit-dice quantity precedes die type, matching tabletop notation such as `3d10`;
-- common hit-die selector: d4/d6/d8/d10/d12 plus custom escape.
-
-### `Habilidades`
-
-- default **Por habilidades** view;
-- six abilities shown compactly;
-- saving throws shown as their own compact group;
-- every skill visibly shows the associated ability abbreviation;
-- skill modifier and training controls are denser than V2;
-- wide/landscape skill list uses multiple columns;
-- **Por atributo** alternate view groups each ability with its save and related skills;
-- switching view does not change character mechanics/data;
-- selected view persists as a device/user presentation preference.
+- plus final `Otro` escape path exposing an open custom/homebrew field;
+- V3 confirmed the choices work;
+- `Artífice` should be alphabetized with the real class names rather than appended at the end;
+- `Otro` remains last.
 
 ### Global Settings
 
-Persistent device preferences use a small local preferences store and currently expose:
+Font scale options remain **80 / 90 / 100 / 115 / 130%** with **100% default**.
 
-- 80 / 90 / 100 / 115 / 130% text scale;
-- Manrope / Atkinson Hyperlegible Next / Barlow Condensed;
-- System / Light / Dark / Light Gray / Dark Purple themes.
+V3 QA found menu/layout rendering becomes visually wrong above 100%; treat this as a responsive-layout defect before changing the approved scale.
 
-Font retrieval uses Android/Google Fonts downloadable-font support with the standard Google Play Services font-provider certificates. If the chosen families are visually disliked in phone QA, replacing them remains a reversible presentation change.
+Font candidates after V3 QA:
+
+- **Manrope** — retained;
+- **Barlow Condensed** — retained;
+- **Atkinson Hyperlegible Next** — not accepted in its current result; owner requested another condensed replacement/alternative. Exact replacement remains unresolved.
+
+Theme identities remain:
+
+- System;
+- Light;
+- Dark;
+- Light Gray;
+- Dark Purple.
+
+Current palettes need revision:
+
+- Light Gray is almost indistinguishable from Light;
+- Dark Purple is too close to Dark and reads too wine/burgundy rather than clearly purple.
+
+### Skill training control
+
+The V3 compact interaction type is liked and should be retained, but its abbreviated letters/state indication are not clear enough. Improve the visible state without returning to the older oversized control.
+
+Changing `Competente` / `Pericia` continues to leave the manually stored final numeric modifier unchanged unless a later explicit decision says otherwise.
+
+### Combat reference
+
+`Referencia de combate` is accepted as a useful group, but its **internal order is not yet accepted**. The two custom paper sheets should guide a more coherent subgroup order rather than an arbitrary wide-row sequence. Detailed comparison and a proposed order are in `docs/CHARACTER_SHEET_UX.md`.
+
+## 8. Third character-editor implementation (V3)
+
+V3 routes Android through `CharacterEditorScreenV3` and includes:
+
+- saveable root/campaign/character navigation state;
+- saveable selected editor tab and unsaved draft state;
+- `adjustResize` + IME/navigation padding for lower-content accessibility;
+- `Resumen` and `Habilidades` tabs;
+- compact six-ability row;
+- compact class rows and quantity-before-die hit-dice entry;
+- exact SRD 5.2.1 Spanish class selector + Artífice + Otro/custom;
+- Por habilidades and Por atributo presentation modes;
+- visible skill→ability association;
+- persistent device presentation settings;
+- initial global font-size/font/theme Settings.
 
 ## 9. V3 automated verification
 
-Latest verified code head:
+Verified code head:
 
 `f728acd7ec10f4fae2df093ec8b16db4c8d2ba90` — `Wire downloadable fonts through GMS provider`.
 
-GitHub Actions run **#84 / `33352541814`** passed on that head:
+GitHub Actions run **#84 / `33352541814`** passed:
 
 - backend dependency install/type check: **success**;
 - shared Kotlin tests/build: **success**;
@@ -222,22 +188,64 @@ GitHub Actions run **#84 / `33352541814`** passed on that head:
 - Desktop build: **success**;
 - Android debug APK artifact upload: **success**.
 
-Two preceding V3 runs failed only while adapting the selected downloadable fonts to the Compose dependency's explicit Google Fonts provider API. The final fix added the standard provider certificate resource and passed CI. These intermediate failures are implementation history, not an open blocker.
+## 10. V3 intended-device manual QA
 
-**Automated verification does not constitute owner UX acceptance.**
+**Primary device:** Android phone.  
+**Overall:** **FUNCTIONAL PASS; PRESENTATION NEEDS CHANGES.**
 
-## 10. Paper character-sheet design references
+### Passed / accepted
+
+- in-place update and existing data preservation;
+- current two-tab organization;
+- overall density and grouping substantially improved;
+- all six ability scores fit compactly in one row;
+- combat-reference fields form a useful group;
+- one class entry is compact enough in principle;
+- quantity-before-die hit-dice logic is correct;
+- class selector choices are correct;
+- `Otro` custom entry works;
+- multiple class rows cause no layout issue;
+- Por habilidades structure passes;
+- Por atributo structure passes;
+- compact skill-training control type is liked;
+- rotation/start-page regression is fixed;
+- screen-off/on navigation regression is fixed;
+- keyboard no longer covers lower content;
+- landscape behavior passes;
+- persistence passes.
+
+### Remaining V4 changes
+
+- slightly reduce remaining internal class/box padding;
+- fix the hit-die `dX` selector so `d8`, `d10`, etc. never stack vertically (`d` above the number);
+- alphabetize `Artífice` with the real class names;
+- make font scales above 100% render menus/layout correctly;
+- replace/retest Atkinson with another condensed font candidate;
+- make `Gris claro` visibly more distinct from `Claro`;
+- make `Morado oscuro` clearly purple and distinct from ordinary Dark;
+- replace the Por habilidades / Por atributo dropdown with a direct segmented/slider-like two-state selector;
+- retain the compact proficiency/training control but make its letters/state clearer;
+- revise `Referencia de combate` internal ordering/grouping using the custom paper sheets;
+- clarify the owner note `no modifiers on sheet, some over abreviations` before converting it into a code change.
+
+## 11. Paper character-sheet design references
 
 Stored durably in the repository:
 
 - `assets/character-sheets/templates/Hoja de PJ - 5.0 - Simkin.pdf`;
 - `assets/character-sheets/templates/Hoja de PJ v2 - 5.0 - Simkin.pdf`.
 
-Detailed visual review is recorded in `docs/CHARACTER_SHEET_UX.md`.
+The detailed paper-derived grouping analysis is maintained in `docs/CHARACTER_SHEET_UX.md`.
 
-The owner confirmed that the relevant main-page layouts are alternatives for the same character-sheet page. The paper designs also demonstrate both ability/skill grouping approaches now implemented digitally. They are hierarchy/grouping references, not instructions to reproduce a paper page literally.
+For `Referencia de combate`, the paper sheets support preserving semantic subgroups rather than flattening values into a single arbitrary row. Current proposed next-pass digital grouping is:
 
-## 11. Explicitly deferred from this first character slice
+1. core reference: CA / initiative / speed;
+2. HP cluster: current / maximum / temporary HP;
+3. secondary reference: proficiency / passive Perception / spell save DC.
+
+This proposal is **not yet owner-approved as final order**.
+
+## 12. Explicitly deferred from this first character slice
 
 - spell lists and spell slots;
 - inventory/equipment/currencies;
@@ -252,25 +260,12 @@ The owner confirmed that the relevant main-page layouts are alternatives for the
 - automatic legality/rules enforcement or character checking;
 - combat tracker implementation itself.
 
-The paper PDFs contain examples of several deferred areas, but their presence in a reference sheet does not move those features into the current implementation slice.
-
-## 12. Current acceptance gate / immediate next action
+## 13. Current acceptance gate / immediate next action
 
 **Do not open or merge a PR yet.**
 
-Immediate next action: install the stable-signed V3 APK from run #84 on the owner's Android phone and perform targeted manual QA covering:
+The character data/persistence foundation is functionally stable enough that the next work should be a **small V4 presentation-polish pass**, not another structural rewrite.
 
-- in-place update and prior local character data preservation;
-- initial Settings behavior, persistence, all five text scales, all three font families and all five themes;
-- `Resumen` density, six-ability row and compact class/hit-dice entry;
-- exact class choices including Artífice and `Otro` custom entry;
-- `Habilidades` default By-skills presentation and visible skill→ability association;
-- By-attribute alternate presentation and device-wide preference persistence;
-- skill-training independence from manually entered final modifiers;
-- software-keyboard access to lower skills/content;
-- portrait↔landscape and screen-off/on state preservation, including unsaved draft state;
-- landscape grouping after adding multiple classes;
-- save/reopen/full-restart persistence regression;
-- overall owner UX acceptance.
+V4 should address only the remaining items in section 10 while preserving the now-passing keyboard, lifecycle/navigation, landscape and persistence behavior. After V4 is CI-green, produce another stable-signed phone APK and run focused owner QA.
 
-Record all owner observations in Git. Only after manual QA is accepted should the character branch proceed to PR/review/merge. The following major product slice remains the tablet-primary DM combat tracker once this character-data foundation reaches an accepted stable state.
+Once that presentation pass is accepted, proceed to character-foundation PR/review/merge. The following major product slice remains the tablet-primary DM combat tracker.
