@@ -25,7 +25,7 @@ The canonical scaffold provides:
 - one shared Kotlin Multiplatform module;
 - Android Jetpack Compose application shell;
 - Compose Multiplatform Desktop application shell;
-- SQLDelight local database foundation and smoke test;
+- SQLDelight local database foundation;
 - TypeScript Cloudflare Worker shell;
 - PostgreSQL migration/data-loading area;
 - one simple GitHub Actions workflow;
@@ -39,44 +39,29 @@ C-0009 remains controlling: no speculative Cloudflare services, provider abstrac
 
 **Goal:** implement one small real user workflow end-to-end to prove the foundation without prematurely activating the whole architecture.
 
-**Status:** **Current.** First slice selected: local Android campaign creation and active-campaign selection.
+**Status:** **Complete.** The local Android campaign creation and active-campaign selection slice was merged through PR #5 on 2026-08-30.
 
-### Slice boundary
-
-The slice should prove:
+The completed slice proves:
 
 - a real Android Material 3 workflow;
 - shared Kotlin domain/data behavior;
 - SQLDelight persistence;
-- locally durable active-campaign selection.
+- locally durable active-campaign selection;
+- phone and tablet manual usability at the deliberately simple first-slice level.
 
-Initial behavior:
+Implemented behavior:
 
 1. show locally stored campaigns;
-2. create a campaign using a nonblank name;
-3. persist it locally;
-4. select a campaign as active;
-5. persist active selection across app restart;
-6. allow duplicate display names because identity is by stable ID.
+2. create a campaign using a nonblank trimmed name;
+3. persist campaigns locally;
+4. allow duplicate display names with stable UUID identity;
+5. select one campaign as active;
+6. persist active selection across app/database restart;
+7. present the user-facing workflow in Spanish.
 
-Explicitly excluded from this slice:
+Manual verification passed on an Android phone and tablet. The owner noted non-blocking future UI work: somewhat denser layouts, better wide-landscape space use once richer screens exist, and future theme support.
 
-- rename/delete;
-- invites, membership and roles;
-- Descope/authentication;
-- Neon/hosted sync;
-- realtime infrastructure;
-- desktop campaign UI;
-- characters, NPCs, encounters or combat;
-- PDF and SRD features.
-
-### Why this slice first
-
-Campaign selection is already approved MVP behavior and forms a useful parent boundary for later records. It proves UI + shared logic + local persistence without forcing hosted infrastructure or the much larger character/combat models into the first feature.
-
-### Phase 3 exit criterion
-
-A real approved campaign create/select task works end-to-end on Android with focused persistence tests and documented behavior.
+The Phase 3 exit criterion was satisfied: a real approved campaign create/select task works end-to-end on Android with focused persistence tests and documented behavior.
 
 ---
 
@@ -84,7 +69,9 @@ A real approved campaign create/select task works end-to-end on Android with foc
 
 **Goal:** implement remaining approved MVP scope incrementally.
 
-Prefer complete testable slices over many half-finished screens. Introduce hosted sync/auth/provider integrations only when the corresponding slice needs them.
+**Status:** **Current.** The first Phase 4 feature slice has not yet been selected. Feature ordering is an owner product-priority decision.
+
+Prefer complete testable slices over many half-finished screens. Introduce hosted sync/auth/provider integrations only when the corresponding slice needs them. Preserve C-0009 proportionality and avoid building infrastructure ahead of an actual selected workflow.
 
 ---
 
