@@ -45,6 +45,16 @@ class CharacterRepository(
                     adjustment = 0,
                 )
             }
+            defaultCurrencies.forEachIndexed { index, currency ->
+                database.characterQueries.insertCharacterCurrency(
+                    character_id = id.toString(),
+                    currency_key = currency.key,
+                    name = currency.name,
+                    amount = 0,
+                    sort_order = index.toLong(),
+                    is_default = 1,
+                )
+            }
         }
 
         return requireNotNull(character(id))
@@ -58,7 +68,7 @@ class CharacterRepository(
         require(classIds.distinct().size == classIds.size) { "Character class entries must have distinct identity." }
         sheet.classes.forEach { classLevel ->
             require(classLevel.name.trim().isNotEmpty()) { "Class name must not be blank." }
-            require(classLevel.level > 0) { "Class level must be positive." }
+            require(classLevel.level >= 0) { "Class level must not be negative." }
             require(classLevel.hitDieSides > 0) { "Hit die size must be positive." }
             require(classLevel.hitDiceRemaining >= 0) { "Remaining hit dice must not be negative." }
         }
@@ -68,6 +78,46 @@ class CharacterRepository(
 
         val skillsByKey = sheet.skills.associateBy { it.key }
         require(skillsByKey.size == sheet.skills.size) { "Each skill may appear only once." }
+
+        val spellSlotsByLevel = sheet.spellSlots.associateBy { it.level }
+        require(spellSlotsByLevel.size == sheet.spellSlots.size) { "Each spell level may appear only once." }
+        sheet.spellSlots.forEach { slot ->
+            require(slot.level in 1..9) { "Spell-slot level must be between 1 and 9." }
+            require(slot.totalSlots >= 0) { "Total spell slots must not be negative." }
+            require(slot.spentSlots in 0..slot.totalSlots) { "Spent spell slots must be between zero and the configured total." }
+        }
+
+        val combatIds = sheet.combatEntries.map { it.id }
+        require(combatIds.distinct().size == combatIds.size) { "Combat entries must have distinct identity." }
+        sheet.combatEntries.forEach { entry ->
+            require(entry.name.trim().isNotEmpty()) { "Combat entry name must not be blank." }
+        }
+
+        val inventoryIds = sheet.inventoryItems.map { it.id }
+        require(inventoryIds.distinct().size == inventoryIds.size) { "Inventory items must have distinct identity." }
+        sheet.inventoryItems.forEach { item ->
+            require(item.name.trim().isNotEmpty()) { "Inventory item name must not be blank." }
+            require(item.quantity >= 0) { "Inventory quantity must not be negative." }
+            require(item.weightLb == null || item.weightLb >= 0.0) { "Inventory unit weight must not be negative." }
+        }
+
+        val currencyKeys = sheet.currencies.map { it.key }
+        require(currencyKeys.distinct().size == currencyKeys.size) { "Currency keys must be unique per character." }
+        sheet.currencies.forEach { currency ->
+            require(currency.key.isNotBlank()) { "Currency key must not be blank." }
+            require(currency.name.trim().isNotEmpty()) { "Currency name must not be blank." }
+        }
+
+        val standardProficiency = standardProficiencyBonusForLevel(sheet.totalLevel)
+        val adjustmentImpliedByCompatibilitySnapshot = sheet.proficiencyBonus - standardProficiency
+        val proficiencyAdjustment = if (
+            sheet.proficiencyBonus == standardProficiency + sheet.proficiencyBonusAdjustment
+        ) {
+            sheet.proficiencyBonusAdjustment
+        } else {
+            adjustmentImpliedByCompatibilitySnapshot
+        }
+        val finalProficiency = standardProficiency + proficiencyAdjustment
 
         database.transaction {
             database.characterQueries.updateCharacterCore(
@@ -85,9 +135,12 @@ class CharacterRepository(
                 sheet.tempHp.toLong(),
                 sheet.initiativeAdjustment.toLong(),
                 sheet.speed.toLong(),
-                sheet.proficiencyBonus.toLong(),
+                finalProficiency.toLong(),
+                proficiencyAdjustment.toLong(),
                 sheet.passivePerceptionAdjustment.toLong(),
                 sheet.spellSaveDc?.toLong(),
+                sheet.spellAttackModifier?.toLong(),
+                sheet.spellcastingAbility.name,
                 sheet.id.toString(),
             )
 
@@ -123,6 +176,61 @@ class CharacterRepository(
                     skill_key = key.name,
                     training = skill.training.name,
                     adjustment = skill.adjustment.toLong(),
+                )
+            }
+
+            database.characterQueries.deleteCharacterSpellSlots(sheet.id.toString())
+            sheet.spellSlots.sortedBy { it.level }.forEach { slot ->
+                database.characterQueries.insertCharacterSpellSlot(
+                    character_id = sheet.id.toString(),
+                    spell_level = slot.level.toLong(),
+                    total_slots = slot.totalSlots.toLong(),
+                    spent_slots = slot.spentSlots.toLong(),
+                )
+            }
+
+            database.characterQueries.deleteCharacterCombatEntries(sheet.id.toString())
+            sheet.combatEntries.forEachIndexed { index, entry ->
+                database.characterQueries.insertCharacterCombatEntry(
+                    id = entry.id.toString(),
+                    character_id = sheet.id.toString(),
+                    name = entry.name.trim(),
+                    type = entry.type.name,
+                    attack_modifier = entry.attackModifier?.toLong(),
+                    damage_effect = entry.damageEffect,
+                    range_text = entry.rangeText,
+                    notes = entry.notes,
+                    sort_order = index.toLong(),
+                )
+            }
+
+            database.characterQueries.deleteCharacterInventoryItems(sheet.id.toString())
+            sheet.inventoryItems.forEachIndexed { index, item ->
+                database.characterQueries.insertCharacterInventoryItem(
+                    id = item.id.toString(),
+                    character_id = sheet.id.toString(),
+                    name = item.name.trim(),
+                    quantity = item.quantity.toLong(),
+                    weight_lb = item.weightLb,
+                    equipped = if (item.equipped) 1 else 0,
+                    notes = item.notes,
+                    sort_order = index.toLong(),
+                    special = if (item.special) 1 else 0,
+                    description = item.description,
+                    location = item.location,
+                    attuned = if (item.attuned) 1 else 0,
+                )
+            }
+
+            database.characterQueries.deleteCharacterCurrencies(sheet.id.toString())
+            sheet.currencies.forEachIndexed { index, currency ->
+                database.characterQueries.insertCharacterCurrency(
+                    character_id = sheet.id.toString(),
+                    currency_key = currency.key,
+                    name = currency.name.trim(),
+                    amount = currency.amount.toLong(),
+                    sort_order = index.toLong(),
+                    is_default = if (currency.isDefault) 1 else 0,
                 )
             }
         }
@@ -166,6 +274,60 @@ class CharacterRepository(
             )
         }.executeAsList().associateBy { it.key }
 
+        val spellSlots = database.characterQueries.selectCharacterSpellSlots(core.id.toString()) {
+                _, spellLevel, totalSlots, spentSlots ->
+            CharacterSpellSlot(
+                level = spellLevel.toInt(),
+                totalSlots = totalSlots.toInt(),
+                spentSlots = spentSlots.toInt(),
+            )
+        }.executeAsList()
+
+        val combatEntries = database.characterQueries.selectCharacterCombatEntries(core.id.toString()) {
+                id, _, name, type, attackModifier, damageEffect, rangeText, notes, sortOrder ->
+            CharacterCombatEntry(
+                id = Uuid.parse(id),
+                name = name,
+                type = CharacterCombatEntryType.valueOf(type),
+                attackModifier = attackModifier?.toInt(),
+                damageEffect = damageEffect,
+                rangeText = rangeText,
+                notes = notes,
+                sortOrder = sortOrder.toInt(),
+            )
+        }.executeAsList()
+
+        val inventoryItems = database.characterQueries.selectCharacterInventoryItems(core.id.toString()) {
+                id, _, name, quantity, weightLb, equipped, notes, sortOrder, special, description, location, attuned ->
+            CharacterInventoryItem(
+                id = Uuid.parse(id),
+                name = name,
+                quantity = quantity.toInt(),
+                weightLb = weightLb,
+                equipped = equipped != 0L,
+                notes = notes,
+                sortOrder = sortOrder.toInt(),
+                special = special != 0L,
+                description = description,
+                location = location,
+                attuned = attuned != 0L,
+            )
+        }.executeAsList()
+
+        val currencies = database.characterQueries.selectCharacterCurrencies(core.id.toString()) {
+                _, currencyKey, name, amount, sortOrder, isDefault ->
+            CharacterCurrency(
+                key = currencyKey,
+                name = name,
+                amount = amount.toInt(),
+                sortOrder = sortOrder.toInt(),
+                isDefault = isDefault != 0L,
+            )
+        }.executeAsList()
+
+        val standardProficiency = standardProficiencyBonusForLevel(classes.sumOf { it.level })
+        val finalProficiency = standardProficiency + core.proficiencyBonusAdjustment
+
         return CharacterSheet(
             id = core.id,
             campaignId = core.campaignId,
@@ -184,7 +346,7 @@ class CharacterRepository(
             tempHp = core.tempHp,
             initiativeAdjustment = core.initiativeAdjustment,
             speed = core.speed,
-            proficiencyBonus = core.proficiencyBonus,
+            proficiencyBonus = finalProficiency,
             savingThrows = CharacterAbility.entries.map { ability ->
                 storedSaves[ability]
                     ?: CharacterSavingThrow(ability = ability, proficient = false, adjustment = 0)
@@ -196,6 +358,13 @@ class CharacterRepository(
                 storedSkills[key]
                     ?: CharacterSkill(key = key, adjustment = 0, training = SkillTraining.NONE)
             },
+            proficiencyBonusAdjustment = core.proficiencyBonusAdjustment,
+            spellAttackModifier = core.spellAttackModifier,
+            spellcastingAbility = core.spellcastingAbility,
+            spellSlots = spellSlots,
+            combatEntries = combatEntries,
+            inventoryItems = inventoryItems,
+            currencies = currencies,
         )
     }
 
@@ -218,8 +387,11 @@ class CharacterRepository(
         initiativeAdjustment: Long,
         speed: Long,
         proficiencyBonus: Long,
+        proficiencyBonusAdjustment: Long,
         passivePerceptionAdjustment: Long,
         spellSaveDc: Long?,
+        spellAttackModifier: Long?,
+        spellcastingAbility: String,
     ) = CharacterCore(
         id = Uuid.parse(id),
         campaignId = Uuid.parse(campaignId),
@@ -238,9 +410,13 @@ class CharacterRepository(
         tempHp = tempHp.toInt(),
         initiativeAdjustment = initiativeAdjustment.toInt(),
         speed = speed.toInt(),
-        proficiencyBonus = proficiencyBonus.toInt(),
+        legacyProficiencyBonus = proficiencyBonus.toInt(),
+        proficiencyBonusAdjustment = proficiencyBonusAdjustment.toInt(),
         passivePerceptionAdjustment = passivePerceptionAdjustment.toInt(),
         spellSaveDc = spellSaveDc?.toInt(),
+        spellAttackModifier = spellAttackModifier?.toInt(),
+        spellcastingAbility = runCatching { SpellcastingAbility.valueOf(spellcastingAbility) }
+            .getOrDefault(SpellcastingAbility.NONE),
     )
 
     private data class CharacterCore(
@@ -261,8 +437,26 @@ class CharacterRepository(
         val tempHp: Int,
         val initiativeAdjustment: Int,
         val speed: Int,
-        val proficiencyBonus: Int,
+        val legacyProficiencyBonus: Int,
+        val proficiencyBonusAdjustment: Int,
         val passivePerceptionAdjustment: Int,
         val spellSaveDc: Int?,
+        val spellAttackModifier: Int?,
+        val spellcastingAbility: SpellcastingAbility,
     )
+
+    private data class DefaultCurrency(
+        val key: String,
+        val name: String,
+    )
+
+    private companion object {
+        val defaultCurrencies = listOf(
+            DefaultCurrency("CP", "Cobre"),
+            DefaultCurrency("SP", "Plata"),
+            DefaultCurrency("EP", "Electro"),
+            DefaultCurrency("GP", "Oro"),
+            DefaultCurrency("PP", "Platino"),
+        )
+    }
 }
