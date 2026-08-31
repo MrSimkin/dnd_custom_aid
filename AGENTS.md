@@ -182,6 +182,24 @@ At the end of every meaningful work session, leave the repository in a state whe
 
 The primary current-state handoff file is `docs/PROJECT_STATE.md`; other authoritative details live in the files identified by `MANIFEST.md`.
 
+### Mandatory step checkpoints
+
+In addition to end-of-session continuity, **every meaningful project step must leave a durable checkpoint in Git before moving to the next step**, even when the checkpoint is short.
+
+A meaningful step includes, at minimum:
+
+- an owner decision or answered design gate;
+- completion of a QA/test batch;
+- a coherent implementation increment;
+- a diagnosis that changes the expected next action;
+- a migration/data-shape change;
+- a new blocker or recovery concern;
+- any point where losing the current chat or local hardware would otherwise require reconstructing work from memory.
+
+The checkpoint may be a normal commit that updates the authoritative decision/state/specification, or a short handoff/checkpoint file when that is clearer. It must state enough to resume safely: what was just completed or decided, what remains open, and the exact next step.
+
+Do not accumulate several meaningful owner decisions, QA results, or implementation increments only in chat and postpone recording them until the end of the session. The purpose of this rule is fast recovery from hardware failure, chat loss, context loss, or agent handoff.
+
 ## 11. Technical quality
 
 Prefer maintainable, readable, testable code over clever code. Keep dependencies justified. Avoid secrets in the repository. Do not commit generated credentials, API keys, signing keys, local machine paths, or personal tokens.
