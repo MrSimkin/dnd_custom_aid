@@ -9,7 +9,7 @@
 
 ## 1. Canonical baseline
 
-The approved product/architecture baseline is D-0034 through D-0043 plus the 2026-08-30 C-0009 proportionality clarifications. Phase 4 ordering and the first character-slice boundary are recorded in `docs/decisions/D-0044_PHASE4_CHARACTER_FOUNDATION_ORDER.md`.
+The approved product/architecture baseline is D-0034 through D-0043 plus the 2026-08-30 C-0009 proportionality clarifications. Phase 4 ordering and the first character-slice boundary are recorded in `docs/decisions/D-0044_PHASE4_CHARACTER_FOUNDATION_ORDER.md`. Current approved character-sheet presentation preferences are recorded in `docs/decisions/D-0045_CHARACTER_SHEET_PRESENTATION.md`.
 
 Key constraints remain:
 
@@ -76,7 +76,9 @@ A future character-check/validation feature is deferred until late development a
 - stable CI-only debug signing so future test APK artifacts can update one another in place;
 - C-0010 intended-device/manual-QA convention and reusable `docs/QA_CHECKLIST.md`;
 - second-pass Android character editor UX implementation;
-- `docs/CHARACTER_SHEET_UX.md` as the active detailed character-sheet UX/QA/design-reference working record.
+- `docs/CHARACTER_SHEET_UX.md` as the active detailed character-sheet UX/QA/design-reference working record;
+- `docs/decisions/D-0045_CHARACTER_SHEET_PRESENTATION.md` for the owner-approved presentation decisions from the second QA/PDF review;
+- both owner paper-sheet PDF references under `assets/character-sheets/templates/`.
 
 The stable signing material is deliberately public/debug-only test material. It must never be reused as a production/release signing key.
 
@@ -131,26 +133,27 @@ The complete first-pass findings remain preserved in Git history and are consoli
 - compact further; all six ability scores should be able to fit in one row when practical;
 - one class entry should become substantially more compact, ideally one row;
 - hit-dice display/input logic should read quantity before die type, e.g. `3d10`;
-- class selector should use known classes, include Artificer / Artífice (Eberron), and include `Otro` exposing an open custom/homebrew field;
+- class selector must use the exact SRD 5.2.1 class list plus `Artífice` and `Otro`; `Otro` exposes an open custom/homebrew field;
 - skill training control remains too large and needs a denser treatment;
 - every skill should show its associated ability;
-- support two skill/ability presentation concepts: ability-centered grouping versus a separate skill list with visible ability association;
+- support two character-sheet presentation modes: **By skills** (default) and **By attribute**;
+- a small sheet-local gear/settings control is the intended home for that view preference;
 - software keyboard still hides lower content: IME obstruction remains a blocking UX defect;
 - landscape grouping is generally good, but adding classes disrupts the grouping/layout by causing dynamic reflow that breaks visual groups;
-- tabs/section navigation discussed earlier have not yet been implemented and remain a design item for owner review;
+- tabs/section navigation are required, but the owner wants to review the agent's first proposed tab structure before it becomes the layout convention;
 - rotation portrait ↔ landscape currently returns to the start/campaign page;
 - screen off/on also returns to the start/campaign page;
 - preserve current navigation/editor state across ordinary Android recreation/configuration changes.
 
-### Explicitly unresolved / pinned
+### Explicitly unresolved
 
 - whether skill training/proficiency should change/recalculate the final stored numeric skill modifier;
-- saving-throw presentation: owner explicitly paused this topic to provide a clearer explanation later;
-- exact tab/accordion/hybrid navigation structure;
-- exact final class list beyond Artificer and `Otro`;
-- exact font families and exact font-size steps.
+- exact tab structure;
+- exact font families/styles;
+- exact font-size steps/control style;
+- final visual styling beyond the grouping/density directions already approved.
 
-Do not silently decide these items.
+Saving throws are **not** waiting on an additional owner explanation. The earlier "pin" only meant the owner wanted the supplied paper PDFs reviewed because they already demonstrate the intended presentation alternatives. Do not invent an additional saving-throw requirement that is not present in those references or later owner decisions.
 
 ## 9. Initial Settings direction — next build
 
@@ -170,24 +173,22 @@ Theme choices must include at least:
 4. Light Gray
 5. Dark Purple — explicit owner personal preference
 
-A small sheet-local gear/basic-settings control is also a candidate for character-sheet-specific presentation preferences such as ability/skill grouping mode. Global font/theme preferences and sheet-specific view preferences should remain conceptually distinct unless implementation proves combining them simpler and clearer.
+The character-sheet-specific view preference (`By skills` / `By attribute`) belongs in a small sheet-local gear/settings control rather than in durable character mechanics/data.
 
 ## 10. Paper character-sheet design references
 
-The owner supplied two custom five-page paper character sheets as inspiration:
+The owner supplied two custom five-page paper character sheets as inspiration, and both are now stored durably in the repository:
 
-- `Hoja de PJ - 5.0 - Simkin.pdf`;
-- `Hoja de PJ v2 - 5.0 - Simkin.pdf`.
+- `assets/character-sheets/templates/Hoja de PJ - 5.0 - Simkin.pdf`;
+- `assets/character-sheets/templates/Hoja de PJ v2 - 5.0 - Simkin.pdf`.
 
 Detailed visual review is recorded in `docs/CHARACTER_SHEET_UX.md`.
 
-Key finding: the paper designs already demonstrate both ability/skill grouping approaches currently under discussion. In particular, the v2 sheet contains one layout that groups skills directly with abilities and another that separates skills/saves while labeling each skill with its associated ability. These references should inform digital hierarchy/grouping without forcing a literal paper-page reproduction.
+The owner confirmed that the relevant alternative main-page layouts are **two design alternatives for the same character-sheet page**; a player chooses which presentation they prefer.
 
-For durable repository continuity, the binary PDFs should be uploaded by the owner to:
+Key finding: the paper designs already demonstrate both ability/skill grouping approaches now approved for the digital sheet. In particular, the v2 sheet contains an ability-centered organization and an alternative that separates skills/saves while labeling each skill with its associated ability. The digital default is **By skills**, with **By attribute** available as the alternative view.
 
-`assets/character-sheets/templates/`
-
-The current GitHub connector can edit text records but cannot safely commit these binary PDFs directly.
+These references should inform digital hierarchy/grouping without forcing a literal paper-page reproduction.
 
 ## 11. Explicitly deferred from this first character slice
 
@@ -210,17 +211,19 @@ The paper PDFs contain examples of several deferred areas, but their presence in
 
 Do **not** open or merge a PR yet.
 
-Before the next owner QA APK, perform a focused third character-editor pass, guided by `docs/CHARACTER_SHEET_UX.md`, that:
+Before the next owner QA APK:
 
-- fixes rotation/screen-off navigation-state loss;
-- fully solves keyboard/IME obstruction;
-- further compacts abilities/classes/skills;
-- uses natural `3d10`-style hit-dice ordering;
-- adds known-class selection with Artificer and `Otro` custom entry;
-- shows skill→ability association;
-- introduces the first Settings surface for font size, font family/style and the five requested themes;
-- preserves good landscape use while stabilizing group placement with dynamic class rows;
-- leaves saving-throw redesign and automatic skill recalculation unresolved until owner clarification;
-- discusses the tab/section-navigation choice with the owner rather than silently finalizing it.
+1. Present the owner with the first proposed tab/section structure and obtain approval or revision.
+2. Resolve the still-open initial Settings choices needed for implementation (font families/styles and font-size steps/control).
+3. Perform a focused third character-editor pass, guided by `docs/CHARACTER_SHEET_UX.md` and D-0045, that:
+   - fixes rotation/screen-off navigation-state loss;
+   - fully solves keyboard/IME obstruction;
+   - further compacts abilities/classes/skills;
+   - uses natural `3d10`-style hit-dice ordering;
+   - uses the SRD 5.2.1 class list plus Artífice and `Otro` custom entry;
+   - shows skill→ability association;
+   - implements **By skills** as default plus **By attribute** as the alternate sheet view;
+   - introduces the first Settings surface for font size, font family/style and the five requested themes;
+   - preserves good landscape use while stabilizing group placement with dynamic class rows.
 
 After that implementation is CI-green, produce a new stable-signed phone APK and rerun intended-device QA. The following major product slice remains the tablet-primary DM combat tracker after the character-data foundation reaches an accepted stable state.
