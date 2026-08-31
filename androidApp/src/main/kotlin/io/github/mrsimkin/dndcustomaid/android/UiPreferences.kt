@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -35,8 +34,9 @@ import androidx.compose.ui.unit.dp
 
 internal enum class AppFontChoice(val label: String, val googleFontName: String) {
     MANROPE("Manrope", "Manrope"),
-    ATKINSON("Atkinson Hyperlegible Next", "Atkinson Hyperlegible Next"),
+    SORA("Sora", "Sora"),
     BARLOW_CONDENSED("Barlow Condensed", "Barlow Condensed"),
+    IBM_PLEX_SANS_CONDENSED("IBM Plex Sans Condensed", "IBM Plex Sans Condensed"),
 }
 
 internal enum class AppThemeChoice(val label: String) {
@@ -132,13 +132,15 @@ private fun downloadableFontFamily(name: String): FontFamily = FontFamily(
 )
 
 private val manropeFamily by lazy { downloadableFontFamily(AppFontChoice.MANROPE.googleFontName) }
-private val atkinsonFamily by lazy { downloadableFontFamily(AppFontChoice.ATKINSON.googleFontName) }
+private val soraFamily by lazy { downloadableFontFamily(AppFontChoice.SORA.googleFontName) }
 private val barlowCondensedFamily by lazy { downloadableFontFamily(AppFontChoice.BARLOW_CONDENSED.googleFontName) }
+private val ibmPlexSansCondensedFamily by lazy { downloadableFontFamily(AppFontChoice.IBM_PLEX_SANS_CONDENSED.googleFontName) }
 
 private fun AppFontChoice.family(): FontFamily = when (this) {
     AppFontChoice.MANROPE -> manropeFamily
-    AppFontChoice.ATKINSON -> atkinsonFamily
+    AppFontChoice.SORA -> soraFamily
     AppFontChoice.BARLOW_CONDENSED -> barlowCondensedFamily
+    AppFontChoice.IBM_PLEX_SANS_CONDENSED -> ibmPlexSansCondensedFamily
 }
 
 @Composable
@@ -170,24 +172,30 @@ private fun resolveColorScheme(choice: AppThemeChoice): ColorScheme = when (choi
     AppThemeChoice.LIGHT -> lightColorScheme()
     AppThemeChoice.DARK -> darkColorScheme()
     AppThemeChoice.LIGHT_GRAY -> lightColorScheme(
-        background = Color(0xFFF0F1F3),
-        surface = Color(0xFFE7E9ED),
-        surfaceVariant = Color(0xFFDDE0E5),
-        onBackground = Color(0xFF1B1B1F),
-        onSurface = Color(0xFF1B1B1F),
+        primary = Color(0xFF3F566B),
+        onPrimary = Color.White,
+        background = Color(0xFFD9DDE2),
+        surface = Color(0xFFE5E8EC),
+        surfaceVariant = Color(0xFFCCD2D9),
+        onBackground = Color(0xFF191C20),
+        onSurface = Color(0xFF191C20),
+        onSurfaceVariant = Color(0xFF40464D),
+        outline = Color(0xFF70777F),
     )
     AppThemeChoice.DARK_PURPLE -> darkColorScheme(
-        primary = Color(0xFFD7B8FF),
-        onPrimary = Color(0xFF35105A),
-        primaryContainer = Color(0xFF4D1D78),
-        onPrimaryContainer = Color(0xFFF0DBFF),
-        secondary = Color(0xFFCBB7D9),
-        background = Color(0xFF160E1E),
-        onBackground = Color(0xFFF0E7F4),
-        surface = Color(0xFF21152B),
-        onSurface = Color(0xFFF0E7F4),
-        surfaceVariant = Color(0xFF33223F),
-        onSurfaceVariant = Color(0xFFD8C7DF),
+        primary = Color(0xFFD5B3FF),
+        onPrimary = Color(0xFF2B0052),
+        primaryContainer = Color(0xFF5A2392),
+        onPrimaryContainer = Color(0xFFF0DDFF),
+        secondary = Color(0xFFC8B4E3),
+        secondaryContainer = Color(0xFF46345E),
+        background = Color(0xFF120B1F),
+        onBackground = Color(0xFFEDE4F7),
+        surface = Color(0xFF1B1229),
+        onSurface = Color(0xFFEDE4F7),
+        surfaceVariant = Color(0xFF342448),
+        onSurfaceVariant = Color(0xFFD8C8EA),
+        outline = Color(0xFF9B86B2),
     )
 }
 
@@ -224,7 +232,7 @@ internal fun AppSettingsDialog(
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 SettingSelector(
                     label = "Tamaño de texto",
@@ -248,7 +256,7 @@ internal fun AppSettingsDialog(
                     onSelect = { onPreferencesChange(preferences.copy(themeChoice = it)) },
                 )
                 Text(
-                    "La vista de habilidades se configura desde la propia ficha.",
+                    "La organización de habilidades se configura desde la ficha.",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
@@ -268,31 +276,29 @@ private fun <T> SettingSelector(
     onSelect: (T) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.labelLarge)
-            Text(value, style = MaterialTheme.typography.bodyMedium)
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(value, maxLines = 2)
         }
-        Column {
-            OutlinedButton(onClick = { expanded = true }) {
-                Text("Cambiar")
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(optionLabel(option)) },
-                        onClick = {
-                            onSelect(option)
-                            expanded = false
-                        },
-                    )
-                }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(optionLabel(option), maxLines = 2) },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    },
+                )
             }
         }
     }
