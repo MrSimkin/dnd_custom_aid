@@ -1,0 +1,124 @@
+CREATE TABLE character (
+    id TEXT NOT NULL PRIMARY KEY,
+    campaign_id TEXT NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    updated_at_epoch_seconds INTEGER NOT NULL DEFAULT (CAST(strftime('%s', 'now') AS INTEGER)),
+    strength INTEGER NOT NULL DEFAULT 10,
+    dexterity INTEGER NOT NULL DEFAULT 10,
+    constitution INTEGER NOT NULL DEFAULT 10,
+    intelligence INTEGER NOT NULL DEFAULT 10,
+    wisdom INTEGER NOT NULL DEFAULT 10,
+    charisma INTEGER NOT NULL DEFAULT 10,
+    armor_class INTEGER NOT NULL DEFAULT 10,
+    max_hp INTEGER NOT NULL DEFAULT 1,
+    current_hp INTEGER NOT NULL DEFAULT 1,
+    temp_hp INTEGER NOT NULL DEFAULT 0,
+    initiative_modifier INTEGER NOT NULL DEFAULT 0,
+    speed INTEGER NOT NULL DEFAULT 30,
+    proficiency_bonus INTEGER NOT NULL DEFAULT 2,
+    strength_save INTEGER NOT NULL DEFAULT 0,
+    dexterity_save INTEGER NOT NULL DEFAULT 0,
+    constitution_save INTEGER NOT NULL DEFAULT 0,
+    intelligence_save INTEGER NOT NULL DEFAULT 0,
+    wisdom_save INTEGER NOT NULL DEFAULT 0,
+    charisma_save INTEGER NOT NULL DEFAULT 0,
+    passive_perception INTEGER NOT NULL DEFAULT 10,
+    spell_save_dc INTEGER
+);
+
+CREATE TABLE character_class (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    hit_die_sides INTEGER NOT NULL,
+    hit_dice_remaining INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_skill (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    skill_key TEXT NOT NULL,
+    modifier INTEGER NOT NULL,
+    training TEXT NOT NULL,
+    PRIMARY KEY(character_id, skill_key)
+);
+
+insertCharacter:
+INSERT INTO character(id, campaign_id, name, status)
+VALUES (?, ?, ?, ?);
+
+selectCharactersByCampaign:
+SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
+       strength, dexterity, constitution, intelligence, wisdom, charisma,
+       armor_class, max_hp, current_hp, temp_hp, initiative_modifier, speed,
+       proficiency_bonus, strength_save, dexterity_save, constitution_save,
+       intelligence_save, wisdom_save, charisma_save, passive_perception, spell_save_dc
+FROM character
+WHERE campaign_id = ?
+ORDER BY name COLLATE NOCASE, id;
+
+selectCharacterById:
+SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
+       strength, dexterity, constitution, intelligence, wisdom, charisma,
+       armor_class, max_hp, current_hp, temp_hp, initiative_modifier, speed,
+       proficiency_bonus, strength_save, dexterity_save, constitution_save,
+       intelligence_save, wisdom_save, charisma_save, passive_perception, spell_save_dc
+FROM character
+WHERE id = ?;
+
+updateCharacterCore:
+UPDATE character
+SET name = ?,
+    status = ?,
+    updated_at_epoch_seconds = CAST(strftime('%s', 'now') AS INTEGER),
+    strength = ?,
+    dexterity = ?,
+    constitution = ?,
+    intelligence = ?,
+    wisdom = ?,
+    charisma = ?,
+    armor_class = ?,
+    max_hp = ?,
+    current_hp = ?,
+    temp_hp = ?,
+    initiative_modifier = ?,
+    speed = ?,
+    proficiency_bonus = ?,
+    strength_save = ?,
+    dexterity_save = ?,
+    constitution_save = ?,
+    intelligence_save = ?,
+    wisdom_save = ?,
+    charisma_save = ?,
+    passive_perception = ?,
+    spell_save_dc = ?
+WHERE id = ?;
+
+insertCharacterClass:
+INSERT INTO character_class(
+    id, character_id, name, level, hit_die_sides, hit_dice_remaining, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectCharacterClasses:
+SELECT id, character_id, name, level, hit_die_sides, hit_dice_remaining, sort_order
+FROM character_class
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCharacterClasses:
+DELETE FROM character_class
+WHERE character_id = ?;
+
+insertCharacterSkill:
+INSERT OR REPLACE INTO character_skill(character_id, skill_key, modifier, training)
+VALUES (?, ?, ?, ?);
+
+selectCharacterSkills:
+SELECT character_id, skill_key, modifier, training
+FROM character_skill
+WHERE character_id = ?
+ORDER BY skill_key;
