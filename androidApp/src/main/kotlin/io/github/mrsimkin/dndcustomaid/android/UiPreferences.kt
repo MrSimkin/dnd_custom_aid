@@ -1,10 +1,20 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
@@ -12,6 +22,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -22,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -36,11 +48,8 @@ internal enum class AppFontChoice(val label: String, val googleFontName: String)
     MANROPE("Manrope", "Manrope"),
     SORA("Sora", "Sora"),
     SOURCE_SANS_3("Source Sans 3", "Source Sans 3"),
-    LEXEND("Lexend", "Lexend"),
-    BARLOW_CONDENSED("Barlow Condensed", "Barlow Condensed"),
     ROBOTO_CONDENSED("Roboto Condensed", "Roboto Condensed"),
     ARCHIVO_NARROW("Archivo Narrow", "Archivo Narrow"),
-    OSWALD("Oswald", "Oswald"),
 }
 
 internal enum class AppThemeChoice(val label: String) {
@@ -50,11 +59,14 @@ internal enum class AppThemeChoice(val label: String) {
     GRAY("Gris"),
     DARK_PURPLE("Morado oscuro"),
     DARK_CYAN("Cian oscuro"),
+    LIGHT_CYAN("Cian claro"),
     NIGHT_BLUE("Azul noche"),
+    LIGHT_NIGHT_BLUE("Azul noche claro"),
     FOREST_GREEN("Verde bosque"),
+    LIGHT_FOREST_GREEN("Verde bosque claro"),
     PARCHMENT("Pergamino"),
     HIGH_CONTRAST("Alto contraste"),
-    MATRIX("Matriz"),
+    MATRIX("Matrix"),
 }
 
 internal enum class SkillLayoutChoice(val label: String) {
@@ -75,7 +87,9 @@ internal class UiPreferencesStore(context: Context) {
     fun load(): UiPreferences {
         val scale = preferences.getInt(KEY_FONT_SCALE, 100).takeIf { it in FONT_SCALE_OPTIONS } ?: 100
         val font = when (val stored = preferences.getString(KEY_FONT, null)) {
-            "IBM_PLEX_SANS_CONDENSED" -> AppFontChoice.ROBOTO_CONDENSED
+            "IBM_PLEX_SANS_CONDENSED", "BARLOW_CONDENSED" -> AppFontChoice.ROBOTO_CONDENSED
+            "LEXEND" -> AppFontChoice.SORA
+            "OSWALD" -> AppFontChoice.MANROPE
             else -> stored
                 ?.let { runCatching { AppFontChoice.valueOf(it) }.getOrNull() }
                 ?: AppFontChoice.MANROPE
@@ -182,20 +196,20 @@ private fun resolveColorScheme(choice: AppThemeChoice): ColorScheme = when (choi
     AppThemeChoice.LIGHT -> lightColorScheme()
     AppThemeChoice.DARK -> darkColorScheme()
     AppThemeChoice.GRAY -> lightColorScheme(
-        primary = Color(0xFF484848),
+        primary = Color(0xFF424242),
         onPrimary = Color.White,
-        primaryContainer = Color(0xFFD5D5D5),
-        onPrimaryContainer = Color(0xFF1B1B1B),
-        secondary = Color(0xFF626262),
-        secondaryContainer = Color(0xFFDEDEDE),
-        background = Color(0xFFE3E3E3),
-        surface = Color(0xFFF0F0F0),
-        surfaceVariant = Color(0xFFD3D3D3),
-        onBackground = Color(0xFF1A1A1A),
-        onSurface = Color(0xFF1A1A1A),
-        onSurfaceVariant = Color(0xFF454545),
-        outline = Color(0xFF737373),
-        outlineVariant = Color(0xFFB7B7B7),
+        primaryContainer = Color(0xFF9E9E9E),
+        onPrimaryContainer = Color(0xFF171717),
+        secondary = Color(0xFF555555),
+        secondaryContainer = Color(0xFFAAAAAA),
+        background = Color(0xFFB8B8B8),
+        surface = Color(0xFFCECECE),
+        surfaceVariant = Color(0xFFA6A6A6),
+        onBackground = Color(0xFF181818),
+        onSurface = Color(0xFF181818),
+        onSurfaceVariant = Color(0xFF292929),
+        outline = Color(0xFF626262),
+        outlineVariant = Color(0xFF8A8A8A),
     )
     AppThemeChoice.DARK_PURPLE -> darkColorScheme(
         primary = Color(0xFFD5B3FF),
@@ -227,20 +241,50 @@ private fun resolveColorScheme(choice: AppThemeChoice): ColorScheme = when (choi
         onSurfaceVariant = Color(0xFFBDD0CF),
         outline = Color(0xFF829A99),
     )
+    AppThemeChoice.LIGHT_CYAN -> lightColorScheme(
+        primary = Color(0xFF006A67),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFF9CF1ED),
+        onPrimaryContainer = Color(0xFF00201F),
+        secondary = Color(0xFF4A6361),
+        secondaryContainer = Color(0xFFCCE8E5),
+        background = Color(0xFFECFBFA),
+        onBackground = Color(0xFF161D1C),
+        surface = Color(0xFFF7FFFE),
+        onSurface = Color(0xFF161D1C),
+        surfaceVariant = Color(0xFFDAE5E3),
+        onSurfaceVariant = Color(0xFF3F4948),
+        outline = Color(0xFF6F7978),
+    )
     AppThemeChoice.NIGHT_BLUE -> darkColorScheme(
-        primary = Color(0xFFAFC6FF),
-        onPrimary = Color(0xFF002E69),
-        primaryContainer = Color(0xFF17477D),
-        onPrimaryContainer = Color(0xFFD8E2FF),
-        secondary = Color(0xFFBAC7E7),
-        secondaryContainer = Color(0xFF33415F),
-        background = Color(0xFF091120),
-        onBackground = Color(0xFFE0E7F7),
-        surface = Color(0xFF101A2B),
-        onSurface = Color(0xFFE0E7F7),
-        surfaceVariant = Color(0xFF28344A),
-        onSurfaceVariant = Color(0xFFC3CBE0),
-        outline = Color(0xFF8C96AD),
+        primary = Color(0xFF8FC3FF),
+        onPrimary = Color(0xFF00315C),
+        primaryContainer = Color(0xFF0D4D82),
+        onPrimaryContainer = Color(0xFFD1E4FF),
+        secondary = Color(0xFFABC8E8),
+        secondaryContainer = Color(0xFF294866),
+        background = Color(0xFF061A33),
+        onBackground = Color(0xFFD8E9FF),
+        surface = Color(0xFF0B2749),
+        onSurface = Color(0xFFD8E9FF),
+        surfaceVariant = Color(0xFF173A65),
+        onSurfaceVariant = Color(0xFFC1D7F0),
+        outline = Color(0xFF839DBA),
+    )
+    AppThemeChoice.LIGHT_NIGHT_BLUE -> lightColorScheme(
+        primary = Color(0xFF24558A),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFFD1E4FF),
+        onPrimaryContainer = Color(0xFF001D35),
+        secondary = Color(0xFF526070),
+        secondaryContainer = Color(0xFFD6E4F5),
+        background = Color(0xFFEEF4FF),
+        onBackground = Color(0xFF171C22),
+        surface = Color(0xFFF9FBFF),
+        onSurface = Color(0xFF171C22),
+        surfaceVariant = Color(0xFFDCE3ED),
+        onSurfaceVariant = Color(0xFF404751),
+        outline = Color(0xFF707883),
     )
     AppThemeChoice.FOREST_GREEN -> darkColorScheme(
         primary = Color(0xFFA4D49E),
@@ -257,20 +301,36 @@ private fun resolveColorScheme(choice: AppThemeChoice): ColorScheme = when (choi
         onSurfaceVariant = Color(0xFFC3D1BF),
         outline = Color(0xFF8D9C89),
     )
-    AppThemeChoice.PARCHMENT -> lightColorScheme(
-        primary = Color(0xFF705A32),
+    AppThemeChoice.LIGHT_FOREST_GREEN -> lightColorScheme(
+        primary = Color(0xFF3E6540),
         onPrimary = Color.White,
-        primaryContainer = Color(0xFFF2DDAE),
-        onPrimaryContainer = Color(0xFF271900),
-        secondary = Color(0xFF685F4B),
-        secondaryContainer = Color(0xFFEFE3C6),
-        background = Color(0xFFF4E9CF),
-        onBackground = Color(0xFF211B10),
-        surface = Color(0xFFFFF6DF),
-        onSurface = Color(0xFF211B10),
-        surfaceVariant = Color(0xFFE8DCC0),
-        onSurfaceVariant = Color(0xFF4C4638),
-        outline = Color(0xFF7E7664),
+        primaryContainer = Color(0xFFC3EABD),
+        onPrimaryContainer = Color(0xFF002106),
+        secondary = Color(0xFF52634F),
+        secondaryContainer = Color(0xFFD5E8CF),
+        background = Color(0xFFF2F8EF),
+        onBackground = Color(0xFF181D17),
+        surface = Color(0xFFFCFFF9),
+        onSurface = Color(0xFF181D17),
+        surfaceVariant = Color(0xFFDFE4DA),
+        onSurfaceVariant = Color(0xFF43483F),
+        outline = Color(0xFF74796E),
+    )
+    AppThemeChoice.PARCHMENT -> lightColorScheme(
+        primary = Color(0xFF5F3D16),
+        onPrimary = Color(0xFFFFF5E3),
+        primaryContainer = Color(0xFFD7B277),
+        onPrimaryContainer = Color(0xFF241300),
+        secondary = Color(0xFF76572F),
+        secondaryContainer = Color(0xFFE8CFA0),
+        background = Color(0xFFE8D2A6),
+        onBackground = Color(0xFF2B2114),
+        surface = Color(0xFFFFF3D0),
+        onSurface = Color(0xFF2B2114),
+        surfaceVariant = Color(0xFFD7BC86),
+        onSurfaceVariant = Color(0xFF51442F),
+        outline = Color(0xFF735D3C),
+        outlineVariant = Color(0xFFB59B6A),
     )
     AppThemeChoice.HIGH_CONTRAST -> darkColorScheme(
         primary = Color(0xFFFFFF00),
@@ -336,41 +396,163 @@ internal fun AppSettingsDialog(
         onDismissRequest = onDismiss,
         title = { Text("Ajustes") },
         text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 620.dp),
+                contentPadding = PaddingValues(bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                SettingSelector(
-                    label = "Tamaño de texto",
-                    value = "${preferences.fontScalePercent}%",
-                    options = FONT_SCALE_OPTIONS,
-                    optionLabel = { "$it%" },
-                    onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
-                )
-                SettingSelector(
-                    label = "Tipografía · audición",
-                    value = preferences.fontChoice.label,
-                    options = AppFontChoice.entries,
-                    optionLabel = { it.label },
-                    onSelect = { onPreferencesChange(preferences.copy(fontChoice = it)) },
-                )
-                SettingSelector(
-                    label = "Tema · audición",
-                    value = preferences.themeChoice.label,
-                    options = AppThemeChoice.entries,
-                    optionLabel = { it.label },
-                    onSelect = { onPreferencesChange(preferences.copy(themeChoice = it)) },
-                )
-                Text(
-                    "Tipografías y temas adicionales son candidatos para probar en el teléfono y luego depurar. La organización de habilidades se configura desde la ficha.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                item {
+                    SettingSelector(
+                        label = "Tamaño de texto",
+                        value = "${preferences.fontScalePercent}%",
+                        options = FONT_SCALE_OPTIONS,
+                        optionLabel = { "$it%" },
+                        onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
+                    )
+                }
+                item {
+                    FontChoicePicker(
+                        selected = preferences.fontChoice,
+                        onSelect = { onPreferencesChange(preferences.copy(fontChoice = it)) },
+                    )
+                }
+                item {
+                    ThemeChoicePicker(
+                        selected = preferences.themeChoice,
+                        onSelect = { onPreferencesChange(preferences.copy(themeChoice = it)) },
+                    )
+                }
+                item {
+                    Text(
+                        "La organización de habilidades se configura desde la ficha. Las tipografías mostradas aquí ya están depuradas; futuras sustituciones sólo se añadirán después de una audición específica.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         },
         confirmButton = {
             Button(onClick = onDismiss) { Text("Listo") }
         },
     )
+}
+
+@Composable
+private fun FontChoicePicker(
+    selected: AppFontChoice,
+    onSelect: (AppFontChoice) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text("Tipografía · audición", style = MaterialTheme.typography.labelLarge)
+        AppFontChoice.entries.forEach { choice ->
+            val isSelected = choice == selected
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelect(choice) },
+                shape = MaterialTheme.shapes.small,
+                border = BorderStroke(
+                    width = if (isSelected) 2.dp else 1.dp,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                ),
+                tonalElevation = if (isSelected) 2.dp else 0.dp,
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "${choice.label} · Aa Bb 123",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleSmall.copy(fontFamily = choice.family()),
+                        maxLines = 1,
+                    )
+                    if (isSelected) {
+                        Text("Seleccionada", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeChoicePicker(
+    selected: AppThemeChoice,
+    onSelect: (AppThemeChoice) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text("Tema · audición", style = MaterialTheme.typography.labelLarge)
+        AppThemeChoice.entries.chunked(2).forEach { rowThemes ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                rowThemes.forEach { choice ->
+                    ThemePreviewCard(
+                        choice = choice,
+                        selected = choice == selected,
+                        onSelect = { onSelect(choice) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(2 - rowThemes.size) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemePreviewCard(
+    choice: AppThemeChoice,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scheme = resolveColorScheme(choice)
+    Surface(
+        modifier = modifier.clickable(onClick = onSelect),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(6.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Text(choice.label, style = MaterialTheme.typography.labelMedium, maxLines = 2)
+            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(scheme.background, MaterialTheme.shapes.extraSmall),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(scheme.surfaceVariant, MaterialTheme.shapes.extraSmall),
+                )
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(scheme.primary, MaterialTheme.shapes.extraSmall),
+                )
+            }
+        }
+    }
 }
 
 @Composable
