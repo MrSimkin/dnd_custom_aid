@@ -21,8 +21,13 @@ This file records owner-supplied V4 manual QA observations incrementally. Do not
 
 **Migration acceptance: PASS.**
 
+### Ability scores / automatic modifiers
+
+- Representative ability scores produced the expected automatic modifiers: **PASS**.
+- Owner reported the automatic modifier behavior looked correct for the requested representative checks.
+- The six ability scores/modifiers fit acceptably in one row on the intended phone layout: **PASS / visually acceptable**.
+
 ## Pending next checks
 
-1. Verify automatic ability modifiers from representative ability scores.
-2. Verify Initiative calculation from Dexterity modifier plus explicit signed adjustment.
-3. Continue saving-throw, skill and Passive Perception derived-value checks from `docs/QA_CHECKLIST.md`.
+1. Verify Initiative calculation from Dexterity modifier plus explicit signed adjustment.
+2. Continue saving-throw, skill and Passive Perception derived-value checks from `docs/QA_CHECKLIST.md`.
