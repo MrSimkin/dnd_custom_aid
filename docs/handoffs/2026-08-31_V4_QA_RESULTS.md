@@ -15,11 +15,14 @@ This file records owner-supplied V4 manual QA observations incrementally. Do not
 - V4 was installed **over V3 without uninstalling**: **PASS**.
 - Existing campaigns remained present after the in-place update: **PASS**.
 - Existing PCs remained present after the in-place update: **PASS**.
+- Existing V3 Initiative, saving-throw, skill and Passive Perception displayed totals remained numerically unchanged after migration: **PASS**.
+- Previously unusual/manual totals were preserved by V4 through the expected explicit adjustments rather than being silently normalized or changed: **PASS**.
+- Saving-throw proficiency on migrated V3 PCs began unchecked, as required because V3 did not store that metadata: **PASS**.
 
-Migration is not yet marked fully PASS because preservation of the prior displayed Initiative, saving-throw, skill and Passive Perception totals has not yet been manually verified, and migrated saving-throw proficiency still needs confirmation that it begins unchecked rather than being guessed.
+**Migration acceptance: PASS.**
 
 ## Pending next checks
 
-1. Open an existing V3-created PC and verify prior displayed Initiative, saving-throw, skill and Passive Perception totals remain numerically unchanged after migration.
-2. Confirm saving-throw proficiency on migrated V3 PCs begins unchecked.
-3. Continue with the remaining V4 suite in `docs/QA_CHECKLIST.md`.
+1. Verify automatic ability modifiers from representative ability scores.
+2. Verify Initiative calculation from Dexterity modifier plus explicit signed adjustment.
+3. Continue saving-throw, skill and Passive Perception derived-value checks from `docs/QA_CHECKLIST.md`.
