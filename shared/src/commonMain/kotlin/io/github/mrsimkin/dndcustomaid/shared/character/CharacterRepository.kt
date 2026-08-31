@@ -69,7 +69,7 @@ class CharacterRepository(
         sheet.classes.forEach { classLevel ->
             require(classLevel.name.trim().isNotEmpty()) { "Class name must not be blank." }
             require(classLevel.level >= 0) { "Class level must not be negative." }
-            require(classLevel.hitDieSides > 0) { "Hit die size must be positive." }
+            require(classLevel.hitDieSides >= 0) { "Hit die size must not be negative." }
             require(classLevel.hitDiceRemaining >= 0) { "Remaining hit dice must not be negative." }
         }
 
@@ -315,18 +315,15 @@ class CharacterRepository(
         }.executeAsList()
 
         val currencies = database.characterQueries.selectCharacterCurrencies(core.id.toString()) {
-                _, currencyKey, name, amount, sortOrder, isDefault ->
+                _, key, name, amount, sortOrder, isDefault ->
             CharacterCurrency(
-                key = currencyKey,
+                key = key,
                 name = name,
                 amount = amount.toInt(),
                 sortOrder = sortOrder.toInt(),
                 isDefault = isDefault != 0L,
             )
         }.executeAsList()
-
-        val standardProficiency = standardProficiencyBonusForLevel(classes.sumOf { it.level })
-        val finalProficiency = standardProficiency + core.proficiencyBonusAdjustment
 
         return CharacterSheet(
             id = core.id,
@@ -346,7 +343,7 @@ class CharacterRepository(
             tempHp = core.tempHp,
             initiativeAdjustment = core.initiativeAdjustment,
             speed = core.speed,
-            proficiencyBonus = finalProficiency,
+            proficiencyBonus = core.legacyProficiencyBonus,
             savingThrows = CharacterAbility.entries.map { ability ->
                 storedSaves[ability]
                     ?: CharacterSavingThrow(ability = ability, proficient = false, adjustment = 0)
@@ -386,7 +383,7 @@ class CharacterRepository(
         tempHp: Long,
         initiativeAdjustment: Long,
         speed: Long,
-        proficiencyBonus: Long,
+        legacyProficiencyBonus: Long,
         proficiencyBonusAdjustment: Long,
         passivePerceptionAdjustment: Long,
         spellSaveDc: Long?,
@@ -410,7 +407,7 @@ class CharacterRepository(
         tempHp = tempHp.toInt(),
         initiativeAdjustment = initiativeAdjustment.toInt(),
         speed = speed.toInt(),
-        legacyProficiencyBonus = proficiencyBonus.toInt(),
+        legacyProficiencyBonus = legacyProficiencyBonus.toInt(),
         proficiencyBonusAdjustment = proficiencyBonusAdjustment.toInt(),
         passivePerceptionAdjustment = passivePerceptionAdjustment.toInt(),
         spellSaveDc = spellSaveDc?.toInt(),
@@ -445,18 +442,13 @@ class CharacterRepository(
         val spellcastingAbility: SpellcastingAbility,
     )
 
-    private data class DefaultCurrency(
-        val key: String,
-        val name: String,
-    )
-
     private companion object {
         val defaultCurrencies = listOf(
-            DefaultCurrency("CP", "Cobre"),
-            DefaultCurrency("SP", "Plata"),
-            DefaultCurrency("EP", "Electro"),
-            DefaultCurrency("GP", "Oro"),
-            DefaultCurrency("PP", "Platino"),
+            CharacterCurrency("cp", "Cobre", 0, 0, true),
+            CharacterCurrency("sp", "Plata", 0, 1, true),
+            CharacterCurrency("ep", "Electro", 0, 2, true),
+            CharacterCurrency("gp", "Oro", 0, 3, true),
+            CharacterCurrency("pp", "Platino", 0, 4, true),
         )
     }
 }
