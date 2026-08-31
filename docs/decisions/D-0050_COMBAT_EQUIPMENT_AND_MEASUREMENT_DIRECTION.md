@@ -58,7 +58,7 @@ Ammunition may be represented as an ordinary item with quantity unless a future 
 
 ## 4. `Equipo especial` / magic items
 
-Approved as a richer equipment structure for special and magic items that need meaningful descriptive/mechanical text.
+Approved as a richer presentation/data mode of the **same underlying inventory concept**, not a completely disconnected ownership system.
 
 The owner supplied a rendered full-page image of the relevant custom sheet. Its lower `EQUIPO ESPECIAL` block establishes the intended semantic grouping:
 
@@ -84,6 +84,33 @@ and additional blank rows for custom/nonstandard locations.
 
 Digital implementation does **not** need to reproduce the paper grid literally. The important data semantics are location + attunement state + item identity + rich description.
 
+### Approved phone interaction
+
+On phone, special/magic equipment should use a compact card/row that prioritizes:
+
+- `Nombre`;
+- `Ubicación` when present;
+- a recognizable `Sintonizado` indicator.
+
+Tapping/expanding the item opens its richer detail/editor, including the full long description and other editable inventory properties.
+
+### Approved shared inventory fields
+
+Special items retain ordinary inventory properties where relevant:
+
+- `Cantidad`;
+- optional `Peso`;
+- equipment state where not redundant with explicit location;
+- `Notas`;
+
+plus the special fields:
+
+- optional `Ubicación`;
+- `Sintonizado`;
+- long `Descripción`.
+
+Entered special-item weight contributes to the same carried-weight total as ordinary inventory.
+
 ## 5. `Sintonización` — official rules terminology
 
 The earlier wording `sincronizado` was an owner typo and is superseded.
@@ -103,20 +130,29 @@ For this character-sheet slice:
 - store the item's `sintonizado` state explicitly;
 - do not infer it automatically from item type or description;
 - do not confuse it with app/device synchronization;
-- do not yet hard-code an attunement-limit enforcement rule until the UX/data-shape decision is made, because the app's established philosophy is calculation assistance rather than rigid rules enforcement and campaign/class exceptions must remain representable.
+- do not hard-enforce the ordinary SRD attunement limit because the app's established philosophy is calculation assistance rather than rigid rules enforcement and class/homebrew exceptions must remain representable.
+
+### Approved informational count
+
+The UI may show an informational count such as:
+
+- `Sintonizados: 2`
+
+but should **not** show a restrictive `2 / 3` meter and must not block a fourth or later item from being marked sintonizado.
 
 ## 6. Equipment location semantics
 
 Approved direction from the paper reference: special items may have an explicit equipment/body location.
 
-However, location is currently an **organizational character-sheet property**, not a hard equipment-legality engine.
+Location is an **optional organizational character-sheet property**, not a hard equipment-legality engine.
 
-Therefore, unless later approved:
+Therefore:
 
 - do not reject an item because another item already has the same location;
 - do not infer AC, attacks or magical effects from location;
 - allow the common predefined locations from the paper sheet;
-- permit a custom location for unusual/homebrew anatomy or item placement.
+- permit `Otro` / a custom location for unusual anatomy, carried artifacts, implanted items or homebrew placement;
+- allow location to remain blank when a meaningful body/equipment location does not apply.
 
 This preserves the useful visual/body-slot organization of the owner's paper sheet without turning the app into an equipment rules validator.
 
@@ -165,7 +201,7 @@ Approved as a simple equipped / not-equipped property for ordinary inventory ite
 
 Do not infer AC, attacks, encumbrance legality or other mechanics from this state in this slice. It is useful persistent character state that future views may consume without committing those future calculations now.
 
-For `Equipo especial`, explicit `Ubicación` is the richer representation; exact relationship between a generic `Equipado` flag and a special-item location will be resolved during the data-shape pass so redundant state is avoided.
+For `Equipo especial`, explicit `Ubicación` is the richer representation. Avoid storing redundant contradictory state where possible: if the final data-shape pass can derive display semantics cleanly from an explicit special-item location, prefer that over requiring both a body location and a second mandatory equipped flag.
 
 ## 10. Quick Magic slot marks
 
@@ -179,12 +215,15 @@ Approved interaction details:
 
 ## 11. Still pending before coding these new domains
 
-- exact richer-detail interaction for `Equipo especial` on phone (for example compact row + expandable/editor detail);
-- whether the UI should show an informational count/reference for currently sintonized items, without hard rules enforcement;
-- exact final fields/interaction for `Combate` entries beyond the approved minimum where useful;
-- exact tab ordering/navigation behavior once all four implemented tabs are considered together;
-- persistence schema/migration details and targeted QA criteria.
+The special-equipment semantics and phone interaction are now resolved. Remaining pre-code work includes:
 
-The semantics of the former `located + synchronized equipment` question are now resolved as **special equipment with explicit location and manual Sintonización state**.
+- exact final fields/interaction for `Combate` entries beyond the approved minimum where useful;
+- persistence schema/migration details;
+- targeted QA criteria;
+- any implementation-level choices that materially affect migration or data ownership.
+
+Tab ordering/navigation is recorded separately in D-0051.
+
+The semantics of the former `located + synchronized equipment` question are resolved as **special equipment with optional explicit location and manual Sintonización state**.
 
 No production implementation of `Combate` or `Equipo` is authorized until the remaining consequential questions are resolved and checkpointed.
