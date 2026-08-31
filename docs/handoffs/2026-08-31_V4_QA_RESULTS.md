@@ -27,7 +27,20 @@ This file records owner-supplied V4 manual QA observations incrementally. Do not
 - Owner reported the automatic modifier behavior looked correct for the requested representative checks.
 - The six ability scores/modifiers fit acceptably in one row on the intended phone layout: **PASS / visually acceptable**.
 
-## Pending next checks
+### Initiative
 
-1. Verify Initiative calculation from Dexterity modifier plus explicit signed adjustment.
-2. Continue saving-throw, skill and Passive Perception derived-value checks from `docs/QA_CHECKLIST.md`.
+- Derived Initiative arithmetic works when the explicit/custom adjustment field contains a numeric value: **PASS for populated adjustment**.
+- **BUG:** when the Initiative custom/explicit adjustment field is blank, the displayed Initiative is blank instead of treating the omitted adjustment as `0` and displaying the Dexterity-derived Initiative.
+- Expected behavior: blank optional adjustment = `0`; the derived total should remain visible.
+- Owner reports the current presentation is visually acceptable overall but the mechanism for entering custom/additional modifiers is **not clear or intuitive enough**.
+- UX direction is deliberately not yet fixed. The concept of explicit additional modifiers should be workshopped before final V4 acceptance rather than merely relabeled without discussion.
+
+**Initiative acceptance: NEEDS CHANGES.**
+
+Implementation inspection confirms the blank-value defect is consistent with `initiativeAdjustment.toIntOrNull() ?: return null`; the optional field currently converts blank to a missing total instead of zero.
+
+## Pending next checks / work
+
+1. Fix the Initiative blank-adjustment behavior so blank means zero.
+2. Workshop a clearer UX pattern for optional custom/additional modifiers, considering that the same concept applies beyond Initiative to saves, skills and Passive Perception.
+3. Continue saving-throw, skill and Passive Perception derived-value checks from `docs/QA_CHECKLIST.md`; observations may help choose the adjustment UX pattern before implementing it broadly.
