@@ -741,7 +741,7 @@ private fun CombatExplicitRowV4(
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         CompactIntFieldV4(labels.first, values.first, onFirst, Modifier.weight(1f))
         DerivedValueCellV4(
@@ -754,7 +754,75 @@ private fun CombatExplicitRowV4(
             onAdjustmentChange = onSecondAdjustment,
             modifier = Modifier.weight(1f),
         )
-        CompactIntFieldV4(labels.third, values.third, onThird, Modifier.weight(1f))
+        SpeedFieldV4(
+            label = labels.third,
+            value = values.third,
+            onValueChange = onThird,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun SpeedFieldV4(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var dialogOpen by remember { mutableStateOf(false) }
+    Column(modifier = modifier) {
+        CompactFieldLabelV4(label)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 38.dp)
+                .clickable { dialogOpen = true },
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Box(
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(formatSpeedV4(value), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+            }
+        }
+    }
+
+    if (dialogOpen) {
+        var pending by remember(dialogOpen, value) { mutableStateOf(value) }
+        AlertDialog(
+            onDismissRequest = { dialogOpen = false },
+            title = { Text(label) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Valor canónico en pies", style = MaterialTheme.typography.labelMedium)
+                    CompactIntInputV4(
+                        value = pending,
+                        onValueChange = { pending = it },
+                        modifier = Modifier.width(110.dp),
+                        placeholder = "0",
+                    )
+                    Text(
+                        "Vista: ${formatSpeedV4(pending)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onValueChange(pending)
+                        dialogOpen = false
+                    },
+                ) { Text("Aplicar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { dialogOpen = false }) { Text("Cancelar") }
+            },
+        )
     }
 }
 
@@ -789,7 +857,7 @@ private fun SecondaryCombatRowV4(
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         DerivedValueCellV4(
             label = "Bono competencia",
@@ -1056,17 +1124,23 @@ private fun DerivedTotalControlV4(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
-        Column(
+        Box(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            contentAlignment = Alignment.Center,
         ) {
-            Text(total.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
-            if (adjustmentValue != 0) {
-                Text(
-                    "ajuste ${formatSignedV4(adjustmentValue)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
-                )
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(total.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                if (adjustmentValue != 0) {
+                    Text(
+                        "*",
+                        modifier = Modifier.padding(start = 2.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }
@@ -2160,6 +2234,19 @@ private fun statusLabelV4(status: CharacterStatus): String = when (status) {
     CharacterStatus.INACTIVE -> "Inactivo"
     CharacterStatus.RETIRED -> "Retirado"
     CharacterStatus.DEAD -> "Muerto"
+}
+
+private fun formatSpeedV4(raw: String): String {
+    val feet = raw.trim().toIntOrNull() ?: return raw.ifBlank { "—" }
+    val metricTenths = feet * 3
+    val wholeMeters = metricTenths / 10
+    val remainder = kotlin.math.abs(metricTenths % 10)
+    val metric = if (remainder == 0) {
+        wholeMeters.toString()
+    } else {
+        "$wholeMeters,$remainder"
+    }
+    return "$feet ft ($metric m)"
 }
 
 private fun formatSignedV4(value: Int): String = if (value >= 0) "+$value" else value.toString()
