@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,12 +46,25 @@ class MainActivity : ComponentActivity() {
 
     private val campaignRepository by lazy { CampaignRepository(database) }
     private val characterRepository by lazy { CharacterRepository(database) }
+    private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
-                DndCustomAidApp(campaignRepository, characterRepository)
+            var preferences by remember { mutableStateOf(uiPreferencesStore.load()) }
+
+            fun updatePreferences(updated: UiPreferences) {
+                preferences = updated
+                uiPreferencesStore.save(updated)
+            }
+
+            DndCustomAidTheme(preferences = preferences) {
+                DndCustomAidApp(
+                    campaignRepository = campaignRepository,
+                    characterRepository = characterRepository,
+                    preferences = preferences,
+                    onPreferencesChange = ::updatePreferences,
+                )
             }
         }
     }
@@ -66,62 +80,113 @@ private enum class AppScreen {
 private fun DndCustomAidApp(
     campaignRepository: CampaignRepository,
     characterRepository: CharacterRepository,
+    preferences: UiPreferences,
+    onPreferencesChange: (UiPreferences) -> Unit,
 ) {
-    var screen by remember { mutableStateOf(AppScreen.CAMPAIGNS) }
-    var selectedCampaign by remember { mutableStateOf<Campaign?>(null) }
-    var selectedCharacterId by remember { mutableStateOf<Uuid?>(null) }
+    var screenName by rememberSaveable { mutableStateOf(AppScreen.CAMPAIGNS.name) }
+    var selectedCampaignId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedCharacterId by rememberSaveable { mutableStateOf<String?>(null) }
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+
+    val screen = runCatching { AppScreen.valueOf(screenName) }.getOrDefault(AppScreen.CAMPAIGNS)
+    val selectedCampaign = selectedCampaignId?.let { id ->
+        campaignRepository.listCampaigns().firstOrNull { it.id.toString() == id }
+    }
 
     when (screen) {
         AppScreen.CAMPAIGNS -> CampaignScreen(
             repository = campaignRepository,
+            onOpenSettings = { showSettings = true },
             onOpenCharacters = { campaign ->
-                selectedCampaign = campaign
+                selectedCampaignId = campaign.id.toString()
                 selectedCharacterId = null
-                screen = AppScreen.CHARACTERS
+                screenName = AppScreen.CHARACTERS.name
             },
         )
 
         AppScreen.CHARACTERS -> {
-            val campaign = selectedCampaign
-            if (campaign == null) {
-                screen = AppScreen.CAMPAIGNS
+            if (selectedCampaign == null) {
+                CampaignScreen(
+                    repository = campaignRepository,
+                    onOpenSettings = { showSettings = true },
+                    onOpenCharacters = { campaign ->
+                        selectedCampaignId = campaign.id.toString()
+                        screenName = AppScreen.CHARACTERS.name
+                    },
+                )
             } else {
                 CharacterListScreen(
-                    campaign = campaign,
+                    campaign = selectedCampaign,
                     repository = characterRepository,
                     onBack = {
-                        selectedCampaign = null
-                        screen = AppScreen.CAMPAIGNS
+                        selectedCampaignId = null
+                        selectedCharacterId = null
+                        screenName = AppScreen.CAMPAIGNS.name
                     },
                     onEdit = { characterId ->
-                        selectedCharacterId = characterId
-                        screen = AppScreen.CHARACTER_EDITOR
+                        selectedCharacterId = characterId.toString()
+                        screenName = AppScreen.CHARACTER_EDITOR.name
                     },
                 )
             }
         }
 
         AppScreen.CHARACTER_EDITOR -> {
-            val characterId = selectedCharacterId
-            if (characterId == null) {
-                screen = AppScreen.CHARACTERS
+            val characterId = selectedCharacterId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+            if (characterId == null || selectedCampaign == null) {
+                if (selectedCampaign != null) {
+                    CharacterListScreen(
+                        campaign = selectedCampaign,
+                        repository = characterRepository,
+                        onBack = {
+                            selectedCampaignId = null
+                            selectedCharacterId = null
+                            screenName = AppScreen.CAMPAIGNS.name
+                        },
+                        onEdit = { id ->
+                            selectedCharacterId = id.toString()
+                            screenName = AppScreen.CHARACTER_EDITOR.name
+                        },
+                    )
+                } else {
+                    CampaignScreen(
+                        repository = campaignRepository,
+                        onOpenSettings = { showSettings = true },
+                        onOpenCharacters = { campaign ->
+                            selectedCampaignId = campaign.id.toString()
+                            screenName = AppScreen.CHARACTERS.name
+                        },
+                    )
+                }
             } else {
-                CharacterEditorScreenV2(
+                CharacterEditorScreenV3(
                     characterId = characterId,
                     repository = characterRepository,
+                    preferences = preferences,
+                    onPreferencesChange = onPreferencesChange,
+                    onOpenSettings = { showSettings = true },
                     onBack = {
                         selectedCharacterId = null
-                        screen = AppScreen.CHARACTERS
+                        screenName = AppScreen.CHARACTERS.name
                     },
                 )
             }
         }
+    }
+
+    if (showSettings) {
+        AppSettingsDialog(
+            preferences = preferences,
+            onPreferencesChange = onPreferencesChange,
+            onDismiss = { showSettings = false },
+        )
     }
 }
 
 @Composable
 private fun CampaignScreen(
     repository: CampaignRepository,
+    onOpenSettings: () -> Unit,
     onOpenCharacters: (Campaign) -> Unit,
 ) {
     var campaigns by remember { mutableStateOf(repository.listCampaigns()) }
@@ -150,20 +215,29 @@ private fun CampaignScreen(
                 modifier = Modifier
                     .widthIn(max = 720.dp)
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(top = 24.dp, bottom = 88.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                    .padding(horizontal = 14.dp),
+                contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "Campañas",
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
-                        Text(
-                            text = "Elige la campaña que quieres usar en este dispositivo.",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "Campañas",
+                                style = MaterialTheme.typography.headlineMedium,
+                            )
+                            Text(
+                                text = "Elige la campaña que quieres usar en este dispositivo.",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        TextButton(onClick = onOpenSettings) {
+                            Text("⚙ Ajustes")
+                        }
                     }
                 }
 
@@ -220,9 +294,9 @@ private fun CampaignCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             RadioButton(
                 selected = isActive,
@@ -230,7 +304,7 @@ private fun CampaignCard(
             )
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
                 Text(
                     text = campaign.name,
