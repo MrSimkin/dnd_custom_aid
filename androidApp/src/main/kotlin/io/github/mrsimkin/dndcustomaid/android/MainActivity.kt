@@ -34,27 +34,96 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
+import kotlin.uuid.Uuid
 
 class MainActivity : ComponentActivity() {
-    private val campaignRepository by lazy {
-        CampaignRepository(
-            database = AndroidDatabaseFactory(applicationContext).create(),
-        )
+    private val database by lazy {
+        AndroidDatabaseFactory(applicationContext).create()
     }
+
+    private val campaignRepository by lazy { CampaignRepository(database) }
+    private val characterRepository by lazy { CharacterRepository(database) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                CampaignScreen(campaignRepository)
+                DndCustomAidApp(campaignRepository, characterRepository)
+            }
+        }
+    }
+}
+
+private enum class AppScreen {
+    CAMPAIGNS,
+    CHARACTERS,
+    CHARACTER_EDITOR,
+}
+
+@Composable
+private fun DndCustomAidApp(
+    campaignRepository: CampaignRepository,
+    characterRepository: CharacterRepository,
+) {
+    var screen by remember { mutableStateOf(AppScreen.CAMPAIGNS) }
+    var selectedCampaign by remember { mutableStateOf<Campaign?>(null) }
+    var selectedCharacterId by remember { mutableStateOf<Uuid?>(null) }
+
+    when (screen) {
+        AppScreen.CAMPAIGNS -> CampaignScreen(
+            repository = campaignRepository,
+            onOpenCharacters = { campaign ->
+                selectedCampaign = campaign
+                selectedCharacterId = null
+                screen = AppScreen.CHARACTERS
+            },
+        )
+
+        AppScreen.CHARACTERS -> {
+            val campaign = selectedCampaign
+            if (campaign == null) {
+                screen = AppScreen.CAMPAIGNS
+            } else {
+                CharacterListScreen(
+                    campaign = campaign,
+                    repository = characterRepository,
+                    onBack = {
+                        selectedCampaign = null
+                        screen = AppScreen.CAMPAIGNS
+                    },
+                    onEdit = { characterId ->
+                        selectedCharacterId = characterId
+                        screen = AppScreen.CHARACTER_EDITOR
+                    },
+                )
+            }
+        }
+
+        AppScreen.CHARACTER_EDITOR -> {
+            val characterId = selectedCharacterId
+            if (characterId == null) {
+                screen = AppScreen.CHARACTERS
+            } else {
+                CharacterEditorScreen(
+                    characterId = characterId,
+                    repository = characterRepository,
+                    onBack = {
+                        selectedCharacterId = null
+                        screen = AppScreen.CHARACTERS
+                    },
+                )
             }
         }
     }
 }
 
 @Composable
-private fun CampaignScreen(repository: CampaignRepository) {
+private fun CampaignScreen(
+    repository: CampaignRepository,
+    onOpenCharacters: (Campaign) -> Unit,
+) {
     var campaigns by remember { mutableStateOf(repository.listCampaigns()) }
     var activeCampaignId by remember { mutableStateOf(repository.activeCampaign()?.id) }
     var showCreateDialog by remember { mutableStateOf(false) }
@@ -117,6 +186,7 @@ private fun CampaignScreen(repository: CampaignRepository) {
                                 repository.setActiveCampaign(campaign.id)
                                 reload()
                             },
+                            onOpenCharacters = { onOpenCharacters(campaign) },
                         )
                     }
                 }
@@ -141,6 +211,7 @@ private fun CampaignCard(
     campaign: Campaign,
     isActive: Boolean,
     onSelect: () -> Unit,
+    onOpenCharacters: () -> Unit,
 ) {
     Card(
         onClick = onSelect,
@@ -149,7 +220,7 @@ private fun CampaignCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -157,7 +228,10 @@ private fun CampaignCard(
                 selected = isActive,
                 onClick = onSelect,
             )
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Text(
                     text = campaign.name,
                     style = MaterialTheme.typography.titleMedium,
@@ -167,6 +241,11 @@ private fun CampaignCard(
                         text = "Campaña activa",
                         style = MaterialTheme.typography.bodySmall,
                     )
+                }
+            }
+            if (isActive) {
+                TextButton(onClick = onOpenCharacters) {
+                    Text("Personajes")
                 }
             }
         }
