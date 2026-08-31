@@ -17,6 +17,7 @@ CREATE TABLE character (
     -- Legacy V3 final totals retained only so migration from existing QA databases is safe.
     initiative_modifier INTEGER NOT NULL DEFAULT 0,
     speed INTEGER NOT NULL DEFAULT 30,
+    -- Compatibility snapshot only. New authoritative proficiency state is the adjustment below.
     proficiency_bonus INTEGER NOT NULL DEFAULT 2,
     strength_save INTEGER NOT NULL DEFAULT 0,
     dexterity_save INTEGER NOT NULL DEFAULT 0,
@@ -27,7 +28,10 @@ CREATE TABLE character (
     passive_perception INTEGER NOT NULL DEFAULT 10,
     spell_save_dc INTEGER,
     initiative_adjustment INTEGER NOT NULL DEFAULT 0,
-    passive_perception_adjustment INTEGER NOT NULL DEFAULT 0
+    passive_perception_adjustment INTEGER NOT NULL DEFAULT 0,
+    proficiency_bonus_adjustment INTEGER NOT NULL DEFAULT 0,
+    spell_attack_modifier INTEGER,
+    spellcasting_ability TEXT NOT NULL DEFAULT 'NONE'
 );
 
 CREATE TABLE character_class (
@@ -59,6 +63,54 @@ CREATE TABLE character_skill (
     PRIMARY KEY(character_id, skill_key)
 );
 
+CREATE TABLE character_spell_slot (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    spell_level INTEGER NOT NULL,
+    total_slots INTEGER NOT NULL DEFAULT 0,
+    spent_slots INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(character_id, spell_level)
+);
+
+CREATE TABLE character_combat_entry (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    attack_modifier INTEGER,
+    damage_effect TEXT NOT NULL DEFAULT '',
+    range_text TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_inventory_item (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    weight_lb REAL,
+    equipped INTEGER NOT NULL DEFAULT 0,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    special INTEGER NOT NULL DEFAULT 0,
+    description TEXT,
+    location TEXT,
+    attuned INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_currency (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    currency_key TEXT NOT NULL,
+    name TEXT NOT NULL,
+    amount INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL,
+    is_default INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(character_id, currency_key),
+    UNIQUE(character_id, sort_order)
+);
+
 insertCharacter:
 INSERT INTO character(id, campaign_id, name, status)
 VALUES (?, ?, ?, ?);
@@ -67,7 +119,8 @@ selectCharactersByCampaign:
 SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
        strength, dexterity, constitution, intelligence, wisdom, charisma,
        armor_class, max_hp, current_hp, temp_hp, initiative_adjustment, speed,
-       proficiency_bonus, passive_perception_adjustment, spell_save_dc
+       proficiency_bonus, proficiency_bonus_adjustment, passive_perception_adjustment,
+       spell_save_dc, spell_attack_modifier, spellcasting_ability
 FROM character
 WHERE campaign_id = ?
 ORDER BY name COLLATE NOCASE, id;
@@ -76,7 +129,8 @@ selectCharacterById:
 SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
        strength, dexterity, constitution, intelligence, wisdom, charisma,
        armor_class, max_hp, current_hp, temp_hp, initiative_adjustment, speed,
-       proficiency_bonus, passive_perception_adjustment, spell_save_dc
+       proficiency_bonus, proficiency_bonus_adjustment, passive_perception_adjustment,
+       spell_save_dc, spell_attack_modifier, spellcasting_ability
 FROM character
 WHERE id = ?;
 
@@ -98,8 +152,11 @@ SET name = ?,
     initiative_adjustment = ?,
     speed = ?,
     proficiency_bonus = ?,
+    proficiency_bonus_adjustment = ?,
     passive_perception_adjustment = ?,
-    spell_save_dc = ?
+    spell_save_dc = ?,
+    spell_attack_modifier = ?,
+    spellcasting_ability = ?
 WHERE id = ?;
 
 insertCharacterClass:
@@ -137,3 +194,67 @@ SELECT character_id, skill_key, training, adjustment
 FROM character_skill
 WHERE character_id = ?
 ORDER BY skill_key;
+
+insertCharacterSpellSlot:
+INSERT OR REPLACE INTO character_spell_slot(character_id, spell_level, total_slots, spent_slots)
+VALUES (?, ?, ?, ?);
+
+selectCharacterSpellSlots:
+SELECT character_id, spell_level, total_slots, spent_slots
+FROM character_spell_slot
+WHERE character_id = ?
+ORDER BY spell_level;
+
+deleteCharacterSpellSlots:
+DELETE FROM character_spell_slot
+WHERE character_id = ?;
+
+insertCharacterCombatEntry:
+INSERT INTO character_combat_entry(
+    id, character_id, name, type, attack_modifier, damage_effect, range_text, notes, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCharacterCombatEntries:
+SELECT id, character_id, name, type, attack_modifier, damage_effect, range_text, notes, sort_order
+FROM character_combat_entry
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCharacterCombatEntries:
+DELETE FROM character_combat_entry
+WHERE character_id = ?;
+
+insertCharacterInventoryItem:
+INSERT INTO character_inventory_item(
+    id, character_id, name, quantity, weight_lb, equipped, notes, sort_order,
+    special, description, location, attuned
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCharacterInventoryItems:
+SELECT id, character_id, name, quantity, weight_lb, equipped, notes, sort_order,
+       special, description, location, attuned
+FROM character_inventory_item
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCharacterInventoryItems:
+DELETE FROM character_inventory_item
+WHERE character_id = ?;
+
+insertCharacterCurrency:
+INSERT OR REPLACE INTO character_currency(
+    character_id, currency_key, name, amount, sort_order, is_default
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectCharacterCurrencies:
+SELECT character_id, currency_key, name, amount, sort_order, is_default
+FROM character_currency
+WHERE character_id = ?
+ORDER BY sort_order, currency_key;
+
+deleteCharacterCurrencies:
+DELETE FROM character_currency
+WHERE character_id = ?;
