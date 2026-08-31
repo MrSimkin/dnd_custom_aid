@@ -14,18 +14,40 @@ QA target:
 
 Owner report: `installed`.
 
-Result recorded conservatively:
+Result:
 - installing the run #180 APK over the existing V4 installation: **PASS**;
-- no uninstall was reported or requested;
-- migration/data preservation is **not yet marked PASS** because campaigns, PCs and prior character values have not yet been explicitly checked in this QA pass.
+- no uninstall was reported or requested.
+
+### Migration and top-level navigation
+
+Owner report: `1-5 ok`.
+
+The five requested checks were:
+1. campaigns still present;
+2. existing PCs still present;
+3. previously populated PC preserves its existing core values/classes/skills;
+4. tabs appear in approved order `General / Habilidades / Combate / Equipo`;
+5. switching through all four tabs produces no immediate crash, blank screen, missing data or obviously broken layout.
+
+Results:
+- campaigns preserved: **PASS**;
+- PCs preserved: **PASS**;
+- previously populated character core values/classes/skills preserved: **PASS**;
+- four-tab presence/order: **PASS**;
+- initial switching/navigation smoke test: **PASS**.
+
+This establishes the initial run #180 migration/navigation gate as **PASS**.
 
 ## Next QA step
 
-Verify migration and top-level navigation before testing individual new features:
-1. campaigns still present;
-2. existing PCs still present;
-3. open one previously populated PC and confirm its existing core values/classes/skills look preserved;
-4. confirm the four tabs appear in this order: `General / Habilidades / Combate / Equipo`;
-5. switch through all four tabs once and report any immediate crash, blank screen, missing data, or obviously broken layout.
+Focused `General` + derived-value + Quick Magic batch:
+1. Confirm ability scores/modifiers and class rows look intact; modifiers are readable/prominent enough.
+2. Tap Initiative, proficiency bonus, one saving throw or skill total, and Passive Perception; confirm each opens the calculation breakdown and `Ajuste adicional` behaves correctly.
+3. Confirm a blank optional adjustment behaves as 0 and does not blank the total.
+4. Clear one required numeric field temporarily, enter a replacement value, and confirm editing works naturally.
+5. Clear one required numeric field, press Save, confirm the warning appears; Cancel should preserve the blank draft. Repeat and confirm `Guardar con 0` stores 0.
+6. Confirm proficiency bonus follows total character level; optionally change class level across a PB threshold and verify the total updates.
+7. In Quick Magic, set spell save DC, spell attack modifier and Aptitud mágica; configure at least one spell-slot level and confirm only configured levels appear.
+8. Tap spell-slot pips spent/unspent, use `Restaurar espacios`, Save, leave/reopen the PC, and confirm Quick Magic state persists.
 
 Do not infer PASS for any item the owner does not explicitly report.
