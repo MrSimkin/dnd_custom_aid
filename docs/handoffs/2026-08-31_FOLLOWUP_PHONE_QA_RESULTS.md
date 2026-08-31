@@ -64,8 +64,40 @@ Owner UX observations / approved follow-up corrections:
 
 These observations are follow-up UX refinements; they do not invalidate the PASS results for the functional General/Quick Magic batch.
 
+### Combate
+
+Owner report:
+- `1. ok. I would make text vertically centered is there is another text that makes 2 lines.`
+- `2. almost ok. keyboard covers part of window and if i click out of keyboard, window closes, and I would use drag and drop to move attacks`
+- `3-9 ok`
+
+The requested checks covered:
+1. quick-reference values match General;
+2. add an Ataque with the full proposed fields;
+3. add a spell/non-weapon effect summary;
+4. exercise entry types Ataque / Acción / Acción adicional / Reacción / Otro;
+5. edit an entry;
+6. reorder entries;
+7. delete with confirmation;
+8. Save/leave/reopen persistence including order;
+9. portrait → landscape → portrait recreation on Combate.
+
+Results:
+- check 1: **PASS**, with a layout refinement requested;
+- check 2: **PARTIAL / UX DEFECTS**, because entry creation works but the editor interaction is not acceptable yet;
+- checks 3–9: **PASS**.
+
+Owner-approved Combate UX follow-ups:
+
+1. **Logical-row vertical centering.** If one quick-reference label/value needs two lines, neighboring one-line text in that same logical row should be vertically centered within the resulting shared row height rather than appearing top-biased.
+2. **IME-safe entry editor.** Opening the keyboard must not cover important lower editor fields/actions. The attack/action editor should remain usable with the keyboard visible, using scrolling/insets or equivalent phone-safe behavior.
+3. **Outside tap must not discard/close the editor.** Tapping outside the keyboard/editor content while the keyboard is visible should not dismiss the entire attack/action editor. The intended behavior is to retain the editor/draft; explicit Apply/Cancel (or an equally intentional close action) should control editor dismissal. At minimum, an outside tap used to get out of the keyboard must not lose the window/draft.
+4. **Drag-and-drop reorder.** Replace the current up/down reorder controls for attacks/actions with direct drag-and-drop ordering. Persist the resulting user order exactly after Save/reopen.
+
+These are follow-up UX corrections for the next build. They do not invalidate the successful persistence, type, edit, delete, rotation, and non-weapon/spell-summary behavior already verified in checks 3–9.
+
 ## Next QA step
 
-Proceed to focused `Combate` tab QA, then `Equipo`, then Settings/theme/font/large-text and recreation/regression checks.
+Proceed to focused `Equipo` tab QA, then Settings/theme/font/large-text and recreation/regression checks.
 
 Do not infer PASS for any item the owner does not explicitly report.
