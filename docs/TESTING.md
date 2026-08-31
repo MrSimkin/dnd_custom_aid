@@ -2,7 +2,7 @@
 
 ## Current status
 
-Phase 3 is complete and canonical on `main` after PR #5. The local Android campaign create/select slice passed focused automated verification plus manual phone and tablet checks. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
+Phase 3 is complete and canonical on `main` after PR #5. The local Android campaign create/select slice passed focused automated verification plus manual phone and tablet checks. Post-merge CI also passed on the canonical merge commit. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
 
 ## 1. Core rule
 
@@ -42,7 +42,13 @@ PR #5 final review head:
 
 `124626aa6f0fabd449ee5823c1651e3cc01f3e70`
 
-The pull-request GitHub Actions workflow passed on that head:
+The pull-request GitHub Actions workflow passed on that head.
+
+PR #5 was then merged into `main` as:
+
+`dc1304080f0b71bcb44690b5ee317f3877385286`
+
+GitHub Actions run #34 passed on that canonical merge commit:
 
 - shared Kotlin compilation — success;
 - campaign repository tests — success;
@@ -52,13 +58,9 @@ The pull-request GitHub Actions workflow passed on that head:
 - Android debug APK artifact upload — success;
 - backend Wrangler/TypeScript check — success.
 
-PR #5 was then merged into `main` as:
-
-`dc1304080f0b71bcb44690b5ee317f3877385286`
-
-The merge triggered the same `main` workflow. Backend passed; Kotlin/Android/Desktop was still running when the Phase 4 documentation transition began. Documentation-only commits made during that transition also trigger the same workflow and do not change application behavior.
-
 The campaign persistence test closes SQLite, reopens the same database file, and verifies that the stored campaign and active selection survive the reopen.
+
+Documentation-only Phase 4 transition commits made after the merge also trigger the same CI workflow but do not change application behavior.
 
 ## 4. Phase 3 behavior covered by automated tests
 
