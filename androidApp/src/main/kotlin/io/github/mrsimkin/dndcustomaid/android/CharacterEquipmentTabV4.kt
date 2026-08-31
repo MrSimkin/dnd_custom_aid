@@ -1,12 +1,13 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -21,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -30,10 +32,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency
@@ -107,17 +112,30 @@ internal fun CharacterEquipmentTabV4(
         editorOpen = true
     }
 
-    fun moveItem(index: Int, offset: Int) {
+    fun moveItemWithinSection(
+        sectionItems: List<CharacterInventoryItem>,
+        item: CharacterInventoryItem,
+        offset: Int,
+    ): Boolean {
+        val index = sectionItems.indexOfFirst { it.id == item.id }
         val target = index + offset
-        if (target !in items.indices) return
-        val reordered = items.toMutableList()
-        val item = reordered.removeAt(index)
-        reordered.add(target, item)
-        onItemsChange(reordered.mapIndexed { order, current -> current.copy(sortOrder = order) })
+        if (index < 0 || target !in sectionItems.indices) return false
+
+        val reorderedSection = sectionItems.toMutableList()
+        val moved = reorderedSection.removeAt(index)
+        reorderedSection.add(target, moved)
+        val iterator = reorderedSection.iterator()
+        val merged = items.map { current ->
+            if (current.special == item.special) iterator.next() else current
+        }
+        onItemsChange(merged.mapIndexed { order, current -> current.copy(sortOrder = order) })
+        return true
     }
 
     val carriedLb = items.sumOf { it.carriedWeightLb }
     val attunedCount = items.count { it.special && it.attuned }
+    val ordinaryItems = items.filterNot { it.special }
+    val specialItems = items.filter { it.special }
 
     LazyColumn(
         modifier = Modifier
@@ -138,7 +156,7 @@ internal fun CharacterEquipmentTabV4(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 7.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text("Equipo", style = MaterialTheme.typography.titleSmall)
                     Row(
@@ -156,18 +174,33 @@ internal fun CharacterEquipmentTabV4(
                         }
                     }
                     TextButton(onClick = ::beginAdd) { Text("+ Añadir objeto") }
+
                     if (items.isEmpty()) {
                         Text("Sin objetos registrados.", style = MaterialTheme.typography.bodySmall)
                     } else {
-                        items.forEachIndexed { index, item ->
-                            EquipmentItemCardV4(
-                                item = item,
-                                canMoveUp = index > 0,
-                                canMoveDown = index < items.lastIndex,
-                                onEdit = { beginEdit(item) },
-                                onMoveUp = { moveItem(index, -1) },
-                                onMoveDown = { moveItem(index, 1) },
-                                onDelete = { deleteItemId = item.id.toString() },
+                        if (ordinaryItems.isNotEmpty()) {
+                            EquipmentSectionV4(
+                                title = "Objetos",
+                                sectionItems = ordinaryItems,
+                                wide = wide,
+                                special = false,
+                                onEdit = ::beginEdit,
+                                onMove = { item, offset -> moveItemWithinSection(ordinaryItems, item, offset) },
+                                onDelete = { deleteItemId = it.id.toString() },
+                            )
+                        }
+                        if (ordinaryItems.isNotEmpty() && specialItems.isNotEmpty()) {
+                            HorizontalDivider()
+                        }
+                        if (specialItems.isNotEmpty()) {
+                            EquipmentSectionV4(
+                                title = "Equipo especial",
+                                sectionItems = specialItems,
+                                wide = wide,
+                                special = true,
+                                onEdit = ::beginEdit,
+                                onMove = { item, offset -> moveItemWithinSection(specialItems, item, offset) },
+                                onDelete = { deleteItemId = it.id.toString() },
                             )
                         }
                     }
@@ -184,6 +217,7 @@ internal fun CharacterEquipmentTabV4(
                     customCurrencyAmount = "0"
                     addCurrencyOpen = true
                 },
+                wide = wide,
             )
         }
     }
@@ -304,25 +338,36 @@ internal fun CharacterEquipmentTabV4(
     if (addCurrencyOpen) {
         val amount = customCurrencyAmount.toIntOrNull()
         AlertDialog(
-            onDismissRequest = { addCurrencyOpen = false },
+            onDismissRequest = {},
             title = { Text("Añadir moneda") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    OutlinedTextField(
-                        value = customCurrencyName,
-                        onValueChange = { customCurrencyName = it },
-                        label = { Text("Nombre") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
-                    OutlinedTextField(
-                        value = customCurrencyAmount,
-                        onValueChange = { customCurrencyAmount = sanitizeSignedIntEquipmentV4(it) },
-                        label = { Text("Cantidad") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    )
+                LazyColumn(
+                    modifier = Modifier
+                        .heightIn(max = 320.dp)
+                        .imePadding()
+                        .navigationBarsPadding(),
+                    contentPadding = PaddingValues(bottom = 72.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp),
+                ) {
+                    item {
+                        OutlinedTextField(
+                            value = customCurrencyName,
+                            onValueChange = { customCurrencyName = it },
+                            label = { Text("Nombre") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                        )
+                    }
+                    item {
+                        OutlinedTextField(
+                            value = customCurrencyAmount,
+                            onValueChange = { customCurrencyAmount = sanitizeSignedIntEquipmentV4(it) },
+                            label = { Text("Cantidad") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        )
+                    }
                 }
             },
             confirmButton = {
@@ -353,17 +398,66 @@ internal fun CharacterEquipmentTabV4(
 }
 
 @Composable
-private fun EquipmentItemCardV4(
-    item: CharacterInventoryItem,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
-    onEdit: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
-    onDelete: () -> Unit,
+private fun EquipmentSectionV4(
+    title: String,
+    sectionItems: List<CharacterInventoryItem>,
+    wide: Boolean,
+    special: Boolean,
+    onEdit: (CharacterInventoryItem) -> Unit,
+    onMove: (CharacterInventoryItem, Int) -> Boolean,
+    onDelete: (CharacterInventoryItem) -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        tonalElevation = if (special) 2.dp else 0.dp,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 6.dp, vertical = 5.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Text(title, style = MaterialTheme.typography.labelLarge)
+            val columns = if (wide) 2 else 1
+            sectionItems.chunked(columns).forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    rowItems.forEach { item ->
+                        EquipmentItemCardV4(
+                            item = item,
+                            onEdit = { onEdit(item) },
+                            onMove = { offset -> onMove(item, offset) },
+                            onDelete = { onDelete(item) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    repeat(columns - rowItems.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EquipmentItemCardV4(
+    item: CharacterInventoryItem,
+    onEdit: () -> Unit,
+    onMove: (Int) -> Boolean,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var accumulatedDrag by remember(item.id) { mutableStateOf(0f) }
+    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+
+    Surface(
+        modifier = modifier,
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -373,14 +467,36 @@ private fun EquipmentItemCardV4(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
+                StableDragHandle(
+                    modifier = Modifier.pointerInput(item.id) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { accumulatedDrag = 0f },
+                            onDragEnd = { accumulatedDrag = 0f },
+                            onDragCancel = { accumulatedDrag = 0f },
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                accumulatedDrag += dragAmount.y
+                                while (abs(accumulatedDrag) >= reorderStepPx) {
+                                    val direction = if (accumulatedDrag > 0f) 1 else -1
+                                    if (onMove(direction)) {
+                                        accumulatedDrag -= direction * reorderStepPx
+                                    } else {
+                                        accumulatedDrag = 0f
+                                        break
+                                    }
+                                }
+                            },
+                        )
+                    },
+                    contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
+                )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(item.name, style = MaterialTheme.typography.labelLarge)
                     val flags = buildList {
                         if (item.equipped) add("Equipado")
-                        if (item.special) add("Especial")
                         if (item.special && item.attuned) add("Sintonizado")
                     }
                     if (flags.isNotEmpty()) {
@@ -407,8 +523,6 @@ private fun EquipmentItemCardV4(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onMoveUp, enabled = canMoveUp, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("↑") }
-                TextButton(onClick = onMoveDown, enabled = canMoveDown, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("↓") }
                 TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("Editar") }
                 TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("Eliminar") }
             }
@@ -447,11 +561,15 @@ private fun EquipmentItemEditorDialogV4(
     }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         title = { Text(title) },
         text = {
             LazyColumn(
-                modifier = Modifier.heightIn(max = 520.dp),
+                modifier = Modifier
+                    .heightIn(max = 520.dp)
+                    .imePadding()
+                    .navigationBarsPadding(),
+                contentPadding = PaddingValues(bottom = 96.dp),
                 verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 item {
@@ -600,6 +718,7 @@ private fun CurrencyCardV4(
     currencies: List<CharacterCurrency>,
     onCurrenciesChange: (List<CharacterCurrency>) -> Unit,
     onAddCurrency: () -> Unit,
+    wide: Boolean,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -616,37 +735,69 @@ private fun CurrencyCardV4(
                 Text("Monedas", style = MaterialTheme.typography.titleSmall)
                 TextButton(onClick = onAddCurrency) { Text("+ Añadir") }
             }
-            currencies.forEach { currency ->
-                var value by rememberSaveable(currency.key, currency.amount) { mutableStateOf(currency.amount.toString()) }
+            val columns = if (wide) 3 else 2
+            currencies.chunked(columns).forEach { rowCurrencies ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                 ) {
-                    Text(currency.name, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = { raw ->
-                            value = sanitizeSignedIntEquipmentV4(raw)
-                            value.toIntOrNull()?.let { parsed ->
-                                onCurrenciesChange(
-                                    currencies.map { existing ->
-                                        if (existing.key == currency.key) existing.copy(amount = parsed) else existing
-                                    },
-                                )
-                            }
-                        },
-                        modifier = Modifier.width(95.dp),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    )
-                    if (!currency.isDefault) {
-                        TextButton(
-                            onClick = { onCurrenciesChange(currencies.filterNot { it.key == currency.key }) },
-                            contentPadding = PaddingValues(horizontal = 4.dp),
-                        ) { Text("Eliminar") }
+                    rowCurrencies.forEach { currency ->
+                        CurrencyCellV4(
+                            currency = currency,
+                            currencies = currencies,
+                            onCurrenciesChange = onCurrenciesChange,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    repeat(columns - rowCurrencies.size) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CurrencyCellV4(
+    currency: CharacterCurrency,
+    currencies: List<CharacterCurrency>,
+    onCurrenciesChange: (List<CharacterCurrency>) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var value by rememberSaveable(currency.key, currency.amount) { mutableStateOf(currency.amount.toString()) }
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Text(currency.name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+            OutlinedTextField(
+                value = value,
+                onValueChange = { raw ->
+                    value = sanitizeSignedIntEquipmentV4(raw)
+                    value.toIntOrNull()?.let { parsed ->
+                        onCurrenciesChange(
+                            currencies.map { existing ->
+                                if (existing.key == currency.key) existing.copy(amount = parsed) else existing
+                            },
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            if (!currency.isDefault) {
+                TextButton(
+                    onClick = { onCurrenciesChange(currencies.filterNot { it.key == currency.key }) },
+                    contentPadding = PaddingValues(horizontal = 3.dp, vertical = 0.dp),
+                ) { Text("Eliminar") }
             }
         }
     }
