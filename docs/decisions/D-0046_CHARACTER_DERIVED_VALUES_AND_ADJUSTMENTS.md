@@ -75,15 +75,30 @@ Initiative is derived from Dexterity plus an explicit adjustment:
 
 `Initiative = Dexterity modifier + initiative adjustment`
 
-### 6. Values that remain explicit in this slice
+### 6. Proficiency bonus
+
+During V4 phone QA the owner clarified that the earlier “no character builder” boundary does not prohibit simple deterministic calculations that remove clerical arithmetic. The owner therefore approved making **Bonificador por competencia** a calculated value in the next follow-up build.
+
+The standard proficiency bonus should be derived from **total character level** (sum of class levels) using the ordinary D&D progression:
+
+- levels 1–4: `+2`;
+- levels 5–8: `+3`;
+- levels 9–12: `+4`;
+- levels 13–16: `+5`;
+- levels 17–20: `+6`.
+
+This remains calculation assistance rather than guided/legal character building. The application should not begin enforcing class legality, advancement choices or character-build rules merely because it calculates this deterministic value.
+
+If a future/homebrew exception requires a proficiency bonus different from the standard derived value, preserve the project’s permissive philosophy through the same **calculated standard + Ajuste adicional** concept rather than reverting the normal field to manual arithmetic.
+
+### 7. Values that remain explicit in this slice
 
 The following remain explicitly stored/manual for now rather than being expanded into additional rule automation:
 
-- proficiency bonus;
 - Armor Class;
 - maximum/current/temporary HP;
 - speed;
-- optional spell save DC.
+- optional spell save DC, while its final UI placement is separately under review.
 
 Those values may have broader contextual derivations that are outside the current character-foundation slice.
 
@@ -195,4 +210,5 @@ The **next V4 follow-up build** must additionally:
 
 - treat blank optional adjustments as zero across Initiative, saves, skills and Passive Perception;
 - replace the always-visible adjustment fields with the approved interactive-total / calculation-breakdown pattern;
-- retain the current simple single numeric adjustment in the data model.
+- derive proficiency bonus from total character level and preserve an adjustment escape path for exceptional/homebrew cases;
+- retain the current simple single numeric adjustment model rather than introducing named modifier sources.
