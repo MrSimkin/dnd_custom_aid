@@ -5,6 +5,8 @@
 local.properties
 .DS_Store
 
+androidApp/ci-debug.keystore
+
 backend/node_modules/
 backend/.wrangler/
 backend/worker-configuration.d.ts
