@@ -69,22 +69,33 @@ A future character-check/validation feature is deferred until late development a
 - SQLDelight tables for `character`, `character_class` and `character_skill`;
 - migration `1.sqm` from the Phase 3 campaign-only database to the character schema;
 - `CharacterRepository` create/list/read/save behavior;
-- character persistence tests covering the full 18-skill set, campaign isolation, multiclass + independent hit dice, database reopen and permissive gifted mechanical values;
+- persistence tests covering the full 18-skill set, campaign isolation, multiclass + independent hit dice, database reopen, permissive gifted values and Phase 3 database migration;
 - Android campaign → character list → character editor flow;
 - Spanish editor UI for classes/hit dice, abilities, combat reference, saves and skills.
 
-The shared data-layer test revision `c805eb29043c42ad8c6b14ba35ff8ec449a93999` passed CI before the Android editor was added.
+CI evidence:
 
-## 6. Validation still in progress
+- run #47 / head `c805eb29043c42ad8c6b14ba35ff8ec449a93999`: shared character data/tests green;
+- run #50 / head `8ac4d56a8d27f162b83ba6accd8b8a1af48cd6ea`: final Android character UI/navigation revision green;
+- run #51 / head `70ae2e0f276f996f92b94ed664ba41cdd902970e`: migration-preservation test, shared tests, SQLDelight generation, Android debug build/APK, Desktop build and backend checks all green.
 
-Before review, the branch must still prove:
+Run #51 produced artifact `dnd-custom-aid-debug-apk` (artifact ID `9742083738`).
 
-1. the final Android/editor revision compiles and all existing/shared tests remain green;
-2. the SQLDelight migration preserves a real Phase 3 campaign database while adding character tables;
-3. an APK can be installed over the previous Phase 3 build without losing campaigns;
-4. real phone/tablet manual use can create, edit, save and reopen a multiclass character including skills and hit dice.
+## 6. Remaining acceptance gate
 
-Do not open or merge a PR until these checks are complete and owner review occurs.
+Automated validation is complete for the implemented code. Before PR review, manual device verification remains:
+
+1. install the new debug APK **over** the existing Phase 3 installation, without uninstalling first;
+2. confirm existing campaigns and active-campaign selection remain;
+3. enter the active campaign's `Personajes` screen;
+4. create a character;
+5. add at least two classes with different hit-die sizes and remaining hit dice;
+6. edit ability scores, combat-reference values, saving throws and several skills, including proficiency/expertise markers;
+7. save, leave the editor, reopen the character and confirm values remain;
+8. fully close/restart the app and confirm character data remains;
+9. sanity-check usability on phone and tablet, especially the much richer tablet/landscape layout.
+
+Do not open or merge a PR until this manual upgrade/UX check is complete and owner review occurs.
 
 ## 7. Explicitly deferred from this first character slice
 
@@ -110,4 +121,4 @@ Do not open or merge a PR until these checks are complete and owner review occur
 
 ## 9. Immediate next action
 
-Finish CI/migration validation on the current character branch, fix any compile or migration issues, produce a debug APK, and perform owner manual testing on phone/tablet. After acceptance, prepare a focused PR for explicit owner review. The following major product slice remains the DM combat tracker.
+Owner manually installs/tests the run #51 APK over the Phase 3 build on phone/tablet. Record results and any concrete UX/data issues on this branch. After acceptance and any focused fixes, prepare a PR for explicit owner review. The following major product slice remains the DM combat tracker.
