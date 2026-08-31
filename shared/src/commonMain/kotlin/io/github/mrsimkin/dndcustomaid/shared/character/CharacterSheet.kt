@@ -45,6 +45,25 @@ enum class SkillTraining {
     EXPERTISE,
 }
 
+enum class CharacterCombatEntryType {
+    ATTACK,
+    ACTION,
+    BONUS_ACTION,
+    REACTION,
+    OTHER,
+}
+
+enum class SpellcastingAbility {
+    STRENGTH,
+    DEXTERITY,
+    CONSTITUTION,
+    INTELLIGENCE,
+    WISDOM,
+    CHARISMA,
+    OTHER,
+    NONE,
+}
+
 data class CharacterSkill(
     val key: SkillKey,
     val adjustment: Int,
@@ -66,6 +85,48 @@ data class CharacterClassLevel(
     val sortOrder: Int,
 )
 
+data class CharacterSpellSlot(
+    val level: Int,
+    val totalSlots: Int,
+    val spentSlots: Int,
+)
+
+data class CharacterCombatEntry(
+    val id: Uuid,
+    val name: String,
+    val type: CharacterCombatEntryType,
+    val attackModifier: Int?,
+    val damageEffect: String,
+    val rangeText: String?,
+    val notes: String?,
+    val sortOrder: Int,
+)
+
+data class CharacterInventoryItem(
+    val id: Uuid,
+    val name: String,
+    val quantity: Int,
+    val weightLb: Double?,
+    val equipped: Boolean,
+    val notes: String?,
+    val sortOrder: Int,
+    val special: Boolean,
+    val description: String?,
+    val location: String?,
+    val attuned: Boolean,
+) {
+    val carriedWeightLb: Double
+        get() = (weightLb ?: 0.0) * quantity
+}
+
+data class CharacterCurrency(
+    val key: String,
+    val name: String,
+    val amount: Int,
+    val sortOrder: Int,
+    val isDefault: Boolean,
+)
+
 data class CharacterSheet(
     val id: Uuid,
     val campaignId: Uuid,
@@ -84,15 +145,38 @@ data class CharacterSheet(
     val tempHp: Int,
     val initiativeAdjustment: Int,
     val speed: Int,
+    /**
+     * Compatibility snapshot for the current V4 Android editor.
+     * Persistence converts it into [proficiencyBonusAdjustment], which is the new authoritative state.
+     */
     val proficiencyBonus: Int,
     val savingThrows: List<CharacterSavingThrow>,
     val passivePerceptionAdjustment: Int,
     val spellSaveDc: Int?,
     val classes: List<CharacterClassLevel>,
     val skills: List<CharacterSkill>,
+    val proficiencyBonusAdjustment: Int = 0,
+    val spellAttackModifier: Int? = null,
+    val spellcastingAbility: SpellcastingAbility = SpellcastingAbility.NONE,
+    val spellSlots: List<CharacterSpellSlot> = emptyList(),
+    val combatEntries: List<CharacterCombatEntry> = emptyList(),
+    val inventoryItems: List<CharacterInventoryItem> = emptyList(),
+    val currencies: List<CharacterCurrency> = emptyList(),
 ) {
     val totalLevel: Int
         get() = classes.sumOf { it.level }
+
+    val standardProficiencyBonus: Int
+        get() = standardProficiencyBonusForLevel(totalLevel)
+
+    val finalProficiencyBonus: Int
+        get() = standardProficiencyBonus + proficiencyBonusAdjustment
+
+    val carriedWeightLb: Double
+        get() = inventoryItems.sumOf { it.carriedWeightLb }
+
+    val attunedItemCount: Int
+        get() = inventoryItems.count { it.special && it.attuned }
 
     fun abilityScore(ability: CharacterAbility): Int = when (ability) {
         CharacterAbility.STRENGTH -> strength
@@ -115,7 +199,7 @@ data class CharacterSheet(
     fun savingThrowTotal(ability: CharacterAbility): Int {
         val state = savingThrow(ability)
         return abilityModifier(ability) +
-            (if (state.proficient) proficiencyBonus else 0) +
+            (if (state.proficient) finalProficiencyBonus else 0) +
             state.adjustment
     }
 
@@ -127,8 +211,8 @@ data class CharacterSheet(
         val state = skill(key)
         val proficiencyContribution = when (state.training) {
             SkillTraining.NONE -> 0
-            SkillTraining.PROFICIENT -> proficiencyBonus
-            SkillTraining.EXPERTISE -> proficiencyBonus * 2
+            SkillTraining.PROFICIENT -> finalProficiencyBonus
+            SkillTraining.EXPERTISE -> finalProficiencyBonus * 2
         }
         return abilityModifier(key.ability) + proficiencyContribution + state.adjustment
     }
@@ -144,4 +228,12 @@ fun abilityModifierForScore(score: Int): Int {
     } else {
         -((-difference + 1) / 2)
     }
+}
+
+fun standardProficiencyBonusForLevel(totalLevel: Int): Int = when {
+    totalLevel <= 4 -> 2
+    totalLevel <= 8 -> 3
+    totalLevel <= 12 -> 4
+    totalLevel <= 16 -> 5
+    else -> 6
 }
