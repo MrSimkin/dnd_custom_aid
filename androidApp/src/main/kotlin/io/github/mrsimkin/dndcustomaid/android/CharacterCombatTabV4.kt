@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -141,13 +142,27 @@ internal fun CharacterCombatTabV4(
                             style = MaterialTheme.typography.bodySmall,
                         )
                     } else {
-                        entries.forEachIndexed { index, entry ->
-                            CombatEntryCardV4(
-                                entry = entry,
-                                onEdit = { beginEdit(entry) },
-                                onMove = { offset -> move(index, offset) },
-                                onDelete = { deleteId = entry.id.toString() },
-                            )
+                        val columns = if (wide) 2 else 1
+                        entries.chunked(columns).forEach { rowEntries ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                rowEntries.forEach { entry ->
+                                    val index = entries.indexOfFirst { it.id == entry.id }
+                                    CombatEntryCardV4(
+                                        entry = entry,
+                                        onEdit = { beginEdit(entry) },
+                                        onMove = { offset -> move(index, offset) },
+                                        onDelete = { deleteId = entry.id.toString() },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                                repeat(columns - rowEntries.size) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
                         }
                     }
                 }
@@ -300,12 +315,13 @@ private fun CombatEntryCardV4(
     onEdit: () -> Unit,
     onMove: (Int) -> Boolean,
     onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var accumulatedDrag by remember(entry.id) { mutableStateOf(0f) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
