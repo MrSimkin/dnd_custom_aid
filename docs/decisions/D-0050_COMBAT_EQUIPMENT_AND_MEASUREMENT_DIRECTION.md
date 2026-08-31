@@ -56,33 +56,71 @@ Each ordinary inventory entry should support at minimum:
 
 Ammunition may be represented as an ordinary item with quantity unless a future concrete need justifies a richer ammunition model.
 
-## 4. Special equipment / magic items
+## 4. `Equipo especial` / magic items
 
-Approved product need: `Equipo` must have a suitable path for **special equipment, particularly magic items that require meaningful descriptive/mechanical text**, rather than forcing them into an impoverished one-line ordinary-item representation.
+Approved as a richer equipment structure for special and magic items that need meaningful descriptive/mechanical text.
 
-The exact next-build UI/data shape for this richer description remains to be specified before coding (for example, expandable item detail versus another simple presentation). Do not assume that special equipment is a completely separate inventory ownership model unless later approved.
+The owner supplied a rendered full-page image of the relevant custom sheet. Its lower `EQUIPO ESPECIAL` block establishes the intended semantic grouping:
 
-## 5. Located + synchronized equipment
+- `Ubicación`;
+- a compact `Sintonizado` state/checkbox;
+- `Nombre`;
+- a broad `Descripción` field.
 
-**PENDING PRECISE INTERPRETATION.**
+The paper reference provides common locations:
 
-The owner identified a distinct concept described as **located + synchronized equipment** and directed the assistant to the lower section of page 2 of the custom PDF sheet as the clearest reference.
+- Cabeza;
+- Rostro;
+- Cuello;
+- Mano Izquierda;
+- Mano Derecha;
+- Brazo Izquierdo;
+- Brazo Derecho;
+- Pecho;
+- Piernas;
+- Pies;
 
-The relevant PDF is present in Git at:
+and additional blank rows for custom/nonstandard locations.
 
-- `assets/character-sheets/templates/Hoja de PJ v2 - 5.0 - Simkin.pdf`
+Digital implementation does **not** need to reproduce the paper grid literally. The important data semantics are location + attunement state + item identity + rich description.
 
-The GitHub connector confirms the file and its page-2 PDF object, but the current connector surface does not render the repository PDF page visually. Existing textual UX notes did not preserve the lower equipment block in enough detail to infer its semantics safely.
+## 5. `Sintonización` — official rules terminology
 
-Therefore:
+The earlier wording `sincronizado` was an owner typo and is superseded.
 
-- do **not** invent the meaning of located/synchronized equipment;
-- do **not** implement ownership/location/synchronization behavior from the phrase alone;
-- inspect a rendered/cropped view of the lower page-2 block, then describe the interpretation back to the owner for confirmation before finalizing the model.
+The correct D&D/SRD term is:
 
-This is deliberately pending because it could affect equipment location, shared ownership and/or future synchronization boundaries.
+- noun: **Sintonización**;
+- item/creature state: **Sintonizado / sintonizada**;
+- action: **sintonizarse**.
 
-## 6. Weight and measurement convention
+This terminology is explicitly used in both official Spanish SRD 5.1 and SRD 5.2.1.
+
+Therefore the special-equipment checkbox/state should be understood as a **manual attunement/sintonización marker**, not as data synchronization or ownership synchronization.
+
+For this character-sheet slice:
+
+- store the item's `sintonizado` state explicitly;
+- do not infer it automatically from item type or description;
+- do not confuse it with app/device synchronization;
+- do not yet hard-code an attunement-limit enforcement rule until the UX/data-shape decision is made, because the app's established philosophy is calculation assistance rather than rigid rules enforcement and campaign/class exceptions must remain representable.
+
+## 6. Equipment location semantics
+
+Approved direction from the paper reference: special items may have an explicit equipment/body location.
+
+However, location is currently an **organizational character-sheet property**, not a hard equipment-legality engine.
+
+Therefore, unless later approved:
+
+- do not reject an item because another item already has the same location;
+- do not infer AC, attacks or magical effects from location;
+- allow the common predefined locations from the paper sheet;
+- permit a custom location for unusual/homebrew anatomy or item placement.
+
+This preserves the useful visual/body-slot organization of the owner's paper sheet without turning the app into an equipment rules validator.
+
+## 7. Weight and measurement convention
 
 Approved.
 
@@ -105,7 +143,7 @@ Use the owner's intended game-friendly approximation convention rather than scie
 
 This convention applies where distance/weight values are presented by the application; free-text fields remain permissive and must not become a rules-enforcement parser.
 
-## 7. Currency
+## 8. Currency
 
 Approved default quick currencies:
 
@@ -121,13 +159,15 @@ The currency model must also permit **adding custom/new currency types when a ca
 
 The five ordinary D&D currencies are therefore defaults, not a closed enum that rejects other money systems.
 
-## 8. `Equipado`
+## 9. `Equipado`
 
-Approved as a simple equipped / not-equipped property for inventory items.
+Approved as a simple equipped / not-equipped property for ordinary inventory items.
 
 Do not infer AC, attacks, encumbrance legality or other mechanics from this state in this slice. It is useful persistent character state that future views may consume without committing those future calculations now.
 
-## 9. Quick Magic slot marks
+For `Equipo especial`, explicit `Ubicación` is the richer representation; exact relationship between a generic `Equipado` flag and a special-item location will be resolved during the data-shape pass so redundant state is avoided.
+
+## 10. Quick Magic slot marks
 
 Approved interaction details:
 
@@ -137,12 +177,14 @@ Approved interaction details:
 - provide a manual `Restaurar espacios` action to clear spent marks;
 - do not automatically infer short/long rests or restore slots based on rest rules.
 
-## 10. Still pending before coding these new domains
+## 11. Still pending before coding these new domains
 
-- exact semantics/data shape of **located + synchronized equipment**, after visual review of the lower page-2 PDF reference;
-- exact richer-detail interaction/data fields for special/magic equipment;
+- exact richer-detail interaction for `Equipo especial` on phone (for example compact row + expandable/editor detail);
+- whether the UI should show an informational count/reference for currently sintonized items, without hard rules enforcement;
 - exact final fields/interaction for `Combate` entries beyond the approved minimum where useful;
 - exact tab ordering/navigation behavior once all four implemented tabs are considered together;
 - persistence schema/migration details and targeted QA criteria.
+
+The semantics of the former `located + synchronized equipment` question are now resolved as **special equipment with explicit location and manual Sintonización state**.
 
 No production implementation of `Combate` or `Equipo` is authorized until the remaining consequential questions are resolved and checkpointed.
