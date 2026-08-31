@@ -74,6 +74,17 @@ A multiple named-modifier-source model (for example `Alerta +5`, `Objeto mágico
 
 The owner-provided screenshots also show a **presentation issue in `Por atributo`**, not a skill-mechanics failure: at phone width, some labels such as `Juego de manos` and `Investigación` are forced into awkward multi-line fragments and compete with totals/training/adjustment controls for width. The ability-centered grouping concept remains accepted, but its responsive geometry needs refinement.
 
+### Passive Perception
+
+- Tested Wisdom/Perception/proficiency arithmetic and passive-specific positive adjustment: **PASS**.
+- Owner reported no Passive-Perception-specific presentation or functional issue beyond the already-recorded global optional-adjustment behavior.
+- Rule formula was explicitly re-verified against both official SRDs because the owner remembered a possible base-8 rule.
+- **SRD 5.1:** passive checks use `10 + all modifiers that normally apply to the check`; passive Wisdom (Perception) therefore uses base 10.
+- **SRD 5.2.1:** explicitly defines `Passive Perception = 10 + Wisdom (Perception) check modifier`.
+- No 8→10 change exists between SRD 5.1 and SRD 5.2.1 for this rule. The current V4 base-10 arithmetic is correct.
+
+**Passive Perception acceptance: PASS.**
+
 ### Screenshot-reviewed layout / consistency observations
 
 Owner supplied three annotated phone screenshots during this QA pass. The screenshots make the earlier generic alignment/consistency concern concrete:
@@ -87,22 +98,26 @@ These are **presentation/layout findings for the next build**, not reasons to re
 ### Additional UX / product observations from this pass
 
 1. **Proficiency bonus:** owner approves expanding the basic calculation assistance slightly and wants `Bonificador por competencia` to become a calculated value rather than a manually maintained reference field. This is not a request for a full character builder.
-2. **Spell save DC placement:** owner’s observation is primarily about **better placement**. `CD de salvación de conjuros` feels out of place as a lone spellcasting field inside `Referencia de combate`. A possible future/current-design solution could be a small fully manual **Quick Magic** section with spell slots, spellcasting ability, spell save DC and spell attack modifier, but the owner was **not requesting that feature simply by raising the placement problem**. The next-build decision should first solve location/organization; Quick Magic is an option to discuss, not an automatic scope addition.
+2. **Quick Magic / spellcasting reference — APPROVED NEXT-BUILD DIRECTION:** remove `CD de salvación de conjuros` from `Referencia de combate`. Add a separate compact **Quick Magic** reference block, using the owner-supplied paper-sheet crop as grouping inspiration rather than a literal layout requirement. The block is deliberately lightweight and manual rather than a spellcasting builder. It should provide:
+   - spell-slot tracking by spell level, with available/total space and spent-slot marking suitable for quick session use;
+   - spell save DC;
+   - spell attack modifier;
+   - spellcasting ability (`Aptitud mágica`).
+   These spellcasting reference values remain manually entered for now; the approved purpose is better grouping and quick reference, not additional rule automation.
 3. **Numeric editing bug:** required numeric inputs currently cannot be temporarily cleared while replacing a value. Example: changing Strength `20` to `8` forces an awkward intermediate value because deleting the last digit is rejected and the field retains a value. Expected UX: allow a temporary blank editor state while typing/replacing a number, then validate requiredness/range at save/commit rather than blocking deletion keystrokes.
 
 Implementation inspection confirms the numeric editing behavior: ability-score input is passed `allowBlank = false`, and `CompactIntInputV4` only propagates an edit when `allowBlank || cleaned.isNotBlank()`. This explains the observed inability to clear the field while editing.
 
 ## Pending next checks / work
 
-1. Continue current-build QA with Passive Perception.
-2. Finish class/hit-die, combat-reference, selector, Settings/themes/fonts, and regression QA on the current APK.
-3. In the next follow-up build:
+1. Finish class/hit-die, combat-reference, selector, Settings/themes/fonts, and regression QA on the current APK.
+2. In the next follow-up build:
    - fix blank optional adjustments globally;
    - implement the approved interactive derived-value breakdown/editor pattern;
    - make ability modifiers slightly more prominent;
    - calculate proficiency bonus from character level while preserving the project’s permissive exception philosophy;
    - allow temporary blank numeric draft states during editing and validate on save/commit;
-   - resolve spell-save-DC placement, discussing Quick Magic only as one possible organization option;
+   - remove spell save DC from `Referencia de combate` and add the approved manual Quick Magic reference block;
    - standardize class/hit-die control geometry;
    - improve landscape combat-reference alignment;
    - refine `Por atributo` phone-width label/control allocation while keeping the accepted grouping concept.
