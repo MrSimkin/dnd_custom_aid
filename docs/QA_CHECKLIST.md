@@ -16,8 +16,6 @@ Secondary form-factor checks are useful when practical, but they are not a subst
 
 ## 2. Persistent regression core
 
-Run these when the relevant surface still exists in the build:
-
 ### Application/campaign baseline
 
 1. Application installs/updates as expected for the current development-signing path.
@@ -34,76 +32,110 @@ Run these when the relevant surface still exists in the build:
 9. Newly saved durable data survives leaving/reopening its screen.
 10. Newly saved durable data survives a full app restart.
 
-## 3. Current feature suite — Phase 4 character data foundation
+## 3. Current feature suite — Phase 4 character data foundation V4
 
 **Primary acceptance device:** Android phone.
 
-### Navigation and creation
+V4 implements D-0046: deterministic sheet arithmetic is calculated from source values, while explicit signed adjustments preserve gifts/homebrew/house-rule exceptions.
 
-1. Open an active campaign.
-2. Open `Personajes`.
-3. Create a character with a nonblank name.
-4. Confirm the character appears in the campaign character list.
-5. Open the character editor.
+### Navigation and migration
 
-### Multiclass and hit dice
+1. Install/update over the previous stable-signed V3 QA build without uninstalling.
+2. Confirm existing campaign and character records remain present.
+3. Open an existing V3 character and confirm its previously stored displayed initiative, saving-throw, skill and passive-Perception totals remain numerically unchanged after migration.
+4. Saving-throw proficiency on migrated V3 characters is expected to begin unchecked because V3 never stored that metadata. Confirm no proficiency was silently guessed.
+5. Confirm `Resumen` and `Habilidades` remain available and understandable.
 
-6. Add at least two class entries.
-7. Use different hit-die sizes for the two classes.
-8. Set different remaining hit-dice values.
-9. Confirm total level/class presentation is understandable.
+### Classes and hit dice
 
-### Core character data
+6. Add at least two classes with different levels/dice/remaining dice.
+7. Confirm `Artífice` appears in alphabetical order among the class names.
+8. Confirm `Otro` remains last and exposes custom/homebrew text entry.
+9. Confirm `d8`, `d10`, `d12`, etc. stay on one line rather than wrapping vertically.
+10. Confirm class rows remain compact and multiple classes do not destabilize portrait or landscape grouping.
 
-10. Edit all six ability scores.
-11. Edit Armor Class.
-12. Edit maximum, current and temporary HP.
-13. Edit initiative modifier.
-14. Edit speed.
-15. Edit proficiency bonus.
-16. Edit all six saving-throw modifiers.
-17. Edit passive Perception.
-18. Set and clear an optional spell save DC.
+### Ability scores and automatic modifiers
+
+11. Confirm all six ability scores fit compactly in one row on the intended phone layout.
+12. Enter representative scores and verify automatic modifiers, for example:
+    - 16 → `+3`;
+    - 14 → `+2`;
+    - 10 → `+0`;
+    - 9 → `-1`;
+    - 7 → `-2`.
+13. Confirm the modifiers are displayed values, not separate manually editable fields.
+
+### Initiative
+
+14. Set Dexterity to 14. With initiative adjustment `0`, confirm Initiative is `+2`.
+15. Set initiative adjustment to `+1`; confirm the displayed Initiative becomes `+3`.
+16. Use a negative adjustment and confirm it is accepted and reflected correctly.
+
+### Saving throws
+
+17. With Strength 16 and proficiency bonus +3, confirm Strength save is `+3` when not proficient and adjustment is 0.
+18. Toggle Strength-save proficiency; confirm the total becomes `+6`.
+19. Add save adjustment `+2`; confirm the total becomes `+8`.
+20. Confirm the saving-throw proficiency control is binary and visually distinct from the skill none/Competente/Pericia control.
+21. Confirm signed save adjustments can represent arbitrary positive/negative exceptions.
 
 ### Skills
 
-19. Confirm all 18 standard D&D skills are present.
-20. Edit several final skill modifiers.
-21. Mark at least one skill as proficient.
-22. Mark at least one skill as expertise.
-23. Confirm training markers do not force/recalculate the saved final modifier.
+22. Confirm all 18 standard D&D skills are present and show their associated ability.
+23. With Strength 16 and proficiency bonus +3, use Atletismo with adjustment 0 and verify:
+    - no proficiency → `+3`;
+    - Competente → `+6`;
+    - Pericia → `+9`.
+24. Add Atletismo adjustment `+2`; confirm Pericia total becomes `+11`.
+25. Confirm the compact training control uses one fixed footprint and clearly communicates:
+    - empty = no proficiency;
+    - one check = Competente;
+    - double check = Pericia.
+26. Confirm changing training changes the calculated standard total while retaining the explicit adjustment.
 
-### Permissive/homebrew data
+### Passive Perception
 
-24. Enter at least one deliberately unusual/gifted mechanical value that ordinary D&D arithmetic would not normally produce.
-25. Confirm it can be saved and reopened without correction or rejection by the app.
+27. With Wisdom 12 (+1), Percepción Competente and proficiency bonus +3, confirm Percepción total is `+4` and Percepción pasiva is `14` when passive adjustment is 0.
+28. Set passive-Perception adjustment to `+2`; confirm Percepción pasiva becomes `16`.
 
-### Save and persistence
+### Explicit/manual reference values
 
-26. Save the character.
-27. Leave the editor and reopen the character.
-28. Confirm classes, hit dice, abilities, combat-reference values, saves and edited skills remain correct.
-29. Fully close and reopen the application.
-30. Confirm campaign and character data remain present and correct.
+29. Confirm AC, max/current/temp HP, speed, proficiency bonus and optional spell save DC remain editable explicit values.
+30. Confirm `Referencia de combate` preserves the approved semantic order:
+    1. CA / Iniciativa / Velocidad;
+    2. PG actuales / PG máximos / PG temporales;
+    3. Bonificador por competencia / Percepción pasiva / CD de salvación de conjuros.
+31. Judge whether labels/abbreviations remain recognizable at phone width; abbreviation is allowed, obscurity is not.
 
-### Phone usability review
+### Presentation controls
 
-31. Check whether the amount of scrolling is reasonable for data entry.
-32. Check whether labels and field grouping are understandable.
-33. Check whether class/hit-die entry feels clear.
-34. Check whether skill entry is practical rather than excessively repetitive or confusing.
-35. Record any density, spacing, keyboard/input or navigation problems.
+32. Confirm `Por habilidades` / `Por atributo` is now a direct two-state segmented control with a clear active state.
+33. Confirm both presentation modes remain understandable and the selected view persists as a device/user preference.
+34. Confirm Back, Settings/gear and similar icon-only controls retain stable icon/touch geometry when text scale changes.
 
-## 4. Secondary checks for this character build
+### Settings
 
-These are useful but are not required before the **phone-first** character-sheet acceptance decision unless a defect suggests broader testing is needed:
+35. Check all text scales: 80 / 90 / 100 / 115 / 130%; specifically confirm 115% and 130% menus/layout remain usable rather than becoming malformed.
+36. Check all V4 font candidates:
+    - Manrope;
+    - Sora;
+    - Barlow Condensed;
+    - IBM Plex Sans Condensed.
+37. Confirm Atkinson is no longer offered.
+38. Check themes: System / Light / Dark / Light Gray / Dark Purple.
+39. Confirm Light Gray is visibly distinct from Light.
+40. Confirm Dark Purple reads clearly purple and is visibly distinct from ordinary Dark.
+41. Confirm chosen UI preferences survive a full app restart.
 
-- tablet portrait sanity check;
-- tablet landscape sanity check;
-- wide-layout/density observations;
-- theme behavior once theme support exists.
+### Regression checks retained from V3
 
-## 5. Result recording
+42. Open the software keyboard near the bottom of the sheet and confirm lower editable content remains reachable.
+43. While editing unsaved data, rotate portrait ↔ landscape and confirm the same character/tab/draft remains active.
+44. Turn the screen off/on and confirm the same character/tab/draft remains active.
+45. Check landscape grouping with multiple classes and both skill presentation modes.
+46. Save, leave/reopen the character, then fully close/reopen the app; confirm durable values, adjustments, proficiency/training state and classes persist correctly.
+
+## 4. Result recording
 
 Record each manual QA pass with:
 
@@ -117,7 +149,7 @@ Record each manual QA pass with:
 
 Do not mark a feature manually accepted merely because CI is green. Automated verification and intended-device QA are separate gates.
 
-## 6. Suite evolution
+## 5. Suite evolution
 
 When a feature is accepted:
 
