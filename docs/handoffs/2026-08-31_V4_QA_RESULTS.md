@@ -85,11 +85,20 @@ The owner-provided screenshots also show a **presentation issue in `Por atributo
 
 **Passive Perception acceptance: PASS.**
 
+### Classes / hit dice
+
+- Tested multiple classes in the current V4 APK: **PASS**.
+- `Artífice` ordering, `Otro` custom-class escape path, hit-die choices including the wider `dX` values, and rotation with multiple classes present were reported as working correctly: **PASS**.
+- Existing visual geometry objection remains: the class/hit-die row does not have a consistent visual rhythm.
+- Owner clarified that this geometry objection applies **both** when the class is a normal dropdown-selected class and when `Otro` exposes a custom/open class-name field; the inconsistency is not limited to custom-class mode.
+
+**Class/hit-die functional acceptance: PASS; presentation needs refinement.**
+
 ### Screenshot-reviewed layout / consistency observations
 
 Owner supplied three annotated phone screenshots during this QA pass. The screenshots make the earlier generic alignment/consistency concern concrete:
 
-1. **Portrait — class / hit-die row:** the `Tipo` / `d8` selector uses noticeably different control geometry from adjacent `Nv.` and `DG` numeric fields. Although functional and no longer vertically wrapping, the row reads as visually inconsistent. Next build should standardize alignment/visual rhythm without losing the compact die selector.
+1. **Portrait — class / hit-die row:** the normal class selector, custom class field when used, `Nv.`, `DG`, and `Tipo` / `d8` controls do not share a sufficiently consistent control geometry/alignment. Although functional and no longer vertically wrapping, the row reads as visually inconsistent in both normal dropdown-selected and custom-class modes. Next build should standardize alignment/visual rhythm without losing the compact die selector.
 2. **Landscape — combat reference:** `Referencia`, `Puntos de golpe`, and `Referencia secundaria` do not read as one clean aligned grid. The transition around `PG temporales` → `Referencia secundaria` / `Bono competencia` is especially visually uneven. Preserve semantic subgrouping, but improve common baselines/field alignment and spacing.
 3. **Portrait — `Por atributo`:** the two-column ability-group layout becomes too tight for several skill labels and related controls. Labels wrap into awkward fragments, while the save/skill control areas feel crowded. Keep `Por atributo` as an accepted alternative view, but tune responsive column widths/label allocation and internal alignment.
 
@@ -104,20 +113,22 @@ These are **presentation/layout findings for the next build**, not reasons to re
    - spell attack modifier;
    - spellcasting ability (`Aptitud mágica`).
    These spellcasting reference values remain manually entered for now; the approved purpose is better grouping and quick reference, not additional rule automation.
+   - Owner delegated placement to assistant recommendation after considering either bottom-of-general-sheet or a new tab.
+   - **Placement recommendation accepted for next build: put Quick Magic at the bottom of `Resumen`**, rather than adding a third tab at this stage. Rationale: it is still a compact quick-reference block, belongs with other at-a-glance character values, and does not yet contain enough spell-management content to justify a dedicated navigation destination. If spellcasting later expands materially, a dedicated tab can be reconsidered then.
 3. **Numeric editing bug:** required numeric inputs currently cannot be temporarily cleared while replacing a value. Example: changing Strength `20` to `8` forces an awkward intermediate value because deleting the last digit is rejected and the field retains a value. Expected UX: allow a temporary blank editor state while typing/replacing a number, then validate requiredness/range at save/commit rather than blocking deletion keystrokes.
 
 Implementation inspection confirms the numeric editing behavior: ability-score input is passed `allowBlank = false`, and `CompactIntInputV4` only propagates an edit when `allowBlank || cleaned.isNotBlank()`. This explains the observed inability to clear the field while editing.
 
 ## Pending next checks / work
 
-1. Finish class/hit-die, combat-reference, selector, Settings/themes/fonts, and regression QA on the current APK.
+1. Finish combat-reference, selector, Settings/themes/fonts, and regression QA on the current APK.
 2. In the next follow-up build:
    - fix blank optional adjustments globally;
    - implement the approved interactive derived-value breakdown/editor pattern;
    - make ability modifiers slightly more prominent;
    - calculate proficiency bonus from character level while preserving the project’s permissive exception philosophy;
    - allow temporary blank numeric draft states during editing and validate on save/commit;
-   - remove spell save DC from `Referencia de combate` and add the approved manual Quick Magic reference block;
-   - standardize class/hit-die control geometry;
+   - remove spell save DC from `Referencia de combate` and add the approved manual Quick Magic reference block at the bottom of `Resumen`;
+   - standardize class/hit-die control geometry in both normal-selected-class and custom-class modes;
    - improve landscape combat-reference alignment;
    - refine `Por atributo` phone-width label/control allocation while keeping the accepted grouping concept.
