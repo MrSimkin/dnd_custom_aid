@@ -1431,7 +1431,7 @@ private fun SkillRowV4(
             "${skillLabelV4(skill.key)} (${abilityAbbreviationV4(skill.key.ability)})",
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodySmall,
-            maxLines = 2,
+            maxLines = 3,
         )
         DerivedTotalControlV4(
             total = draft.skillTotal(skill.key)?.let(::formatSignedV4).orEmpty(),
@@ -1524,7 +1524,7 @@ private fun AbilityGroupsCardV4(
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
 ) {
     SectionCardV4("Características, salvaciones y habilidades") {
-        val columns = if (wide) 3 else 1
+        val columns = if (wide) 3 else 2
         CharacterAbility.entries.chunked(columns).forEach { rowAbilities ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1552,6 +1552,11 @@ private fun AbilityGroupV4(
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val save = draft.saveFor(ability)
+    val abilityModifier = draft.abilityModifier(ability)
+    val proficiency = draft.finalProficiencyBonus()
+    val abbreviation = abilityAbbreviationV4(ability)
+
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.small,
@@ -1564,26 +1569,47 @@ private fun AbilityGroupV4(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelMedium)
-                    CompactIntInputV4(
-                        value = draft.abilityValue(ability),
-                        onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Text(
-                        "Mod. ${draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—"}",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                SaveRowV4(
-                    ability = ability,
-                    draft = draft,
-                    onDraftChange = onDraftChange,
-                    modifier = Modifier.weight(1.25f),
+                Text(abbreviation, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                CompactIntInputV4(
+                    value = draft.abilityValue(ability),
+                    onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
+                    modifier = Modifier.width(52.dp),
+                )
+                Text(
+                    "Mod ${abilityModifier?.let(::formatSignedV4) ?: "—"}",
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Salv.", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                DerivedTotalControlV4(
+                    total = draft.savingThrowTotal(ability)?.let(::formatSignedV4).orEmpty(),
+                    adjustment = save.adjustment,
+                    dialogTitle = "Salvación $abbreviation",
+                    breakdownLines = listOf(
+                        "$abbreviation ${abilityModifier?.let(::formatSignedV4) ?: "—"}",
+                        if (save.proficient) {
+                            "Competencia ${proficiency?.let(::formatSignedV4) ?: "—"}"
+                        } else {
+                            "Sin competencia +0"
+                        },
+                    ),
+                    onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
+                    modifier = Modifier.weight(1f),
+                )
+                SaveProficiencyToggleV4(
+                    proficient = save.proficient,
+                    onToggle = {
+                        onDraftChange(draft.withSave(save.copy(proficient = !save.proficient)))
+                    },
                 )
             }
             val relatedSkills = draft.skills.filter { it.key.ability == ability }
