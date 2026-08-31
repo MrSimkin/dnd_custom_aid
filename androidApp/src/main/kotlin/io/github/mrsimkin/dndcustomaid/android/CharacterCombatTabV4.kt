@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,14 +28,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
+import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 @Composable
@@ -81,13 +86,14 @@ internal fun CharacterCombatTabV4(
         editorOpen = true
     }
 
-    fun move(index: Int, offset: Int) {
+    fun move(index: Int, offset: Int): Boolean {
         val target = index + offset
-        if (target !in entries.indices) return
+        if (target !in entries.indices) return false
         val reordered = entries.toMutableList()
         val item = reordered.removeAt(index)
         reordered.add(target, item)
         onEntriesChange(reordered.mapIndexed { order, entry -> entry.copy(sortOrder = order) })
+        return true
     }
 
     LazyColumn(
@@ -138,11 +144,8 @@ internal fun CharacterCombatTabV4(
                         entries.forEachIndexed { index, entry ->
                             CombatEntryCardV4(
                                 entry = entry,
-                                canMoveUp = index > 0,
-                                canMoveDown = index < entries.lastIndex,
                                 onEdit = { beginEdit(entry) },
-                                onMoveUp = { move(index, -1) },
-                                onMoveDown = { move(index, 1) },
+                                onMove = { offset -> move(index, offset) },
                                 onDelete = { deleteId = entry.id.toString() },
                             )
                         }
@@ -246,16 +249,16 @@ private fun CombatQuickReferenceCardV4(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.Top,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 ReadOnlyReferenceV4("CA", armorClass, Modifier.weight(1f))
                 ReadOnlyReferenceV4("Iniciativa", initiative.ifBlank { "—" }, Modifier.weight(1f))
-                ReadOnlyReferenceV4("Velocidad", speed, Modifier.weight(1f))
+                ReadOnlyReferenceV4("Velocidad", formatSpeedCombatV4(speed), Modifier.weight(1f))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.Top,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 ReadOnlyReferenceV4("PG actuales", currentHp, Modifier.weight(1f))
                 ReadOnlyReferenceV4("PG máximos", maxHp, Modifier.weight(1f))
@@ -294,13 +297,13 @@ private fun ReadOnlyReferenceV4(label: String, value: String, modifier: Modifier
 @Composable
 private fun CombatEntryCardV4(
     entry: CharacterCombatEntry,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
     onEdit: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
+    onMove: (Int) -> Boolean,
     onDelete: () -> Unit,
 ) {
+    var accumulatedDrag by remember(entry.id) { mutableStateOf(0f) }
+    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.small,
@@ -315,6 +318,29 @@ private fun CombatEntryCardV4(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                StableDragHandle(
+                    modifier = Modifier.pointerInput(entry.id) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = { accumulatedDrag = 0f },
+                            onDragEnd = { accumulatedDrag = 0f },
+                            onDragCancel = { accumulatedDrag = 0f },
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                accumulatedDrag += dragAmount.y
+                                while (abs(accumulatedDrag) >= reorderStepPx) {
+                                    val direction = if (accumulatedDrag > 0f) 1 else -1
+                                    if (onMove(direction)) {
+                                        accumulatedDrag -= direction * reorderStepPx
+                                    } else {
+                                        accumulatedDrag = 0f
+                                        break
+                                    }
+                                }
+                            },
+                        )
+                    },
+                    contentDescription = "Mantén pulsado y arrastra para reordenar ${entry.name}",
+                )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(entry.name, style = MaterialTheme.typography.labelLarge)
                     Text(combatEntryTypeLabelV4(entry.type), style = MaterialTheme.typography.labelSmall)
@@ -336,12 +362,6 @@ private fun CombatEntryCardV4(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onMoveUp, enabled = canMoveUp, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("↑")
-                }
-                TextButton(onClick = onMoveDown, enabled = canMoveDown, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("↓")
-                }
                 TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 7.dp)) {
                     Text("Editar")
                 }
@@ -375,11 +395,15 @@ private fun CombatEntryEditorDialogV4(
     var typeMenuOpen by rememberSaveable { mutableStateOf(false) }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         title = { Text(title) },
         text = {
             LazyColumn(
-                modifier = Modifier.heightIn(max = 480.dp),
+                modifier = Modifier
+                    .heightIn(max = 480.dp)
+                    .imePadding()
+                    .navigationBarsPadding(),
+                contentPadding = PaddingValues(bottom = 96.dp),
                 verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 item {
@@ -481,6 +505,19 @@ private fun sanitizeSignedIntV4(raw: String): String {
     val sign = raw.firstOrNull()?.takeIf { it == '+' || it == '-' }?.toString().orEmpty()
     val digits = raw.drop(if (sign.isEmpty()) 0 else 1).filter(Char::isDigit)
     return sign + digits
+}
+
+private fun formatSpeedCombatV4(raw: String): String {
+    val feet = raw.trim().toIntOrNull() ?: return raw.ifBlank { "—" }
+    val metricTenths = feet * 3
+    val wholeMeters = metricTenths / 10
+    val remainder = abs(metricTenths % 10)
+    val metric = if (remainder == 0) {
+        wholeMeters.toString()
+    } else {
+        "$wholeMeters,$remainder"
+    }
+    return "$feet ft ($metric m)"
 }
 
 private fun formatSignedCombatV4(value: Int): String = if (value >= 0) "+$value" else value.toString()
