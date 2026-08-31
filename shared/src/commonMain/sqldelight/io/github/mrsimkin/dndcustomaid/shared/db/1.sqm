@@ -1,0 +1,47 @@
+CREATE TABLE character (
+    id TEXT NOT NULL PRIMARY KEY,
+    campaign_id TEXT NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    updated_at_epoch_seconds INTEGER NOT NULL DEFAULT (CAST(strftime('%s', 'now') AS INTEGER)),
+    strength INTEGER NOT NULL DEFAULT 10,
+    dexterity INTEGER NOT NULL DEFAULT 10,
+    constitution INTEGER NOT NULL DEFAULT 10,
+    intelligence INTEGER NOT NULL DEFAULT 10,
+    wisdom INTEGER NOT NULL DEFAULT 10,
+    charisma INTEGER NOT NULL DEFAULT 10,
+    armor_class INTEGER NOT NULL DEFAULT 10,
+    max_hp INTEGER NOT NULL DEFAULT 1,
+    current_hp INTEGER NOT NULL DEFAULT 1,
+    temp_hp INTEGER NOT NULL DEFAULT 0,
+    initiative_modifier INTEGER NOT NULL DEFAULT 0,
+    speed INTEGER NOT NULL DEFAULT 30,
+    proficiency_bonus INTEGER NOT NULL DEFAULT 2,
+    strength_save INTEGER NOT NULL DEFAULT 0,
+    dexterity_save INTEGER NOT NULL DEFAULT 0,
+    constitution_save INTEGER NOT NULL DEFAULT 0,
+    intelligence_save INTEGER NOT NULL DEFAULT 0,
+    wisdom_save INTEGER NOT NULL DEFAULT 0,
+    charisma_save INTEGER NOT NULL DEFAULT 0,
+    passive_perception INTEGER NOT NULL DEFAULT 10,
+    spell_save_dc INTEGER
+);
+
+CREATE TABLE character_class (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    level INTEGER NOT NULL,
+    hit_die_sides INTEGER NOT NULL,
+    hit_dice_remaining INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_skill (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    skill_key TEXT NOT NULL,
+    modifier INTEGER NOT NULL,
+    training TEXT NOT NULL,
+    PRIMARY KEY(character_id, skill_key)
+);
