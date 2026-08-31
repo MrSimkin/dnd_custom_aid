@@ -2,10 +2,10 @@
 
 **Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
-**Current working branch:** `implementation/local-campaign-selection`  
-**Open review:** PR #5 — `Phase 3: local Android campaign creation and selection`  
-**Phase:** Phase 3 — First Vertical Slice  
-**Status:** First vertical slice is code-complete, CI-green and manually verified on both an Android phone and tablet. Functional acceptance succeeded. PR #5 is open for owner review. Minor density feedback, landscape space utilization and future theme support are recorded as non-blocking follow-up.
+**Current working branch:** none; next Phase 4 feature branch not yet selected  
+**Open review:** none  
+**Phase:** Phase 4 — MVP Buildout  
+**Status:** Phase 3 is complete and canonical on `main` after PR #5. The first Phase 4 slice now requires owner prioritization.
 
 ## 1. Canonical baseline
 
@@ -19,60 +19,52 @@ Key implementation constraints:
 - SQLite + SQLDelight selectively for useful local/offline behavior;
 - Desktop Save locally + explicit Sync;
 - Cloudflare Worker/HTTP first; realtime/storage extras only when a real feature needs them;
-- Neon PostgreSQL and Descope are approved but should not be activated before a feature needs hosted data/authentication;
+- Neon PostgreSQL and Descope are approved but should not be activated before a selected feature needs hosted data/authentication;
 - no generalized provider/sync frameworks;
 - one authoritative DM combat device + increasing sequence/version for MVP;
 - player offline turn/condition convenience is ephemeral and never synchronized.
 
-## 2. Canonical scaffold
+## 2. Canonical implementation state
 
-PR #4 merged on 2026-08-30. Merge commit: `d50409270db52df05508f91363bf76385030a77d`.
+Phase 2 scaffold is canonical through PR #4 (`d50409270db52df05508f91363bf76385030a77d`).
 
-`main` contains the verified Phase 2 scaffold:
+Phase 3 first vertical slice is canonical through PR #5, merged on 2026-08-30 as `dc1304080f0b71bcb44690b5ee317f3877385286`.
 
-- `shared/` — one Kotlin Multiplatform module;
-- SQLDelight starter database/code generation;
-- `androidApp/` — native Android Kotlin/Jetpack Compose shell;
-- `desktopApp/` — Kotlin/Compose Multiplatform Desktop shell;
-- `backend/` — TypeScript Cloudflare Worker shell with a minimal `/health` endpoint;
-- `database/` — PostgreSQL migration/data-loading area without speculative domain tables;
-- one simple GitHub Actions workflow.
+The repository currently contains:
 
-Android uses stable Material 3. Desktop remains on the stable Compose Material line because the current official KMP Material 3 path uses a separate alpha dependency; no alpha dependency was added merely for UI symmetry.
+- `shared/` — Kotlin Multiplatform shared logic and SQLDelight persistence;
+- `androidApp/` — native Android Jetpack Compose app;
+- `desktopApp/` — Compose Multiplatform Desktop shell;
+- `backend/` — TypeScript Cloudflare Worker shell with `/health`;
+- `database/` — PostgreSQL migration/data-loading area;
+- one GitHub Actions build/test workflow.
 
-## 3. Toolchain
+Implemented user functionality:
 
-- JDK 17
-- Gradle 9.5
-- Kotlin 2.4.10
-- Android Gradle Plugin 9.3.2
-- Android `minSdk 30`, compile/target SDK 36
-- stable AndroidX Compose BOM path
-- Compose Multiplatform 1.12.0 for Desktop
-- SQLDelight 2.3.2
-- Node.js 22 in CI
-- TypeScript 6.0.3
-- Wrangler 4.127.1
+1. Android lists locally stored campaigns.
+2. A campaign can be created with a nonblank trimmed name.
+3. Campaigns use stable UUID identity and duplicate display names are valid.
+4. Campaigns persist in local SQLite through SQLDelight.
+5. One campaign can be selected as active.
+6. Active selection persists across database/app restart.
+7. Current end-user campaign UI is Spanish.
 
-Android intentionally remains on stable SDK 36 rather than the Android 17/API 37 preview SDK channel.
+Local Phase 3 schema:
 
-## 4. Last verification
+```sql
+campaign(id, name)
+app_state(singleton, active_campaign_id)
+```
 
-Final feature code head before documentation-only manual-verification/review handoff updates: `67ba34b0744dc3fc74a11b43b8a373c6e1773051`.
+## 3. Verification
 
-GitHub Actions run #28 passed on that exact revision:
+PR #5 final review CI passed on head `124626aa6f0fabd449ee5823c1651e3cc01f3e70`:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-- shared Kotlin and campaign repository tests: success;
-- SQLDelight generation: success;
-- Android debug assembly: success;
-- Desktop build: success;
-- Android debug APK artifact upload: success.
-
-Backend:
+and:
 
 ```bash
 cd backend
@@ -80,107 +72,46 @@ npm install
 npm run check
 ```
 
-- Wrangler type generation: success;
-- TypeScript type check: success.
+Verified behavior includes campaign-name validation/trimming, duplicate-name identity separation, campaign persistence, active-campaign switching and database close/reopen recovery.
 
-The campaign persistence test closes SQLite, reopens the same database file, and verifies both the campaign and active selection survive the reopen.
+Manual Android verification on 2026-08-30 passed on both a phone and tablet:
 
-The later documentation-only commits continue to run through the same GitHub Actions workflow; PR #5 also triggers review CI. Do not infer a code regression from documentation-only head movement; use the PR/check status for the current review head.
+- install/launch succeeded;
+- campaign create/select/restart behavior matched expectations;
+- Spanish UI was present;
+- tablet presentation was acceptable;
+- landscape worked but underused horizontal space.
 
-### Manual Android verification
+A post-merge `main` CI run was triggered for merge commit `dc1304080f0b71bcb44690b5ee317f3877385286`; backend passed and the Kotlin/Android/Desktop job was still running when the Phase 4 documentation transition began. Subsequent documentation-only commits also trigger the same CI workflow.
 
-On 2026-08-30 the owner installed the CI-built debug APK on an Android phone and confirmed the expected functional results:
+## 4. Known non-blocking follow-up
 
-- app installed and launched successfully;
-- campaign creation worked;
-- active-campaign selection worked;
-- persisted campaigns and active selection behaved as expected after reopening;
-- Spanish user-facing campaign UI was present;
-- no functional blocker was reported.
+- Increase information density / reduce unnecessary dead space where appropriate.
+- Improve wide/tablet-landscape use when future screens contain enough content to justify adaptive layouts.
+- Add application theme support after theme behavior is explicitly specified.
+- KMP `androidLibrary` target DSL emits a tooling-transition deprecation warning; no workaround is currently justified.
+- Gradle wrapper JAR is not committed because the repository connector could not safely transfer the official binary; CI provisions Gradle 9.5.
 
-Owner UX feedback from phone verification:
-
-- the campaign screen uses more empty/dead space than desired; a somewhat more compact information density is preferred;
-- the screen otherwise looks acceptable;
-- theme support should be implemented in future UI work.
-
-The owner then repeated a visual/usability check on an Android tablet:
-
-- the portrait/tablet presentation was not excessively stretched;
-- the current screen worked acceptably as implemented;
-- landscape leaves substantial unused space;
-- the owner noted that the value of a more elaborate landscape layout can be judged better once the application has more on-screen elements.
-
-The tablet result is accepted. Landscape space utilization is a non-blocking responsive-layout follow-up, not a failure of this first slice.
-
-## 5. Known non-blocking tooling notes
-
-- The KMP `androidLibrary` target DSL currently emits a deprecation warning; the current official Kotlin KMP application template still uses that API, so no custom workaround is warranted.
-- The Gradle wrapper JAR is not committed because the available repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the standard wrapper later.
-
-Neither blocks Phase 3.
-
-## 6. Explicitly not implemented yet
+## 5. Explicitly not implemented yet
 
 - Descope authentication;
-- Neon/Hyperdrive connection;
-- R2 / Durable Objects / WebSockets / queues;
-- Workers AI;
-- PDFBox integration;
+- Neon/hosted data connection and campaign synchronization;
+- invitations/membership/roles;
 - synchronization outbox/revision behavior;
 - character/NPC/monster/encounter/combat domain models;
-- hosted campaign synchronization, membership or roles;
+- PDFBox character-sheet export;
+- SRD retrieval / Workers AI rules clarification;
+- realtime Cloudflare infrastructure;
 - deployment/release automation.
 
 Do not infer implementation merely from approved architecture.
 
-## 7. Phase 3 first vertical slice
+## 6. Phase 4 status
 
-Selected slice: **local Android campaign creation and active-campaign selection**.
+Phase 3's exit criterion has been satisfied, so Phase 4 — MVP Buildout is now current.
 
-Implemented on `implementation/local-campaign-selection`:
+The roadmap deliberately does not prescribe a fixed feature order. Selecting the first Phase 4 slice is a meaningful product-priority decision for the owner. Once selected, create a focused branch from current `main`, define the smallest complete testable workflow, and add only the infrastructure that workflow actually requires.
 
-1. Android shows locally stored campaigns.
-2. User can create a campaign with a nonblank name.
-3. Campaign names are trimmed before persistence.
-4. Campaigns use stable UUID identity; duplicate display names remain valid distinct campaigns.
-5. Campaigns persist in local SQLite through SQLDelight.
-6. User can select one campaign as active.
-7. Active selection persists locally across database reopen/app restart at the storage level.
-8. Android uses a single simple `LazyColumn` campaign screen; no navigation framework, ViewModel layer, DI container, coroutine stack or reactive database extension was added for this slice.
-9. End-user campaign UI text is Spanish under C-0006.
-10. The workflow has been manually validated on both an Android phone and tablet.
+## 7. Immediate next action
 
-Local schema is intentionally limited to:
-
-```sql
-campaign(id, name)
-app_state(singleton, active_campaign_id)
-```
-
-Explicitly out of scope for this slice:
-
-- rename/delete;
-- invites/membership/roles;
-- remote accounts;
-- hosted campaign synchronization;
-- desktop campaign UI;
-- characters, encounters or combat.
-
-## 8. Non-blocking UI follow-up
-
-Three owner-observed visual improvements are now known:
-
-1. Increase information density / reduce unnecessary empty space in the campaign screen and future UI where appropriate.
-2. Improve use of horizontal space in tablet landscape when future screens contain enough content to justify an adaptive layout.
-3. Add application theme support. Theme behavior itself has not yet been specified; exact choices such as system/light/dark/custom themes should be discussed before implementation so a durable UX convention is not silently invented.
-
-These should be handled as subsequent UI work rather than expanding the accepted persistence slice unless the owner explicitly chooses otherwise.
-
-## 9. Current review and immediate next action
-
-PR #5 (`Phase 3: local Android campaign creation and selection`) is open from `implementation/local-campaign-selection` into `main`.
-
-The slice has satisfied its functional automated and phone/tablet manual acceptance goals. The immediate next action is owner review of PR #5 and its final CI result.
-
-Merging into `main` remains a separate action and requires explicit owner approval under D-0007.
+Present the owner with realistic first-Phase-4 slice options and a recommendation. Do not silently choose a major product priority or activate hosted/auth infrastructure before that selection is approved.
