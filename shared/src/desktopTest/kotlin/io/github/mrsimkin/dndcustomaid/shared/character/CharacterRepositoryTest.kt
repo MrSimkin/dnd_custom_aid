@@ -4,6 +4,7 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import java.io.File
+import java.sql.DriverManager
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -126,6 +127,47 @@ class CharacterRepositoryTest {
             assertEquals(3, reopened.classes.single().hitDiceRemaining)
             assertEquals(18, reopened.skills.size)
             secondDriver.close()
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
+    fun phase3CampaignDatabaseMigratesWithoutLosingCampaigns() {
+        val file = File.createTempFile("dnd-custom-aid-migration", ".db")
+        file.delete()
+        val jdbcUrl = "jdbc:sqlite:${file.absolutePath}"
+
+        try {
+            DriverManager.getConnection(jdbcUrl).use { connection ->
+                connection.createStatement().use { statement ->
+                    statement.executeUpdate(
+                        "CREATE TABLE campaign (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL)",
+                    )
+                    statement.executeUpdate(
+                        "CREATE TABLE app_state (singleton INTEGER NOT NULL PRIMARY KEY CHECK (singleton = 1), active_campaign_id TEXT REFERENCES campaign(id))",
+                    )
+                    statement.executeUpdate(
+                        "INSERT INTO campaign(id, name) VALUES ('00000000-0000-0000-0000-000000000001', 'Campaña existente')",
+                    )
+                }
+            }
+
+            val driver = JdbcSqliteDriver(jdbcUrl)
+            AppDatabase.Schema.migrate(
+                driver = driver,
+                oldVersion = 1,
+                newVersion = AppDatabase.Schema.version,
+            )
+            val database = AppDatabase(driver)
+            val campaigns = CampaignRepository(database)
+            val characters = CharacterRepository(database)
+            val existingCampaign = campaigns.listCampaigns().single()
+
+            assertEquals("Campaña existente", existingCampaign.name)
+            assertEquals(0, characters.listCharacters(existingCampaign.id).size)
+            assertEquals("Nuevo personaje", characters.createCharacter(existingCampaign.id, "Nuevo personaje").name)
+            driver.close()
         } finally {
             file.delete()
         }
