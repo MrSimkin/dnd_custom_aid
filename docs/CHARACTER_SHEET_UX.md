@@ -6,7 +6,7 @@ This document records owner QA, accepted directions, open questions, and design-
 
 ## 1. Third intended-device QA — V3 phone editor
 
-Tested implementation head: `f728acd7ec10f4fae2df093ec8b16db4c8d2ba90` (`Wire downloadable fonts through GMS provider`).  
+Tested implementation head: `f728acd7ec10ff0950d53e854796f26de6671b4` (`Wire downloadable fonts through GMS provider`).  
 CI verification: GitHub Actions run #84 / `33352541814` passed shared tests, Android debug build/APK upload, Desktop build and backend checks.  
 Primary device: Android phone.  
 Overall result: **FUNCTIONAL PASS; PRESENTATION NEEDS A SMALLER FOLLOW-UP PASS BEFORE PR/MERGE.**
@@ -291,3 +291,62 @@ V4 should preserve all V3 functional successes and address the remaining items:
 - add a distinct binary saving-throw proficiency control;
 - apply the approved combat-reference subgroup ordering and responsive clear/non-obscure labels;
 - preserve passing keyboard/IME, recreation/navigation, landscape and persistence behavior.
+
+## 7. V4 phone QA follow-up directions — 2026-08-31
+
+These observations were made against V4 run #107 while manual QA continued. They supplement, and where explicitly stated supersede, earlier presentation assumptions.
+
+### Derived-value interaction
+
+Owner approved progressive disclosure for Initiative, saving throws, skills and Passive Perception:
+
+- show the final calculated value as the normal compact UI;
+- make that value interactive;
+- tapping opens a compact calculation breakdown/editor;
+- expose the exceptional numeric input as **Ajuste adicional** there;
+- show a small secondary exception indicator only when non-zero;
+- do not permanently consume row width with unexplained `±0` fields.
+
+A richer named-source modifier system is only a far-future idea and is not MVP/current roadmap/current scope.
+
+### Ability modifier prominence
+
+The automatic modifier itself is correct, but the owner wants it **slightly larger/more visually prominent** beneath/with each ability score so it does not get lost in the compact row.
+
+### Alignment / consistency review pending screenshots
+
+The owner noticed elements that appear unaligned or inconsistent across the current UI and will supply screenshots. Treat this as a real QA observation, but do not guess the exact corrective geometry before reviewing the images.
+
+### Basic calculation assistance is allowed
+
+The earlier “no character builder” boundary does **not** forbid simple deterministic calculations that reduce clerical work. The owner explicitly approves this principle and requests that `Bonificador por competencia` become calculated from character level in the next build. This is calculation assistance, not guided/legal character building.
+
+### Spellcasting quick reference — open design decision
+
+The owner no longer wants `CD de salvación de conjuros` sitting alone inside `Referencia de combate`.
+
+Two acceptable directions remain to be consciously resolved before the next build is finalized:
+
+1. remove spell save DC from `Referencia de combate`; or
+2. introduce a compact, fully manual **Quick Magic** section containing at least:
+   - spell slots;
+   - spell save DC;
+   - spellcasting ability;
+   - spell attack modifier.
+
+Quick Magic is not approved merely by recording the option. It remains an open scope/design choice while current-build QA continues.
+
+### Numeric field editing
+
+Required numeric fields must allow a **temporary empty editor state** while the user replaces a value. Do not force a minimum/fallback digit during each keystroke.
+
+Example observed by owner: changing `FUE 20` to `8` cannot be done naturally because deleting the final digit is rejected and the field retains a value, forcing awkward editing.
+
+Desired interaction:
+
+- user may clear the field while typing;
+- draft may temporarily be incomplete;
+- validate requiredness/range at save/commit (or equivalent completion boundary), not on every deletion keystroke;
+- do not silently coerce transient empty text to `1` or another numeric value.
+
+This applies as a general numeric-editor UX principle where a field is semantically required, not only to Strength.
