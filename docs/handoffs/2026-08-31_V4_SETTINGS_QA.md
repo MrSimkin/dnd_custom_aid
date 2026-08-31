@@ -7,8 +7,17 @@ This file records owner feedback from the Settings / presentation QA pass. It su
 
 ## Typography
 
-- `IBM Plex Sans Condensed`: **REJECTED by owner preference**. Remove it from the next QA build rather than carrying it as a final candidate.
+- `IBM Plex Sans Condensed`: **REJECTED by owner preference as this condensed candidate**, but the owner does **not** want the condensed-font slot removed.
+- Replace `IBM Plex Sans Condensed` in the next QA build with another condensed candidate.
+- Assistant recommendation for the replacement QA candidate: **Roboto Condensed**. It should be evaluated on-device rather than treated as automatically accepted.
 - `Manrope`, `Sora`, and `Barlow Condensed`: no rejection reported in this pass; remain viable candidates.
+
+The intended next-build font audition therefore remains four choices:
+
+1. Manrope;
+2. Sora;
+3. Barlow Condensed;
+4. Roboto Condensed — replacing IBM Plex Sans Condensed.
 
 ## Text size / responsive layout
 
@@ -34,14 +43,15 @@ Owner requests broader theme experimentation. These are **QA candidates**, not a
 3. **Azul noche** — deep navy / cool-blue dark theme, visually distinct from both default Dark and Cian oscuro.
 4. **Verde bosque** — dark muted forest-green theme, avoiding fluorescent/game-console green.
 5. **Pergamino** — warm light theme inspired by paper/parchment tones; should remain readable and restrained rather than yellowed/sepia-heavy.
-6. **Alto contraste** — accessibility-oriented theme with near-black/near-white surfaces/text and a highly visible accent; core legibility must not depend on hue alone.
+6. **Alto contraste** — accessibility-oriented high-contrast theme with near-black/near-white surfaces/text and a highly visible accent; core legibility must not depend on hue alone.
+7. **Matriz** — deliberately stylized near-black theme with vivid green text/accent language inspired by the black-and-green visual identity associated with *The Matrix*. It should remain usable as an app theme rather than reproducing decorative falling-code effects or sacrificing readability.
 
-Recommendation for next build: **retire `Gris claro` and replace it with `Gris`**, then expose the five additional themes above for device QA. Keep only the candidates the owner actually likes after testing.
+Recommendation for next build: **retire `Gris claro` and replace it with `Gris`**, then expose the additional themes above for device QA. Keep only the candidates the owner actually likes after testing.
 
 ## Next-build Settings target
 
-- Remove `IBM Plex Sans Condensed` from font candidates.
-- Preserve `Manrope`, `Sora`, `Barlow Condensed` for continued evaluation.
+- Replace `IBM Plex Sans Condensed` with **Roboto Condensed** as the second condensed-font QA candidate.
+- Preserve `Manrope`, `Sora`, and `Barlow Condensed` for continued evaluation.
 - Fix 115%/130% wrapping-row alignment without removing the larger scale options.
 - Replace `Gris claro` with neutral `Gris`.
-- Add `Cian oscuro`, `Azul noche`, `Verde bosque`, `Pergamino`, and `Alto contraste` as reversible QA candidates.
+- Add `Cian oscuro`, `Azul noche`, `Verde bosque`, `Pergamino`, `Alto contraste`, and `Matriz` as reversible QA candidates.
