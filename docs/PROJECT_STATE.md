@@ -5,7 +5,7 @@
 **Current working branch:** `implementation/character-data-foundation`  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 character data/persistence is functionally accepted on Android phone. V3 manual phone QA passed the functional/regression gate and validated the current tabs, keyboard, lifecycle-state preservation, landscape behavior and persistence. **A smaller V4 presentation-polish pass is still required before PR/merge.**
+**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 character data/persistence is functionally accepted on Android phone. V3 manual QA passed the functional/regression gate. **V4 is now a focused presentation + derived-sheet-value pass, but one consequential storage/calculation decision must be owner-approved before coding the derived-value changes.**
 
 ## 1. Canonical baseline
 
@@ -18,6 +18,7 @@ Key constraints remain:
 - no speculative auth/hosted sync/realtime infrastructure before a selected workflow needs it;
 - character data may represent mixed SRD generations, homebrew and owner-granted exceptions;
 - the application is not a guided/legal character builder or automatic rules enforcer;
+- ordinary deterministic sheet arithmetic may still be automated when its source data is present;
 - persistent character-sheet state remains separate from live combat working state;
 - manual feature acceptance uses the intended primary device first and the repeatable suite in `docs/QA_CHECKLIST.md`.
 
@@ -38,9 +39,9 @@ Owner-approved order:
 
 The entire final character-sheet/PDF/audit/sync feature set is not a prerequisite for combat. The prerequisite is a useful stable character data foundation.
 
-## 4. Character foundation — approved first-slice data
+## 4. Character foundation — current first-slice data
 
-The first character slice includes:
+The implemented first character slice currently includes:
 
 - stable UUID and explicit campaign association;
 - name and lifecycle status;
@@ -53,14 +54,22 @@ The first character slice includes:
 - initiative modifier;
 - speed;
 - proficiency bonus;
-- six final saving-throw modifiers;
+- six saving-throw modifiers;
 - passive Perception;
 - optional spell save DC;
-- all 18 standard D&D skills, each with final modifier plus descriptive proficiency/expertise state.
+- all 18 standard D&D skills with modifier plus descriptive proficiency/expertise state.
 
-Stored final values are authoritative sheet data. They are not recalculated or rejected because ordinary D&D arithmetic would produce another value. This deliberately supports gifts, homebrew and house rules.
+The earlier slice deliberately stored final modifiers so gifted/homebrew values were never rejected. **After the V3 QA clarification and SRD character-creation review, that storage rule is now under targeted reconsideration for deterministic derived values.** Do not silently migrate the schema until the owner approves the exception strategy.
 
-A future character-check/validation feature is deferred until late development after the relevant character/rules exceptions have been clarified substantially.
+Confirmed SRD/presentation direction:
+
+- ability modifiers are derived from ability scores and must be displayed automatically;
+- saving throws need proficiency state and are normally ability modifier + proficiency bonus when proficient;
+- skills are normally associated ability modifier + proficiency bonus when proficient, with expertise multiplying the proficiency contribution where applicable;
+- passive Perception is based on the Wisdom (Perception) check modifier;
+- the app still must support gifts/homebrew/house-rule exceptions without becoming a legality checker.
+
+A future broader character-check/validation feature remains deferred until late development.
 
 ## 5. Durable character implementation on the working branch
 
@@ -95,7 +104,7 @@ The first editor validated the character model, persistence and workflow, but wa
 
 This pass drove V3 requirements: six abilities in one row, compact classes/hit dice, exact class selector, skill→ability labels, two skills/attribute views, global Settings, keyboard/IME correction, lifecycle/navigation restoration and stable landscape grouping.
 
-## 7. D-0045 presentation decisions after V3 QA
+## 7. Presentation decisions after V3 QA
 
 ### Tabs
 
@@ -104,59 +113,59 @@ Accepted:
 1. **Resumen** — fast-reference overview.
 2. **Habilidades** — abilities/saves/skills relationship area.
 
-The owner confirmed both labels and the tabbed structure are understandable and preferable to the earlier continuous form.
+Future tabs are added only when relevant feature domains exist.
 
 ### Skill presentation
 
-- **Por habilidades / By skills** is the default;
-- **Por atributo / By attribute** is the alternate;
-- both structures passed V3 QA;
-- the preference remains user/device presentation state rather than character mechanics data;
-- the current dropdown works, but the next iteration should use a compact two-state segmented/slider-like selector with a visible active indicator.
+- **Por habilidades / By skills** is default;
+- **Por atributo / By attribute** is alternate;
+- preference remains user/device presentation state rather than character mechanics data;
+- next control should be a compact two-state segmented/slider-like selector with a visible active indicator.
 
 ### Class selector
 
 - exact Spanish class list from official SRD 5.2.1;
-- plus `Artífice`;
-- plus final `Otro` escape path exposing an open custom/homebrew field;
-- V3 confirmed the choices work;
-- `Artífice` should be alphabetized with the real class names rather than appended at the end;
-- `Otro` remains last.
+- plus `Artífice` alphabetized with the real classes;
+- plus final `Otro` escape path exposing custom/homebrew entry.
 
 ### Global Settings
 
 Font scale options remain **80 / 90 / 100 / 115 / 130%** with **100% default**.
 
-V3 QA found menu/layout rendering becomes visually wrong above 100%; treat this as a responsive-layout defect before changing the approved scale.
+V3 QA found menu/layout rendering becomes visually wrong above 100%; fix responsiveness rather than silently changing the approved scale.
 
-Font candidates after V3 QA:
+V4 font comparison:
 
-- **Manrope** — retained;
-- **Barlow Condensed** — retained;
-- **Atkinson Hyperlegible Next** — not accepted in its current result; owner requested another condensed replacement/alternative. Exact replacement remains unresolved.
+- **Manrope** — normal-width sans;
+- **Sora** — proposed replacement normal-width sans candidate for Atkinson;
+- **Barlow Condensed** — condensed;
+- **IBM Plex Sans Condensed** — additional condensed candidate;
+- Atkinson is removed;
+- no serif option.
 
-Theme identities remain:
-
-- System;
-- Light;
-- Dark;
-- Light Gray;
-- Dark Purple.
-
-Current palettes need revision:
-
-- Light Gray is almost indistinguishable from Light;
-- Dark Purple is too close to Dark and reads too wine/burgundy rather than clearly purple.
+Theme identities remain System, Light, Dark, Light Gray and Dark Purple. Light Gray needs visibly more gray; Dark Purple must read clearly purple rather than wine/burgundy and be distinct from Dark.
 
 ### Skill training control
 
-The V3 compact interaction type is liked and should be retained, but its abbreviated letters/state indication are not clear enough. Improve the visible state without returning to the older oversized control.
+Keep the compact interaction type, but use intuitive visual states:
 
-Changing `Competente` / `Pericia` continues to leave the manually stored final numeric modifier unchanged unless a later explicit decision says otherwise.
+- empty box = no proficiency;
+- checked box = Competente;
+- double-check style box = Pericia.
+
+### Icon controls
+
+Back, Settings/gear and similar icon-only actions must be proper icon buttons with stable touch-target/icon geometry, not typography-scaled text glyphs.
 
 ### Combat reference
 
-`Referencia de combate` is accepted as a useful group, but its **internal order is not yet accepted**. The two custom paper sheets should guide a more coherent subgroup order rather than an arbitrary wide-row sequence. Detailed comparison and a proposed order are in `docs/CHARACTER_SHEET_UX.md`.
+Approved semantic order:
+
+1. `CA` / `Iniciativa` / `Velocidad`;
+2. `PG actuales` / `PG máximos` / `PG temporales`;
+3. `Bonificador por competencia` / `Percepción pasiva` / `CD de salvación de conjuros`.
+
+Use clearer/full Spanish terminology rather than opaque abbreviations such as `Comp.` or `Perc. pas.` where practical.
 
 ## 8. Third character-editor implementation (V3)
 
@@ -193,57 +202,40 @@ GitHub Actions run **#84 / `33352541814`** passed:
 **Primary device:** Android phone.  
 **Overall:** **FUNCTIONAL PASS; PRESENTATION NEEDS CHANGES.**
 
-### Passed / accepted
+Passed/accepted:
 
 - in-place update and existing data preservation;
 - current two-tab organization;
 - overall density and grouping substantially improved;
-- all six ability scores fit compactly in one row;
-- combat-reference fields form a useful group;
-- one class entry is compact enough in principle;
-- quantity-before-die hit-dice logic is correct;
-- class selector choices are correct;
-- `Otro` custom entry works;
-- multiple class rows cause no layout issue;
-- Por habilidades structure passes;
-- Por atributo structure passes;
-- compact skill-training control type is liked;
-- rotation/start-page regression is fixed;
-- screen-off/on navigation regression is fixed;
-- keyboard no longer covers lower content;
-- landscape behavior passes;
+- six ability scores fit in one row;
+- one class entry compact enough in principle;
+- quantity-before-die logic correct;
+- class choices/custom path work;
+- multiple classes do not destabilize layout;
+- both skills presentation modes work;
+- keyboard/IME obstruction fixed;
+- rotation/screen-off state loss fixed;
+- landscape passes;
 - persistence passes.
 
-### Remaining V4 changes
+Remaining V4 presentation work is detailed in `docs/CHARACTER_SHEET_UX.md` and D-0045.
 
-- slightly reduce remaining internal class/box padding;
-- fix the hit-die `dX` selector so `d8`, `d10`, etc. never stack vertically (`d` above the number);
-- alphabetize `Artífice` with the real class names;
-- make font scales above 100% render menus/layout correctly;
-- replace/retest Atkinson with another condensed font candidate;
-- make `Gris claro` visibly more distinct from `Claro`;
-- make `Morado oscuro` clearly purple and distinct from ordinary Dark;
-- replace the Por habilidades / Por atributo dropdown with a direct segmented/slider-like two-state selector;
-- retain the compact proficiency/training control but make its letters/state clearer;
-- revise `Referencia de combate` internal ordering/grouping using the custom paper sheets;
-- clarify the owner note `no modifiers on sheet, some over abreviations` before converting it into a code change.
+## 11. SRD character-sheet context review
 
-## 11. Paper character-sheet design references
+The owner explicitly requested a quick but thorough check of PC creation context rather than treating the current fields as arbitrary form data.
 
-Stored durably in the repository:
+Official Spanish SRD 5.2.1 confirms the following relevant relationships:
 
-- `assets/character-sheets/templates/Hoja de PJ - 5.0 - Simkin.pdf`;
-- `assets/character-sheets/templates/Hoja de PJ v2 - 5.0 - Simkin.pdf`.
+- ability score → automatic ability modifier;
+- saving throw total → ability modifier + proficiency bonus when proficient;
+- skill total → associated ability modifier + proficiency bonus when proficient;
+- proficiency bonus is reused across those trained values;
+- passive Perception → 10 + Wisdom (Perception) check modifier;
+- ordinary initiative begins from Dexterity modifier;
+- spell save DC has a standard formula once spellcasting ability is known;
+- AC and HP have more contextual calculation rules and should not be casually converted into simplistic automatic fields in this presentation pass.
 
-The detailed paper-derived grouping analysis is maintained in `docs/CHARACTER_SHEET_UX.md`.
-
-For `Referencia de combate`, the paper sheets support preserving semantic subgroups rather than flattening values into a single arbitrary row. Current proposed next-pass digital grouping is:
-
-1. core reference: CA / initiative / speed;
-2. HP cluster: current / maximum / temporary HP;
-3. secondary reference: proficiency / passive Perception / spell save DC.
-
-This proposal is **not yet owner-approved as final order**.
+This review improves sheet context but does **not** authorize a guided/legal character builder.
 
 ## 12. Explicitly deferred from this first character slice
 
@@ -264,8 +256,17 @@ This proposal is **not yet owner-approved as final order**.
 
 **Do not open or merge a PR yet.**
 
-The character data/persistence foundation is functionally stable enough that the next work should be a **small V4 presentation-polish pass**, not another structural rewrite.
+Before V4 implementation, obtain owner approval for the durable representation of standard-derived saving-throw/skill values while preserving homebrew/gift exceptions.
 
-V4 should address only the remaining items in section 10 while preserving the now-passing keyboard, lifecycle/navigation, landscape and persistence behavior. After V4 is CI-green, produce another stable-signed phone APK and run focused owner QA.
+Once that is resolved, V4 is a focused pass:
 
-Once that presentation pass is accepted, proceed to character-foundation PR/review/merge. The following major product slice remains the tablet-primary DM combat tracker.
+- automatic displayed ability modifiers;
+- distinct saving-throw proficiency control;
+- remaining spacing/hit-die/class ordering fixes;
+- improved typography/theme settings and stable icon buttons;
+- segmented skills/attribute view selector;
+- empty/check/double-check skill training indicator;
+- approved combat-reference ordering and clearer labels;
+- preserve the now-passing keyboard, lifecycle/navigation, landscape and persistence behavior.
+
+After V4 is CI-green, produce another stable-signed phone APK and run focused owner QA. Once accepted, proceed to character-foundation PR/review/merge. The following major product slice remains the tablet-primary DM combat tracker.
