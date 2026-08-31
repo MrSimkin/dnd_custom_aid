@@ -102,21 +102,31 @@ internal class UiPreferencesStore(context: Context) {
 
 internal val FONT_SCALE_OPTIONS = listOf(80, 90, 100, 115, 130)
 
+private val googleFontProvider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs,
+)
+
 private fun downloadableFontFamily(name: String): FontFamily = FontFamily(
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
+        fontProvider = googleFontProvider,
         weight = FontWeight.Normal,
     ),
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
+        fontProvider = googleFontProvider,
         weight = FontWeight.Medium,
     ),
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
+        fontProvider = googleFontProvider,
         weight = FontWeight.SemiBold,
     ),
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
+        fontProvider = googleFontProvider,
         weight = FontWeight.Bold,
     ),
 )
