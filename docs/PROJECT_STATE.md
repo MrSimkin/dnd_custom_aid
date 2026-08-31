@@ -253,3 +253,18 @@ Record all owner observations in Git. Only after intended-device V4 QA is accept
 - hosted sync/auth;
 - broad character legality/checking;
 - DM combat tracker implementation itself.
+
+## 12. Pause / restart checkpoint — 2026-08-31
+
+Work was intentionally paused **before V4 manual QA began**. The owner has not yet installed/tested the V4 APK.
+
+Resume from `docs/handoffs/2026-08-31_V4_QA_PAUSE.md`, which records:
+
+- the exact CI-green V4 build/run/artifact;
+- the reminder to download/save the V4 APK before resuming if it has not already been downloaded;
+- the requirement to install over V3 without uninstalling;
+- every V4 change that still needs owner review/discussion;
+- the ordered QA restart sequence;
+- the final acceptance categories to record.
+
+At the next project session, read that checkpoint before doing new implementation work. Do not reconstruct V4 state from chat memory or skip directly to PR/merge.
