@@ -38,16 +38,32 @@ Results:
 
 This establishes the initial run #180 migration/navigation gate as **PASS**.
 
+### General + derived values + Quick Magic
+
+Owner report: `All OK`, with item 8 subsequently reaffirmed.
+
+The requested checks covered:
+1. ability scores/modifiers and class-row presentation;
+2. calculation breakdowns and `Ajuste adicional` for Initiative, proficiency bonus, a save/skill and Passive Perception;
+3. blank optional adjustment behaving as zero without suppressing totals;
+4. temporary blank required-number editing;
+5. required blank-number Save warning, Cancel behavior and confirmed save-as-zero behavior;
+6. proficiency bonus following total character level;
+7. Quick Magic spell save DC, spell attack modifier, Aptitud mágica and configured-level visibility;
+8. spell-slot pips, `Restaurar espacios`, Save/reopen persistence.
+
+Results:
+- checks 1–8: **PASS**.
+
+Owner UX observations / approved follow-up corrections:
+
+1. A derived field with a non-zero additional/custom adjustment does **not** need a second text line such as `ajuste +2`; it consumes too much vertical space. A compact marker, for example an asterisk, is sufficient to indicate that the displayed total contains an adjustment because tapping the value already exposes the full calculation and exact `Ajuste adicional`.
+2. `Velocidad` is a structured distance and must follow the already-approved measurement convention: imperial first with approximate metric in parentheses, e.g. `30 ft (9 m)`.
+
+These observations are follow-up UX refinements; they do not invalidate the PASS results for the functional General/Quick Magic batch.
+
 ## Next QA step
 
-Focused `General` + derived-value + Quick Magic batch:
-1. Confirm ability scores/modifiers and class rows look intact; modifiers are readable/prominent enough.
-2. Tap Initiative, proficiency bonus, one saving throw or skill total, and Passive Perception; confirm each opens the calculation breakdown and `Ajuste adicional` behaves correctly.
-3. Confirm a blank optional adjustment behaves as 0 and does not blank the total.
-4. Clear one required numeric field temporarily, enter a replacement value, and confirm editing works naturally.
-5. Clear one required numeric field, press Save, confirm the warning appears; Cancel should preserve the blank draft. Repeat and confirm `Guardar con 0` stores 0.
-6. Confirm proficiency bonus follows total character level; optionally change class level across a PB threshold and verify the total updates.
-7. In Quick Magic, set spell save DC, spell attack modifier and Aptitud mágica; configure at least one spell-slot level and confirm only configured levels appear.
-8. Tap spell-slot pips spent/unspent, use `Restaurar espacios`, Save, leave/reopen the PC, and confirm Quick Magic state persists.
+Proceed to focused `Combate` tab QA, then `Equipo`, then Settings/theme/font/large-text and recreation/regression checks.
 
 Do not infer PASS for any item the owner does not explicitly report.
