@@ -128,6 +128,33 @@ When presenting technical decisions to the owner, prioritize the materially rele
 
 Source decisions: D-0038, D-0039, D-0043 and repeated explicit owner instruction during Phase 2.
 
+### C-0010 — Intended-device acceptance and repeatable post-build QA
+
+**Status:** Approved  
+**Date:** 2026-08-30
+
+Manual feature acceptance should be performed first on the device/form factor for which that feature is primarily intended. A secondary form factor may receive a proportional sanity check when useful, but it does not replace testing on the intended device.
+
+After a build reaches a manual-testable state, the project should use a **defined, repeatable QA checklist/test suite** rather than inventing acceptance checks ad hoc each time. The suite should combine:
+
+- a small persistent regression core for already accepted behavior;
+- feature-specific checks for the current build/slice;
+- persistence/restart or migration checks when the build changes durable data;
+- intended-device usability checks appropriate to the feature;
+- explicit recording of pass/fail, concrete defects and non-blocking observations.
+
+The QA suite should remain proportional under C-0009: it is a practical repeatable acceptance tool, not an enterprise test-management process. As accepted features accumulate, the persistent regression core should grow only where regression would materially matter.
+
+Examples of intended-device priority:
+
+- player character-sheet workflows: phone first;
+- DM combat tracker/live DM board: tablet first;
+- DM preparation/administration workflows: desktop first.
+
+A build should not be described as manually accepted until the relevant intended-device QA suite has been executed successfully or any deviations are explicitly recorded and approved.
+
+Source: explicit owner instruction during Phase 4 character-foundation testing.
+
 ## 3. Conventions intentionally not chosen yet
 
 No convention has yet been approved for:
