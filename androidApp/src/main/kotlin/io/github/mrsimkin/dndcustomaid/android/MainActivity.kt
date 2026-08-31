@@ -106,7 +106,7 @@ private fun DndCustomAidApp(
             if (characterId == null) {
                 screen = AppScreen.CHARACTERS
             } else {
-                CharacterEditorScreen(
+                CharacterEditorScreenV2(
                     characterId = characterId,
                     repository = characterRepository,
                     onBack = {
