@@ -1,218 +1,247 @@
 # Project State
 
-**Last verified:** 2026-08-30  
+**Last verified:** 2026-08-31  
 **Canonical branch:** `main`  
 **Current working branch:** `implementation/character-data-foundation`  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 character data/persistence is functionally accepted on Android phone. V3 manual QA passed the functional/regression gate. **The V4 presentation + derived-sheet-value scope is now owner-approved and has no remaining product-decision blocker before implementation.**
+**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 character data/persistence is functionally stable. **V4 presentation + D-0046 derived-value implementation is complete and CI-green; manual owner phone QA is now the acceptance gate before PR/merge.**
 
 ## 1. Canonical baseline
 
-The approved product/architecture baseline is D-0034 through D-0043 plus the 2026-08-30 C-0009 proportionality clarifications. Phase 4 ordering and the first character-slice boundary are recorded in `docs/decisions/D-0044_PHASE4_CHARACTER_FOUNDATION_ORDER.md`.
+Current controlling decisions:
 
-Current controlling character decisions:
-
-- `docs/decisions/D-0045_CHARACTER_SHEET_PRESENTATION.md` — presentation/UX;
-- `docs/decisions/D-0046_CHARACTER_DERIVED_VALUES_AND_ADJUSTMENTS.md` — approved standard-derived values + explicit adjustment model.
+- `docs/decisions/D-0044_PHASE4_CHARACTER_FOUNDATION_ORDER.md` — Phase 4 order;
+- `docs/decisions/D-0045_CHARACTER_SHEET_PRESENTATION.md` — character-sheet presentation/UX;
+- `docs/decisions/D-0046_CHARACTER_DERIVED_VALUES_AND_ADJUSTMENTS.md` — standard-derived values + explicit adjustment model.
 
 Key constraints remain:
 
 - Android native Kotlin + Jetpack Compose, minimum API 30;
-- SQLite/SQLDelight local persistence where useful;
-- no speculative auth/hosted sync/realtime infrastructure before a selected workflow needs it;
-- character data may represent mixed SRD generations, homebrew and owner-granted exceptions;
-- the application is not a guided/legal character builder or automatic rules enforcer;
-- ordinary deterministic sheet arithmetic should be calculated when its source data is already present, with explicit adjustments preserving exceptions;
-- persistent character-sheet state remains separate from live combat working state;
-- manual feature acceptance uses the intended primary device first and the repeatable suite in `docs/QA_CHECKLIST.md`.
+- local SQLite/SQLDelight persistence;
+- user-facing UI in Spanish;
+- paper-first digital backup/reference rather than guided/legal character builder;
+- mixed SRD generations, homebrew, gifts and exceptions must remain representable;
+- deterministic arithmetic is calculated when inputs are known, while explicit adjustments preserve exceptions;
+- persistent character-sheet state remains separate from live combat state;
+- phone-first manual QA for character-sheet workflows;
+- no hosted auth/sync/realtime work before a concrete workflow requires it.
 
 ## 2. Canonical accepted state
 
 Phase 2 scaffold is canonical through PR #4 (`d50409270db52df05508f91363bf76385030a77d`).
 
-Phase 3 campaign create/select is canonical through PR #5, merged as `dc1304080f0b71bcb44690b5ee317f3877385286`. Post-merge Phase 3 CI passed and manual verification passed on both phone and tablet.
+Phase 3 campaign create/select is canonical through PR #5, merged as `dc1304080f0b71bcb44690b5ee317f3877385286`. Post-merge CI and manual phone/tablet verification passed.
 
 No Phase 4 character PR has been opened or merged yet.
 
-## 3. Phase 4 approved order
+## 3. Phase 4 order
 
 Owner-approved order:
 
 1. **Character data foundation / Android character workflow.**
-2. **DM combat tracker**, consuming stable character data/projections instead of inventing a duplicate PC model.
+2. **DM combat tracker**, consuming the stable character model/projections rather than duplicating PC data.
 
-The entire final character-sheet/PDF/audit/sync feature set is not a prerequisite for combat. The prerequisite is a useful stable character data foundation.
+The full final character-sheet/PDF/audit/sync feature set is not required before combat. A useful stable character data foundation is the prerequisite.
 
-## 4. Character foundation — approved durable direction
+## 4. Durable character model — V4 / D-0046
 
-The character slice includes:
+Stored character inputs/state include:
 
-- stable UUID and explicit campaign association;
-- name and lifecycle status;
-- last-saved/updated freshness data;
-- multiclass-aware class/level entries;
-- hit-die size and remaining hit dice per class entry;
-- STR/DEX/CON/INT/WIS/CHA scores;
-- Armor Class;
-- maximum/current/temporary HP;
+- stable UUID + campaign association;
+- name/status/freshness;
+- multiclass class/level entries;
+- hit-die size + remaining hit dice per class;
+- six ability scores;
+- AC;
+- max/current/temp HP;
 - speed;
 - proficiency bonus;
 - optional spell save DC;
-- standard skills and saving throws;
-- passive Perception;
-- initiative.
+- saving-throw proficiency + explicit adjustment per ability;
+- skill training + explicit adjustment per standard skill;
+- initiative adjustment;
+- passive-Perception-specific adjustment.
 
-### D-0046 derived-value model
+Calculated values:
 
-The owner approved **calculated standard value + optional explicit adjustment**.
+- ability modifier = floor((score − 10) / 2);
+- Initiative = Dexterity modifier + initiative adjustment;
+- saving throw = ability modifier + proficiency bonus when proficient + adjustment;
+- skill = associated ability modifier + training contribution + adjustment;
+- training contribution: none 0× PB, Competente 1× PB, Pericia 2× PB;
+- Passive Perception = 10 + final Perception skill + passive-specific adjustment.
 
-- ability modifier = derived automatically from score using floor semantics;
-- skill total = associated ability modifier + training contribution + explicit adjustment;
-- saving throw total = ability modifier + proficiency bonus when proficient + explicit adjustment;
-- saving-throw proficiency is binary and distinct from the skill three-state training model;
-- Passive Perception = `10 + final Perception total + passive-specific adjustment`;
-- Initiative = Dexterity modifier + explicit adjustment.
+AC, HP, speed, proficiency bonus and spell save DC remain explicit/manual in this slice.
 
-Skill training contribution:
+This is calculation assistance, not legality/rules enforcement.
 
-- none = 0 × proficiency bonus;
-- Competente = 1 × proficiency bonus;
-- Pericia = 2 × proficiency bonus.
+## 5. V3 → V4 migration
 
-Proficiency bonus, AC, HP, speed and spell save DC remain explicit/manual in this slice.
+Migration `shared/src/commonMain/sqldelight/io/github/mrsimkin/dndcustomaid/shared/db/2.sqm` converts existing V3 final totals to D-0046 adjustments while preserving displayed values wherever the old data permits:
 
-This is calculation assistance, **not rules enforcement**. Adjustments preserve arbitrary gift/homebrew/house-rule totals.
+- initiative total preserved exactly;
+- skill totals preserved exactly using stored V3 training state;
+- Passive Perception preserved exactly;
+- saving-throw totals preserved exactly.
 
-### V3 migration rule
+V3 never stored saving-throw proficiency metadata. Migration therefore initializes save proficiency to false and encodes the previous displayed total in the adjustment. It deliberately does **not** infer proficiency from class or arithmetic.
 
-Migration should preserve old displayed totals wherever possible:
+Legacy V3 final-total SQLite columns remain only as migration scaffolding where needed; the shared domain contract treats inputs/proficiency/training/adjustments as authoritative rather than maintaining competing final totals.
 
-- skill adjustment = old skill final total − newly calculated standard;
-- initiative adjustment = old initiative total − Dexterity modifier;
-- passive adjustment = old passive total − (`10 + migrated final Perception total`).
+## 6. V4 Android editor
 
-V3 did not store saving-throw proficiency. Therefore V4 must not guess it. Existing saves migrate with proficiency `false` plus an adjustment that preserves the old displayed total. Players can mark the appropriate save proficiencies after migration.
+Current Android route uses `CharacterEditorScreenV4`.
 
-## 5. Durable character implementation currently on the working branch
+### Navigation and tabs
 
-The branch currently contains the V3 model/UI, including:
+- `Resumen` and `Habilidades` remain the approved current tabs;
+- root/campaign/character selection, selected tab and unsaved draft remain saveable across ordinary Android recreation;
+- V3 keyboard/IME accessibility behavior is retained.
 
-- `CharacterSheet`, `CharacterClassLevel`, `CharacterSkill`, lifecycle/status and skill enums in shared Kotlin;
-- SQLDelight `character`, `character_class` and `character_skill` tables;
-- migration `1.sqm` from Phase 3 campaign-only storage;
-- `CharacterRepository` create/list/read/save behavior;
-- persistence tests for 18 skills, campaign isolation, multiclass hit dice, reopen, permissive values and migration;
-- Android campaign → character list → character editor workflow;
-- stable CI-only debug signing;
-- `docs/QA_CHECKLIST.md`;
-- `docs/CHARACTER_SHEET_UX.md`;
-- D-0045 and D-0046;
-- both owner paper-sheet PDFs under `assets/character-sheets/templates/`.
+### Classes / hit dice
 
-The stable signing material is public/debug-only test material and must never be reused as a production/release signing key.
+- `Artífice` is alphabetized with the SRD class names;
+- `Otro` remains last and opens custom/homebrew entry;
+- class/row padding is reduced;
+- common hit-die choices remain d4/d6/d8/d10/d12 + custom;
+- the die selector is widened and `d8`, `d10`, etc. are forced to remain on one line.
 
-## 6. QA history
+### Ability / derived mechanics
 
-### First phone QA
+- all six ability scores remain in one compact row;
+- automatic ability modifiers are displayed beside/below scores;
+- Initiative, skills, saving throws and Passive Perception use D-0046 calculations;
+- compact signed adjustment fields provide the exception/homebrew escape path;
+- saving throws use their own binary proficiency control;
+- skill training retains one fixed-footprint control with empty / one-check / double-check vector states for none / Competente / Pericia.
 
-**FUNCTIONAL QA PASS; UX NOT ACCEPTED.**
+### Skill organization
 
-### Second phone QA — build `113fe27c42e15ff0950d53e854796f26de6671b4`
-
-**NEEDS CHANGES; persistence pass.**
-
-### Third phone QA — V3 / `f728acd7ec10f4fae2df093ec8b16db4c8d2ba90`
-
-**FUNCTIONAL PASS; PRESENTATION NEEDS A SMALL FOLLOW-UP.**
-
-V3 passed:
-
-- in-place update/data preservation;
-- tabs and general density;
-- six abilities in one row;
-- class/custom-class workflow;
-- keyboard/IME access;
-- rotation and screen-off/on state preservation;
-- landscape;
-- persistence;
-- both `Por habilidades` and `Por atributo` presentation concepts.
-
-## 7. Presentation decisions after V3 QA
-
-### Tabs
-
-Accepted:
-
-1. `Resumen`;
-2. `Habilidades`.
-
-Future tabs are added only when their feature domains exist.
-
-### Skills/attribute view
-
-- `Por habilidades` default;
-- `Por atributo` alternate;
-- user/device presentation preference;
-- V4 replaces the dropdown with a compact two-state segmented/slider-like control with a clear active state.
-
-### Class selector
-
-- exact Spanish SRD 5.2.1 classes;
-- `Artífice` alphabetized with real classes;
-- `Otro` last as custom/homebrew escape.
-
-### Global Settings
-
-Font scales remain **80 / 90 / 100 / 115 / 130%**, default **100%**. V4 must make >100% menu/layout behavior visually sound.
-
-V4 font QA set:
-
-- **Manrope** — sans;
-- **Sora** — sans;
-- **Barlow Condensed** — condensed;
-- **IBM Plex Sans Condensed** — condensed;
-- Atkinson removed;
-- no serif option.
-
-Themes remain System, Light, Dark, Light Gray and Dark Purple. Light Gray must become visibly gray; Dark Purple must read clearly purple and remain distinct from Dark.
-
-### Skill training control
-
-Keep the compact interaction, but use a **single fixed-footprint** state indicator:
-
-- empty = none;
-- single check = Competente;
-- double check = Pericia.
-
-Do not allocate two boxes/twice the width for Pericia. Vector icons are acceptable/preferred if clearer.
-
-### Icon controls
-
-Back, Settings/gear and similar icon actions must use proper stable icon buttons/vector icons rather than typography-scaled text glyphs.
+- `Por habilidades` remains default;
+- `Por atributo` remains alternate;
+- preference remains device/user presentation state, not character data;
+- V4 replaces the dropdown with a direct two-state segmented selector with visible active state.
 
 ### Combat reference
 
-Approved semantic order:
+Approved semantic order is implemented:
 
-1. `CA` / `Iniciativa` / `Velocidad`;
-2. `PG actuales` / `PG máximos` / `PG temporales`;
-3. `Bonificador por competencia` / `Percepción pasiva` / `CD de salvación de conjuros`.
+1. CA / Iniciativa / Velocidad;
+2. PG actuales / PG máximos / PG temporales;
+3. Bonificador por competencia / Percepción pasiva / CD de salvación de conjuros.
 
-Abbreviation is allowed when density requires it, but abbreviations must remain recognizable. `CA` and `PG` are good conventional examples; opaque labels such as V3 `Comp.` / `Perc. pas.` should be avoided.
+Portrait and landscape may use different geometry, but subgroup identity/order remain stable. Labels may abbreviate for density but should remain recognizable.
 
-## 8. V3 automated verification
+### Icon actions
 
-GitHub Actions run **#84 / `33352541814`** passed on `f728acd7ec10f4fae2df093ec8b16db4c8d2ba90`:
+Back and Settings/gear use stable Canvas/vector icon buttons rather than typography-scaled glyph text.
 
-- backend checks: success;
-- shared Kotlin tests/build: success;
-- Android debug assembly/APK upload: success;
-- Desktop build: success.
+## 7. V4 Settings
 
-## 9. Explicitly deferred from this first character slice
+Text-size choices remain:
 
-- spell lists and spell slots;
+- 80%;
+- 90%;
+- 100% default;
+- 115%;
+- 130%.
+
+V4 changes the settings selectors to a more vertically responsive layout for larger text scales.
+
+Font QA set:
+
+- Manrope — sans;
+- Sora — sans;
+- Barlow Condensed — condensed;
+- IBM Plex Sans Condensed — condensed.
+
+Atkinson Hyperlegible Next is removed. There is no serif option.
+
+Theme identities remain:
+
+- Sistema;
+- Claro;
+- Oscuro;
+- Gris claro;
+- Morado oscuro.
+
+V4 makes Gris claro visibly grayer and Morado oscuro more clearly purple/distinct from ordinary Dark. Final palette acceptance remains manual QA.
+
+## 8. Automated verification
+
+Verified V4 code head:
+
+`3c21cf649b31687180b73a8d314ca56eb937d147` — `Remove obsolete V3 character editor`.
+
+GitHub Actions **run #107 / `33358486525`** passed on that head:
+
+- backend dependency install/type check: **success**;
+- shared Kotlin tests including D-0046 arithmetic/migration tests: **success**;
+- Android debug build: **success**;
+- Desktop build: **success**;
+- stable-signed Android debug APK upload: **success**.
+
+The code run also verifies:
+
+- floor-correct negative ability modifiers;
+- derived skill/save/initiative/passive calculations with arbitrary adjustments;
+- persistence/reopen of saving-throw proficiency and adjustments;
+- Phase 3 → current migration;
+- explicit V3 → V4 migration preserving legacy displayed totals and not inventing save proficiency.
+
+Documentation-only commits made after this code run do not change the APK under test.
+
+## 9. QA history
+
+### V1 phone QA
+
+**FUNCTIONAL QA PASS; UX NOT ACCEPTED.**
+
+### V2 phone QA — `113fe27c42e15ff0950d53e854796f26de6671b4`
+
+**NEEDS CHANGES; persistence pass.**
+
+### V3 phone QA — `f728acd7ec10f4fae2df093ec8b16db4c8d2ba90`
+
+**FUNCTIONAL PASS; PRESENTATION NEEDS A SMALL FOLLOW-UP.**
+
+V3 established passing behavior for:
+
+- in-place update/data preservation;
+- two-tab organization;
+- keyboard/IME access;
+- rotation + screen-off/on state preservation;
+- landscape;
+- persistence;
+- both skill presentation concepts.
+
+V4 must preserve those successes while validating the new presentation and derived-value model.
+
+## 10. Current manual acceptance gate
+
+**Do not open or merge a PR yet.**
+
+Immediate next action: install the stable-signed V4 APK from run #107 over the V3 build and execute the V4 phone-first suite in `docs/QA_CHECKLIST.md`, emphasizing:
+
+- V3 data migration preserving displayed totals;
+- expected unchecked save proficiency after migration;
+- automatic ability modifiers;
+- derived initiative/save/skill/passive arithmetic + explicit adjustments;
+- compact save and skill proficiency controls;
+- class/hit-die polish;
+- segmented skill-view selector;
+- four V4 fonts and five text scales;
+- revised Light Gray / Dark Purple palettes;
+- stable vector Back/Settings controls;
+- approved combat-reference order/label clarity;
+- keyboard, recreation/state, landscape and persistence regressions.
+
+Record all owner observations in Git. Only after intended-device V4 QA is accepted should the character branch proceed to PR/review/merge.
+
+## 11. Explicitly deferred
+
+- spell lists/slots;
 - inventory/equipment/currencies;
 - attacks/actions;
 - features/traits;
@@ -221,33 +250,6 @@ GitHub Actions run **#84 / `33352541814`** passed on `f728acd7ec10f4fae2df093ec8
 - PDF export;
 - grouped audit-history implementation;
 - ownership/control/accounts UI;
-- hosted synchronization/auth;
-- broad automatic legality/rules enforcement or character checking;
-- combat tracker implementation itself.
-
-## 10. Current acceptance gate / immediate next action
-
-**Do not open or merge a PR yet.**
-
-There is **no remaining owner product-decision blocker before V4 implementation**.
-
-V4 should:
-
-- migrate the V3 durable model to D-0046 inputs/proficiency/adjustments while preserving displayed totals where possible;
-- show automatic ability modifiers;
-- add distinct binary saving-throw proficiency controls;
-- calculate skills, saves, Passive Perception and Initiative under D-0046;
-- keep explicit adjustment escape paths compact;
-- slightly reduce remaining class/box padding;
-- prevent `d8`, `d10`, etc. wrapping;
-- alphabetize `Artífice` and keep `Otro` last;
-- make 115%/130% layouts and menus responsive;
-- test the four approved V4 font candidates;
-- correct Light Gray and Dark Purple palettes;
-- implement the segmented skills/attribute view selector;
-- implement fixed-footprint empty/check/double-check skill training indicators;
-- replace text-glyph Back/Settings with stable icon buttons;
-- apply approved combat-reference order and responsive recognizable labels;
-- preserve V3 keyboard, lifecycle/navigation, landscape and persistence successes.
-
-After V4 is CI-green, produce another stable-signed phone APK and run focused owner QA. Once accepted, proceed to character-foundation PR/review/merge. The following major product slice remains the tablet-primary DM combat tracker.
+- hosted sync/auth;
+- broad character legality/checking;
+- DM combat tracker implementation itself.
