@@ -2,10 +2,10 @@
 
 **Last verified:** 2026-08-30  
 **Canonical branch:** `main`  
-**Current working branch:** none; next Phase 4 feature branch not yet selected  
+**Current working branch:** none; character-foundation scope is being defined before implementation  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 is complete and canonical on `main` after PR #5. Post-merge CI is green. The first Phase 4 slice now requires owner prioritization.
+**Status:** Phase 3 is complete and canonical on `main` after PR #5. Post-merge CI is green. The owner selected the initial Phase 4 order: character data foundation first, then DM combat tracker.
 
 ## 1. Canonical baseline
 
@@ -86,8 +86,6 @@ Manual Android verification on 2026-08-30 passed on both a phone and tablet:
 - tablet presentation was acceptable;
 - landscape worked but underused horizontal space.
 
-Documentation-only Phase 4 transition commits made after `dc130408...` also trigger CI but do not change application behavior.
-
 ## 4. Known non-blocking follow-up
 
 - Increase information density / reduce unnecessary dead space where appropriate.
@@ -110,12 +108,27 @@ Documentation-only Phase 4 transition commits made after `dc130408...` also trig
 
 Do not infer implementation merely from approved architecture.
 
-## 6. Phase 4 status
+## 6. Phase 4 approved order
 
-Phase 3's exit criterion has been satisfied, so Phase 4 — MVP Buildout is now current.
+The owner approved this initial Phase 4 sequence on 2026-08-30:
 
-The roadmap deliberately does not prescribe a fixed feature order. Selecting the first Phase 4 slice is a meaningful product-priority decision for the owner. Once selected, create a focused branch from current `main`, define the smallest complete testable workflow, and add only the infrastructure that workflow actually requires.
+1. **Character data foundation / Android character-sheet workflow.**
+2. **DM combat tracker**, after enough stable reusable character data exists to feed quick views and combat participant snapshots.
+
+This does not mean every character-sheet feature must be complete before combat starts. The intended dependency is a stable character-data foundation, not the entire final sheet/PDF/audit/sync system.
+
+Existing product decisions constrain the character foundation:
+
+- each character belongs to exactly one campaign;
+- character identity is stable and globally unique;
+- PC-style records may exist without an assigned player account;
+- ownership and current control are separate relationships from character existence;
+- the durable digital character is a complete backup/reference state, not a guided/legal character builder;
+- mixed SRD generations and homebrew must be representable rather than rejected;
+- useful freshness/last-updated information is required;
+- mechanical edits eventually require grouped compensating audit history;
+- live combat state remains separate from durable character-sheet state.
 
 ## 7. Immediate next action
 
-Present the owner with realistic first-Phase-4 slice options and a recommendation. Do not silently choose a major product priority or activate hosted/auth infrastructure before that selection is approved.
+Define and obtain owner approval for the first character-foundation slice boundary and its durable data shape before creating the implementation branch. Favor a small set of real structured character data that can grow additively toward the complete sheet and feed later DM quick views/combat, without prematurely implementing PDF export, hosted sync/auth, the full audit subsystem or a guided character builder.
