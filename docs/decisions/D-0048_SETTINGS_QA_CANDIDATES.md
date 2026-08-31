@@ -8,7 +8,7 @@
 
 V4 run #107 Settings QA clarified three presentation points:
 
-- IBM Plex Sans Condensed is not liked by the owner;
+- IBM Plex Sans Condensed is not liked by the owner, but the owner wants it **replaced by another condensed candidate rather than eliminating the second condensed-font slot**;
 - text scaling at 115%/130% is broadly acceptable, but rows become misaligned when only one label wraps to two lines;
 - the revised `Gris claro` theme still fails its intended identity and now reads somewhat green on the intended phone.
 
@@ -18,10 +18,18 @@ The owner requested a broader theme experiment rather than repeatedly tuning onl
 
 For the next QA build:
 
-- remove **IBM Plex Sans Condensed** from the candidate list;
+- replace **IBM Plex Sans Condensed** with another condensed font candidate;
+- use **Roboto Condensed** as the recommended replacement candidate for the next on-device audition;
 - retain **Manrope**, **Sora**, and **Barlow Condensed** for continued evaluation.
 
-This is a presentation preference decision, not a technical limitation on IBM Plex.
+The next QA set therefore remains two normal-width sans choices and two condensed choices:
+
+1. Manrope;
+2. Sora;
+3. Barlow Condensed;
+4. Roboto Condensed.
+
+Roboto Condensed is a **QA candidate, not pre-approved final typography**. This is a presentation preference decision, not a technical limitation on IBM Plex.
 
 ## Text-scale decision
 
@@ -45,7 +53,8 @@ The next build should additionally expose these themes for owner evaluation:
 - **Azul noche** — deep navy/cool blue;
 - **Verde bosque** — muted dark forest green;
 - **Pergamino** — restrained warm light/paper theme;
-- **Alto contraste** — accessibility-oriented high-contrast theme whose readability does not depend on hue alone.
+- **Alto contraste** — accessibility-oriented high-contrast theme whose readability does not depend on hue alone;
+- **Matriz** — near-black surfaces with vivid green text/accent language, inspired by the recognizable black-and-green *Matrix* aesthetic while remaining readable and avoiding decorative effects that interfere with use.
 
 These are **QA candidates, not a commitment to retain every theme permanently**. The next phone pass should prune candidates that are redundant, unattractive, or visually unstable.
 
