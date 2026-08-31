@@ -69,7 +69,31 @@ The Phase 3 exit criterion was satisfied: a real approved campaign create/select
 
 **Goal:** implement remaining approved MVP scope incrementally.
 
-**Status:** **Current.** The first Phase 4 feature slice has not yet been selected. Feature ordering is an owner product-priority decision.
+**Status:** **Current.** The owner approved the initial Phase 4 sequence on 2026-08-30:
+
+1. **Android character data foundation / character-sheet workflow**;
+2. **DM combat tracker**, built after the reusable character data needed by the tracker exists.
+
+This ordering does **not** require finishing every character-sheet feature before combat begins. The character work should first establish a stable durable character model and useful Android create/view/edit workflow that later quick views and combat projections can consume. Combat remains a separate live working-state domain under D-0025/D-0026 and must not be implemented as direct mutation of durable character-sheet state.
+
+### Phase 4 Slice 1 — Character data foundation
+
+Before implementation, define the smallest durable character model that:
+
+- belongs explicitly to one campaign;
+- has stable globally unique identity;
+- supports unassigned PC-style records;
+- keeps ownership/control outside the character's existence;
+- can grow toward the complete durable digital backup required by D-0020 without becoming a guided/legal character builder;
+- provides real structured values later usable by DM quick views and combat participant snapshots;
+- keeps character state distinct from live combat working state;
+- avoids prematurely implementing PDF export, hosted synchronization, membership/roles or the complete audit subsystem unless the selected slice concretely needs them.
+
+The first implementation slice should be complete and testable rather than a collection of half-finished sheet tabs.
+
+### Phase 4 Slice 2 — Combat tracker
+
+After the character foundation establishes the relevant reusable data, begin the DM tablet combat tracker as a separate live-state workflow. The tracker should consume selected character data/projections rather than require the full character-sheet subsystem to be finished first.
 
 Prefer complete testable slices over many half-finished screens. Introduce hosted sync/auth/provider integrations only when the corresponding slice needs them. Preserve C-0009 proportionality and avoid building infrastructure ahead of an actual selected workflow.
 
