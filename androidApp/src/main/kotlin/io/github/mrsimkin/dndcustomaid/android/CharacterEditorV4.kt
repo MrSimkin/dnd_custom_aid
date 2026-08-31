@@ -471,7 +471,7 @@ private fun ClassRowV4(
                 .fillMaxWidth()
                 .padding(horizontal = 3.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(3.dp),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.Top,
         ) {
             ClassSelectorV4(
                 draft = draft,
@@ -494,8 +494,9 @@ private fun ClassRowV4(
                 value = draft.hitDieSides,
                 onValueChange = { onChange(draft.copy(hitDieSides = it)) },
             )
-            TextButton(onClick = onRemove, modifier = Modifier.width(34.dp)) {
-                Text("×", maxLines = 1)
+            Column {
+                CompactFieldLabelV4("")
+                CompactMenuSurfaceV4("×", onRemove, Modifier.width(34.dp))
             }
         }
     }
@@ -513,7 +514,7 @@ private fun ClassSelectorV4(
     }
 
     Column(modifier = modifier) {
-        Text("Clase", style = MaterialTheme.typography.labelSmall)
+        CompactFieldLabelV4("Clase")
         if (customMode) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -525,23 +526,22 @@ private fun ClassSelectorV4(
                     onValueChange = { onChange(draft.copy(name = it)) },
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(
+                CompactMenuSurfaceV4(
+                    text = "▾",
                     onClick = {
                         customMode = false
                         expanded = true
                     },
-                    modifier = Modifier.width(32.dp),
-                ) { Text("▾") }
+                    modifier = Modifier.width(30.dp),
+                )
             }
         } else {
             Box {
-                OutlinedButton(
+                CompactMenuSurfaceV4(
+                    text = draft.name.ifBlank { "Elegir" },
                     onClick = { expanded = true },
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                ) {
-                    Text(draft.name.ifBlank { "Elegir" }, maxLines = 1)
-                }
+                )
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     classNamesV4.forEach { className ->
                         DropdownMenuItem(
@@ -577,34 +577,35 @@ private fun HitDieSelectorV4(
     var expanded by remember { mutableStateOf(false) }
     var customMode by remember(value) { mutableStateOf(value.isNotBlank() && value !in commonDice) }
 
-    Column(modifier = Modifier.width(66.dp)) {
-        Text("Tipo", style = MaterialTheme.typography.labelSmall)
+    Column(modifier = Modifier.width(78.dp)) {
+        CompactFieldLabelV4("Tipo")
         if (customMode) {
-            CompactIntInputV4(
-                value = value,
-                onValueChange = onValueChange,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-            )
-            TextButton(
-                onClick = {
-                    customMode = false
-                    expanded = true
-                },
-                contentPadding = PaddingValues(horizontal = 2.dp),
-            ) { Text("Lista", maxLines = 1) }
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CompactIntInputV4(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.weight(1f),
+                )
+                CompactMenuSurfaceV4(
+                    text = "▾",
+                    onClick = {
+                        customMode = false
+                        expanded = true
+                    },
+                    modifier = Modifier.width(28.dp),
+                )
+            }
         } else {
             Box {
-                OutlinedButton(
+                CompactMenuSurfaceV4(
+                    text = if (value.isBlank()) "d?" else "d$value",
                     onClick = { expanded = true },
                     modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                ) {
-                    Text(
-                        if (value.isBlank()) "d?" else "d$value",
-                        maxLines = 1,
-                        softWrap = false,
-                    )
-                }
+                )
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     commonDice.forEach { sides ->
                         DropdownMenuItem(
@@ -661,7 +662,7 @@ private fun AbilitiesRowV4(
                 )
                 Text(
                     draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                 )
             }
@@ -772,6 +773,7 @@ private fun TripleExplicitFieldsV4(
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.Top,
     ) {
         CompactIntFieldV4(firstLabel, firstValue, onFirst, Modifier.weight(1f), signed = true)
         CompactIntFieldV4(secondLabel, secondValue, onSecond, Modifier.weight(1f))
@@ -825,7 +827,7 @@ private fun QuickMagicCardV4(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.Top,
         ) {
             CompactIntFieldV4(
                 label = "CD conjuros",
@@ -949,15 +951,13 @@ private fun SpellcastingAbilitySelectorV4(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column(modifier = modifier) {
-        Text("Aptitud mágica", style = MaterialTheme.typography.labelSmall, maxLines = 2)
+        CompactFieldLabelV4("Aptitud mágica")
         Box {
-            OutlinedButton(
+            CompactMenuSurfaceV4(
+                text = spellcastingAbilityLabelV4(ability),
                 onClick = { expanded = true },
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-            ) {
-                Text(spellcastingAbilityLabelV4(ability), maxLines = 1)
-            }
+            )
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 SpellcastingAbility.entries.forEach { option ->
                     DropdownMenuItem(
@@ -1024,7 +1024,7 @@ private fun DerivedValueCellV4(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
+        CompactFieldLabelV4(label)
         DerivedTotalControlV4(
             total = total,
             adjustment = adjustment,
@@ -1450,7 +1450,7 @@ private fun AbilityGroupsCardV4(
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
 ) {
     SectionCardV4("Características, salvaciones y habilidades") {
-        val columns = if (wide) 3 else 2
+        val columns = if (wide) 3 else 1
         CharacterAbility.entries.chunked(columns).forEach { rowAbilities ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1491,7 +1491,7 @@ private fun AbilityGroupV4(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
-                verticalAlignment = Alignment.Bottom,
+                verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelMedium)
@@ -1502,7 +1502,7 @@ private fun AbilityGroupV4(
                     )
                     Text(
                         "Mod. ${draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—"}",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 SaveRowV4(
@@ -1552,7 +1552,7 @@ private fun CompactIntFieldV4(
     allowBlank: Boolean = true,
 ) {
     Column(modifier = modifier) {
-        Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
+        CompactFieldLabelV4(label)
         CompactIntInputV4(
             value = value,
             onValueChange = onValueChange,
