@@ -40,7 +40,7 @@ This establishes the initial run #180 migration/navigation gate as **PASS**.
 
 ### General + derived values + Quick Magic
 
-Owner report: `All OK`, with item 8 subsequently reaffirmed.
+Owner report: `All OK`.
 
 The requested checks covered:
 1. ability scores/modifiers and class-row presentation;
@@ -53,7 +53,9 @@ The requested checks covered:
 8. spell-slot pips, `Restaurar espacios`, Save/reopen persistence.
 
 Results:
-- checks 1–8: **PASS**.
+- checks 1–8: **PASS**, based solely on the owner's earlier `All OK` response.
+
+Clarification: a later standalone message `8` was accidental (the owner's phone fell on the keyboard) and carries no QA meaning. It must not be interpreted as a separate confirmation or observation.
 
 Owner UX observations / approved follow-up corrections:
 
