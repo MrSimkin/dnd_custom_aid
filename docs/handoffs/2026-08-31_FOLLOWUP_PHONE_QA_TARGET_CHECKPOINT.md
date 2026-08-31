@@ -40,7 +40,9 @@ Artifact:
 
 - name: `dnd-custom-aid-debug-apk`;
 - artifact ID: `9774615456`;
-- ZIP digest: `sha256:0b8d899428eb6ba02e1b350b753a3312d11f76ea83aed115b96f09d7c9f32bf6`.
+- ZIP SHA-256: `0b8d899428eb6ba02e1b350b753a3312d11f76ea83aed115b96f09d7c9f32bf6`;
+- extracted APK SHA-256: `8c13056e3b8deda3b9679621d0d5a128e24b3d6d616fec303e68dad31fd22430`;
+- extracted APK file name: `androidApp-debug.apk`.
 
 ## One known cosmetic cleanup
 
