@@ -13,6 +13,7 @@ Repository references:
 - `assets/character-sheets/templates/Hoja de PJ - 5.0 - Simkin.pdf`
 - `assets/character-sheets/templates/Hoja de PJ v2 - 5.0 - Simkin.pdf`
 - `docs/CHARACTER_SHEET_UX.md`
+- `docs/decisions/D-0046_CHARACTER_DERIVED_VALUES_AND_ADJUSTMENTS.md`
 
 The PDFs are design inspiration and presentation references; they are not instructions to reproduce a paper page literally on Android.
 
@@ -74,15 +75,15 @@ The approved default remains **100%**.
 
 V3 QA found that UI menus/layout begin to look wrong above 100%. This is an implementation/responsiveness defect to correct before changing the approved scale itself; if the larger steps cannot be made visually sound, the owner should review revised steps rather than silently changing them.
 
-Typography direction after V3 clarification:
+Typography direction for V4:
 
-- **Manrope** — retained normal-width sans candidate;
-- **Barlow Condensed** — retained condensed candidate;
-- **IBM Plex Sans Condensed** — approved as an additional condensed candidate for the next QA pass;
-- **Atkinson Hyperlegible Next** — removed from the candidate set;
-- a second normal-width sans must replace Atkinson. **Sora** is the current proposed V4 candidate and should be tested before being treated as final.
+- **Manrope** — normal-width sans;
+- **Sora** — second normal-width sans candidate replacing Atkinson for V4 QA;
+- **Barlow Condensed** — condensed sans;
+- **IBM Plex Sans Condensed** — second condensed sans candidate;
+- **Atkinson Hyperlegible Next** — removed.
 
-The intended V4 test set therefore has two normal-width sans choices and two condensed choices. There is still **no serif option** unless the owner later requests one.
+The V4 test set therefore has exactly **two normal-width sans choices and two condensed choices**. These remain reversible QA candidates rather than irreversible branding decisions. There is **no serif option** unless the owner later requests one.
 
 Theme choices remain:
 
@@ -113,13 +114,12 @@ A subsequent owner clarification requested a quick but thorough character-creati
 - a proficient skill is its associated ability modifier plus the proficiency bonus;
 - Percepción pasiva is based on the Wisdom (Perception) check modifier.
 
-Consequences already approved at presentation level:
+Consequences now approved:
 
-- ability **modifiers must be visible and automatically derived from their ability scores** rather than entered as independent fields;
-- saving throws need a proficiency control as well as their displayed total;
-- the saving-throw proficiency control **must not simply reuse the skill training control**, because skills have a three-state none/proficient/expertise concept while ordinary saving-throw proficiency is a distinct binary concept.
-
-A broader storage/calculation decision for saving throws, skill totals and other derived values is consequential to the durable model and remains pending explicit owner approval before implementation.
+- ability **modifiers must be visible and automatically derived from their ability scores** rather than entered as independent values;
+- saving throws need a proficiency control as well as their displayed calculated total;
+- the saving-throw proficiency control **must not simply reuse the skill training control**, because skills have a three-state none/proficient/expertise concept while ordinary saving-throw proficiency is binary;
+- the durable calculated-value/adjustment model is approved separately in D-0046.
 
 ### 6. Initial tab structure
 
@@ -138,15 +138,15 @@ A compact persistent editor header keeps navigation/character identity/save/sett
 
 V3 QA confirmed that the compact skill training/proficiency control **type is liked and should be retained**. Its current abbreviated letters are not sufficiently intuitive.
 
-Approved next visual treatment:
+Approved semantic states:
 
-- no proficiency: **empty box**;
-- proficiency / `Competente`: **checked box**;
-- expertise / `Pericia`: **double-check style box/indicator**.
+- no proficiency: **empty** indicator;
+- proficiency / `Competente`: **single check** indicator;
+- expertise / `Pericia`: **double-check** indicator.
 
-The expanded selector/menu may still spell out the full Spanish states. The compact state should communicate through the indicator rather than cryptic letters.
+This does **not** require two separate boxes or double-width UI for Pericia. Space is limited. Prefer one compact fixed-footprint control; vector icons/graphics are explicitly acceptable and may be preferable to text or literal checkbox glyphs. The expanded selector/menu may still spell out the full Spanish states.
 
-Whether the stored final numeric skill modifier should remain independent or become a derived standard value plus an exception mechanism is now part of the pending SRD-derived data-model decision; do not silently choose either behavior.
+Skill totals and explicit adjustments follow D-0046.
 
 ### 8. Icon controls must not scale as text glyphs
 
@@ -154,12 +154,12 @@ V3 exposed that some controls such as Back and Settings are currently text glyph
 
 Approved direction:
 
-- navigation/action affordances such as Back and Settings should use proper icon-button controls with stable touch-target/icon sizing;
-- they should not be implemented as ordinary font text whose geometry changes with the application text-size preference.
+- navigation/action affordances such as Back and Settings should use proper stable icon-button controls;
+- vector icons are explicitly acceptable/preferred where appropriate;
+- icon/touch-target geometry must not scale as ordinary body text when the user changes application text size;
+- the same principle applies to similar icon-only controls added later.
 
-The same principle applies to similar icon-only controls added later.
-
-### 9. Combat-reference grouping and order
+### 9. Combat-reference grouping, order and labels
 
 `Referencia de combate` is accepted as a useful semantic group.
 
@@ -171,31 +171,40 @@ The owner **approved** the following digital subgroup order after comparison wit
 
 Portrait and landscape may use different geometry, but these semantic subgroups and their internal order should remain stable rather than flattening fields into an arbitrary wide row.
 
-The wording should avoid opaque abbreviations. Conventional, highly recognizable D&D abbreviations such as `CA` and `PG` may remain where useful, but labels such as `Comp.` and `Perc. pas.` should be replaced with clearer/full Spanish wording when space permits. Use SRD terminology as the naming reference.
+Label policy:
+
+- use the clear SRD terminology as the semantic source;
+- **abbreviation is allowed and encouraged when necessary for a compact sheet**;
+- do not force full labels when they damage density or responsive layout;
+- prefer conventional/recognizable abbreviations (`CA`, `PG`, etc.);
+- avoid abbreviations so shortened that their meaning becomes obscure, such as the V3 `Comp.` / `Perc. pas.` problem;
+- exact abbreviated forms may adapt by width/font scale as an implementation-level responsive choice as long as meaning remains reasonably recognizable.
 
 ## Still unresolved
 
 The following remain intentionally open unless separately approved:
 
-- the durable calculation/storage model for saving throws, skill totals and related standard-derived values after the SRD review;
-- the final normal-width sans replacement for Atkinson (Sora is the proposed V4 test candidate);
-- exact visual styling beyond the grouping/density directions already recorded by QA.
+- exact visual styling beyond the grouping/density directions already recorded by QA;
+- final long-term font families after V4 owner QA (the V4 four-font set is a test set).
+
+The durable derived-value model is **no longer unresolved**; it is approved in D-0046.
 
 ## Consequence for the next Android QA build
 
-Before V4 implementation, resolve the consequential derived-value model question. Once approved, the next focused presentation pass should preserve the V3 functional successes while:
+V4 should preserve the V3 functional successes while:
 
+- implementing D-0046 calculated standard values + explicit adjustments and safe V3 migration;
 - reducing remaining unnecessary class/box internal padding;
 - fixing the narrow `dX` hit-die control so `d8`, `d10`, etc. never stack vertically;
 - alphabetizing Artífice with the class names while keeping `Otro` last;
 - correcting menu/layout behavior at font scales above 100%;
-- removing Atkinson, adding IBM Plex Sans Condensed, and testing Sora as the replacement normal-width sans alongside Manrope and Barlow Condensed;
+- removing Atkinson and testing Manrope, Sora, Barlow Condensed and IBM Plex Sans Condensed;
 - increasing visual distinction between Light and Light Gray;
 - making Dark Purple clearly purple and distinct from Dark;
 - replacing the By skills / By attribute dropdown with a compact two-state control with an active indicator;
-- retaining the liked compact skill-training interaction while using empty/check/double-check visual states;
+- retaining the liked compact skill-training interaction while using one fixed-footprint empty/check/double-check indicator, preferably vector-based if clearer;
 - replacing text-glyph Back/Settings affordances with stable icon buttons unaffected by font-scale changes;
 - displaying automatically derived ability modifiers alongside ability scores;
-- adding a distinct saving-throw proficiency control consistent with the approved derived-value model;
-- applying the approved `Referencia de combate` subgroup ordering and clearer SRD-based labels;
+- adding a distinct binary saving-throw proficiency control;
+- applying the approved `Referencia de combate` subgroup ordering and responsive clear/non-obscure labels;
 - preserving the now-passing rotation/screen-off navigation state, IME/keyboard accessibility, landscape behavior and persistence.
