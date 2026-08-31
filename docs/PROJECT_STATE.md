@@ -5,7 +5,7 @@
 **Current working branch:** `implementation/character-data-foundation`  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 is complete and canonical on `main` after PR #5. Phase 4 begins with the approved Android/local character data foundation; DM combat tracker follows once enough stable character data exists. Manual acceptance now follows C-0010: intended-device testing first with a defined post-build QA suite.
+**Status:** Phase 3 is complete and canonical on `main` after PR #5. Phase 4 begins with the approved Android/local character data foundation; DM combat tracker follows once enough stable character data exists. The character data/persistence workflow has now passed intended-device functional QA on an Android phone, but the first editor presentation requires a focused UX/design revision before PR review.
 
 ## 1. Canonical baseline
 
@@ -89,40 +89,76 @@ The stable signing material is deliberately public/debug-only test material. It 
 
 The Phase 3 APK previously installed by the owner was signed with an ephemeral GitHub-runner debug key. The new stable CI debug key is necessarily different; Android therefore cannot normally install the new APK over that old Phase 3 package.
 
-This means one clean uninstall/reinstall is required at this transition. Existing on-device Phase 3 test data will be removed by that uninstall.
+This means one clean uninstall/reinstall was required at this transition. Existing on-device Phase 3 test data was not expected to survive that uninstall.
 
 The Phase 3→character-schema data migration is still covered by the automated migration test: it creates the old campaign-only schema, preserves an existing campaign through `AppDatabase.Schema.migrate`, then successfully uses the new character tables.
 
 After installing the new stable-signed APK, future CI test APKs using this signing identity can update it in place, allowing real device migration/persistence testing across subsequent development builds.
 
-## 7. Manual acceptance rule and current gate
+## 7. Intended-device QA result — character foundation
 
-C-0010 is now controlling for manual feature acceptance:
+**Primary device:** Android phone.  
+**Result:** **FUNCTIONAL QA PASS.**  
+**Interpretation:** character data entry/persistence behavior is accepted at the functional level; the current editor UX/presentation is not ready for PR review and requires a focused redesign pass.
 
-- test the feature first on the device/form factor for which it is primarily intended;
-- execute the repeatable post-build suite in `docs/QA_CHECKLIST.md` rather than inventing acceptance checks ad hoc;
-- keep secondary-device checks proportional and use them when useful, but do not substitute them for primary-device acceptance.
+The owner reported the following observations on the phone build:
 
-For the current character-sheet slice, the intended primary device is the **Android phone**. The owner is now testing the character-foundation APK on phone first.
+- too much unused/free space;
+- no meaningful UI design yet; presentation feels like a generic form rather than a PC character sheet;
+- UX can be improved substantially;
+- fields that are numeric-only currently accept letters and should use numeric-oriented input/keyboard behavior;
+- when the software keyboard appears it obscures the lower part of the sheet/content;
+- the screen should be substantially more compact and require much less scrolling;
+- tabs and/or accordions are promising organizational approaches to evaluate;
+- application/user UI needs adjustable font-size support;
+- the current font is not yet accepted; font choice remains open;
+- hit-die size should use a constrained/dropdown-style control with the associated number immediately adjacent;
+- marking a skill as `Competente` is currently difficult and needs a much easier interaction;
+- many mechanically constrained/static choices should not behave like arbitrary open text when a known choice set exists;
+- class selection should use a known-class-oriented control rather than a large free-text block, while preserving a path for nonstandard/homebrew content under the product's permissive rules philosophy;
+- the class block consumes too much vertical space;
+- landscape should use the additional width meaningfully, likely through a wider/multi-column arrangement rather than merely stretching the portrait form.
 
-The current phone QA suite covers:
+### UX requirements that are clear enough to implement in the next pass
 
-1. clean install of the new stable-signed APK at this signing-transition point;
-2. campaign create/select regression checks;
-3. character creation/list/open flow;
-4. multiclass entries with different hit-die sizes and remaining hit dice;
-5. ability scores, combat-reference values and six saves;
-6. all 18 skills, including proficiency/expertise metadata;
-7. at least one unusual/gifted value to confirm permissive storage;
-8. save/reopen persistence;
-9. full app restart persistence;
-10. phone usability: scrolling, grouping, labels, keyboard/input, density and navigation.
+1. Numeric-only mechanical fields use appropriate numeric keyboard/input behavior and do not accept arbitrary letters.
+2. Keyboard/IME appearance must not leave the active/lower editable area inaccessible or covered without a practical way to scroll/reveal it.
+3. The character editor must be materially more compact and reduce unnecessary vertical scrolling.
+4. Proficiency/expertise interaction must have a larger/easier touch target than the current control.
+5. Class and hit-die entry should use constrained/common-value controls where useful, while retaining an explicit escape path for custom/homebrew values when needed.
+6. Phone landscape must make meaningful use of available horizontal width rather than only stretching a single portrait column.
+7. User-adjustable application font size is now an explicit desired capability; exact levels/control location are not yet specified.
 
-Tablet checks for this character build are secondary sanity checks rather than a prerequisite for phone-first character-sheet acceptance unless the phone test reveals a reason to broaden testing.
+### UX choices still intentionally open
 
-Do not open or merge a PR until the intended-device QA is complete, defects are addressed/recorded, and owner review occurs.
+- exact navigation organization: tabs, accordions, or a hybrid;
+- exact font family;
+- final sheet visual language/component styling;
+- exact number and grouping of landscape columns;
+- exact predefined class list and how `Otra/Personalizada` is exposed;
+- exact font-size choices and where the setting lives.
 
-## 8. Explicitly deferred from this first character slice
+Do not turn these open items into durable conventions without owner review.
+
+## 8. Current acceptance gate
+
+The first functional character build has served its purpose: it validates the data model, persistence and workflow on the intended phone device.
+
+Before opening a PR, perform a focused **character-sheet UX revision** on the same branch, then produce a new stable-signed APK and rerun the intended-device phone QA suite with emphasis on:
+
+- compactness and scrolling;
+- keyboard/input behavior;
+- class/hit-die controls;
+- skill proficiency/expertise interaction;
+- character-sheet-like information hierarchy;
+- landscape width usage;
+- font/readability behavior.
+
+Tablet QA is not required for this character slice at present because the owner has explicitly scoped current acceptance to the intended phone experience. The tablet experience will be evaluated when a tablet-primary feature, especially the DM combat tracker, is under development.
+
+Do not open or merge a PR until the redesigned phone UX is manually rechecked and owner review occurs.
+
+## 9. Explicitly deferred from this first character slice
 
 - spell lists and spell slots;
 - inventory/equipment/currencies;
@@ -137,13 +173,12 @@ Do not open or merge a PR until the intended-device QA is complete, defects are 
 - automatic legality/rules enforcement or character checking;
 - combat tracker implementation itself.
 
-## 9. Known non-blocking UI follow-up
+## 10. Known non-blocking broader UI follow-up
 
-- Increase information density where useful.
-- Improve wide/tablet-landscape use once richer screens provide enough content to design around.
-- Add theme support after exact behavior is specified.
-- The current character editor is intentionally a functional first layout; visual organization should be judged on real intended-device use before becoming a durable sheet-layout convention.
+- Add theme support after exact theme behavior is specified.
+- The current font family is not accepted; font selection remains a future explicit design choice.
+- User-adjustable font size is required, but the exact setting model is still pending.
 
-## 10. Immediate next action
+## 11. Immediate next action
 
-Owner runs the character-foundation post-build QA suite on the Android phone and reports pass/fail plus concrete UX/data issues. Record the result on this branch. Perform secondary tablet checking only as useful after the phone-first acceptance pass. After acceptance and any focused fixes, prepare a PR for explicit owner review. The following major product slice remains the DM combat tracker, whose primary manual acceptance device will be the tablet.
+Redesign the Android phone character editor around the recorded QA findings without changing the accepted character data model. Keep the work proportional: fix the concrete input/keyboard problems, substantially improve density and sheet-like organization, introduce better constrained controls where appropriate, and improve landscape width use. Produce a new APK for phone-first QA before PR review. The following major product slice remains the tablet-primary DM combat tracker.
