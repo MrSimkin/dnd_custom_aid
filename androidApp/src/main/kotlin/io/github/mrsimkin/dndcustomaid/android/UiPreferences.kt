@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
@@ -31,7 +30,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font as GoogleDownloadableFont
 import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.compose.ui.text.googlefonts.R as GoogleFontsR
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 
@@ -104,31 +102,21 @@ internal class UiPreferencesStore(context: Context) {
 
 internal val FONT_SCALE_OPTIONS = listOf(80, 90, 100, 115, 130)
 
-private val googleFontProvider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = GoogleFontsR.array.com_google_android_gms_fonts_certs,
-)
-
 private fun downloadableFontFamily(name: String): FontFamily = FontFamily(
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
-        fontProvider = googleFontProvider,
         weight = FontWeight.Normal,
     ),
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
-        fontProvider = googleFontProvider,
         weight = FontWeight.Medium,
     ),
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
-        fontProvider = googleFontProvider,
         weight = FontWeight.SemiBold,
     ),
     GoogleDownloadableFont(
         googleFont = GoogleFont(name),
-        fontProvider = googleFontProvider,
         weight = FontWeight.Bold,
     ),
 )
