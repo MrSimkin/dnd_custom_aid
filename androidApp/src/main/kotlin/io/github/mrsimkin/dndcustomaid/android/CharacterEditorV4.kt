@@ -60,9 +60,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import java.time.Instant
@@ -292,6 +294,9 @@ private fun OverviewTabV4(
         }
         item {
             CombatCardV4(draft, wide, onDraftChange)
+        }
+        item {
+            QuickMagicCardV4(draft, onDraftChange)
         }
     }
 }
@@ -743,12 +748,206 @@ private fun SecondaryCombatRowV4(
             onAdjustmentChange = { onDraftChange(draft.copy(passivePerceptionAdjustment = it)) },
             modifier = Modifier.weight(1f),
         )
-        CompactIntFieldV4(
-            "CD conjuros",
-            draft.spellSaveDc,
-            { onDraftChange(draft.copy(spellSaveDc = it)) },
-            Modifier.weight(1f),
+    }
+}
+
+@Composable
+private fun QuickMagicCardV4(
+    draft: CharacterEditorDraftV4,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    var configureSlots by remember { mutableStateOf(false) }
+
+    SectionCardV4("Quick Magic") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            CompactIntFieldV4(
+                label = "CD conjuros",
+                value = draft.spellSaveDc,
+                onValueChange = { onDraftChange(draft.copy(spellSaveDc = it)) },
+                modifier = Modifier.weight(1f),
+            )
+            CompactIntFieldV4(
+                label = "Ataque mágico",
+                value = draft.spellAttackModifier,
+                onValueChange = { onDraftChange(draft.copy(spellAttackModifier = it)) },
+                modifier = Modifier.weight(1f),
+                signed = true,
+            )
+            SpellcastingAbilitySelectorV4(
+                ability = draft.spellcastingAbility,
+                onChange = { onDraftChange(draft.copy(spellcastingAbility = it)) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        val activeSlots = draft.spellSlots.filter { (it.total.toIntOrNull() ?: 0) > 0 }
+        if (activeSlots.isEmpty()) {
+            Text("Sin espacios de conjuro configurados.", style = MaterialTheme.typography.bodySmall)
+        } else {
+            activeSlots.forEach { slot ->
+                SpellSlotRowV4(
+                    slot = slot,
+                    onSpentChange = { spent ->
+                        onDraftChange(draft.withSpellSlot(slot.copy(spent = spent)))
+                    },
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            TextButton(onClick = { configureSlots = true }) {
+                Text("Configurar espacios")
+            }
+            TextButton(
+                onClick = {
+                    onDraftChange(
+                        draft.copy(
+                            spellSlots = draft.spellSlots.map { it.copy(spent = 0) },
+                        ),
+                    )
+                },
+                enabled = activeSlots.any { it.spent > 0 },
+            ) {
+                Text("Restaurar espacios")
+            }
+        }
+    }
+
+    if (configureSlots) {
+        var pendingTotals by remember(configureSlots) {
+            mutableStateOf(
+                (1..9).map { level ->
+                    draft.spellSlotFor(level).total
+                },
+            )
+        }
+        AlertDialog(
+            onDismissRequest = { configureSlots = false },
+            title = { Text("Configurar espacios") },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 420.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    items(9) { index ->
+                        val level = index + 1
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text("Nivel $level", modifier = Modifier.weight(1f))
+                            CompactIntInputV4(
+                                value = pendingTotals[index],
+                                onValueChange = { value ->
+                                    pendingTotals = pendingTotals.mapIndexed { itemIndex, existing ->
+                                        if (itemIndex == index) value else existing
+                                    }
+                                },
+                                modifier = Modifier.width(70.dp),
+                                placeholder = "0",
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val updated = (1..9).map { level ->
+                            val old = draft.spellSlotFor(level)
+                            val total = pendingTotals[level - 1].toIntOrNull()?.coerceAtLeast(0) ?: 0
+                            old.copy(total = total.toString(), spent = old.spent.coerceIn(0, total))
+                        }
+                        onDraftChange(draft.copy(spellSlots = updated))
+                        configureSlots = false
+                    },
+                ) { Text("Aplicar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { configureSlots = false }) { Text("Cancelar") }
+            },
         )
+    }
+}
+
+@Composable
+private fun SpellcastingAbilitySelectorV4(
+    ability: SpellcastingAbility,
+    onChange: (SpellcastingAbility) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(modifier = modifier) {
+        Text("Aptitud mágica", style = MaterialTheme.typography.labelSmall, maxLines = 2)
+        Box {
+            OutlinedButton(
+                onClick = { expanded = true },
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+            ) {
+                Text(spellcastingAbilityLabelV4(ability), maxLines = 1)
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                SpellcastingAbility.entries.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(spellcastingAbilityLabelV4(option)) },
+                        onClick = {
+                            onChange(option)
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpellSlotRowV4(
+    slot: SpellSlotDraftV4,
+    onSpentChange: (Int) -> Unit,
+) {
+    val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
+    val spent = slot.spent.coerceIn(0, total)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text("Nivel ${slot.level}", modifier = Modifier.width(55.dp), style = MaterialTheme.typography.labelMedium)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            (0 until total).toList().chunked(8).forEach { indices ->
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    indices.forEach { index ->
+                        val isSpent = index < spent
+                        val borderColor = if (isSpent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                        Surface(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .clickable {
+                                    val newSpent = if (isSpent) index else index + 1
+                                    onSpentChange(newSpent.coerceIn(0, total))
+                                },
+                            shape = CircleShape,
+                            border = BorderStroke(1.5.dp, borderColor),
+                            color = if (isSpent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                        ) {}
+                    }
+                }
+            }
+        }
+        Text("$spent/$total", style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }
 }
 
@@ -1412,6 +1611,12 @@ private data class SkillDraftV4(
     val training: SkillTraining,
 )
 
+private data class SpellSlotDraftV4(
+    val level: Int,
+    val total: String,
+    val spent: Int,
+)
+
 private data class CharacterEditorDraftV4(
     val name: String,
     val status: CharacterStatus,
@@ -1430,6 +1635,9 @@ private data class CharacterEditorDraftV4(
     val proficiencyBonusAdjustment: String,
     val passivePerceptionAdjustment: String,
     val spellSaveDc: String,
+    val spellAttackModifier: String,
+    val spellcastingAbility: SpellcastingAbility,
+    val spellSlots: List<SpellSlotDraftV4>,
     val classes: List<ClassLevelDraftV4>,
     val saves: List<SaveDraftV4>,
     val skills: List<SkillDraftV4>,
@@ -1476,6 +1684,15 @@ private data class CharacterEditorDraftV4(
         skills = SkillKey.entries.map { key ->
             if (key == changed.key) changed else skills.firstOrNull { it.key == key }
                 ?: SkillDraftV4(key, "0", SkillTraining.NONE)
+        },
+    )
+
+    fun spellSlotFor(level: Int): SpellSlotDraftV4 =
+        spellSlots.firstOrNull { it.level == level } ?: SpellSlotDraftV4(level, "0", 0)
+
+    fun withSpellSlot(changed: SpellSlotDraftV4): CharacterEditorDraftV4 = copy(
+        spellSlots = (1..9).map { level ->
+            if (level == changed.level) changed else spellSlotFor(level)
         },
     )
 
@@ -1544,6 +1761,10 @@ private data class CharacterEditorDraftV4(
             return value.trim().toIntOrNull()
         }
         fun parsedAdjustment(value: String): Int? = parseOptionalAdjustmentV4(value)
+        fun parsedOptionalInt(value: String): Int? {
+            if (isMissingNumericTokenV4(value)) return null
+            return value.trim().toIntOrNull()
+        }
 
         val normalizedName = name.trim().takeIf { it.isNotEmpty() } ?: return null
         val parsedClasses = classes.mapIndexed { index, classDraft ->
@@ -1572,7 +1793,23 @@ private data class CharacterEditorDraftV4(
                 training = skill.training,
             )
         }
-        val spellDc = if (spellSaveDc.isBlank()) null else spellSaveDc.trim().toIntOrNull() ?: return null
+        val parsedSpellSlots = (1..9).mapNotNull { level ->
+            val slot = spellSlotFor(level)
+            val total = if (isMissingNumericTokenV4(slot.total)) 0 else slot.total.toIntOrNull() ?: return null
+            if (total <= 0) {
+                null
+            } else {
+                CharacterSpellSlot(
+                    level = level,
+                    totalSlots = total,
+                    spentSlots = slot.spent.coerceIn(0, total),
+                )
+            }
+        }
+        val spellDc = parsedOptionalInt(spellSaveDc)
+        if (spellSaveDc.isNotBlank() && spellDc == null) return null
+        val spellAttack = parsedOptionalInt(spellAttackModifier)
+        if (spellAttackModifier.isNotBlank() && spellAttack == null) return null
         val proficiencyAdjustment = parsedAdjustment(proficiencyBonusAdjustment) ?: return null
         val finalProficiency = standardProficiencyBonusForLevel(parsedClasses.sumOf { it.level }) + proficiencyAdjustment
 
@@ -1596,6 +1833,9 @@ private data class CharacterEditorDraftV4(
             savingThrows = parsedSaves,
             passivePerceptionAdjustment = parsedAdjustment(passivePerceptionAdjustment) ?: return null,
             spellSaveDc = spellDc,
+            spellAttackModifier = spellAttack,
+            spellcastingAbility = spellcastingAbility,
+            spellSlots = parsedSpellSlots,
             classes = parsedClasses,
             skills = parsedSkills,
         )
@@ -1619,6 +1859,17 @@ private data class CharacterEditorDraftV4(
         put("proficiencyBonusAdjustment", proficiencyBonusAdjustment)
         put("passivePerceptionAdjustment", passivePerceptionAdjustment)
         put("spellSaveDc", spellSaveDc)
+        put("spellAttackModifier", spellAttackModifier)
+        put("spellcastingAbility", spellcastingAbility.name)
+        put("spellSlots", JSONArray().apply {
+            spellSlots.forEach { item ->
+                put(JSONObject().apply {
+                    put("level", item.level)
+                    put("total", item.total)
+                    put("spent", item.spent)
+                })
+            }
+        })
         put("classes", JSONArray().apply {
             classes.forEach { item ->
                 put(JSONObject().apply {
@@ -1674,6 +1925,16 @@ private data class CharacterEditorDraftV4(
             proficiencyBonusAdjustment = sheet.proficiencyBonusAdjustment.toString(),
             passivePerceptionAdjustment = sheet.passivePerceptionAdjustment.toString(),
             spellSaveDc = sheet.spellSaveDc?.toString().orEmpty(),
+            spellAttackModifier = sheet.spellAttackModifier?.toString().orEmpty(),
+            spellcastingAbility = sheet.spellcastingAbility,
+            spellSlots = (1..9).map { level ->
+                val stored = sheet.spellSlots.firstOrNull { it.level == level }
+                SpellSlotDraftV4(
+                    level = level,
+                    total = stored?.totalSlots?.toString() ?: "0",
+                    spent = stored?.spentSlots ?: 0,
+                )
+            },
             classes = sheet.classes.map {
                 ClassLevelDraftV4(it.id, it.name, it.level.toString(), it.hitDieSides.toString(), it.hitDiceRemaining.toString())
             },
@@ -1737,6 +1998,22 @@ private data class CharacterEditorDraftV4(
                 val totalLevel = classes.sumOf { it.level.toIntOrNull() ?: 0 }
                 (legacyFinal - standardProficiencyBonusForLevel(totalLevel)).toString()
             }
+            val slots = if (json.has("spellSlots")) {
+                val array = json.getJSONArray("spellSlots")
+                val restored = mutableMapOf<Int, SpellSlotDraftV4>()
+                for (index in 0 until array.length()) {
+                    val item = array.getJSONObject(index)
+                    val level = item.getInt("level")
+                    restored[level] = SpellSlotDraftV4(
+                        level = level,
+                        total = item.getString("total"),
+                        spent = item.getInt("spent"),
+                    )
+                }
+                (1..9).map { level -> restored[level] ?: SpellSlotDraftV4(level, "0", 0) }
+            } else {
+                (1..9).map { level -> SpellSlotDraftV4(level, "0", 0) }
+            }
             CharacterEditorDraftV4(
                 name = json.getString("name"),
                 status = CharacterStatus.valueOf(json.getString("status")),
@@ -1755,6 +2032,11 @@ private data class CharacterEditorDraftV4(
                 proficiencyBonusAdjustment = proficiencyAdjustment,
                 passivePerceptionAdjustment = json.getString("passivePerceptionAdjustment"),
                 spellSaveDc = json.getString("spellSaveDc"),
+                spellAttackModifier = json.optString("spellAttackModifier", ""),
+                spellcastingAbility = runCatching {
+                    SpellcastingAbility.valueOf(json.optString("spellcastingAbility", SpellcastingAbility.NONE.name))
+                }.getOrDefault(SpellcastingAbility.NONE),
+                spellSlots = slots,
                 classes = classes,
                 saves = saves,
                 skills = skills,
@@ -1770,6 +2052,17 @@ private fun abilityAbbreviationV4(ability: CharacterAbility): String = when (abi
     CharacterAbility.INTELLIGENCE -> "INT"
     CharacterAbility.WISDOM -> "SAB"
     CharacterAbility.CHARISMA -> "CAR"
+}
+
+private fun spellcastingAbilityLabelV4(ability: SpellcastingAbility): String = when (ability) {
+    SpellcastingAbility.STRENGTH -> "FUE"
+    SpellcastingAbility.DEXTERITY -> "DES"
+    SpellcastingAbility.CONSTITUTION -> "CON"
+    SpellcastingAbility.INTELLIGENCE -> "INT"
+    SpellcastingAbility.WISDOM -> "SAB"
+    SpellcastingAbility.CHARISMA -> "CAR"
+    SpellcastingAbility.OTHER -> "Otro"
+    SpellcastingAbility.NONE -> "Ninguna"
 }
 
 private fun skillLabelV4(key: SkillKey): String = when (key) {
