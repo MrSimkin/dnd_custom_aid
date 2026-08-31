@@ -1,0 +1,98 @@
+ALTER TABLE character ADD COLUMN initiative_adjustment INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE character ADD COLUMN passive_perception_adjustment INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE character_skill ADD COLUMN adjustment INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE character_save (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    ability_key TEXT NOT NULL,
+    proficient INTEGER NOT NULL DEFAULT 0,
+    adjustment INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(character_id, ability_key)
+);
+
+-- Preserve the V3 displayed initiative exactly by converting the old final total
+-- into an adjustment over the derived Dexterity modifier.
+UPDATE character
+SET initiative_adjustment = initiative_modifier -
+    CASE
+        WHEN dexterity >= 10 THEN (dexterity - 10) / 2
+        ELSE -((11 - dexterity) / 2)
+    END;
+
+-- Preserve every V3 skill total exactly. V3 already stored training state, so the
+-- new explicit adjustment can be reconstructed without guessing.
+UPDATE character_skill
+SET adjustment = modifier - COALESCE((
+    SELECT
+        CASE character_skill.skill_key
+            WHEN 'ACROBATICS' THEN CASE WHEN c.dexterity >= 10 THEN (c.dexterity - 10) / 2 ELSE -((11 - c.dexterity) / 2) END
+            WHEN 'ANIMAL_HANDLING' THEN CASE WHEN c.wisdom >= 10 THEN (c.wisdom - 10) / 2 ELSE -((11 - c.wisdom) / 2) END
+            WHEN 'ARCANA' THEN CASE WHEN c.intelligence >= 10 THEN (c.intelligence - 10) / 2 ELSE -((11 - c.intelligence) / 2) END
+            WHEN 'ATHLETICS' THEN CASE WHEN c.strength >= 10 THEN (c.strength - 10) / 2 ELSE -((11 - c.strength) / 2) END
+            WHEN 'DECEPTION' THEN CASE WHEN c.charisma >= 10 THEN (c.charisma - 10) / 2 ELSE -((11 - c.charisma) / 2) END
+            WHEN 'HISTORY' THEN CASE WHEN c.intelligence >= 10 THEN (c.intelligence - 10) / 2 ELSE -((11 - c.intelligence) / 2) END
+            WHEN 'INSIGHT' THEN CASE WHEN c.wisdom >= 10 THEN (c.wisdom - 10) / 2 ELSE -((11 - c.wisdom) / 2) END
+            WHEN 'INTIMIDATION' THEN CASE WHEN c.charisma >= 10 THEN (c.charisma - 10) / 2 ELSE -((11 - c.charisma) / 2) END
+            WHEN 'INVESTIGATION' THEN CASE WHEN c.intelligence >= 10 THEN (c.intelligence - 10) / 2 ELSE -((11 - c.intelligence) / 2) END
+            WHEN 'MEDICINE' THEN CASE WHEN c.wisdom >= 10 THEN (c.wisdom - 10) / 2 ELSE -((11 - c.wisdom) / 2) END
+            WHEN 'NATURE' THEN CASE WHEN c.intelligence >= 10 THEN (c.intelligence - 10) / 2 ELSE -((11 - c.intelligence) / 2) END
+            WHEN 'PERCEPTION' THEN CASE WHEN c.wisdom >= 10 THEN (c.wisdom - 10) / 2 ELSE -((11 - c.wisdom) / 2) END
+            WHEN 'PERFORMANCE' THEN CASE WHEN c.charisma >= 10 THEN (c.charisma - 10) / 2 ELSE -((11 - c.charisma) / 2) END
+            WHEN 'PERSUASION' THEN CASE WHEN c.charisma >= 10 THEN (c.charisma - 10) / 2 ELSE -((11 - c.charisma) / 2) END
+            WHEN 'RELIGION' THEN CASE WHEN c.intelligence >= 10 THEN (c.intelligence - 10) / 2 ELSE -((11 - c.intelligence) / 2) END
+            WHEN 'SLEIGHT_OF_HAND' THEN CASE WHEN c.dexterity >= 10 THEN (c.dexterity - 10) / 2 ELSE -((11 - c.dexterity) / 2) END
+            WHEN 'STEALTH' THEN CASE WHEN c.dexterity >= 10 THEN (c.dexterity - 10) / 2 ELSE -((11 - c.dexterity) / 2) END
+            WHEN 'SURVIVAL' THEN CASE WHEN c.wisdom >= 10 THEN (c.wisdom - 10) / 2 ELSE -((11 - c.wisdom) / 2) END
+            ELSE 0
+        END
+        + CASE character_skill.training
+            WHEN 'PROFICIENT' THEN c.proficiency_bonus
+            WHEN 'EXPERTISE' THEN 2 * c.proficiency_bonus
+            ELSE 0
+        END
+    FROM character AS c
+    WHERE c.id = character_skill.character_id
+), 0);
+
+-- V3 did not store saving-throw proficiency. Preserve each old final number,
+-- initialize proficiency to false, and represent the difference as adjustment.
+INSERT INTO character_save(character_id, ability_key, proficient, adjustment)
+SELECT id, 'STRENGTH', 0,
+       strength_save - CASE WHEN strength >= 10 THEN (strength - 10) / 2 ELSE -((11 - strength) / 2) END
+FROM character;
+
+INSERT INTO character_save(character_id, ability_key, proficient, adjustment)
+SELECT id, 'DEXTERITY', 0,
+       dexterity_save - CASE WHEN dexterity >= 10 THEN (dexterity - 10) / 2 ELSE -((11 - dexterity) / 2) END
+FROM character;
+
+INSERT INTO character_save(character_id, ability_key, proficient, adjustment)
+SELECT id, 'CONSTITUTION', 0,
+       constitution_save - CASE WHEN constitution >= 10 THEN (constitution - 10) / 2 ELSE -((11 - constitution) / 2) END
+FROM character;
+
+INSERT INTO character_save(character_id, ability_key, proficient, adjustment)
+SELECT id, 'INTELLIGENCE', 0,
+       intelligence_save - CASE WHEN intelligence >= 10 THEN (intelligence - 10) / 2 ELSE -((11 - intelligence) / 2) END
+FROM character;
+
+INSERT INTO character_save(character_id, ability_key, proficient, adjustment)
+SELECT id, 'WISDOM', 0,
+       wisdom_save - CASE WHEN wisdom >= 10 THEN (wisdom - 10) / 2 ELSE -((11 - wisdom) / 2) END
+FROM character;
+
+INSERT INTO character_save(character_id, ability_key, proficient, adjustment)
+SELECT id, 'CHARISMA', 0,
+       charisma_save - CASE WHEN charisma >= 10 THEN (charisma - 10) / 2 ELSE -((11 - charisma) / 2) END
+FROM character;
+
+-- Perception's migrated final total remains identical to its legacy modifier, so
+-- this preserves legacy Passive Perception exactly without duplicating arithmetic.
+UPDATE character
+SET passive_perception_adjustment = passive_perception -
+    (10 + COALESCE((
+        SELECT modifier
+        FROM character_skill
+        WHERE character_skill.character_id = character.id
+          AND character_skill.skill_key = 'PERCEPTION'
+    ), 0));
