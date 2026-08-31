@@ -4,6 +4,8 @@
 
 Phase 3 is complete and canonical on `main` after PR #5. The local Android campaign create/select slice passed focused automated verification plus manual phone and tablet checks. Post-merge CI also passed on the canonical merge commit. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
 
+C-0010 now adds a repeatable manual QA rule: after a build reaches a manual-testable state, execute the defined post-build QA suite on the feature's intended primary device/form factor before calling the feature manually accepted. The reusable suite lives in `docs/QA_CHECKLIST.md`.
+
 ## 1. Core rule
 
 Never claim a test passed unless it was actually executed successfully against the relevant revision.
@@ -15,6 +17,8 @@ Every meaningful implementation change should state concisely:
 - what passed or failed;
 - what was not tested when that matters;
 - relevant environment/device information when it matters.
+
+Automated verification and manual intended-device acceptance are separate gates. Green CI does not by itself mean a feature has passed manual QA.
 
 ## 2. Standard verification commands
 
@@ -78,7 +82,7 @@ No tests were added for hosted synchronization, membership, roles or other featu
 
 Approved minimum is Android 11 / API 30.
 
-On 2026-08-30 the owner manually verified the CI-built debug APK on an Android phone and tablet.
+On 2026-08-30 the owner manually verified the Phase 3 CI-built debug APK on an Android phone and tablet.
 
 Confirmed:
 
@@ -113,22 +117,47 @@ The KMP `androidLibrary` target DSL used by `shared` currently emits a deprecati
 
 The Gradle wrapper JAR is not currently committed because the repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the wrapper later.
 
+Development CI APKs now use a stable project-owned **debug-only** signing identity so successive development APKs can normally update one another in place for realistic migration/persistence testing. This identity is not a production/release signing key and must never be reused as one.
+
 ## 8. CI
 
 Use one simple GitHub Actions workflow for relevant pushes/pull requests. CI is a safety check, not deployment.
 
 Initial CI does not require coverage gates, SonarQube, emulator farms, broad API matrices, staging, automatic production deployment, automated release publishing, or giant screenshot suites.
 
-## 9. Phase 4 verification rule
+## 9. Post-build intended-device QA
+
+C-0010 controls manual feature acceptance.
+
+After a build reaches a manual-testable state:
+
+1. run automated verification appropriate to the revision;
+2. identify the feature's intended primary device/form factor;
+3. execute the relevant sections of `docs/QA_CHECKLIST.md` on that intended device;
+4. record pass/fail, defects and non-blocking observations;
+5. use secondary form-factor checks only where useful/proportionate;
+6. do not call the feature manually accepted until its intended-device QA has passed or deviations are explicitly accepted.
+
+Current intended-device priorities include:
+
+- player character-sheet workflow — Android **phone first**;
+- DM combat tracker/live board — Android **tablet first**;
+- DM preparation/administration — **desktop first**.
+
+The QA checklist contains a small persistent regression core and a focused current-feature suite. Grow the persistent core only where a regression would materially matter.
+
+## 10. Phase 4 verification rule
 
 For each Phase 4 slice, add only focused automated/manual verification for behavior that actually exists and the material risks introduced by that slice.
 
 As features appear, likely verification areas include consequential SQLDelight migrations, sync/outbox/idempotency, combat sequence authority, backend auth/authz, PDF behavior, and SRD grounding. Do not create tests for infrastructure or behavior that does not exist.
 
-## 10. Regression rule
+For the current character-foundation slice, the primary manual acceptance device is the Android phone. Tablet checks are secondary unless a concrete character-sheet defect or future tablet-specific character workflow makes them material.
+
+## 11. Regression rule
 
 When fixing a reproducible defect, add a focused automated regression test when practical/useful. Otherwise record the manual verification used.
 
-## 11. Proportionality
+## 12. Proportionality
 
 C-0009 controls testing: protect this application's useful behavior and data, not an imaginary commercial compliance process.
