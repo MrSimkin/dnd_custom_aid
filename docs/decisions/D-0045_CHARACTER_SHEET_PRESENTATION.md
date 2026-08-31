@@ -33,6 +33,8 @@ The default is **By skills**.
 
 This is a presentation preference, not a difference in the underlying character data. It should therefore not alter or duplicate the durable character model.
 
+This preference is a **user/device presentation preference**, not a per-character property. Changing it should affect how characters are presented on that device/user context rather than writing layout state into character mechanics/data.
+
 A small character-sheet gear/settings control is the intended home for this sheet-specific presentation preference unless later usability testing demonstrates a better placement.
 
 ### 3. Class selector source and custom escape path
@@ -58,6 +60,21 @@ Initial global Settings scope:
 - font family/style;
 - theme.
 
+Approved font-size scale options are:
+
+1. **80%**;
+2. **90%**;
+3. **100%** — default unless later UX testing justifies another default;
+4. **115%**;
+5. **130%**.
+
+Font-family/style policy for the first Settings menu:
+
+- **no serif option**;
+- offer **two distinct sans-serif families** plus **one condensed sans-serif family**;
+- avoid the overused/default-feeling families such as Roboto, Arial and Helvetica;
+- exact family names remain to be selected with owner approval before implementation becomes final.
+
 Theme choices must include at least:
 
 1. System;
@@ -76,19 +93,22 @@ The earlier QA note that saving-throw presentation was "pinned" pending a later 
 
 The PDFs therefore provide the design reference for the next saving-throw layout discussion. No additional hidden/unsupplied saving-throw concept should be assumed.
 
-## Pending owner decision — tab structure
+### 6. Initial tab structure
 
-The owner wants tabbed organization in the digital character sheet and wants to review the agent's **first proposed tab structure** before it is implemented as a durable layout convention.
+For the current implemented character-data scope, the first tab structure is approved as:
 
-No exact tab names, count or section assignment are approved by this decision.
+1. **Resumen** — fast-reference character overview containing identity/status, compact class/level/hit-dice entries, all six ability scores, AC, HP, initiative, speed, proficiency bonus, passive Perception and optional spell save DC.
+2. **Habilidades** — skills/saving-throw/ability relationship area, supporting the approved By skills and By attribute presentation modes.
+
+Tabs should be added **when their feature domains become relevant and implemented**, rather than creating empty placeholders for future features. Likely later domains such as combat/actions, spells or equipment may receive tabs when those slices actually exist, but their names/order are not approved by this decision.
+
+A compact persistent editor header should keep navigation/character identity/save/settings reachable while moving between the current tabs; exact styling remains implementation-level unless QA identifies a consequential UX issue.
 
 ## Still unresolved
 
 The following remain intentionally open unless separately approved:
 
-- exact font families/styles offered by the first Settings menu;
-- exact font-size steps/control style;
-- final tab structure;
+- exact three font families offered by the first Settings menu;
 - whether changing skill proficiency/training should ever recalculate the stored final skill modifier;
 - exact visual styling beyond the grouping/density directions already recorded by QA.
 
@@ -98,12 +118,12 @@ Before producing the next owner-test APK, implementation should:
 
 - preserve editor/navigation state across rotation and screen-off/on recreation;
 - fully solve keyboard/IME obstruction of lower content;
+- implement the approved **Resumen** and **Habilidades** tabs without speculative empty future tabs;
 - further compact the editor, including six abilities in one row where readability permits;
 - compact each class entry toward one-row tabletop order such as `3d10`;
 - use the SRD 5.2.1 class selector + Artífice + Otro/custom path;
 - make skill rows materially more compact;
 - show each skill's associated ability;
-- implement both ability/skill presentation modes with **By skills** as default;
-- introduce the small global Settings surface described above;
-- preserve stable grouping in landscape as dynamic class rows are added;
-- obtain owner approval for the proposed tab structure before treating it as final.
+- implement both ability/skill presentation modes with **By skills** as default and persist that choice as a user/device presentation preference rather than character data;
+- introduce the small global Settings surface with font sizes **80/90/100/115/130%**, two non-generic sans options, one condensed sans option, and the five approved themes;
+- preserve stable grouping in landscape as dynamic class rows are added.
