@@ -5,7 +5,7 @@
 **Current working branch:** `implementation/character-data-foundation`  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 is complete and canonical on `main` after PR #5. Phase 4 begins with the approved Android/local character data foundation; DM combat tracker follows once enough stable character data exists.
+**Status:** Phase 3 is complete and canonical on `main` after PR #5. Phase 4 begins with the approved Android/local character data foundation; DM combat tracker follows once enough stable character data exists. Manual acceptance now follows C-0010: intended-device testing first with a defined post-build QA suite.
 
 ## 1. Canonical baseline
 
@@ -18,7 +18,8 @@ Key constraints remain:
 - no speculative auth/hosted sync/realtime infrastructure before a selected workflow needs it;
 - character data may represent mixed SRD generations, homebrew and owner-granted exceptions;
 - the application is not a guided/legal character builder or automatic rules enforcer;
-- persistent character-sheet state remains separate from live combat working state.
+- persistent character-sheet state remains separate from live combat working state;
+- manual feature acceptance uses the intended primary device first and the repeatable suite in `docs/QA_CHECKLIST.md`.
 
 ## 2. Canonical implementation state
 
@@ -72,7 +73,8 @@ A future character-check/validation feature is deferred until late development a
 - persistence tests covering the full 18-skill set, campaign isolation, multiclass + independent hit dice, database reopen, permissive gifted values and Phase 3 database migration;
 - Android campaign → character list → character editor flow;
 - Spanish editor UI for classes/hit dice, abilities, combat reference, saves and skills;
-- stable CI-only debug signing so future test APK artifacts can update one another in place.
+- stable CI-only debug signing so future test APK artifacts can update one another in place;
+- C-0010 intended-device/manual-QA convention and reusable `docs/QA_CHECKLIST.md`.
 
 CI evidence:
 
@@ -93,22 +95,32 @@ The Phase 3→character-schema data migration is still covered by the automated 
 
 After installing the new stable-signed APK, future CI test APKs using this signing identity can update it in place, allowing real device migration/persistence testing across subsequent development builds.
 
-## 7. Remaining manual acceptance gate
+## 7. Manual acceptance rule and current gate
 
-Automated validation is complete for the implemented code. Before PR review, manual device verification remains:
+C-0010 is now controlling for manual feature acceptance:
 
-1. uninstall the old Phase 3 debug app once because its signing identity differs;
-2. install the new stable-signed character-foundation APK;
-3. create/select a campaign and enter `Personajes`;
-4. create a character;
-5. add at least two classes with different hit-die sizes and remaining hit dice;
-6. edit ability scores, combat-reference values, saving throws and several skills, including proficiency/expertise markers;
-7. deliberately enter at least one unusual/gifted mechanical value to confirm the UI accepts it;
-8. save, leave the editor, reopen the character and confirm values remain;
-9. fully close/restart the app and confirm campaign/character data remains;
-10. sanity-check usability on phone and tablet, especially tablet/landscape now that the app has a richer screen.
+- test the feature first on the device/form factor for which it is primarily intended;
+- execute the repeatable post-build suite in `docs/QA_CHECKLIST.md` rather than inventing acceptance checks ad hoc;
+- keep secondary-device checks proportional and use them when useful, but do not substitute them for primary-device acceptance.
 
-Do not open or merge a PR until this manual UX/persistence check is complete and owner review occurs.
+For the current character-sheet slice, the intended primary device is the **Android phone**. The owner is now testing the character-foundation APK on phone first.
+
+The current phone QA suite covers:
+
+1. clean install of the new stable-signed APK at this signing-transition point;
+2. campaign create/select regression checks;
+3. character creation/list/open flow;
+4. multiclass entries with different hit-die sizes and remaining hit dice;
+5. ability scores, combat-reference values and six saves;
+6. all 18 skills, including proficiency/expertise metadata;
+7. at least one unusual/gifted value to confirm permissive storage;
+8. save/reopen persistence;
+9. full app restart persistence;
+10. phone usability: scrolling, grouping, labels, keyboard/input, density and navigation.
+
+Tablet checks for this character build are secondary sanity checks rather than a prerequisite for phone-first character-sheet acceptance unless the phone test reveals a reason to broaden testing.
+
+Do not open or merge a PR until the intended-device QA is complete, defects are addressed/recorded, and owner review occurs.
 
 ## 8. Explicitly deferred from this first character slice
 
@@ -130,8 +142,8 @@ Do not open or merge a PR until this manual UX/persistence check is complete and
 - Increase information density where useful.
 - Improve wide/tablet-landscape use once richer screens provide enough content to design around.
 - Add theme support after exact behavior is specified.
-- The current character editor is intentionally a functional first layout; visual organization should be judged on real phone/tablet use before becoming a durable sheet-layout convention.
+- The current character editor is intentionally a functional first layout; visual organization should be judged on real intended-device use before becoming a durable sheet-layout convention.
 
 ## 10. Immediate next action
 
-Owner installs/tests the stable-signed character-foundation APK on phone/tablet and reports concrete UX/data issues. Record results on this branch. After acceptance and any focused fixes, prepare a PR for explicit owner review. The following major product slice remains the DM combat tracker.
+Owner runs the character-foundation post-build QA suite on the Android phone and reports pass/fail plus concrete UX/data issues. Record the result on this branch. Perform secondary tablet checking only as useful after the phone-first acceptance pass. After acceptance and any focused fixes, prepare a PR for explicit owner review. The following major product slice remains the DM combat tracker, whose primary manual acceptance device will be the tablet.
