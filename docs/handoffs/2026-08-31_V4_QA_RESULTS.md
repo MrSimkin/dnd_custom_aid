@@ -74,6 +74,16 @@ A multiple named-modifier-source model (for example `Alerta +5`, `Objeto mágico
 
 The owner-provided screenshots also show a **presentation issue in `Por atributo`**, not a skill-mechanics failure: at phone width, some labels such as `Juego de manos` and `Investigación` are forced into awkward multi-line fragments and compete with totals/training/adjustment controls for width. The ability-centered grouping concept remains accepted, but its responsive geometry needs refinement.
 
+### Habilidades view selector / state
+
+- Repeated switching between `Por habilidades` and `Por atributo`: **PASS**.
+- Returning to `Resumen` and back to `Habilidades` preserved the selected skills view as expected: **PASS**.
+- Rotation/recreation behavior for the selected skills view was reported as working correctly: **PASS**.
+- Reopening the character did not reveal a selector/state issue: **PASS**.
+- Owner reported no additional selector-specific UX problem in this build.
+
+**Habilidades selector/state acceptance: PASS.**
+
 ### Passive Perception
 
 - Tested Wisdom/Perception/proficiency arithmetic and passive-specific positive adjustment: **PASS**.
@@ -116,13 +126,14 @@ These are **presentation/layout findings for the next build**, not reasons to re
    - Owner delegated placement to assistant recommendation after considering either bottom-of-general-sheet or a new tab.
    - **Placement recommendation accepted for next build: put Quick Magic at the bottom of `Resumen`**, rather than adding a third tab at this stage. Rationale: it is still a compact quick-reference block, belongs with other at-a-glance character values, and does not yet contain enough spell-management content to justify a dedicated navigation destination. If spellcasting later expands materially, a dedicated tab can be reconsidered then.
 3. **Numeric editing bug:** required numeric inputs currently cannot be temporarily cleared while replacing a value. Example: changing Strength `20` to `8` forces an awkward intermediate value because deleting the last digit is rejected and the field retains a value. Expected UX: allow a temporary blank editor state while typing/replacing a number, then validate requiredness/range at save/commit rather than blocking deletion keystrokes.
+4. **Potential additional sheet tabs — NEXT-BUILD EXPLORATION:** owner wants the next build/design pass to deliberately consider adding one or more new character-sheet tabs for evaluation. This is **not yet an approved tab set or scope commitment**. Before implementing permanent navigation, candidate tabs should be evaluated against actual content density, frequency of use, and whether a separate destination improves the sheet versus keeping content in `Resumen`/`Habilidades`. Quick Magic remains at the bottom of `Resumen` for the next build unless that later evaluation produces a better supported structure.
 
 Implementation inspection confirms the numeric editing behavior: ability-score input is passed `allowBlank = false`, and `CompactIntInputV4` only propagates an edit when `allowBlank || cleaned.isNotBlank()`. This explains the observed inability to clear the field while editing.
 
 ## Pending next checks / work
 
-1. Finish combat-reference, selector, Settings/themes/fonts, and regression QA on the current APK.
-2. In the next follow-up build:
+1. Finish combat-reference, Settings/themes/fonts, and regression QA on the current APK.
+2. In the next follow-up build/design pass:
    - fix blank optional adjustments globally;
    - implement the approved interactive derived-value breakdown/editor pattern;
    - make ability modifiers slightly more prominent;
@@ -131,4 +142,5 @@ Implementation inspection confirms the numeric editing behavior: ability-score i
    - remove spell save DC from `Referencia de combate` and add the approved manual Quick Magic reference block at the bottom of `Resumen`;
    - standardize class/hit-die control geometry in both normal-selected-class and custom-class modes;
    - improve landscape combat-reference alignment;
-   - refine `Por atributo` phone-width label/control allocation while keeping the accepted grouping concept.
+   - refine `Por atributo` phone-width label/control allocation while keeping the accepted grouping concept;
+   - evaluate candidate new character-sheet tabs before committing any additional permanent navigation.
