@@ -95,6 +95,37 @@ A standard value is calculated because the application already knows the inputs.
 
 The UI should make the ordinary total easy to understand without forcing the user to maintain arithmetic manually.
 
+## Approved presentation direction after V4 QA
+
+The owner approved a progressive-disclosure interaction for all derived values that support optional adjustments, including Initiative, saving throws, skills and Passive Perception.
+
+The compact/default sheet should prioritize the **calculated final total** and should not permanently expose a small unexplained adjustment input beside every value.
+
+The derived total itself should be interactive. Activating it should open a compact breakdown/editor that explains the calculation and exposes the optional **Ajuste adicional**. Example for a skill:
+
+- ability contribution;
+- proficiency/training contribution;
+- `Ajuste adicional`;
+- final total.
+
+When the additional adjustment is zero, the compact sheet should remain visually clean. When it is non-zero, the UI may show a small secondary indication such as `ajuste +2` so the user can see that the ordinary calculation contains an exception without making that exception control visually dominant.
+
+Use **Ajuste adicional** rather than **modificador personalizado** in user-facing language. `Modificador` already has a specific D&D meaning for ability modifiers and should not be overloaded unnecessarily.
+
+This interaction replaces the current V4 presentation of always-visible `±0`/adjustment inputs in the next build. The durable arithmetic model itself remains unchanged.
+
+### Optional far-future enhancement — named modifier sources
+
+A richer system could someday store multiple named adjustment sources, for example `Alerta +5`, `Objeto mágico +1` or `Maldición -2`, and sum them into the final adjustment.
+
+This is recorded only as a **possible far-future enhancement**. It is **not part of the MVP, not on the current roadmap, and not a current implementation plan**. It should only be reconsidered if real use later demonstrates that a single explicit adjustment is insufficient.
+
+## Blank optional adjustment semantics
+
+An omitted/blank optional adjustment is semantically `0`.
+
+Therefore Initiative, saving throws, skills and Passive Perception must continue to calculate and display normally when their additional-adjustment input has never been populated or has been cleared. Blank optional adjustment state must not suppress the derived total or make an otherwise valid character unsavable.
+
 ## Migration from the V3 model
 
 V3 currently stores final initiative, saving-throw, passive-Perception and skill totals.
@@ -159,3 +190,9 @@ V4 must:
 - keep the product permissive for arbitrary final totals;
 - migrate existing V3 test data without silently changing displayed totals where preservation is possible;
 - clearly acknowledge that old save proficiency cannot be reconstructed because it was not previously stored.
+
+The **next V4 follow-up build** must additionally:
+
+- treat blank optional adjustments as zero across Initiative, saves, skills and Passive Perception;
+- replace the always-visible adjustment fields with the approved interactive-total / calculation-breakdown pattern;
+- retain the current simple single numeric adjustment in the data model.
