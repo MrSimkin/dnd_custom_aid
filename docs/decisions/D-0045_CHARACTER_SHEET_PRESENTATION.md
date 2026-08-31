@@ -64,9 +64,11 @@ Approved font-size scale options are:
 
 1. **80%**;
 2. **90%**;
-3. **100%** — default unless later UX testing justifies another default;
+3. **100%**;
 4. **115%**;
 5. **130%**.
+
+The default font-size step is **not yet approved**.
 
 Font-family/style policy for the first Settings menu:
 
@@ -109,6 +111,7 @@ A compact persistent editor header should keep navigation/character identity/sav
 The following remain intentionally open unless separately approved:
 
 - exact three font families offered by the first Settings menu;
+- default font-size step;
 - whether changing skill proficiency/training should ever recalculate the stored final skill modifier;
 - exact visual styling beyond the grouping/density directions already recorded by QA.
 
