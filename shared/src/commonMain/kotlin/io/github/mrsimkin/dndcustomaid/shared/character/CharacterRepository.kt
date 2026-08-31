@@ -29,12 +29,20 @@ class CharacterRepository(
                 name = name,
                 status = CharacterStatus.ACTIVE.name,
             )
+            CharacterAbility.entries.forEach { ability ->
+                database.characterQueries.insertCharacterSave(
+                    character_id = id.toString(),
+                    ability_key = ability.name,
+                    proficient = 0,
+                    adjustment = 0,
+                )
+            }
             SkillKey.entries.forEach { key ->
                 database.characterQueries.insertCharacterSkill(
                     character_id = id.toString(),
                     skill_key = key.name,
-                    modifier = 0,
                     training = SkillTraining.NONE.name,
+                    adjustment = 0,
                 )
             }
         }
@@ -55,6 +63,9 @@ class CharacterRepository(
             require(classLevel.hitDiceRemaining >= 0) { "Remaining hit dice must not be negative." }
         }
 
+        val savesByAbility = sheet.savingThrows.associateBy { it.ability }
+        require(savesByAbility.size == sheet.savingThrows.size) { "Each saving throw may appear only once." }
+
         val skillsByKey = sheet.skills.associateBy { it.key }
         require(skillsByKey.size == sheet.skills.size) { "Each skill may appear only once." }
 
@@ -72,16 +83,10 @@ class CharacterRepository(
                 sheet.maxHp.toLong(),
                 sheet.currentHp.toLong(),
                 sheet.tempHp.toLong(),
-                sheet.initiativeModifier.toLong(),
+                sheet.initiativeAdjustment.toLong(),
                 sheet.speed.toLong(),
                 sheet.proficiencyBonus.toLong(),
-                sheet.strengthSave.toLong(),
-                sheet.dexteritySave.toLong(),
-                sheet.constitutionSave.toLong(),
-                sheet.intelligenceSave.toLong(),
-                sheet.wisdomSave.toLong(),
-                sheet.charismaSave.toLong(),
-                sheet.passivePerception.toLong(),
+                sheet.passivePerceptionAdjustment.toLong(),
                 sheet.spellSaveDc?.toLong(),
                 sheet.id.toString(),
             )
@@ -99,17 +104,25 @@ class CharacterRepository(
                 )
             }
 
-            SkillKey.entries.forEach { key ->
-                val skill = skillsByKey[key] ?: CharacterSkill(
-                    key = key,
-                    modifier = 0,
-                    training = SkillTraining.NONE,
+            CharacterAbility.entries.forEach { ability ->
+                val save = savesByAbility[ability]
+                    ?: CharacterSavingThrow(ability = ability, proficient = false, adjustment = 0)
+                database.characterQueries.insertCharacterSave(
+                    character_id = sheet.id.toString(),
+                    ability_key = ability.name,
+                    proficient = if (save.proficient) 1 else 0,
+                    adjustment = save.adjustment.toLong(),
                 )
+            }
+
+            SkillKey.entries.forEach { key ->
+                val skill = skillsByKey[key]
+                    ?: CharacterSkill(key = key, adjustment = 0, training = SkillTraining.NONE)
                 database.characterQueries.insertCharacterSkill(
                     character_id = sheet.id.toString(),
                     skill_key = key.name,
-                    modifier = skill.modifier.toLong(),
                     training = skill.training.name,
+                    adjustment = skill.adjustment.toLong(),
                 )
             }
         }
@@ -135,11 +148,20 @@ class CharacterRepository(
             )
         }.executeAsList()
 
+        val storedSaves = database.characterQueries.selectCharacterSaves(core.id.toString()) {
+                _, abilityKey, proficient, adjustment ->
+            CharacterSavingThrow(
+                ability = CharacterAbility.valueOf(abilityKey),
+                proficient = proficient != 0L,
+                adjustment = adjustment.toInt(),
+            )
+        }.executeAsList().associateBy { it.ability }
+
         val storedSkills = database.characterQueries.selectCharacterSkills(core.id.toString()) {
-                _, skillKey, modifier, training ->
+                _, skillKey, training, adjustment ->
             CharacterSkill(
                 key = SkillKey.valueOf(skillKey),
-                modifier = modifier.toInt(),
+                adjustment = adjustment.toInt(),
                 training = SkillTraining.valueOf(training),
             )
         }.executeAsList().associateBy { it.key }
@@ -160,20 +182,19 @@ class CharacterRepository(
             maxHp = core.maxHp,
             currentHp = core.currentHp,
             tempHp = core.tempHp,
-            initiativeModifier = core.initiativeModifier,
+            initiativeAdjustment = core.initiativeAdjustment,
             speed = core.speed,
             proficiencyBonus = core.proficiencyBonus,
-            strengthSave = core.strengthSave,
-            dexteritySave = core.dexteritySave,
-            constitutionSave = core.constitutionSave,
-            intelligenceSave = core.intelligenceSave,
-            wisdomSave = core.wisdomSave,
-            charismaSave = core.charismaSave,
-            passivePerception = core.passivePerception,
+            savingThrows = CharacterAbility.entries.map { ability ->
+                storedSaves[ability]
+                    ?: CharacterSavingThrow(ability = ability, proficient = false, adjustment = 0)
+            },
+            passivePerceptionAdjustment = core.passivePerceptionAdjustment,
             spellSaveDc = core.spellSaveDc,
             classes = classes,
             skills = SkillKey.entries.map { key ->
-                storedSkills[key] ?: CharacterSkill(key, 0, SkillTraining.NONE)
+                storedSkills[key]
+                    ?: CharacterSkill(key = key, adjustment = 0, training = SkillTraining.NONE)
             },
         )
     }
@@ -194,16 +215,10 @@ class CharacterRepository(
         maxHp: Long,
         currentHp: Long,
         tempHp: Long,
-        initiativeModifier: Long,
+        initiativeAdjustment: Long,
         speed: Long,
         proficiencyBonus: Long,
-        strengthSave: Long,
-        dexteritySave: Long,
-        constitutionSave: Long,
-        intelligenceSave: Long,
-        wisdomSave: Long,
-        charismaSave: Long,
-        passivePerception: Long,
+        passivePerceptionAdjustment: Long,
         spellSaveDc: Long?,
     ) = CharacterCore(
         id = Uuid.parse(id),
@@ -221,16 +236,10 @@ class CharacterRepository(
         maxHp = maxHp.toInt(),
         currentHp = currentHp.toInt(),
         tempHp = tempHp.toInt(),
-        initiativeModifier = initiativeModifier.toInt(),
+        initiativeAdjustment = initiativeAdjustment.toInt(),
         speed = speed.toInt(),
         proficiencyBonus = proficiencyBonus.toInt(),
-        strengthSave = strengthSave.toInt(),
-        dexteritySave = dexteritySave.toInt(),
-        constitutionSave = constitutionSave.toInt(),
-        intelligenceSave = intelligenceSave.toInt(),
-        wisdomSave = wisdomSave.toInt(),
-        charismaSave = charismaSave.toInt(),
-        passivePerception = passivePerception.toInt(),
+        passivePerceptionAdjustment = passivePerceptionAdjustment.toInt(),
         spellSaveDc = spellSaveDc?.toInt(),
     )
 
@@ -250,16 +259,10 @@ class CharacterRepository(
         val maxHp: Int,
         val currentHp: Int,
         val tempHp: Int,
-        val initiativeModifier: Int,
+        val initiativeAdjustment: Int,
         val speed: Int,
         val proficiencyBonus: Int,
-        val strengthSave: Int,
-        val dexteritySave: Int,
-        val constitutionSave: Int,
-        val intelligenceSave: Int,
-        val wisdomSave: Int,
-        val charismaSave: Int,
-        val passivePerception: Int,
+        val passivePerceptionAdjustment: Int,
         val spellSaveDc: Int?,
     )
 }
