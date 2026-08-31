@@ -1,0 +1,1640 @@
+package io.github.mrsimkin.dndcustomaid.android
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
+import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
+import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import kotlin.uuid.Uuid
+import org.json.JSONArray
+import org.json.JSONObject
+
+private enum class CharacterTabV4(val label: String) {
+    OVERVIEW("Resumen"),
+    SKILLS("Habilidades"),
+}
+
+private val classNamesV4 = listOf(
+    "Artífice",
+    "Bárbaro",
+    "Bardo",
+    "Brujo",
+    "Clérigo",
+    "Druida",
+    "Explorador",
+    "Guerrero",
+    "Hechicero",
+    "Mago",
+    "Monje",
+    "Paladín",
+    "Pícaro",
+)
+
+@Composable
+internal fun CharacterEditorScreenV4(
+    characterId: Uuid,
+    repository: CharacterRepository,
+    preferences: UiPreferences,
+    onPreferencesChange: (UiPreferences) -> Unit,
+    onOpenSettings: () -> Unit,
+    onBack: () -> Unit,
+) {
+    var stored by remember(characterId) {
+        mutableStateOf(requireNotNull(repository.character(characterId)))
+    }
+    var draft by rememberSaveable(
+        characterId.toString(),
+        stateSaver = CharacterEditorDraftV4.Saver,
+    ) {
+        mutableStateOf(CharacterEditorDraftV4.from(stored))
+    }
+    var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
+    var selectedTabName by rememberSaveable(characterId.toString()) {
+        mutableStateOf(CharacterTabV4.OVERVIEW.name)
+    }
+    val selectedTab = runCatching { CharacterTabV4.valueOf(selectedTabName) }
+        .getOrDefault(CharacterTabV4.OVERVIEW)
+    val savable = draft.toSheetOrNull(stored) != null
+
+    fun updateDraft(updated: CharacterEditorDraftV4) {
+        draft = updated
+        savedMessage = null
+    }
+
+    fun save() {
+        val candidate = draft.toSheetOrNull(stored) ?: return
+        stored = repository.saveCharacter(candidate)
+        draft = CharacterEditorDraftV4.from(stored)
+        savedMessage = "Guardado"
+    }
+
+    Scaffold { scaffoldPadding ->
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(scaffoldPadding),
+        ) {
+            val wide = maxWidth >= 700.dp
+            Column(modifier = Modifier.fillMaxSize()) {
+                EditorHeaderV4(
+                    characterName = draft.name,
+                    stored = stored,
+                    savedMessage = savedMessage,
+                    savable = savable,
+                    onBack = onBack,
+                    onSave = ::save,
+                    onOpenSettings = onOpenSettings,
+                )
+                TabRow(
+                    selectedTabIndex = selectedTab.ordinal,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    CharacterTabV4.entries.forEach { tab ->
+                        Tab(
+                            selected = tab == selectedTab,
+                            onClick = { selectedTabName = tab.name },
+                            text = { Text(tab.label) },
+                        )
+                    }
+                }
+                when (selectedTab) {
+                    CharacterTabV4.OVERVIEW -> OverviewTabV4(
+                        draft = draft,
+                        stored = stored,
+                        wide = wide,
+                        onDraftChange = ::updateDraft,
+                    )
+                    CharacterTabV4.SKILLS -> SkillsTabV4(
+                        draft = draft,
+                        wide = wide,
+                        skillLayoutChoice = preferences.skillLayoutChoice,
+                        onSkillLayoutChange = {
+                            onPreferencesChange(preferences.copy(skillLayoutChoice = it))
+                        },
+                        onDraftChange = ::updateDraft,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditorHeaderV4(
+    characterName: String,
+    stored: CharacterSheet,
+    savedMessage: String?,
+    savable: Boolean,
+    onBack: () -> Unit,
+    onSave: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        StableBackIconButton(onClick = onBack, contentDescription = "Volver a personajes")
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                characterName.ifBlank { "Ficha de personaje" },
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+            )
+            Text(
+                savedMessage ?: "Guardado: ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+            )
+        }
+        StableSettingsIconButton(onClick = onOpenSettings)
+        Button(onClick = onSave, enabled = savable) { Text("Guardar") }
+    }
+}
+
+@Composable
+private fun OverviewTabV4(
+    draft: CharacterEditorDraftV4,
+    stored: CharacterSheet,
+    wide: Boolean,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+            .navigationBarsPadding(),
+        contentPadding = PaddingValues(
+            start = if (wide) 10.dp else 5.dp,
+            end = if (wide) 10.dp else 5.dp,
+            top = 5.dp,
+            bottom = 150.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        item {
+            IdentityCardV4(draft, stored, onDraftChange)
+        }
+        item {
+            ClassesCardV4(
+                classes = draft.classes,
+                onClassesChange = { onDraftChange(draft.copy(classes = it)) },
+            )
+        }
+        item {
+            AbilitiesCardV4(draft, onDraftChange)
+        }
+        item {
+            CombatCardV4(draft, wide, onDraftChange)
+        }
+    }
+}
+
+@Composable
+private fun IdentityCardV4(
+    draft: CharacterEditorDraftV4,
+    stored: CharacterSheet,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    SectionCardV4("Personaje") {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = draft.name,
+                onValueChange = { onDraftChange(draft.copy(name = it)) },
+                label = { Text("Nombre") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            StatusSelectorV4(
+                status = draft.status,
+                onStatusChange = { onDraftChange(draft.copy(status = it)) },
+            )
+        }
+        Text(
+            "Nivel total ${draft.classes.sumOf { it.level.toIntOrNull() ?: 0 }} · Último guardado ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
+            style = MaterialTheme.typography.labelSmall,
+        )
+    }
+}
+
+@Composable
+private fun StatusSelectorV4(
+    status: CharacterStatus,
+    onStatusChange: (CharacterStatus) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { expanded = true }) {
+            Text(statusLabelV4(status), maxLines = 1)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            CharacterStatus.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(statusLabelV4(option)) },
+                    onClick = {
+                        onStatusChange(option)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClassesCardV4(
+    classes: List<ClassLevelDraftV4>,
+    onClassesChange: (List<ClassLevelDraftV4>) -> Unit,
+) {
+    SectionCardV4("Clases y Dados de Golpe") {
+        if (classes.isEmpty()) {
+            Text("Sin clases registradas.", style = MaterialTheme.typography.bodySmall)
+        }
+        classes.forEach { classDraft ->
+            ClassRowV4(
+                draft = classDraft,
+                onChange = { changed ->
+                    onClassesChange(classes.map { if (it.id == changed.id) changed else it })
+                },
+                onRemove = { onClassesChange(classes.filterNot { it.id == classDraft.id }) },
+            )
+        }
+        TextButton(
+            onClick = {
+                onClassesChange(
+                    classes + ClassLevelDraftV4(
+                        id = Uuid.random(),
+                        name = "",
+                        level = "1",
+                        hitDieSides = "8",
+                        hitDiceRemaining = "1",
+                    ),
+                )
+            },
+        ) {
+            Text("+ Añadir clase")
+        }
+    }
+}
+
+@Composable
+private fun ClassRowV4(
+    draft: ClassLevelDraftV4,
+    onChange: (ClassLevelDraftV4) -> Unit,
+    onRemove: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        tonalElevation = 1.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 3.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            ClassSelectorV4(
+                draft = draft,
+                onChange = onChange,
+                modifier = Modifier.weight(1f),
+            )
+            CompactIntFieldV4(
+                label = "Nv.",
+                value = draft.level,
+                onValueChange = { onChange(draft.copy(level = it)) },
+                modifier = Modifier.width(44.dp),
+                allowBlank = false,
+            )
+            CompactIntFieldV4(
+                label = "DG",
+                value = draft.hitDiceRemaining,
+                onValueChange = { onChange(draft.copy(hitDiceRemaining = it)) },
+                modifier = Modifier.width(44.dp),
+                allowBlank = false,
+            )
+            HitDieSelectorV4(
+                value = draft.hitDieSides,
+                onValueChange = { onChange(draft.copy(hitDieSides = it)) },
+            )
+            TextButton(onClick = onRemove, modifier = Modifier.width(34.dp)) {
+                Text("×", maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClassSelectorV4(
+    draft: ClassLevelDraftV4,
+    onChange: (ClassLevelDraftV4) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var customMode by remember(draft.id, draft.name) {
+        mutableStateOf(draft.name.isNotBlank() && draft.name !in classNamesV4)
+    }
+
+    Column(modifier = modifier) {
+        Text("Clase", style = MaterialTheme.typography.labelSmall)
+        if (customMode) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CompactTextFieldV4(
+                    value = draft.name,
+                    onValueChange = { onChange(draft.copy(name = it)) },
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(
+                    onClick = {
+                        customMode = false
+                        expanded = true
+                    },
+                    modifier = Modifier.width(32.dp),
+                ) { Text("▾") }
+            }
+        } else {
+            Box {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                ) {
+                    Text(draft.name.ifBlank { "Elegir" }, maxLines = 1)
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    classNamesV4.forEach { className ->
+                        DropdownMenuItem(
+                            text = { Text(className) },
+                            onClick = {
+                                onChange(draft.copy(name = className))
+                                customMode = false
+                                expanded = false
+                            },
+                        )
+                    }
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text("Otro") },
+                        onClick = {
+                            onChange(draft.copy(name = if (draft.name in classNamesV4) "" else draft.name))
+                            customMode = true
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HitDieSelectorV4(
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    val commonDice = listOf("4", "6", "8", "10", "12")
+    var expanded by remember { mutableStateOf(false) }
+    var customMode by remember(value) { mutableStateOf(value.isNotBlank() && value !in commonDice) }
+
+    Column(modifier = Modifier.width(66.dp)) {
+        Text("Tipo", style = MaterialTheme.typography.labelSmall)
+        if (customMode) {
+            CompactIntInputV4(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            TextButton(
+                onClick = {
+                    customMode = false
+                    expanded = true
+                },
+                contentPadding = PaddingValues(horizontal = 2.dp),
+            ) { Text("Lista", maxLines = 1) }
+        } else {
+            Box {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                ) {
+                    Text(
+                        if (value.isBlank()) "d?" else "d$value",
+                        maxLines = 1,
+                        softWrap = false,
+                    )
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    commonDice.forEach { sides ->
+                        DropdownMenuItem(
+                            text = { Text("d$sides", maxLines = 1) },
+                            onClick = {
+                                onValueChange(sides)
+                                customMode = false
+                                expanded = false
+                            },
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text("Otro") },
+                        onClick = {
+                            customMode = true
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AbilitiesCardV4(
+    draft: CharacterEditorDraftV4,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    SectionCardV4("Características") {
+        AbilitiesRowV4(draft, onDraftChange)
+    }
+}
+
+@Composable
+private fun AbilitiesRowV4(
+    draft: CharacterEditorDraftV4,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        CharacterAbility.entries.forEach { ability ->
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                CompactIntInputV4(
+                    value = draft.abilityValue(ability),
+                    onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    allowBlank = false,
+                )
+                Text(
+                    draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—",
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CombatCardV4(
+    draft: CharacterEditorDraftV4,
+    wide: Boolean,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    SectionCardV4("Referencia de combate") {
+        if (wide) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Referencia", style = MaterialTheme.typography.labelMedium)
+                    CombatExplicitRowV4(
+                        draft,
+                        labels = Triple("CA", "Iniciativa", "Velocidad"),
+                        values = Triple(draft.armorClass, draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(), draft.speed),
+                        onFirst = { onDraftChange(draft.copy(armorClass = it)) },
+                        onSecondAdjustment = { onDraftChange(draft.copy(initiativeAdjustment = it)) },
+                        onThird = { onDraftChange(draft.copy(speed = it)) },
+                        secondAdjustment = draft.initiativeAdjustment,
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Puntos de golpe", style = MaterialTheme.typography.labelMedium)
+                    TripleExplicitFieldsV4(
+                        "PG actuales", draft.currentHp, { onDraftChange(draft.copy(currentHp = it)) },
+                        "PG máximos", draft.maxHp, { onDraftChange(draft.copy(maxHp = it)) },
+                        "PG temporales", draft.tempHp, { onDraftChange(draft.copy(tempHp = it)) },
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Referencia secundaria", style = MaterialTheme.typography.labelMedium)
+                    SecondaryCombatRowV4(draft, onDraftChange)
+                }
+            }
+        } else {
+            CombatExplicitRowV4(
+                draft,
+                labels = Triple("CA", "Iniciativa", "Velocidad"),
+                values = Triple(draft.armorClass, draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(), draft.speed),
+                onFirst = { onDraftChange(draft.copy(armorClass = it)) },
+                onSecondAdjustment = { onDraftChange(draft.copy(initiativeAdjustment = it)) },
+                onThird = { onDraftChange(draft.copy(speed = it)) },
+                secondAdjustment = draft.initiativeAdjustment,
+            )
+            TripleExplicitFieldsV4(
+                "PG actuales", draft.currentHp, { onDraftChange(draft.copy(currentHp = it)) },
+                "PG máximos", draft.maxHp, { onDraftChange(draft.copy(maxHp = it)) },
+                "PG temporales", draft.tempHp, { onDraftChange(draft.copy(tempHp = it)) },
+            )
+            SecondaryCombatRowV4(draft, onDraftChange)
+        }
+    }
+}
+
+@Composable
+private fun CombatExplicitRowV4(
+    draft: CharacterEditorDraftV4,
+    labels: Triple<String, String, String>,
+    values: Triple<String, String, String>,
+    onFirst: (String) -> Unit,
+    onSecondAdjustment: (String) -> Unit,
+    onThird: (String) -> Unit,
+    secondAdjustment: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        CompactIntFieldV4(labels.first, values.first, onFirst, Modifier.weight(1f))
+        DerivedValueCellV4(
+            label = labels.second,
+            total = values.second,
+            adjustment = secondAdjustment,
+            onAdjustmentChange = onSecondAdjustment,
+            modifier = Modifier.weight(1f),
+        )
+        CompactIntFieldV4(labels.third, values.third, onThird, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun TripleExplicitFieldsV4(
+    firstLabel: String,
+    firstValue: String,
+    onFirst: (String) -> Unit,
+    secondLabel: String,
+    secondValue: String,
+    onSecond: (String) -> Unit,
+    thirdLabel: String,
+    thirdValue: String,
+    onThird: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        CompactIntFieldV4(firstLabel, firstValue, onFirst, Modifier.weight(1f), signed = true)
+        CompactIntFieldV4(secondLabel, secondValue, onSecond, Modifier.weight(1f))
+        CompactIntFieldV4(thirdLabel, thirdValue, onThird, Modifier.weight(1f), signed = true)
+    }
+}
+
+@Composable
+private fun SecondaryCombatRowV4(
+    draft: CharacterEditorDraftV4,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        CompactIntFieldV4(
+            "Bono competencia",
+            draft.proficiencyBonus,
+            { onDraftChange(draft.copy(proficiencyBonus = it)) },
+            Modifier.weight(1f),
+            signed = true,
+        )
+        DerivedValueCellV4(
+            label = "Percepción pasiva",
+            total = draft.passivePerceptionTotal()?.toString().orEmpty(),
+            adjustment = draft.passivePerceptionAdjustment,
+            onAdjustmentChange = { onDraftChange(draft.copy(passivePerceptionAdjustment = it)) },
+            modifier = Modifier.weight(1f),
+        )
+        CompactIntFieldV4(
+            "CD conjuros",
+            draft.spellSaveDc,
+            { onDraftChange(draft.copy(spellSaveDc = it)) },
+            Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun DerivedValueCellV4(
+    label: String,
+    total: String,
+    adjustment: String,
+    onAdjustmentChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 38.dp),
+                shape = MaterialTheme.shapes.small,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(total.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                }
+            }
+            CompactIntInputV4(
+                value = adjustment,
+                onValueChange = onAdjustmentChange,
+                modifier = Modifier.width(43.dp),
+                signed = true,
+                placeholder = "±0",
+            )
+        }
+    }
+}
+
+@Composable
+private fun SkillsTabV4(
+    draft: CharacterEditorDraftV4,
+    wide: Boolean,
+    skillLayoutChoice: SkillLayoutChoice,
+    onSkillLayoutChange: (SkillLayoutChoice) -> Unit,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+            .navigationBarsPadding(),
+        contentPadding = PaddingValues(
+            start = if (wide) 10.dp else 5.dp,
+            end = if (wide) 10.dp else 5.dp,
+            top = 5.dp,
+            bottom = 170.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        item {
+            SkillViewSelectorV4(skillLayoutChoice, onSkillLayoutChange)
+        }
+        when (skillLayoutChoice) {
+            SkillLayoutChoice.BY_SKILLS -> {
+                item { AbilitiesCardV4(draft, onDraftChange) }
+                item { SavesCardV4(draft, wide, onDraftChange) }
+                item { SkillsListCardV4(draft, wide, onDraftChange) }
+            }
+            SkillLayoutChoice.BY_ATTRIBUTE -> {
+                item { AbilityGroupsCardV4(draft, wide, onDraftChange) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkillViewSelectorV4(
+    current: SkillLayoutChoice,
+    onChange: (SkillLayoutChoice) -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            SkillLayoutChoice.entries.forEach { choice ->
+                val selected = choice == current
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onChange(choice) },
+                    color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                ) {
+                    Text(
+                        choice.label,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                        textAlign = TextAlign.Center,
+                        style = if (selected) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
+                        maxLines = 2,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavesCardV4(
+    draft: CharacterEditorDraftV4,
+    wide: Boolean,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    SectionCardV4("Tiradas de salvación") {
+        Text(
+            "Marca competencia cuando corresponda. ± conserva bonificadores o penalizadores especiales.",
+            style = MaterialTheme.typography.labelSmall,
+        )
+        val columns = if (wide) 3 else 2
+        CharacterAbility.entries.chunked(columns).forEach { abilities ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                abilities.forEach { ability ->
+                    SaveRowV4(
+                        ability = ability,
+                        draft = draft,
+                        onDraftChange = onDraftChange,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(columns - abilities.size) { Spacer(modifier = Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SaveRowV4(
+    ability: CharacterAbility,
+    draft: CharacterEditorDraftV4,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val save = draft.saveFor(ability)
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelMedium)
+            Text(
+                draft.savingThrowTotal(ability)?.let(::formatSignedV4) ?: "—",
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+            )
+            SaveProficiencyToggleV4(
+                proficient = save.proficient,
+                onToggle = {
+                    onDraftChange(draft.withSave(save.copy(proficient = !save.proficient)))
+                },
+            )
+            CompactIntInputV4(
+                value = save.adjustment,
+                onValueChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
+                modifier = Modifier.width(42.dp),
+                signed = true,
+                placeholder = "±0",
+            )
+        }
+    }
+}
+
+@Composable
+private fun SaveProficiencyToggleV4(
+    proficient: Boolean,
+    onToggle: () -> Unit,
+) {
+    val color = if (proficient) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    Surface(
+        modifier = Modifier
+            .size(36.dp)
+            .clickable(onClick = onToggle),
+        shape = CircleShape,
+        border = BorderStroke(1.5.dp, color),
+        color = if (proficient) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        if (proficient) {
+            Canvas(modifier = Modifier.padding(9.dp)) {
+                val stroke = 2.2.dp.toPx()
+                drawLine(
+                    color = color,
+                    start = Offset(size.width * 0.12f, size.height * 0.55f),
+                    end = Offset(size.width * 0.42f, size.height * 0.82f),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+                drawLine(
+                    color = color,
+                    start = Offset(size.width * 0.42f, size.height * 0.82f),
+                    end = Offset(size.width * 0.9f, size.height * 0.18f),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkillsListCardV4(
+    draft: CharacterEditorDraftV4,
+    wide: Boolean,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    SectionCardV4("Habilidades") {
+        Text(
+            "El control cuadrado indica sin competencia, competencia o pericia. ± es un ajuste especial.",
+            style = MaterialTheme.typography.labelSmall,
+        )
+        if (wide) {
+            val midpoint = (draft.skills.size + 1) / 2
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    draft.skills.take(midpoint).forEachIndexed { index, skill ->
+                        SkillRowV4(skill, draft, onDraftChange)
+                        if (index < midpoint - 1) HorizontalDivider()
+                    }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    val second = draft.skills.drop(midpoint)
+                    second.forEachIndexed { index, skill ->
+                        SkillRowV4(skill, draft, onDraftChange)
+                        if (index < second.lastIndex) HorizontalDivider()
+                    }
+                }
+            }
+        } else {
+            draft.skills.forEachIndexed { index, skill ->
+                SkillRowV4(skill, draft, onDraftChange)
+                if (index < draft.skills.lastIndex) HorizontalDivider()
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkillRowV4(
+    skill: SkillDraftV4,
+    draft: CharacterEditorDraftV4,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "${skillLabelV4(skill.key)} (${abilityAbbreviationV4(skill.key.ability)})",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2,
+        )
+        Text(
+            draft.skillTotal(skill.key)?.let(::formatSignedV4) ?: "—",
+            modifier = Modifier.width(42.dp),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+        )
+        TrainingSelectorV4(
+            training = skill.training,
+            onTrainingChange = { onDraftChange(draft.withSkill(skill.copy(training = it))) },
+        )
+        CompactIntInputV4(
+            value = skill.adjustment,
+            onValueChange = { onDraftChange(draft.withSkill(skill.copy(adjustment = it))) },
+            modifier = Modifier.width(44.dp),
+            signed = true,
+            placeholder = "±0",
+        )
+    }
+}
+
+@Composable
+private fun TrainingSelectorV4(
+    training: SkillTraining,
+    onTrainingChange: (SkillTraining) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier
+                .width(44.dp)
+                .heightIn(min = 38.dp),
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            TrainingGlyphV4(training)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            SkillTraining.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(trainingLabelV4(option)) },
+                    onClick = {
+                        onTrainingChange(option)
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TrainingGlyphV4(training: SkillTraining) {
+    val color = MaterialTheme.colorScheme.onSurface
+    Canvas(modifier = Modifier.size(20.dp)) {
+        val border = 1.5.dp.toPx()
+        drawRect(color = color, style = Stroke(width = border))
+        if (training != SkillTraining.NONE) {
+            fun check(offsetY: Float) {
+                val stroke = 1.8.dp.toPx()
+                drawLine(
+                    color = color,
+                    start = Offset(size.width * 0.12f, size.height * (0.48f + offsetY)),
+                    end = Offset(size.width * 0.4f, size.height * (0.72f + offsetY)),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+                drawLine(
+                    color = color,
+                    start = Offset(size.width * 0.4f, size.height * (0.72f + offsetY)),
+                    end = Offset(size.width * 0.88f, size.height * (0.22f + offsetY)),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
+                )
+            }
+            when (training) {
+                SkillTraining.PROFICIENT -> check(0f)
+                SkillTraining.EXPERTISE -> {
+                    check(-0.12f)
+                    check(0.12f)
+                }
+                SkillTraining.NONE -> Unit
+            }
+        }
+    }
+}
+
+@Composable
+private fun AbilityGroupsCardV4(
+    draft: CharacterEditorDraftV4,
+    wide: Boolean,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    SectionCardV4("Características, salvaciones y habilidades") {
+        val columns = if (wide) 3 else 2
+        CharacterAbility.entries.chunked(columns).forEach { rowAbilities ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                rowAbilities.forEach { ability ->
+                    AbilityGroupV4(
+                        ability = ability,
+                        draft = draft,
+                        onDraftChange = onDraftChange,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(columns - rowAbilities.size) { Spacer(modifier = Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AbilityGroupV4(
+    ability: CharacterAbility,
+    draft: CharacterEditorDraftV4,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        tonalElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(4.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelMedium)
+                    CompactIntInputV4(
+                        value = draft.abilityValue(ability),
+                        onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        allowBlank = false,
+                    )
+                    Text(
+                        "Mod. ${draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—"}",
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+                SaveRowV4(
+                    ability = ability,
+                    draft = draft,
+                    onDraftChange = onDraftChange,
+                    modifier = Modifier.weight(1.25f),
+                )
+            }
+            val relatedSkills = draft.skills.filter { it.key.ability == ability }
+            if (relatedSkills.isEmpty()) {
+                Text("Sin habilidades asociadas", style = MaterialTheme.typography.labelSmall)
+            } else {
+                relatedSkills.forEach { skill ->
+                    SkillRowV4(skill, draft, onDraftChange)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionCardV4(
+    title: String,
+    content: @Composable () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 5.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            content()
+        }
+    }
+}
+
+@Composable
+private fun CompactIntFieldV4(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    signed: Boolean = false,
+    allowBlank: Boolean = true,
+) {
+    Column(modifier = modifier) {
+        Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
+        CompactIntInputV4(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            signed = signed,
+            allowBlank = allowBlank,
+        )
+    }
+}
+
+@Composable
+private fun CompactIntInputV4(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    signed: Boolean = false,
+    allowBlank: Boolean = true,
+    placeholder: String = "",
+) {
+    Surface(
+        modifier = modifier.heightIn(min = 38.dp),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (value.isBlank() && placeholder.isNotBlank()) {
+                Text(
+                    placeholder,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            BasicTextField(
+                value = value,
+                onValueChange = { raw ->
+                    val cleaned = sanitizeIntInputV4(raw, signed)
+                    if (allowBlank || cleaned.isNotBlank()) onValueChange(cleaned)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactTextFieldV4(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.heightIn(min = 38.dp),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 5.dp, vertical = 6.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            )
+        }
+    }
+}
+
+private fun sanitizeIntInputV4(raw: String, signed: Boolean): String {
+    if (!signed) return raw.filter(Char::isDigit)
+    if (raw.isBlank()) return ""
+    val sign = raw.firstOrNull()?.takeIf { it == '+' || it == '-' }?.toString().orEmpty()
+    val digits = raw.drop(if (sign.isEmpty()) 0 else 1).filter(Char::isDigit)
+    return sign + digits
+}
+
+private data class ClassLevelDraftV4(
+    val id: Uuid,
+    val name: String,
+    val level: String,
+    val hitDieSides: String,
+    val hitDiceRemaining: String,
+)
+
+private data class SaveDraftV4(
+    val ability: CharacterAbility,
+    val proficient: Boolean,
+    val adjustment: String,
+)
+
+private data class SkillDraftV4(
+    val key: SkillKey,
+    val adjustment: String,
+    val training: SkillTraining,
+)
+
+private data class CharacterEditorDraftV4(
+    val name: String,
+    val status: CharacterStatus,
+    val strength: String,
+    val dexterity: String,
+    val constitution: String,
+    val intelligence: String,
+    val wisdom: String,
+    val charisma: String,
+    val armorClass: String,
+    val maxHp: String,
+    val currentHp: String,
+    val tempHp: String,
+    val initiativeAdjustment: String,
+    val speed: String,
+    val proficiencyBonus: String,
+    val passivePerceptionAdjustment: String,
+    val spellSaveDc: String,
+    val classes: List<ClassLevelDraftV4>,
+    val saves: List<SaveDraftV4>,
+    val skills: List<SkillDraftV4>,
+) {
+    fun abilityValue(ability: CharacterAbility): String = when (ability) {
+        CharacterAbility.STRENGTH -> strength
+        CharacterAbility.DEXTERITY -> dexterity
+        CharacterAbility.CONSTITUTION -> constitution
+        CharacterAbility.INTELLIGENCE -> intelligence
+        CharacterAbility.WISDOM -> wisdom
+        CharacterAbility.CHARISMA -> charisma
+    }
+
+    fun withAbilityValue(ability: CharacterAbility, value: String): CharacterEditorDraftV4 = when (ability) {
+        CharacterAbility.STRENGTH -> copy(strength = value)
+        CharacterAbility.DEXTERITY -> copy(dexterity = value)
+        CharacterAbility.CONSTITUTION -> copy(constitution = value)
+        CharacterAbility.INTELLIGENCE -> copy(intelligence = value)
+        CharacterAbility.WISDOM -> copy(wisdom = value)
+        CharacterAbility.CHARISMA -> copy(charisma = value)
+    }
+
+    fun abilityModifier(ability: CharacterAbility): Int? = abilityValue(ability).toIntOrNull()?.let(::abilityModifierForScore)
+
+    fun saveFor(ability: CharacterAbility): SaveDraftV4 =
+        saves.firstOrNull { it.ability == ability } ?: SaveDraftV4(ability, false, "0")
+
+    fun withSave(changed: SaveDraftV4): CharacterEditorDraftV4 = copy(
+        saves = CharacterAbility.entries.map { ability ->
+            if (ability == changed.ability) changed else saveFor(ability)
+        },
+    )
+
+    fun withSkill(changed: SkillDraftV4): CharacterEditorDraftV4 = copy(
+        skills = SkillKey.entries.map { key ->
+            if (key == changed.key) changed else skills.firstOrNull { it.key == key }
+                ?: SkillDraftV4(key, "0", SkillTraining.NONE)
+        },
+    )
+
+    fun savingThrowTotal(ability: CharacterAbility): Int? {
+        val modifier = abilityModifier(ability) ?: return null
+        val proficiency = proficiencyBonus.toIntOrNull() ?: return null
+        val save = saveFor(ability)
+        val adjustment = save.adjustment.toIntOrNull() ?: return null
+        return modifier + (if (save.proficient) proficiency else 0) + adjustment
+    }
+
+    fun skillTotal(key: SkillKey): Int? {
+        val modifier = abilityModifier(key.ability) ?: return null
+        val proficiency = proficiencyBonus.toIntOrNull() ?: return null
+        val skill = skills.firstOrNull { it.key == key } ?: return null
+        val adjustment = skill.adjustment.toIntOrNull() ?: return null
+        val contribution = when (skill.training) {
+            SkillTraining.NONE -> 0
+            SkillTraining.PROFICIENT -> proficiency
+            SkillTraining.EXPERTISE -> proficiency * 2
+        }
+        return modifier + contribution + adjustment
+    }
+
+    fun initiativeTotal(): Int? {
+        val dexterityModifier = abilityModifier(CharacterAbility.DEXTERITY) ?: return null
+        val adjustment = initiativeAdjustment.toIntOrNull() ?: return null
+        return dexterityModifier + adjustment
+    }
+
+    fun passivePerceptionTotal(): Int? {
+        val perception = skillTotal(SkillKey.PERCEPTION) ?: return null
+        val adjustment = passivePerceptionAdjustment.toIntOrNull() ?: return null
+        return 10 + perception + adjustment
+    }
+
+    fun toSheetOrNull(original: CharacterSheet): CharacterSheet? {
+        fun parsed(value: String): Int? = value.trim().toIntOrNull()
+        val normalizedName = name.trim().takeIf { it.isNotEmpty() } ?: return null
+        val parsedClasses = classes.mapIndexed { index, classDraft ->
+            CharacterClassLevel(
+                id = classDraft.id,
+                name = classDraft.name.trim().takeIf { it.isNotEmpty() } ?: return null,
+                level = parsed(classDraft.level)?.takeIf { it > 0 } ?: return null,
+                hitDieSides = parsed(classDraft.hitDieSides)?.takeIf { it > 0 } ?: return null,
+                hitDiceRemaining = parsed(classDraft.hitDiceRemaining)?.takeIf { it >= 0 } ?: return null,
+                sortOrder = index,
+            )
+        }
+        val parsedSaves = CharacterAbility.entries.map { ability ->
+            val save = saveFor(ability)
+            CharacterSavingThrow(
+                ability = ability,
+                proficient = save.proficient,
+                adjustment = parsed(save.adjustment) ?: return null,
+            )
+        }
+        val parsedSkills = SkillKey.entries.map { key ->
+            val skill = skills.firstOrNull { it.key == key } ?: return null
+            CharacterSkill(
+                key = key,
+                adjustment = parsed(skill.adjustment) ?: return null,
+                training = skill.training,
+            )
+        }
+        val spellDc = if (spellSaveDc.isBlank()) null else parsed(spellSaveDc) ?: return null
+
+        return original.copy(
+            name = normalizedName,
+            status = status,
+            strength = parsed(strength) ?: return null,
+            dexterity = parsed(dexterity) ?: return null,
+            constitution = parsed(constitution) ?: return null,
+            intelligence = parsed(intelligence) ?: return null,
+            wisdom = parsed(wisdom) ?: return null,
+            charisma = parsed(charisma) ?: return null,
+            armorClass = parsed(armorClass) ?: return null,
+            maxHp = parsed(maxHp) ?: return null,
+            currentHp = parsed(currentHp) ?: return null,
+            tempHp = parsed(tempHp) ?: return null,
+            initiativeAdjustment = parsed(initiativeAdjustment) ?: return null,
+            speed = parsed(speed) ?: return null,
+            proficiencyBonus = parsed(proficiencyBonus) ?: return null,
+            savingThrows = parsedSaves,
+            passivePerceptionAdjustment = parsed(passivePerceptionAdjustment) ?: return null,
+            spellSaveDc = spellDc,
+            classes = parsedClasses,
+            skills = parsedSkills,
+        )
+    }
+
+    fun toJson(): String = JSONObject().apply {
+        put("name", name)
+        put("status", status.name)
+        put("strength", strength)
+        put("dexterity", dexterity)
+        put("constitution", constitution)
+        put("intelligence", intelligence)
+        put("wisdom", wisdom)
+        put("charisma", charisma)
+        put("armorClass", armorClass)
+        put("maxHp", maxHp)
+        put("currentHp", currentHp)
+        put("tempHp", tempHp)
+        put("initiativeAdjustment", initiativeAdjustment)
+        put("speed", speed)
+        put("proficiencyBonus", proficiencyBonus)
+        put("passivePerceptionAdjustment", passivePerceptionAdjustment)
+        put("spellSaveDc", spellSaveDc)
+        put("classes", JSONArray().apply {
+            classes.forEach { item ->
+                put(JSONObject().apply {
+                    put("id", item.id.toString())
+                    put("name", item.name)
+                    put("level", item.level)
+                    put("die", item.hitDieSides)
+                    put("remaining", item.hitDiceRemaining)
+                })
+            }
+        })
+        put("saves", JSONArray().apply {
+            saves.forEach { item ->
+                put(JSONObject().apply {
+                    put("ability", item.ability.name)
+                    put("proficient", item.proficient)
+                    put("adjustment", item.adjustment)
+                })
+            }
+        })
+        put("skills", JSONArray().apply {
+            skills.forEach { item ->
+                put(JSONObject().apply {
+                    put("key", item.key.name)
+                    put("training", item.training.name)
+                    put("adjustment", item.adjustment)
+                })
+            }
+        })
+    }.toString()
+
+    companion object {
+        val Saver: Saver<CharacterEditorDraftV4, String> = Saver(
+            save = { it.toJson() },
+            restore = { fromJson(it) },
+        )
+
+        fun from(sheet: CharacterSheet) = CharacterEditorDraftV4(
+            name = sheet.name,
+            status = sheet.status,
+            strength = sheet.strength.toString(),
+            dexterity = sheet.dexterity.toString(),
+            constitution = sheet.constitution.toString(),
+            intelligence = sheet.intelligence.toString(),
+            wisdom = sheet.wisdom.toString(),
+            charisma = sheet.charisma.toString(),
+            armorClass = sheet.armorClass.toString(),
+            maxHp = sheet.maxHp.toString(),
+            currentHp = sheet.currentHp.toString(),
+            tempHp = sheet.tempHp.toString(),
+            initiativeAdjustment = sheet.initiativeAdjustment.toString(),
+            speed = sheet.speed.toString(),
+            proficiencyBonus = sheet.proficiencyBonus.toString(),
+            passivePerceptionAdjustment = sheet.passivePerceptionAdjustment.toString(),
+            spellSaveDc = sheet.spellSaveDc?.toString().orEmpty(),
+            classes = sheet.classes.map {
+                ClassLevelDraftV4(it.id, it.name, it.level.toString(), it.hitDieSides.toString(), it.hitDiceRemaining.toString())
+            },
+            saves = CharacterAbility.entries.map { ability ->
+                val save = sheet.savingThrow(ability)
+                SaveDraftV4(ability, save.proficient, save.adjustment.toString())
+            },
+            skills = SkillKey.entries.map { key ->
+                val skill = sheet.skill(key)
+                SkillDraftV4(key, skill.adjustment.toString(), skill.training)
+            },
+        )
+
+        private fun fromJson(raw: String): CharacterEditorDraftV4? = runCatching {
+            val json = JSONObject(raw)
+            val classesJson = json.getJSONArray("classes")
+            val classes = buildList {
+                for (index in 0 until classesJson.length()) {
+                    val item = classesJson.getJSONObject(index)
+                    add(
+                        ClassLevelDraftV4(
+                            id = Uuid.parse(item.getString("id")),
+                            name = item.getString("name"),
+                            level = item.getString("level"),
+                            hitDieSides = item.getString("die"),
+                            hitDiceRemaining = item.getString("remaining"),
+                        ),
+                    )
+                }
+            }
+            val savesJson = json.getJSONArray("saves")
+            val saves = buildList {
+                for (index in 0 until savesJson.length()) {
+                    val item = savesJson.getJSONObject(index)
+                    add(
+                        SaveDraftV4(
+                            ability = CharacterAbility.valueOf(item.getString("ability")),
+                            proficient = item.getBoolean("proficient"),
+                            adjustment = item.getString("adjustment"),
+                        ),
+                    )
+                }
+            }
+            val skillsJson = json.getJSONArray("skills")
+            val skills = buildList {
+                for (index in 0 until skillsJson.length()) {
+                    val item = skillsJson.getJSONObject(index)
+                    add(
+                        SkillDraftV4(
+                            key = SkillKey.valueOf(item.getString("key")),
+                            adjustment = item.getString("adjustment"),
+                            training = SkillTraining.valueOf(item.getString("training")),
+                        ),
+                    )
+                }
+            }
+            CharacterEditorDraftV4(
+                name = json.getString("name"),
+                status = CharacterStatus.valueOf(json.getString("status")),
+                strength = json.getString("strength"),
+                dexterity = json.getString("dexterity"),
+                constitution = json.getString("constitution"),
+                intelligence = json.getString("intelligence"),
+                wisdom = json.getString("wisdom"),
+                charisma = json.getString("charisma"),
+                armorClass = json.getString("armorClass"),
+                maxHp = json.getString("maxHp"),
+                currentHp = json.getString("currentHp"),
+                tempHp = json.getString("tempHp"),
+                initiativeAdjustment = json.getString("initiativeAdjustment"),
+                speed = json.getString("speed"),
+                proficiencyBonus = json.getString("proficiencyBonus"),
+                passivePerceptionAdjustment = json.getString("passivePerceptionAdjustment"),
+                spellSaveDc = json.getString("spellSaveDc"),
+                classes = classes,
+                saves = saves,
+                skills = skills,
+            )
+        }.getOrNull()
+    }
+}
+
+private fun abilityAbbreviationV4(ability: CharacterAbility): String = when (ability) {
+    CharacterAbility.STRENGTH -> "FUE"
+    CharacterAbility.DEXTERITY -> "DES"
+    CharacterAbility.CONSTITUTION -> "CON"
+    CharacterAbility.INTELLIGENCE -> "INT"
+    CharacterAbility.WISDOM -> "SAB"
+    CharacterAbility.CHARISMA -> "CAR"
+}
+
+private fun skillLabelV4(key: SkillKey): String = when (key) {
+    SkillKey.ACROBATICS -> "Acrobacias"
+    SkillKey.ANIMAL_HANDLING -> "Trato con Animales"
+    SkillKey.ARCANA -> "Arcanos"
+    SkillKey.ATHLETICS -> "Atletismo"
+    SkillKey.DECEPTION -> "Engaño"
+    SkillKey.HISTORY -> "Historia"
+    SkillKey.INSIGHT -> "Perspicacia"
+    SkillKey.INTIMIDATION -> "Intimidación"
+    SkillKey.INVESTIGATION -> "Investigación"
+    SkillKey.MEDICINE -> "Medicina"
+    SkillKey.NATURE -> "Naturaleza"
+    SkillKey.PERCEPTION -> "Percepción"
+    SkillKey.PERFORMANCE -> "Interpretación"
+    SkillKey.PERSUASION -> "Persuasión"
+    SkillKey.RELIGION -> "Religión"
+    SkillKey.SLEIGHT_OF_HAND -> "Juego de Manos"
+    SkillKey.STEALTH -> "Sigilo"
+    SkillKey.SURVIVAL -> "Supervivencia"
+}
+
+private fun trainingLabelV4(training: SkillTraining): String = when (training) {
+    SkillTraining.NONE -> "Sin competencia"
+    SkillTraining.PROFICIENT -> "Competente"
+    SkillTraining.EXPERTISE -> "Pericia"
+}
+
+private fun statusLabelV4(status: CharacterStatus): String = when (status) {
+    CharacterStatus.ACTIVE -> "Activo"
+    CharacterStatus.INACTIVE -> "Inactivo"
+    CharacterStatus.RETIRED -> "Retirado"
+    CharacterStatus.DEAD -> "Muerto"
+}
+
+private fun formatSignedV4(value: Int): String = if (value >= 0) "+$value" else value.toString()
+
+private fun formatSavedAtV4(epochSeconds: Long): String = runCatching {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+    Instant.ofEpochSecond(epochSeconds).atZone(ZoneId.systemDefault()).format(formatter)
+}.getOrElse { "—" }
