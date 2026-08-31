@@ -33,14 +33,31 @@ This file records owner-supplied V4 manual QA observations incrementally. Do not
 - **BUG:** when the Initiative custom/explicit adjustment field is blank, the displayed Initiative is blank instead of treating the omitted adjustment as `0` and displaying the Dexterity-derived Initiative.
 - Expected behavior: blank optional adjustment = `0`; the derived total should remain visible.
 - Owner reports the current presentation is visually acceptable overall but the mechanism for entering custom/additional modifiers is **not clear or intuitive enough**.
-- UX direction is deliberately not yet fixed. The concept of explicit additional modifiers should be workshopped before final V4 acceptance rather than merely relabeled without discussion.
 
 **Initiative acceptance: NEEDS CHANGES.**
 
-Implementation inspection confirms the blank-value defect is consistent with `initiativeAdjustment.toIntOrNull() ?: return null`; the optional field currently converts blank to a missing total instead of zero.
+Implementation inspection confirms the blank-value defect is consistent with `initiativeAdjustment.toIntOrNull() ?: return null`; the same blank-as-invalid pattern also appears in save, skill and Passive Perception adjustment parsing and must be corrected consistently rather than only for Initiative.
+
+### Approved adjustment UX direction for next build
+
+The owner approved the progressive-disclosure design discussed during QA:
+
+- compact/default presentation shows the calculated final value rather than a permanently visible unexplained adjustment box;
+- the calculated value itself is interactive;
+- tapping it opens a compact calculation breakdown/editor;
+- the breakdown exposes an optional **Ajuste adicional** and shows the relevant arithmetic inputs/contributions plus the final total;
+- when adjustment is zero, the compact sheet stays visually clean;
+- when adjustment is non-zero, a small secondary indication such as `ajuste +2` may be shown;
+- the same interaction pattern applies to Initiative, saving throws, skills and Passive Perception;
+- use `Ajuste adicional` rather than `modificador personalizado` in user-facing wording.
+
+This approved UX change goes into the next build; the owner wants to continue testing the current V4 APK first.
+
+A multiple named-modifier-source model (for example `Alerta +5`, `Objeto mágico +1`, `Maldición -2`) is recorded only as a potentially useful **far-future enhancement**. It is explicitly **not MVP, not current roadmap, and not a current implementation plan**.
 
 ## Pending next checks / work
 
-1. Fix the Initiative blank-adjustment behavior so blank means zero.
-2. Workshop a clearer UX pattern for optional custom/additional modifiers, considering that the same concept applies beyond Initiative to saves, skills and Passive Perception.
-3. Continue saving-throw, skill and Passive Perception derived-value checks from `docs/QA_CHECKLIST.md`; observations may help choose the adjustment UX pattern before implementing it broadly.
+1. Continue current-build QA with saving throws.
+2. Continue skill and Passive Perception derived-value checks.
+3. Finish remaining V4 presentation/regression QA before changing the APK.
+4. In the next follow-up build, fix blank optional adjustments globally and implement the approved interactive derived-value breakdown/editor pattern.
