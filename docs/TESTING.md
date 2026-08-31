@@ -2,7 +2,7 @@
 
 ## Current status
 
-The initial scaffold is canonical on `main` after PR #4. The Phase 3 local campaign create/select slice is implemented and CI-green on `implementation/local-campaign-selection`; manual Android UX verification remains pending. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
+Phase 3 is complete and canonical on `main` after PR #5. The local Android campaign create/select slice passed focused automated verification plus manual phone and tablet checks. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
 
 ## 1. Core rule
 
@@ -16,7 +16,7 @@ Every meaningful implementation change should state concisely:
 - what was not tested when that matters;
 - relevant environment/device information when it matters.
 
-## 2. Scaffold verification commands
+## 2. Standard verification commands
 
 ### Kotlin / Android / Desktop / SQLDelight
 
@@ -36,13 +36,13 @@ npm run check
 
 This runs Wrangler type generation and TypeScript type checking.
 
-## 3. Last successful Phase 3 verification
+## 3. Phase 3 final verification
 
-Latest verified feature code head:
+PR #5 final review head:
 
-`c909cd34f34137b2ce74691fe195dfd48f6a02f2`
+`124626aa6f0fabd449ee5823c1651e3cc01f3e70`
 
-GitHub Actions run #25 passed on that exact revision:
+The pull-request GitHub Actions workflow passed on that head:
 
 - shared Kotlin compilation — success;
 - campaign repository tests — success;
@@ -52,29 +52,15 @@ GitHub Actions run #25 passed on that exact revision:
 - Android debug APK artifact upload — success;
 - backend Wrangler/TypeScript check — success.
 
-The successful run includes the correction that makes all current campaign-screen user-facing text Spanish under C-0006.
+PR #5 was then merged into `main` as:
+
+`dc1304080f0b71bcb44690b5ee317f3877385286`
+
+The merge triggered the same `main` workflow. Backend passed; Kotlin/Android/Desktop was still running when the Phase 4 documentation transition began. Documentation-only commits made during that transition also trigger the same workflow and do not change application behavior.
 
 The campaign persistence test closes SQLite, reopens the same database file, and verifies that the stored campaign and active selection survive the reopen.
 
-Manual Android device/emulator UX verification has not yet occurred.
-
-## 4. Scaffold baseline verification
-
-Final Phase 2 scaffold branch head:
-
-`2f8746de1053bf97cc18d7a522f2027e91879251`
-
-GitHub Actions run #14 passed on that exact revision before PR #4 merged it into `main` as merge commit `d50409270db52df05508f91363bf76385030a77d`.
-
-## 5. Known non-blocking tooling notes
-
-The KMP `androidLibrary` target DSL used by `shared` currently emits a deprecation warning. The current official Kotlin KMP application template still uses the same API, so the project deliberately does not churn a green foundation merely to silence a tooling-transition warning.
-
-The Gradle wrapper JAR is not currently committed because the repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the wrapper later.
-
-## 6. Phase 3 campaign-slice verification scope
-
-Focused automated verification covers behavior that actually exists:
+## 4. Phase 3 behavior covered by automated tests
 
 - creating a campaign with a nonblank trimmed name succeeds;
 - blank/whitespace-only campaign names are rejected;
@@ -82,36 +68,60 @@ Focused automated verification covers behavior that actually exists:
 - duplicate display names are allowed without identity collision;
 - selecting an active campaign persists locally;
 - changing the active campaign replaces the previous active selection;
-- reopening the database/application storage can recover campaigns and active selection.
+- reopening database storage recovers campaigns and active selection.
 
-Do not add tests for hosted synchronization, membership, roles or other features excluded from the slice.
+No tests were added for hosted synchronization, membership, roles or other features excluded from the slice.
 
-## 7. CI
+## 5. Manual Android verification
+
+Approved minimum is Android 11 / API 30.
+
+On 2026-08-30 the owner manually verified the CI-built debug APK on an Android phone and tablet.
+
+Confirmed:
+
+- installation and launch succeeded;
+- campaign screen was in Spanish;
+- campaign creation worked;
+- active-campaign selection worked;
+- campaigns and active selection survived app restart;
+- phone layout was functional;
+- tablet layout was functional and not excessively stretched.
+
+Non-blocking observations:
+
+- current UI has more empty/dead space than desired;
+- tablet landscape underuses horizontal space;
+- richer future screens will provide a better basis for adaptive-layout decisions;
+- theme support is desired for future UI work.
+
+These observations did not fail the Phase 3 acceptance criteria.
+
+## 6. Scaffold baseline verification
+
+Final Phase 2 scaffold branch head:
+
+`2f8746de1053bf97cc18d7a522f2027e91879251`
+
+GitHub Actions run #14 passed on that exact revision before PR #4 merged it into `main` as `d50409270db52df05508f91363bf76385030a77d`.
+
+## 7. Known non-blocking tooling notes
+
+The KMP `androidLibrary` target DSL used by `shared` currently emits a deprecation warning. The current official Kotlin KMP application template still uses the same API, so the project deliberately does not churn a green foundation merely to silence a tooling-transition warning.
+
+The Gradle wrapper JAR is not currently committed because the repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the wrapper later.
+
+## 8. CI
 
 Use one simple GitHub Actions workflow for relevant pushes/pull requests. CI is a safety check, not deployment.
 
 Initial CI does not require coverage gates, SonarQube, emulator farms, broad API matrices, staging, automatic production deployment, automated release publishing, or giant screenshot suites.
 
-## 8. Android device verification
+## 9. Phase 4 verification rule
 
-Approved minimum is Android 11 / API 30.
+For each Phase 4 slice, add only focused automated/manual verification for behavior that actually exists and the material risks introduced by that slice.
 
-Manual real-device UX testing is now the remaining Phase 3 gate. Check at least the actual relevant phone/tablet form factor(s) when practical. For the current slice, verify:
-
-1. launch the application;
-2. confirm the campaign screen is presented in Spanish;
-3. create at least two campaigns;
-4. confirm blank/whitespace-only names cannot be submitted;
-5. select the first campaign and verify it is visibly active;
-6. select the second campaign and verify active selection changes;
-7. close/restart the app and verify both campaigns and the active selection remain;
-8. confirm the simple layout is usable on the intended phone/tablet form factor(s).
-
-Automated UI infrastructure is not required merely to prove this slice.
-
-## 9. Future focused verification
-
-As later features actually appear, add tests for consequential SQLDelight migrations, sync/outbox/idempotency, combat sequence authority, backend auth/authz, PDF behavior, and SRD grounding. Do not create tests for infrastructure or behavior that does not exist.
+As features appear, likely verification areas include consequential SQLDelight migrations, sync/outbox/idempotency, combat sequence authority, backend auth/authz, PDF behavior, and SRD grounding. Do not create tests for infrastructure or behavior that does not exist.
 
 ## 10. Regression rule
 
