@@ -68,14 +68,15 @@ Approved font-size scale options are:
 4. **115%**;
 5. **130%**.
 
-The default font-size step is **not yet approved**.
+The approved default is **100%**.
 
-Font-family/style policy for the first Settings menu:
+Approved font families/styles for the first Settings menu are:
 
-- **no serif option**;
-- offer **two distinct sans-serif families** plus **one condensed sans-serif family**;
-- avoid the overused/default-feeling families such as Roboto, Arial and Helvetica;
-- exact family names remain to be selected with owner approval before implementation becomes final.
+1. **Manrope** — sans-serif;
+2. **Atkinson Hyperlegible Next** — sans-serif;
+3. **Barlow Condensed** — condensed sans-serif.
+
+There is **no serif option**. These families intentionally avoid the overused/default-feeling families such as Roboto, Arial and Helvetica. They are an initial reversible selection: if owner QA dislikes one or more of them, another family can replace it without changing the settings model.
 
 Theme choices must include at least:
 
@@ -110,8 +111,6 @@ A compact persistent editor header should keep navigation/character identity/sav
 
 The following remain intentionally open unless separately approved:
 
-- exact three font families offered by the first Settings menu;
-- default font-size step;
 - whether changing skill proficiency/training should ever recalculate the stored final skill modifier;
 - exact visual styling beyond the grouping/density directions already recorded by QA.
 
@@ -128,5 +127,5 @@ Before producing the next owner-test APK, implementation should:
 - make skill rows materially more compact;
 - show each skill's associated ability;
 - implement both ability/skill presentation modes with **By skills** as default and persist that choice as a user/device presentation preference rather than character data;
-- introduce the small global Settings surface with font sizes **80/90/100/115/130%**, two non-generic sans options, one condensed sans option, and the five approved themes;
+- introduce the small global Settings surface with the approved **100%** default, font sizes **80/90/100/115/130%**, Manrope, Atkinson Hyperlegible Next, Barlow Condensed, and the five approved themes;
 - preserve stable grouping in landscape as dynamic class rows are added.
