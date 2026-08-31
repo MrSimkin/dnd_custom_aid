@@ -246,6 +246,7 @@ private fun CombatQuickReferenceCardV4(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.Top,
             ) {
                 ReadOnlyReferenceV4("CA", armorClass, Modifier.weight(1f))
                 ReadOnlyReferenceV4("Iniciativa", initiative.ifBlank { "—" }, Modifier.weight(1f))
@@ -254,6 +255,7 @@ private fun CombatQuickReferenceCardV4(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.Top,
             ) {
                 ReadOnlyReferenceV4("PG actuales", currentHp, Modifier.weight(1f))
                 ReadOnlyReferenceV4("PG máximos", maxHp, Modifier.weight(1f))
@@ -270,7 +272,7 @@ private fun CombatQuickReferenceCardV4(
 @Composable
 private fun ReadOnlyReferenceV4(label: String, value: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
-        Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
+        CompactFieldLabelV4(label)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
