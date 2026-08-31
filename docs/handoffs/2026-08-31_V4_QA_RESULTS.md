@@ -26,6 +26,7 @@ This file records owner-supplied V4 manual QA observations incrementally. Do not
 - Representative ability scores produced the expected automatic modifiers: **PASS**.
 - Owner reported the automatic modifier behavior looked correct for the requested representative checks.
 - The six ability scores/modifiers fit acceptably in one row on the intended phone layout: **PASS / visually acceptable**.
+- Additional visual observation: the derived ability modifiers should be made **slightly larger/more prominent** so they do not get visually lost beneath the ability scores.
 
 ### Initiative
 
@@ -55,9 +56,32 @@ This approved UX change goes into the next build; the owner wants to continue te
 
 A multiple named-modifier-source model (for example `Alerta +5`, `Objeto mágico +1`, `Maldición -2`) is recorded only as a potentially useful **far-future enhancement**. It is explicitly **not MVP, not current roadmap, and not a current implementation plan**.
 
+### Saving throws
+
+- Tested proficiency off/on, positive and negative explicit adjustments, and derived arithmetic: **PASS**.
+- Owner reported **no saving-throw-specific notes or defects** beyond the already-recorded global optional-adjustment behavior; do not duplicate that known issue in each derived-value section.
+
+**Saving-throw-specific acceptance: PASS.**
+
+### Additional UX / product observations from this pass
+
+1. **Alignment/consistency:** owner noticed unaligned or visually inconsistent elements in the current sheet. Screenshots will be supplied and should be reviewed/recorded when received; no speculative fix should be committed before seeing them.
+2. **Proficiency bonus:** owner approves expanding the basic calculation assistance slightly and wants `Bonificador por competencia` to become a calculated value rather than a manually maintained reference field. This is not a request for a full character builder.
+3. **Spell save DC / combat reference:** owner does not want `CD de salvación de conjuros` to remain in `Referencia de combate` by itself. It should either be removed from that group or, if explicitly chosen, move into a small manual **Quick Magic** section together with spell slots, spellcasting ability, spell save DC and spell attack modifier. Whether to add Quick Magic now remains an open next-build design decision; it is not yet an approved scope expansion.
+4. **Numeric editing bug:** required numeric inputs currently cannot be temporarily cleared while replacing a value. Example: changing Strength `20` to `8` forces an awkward intermediate value because deleting the last digit is rejected and the field retains a value. Expected UX: allow a temporary blank editor state while typing/replacing a number, then validate requiredness/range at save/commit rather than blocking deletion keystrokes.
+
+Implementation inspection confirms the numeric editing behavior: ability-score input is passed `allowBlank = false`, and `CompactIntInputV4` only propagates an edit when `allowBlank || cleaned.isNotBlank()`. This explains the observed inability to clear the field while editing.
+
 ## Pending next checks / work
 
-1. Continue current-build QA with saving throws.
-2. Continue skill and Passive Perception derived-value checks.
+1. Continue current-build QA with skills and Passive Perception.
+2. Review owner screenshots for alignment/inconsistency findings when supplied.
 3. Finish remaining V4 presentation/regression QA before changing the APK.
-4. In the next follow-up build, fix blank optional adjustments globally and implement the approved interactive derived-value breakdown/editor pattern.
+4. In the next follow-up build:
+   - fix blank optional adjustments globally;
+   - implement the approved interactive derived-value breakdown/editor pattern;
+   - make ability modifiers slightly more prominent;
+   - calculate proficiency bonus from character level while preserving the project’s permissive exception philosophy;
+   - allow temporary blank numeric draft states during editing and validate on save/commit;
+   - resolve the spell-save-DC/Quick-Magic placement decision after QA discussion;
+   - apply screenshot-confirmed alignment/consistency fixes.
