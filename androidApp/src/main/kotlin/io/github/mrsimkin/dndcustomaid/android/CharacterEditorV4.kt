@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -63,6 +64,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
+import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -71,7 +73,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 private enum class CharacterTabV4(val label: String) {
-    OVERVIEW("Resumen"),
+    OVERVIEW("General"),
     SKILLS("Habilidades"),
 }
 
@@ -113,20 +115,35 @@ internal fun CharacterEditorScreenV4(
     var selectedTabName by rememberSaveable(characterId.toString()) {
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
     }
+    var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
     val selectedTab = runCatching { CharacterTabV4.valueOf(selectedTabName) }
         .getOrDefault(CharacterTabV4.OVERVIEW)
-    val savable = draft.toSheetOrNull(stored) != null
+    val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
 
     fun updateDraft(updated: CharacterEditorDraftV4) {
         draft = updated
         savedMessage = null
     }
 
-    fun save() {
-        val candidate = draft.toSheetOrNull(stored) ?: return
+    fun persist(candidate: CharacterSheet) {
         stored = repository.saveCharacter(candidate)
         draft = CharacterEditorDraftV4.from(stored)
         savedMessage = "Guardado"
+    }
+
+    fun save() {
+        if (draft.missingRequiredNumberLabels().isNotEmpty()) {
+            confirmBlankNumbers = true
+            return
+        }
+        val candidate = draft.toSheetOrNull(stored) ?: return
+        persist(candidate)
+    }
+
+    fun saveBlankNumbersAsZero() {
+        val candidate = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: return
+        confirmBlankNumbers = false
+        persist(candidate)
     }
 
     Scaffold { scaffoldPadding ->
@@ -177,6 +194,32 @@ internal fun CharacterEditorScreenV4(
                 }
             }
         }
+    }
+
+    if (confirmBlankNumbers) {
+        val missing = draft.missingRequiredNumberLabels()
+        AlertDialog(
+            onDismissRequest = { confirmBlankNumbers = false },
+            title = { Text("Guardar campos vacíos como 0") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Hay campos numéricos requeridos vacíos. Si continúas, se guardarán como 0.")
+                    if (missing.isNotEmpty()) {
+                        val shown = missing.take(8).joinToString(", ")
+                        Text(
+                            if (missing.size > 8) "$shown…" else shown,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = ::saveBlankNumbersAsZero) { Text("Guardar con 0") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBlankNumbers = false }) { Text("Cancelar") }
+            },
+        )
     }
 }
 
@@ -278,7 +321,7 @@ private fun IdentityCardV4(
             )
         }
         Text(
-            "Nivel total ${draft.classes.sumOf { it.level.toIntOrNull() ?: 0 }} · Último guardado ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
+            "Nivel total ${draft.totalLevel()} · Último guardado ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
             style = MaterialTheme.typography.labelSmall,
         )
     }
@@ -372,14 +415,12 @@ private fun ClassRowV4(
                 value = draft.level,
                 onValueChange = { onChange(draft.copy(level = it)) },
                 modifier = Modifier.width(44.dp),
-                allowBlank = false,
             )
             CompactIntFieldV4(
                 label = "DG",
                 value = draft.hitDiceRemaining,
                 onValueChange = { onChange(draft.copy(hitDiceRemaining = it)) },
                 modifier = Modifier.width(44.dp),
-                allowBlank = false,
             )
             HitDieSelectorV4(
                 value = draft.hitDieSides,
@@ -549,11 +590,10 @@ private fun AbilitiesRowV4(
                     value = draft.abilityValue(ability),
                     onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
                     modifier = Modifier.fillMaxWidth(),
-                    allowBlank = false,
                 )
                 Text(
                     draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                 )
             }
@@ -639,6 +679,9 @@ private fun CombatExplicitRowV4(
             label = labels.second,
             total = values.second,
             adjustment = secondAdjustment,
+            breakdownLines = listOf(
+                "Destreza ${draft.abilityModifier(CharacterAbility.DEXTERITY)?.let(::formatSignedV4) ?: "—"}",
+            ),
             onAdjustmentChange = onSecondAdjustment,
             modifier = Modifier.weight(1f),
         )
@@ -678,17 +721,25 @@ private fun SecondaryCombatRowV4(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        CompactIntFieldV4(
-            "Bono competencia",
-            draft.proficiencyBonus,
-            { onDraftChange(draft.copy(proficiencyBonus = it)) },
-            Modifier.weight(1f),
-            signed = true,
+        DerivedValueCellV4(
+            label = "Bono competencia",
+            total = draft.finalProficiencyBonus()?.let(::formatSignedV4).orEmpty(),
+            adjustment = draft.proficiencyBonusAdjustment,
+            breakdownLines = listOf(
+                "Nivel total ${draft.totalLevel()}",
+                "Bono estándar ${formatSignedV4(draft.standardProficiencyBonus())}",
+            ),
+            onAdjustmentChange = { onDraftChange(draft.copy(proficiencyBonusAdjustment = it)) },
+            modifier = Modifier.weight(1f),
         )
         DerivedValueCellV4(
             label = "Percepción pasiva",
             total = draft.passivePerceptionTotal()?.toString().orEmpty(),
             adjustment = draft.passivePerceptionAdjustment,
+            breakdownLines = listOf(
+                "Percepción ${draft.skillTotal(SkillKey.PERCEPTION)?.let(::formatSignedV4) ?: "—"}",
+                "Base pasiva +10",
+            ),
             onAdjustmentChange = { onDraftChange(draft.copy(passivePerceptionAdjustment = it)) },
             modifier = Modifier.weight(1f),
         )
@@ -706,36 +757,91 @@ private fun DerivedValueCellV4(
     label: String,
     total: String,
     adjustment: String,
+    breakdownLines: List<String>,
     onAdjustmentChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
-        Row(
+        DerivedTotalControlV4(
+            total = total,
+            adjustment = adjustment,
+            dialogTitle = label,
+            breakdownLines = breakdownLines,
+            onAdjustmentChange = onAdjustmentChange,
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        )
+    }
+}
+
+@Composable
+private fun DerivedTotalControlV4(
+    total: String,
+    adjustment: String,
+    dialogTitle: String,
+    breakdownLines: List<String>,
+    onAdjustmentChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var dialogOpen by remember { mutableStateOf(false) }
+    val adjustmentValue = parseOptionalAdjustmentV4(adjustment) ?: 0
+
+    Surface(
+        modifier = modifier
+            .heightIn(min = 38.dp)
+            .clickable { dialogOpen = true },
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Surface(
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = 38.dp),
-                shape = MaterialTheme.shapes.small,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(total.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
-                }
+            Text(total.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+            if (adjustmentValue != 0) {
+                Text(
+                    "ajuste ${formatSignedV4(adjustmentValue)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                )
             }
-            CompactIntInputV4(
-                value = adjustment,
-                onValueChange = onAdjustmentChange,
-                modifier = Modifier.width(43.dp),
-                signed = true,
-                placeholder = "±0",
-            )
         }
+    }
+
+    if (dialogOpen) {
+        var pendingAdjustment by remember(dialogOpen, adjustment) { mutableStateOf(adjustment) }
+        AlertDialog(
+            onDismissRequest = { dialogOpen = false },
+            title = { Text(dialogTitle) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    breakdownLines.forEach { line ->
+                        Text(line, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Text("Ajuste adicional", style = MaterialTheme.typography.labelMedium)
+                    CompactIntInputV4(
+                        value = pendingAdjustment,
+                        onValueChange = { pendingAdjustment = it },
+                        modifier = Modifier.width(110.dp),
+                        signed = true,
+                        placeholder = "0",
+                    )
+                    Text("Total actual ${total.ifBlank { "—" }}", style = MaterialTheme.typography.labelMedium)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onAdjustmentChange(pendingAdjustment)
+                        dialogOpen = false
+                    },
+                ) { Text("Aplicar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { dialogOpen = false }) { Text("Cancelar") }
+            },
+        )
     }
 }
 
@@ -816,7 +922,7 @@ private fun SavesCardV4(
 ) {
     SectionCardV4("Tiradas de salvación") {
         Text(
-            "Marca competencia cuando corresponda. ± conserva bonificadores o penalizadores especiales.",
+            "Marca competencia cuando corresponda. Toca el total para ver el cálculo y editar Ajuste adicional.",
             style = MaterialTheme.typography.labelSmall,
         )
         val columns = if (wide) 3 else 2
@@ -848,6 +954,8 @@ private fun SaveRowV4(
     modifier: Modifier = Modifier,
 ) {
     val save = draft.saveFor(ability)
+    val abilityModifier = draft.abilityModifier(ability)
+    val proficiency = draft.finalProficiencyBonus()
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.small,
@@ -859,25 +967,26 @@ private fun SaveRowV4(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelMedium)
-            Text(
-                draft.savingThrowTotal(ability)?.let(::formatSignedV4) ?: "—",
+            DerivedTotalControlV4(
+                total = draft.savingThrowTotal(ability)?.let(::formatSignedV4).orEmpty(),
+                adjustment = save.adjustment,
+                dialogTitle = "Salvación ${abilityAbbreviationV4(ability)}",
+                breakdownLines = listOf(
+                    "${abilityAbbreviationV4(ability)} ${abilityModifier?.let(::formatSignedV4) ?: "—"}",
+                    if (save.proficient) {
+                        "Competencia ${proficiency?.let(::formatSignedV4) ?: "—"}"
+                    } else {
+                        "Sin competencia +0"
+                    },
+                ),
+                onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
                 modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
             )
             SaveProficiencyToggleV4(
                 proficient = save.proficient,
                 onToggle = {
                     onDraftChange(draft.withSave(save.copy(proficient = !save.proficient)))
                 },
-            )
-            CompactIntInputV4(
-                value = save.adjustment,
-                onValueChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
-                modifier = Modifier.width(42.dp),
-                signed = true,
-                placeholder = "±0",
             )
         }
     }
@@ -927,7 +1036,7 @@ private fun SkillsListCardV4(
 ) {
     SectionCardV4("Habilidades") {
         Text(
-            "El control cuadrado indica sin competencia, competencia o pericia. ± es un ajuste especial.",
+            "El control cuadrado indica sin competencia, competencia o pericia. Toca el total para ver el cálculo y editar Ajuste adicional.",
             style = MaterialTheme.typography.labelSmall,
         )
         if (wide) {
@@ -966,6 +1075,15 @@ private fun SkillRowV4(
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
 ) {
+    val abilityModifier = draft.abilityModifier(skill.key.ability)
+    val proficiency = draft.finalProficiencyBonus()
+    val proficiencyContribution = proficiency?.let {
+        when (skill.training) {
+            SkillTraining.NONE -> 0
+            SkillTraining.PROFICIENT -> it
+            SkillTraining.EXPERTISE -> it * 2
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -979,23 +1097,20 @@ private fun SkillRowV4(
             style = MaterialTheme.typography.bodySmall,
             maxLines = 2,
         )
-        Text(
-            draft.skillTotal(skill.key)?.let(::formatSignedV4) ?: "—",
-            modifier = Modifier.width(42.dp),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
+        DerivedTotalControlV4(
+            total = draft.skillTotal(skill.key)?.let(::formatSignedV4).orEmpty(),
+            adjustment = skill.adjustment,
+            dialogTitle = skillLabelV4(skill.key),
+            breakdownLines = listOf(
+                "${abilityAbbreviationV4(skill.key.ability)} ${abilityModifier?.let(::formatSignedV4) ?: "—"}",
+                "${trainingLabelV4(skill.training)} ${proficiencyContribution?.let(::formatSignedV4) ?: "—"}",
+            ),
+            onAdjustmentChange = { onDraftChange(draft.withSkill(skill.copy(adjustment = it))) },
+            modifier = Modifier.width(58.dp),
         )
         TrainingSelectorV4(
             training = skill.training,
             onTrainingChange = { onDraftChange(draft.withSkill(skill.copy(training = it))) },
-        )
-        CompactIntInputV4(
-            value = skill.adjustment,
-            onValueChange = { onDraftChange(draft.withSkill(skill.copy(adjustment = it))) },
-            modifier = Modifier.width(44.dp),
-            signed = true,
-            placeholder = "±0",
         )
     }
 }
@@ -1122,11 +1237,10 @@ private fun AbilityGroupV4(
                         value = draft.abilityValue(ability),
                         onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
                         modifier = Modifier.fillMaxWidth(),
-                        allowBlank = false,
                     )
                     Text(
                         "Mod. ${draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—"}",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
                 SaveRowV4(
@@ -1268,6 +1382,16 @@ private fun sanitizeIntInputV4(raw: String, signed: Boolean): String {
     return sign + digits
 }
 
+private fun isMissingNumericTokenV4(value: String): Boolean {
+    val trimmed = value.trim()
+    return trimmed.isEmpty() || trimmed == "+" || trimmed == "-"
+}
+
+private fun parseOptionalAdjustmentV4(value: String): Int? {
+    if (isMissingNumericTokenV4(value)) return 0
+    return value.trim().toIntOrNull()
+}
+
 private data class ClassLevelDraftV4(
     val id: Uuid,
     val name: String,
@@ -1303,7 +1427,7 @@ private data class CharacterEditorDraftV4(
     val tempHp: String,
     val initiativeAdjustment: String,
     val speed: String,
-    val proficiencyBonus: String,
+    val proficiencyBonusAdjustment: String,
     val passivePerceptionAdjustment: String,
     val spellSaveDc: String,
     val classes: List<ClassLevelDraftV4>,
@@ -1330,6 +1454,15 @@ private data class CharacterEditorDraftV4(
 
     fun abilityModifier(ability: CharacterAbility): Int? = abilityValue(ability).toIntOrNull()?.let(::abilityModifierForScore)
 
+    fun totalLevel(): Int = classes.sumOf { it.level.toIntOrNull() ?: 0 }
+
+    fun standardProficiencyBonus(): Int = standardProficiencyBonusForLevel(totalLevel())
+
+    fun finalProficiencyBonus(): Int? {
+        val adjustment = parseOptionalAdjustmentV4(proficiencyBonusAdjustment) ?: return null
+        return standardProficiencyBonus() + adjustment
+    }
+
     fun saveFor(ability: CharacterAbility): SaveDraftV4 =
         saves.firstOrNull { it.ability == ability } ?: SaveDraftV4(ability, false, "0")
 
@@ -1348,17 +1481,17 @@ private data class CharacterEditorDraftV4(
 
     fun savingThrowTotal(ability: CharacterAbility): Int? {
         val modifier = abilityModifier(ability) ?: return null
-        val proficiency = proficiencyBonus.toIntOrNull() ?: return null
+        val proficiency = finalProficiencyBonus() ?: return null
         val save = saveFor(ability)
-        val adjustment = save.adjustment.toIntOrNull() ?: return null
+        val adjustment = parseOptionalAdjustmentV4(save.adjustment) ?: return null
         return modifier + (if (save.proficient) proficiency else 0) + adjustment
     }
 
     fun skillTotal(key: SkillKey): Int? {
         val modifier = abilityModifier(key.ability) ?: return null
-        val proficiency = proficiencyBonus.toIntOrNull() ?: return null
+        val proficiency = finalProficiencyBonus() ?: return null
         val skill = skills.firstOrNull { it.key == key } ?: return null
-        val adjustment = skill.adjustment.toIntOrNull() ?: return null
+        val adjustment = parseOptionalAdjustmentV4(skill.adjustment) ?: return null
         val contribution = when (skill.training) {
             SkillTraining.NONE -> 0
             SkillTraining.PROFICIENT -> proficiency
@@ -1369,26 +1502,57 @@ private data class CharacterEditorDraftV4(
 
     fun initiativeTotal(): Int? {
         val dexterityModifier = abilityModifier(CharacterAbility.DEXTERITY) ?: return null
-        val adjustment = initiativeAdjustment.toIntOrNull() ?: return null
+        val adjustment = parseOptionalAdjustmentV4(initiativeAdjustment) ?: return null
         return dexterityModifier + adjustment
     }
 
     fun passivePerceptionTotal(): Int? {
         val perception = skillTotal(SkillKey.PERCEPTION) ?: return null
-        val adjustment = passivePerceptionAdjustment.toIntOrNull() ?: return null
+        val adjustment = parseOptionalAdjustmentV4(passivePerceptionAdjustment) ?: return null
         return 10 + perception + adjustment
     }
 
-    fun toSheetOrNull(original: CharacterSheet): CharacterSheet? {
-        fun parsed(value: String): Int? = value.trim().toIntOrNull()
+    fun missingRequiredNumberLabels(): List<String> = buildList {
+        listOf(
+            "FUE" to strength,
+            "DES" to dexterity,
+            "CON" to constitution,
+            "INT" to intelligence,
+            "SAB" to wisdom,
+            "CAR" to charisma,
+            "CA" to armorClass,
+            "PG máximos" to maxHp,
+            "PG actuales" to currentHp,
+            "PG temporales" to tempHp,
+            "Velocidad" to speed,
+        ).forEach { (label, value) ->
+            if (isMissingNumericTokenV4(value)) add(label)
+        }
+        classes.forEachIndexed { index, classDraft ->
+            if (isMissingNumericTokenV4(classDraft.level)) add("Nv. clase ${index + 1}")
+            if (isMissingNumericTokenV4(classDraft.hitDiceRemaining)) add("DG clase ${index + 1}")
+            if (isMissingNumericTokenV4(classDraft.hitDieSides)) add("Tipo DG clase ${index + 1}")
+        }
+    }
+
+    fun toSheetOrNull(
+        original: CharacterSheet,
+        blankRequiredAsZero: Boolean = false,
+    ): CharacterSheet? {
+        fun parsedRequired(value: String): Int? {
+            if (isMissingNumericTokenV4(value)) return if (blankRequiredAsZero) 0 else null
+            return value.trim().toIntOrNull()
+        }
+        fun parsedAdjustment(value: String): Int? = parseOptionalAdjustmentV4(value)
+
         val normalizedName = name.trim().takeIf { it.isNotEmpty() } ?: return null
         val parsedClasses = classes.mapIndexed { index, classDraft ->
             CharacterClassLevel(
                 id = classDraft.id,
                 name = classDraft.name.trim().takeIf { it.isNotEmpty() } ?: return null,
-                level = parsed(classDraft.level)?.takeIf { it > 0 } ?: return null,
-                hitDieSides = parsed(classDraft.hitDieSides)?.takeIf { it > 0 } ?: return null,
-                hitDiceRemaining = parsed(classDraft.hitDiceRemaining)?.takeIf { it >= 0 } ?: return null,
+                level = parsedRequired(classDraft.level)?.takeIf { it >= 0 } ?: return null,
+                hitDieSides = parsedRequired(classDraft.hitDieSides)?.takeIf { it >= 0 } ?: return null,
+                hitDiceRemaining = parsedRequired(classDraft.hitDiceRemaining)?.takeIf { it >= 0 } ?: return null,
                 sortOrder = index,
             )
         }
@@ -1397,37 +1561,40 @@ private data class CharacterEditorDraftV4(
             CharacterSavingThrow(
                 ability = ability,
                 proficient = save.proficient,
-                adjustment = parsed(save.adjustment) ?: return null,
+                adjustment = parsedAdjustment(save.adjustment) ?: return null,
             )
         }
         val parsedSkills = SkillKey.entries.map { key ->
             val skill = skills.firstOrNull { it.key == key } ?: return null
             CharacterSkill(
                 key = key,
-                adjustment = parsed(skill.adjustment) ?: return null,
+                adjustment = parsedAdjustment(skill.adjustment) ?: return null,
                 training = skill.training,
             )
         }
-        val spellDc = if (spellSaveDc.isBlank()) null else parsed(spellSaveDc) ?: return null
+        val spellDc = if (spellSaveDc.isBlank()) null else spellSaveDc.trim().toIntOrNull() ?: return null
+        val proficiencyAdjustment = parsedAdjustment(proficiencyBonusAdjustment) ?: return null
+        val finalProficiency = standardProficiencyBonusForLevel(parsedClasses.sumOf { it.level }) + proficiencyAdjustment
 
         return original.copy(
             name = normalizedName,
             status = status,
-            strength = parsed(strength) ?: return null,
-            dexterity = parsed(dexterity) ?: return null,
-            constitution = parsed(constitution) ?: return null,
-            intelligence = parsed(intelligence) ?: return null,
-            wisdom = parsed(wisdom) ?: return null,
-            charisma = parsed(charisma) ?: return null,
-            armorClass = parsed(armorClass) ?: return null,
-            maxHp = parsed(maxHp) ?: return null,
-            currentHp = parsed(currentHp) ?: return null,
-            tempHp = parsed(tempHp) ?: return null,
-            initiativeAdjustment = parsed(initiativeAdjustment) ?: return null,
-            speed = parsed(speed) ?: return null,
-            proficiencyBonus = parsed(proficiencyBonus) ?: return null,
+            strength = parsedRequired(strength) ?: return null,
+            dexterity = parsedRequired(dexterity) ?: return null,
+            constitution = parsedRequired(constitution) ?: return null,
+            intelligence = parsedRequired(intelligence) ?: return null,
+            wisdom = parsedRequired(wisdom) ?: return null,
+            charisma = parsedRequired(charisma) ?: return null,
+            armorClass = parsedRequired(armorClass) ?: return null,
+            maxHp = parsedRequired(maxHp) ?: return null,
+            currentHp = parsedRequired(currentHp) ?: return null,
+            tempHp = parsedRequired(tempHp) ?: return null,
+            initiativeAdjustment = parsedAdjustment(initiativeAdjustment) ?: return null,
+            speed = parsedRequired(speed) ?: return null,
+            proficiencyBonus = finalProficiency,
+            proficiencyBonusAdjustment = proficiencyAdjustment,
             savingThrows = parsedSaves,
-            passivePerceptionAdjustment = parsed(passivePerceptionAdjustment) ?: return null,
+            passivePerceptionAdjustment = parsedAdjustment(passivePerceptionAdjustment) ?: return null,
             spellSaveDc = spellDc,
             classes = parsedClasses,
             skills = parsedSkills,
@@ -1449,7 +1616,7 @@ private data class CharacterEditorDraftV4(
         put("tempHp", tempHp)
         put("initiativeAdjustment", initiativeAdjustment)
         put("speed", speed)
-        put("proficiencyBonus", proficiencyBonus)
+        put("proficiencyBonusAdjustment", proficiencyBonusAdjustment)
         put("passivePerceptionAdjustment", passivePerceptionAdjustment)
         put("spellSaveDc", spellSaveDc)
         put("classes", JSONArray().apply {
@@ -1504,7 +1671,7 @@ private data class CharacterEditorDraftV4(
             tempHp = sheet.tempHp.toString(),
             initiativeAdjustment = sheet.initiativeAdjustment.toString(),
             speed = sheet.speed.toString(),
-            proficiencyBonus = sheet.proficiencyBonus.toString(),
+            proficiencyBonusAdjustment = sheet.proficiencyBonusAdjustment.toString(),
             passivePerceptionAdjustment = sheet.passivePerceptionAdjustment.toString(),
             spellSaveDc = sheet.spellSaveDc?.toString().orEmpty(),
             classes = sheet.classes.map {
@@ -1563,6 +1730,13 @@ private data class CharacterEditorDraftV4(
                     )
                 }
             }
+            val proficiencyAdjustment = if (json.has("proficiencyBonusAdjustment")) {
+                json.getString("proficiencyBonusAdjustment")
+            } else {
+                val legacyFinal = json.optString("proficiencyBonus", "2").toIntOrNull() ?: 2
+                val totalLevel = classes.sumOf { it.level.toIntOrNull() ?: 0 }
+                (legacyFinal - standardProficiencyBonusForLevel(totalLevel)).toString()
+            }
             CharacterEditorDraftV4(
                 name = json.getString("name"),
                 status = CharacterStatus.valueOf(json.getString("status")),
@@ -1578,7 +1752,7 @@ private data class CharacterEditorDraftV4(
                 tempHp = json.getString("tempHp"),
                 initiativeAdjustment = json.getString("initiativeAdjustment"),
                 speed = json.getString("speed"),
-                proficiencyBonus = json.getString("proficiencyBonus"),
+                proficiencyBonusAdjustment = proficiencyAdjustment,
                 passivePerceptionAdjustment = json.getString("passivePerceptionAdjustment"),
                 spellSaveDc = json.getString("spellSaveDc"),
                 classes = classes,
