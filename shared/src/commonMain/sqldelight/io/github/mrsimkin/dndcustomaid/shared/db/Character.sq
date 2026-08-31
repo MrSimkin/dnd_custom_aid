@@ -14,6 +14,7 @@ CREATE TABLE character (
     max_hp INTEGER NOT NULL DEFAULT 1,
     current_hp INTEGER NOT NULL DEFAULT 1,
     temp_hp INTEGER NOT NULL DEFAULT 0,
+    -- Legacy V3 final totals retained only so migration from existing QA databases is safe.
     initiative_modifier INTEGER NOT NULL DEFAULT 0,
     speed INTEGER NOT NULL DEFAULT 30,
     proficiency_bonus INTEGER NOT NULL DEFAULT 2,
@@ -24,7 +25,9 @@ CREATE TABLE character (
     wisdom_save INTEGER NOT NULL DEFAULT 0,
     charisma_save INTEGER NOT NULL DEFAULT 0,
     passive_perception INTEGER NOT NULL DEFAULT 10,
-    spell_save_dc INTEGER
+    spell_save_dc INTEGER,
+    initiative_adjustment INTEGER NOT NULL DEFAULT 0,
+    passive_perception_adjustment INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE character_class (
@@ -38,11 +41,21 @@ CREATE TABLE character_class (
     UNIQUE(character_id, sort_order)
 );
 
+CREATE TABLE character_save (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    ability_key TEXT NOT NULL,
+    proficient INTEGER NOT NULL DEFAULT 0,
+    adjustment INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(character_id, ability_key)
+);
+
 CREATE TABLE character_skill (
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
     skill_key TEXT NOT NULL,
-    modifier INTEGER NOT NULL,
+    -- Legacy V3 final total retained only for safe migration; domain code ignores it.
+    modifier INTEGER NOT NULL DEFAULT 0,
     training TEXT NOT NULL,
+    adjustment INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY(character_id, skill_key)
 );
 
@@ -53,9 +66,8 @@ VALUES (?, ?, ?, ?);
 selectCharactersByCampaign:
 SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
        strength, dexterity, constitution, intelligence, wisdom, charisma,
-       armor_class, max_hp, current_hp, temp_hp, initiative_modifier, speed,
-       proficiency_bonus, strength_save, dexterity_save, constitution_save,
-       intelligence_save, wisdom_save, charisma_save, passive_perception, spell_save_dc
+       armor_class, max_hp, current_hp, temp_hp, initiative_adjustment, speed,
+       proficiency_bonus, passive_perception_adjustment, spell_save_dc
 FROM character
 WHERE campaign_id = ?
 ORDER BY name COLLATE NOCASE, id;
@@ -63,9 +75,8 @@ ORDER BY name COLLATE NOCASE, id;
 selectCharacterById:
 SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
        strength, dexterity, constitution, intelligence, wisdom, charisma,
-       armor_class, max_hp, current_hp, temp_hp, initiative_modifier, speed,
-       proficiency_bonus, strength_save, dexterity_save, constitution_save,
-       intelligence_save, wisdom_save, charisma_save, passive_perception, spell_save_dc
+       armor_class, max_hp, current_hp, temp_hp, initiative_adjustment, speed,
+       proficiency_bonus, passive_perception_adjustment, spell_save_dc
 FROM character
 WHERE id = ?;
 
@@ -84,16 +95,10 @@ SET name = ?,
     max_hp = ?,
     current_hp = ?,
     temp_hp = ?,
-    initiative_modifier = ?,
+    initiative_adjustment = ?,
     speed = ?,
     proficiency_bonus = ?,
-    strength_save = ?,
-    dexterity_save = ?,
-    constitution_save = ?,
-    intelligence_save = ?,
-    wisdom_save = ?,
-    charisma_save = ?,
-    passive_perception = ?,
+    passive_perception_adjustment = ?,
     spell_save_dc = ?
 WHERE id = ?;
 
@@ -113,12 +118,22 @@ deleteCharacterClasses:
 DELETE FROM character_class
 WHERE character_id = ?;
 
-insertCharacterSkill:
-INSERT OR REPLACE INTO character_skill(character_id, skill_key, modifier, training)
+insertCharacterSave:
+INSERT OR REPLACE INTO character_save(character_id, ability_key, proficient, adjustment)
 VALUES (?, ?, ?, ?);
 
+selectCharacterSaves:
+SELECT character_id, ability_key, proficient, adjustment
+FROM character_save
+WHERE character_id = ?
+ORDER BY ability_key;
+
+insertCharacterSkill:
+INSERT OR REPLACE INTO character_skill(character_id, skill_key, modifier, training, adjustment)
+VALUES (?, ?, 0, ?, ?);
+
 selectCharacterSkills:
-SELECT character_id, skill_key, modifier, training
+SELECT character_id, skill_key, training, adjustment
 FROM character_skill
 WHERE character_id = ?
 ORDER BY skill_key;
