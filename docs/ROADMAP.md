@@ -69,33 +69,55 @@ The Phase 3 exit criterion was satisfied: a real approved campaign create/select
 
 **Goal:** implement remaining approved MVP scope incrementally.
 
-**Status:** **Current.** The owner approved the initial Phase 4 sequence on 2026-08-30:
+**Status:** **Current.** The owner approved the initial sequence:
 
-1. **Android character data foundation / character-sheet workflow**;
-2. **DM combat tracker**, built after the reusable character data needed by the tracker exists.
+1. **Android character data foundation / character workflow**;
+2. **DM combat tracker**, after the reusable character data needed by the tracker exists.
 
-This ordering does **not** require finishing every character-sheet feature before combat begins. The character work should first establish a stable durable character model and useful Android create/view/edit workflow that later quick views and combat projections can consume. Combat remains a separate live working-state domain under D-0025/D-0026 and must not be implemented as direct mutation of durable character-sheet state.
+The ordering does **not** require the entire final sheet/PDF/audit/sync system before combat. Combat needs a stable useful character-data foundation, not a finished character subsystem.
 
 ### Phase 4 Slice 1 — Character data foundation
 
-Before implementation, define the smallest durable character model that:
+**Status:** **In progress** on `implementation/character-data-foundation`.
 
-- belongs explicitly to one campaign;
-- has stable globally unique identity;
-- supports unassigned PC-style records;
-- keeps ownership/control outside the character's existence;
-- can grow toward the complete durable digital backup required by D-0020 without becoming a guided/legal character builder;
-- provides real structured values later usable by DM quick views and combat participant snapshots;
-- keeps character state distinct from live combat working state;
-- avoids prematurely implementing PDF export, hosted synchronization, membership/roles or the complete audit subsystem unless the selected slice concretely needs them.
+Approved first-slice data:
 
-The first implementation slice should be complete and testable rather than a collection of half-finished sheet tabs.
+- stable UUID and one explicit campaign association;
+- character name and lifecycle state;
+- last-saved/updated freshness information;
+- multiclass-aware class/level entries;
+- hit-die size and remaining hit dice per class entry;
+- six ability scores;
+- Armor Class;
+- maximum/current/temporary HP;
+- initiative modifier;
+- speed;
+- proficiency bonus;
+- six final saving-throw modifiers;
+- passive Perception;
+- optional spell save DC;
+- all 18 standard D&D skills with final modifier plus descriptive proficiency/expertise state.
 
-### Phase 4 Slice 2 — Combat tracker
+The application stores final mechanical values without automatically enforcing ordinary D&D formulas, caps or character-building legality. This supports gifts, homebrew and house rules. A possible later character-check/validation feature is deliberately deferred until late development after character and rules exceptions have been clarified substantially.
 
-After the character foundation establishes the relevant reusable data, begin the DM tablet combat tracker as a separate live-state workflow. The tracker should consume selected character data/projections rather than require the full character-sheet subsystem to be finished first.
+Slice workflow:
 
-Prefer complete testable slices over many half-finished screens. Introduce hosted sync/auth/provider integrations only when the corresponding slice needs them. Preserve C-0009 proportionality and avoid building infrastructure ahead of an actual selected workflow.
+1. enter the active campaign's character list;
+2. create a character;
+3. open/edit the character;
+4. add one or more class/level entries with independent hit dice;
+5. edit core mechanical values, saves and all skills;
+6. save locally;
+7. close/reopen and recover the saved state;
+8. preserve existing Phase 3 campaigns when the local database migrates to the character schema.
+
+Explicitly deferred from this slice: spells/slots, inventory/equipment/currencies, attacks/actions, features/traits, broader proficiencies/languages, biography, PDF export, grouped audit implementation, account ownership/control UI, hosted sync/auth and automatic character validation.
+
+### Phase 4 Slice 2 — DM combat tracker
+
+After character-foundation acceptance, begin the DM tablet combat tracker as a separate live-state workflow. It should consume relevant persistent character data/projections when useful while preserving D-0025/D-0026 separation between durable character-sheet state and live combat state.
+
+Prefer complete testable slices over many half-finished screens. Introduce hosted sync/auth/provider integrations only when the corresponding slice needs them. Preserve C-0009 proportionality and avoid infrastructure ahead of a real selected workflow.
 
 ---
 
