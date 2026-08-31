@@ -24,6 +24,19 @@ For the next character-sheet follow-up build:
 - include **Modificador de ataque mágico**;
 - include **Aptitud mágica** / spellcasting ability.
 
+## Placement
+
+The owner considered placing Quick Magic either at the bottom of the general character view or in a new dedicated tab and delegated the choice to assistant recommendation.
+
+**Approved placement for the next build: bottom of `Resumen`.**
+
+Rationale:
+
+- Quick Magic is currently a compact **reference** block, not a spell-management workspace;
+- keeping it in `Resumen` preserves the at-a-glance character-sheet role and avoids creating a third top-level tab for a small amount of data;
+- placing it at the bottom keeps spellcasting-specific information semantically separate from general combat reference without cluttering the upper core-reference area;
+- if spellcasting later expands materially (spell lists, prepared spells, more detailed resource management, etc.), a dedicated tab may be reconsidered then rather than being introduced prematurely.
+
 ## Automation boundary
 
 For this slice the Quick Magic data remains **manual**.
