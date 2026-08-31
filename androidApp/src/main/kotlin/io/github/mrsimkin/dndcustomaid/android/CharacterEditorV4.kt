@@ -77,6 +77,8 @@ import org.json.JSONObject
 private enum class CharacterTabV4(val label: String) {
     OVERVIEW("General"),
     SKILLS("Habilidades"),
+    COMBAT("Combate"),
+    EQUIPMENT("Equipo"),
 }
 
 private val classNamesV4 = listOf(
@@ -113,6 +115,19 @@ internal fun CharacterEditorScreenV4(
     ) {
         mutableStateOf(CharacterEditorDraftV4.from(stored))
     }
+    var combatDraftJson by rememberSaveable(characterId.toString()) {
+        mutableStateOf(combatEntriesToJsonV4(stored.combatEntries))
+    }
+    var equipmentDraftJson by rememberSaveable(characterId.toString()) {
+        mutableStateOf(
+            equipmentDraftToJsonV4(
+                CharacterEquipmentDraftV4(
+                    items = stored.inventoryItems,
+                    currencies = stored.currencies,
+                ),
+            ),
+        )
+    }
     var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
     var selectedTabName by rememberSaveable(characterId.toString()) {
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
@@ -120,6 +135,8 @@ internal fun CharacterEditorScreenV4(
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
     val selectedTab = runCatching { CharacterTabV4.valueOf(selectedTabName) }
         .getOrDefault(CharacterTabV4.OVERVIEW)
+    val combatEntries = remember(combatDraftJson) { combatEntriesFromJsonV4(combatDraftJson) }
+    val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
 
     fun updateDraft(updated: CharacterEditorDraftV4) {
@@ -127,9 +144,37 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateCombatEntries(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry>) {
+        combatDraftJson = combatEntriesToJsonV4(updated)
+        savedMessage = null
+    }
+
+    fun updateEquipmentItems(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>) {
+        equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(items = updated))
+        savedMessage = null
+    }
+
+    fun updateCurrencies(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>) {
+        equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(currencies = updated))
+        savedMessage = null
+    }
+
     fun persist(candidate: CharacterSheet) {
-        stored = repository.saveCharacter(candidate)
+        val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
+        val integrated = candidate.copy(
+            combatEntries = combatEntriesFromJsonV4(combatDraftJson),
+            inventoryItems = equipment.items,
+            currencies = equipment.currencies,
+        )
+        stored = repository.saveCharacter(integrated)
         draft = CharacterEditorDraftV4.from(stored)
+        combatDraftJson = combatEntriesToJsonV4(stored.combatEntries)
+        equipmentDraftJson = equipmentDraftToJsonV4(
+            CharacterEquipmentDraftV4(
+                items = stored.inventoryItems,
+                currencies = stored.currencies,
+            ),
+        )
         savedMessage = "Guardado"
     }
 
@@ -173,7 +218,7 @@ internal fun CharacterEditorScreenV4(
                         Tab(
                             selected = tab == selectedTab,
                             onClick = { selectedTabName = tab.name },
-                            text = { Text(tab.label) },
+                            text = { Text(tab.label, maxLines = 2) },
                         )
                     }
                 }
@@ -192,6 +237,24 @@ internal fun CharacterEditorScreenV4(
                             onPreferencesChange(preferences.copy(skillLayoutChoice = it))
                         },
                         onDraftChange = ::updateDraft,
+                    )
+                    CharacterTabV4.COMBAT -> CharacterCombatTabV4(
+                        armorClass = draft.armorClass,
+                        initiative = draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(),
+                        speed = draft.speed,
+                        currentHp = draft.currentHp,
+                        maxHp = draft.maxHp,
+                        tempHp = draft.tempHp,
+                        entries = combatEntries,
+                        onEntriesChange = ::updateCombatEntries,
+                        wide = wide,
+                    )
+                    CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
+                        items = equipmentDraft.items,
+                        currencies = equipmentDraft.currencies,
+                        onItemsChange = ::updateEquipmentItems,
+                        onCurrenciesChange = ::updateCurrencies,
+                        wide = wide,
                     )
                 }
             }
