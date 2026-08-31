@@ -35,16 +35,26 @@ import androidx.compose.ui.unit.dp
 internal enum class AppFontChoice(val label: String, val googleFontName: String) {
     MANROPE("Manrope", "Manrope"),
     SORA("Sora", "Sora"),
+    SOURCE_SANS_3("Source Sans 3", "Source Sans 3"),
+    LEXEND("Lexend", "Lexend"),
     BARLOW_CONDENSED("Barlow Condensed", "Barlow Condensed"),
-    IBM_PLEX_SANS_CONDENSED("IBM Plex Sans Condensed", "IBM Plex Sans Condensed"),
+    ROBOTO_CONDENSED("Roboto Condensed", "Roboto Condensed"),
+    ARCHIVO_NARROW("Archivo Narrow", "Archivo Narrow"),
+    OSWALD("Oswald", "Oswald"),
 }
 
 internal enum class AppThemeChoice(val label: String) {
     SYSTEM("Sistema"),
     LIGHT("Claro"),
     DARK("Oscuro"),
-    LIGHT_GRAY("Gris claro"),
+    GRAY("Gris"),
     DARK_PURPLE("Morado oscuro"),
+    DARK_CYAN("Cian oscuro"),
+    NIGHT_BLUE("Azul noche"),
+    FOREST_GREEN("Verde bosque"),
+    PARCHMENT("Pergamino"),
+    HIGH_CONTRAST("Alto contraste"),
+    MATRIX("Matriz"),
 }
 
 internal enum class SkillLayoutChoice(val label: String) {
@@ -64,12 +74,18 @@ internal class UiPreferencesStore(context: Context) {
 
     fun load(): UiPreferences {
         val scale = preferences.getInt(KEY_FONT_SCALE, 100).takeIf { it in FONT_SCALE_OPTIONS } ?: 100
-        val font = preferences.getString(KEY_FONT, null)
-            ?.let { runCatching { AppFontChoice.valueOf(it) }.getOrNull() }
-            ?: AppFontChoice.MANROPE
-        val theme = preferences.getString(KEY_THEME, null)
-            ?.let { runCatching { AppThemeChoice.valueOf(it) }.getOrNull() }
-            ?: AppThemeChoice.SYSTEM
+        val font = when (val stored = preferences.getString(KEY_FONT, null)) {
+            "IBM_PLEX_SANS_CONDENSED" -> AppFontChoice.ROBOTO_CONDENSED
+            else -> stored
+                ?.let { runCatching { AppFontChoice.valueOf(it) }.getOrNull() }
+                ?: AppFontChoice.MANROPE
+        }
+        val theme = when (val stored = preferences.getString(KEY_THEME, null)) {
+            "LIGHT_GRAY" -> AppThemeChoice.GRAY
+            else -> stored
+                ?.let { runCatching { AppThemeChoice.valueOf(it) }.getOrNull() }
+                ?: AppThemeChoice.SYSTEM
+        }
         val skillLayout = preferences.getString(KEY_SKILL_LAYOUT, null)
             ?.let { runCatching { SkillLayoutChoice.valueOf(it) }.getOrNull() }
             ?: SkillLayoutChoice.BY_SKILLS
@@ -131,17 +147,11 @@ private fun downloadableFontFamily(name: String): FontFamily = FontFamily(
     ),
 )
 
-private val manropeFamily by lazy { downloadableFontFamily(AppFontChoice.MANROPE.googleFontName) }
-private val soraFamily by lazy { downloadableFontFamily(AppFontChoice.SORA.googleFontName) }
-private val barlowCondensedFamily by lazy { downloadableFontFamily(AppFontChoice.BARLOW_CONDENSED.googleFontName) }
-private val ibmPlexSansCondensedFamily by lazy { downloadableFontFamily(AppFontChoice.IBM_PLEX_SANS_CONDENSED.googleFontName) }
-
-private fun AppFontChoice.family(): FontFamily = when (this) {
-    AppFontChoice.MANROPE -> manropeFamily
-    AppFontChoice.SORA -> soraFamily
-    AppFontChoice.BARLOW_CONDENSED -> barlowCondensedFamily
-    AppFontChoice.IBM_PLEX_SANS_CONDENSED -> ibmPlexSansCondensedFamily
+private val fontFamilies: Map<AppFontChoice, FontFamily> by lazy {
+    AppFontChoice.entries.associateWith { downloadableFontFamily(it.googleFontName) }
 }
+
+private fun AppFontChoice.family(): FontFamily = requireNotNull(fontFamilies[this])
 
 @Composable
 internal fun DndCustomAidTheme(
@@ -171,16 +181,21 @@ private fun resolveColorScheme(choice: AppThemeChoice): ColorScheme = when (choi
     AppThemeChoice.SYSTEM -> if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()
     AppThemeChoice.LIGHT -> lightColorScheme()
     AppThemeChoice.DARK -> darkColorScheme()
-    AppThemeChoice.LIGHT_GRAY -> lightColorScheme(
-        primary = Color(0xFF3F566B),
+    AppThemeChoice.GRAY -> lightColorScheme(
+        primary = Color(0xFF484848),
         onPrimary = Color.White,
-        background = Color(0xFFD9DDE2),
-        surface = Color(0xFFE5E8EC),
-        surfaceVariant = Color(0xFFCCD2D9),
-        onBackground = Color(0xFF191C20),
-        onSurface = Color(0xFF191C20),
-        onSurfaceVariant = Color(0xFF40464D),
-        outline = Color(0xFF70777F),
+        primaryContainer = Color(0xFFD5D5D5),
+        onPrimaryContainer = Color(0xFF1B1B1B),
+        secondary = Color(0xFF626262),
+        secondaryContainer = Color(0xFFDEDEDE),
+        background = Color(0xFFE3E3E3),
+        surface = Color(0xFFF0F0F0),
+        surfaceVariant = Color(0xFFD3D3D3),
+        onBackground = Color(0xFF1A1A1A),
+        onSurface = Color(0xFF1A1A1A),
+        onSurfaceVariant = Color(0xFF454545),
+        outline = Color(0xFF737373),
+        outlineVariant = Color(0xFFB7B7B7),
     )
     AppThemeChoice.DARK_PURPLE -> darkColorScheme(
         primary = Color(0xFFD5B3FF),
@@ -196,6 +211,97 @@ private fun resolveColorScheme(choice: AppThemeChoice): ColorScheme = when (choi
         surfaceVariant = Color(0xFF342448),
         onSurfaceVariant = Color(0xFFD8C8EA),
         outline = Color(0xFF9B86B2),
+    )
+    AppThemeChoice.DARK_CYAN -> darkColorScheme(
+        primary = Color(0xFF63E6E2),
+        onPrimary = Color(0xFF003735),
+        primaryContainer = Color(0xFF00504D),
+        onPrimaryContainer = Color(0xFF8FF4F0),
+        secondary = Color(0xFFA8CECC),
+        secondaryContainer = Color(0xFF294B4A),
+        background = Color(0xFF071616),
+        onBackground = Color(0xFFDCEDEC),
+        surface = Color(0xFF0D2020),
+        onSurface = Color(0xFFDCEDEC),
+        surfaceVariant = Color(0xFF223838),
+        onSurfaceVariant = Color(0xFFBDD0CF),
+        outline = Color(0xFF829A99),
+    )
+    AppThemeChoice.NIGHT_BLUE -> darkColorScheme(
+        primary = Color(0xFFAFC6FF),
+        onPrimary = Color(0xFF002E69),
+        primaryContainer = Color(0xFF17477D),
+        onPrimaryContainer = Color(0xFFD8E2FF),
+        secondary = Color(0xFFBAC7E7),
+        secondaryContainer = Color(0xFF33415F),
+        background = Color(0xFF091120),
+        onBackground = Color(0xFFE0E7F7),
+        surface = Color(0xFF101A2B),
+        onSurface = Color(0xFFE0E7F7),
+        surfaceVariant = Color(0xFF28344A),
+        onSurfaceVariant = Color(0xFFC3CBE0),
+        outline = Color(0xFF8C96AD),
+    )
+    AppThemeChoice.FOREST_GREEN -> darkColorScheme(
+        primary = Color(0xFFA4D49E),
+        onPrimary = Color(0xFF10380F),
+        primaryContainer = Color(0xFF285125),
+        onPrimaryContainer = Color(0xFFC0F1B9),
+        secondary = Color(0xFFB8CCB3),
+        secondaryContainer = Color(0xFF354A33),
+        background = Color(0xFF0B160B),
+        onBackground = Color(0xFFE0EBDD),
+        surface = Color(0xFF131F13),
+        onSurface = Color(0xFFE0EBDD),
+        surfaceVariant = Color(0xFF293A28),
+        onSurfaceVariant = Color(0xFFC3D1BF),
+        outline = Color(0xFF8D9C89),
+    )
+    AppThemeChoice.PARCHMENT -> lightColorScheme(
+        primary = Color(0xFF705A32),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFFF2DDAE),
+        onPrimaryContainer = Color(0xFF271900),
+        secondary = Color(0xFF685F4B),
+        secondaryContainer = Color(0xFFEFE3C6),
+        background = Color(0xFFF4E9CF),
+        onBackground = Color(0xFF211B10),
+        surface = Color(0xFFFFF6DF),
+        onSurface = Color(0xFF211B10),
+        surfaceVariant = Color(0xFFE8DCC0),
+        onSurfaceVariant = Color(0xFF4C4638),
+        outline = Color(0xFF7E7664),
+    )
+    AppThemeChoice.HIGH_CONTRAST -> darkColorScheme(
+        primary = Color(0xFFFFFF00),
+        onPrimary = Color.Black,
+        primaryContainer = Color(0xFF333300),
+        onPrimaryContainer = Color(0xFFFFFF66),
+        secondary = Color.White,
+        onSecondary = Color.Black,
+        background = Color.Black,
+        onBackground = Color.White,
+        surface = Color.Black,
+        onSurface = Color.White,
+        surfaceVariant = Color(0xFF161616),
+        onSurfaceVariant = Color.White,
+        outline = Color.White,
+        outlineVariant = Color(0xFFBDBDBD),
+    )
+    AppThemeChoice.MATRIX -> darkColorScheme(
+        primary = Color(0xFF48FF73),
+        onPrimary = Color(0xFF001B07),
+        primaryContainer = Color(0xFF073D16),
+        onPrimaryContainer = Color(0xFF79FF96),
+        secondary = Color(0xFF8DDB9C),
+        secondaryContainer = Color(0xFF183A20),
+        background = Color(0xFF020703),
+        onBackground = Color(0xFFC8FFD1),
+        surface = Color(0xFF071009),
+        onSurface = Color(0xFFC8FFD1),
+        surfaceVariant = Color(0xFF102516),
+        onSurfaceVariant = Color(0xFFA5DCAF),
+        outline = Color(0xFF55A666),
     )
 }
 
@@ -242,21 +348,21 @@ internal fun AppSettingsDialog(
                     onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
                 )
                 SettingSelector(
-                    label = "Tipografía",
+                    label = "Tipografía · audición",
                     value = preferences.fontChoice.label,
                     options = AppFontChoice.entries,
                     optionLabel = { it.label },
                     onSelect = { onPreferencesChange(preferences.copy(fontChoice = it)) },
                 )
                 SettingSelector(
-                    label = "Tema",
+                    label = "Tema · audición",
                     value = preferences.themeChoice.label,
                     options = AppThemeChoice.entries,
                     optionLabel = { it.label },
                     onSelect = { onPreferencesChange(preferences.copy(themeChoice = it)) },
                 )
                 Text(
-                    "La organización de habilidades se configura desde la ficha.",
+                    "Tipografías y temas adicionales son candidatos para probar en el teléfono y luego depurar. La organización de habilidades se configura desde la ficha.",
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
