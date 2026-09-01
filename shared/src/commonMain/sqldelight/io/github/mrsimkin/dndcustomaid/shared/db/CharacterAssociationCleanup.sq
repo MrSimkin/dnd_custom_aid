@@ -1,7 +1,0 @@
-deleteCharacterSpellSourceAssociationsForCharacter:
-DELETE FROM character_spell_source_assoc
-WHERE spell_id IN (
-    SELECT id
-    FROM character_spell
-    WHERE character_id = ?
-);
