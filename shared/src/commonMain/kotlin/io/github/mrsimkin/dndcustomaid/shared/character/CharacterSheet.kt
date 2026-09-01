@@ -64,6 +64,23 @@ enum class SpellcastingAbility {
     NONE,
 }
 
+enum class CharacterTraitType {
+    CLASS,
+    SPECIES_RACE,
+    BACKGROUND,
+    FEAT,
+    GIFT_BLESSING,
+    OTHER,
+}
+
+enum class CharacterActivationType {
+    PASSIVE,
+    ACTION,
+    BONUS_ACTION,
+    REACTION,
+    OTHER,
+}
+
 data class CharacterSkill(
     val key: SkillKey,
     val adjustment: Int,
@@ -127,6 +144,68 @@ data class CharacterCurrency(
     val isDefault: Boolean,
 )
 
+data class CharacterBackground(
+    val name: String = "",
+    val summary: String = "",
+    val personalityTraits: String = "",
+    val ideals: String = "",
+    val bonds: String = "",
+    val flaws: String = "",
+    val story: String = "",
+)
+
+data class CharacterTrait(
+    val id: Uuid,
+    val name: String,
+    val source: String,
+    val type: CharacterTraitType,
+    val description: String,
+    val notes: String?,
+    val maxUses: Int?,
+    val spentUses: Int,
+    val recovery: String?,
+    val activation: CharacterActivationType?,
+    val sortOrder: Int,
+)
+
+data class CharacterNote(
+    val id: Uuid,
+    val title: String,
+    val content: String,
+    val sortOrder: Int,
+)
+
+data class CharacterSpellcastingSource(
+    val id: Uuid,
+    val name: String,
+    val linkedClassId: Uuid?,
+    val sortOrder: Int,
+)
+
+data class CharacterSpellSourceAssociation(
+    val sourceId: Uuid,
+    val prepared: Boolean,
+)
+
+data class CharacterSpell(
+    val id: Uuid,
+    val name: String,
+    val level: Int,
+    val castingTime: String,
+    val rangeText: String,
+    val verbal: Boolean,
+    val somatic: Boolean,
+    val material: Boolean,
+    val materialText: String?,
+    val duration: String,
+    val concentration: Boolean,
+    val ritual: Boolean,
+    val description: String,
+    val notes: String?,
+    val sortOrder: Int,
+    val sourceAssociations: List<CharacterSpellSourceAssociation> = emptyList(),
+)
+
 data class CharacterSheet(
     val id: Uuid,
     val campaignId: Uuid,
@@ -162,6 +241,13 @@ data class CharacterSheet(
     val combatEntries: List<CharacterCombatEntry> = emptyList(),
     val inventoryItems: List<CharacterInventoryItem> = emptyList(),
     val currencies: List<CharacterCurrency> = emptyList(),
+    val spellcasterEnabled: Boolean = false,
+    val background: CharacterBackground = CharacterBackground(),
+    val traits: List<CharacterTrait> = emptyList(),
+    val spellcastingSources: List<CharacterSpellcastingSource> = emptyList(),
+    val spells: List<CharacterSpell> = emptyList(),
+    val generalNotes: String = "",
+    val noteCards: List<CharacterNote> = emptyList(),
 ) {
     val totalLevel: Int
         get() = classes.sumOf { it.level }
