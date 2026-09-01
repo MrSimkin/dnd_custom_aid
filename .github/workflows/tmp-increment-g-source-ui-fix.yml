@@ -1,0 +1,44 @@
+name: Temporary Increment G source UI fix
+
+on:
+  push:
+    branches:
+      - tmp/increment-g-source-ui-fix
+    paths:
+      - .github/increment-g-source-ui-fix-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  patch-source-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/increment-g-source-ui-fix
+          fetch-depth: 0
+      - name: Remove invalid Compose weight import
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt')
+          text = path.read_text(encoding='utf-8')
+          old = 'import androidx.compose.foundation.layout.weight\n'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one invalid weight import, found {count}')
+          path.write_text(text.replace(old, '', 1), encoding='utf-8')
+          PY
+          git diff --check
+          git diff -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt
+      - name: Commit isolated Increment G compile fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt
+          git commit -m "Fix Increment G source UI Compose import"
+          git push origin HEAD:tmp/increment-g-source-ui-fix
