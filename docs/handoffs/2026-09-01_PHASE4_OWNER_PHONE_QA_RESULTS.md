@@ -22,6 +22,10 @@ Status values: PASS, FAIL/blocking, limitation/non-blocking, NOT TESTED.
 10. **PASS — Hide-not-delete warning for meaningful spellcasting data.** Disabling spellcasting presents a clear warning/confirmation, and after re-enabling spellcasting the prior data returns intact.
 11. **PASS — General adjustment marker and speed formatting.** Owner confirms the compact non-zero adjustment indicator behaves as intended without the redundant second-line adjustment label, and `Velocidad` follows the approved imperial-first format with approximate metric in parentheses.
 
+### Check 12 — Combate corrective backlog
+
+- **12A: FAIL/blocking — vertical centering.** In the Combate quick-reference row, when one label/value wraps to two lines, neighboring one-line text remains top-aligned instead of being vertically centered within the taller shared row. This reproduces and localizes the previously noted U-01 visual-alignment issue on the exact corrective surface targeted by Check 12. Remaining Check 12 subchecks are still pending.
+
 ## Findings discovered during QA
 
 ### T-01 — `Quick Magic` terminology mismatch
@@ -52,13 +56,14 @@ Owner reports the `Editar` and `Eliminar` buttons consume too much space for com
 
 ### U-01 — Wrapped two-line text is top-aligned instead of vertically centered
 
-Status: **limitation/non-blocking**.
+Status: **FAIL/blocking on Combate acceptance surface; broader scope still to be mapped**.
 
-Owner reports that labels/content wrapping to two lines remain aligned toward the top of their available control/row area instead of being vertically centered. Record as a general visual-alignment issue and tie it to exact affected controls/screens as they are encountered during the remaining QA checks.
+Owner first reported generally that labels/content wrapping to two lines remain aligned toward the top of their available control/row area instead of being vertically centered. Check 12A confirms the defect specifically in the Combate quick-reference row, where vertical centering was an explicit corrective requirement from the prior phone QA.
 
 ## Current QA disposition
 
 - Checks 1–11: PASS.
-- Blocking defects found: E-01.
-- Non-blocking/reconciliation findings: T-01, E-02, U-01.
+- Check 12: in progress; 12A FAIL/blocking.
+- Blocking defects found: E-01, U-01/12A.
+- Non-blocking/reconciliation findings: T-01, E-02.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
