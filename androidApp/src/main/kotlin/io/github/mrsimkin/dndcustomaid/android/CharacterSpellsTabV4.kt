@@ -66,12 +66,6 @@ internal fun CharacterSpellsTabV4(
     val selectedSource = selectedSourceId?.let { selectedId ->
         draft.sources.firstOrNull { it.id.toString() == selectedId }
     }
-    val visibleSpellCount = if (selectedSource == null) {
-        draft.spells.size
-    } else {
-        draft.spells.count { spell -> spell.sourceAssociations.any { it.sourceId == selectedSource.id } }
-    }
-
     fun updateSources(updated: List<CharacterSpellcastingSource>) {
         onDraftChange(
             draft.copy(
@@ -146,50 +140,12 @@ internal fun CharacterSpellsTabV4(
 
         HorizontalDivider()
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = if (wide) 10.dp else 5.dp,
-                end = if (wide) 10.dp else 5.dp,
-                top = 7.dp,
-                bottom = 150.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
-        ) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-                        Text(
-                            selectedSource?.name ?: "Todos los conjuros",
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                        Text(
-                            if (selectedSource == null) {
-                                "$visibleSpellCount conjuros conceptuales en la ficha."
-                            } else {
-                                "$visibleSpellCount conjuros asociados a esta fuente."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        if (draft.sources.isEmpty()) {
-                            Text(
-                                "Aún no hay fuentes de conjuros. Puedes crear una fuente de clase, dote, origen innato o cualquier fuente personalizada.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                            TextButton(onClick = { managerOpen = true }) { Text("Gestionar fuentes") }
-                        } else {
-                            Text(
-                                "La navegación y gestión de fuentes están activas. La lista detallada y edición de conjuros se incorporan en el siguiente incremento.",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        CharacterSpellListV4(
+    draft = draft,
+    selectedSourceId = selectedSource?.id,
+    onDraftChange = onDraftChange,
+    wide = wide,
+)
     }
 
     if (managerOpen) {
