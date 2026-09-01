@@ -1,0 +1,130 @@
+name: Temporary Increment F Rasgos patch
+
+on:
+  push:
+    branches:
+      - tmp/increment-f-rasgos-wiring
+    paths:
+      - .github/increment-f-rasgos-patch-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  patch-editor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/increment-f-rasgos-wiring
+          fetch-depth: 0
+      - name: Apply asserted narrow Increment F patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt')
+          text = path.read_text(encoding='utf-8')
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, found {count}: {old[:180]!r}')
+              return text.replace(old, new, 1)
+
+          text = replace_once(
+              text,
+              '    var backgroundDraftJson by rememberSaveable(characterId.toString(), "background") {\n'
+              '        mutableStateOf(characterBackgroundToJsonV4(stored.background))\n'
+              '    }\n'
+              '    var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }\n',
+              '    var backgroundDraftJson by rememberSaveable(characterId.toString(), "background") {\n'
+              '        mutableStateOf(characterBackgroundToJsonV4(stored.background))\n'
+              '    }\n'
+              '    var traitsDraftJson by rememberSaveable(characterId.toString(), "traits") {\n'
+              '        mutableStateOf(characterTraitsToJsonV4(stored.traits))\n'
+              '    }\n'
+              '    var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }\n',
+              'add saveable traits draft state',
+          )
+
+          text = replace_once(
+              text,
+              '    val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }\n'
+              '    val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }\n'
+              '    val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null\n',
+              '    val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }\n'
+              '    val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }\n'
+              '    val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }\n'
+              '    val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null\n',
+              'decode traits draft',
+          )
+
+          text = replace_once(
+              text,
+              '    fun updateBackground(updated: io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground) {\n'
+              '        backgroundDraftJson = characterBackgroundToJsonV4(updated)\n'
+              '        savedMessage = null\n'
+              '    }\n\n'
+              '    fun persist(candidate: CharacterSheet) {\n',
+              '    fun updateBackground(updated: io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground) {\n'
+              '        backgroundDraftJson = characterBackgroundToJsonV4(updated)\n'
+              '        savedMessage = null\n'
+              '    }\n\n'
+              '    fun updateTraits(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>) {\n'
+              '        traitsDraftJson = characterTraitsToJsonV4(updated)\n'
+              '        savedMessage = null\n'
+              '    }\n\n'
+              '    fun persist(candidate: CharacterSheet) {\n',
+              'add traits draft updater',
+          )
+
+          text = replace_once(
+              text,
+              '            currencies = equipment.currencies,\n'
+              '            background = characterBackgroundFromJsonV4(backgroundDraftJson),\n'
+              '        )\n',
+              '            currencies = equipment.currencies,\n'
+              '            background = characterBackgroundFromJsonV4(backgroundDraftJson),\n'
+              '            traits = characterTraitsFromJsonV4(traitsDraftJson),\n'
+              '        )\n',
+              'persist traits with central save',
+          )
+
+          text = replace_once(
+              text,
+              '        backgroundDraftJson = characterBackgroundToJsonV4(stored.background)\n'
+              '        savedMessage = "Guardado"\n',
+              '        backgroundDraftJson = characterBackgroundToJsonV4(stored.background)\n'
+              '        traitsDraftJson = characterTraitsToJsonV4(stored.traits)\n'
+              '        savedMessage = "Guardado"\n',
+              'reset traits draft after save',
+          )
+
+          text = replace_once(
+              text,
+              '                    CharacterTabV4.TRAITS -> CharacterDomainShellV4(\n'
+              '                        title = "Rasgos",\n'
+              '                        description = "La navegación está lista. El editor persistente de Rasgos se incorpora en el Incremento F.",\n'
+              '                    )\n',
+              '                    CharacterTabV4.TRAITS -> CharacterTraitsTabV4(\n'
+              '                        traits = traitsDraft,\n'
+              '                        onTraitsChange = ::updateTraits,\n'
+              '                        wide = wide,\n'
+              '                    )\n',
+              'replace Rasgos shell with persistent tab',
+          )
+
+          path.write_text(text, encoding='utf-8')
+          PY
+          git diff --check
+          git diff -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+      - name: Commit narrow Increment F patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+          git commit -m "Wire persistent Rasgos tab"
+          git push origin HEAD:tmp/increment-f-rasgos-wiring
