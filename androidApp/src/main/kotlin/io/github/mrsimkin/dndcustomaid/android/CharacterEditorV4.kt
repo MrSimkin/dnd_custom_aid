@@ -121,6 +121,9 @@ internal fun CharacterEditorScreenV4(
     var backgroundDraftJson by rememberSaveable(characterId.toString(), "background") {
         mutableStateOf(characterBackgroundToJsonV4(stored.background))
     }
+    var traitsDraftJson by rememberSaveable(characterId.toString(), "traits") {
+        mutableStateOf(characterTraitsToJsonV4(stored.traits))
+    }
     var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
     var selectedTabName by rememberSaveable(characterId.toString()) {
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
@@ -135,6 +138,7 @@ internal fun CharacterEditorScreenV4(
     val combatEntries = remember(combatDraftJson) { combatEntriesFromJsonV4(combatDraftJson) }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
+    val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
 
     fun updateDraft(updated: CharacterEditorDraftV4) {
@@ -162,6 +166,11 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateTraits(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>) {
+        traitsDraftJson = characterTraitsToJsonV4(updated)
+        savedMessage = null
+    }
+
     fun persist(candidate: CharacterSheet) {
         val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
         val integrated = candidate.copy(
@@ -169,6 +178,7 @@ internal fun CharacterEditorScreenV4(
             inventoryItems = equipment.items,
             currencies = equipment.currencies,
             background = characterBackgroundFromJsonV4(backgroundDraftJson),
+            traits = characterTraitsFromJsonV4(traitsDraftJson),
         )
         stored = repository.saveCharacter(integrated)
         draft = CharacterEditorDraftV4.from(stored)
@@ -180,6 +190,7 @@ internal fun CharacterEditorScreenV4(
             ),
         )
         backgroundDraftJson = characterBackgroundToJsonV4(stored.background)
+        traitsDraftJson = characterTraitsToJsonV4(stored.traits)
         savedMessage = "Guardado"
     }
 
@@ -282,9 +293,10 @@ internal fun CharacterEditorScreenV4(
                         onBackgroundChange = ::updateBackground,
                         wide = wide,
                     )
-                    CharacterTabV4.TRAITS -> CharacterDomainShellV4(
-                        title = "Rasgos",
-                        description = "La navegación está lista. El editor persistente de Rasgos se incorpora en el Incremento F.",
+                    CharacterTabV4.TRAITS -> CharacterTraitsTabV4(
+                        traits = traitsDraft,
+                        onTraitsChange = ::updateTraits,
+                        wide = wide,
                     )
                     CharacterTabV4.SPELLS -> CharacterDomainShellV4(
                         title = "Conjuros",
