@@ -2,7 +2,6 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +13,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -29,6 +30,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource
 import kotlin.math.abs
@@ -68,6 +71,14 @@ internal fun CharacterSpellsTabV4(
     val selectedSource = selectedSourceId?.let { selectedId ->
         draft.sources.firstOrNull { it.id.toString() == selectedId }
     }
+    val sourceListState = rememberLazyListState()
+    val selectedSourceIndex = selectedSource?.let { source ->
+        draft.sources.indexOfFirst { it.id == source.id }.takeIf { it >= 0 }?.plus(1)
+    } ?: 0
+    LaunchedEffect(selectedSource?.id, draft.sources.map { it.id }) {
+        sourceListState.animateScrollToItem(selectedSourceIndex)
+    }
+
     fun updateSources(updated: List<CharacterSpellcastingSource>) {
         onDraftChange(
             draft.copy(
@@ -110,26 +121,40 @@ internal fun CharacterSpellsTabV4(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
+            LazyRow(
+                modifier = Modifier.weight(1f),
+                state = sourceListState,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (selectedSource == null) {
-                    Button(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
-                } else {
-                    OutlinedButton(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
+                item(key = "all-sources") {
+                    if (selectedSource == null) {
+                        Button(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
+                    } else {
+                        OutlinedButton(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
+                    }
                 }
-                draft.sources.forEach { source ->
+                items(
+                    count = draft.sources.size,
+                    key = { index -> draft.sources[index].id.toString() },
+                ) { index ->
+                    val source = draft.sources[index]
+                    val sourceLabel: @Composable () -> Unit = {
+                        Text(
+                            source.name,
+                            modifier = Modifier.widthIn(max = 180.dp),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                     if (selectedSource?.id == source.id) {
                         Button(onClick = { selectedSourceId = source.id.toString() }) {
-                            Text(source.name, maxLines = 1)
+                            sourceLabel()
                         }
                     } else {
                         OutlinedButton(onClick = { selectedSourceId = source.id.toString() }) {
-                            Text(source.name, maxLines = 1)
+                            sourceLabel()
                         }
                     }
                 }

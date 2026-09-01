@@ -640,7 +640,10 @@ private fun ClassRowV4(
             )
             Column {
                 CompactFieldLabelV4("")
-                CompactMenuSurfaceV4("×", onRemove, Modifier.width(34.dp))
+                StableRemoveIconButton(
+                    onClick = onRemove,
+                    contentDescription = "Eliminar clase ${draft.name.ifBlank { "sin nombre" }}",
+                )
             }
         }
     }
@@ -670,13 +673,12 @@ private fun ClassSelectorV4(
                     onValueChange = { onChange(draft.copy(name = it)) },
                     modifier = Modifier.weight(1f),
                 )
-                CompactMenuSurfaceV4(
-                    text = "▾",
+                StableDropdownIconButton(
                     onClick = {
                         customMode = false
                         expanded = true
                     },
-                    modifier = Modifier.width(30.dp),
+                    contentDescription = "Abrir lista de clases",
                 )
             }
         } else {
@@ -734,13 +736,12 @@ private fun HitDieSelectorV4(
                     onValueChange = onValueChange,
                     modifier = Modifier.weight(1f),
                 )
-                CompactMenuSurfaceV4(
-                    text = "▾",
+                StableDropdownIconButton(
                     onClick = {
                         customMode = false
                         expanded = true
                     },
-                    modifier = Modifier.width(28.dp),
+                    contentDescription = "Abrir lista de dados de golpe",
                 )
             }
         } else {
