@@ -19,6 +19,7 @@ Status values: PASS, FAIL/blocking, limitation/non-blocking, NOT TESTED.
 7. **PASS — Selected tab survives rotation/recreation.** Owner reports selected tab remains correct through orientation change.
 8. **PASS — Conjuros fallback when spellcasting is disabled.** Starting from `Conjuros`, disabling spellcasting removes the tab and returns the character sheet to `General` without crash, blank state, or invalid selection.
 9. **PASS — Re-enable spellcasting without forced navigation or data loss.** Re-enabling spellcasting restores the `Conjuros` tab and the prior spellcasting data without forcing navigation to the spell tab or resetting the character's spellcasting state.
+10. **PASS — Hide-not-delete warning for meaningful spellcasting data.** Disabling spellcasting presents a clear warning/confirmation, and after re-enabling spellcasting the prior data returns intact.
 
 ## Findings discovered during QA
 
@@ -56,7 +57,7 @@ Owner reports that labels/content wrapping to two lines remain aligned toward th
 
 ## Current QA disposition
 
-- Checks 1–9: PASS.
+- Checks 1–10: PASS.
 - Blocking defects found: E-01.
 - Non-blocking/reconciliation findings: T-01, E-02, U-01.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
