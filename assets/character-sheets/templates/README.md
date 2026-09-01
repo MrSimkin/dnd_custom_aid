@@ -11,6 +11,12 @@ The preferred table workflow uses physical printed character sheets. The applica
 
 The PDFs stored here are presentation/output templates, not the authoritative character data model.
 
+## Durable visual/terminology companion
+
+Read [`REFERENCE.md`](REFERENCE.md) together with the PDFs. It records the terminology, page/grouping structure, and known app/PDF wording mismatches discovered from the owner's templates so future work does not require repeated binary re-upload merely to recover already-captured terminology.
+
+When visual fidelity matters and rendered/binary access is available, the PDFs themselves remain the authoritative visual references.
+
 ## Owner upload route
 
 Upload blank/custom character-sheet PDFs to:
