@@ -35,6 +35,7 @@ Check 12 is complete at the functional-subcheck level, but overall **FAIL/blocki
 
 - **13A: PASS — functional drag reorder.** Retesting while watching the final order confirms that the three-line drag affordance successfully reorders equipment entries. The earlier apparent functional failure was caused by insufficient drag feedback/discoverability rather than a broken reorder operation.
 - **13B: FAIL/blocking — keyboard safety / lower controls inaccessible.** With the Android keyboard open in Equipo, the owner cannot reach all lower controls; specifically `Editar` and `Eliminar` remain hidden/inaccessible. Because Check 13 explicitly requires keyboard-safe Equipo interaction, this fails acceptance even though the rest of the editor remains usable.
+- **13C: FAIL/blocking — currencies are not compact enough.** The owner reports that the Monedas section is too tall. Because compact currency presentation is an explicit Check 13 acceptance requirement, this fails the current acceptance target. The issue is layout density rather than currency functionality.
 
 Remaining Check 13 subchecks are pending.
 
@@ -74,6 +75,12 @@ Status: **FAIL/blocking**.
 
 During Check 13B, the owner reports that lower controls — specifically `Editar` and `Eliminar` — remain hidden/inaccessible while the Android keyboard is open. Equipo needs sufficient IME inset/scroll range so every relevant control can be reached without dismissing the keyboard.
 
+### E-05 — Currency section is too tall
+
+Status: **FAIL/blocking on Check 13 compact-currency acceptance target**.
+
+During Check 13C, the owner reports that Monedas consumes too much vertical space. The correction should reduce unnecessary vertical padding/margins and overall control height while preserving readability and usable touch targets.
+
 ### U-01 — Wrapped two-line text is top-aligned instead of vertically centered
 
 Status: **FAIL/blocking on Combate acceptance surface; broader scope still to be mapped**.
@@ -104,6 +111,12 @@ Status: **limitation/non-blocking, but high-priority usability correction**.
 
 Checks 12D and 13A confirm functional drag reorder in both Combate and Equipo, but the owner had difficulty noticing that an item was moving because the gesture gives insufficient visible feedback. The drag interaction should provide clear affordance and in-progress feedback (for example visible lift/offset/reordering response) so users can tell that the item is being dragged. Apply the correction consistently anywhere this drag pattern is used.
 
+### L-01 — Owner direction: cap unnecessary padding and margins in phone-first character UI
+
+Status: **owner-approved layout direction; exact numeric tokens still to be chosen during correction pass**.
+
+After observing excessive vertical density in Combate, equipment rows, action buttons and the Monedas section, the owner directed that padding and margins should be deliberately limited rather than allowed to expand each block. The correction pass should establish a small, consistent spacing vocabulary / maximums for compact character-sheet surfaces, especially repeated rows/cards and list items. Do not invent an exact dp value from this QA note alone; choose/confirm concrete spacing tokens during implementation review, while preserving minimum touch-target/accessibility requirements.
+
 ### N-01 — Android system Back exits the app instead of navigating within the app
 
 Status: **FAIL/blocking pending scope confirmation**.
@@ -114,8 +127,9 @@ Owner reports that pressing the Android system Back action from an internal app 
 
 - Checks 1–11: PASS.
 - Check 12: complete; overall FAIL/blocking because 12A and 12B fail. 12C and functional 12D pass with usability limitations.
-- Check 13: in progress; 13A PASS functionally, 13B FAIL/blocking.
-- Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, N-01 pending scope confirmation.
+- Check 13: in progress; 13A PASS functionally, 13B FAIL/blocking, 13C FAIL/blocking.
+- Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation.
 - Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
 - Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
+- Owner-approved general layout direction: L-01 (limit/cap unnecessary padding and margins; exact spacing tokens to be selected during correction implementation without compromising touch/accessibility minimums).
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
