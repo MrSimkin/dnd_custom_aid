@@ -321,6 +321,7 @@ class CharacterRepository(
                 )
             }
 
+            database.characterMaintenanceQueries.deleteSpellSourceAssociationsForCharacter(sheet.id.toString())
             database.characterQueries.deleteCharacterSpells(sheet.id.toString())
             database.characterQueries.deleteCharacterSpellSources(sheet.id.toString())
             normalizedSources.forEachIndexed { index, source ->
