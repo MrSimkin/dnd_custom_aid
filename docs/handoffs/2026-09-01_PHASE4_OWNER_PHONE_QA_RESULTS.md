@@ -34,6 +34,7 @@ Check 12 is complete at the functional-subcheck level, but overall **FAIL/blocki
 ### Check 13 — Equipo corrective backlog
 
 - **13A: PASS — functional drag reorder.** Retesting while watching the final order confirms that the three-line drag affordance successfully reorders equipment entries. The earlier apparent functional failure was caused by insufficient drag feedback/discoverability rather than a broken reorder operation.
+- **13B: FAIL/blocking — keyboard safety / lower controls inaccessible.** With the Android keyboard open in Equipo, the owner cannot reach all lower controls; specifically `Editar` and `Eliminar` remain hidden/inaccessible. Because Check 13 explicitly requires keyboard-safe Equipo interaction, this fails acceptance even though the rest of the editor remains usable.
 
 Remaining Check 13 subchecks are pending.
 
@@ -66,6 +67,12 @@ Owner reports the `Editar` and `Eliminar` buttons consume too much space for com
 Status: **limitation/non-blocking / design proposal for correction pass**.
 
 During Check 13A the owner reports that the three-line drag icon is too large for a compact equipment row. The owner further suggests that a dedicated icon may not be necessary at all: press-and-hold the row/block itself, then move it to reorder. Treat this as a proposed interaction for the correction pass rather than an already-approved implementation detail. Any handle-free design must retain clear drag-start/movement feedback and avoid gesture ambiguity, while preserving adequate touch/accessibility behavior.
+
+### E-04 — Equipo controls remain hidden with keyboard open
+
+Status: **FAIL/blocking**.
+
+During Check 13B, the owner reports that lower controls — specifically `Editar` and `Eliminar` — remain hidden/inaccessible while the Android keyboard is open. Equipo needs sufficient IME inset/scroll range so every relevant control can be reached without dismissing the keyboard.
 
 ### U-01 — Wrapped two-line text is top-aligned instead of vertically centered
 
@@ -107,8 +114,8 @@ Owner reports that pressing the Android system Back action from an internal app 
 
 - Checks 1–11: PASS.
 - Check 12: complete; overall FAIL/blocking because 12A and 12B fail. 12C and functional 12D pass with usability limitations.
-- Check 13: in progress; 13A PASS functionally.
-- Confirmed blocking defects: U-01/12A, C-01/12B, N-01 pending scope confirmation.
+- Check 13: in progress; 13A PASS functionally, 13B FAIL/blocking.
+- Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, N-01 pending scope confirmation.
 - Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
 - Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
