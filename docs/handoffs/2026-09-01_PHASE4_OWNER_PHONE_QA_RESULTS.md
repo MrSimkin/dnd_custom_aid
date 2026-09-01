@@ -36,6 +36,7 @@ Check 12 is complete at the functional-subcheck level, but overall **FAIL/blocki
 - **13A: PASS — functional drag reorder.** Retesting while watching the final order confirms that the three-line drag affordance successfully reorders equipment entries. The earlier apparent functional failure was caused by insufficient drag feedback/discoverability rather than a broken reorder operation.
 - **13B: FAIL/blocking — keyboard safety / lower controls inaccessible.** With the Android keyboard open in Equipo, the owner cannot reach all lower controls; specifically `Editar` and `Eliminar` remain hidden/inaccessible. Because Check 13 explicitly requires keyboard-safe Equipo interaction, this fails acceptance even though the rest of the editor remains usable.
 - **13C: FAIL/blocking — currencies are not compact enough.** The owner reports that the Monedas section is too tall. Because compact currency presentation is an explicit Check 13 acceptance requirement, this fails the current acceptance target. The issue is layout density rather than currency functionality.
+- **13D: PASS — responsive Equipo columns/orientation.** Owner confirms the Equipo layout responds acceptably between portrait and landscape without reported clipping, overlap, unusable narrow columns, or failure to take advantage of wider space.
 
 Remaining Check 13 subchecks are pending.
 
@@ -127,7 +128,7 @@ Owner reports that pressing the Android system Back action from an internal app 
 
 - Checks 1–11: PASS.
 - Check 12: complete; overall FAIL/blocking because 12A and 12B fail. 12C and functional 12D pass with usability limitations.
-- Check 13: in progress; 13A PASS functionally, 13B FAIL/blocking, 13C FAIL/blocking.
+- Check 13: in progress; 13A PASS functionally, 13B FAIL/blocking, 13C FAIL/blocking, 13D PASS.
 - Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation.
 - Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
 - Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
