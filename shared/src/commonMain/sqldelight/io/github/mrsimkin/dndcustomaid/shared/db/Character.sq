@@ -31,7 +31,9 @@ CREATE TABLE character (
     passive_perception_adjustment INTEGER NOT NULL DEFAULT 0,
     proficiency_bonus_adjustment INTEGER NOT NULL DEFAULT 0,
     spell_attack_modifier INTEGER,
-    spellcasting_ability TEXT NOT NULL DEFAULT 'NONE'
+    spellcasting_ability TEXT NOT NULL DEFAULT 'NONE',
+    spellcaster_enabled INTEGER NOT NULL DEFAULT 0,
+    general_notes TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE character_class (
@@ -111,6 +113,78 @@ CREATE TABLE character_currency (
     UNIQUE(character_id, sort_order)
 );
 
+CREATE TABLE character_background (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    background_name TEXT NOT NULL DEFAULT '',
+    summary TEXT NOT NULL DEFAULT '',
+    personality_traits TEXT NOT NULL DEFAULT '',
+    ideals TEXT NOT NULL DEFAULT '',
+    bonds TEXT NOT NULL DEFAULT '',
+    flaws TEXT NOT NULL DEFAULT '',
+    story TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE character_trait (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT '',
+    trait_type TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    notes TEXT,
+    max_uses INTEGER,
+    spent_uses INTEGER NOT NULL DEFAULT 0,
+    recovery TEXT,
+    activation TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_note (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_spell_source (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    linked_class_id TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_spell (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    spell_level INTEGER NOT NULL,
+    casting_time TEXT NOT NULL DEFAULT '',
+    range_text TEXT NOT NULL DEFAULT '',
+    has_verbal INTEGER NOT NULL DEFAULT 0,
+    has_somatic INTEGER NOT NULL DEFAULT 0,
+    has_material INTEGER NOT NULL DEFAULT 0,
+    material_text TEXT,
+    duration TEXT NOT NULL DEFAULT '',
+    concentration INTEGER NOT NULL DEFAULT 0,
+    ritual INTEGER NOT NULL DEFAULT 0,
+    description TEXT NOT NULL DEFAULT '',
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, spell_level, sort_order)
+);
+
+CREATE TABLE character_spell_source_assoc (
+    spell_id TEXT NOT NULL REFERENCES character_spell(id) ON DELETE CASCADE,
+    source_id TEXT NOT NULL REFERENCES character_spell_source(id) ON DELETE CASCADE,
+    prepared INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(spell_id, source_id)
+);
+
 insertCharacter:
 INSERT INTO character(id, campaign_id, name, status)
 VALUES (?, ?, ?, ?);
@@ -120,7 +194,8 @@ SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
        strength, dexterity, constitution, intelligence, wisdom, charisma,
        armor_class, max_hp, current_hp, temp_hp, initiative_adjustment, speed,
        proficiency_bonus, proficiency_bonus_adjustment, passive_perception_adjustment,
-       spell_save_dc, spell_attack_modifier, spellcasting_ability
+       spell_save_dc, spell_attack_modifier, spellcasting_ability,
+       spellcaster_enabled, general_notes
 FROM character
 WHERE campaign_id = ?
 ORDER BY name COLLATE NOCASE, id;
@@ -130,7 +205,8 @@ SELECT id, campaign_id, name, status, updated_at_epoch_seconds,
        strength, dexterity, constitution, intelligence, wisdom, charisma,
        armor_class, max_hp, current_hp, temp_hp, initiative_adjustment, speed,
        proficiency_bonus, proficiency_bonus_adjustment, passive_perception_adjustment,
-       spell_save_dc, spell_attack_modifier, spellcasting_ability
+       spell_save_dc, spell_attack_modifier, spellcasting_ability,
+       spellcaster_enabled, general_notes
 FROM character
 WHERE id = ?;
 
@@ -156,7 +232,9 @@ SET name = ?,
     passive_perception_adjustment = ?,
     spell_save_dc = ?,
     spell_attack_modifier = ?,
-    spellcasting_ability = ?
+    spellcasting_ability = ?,
+    spellcaster_enabled = ?,
+    general_notes = ?
 WHERE id = ?;
 
 insertCharacterClass:
@@ -258,3 +336,91 @@ ORDER BY sort_order, currency_key;
 deleteCharacterCurrencies:
 DELETE FROM character_currency
 WHERE character_id = ?;
+
+upsertCharacterBackground:
+INSERT OR REPLACE INTO character_background(
+    character_id, background_name, summary, personality_traits, ideals, bonds, flaws, story
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCharacterBackground:
+SELECT character_id, background_name, summary, personality_traits, ideals, bonds, flaws, story
+FROM character_background
+WHERE character_id = ?;
+
+insertCharacterTrait:
+INSERT INTO character_trait(
+    id, character_id, name, source, trait_type, description, notes,
+    max_uses, spent_uses, recovery, activation, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCharacterTraits:
+SELECT id, character_id, name, source, trait_type, description, notes,
+       max_uses, spent_uses, recovery, activation, sort_order
+FROM character_trait
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCharacterTraits:
+DELETE FROM character_trait
+WHERE character_id = ?;
+
+insertCharacterNote:
+INSERT INTO character_note(id, character_id, title, content, sort_order)
+VALUES (?, ?, ?, ?, ?);
+
+selectCharacterNotes:
+SELECT id, character_id, title, content, sort_order
+FROM character_note
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCharacterNotes:
+DELETE FROM character_note
+WHERE character_id = ?;
+
+insertCharacterSpellSource:
+INSERT INTO character_spell_source(id, character_id, name, linked_class_id, sort_order)
+VALUES (?, ?, ?, ?, ?);
+
+selectCharacterSpellSources:
+SELECT id, character_id, name, linked_class_id, sort_order
+FROM character_spell_source
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCharacterSpellSources:
+DELETE FROM character_spell_source
+WHERE character_id = ?;
+
+insertCharacterSpell:
+INSERT INTO character_spell(
+    id, character_id, name, spell_level, casting_time, range_text,
+    has_verbal, has_somatic, has_material, material_text, duration,
+    concentration, ritual, description, notes, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCharacterSpells:
+SELECT id, character_id, name, spell_level, casting_time, range_text,
+       has_verbal, has_somatic, has_material, material_text, duration,
+       concentration, ritual, description, notes, sort_order
+FROM character_spell
+WHERE character_id = ?
+ORDER BY spell_level, sort_order, id;
+
+deleteCharacterSpells:
+DELETE FROM character_spell
+WHERE character_id = ?;
+
+insertCharacterSpellSourceAssociation:
+INSERT INTO character_spell_source_assoc(spell_id, source_id, prepared)
+VALUES (?, ?, ?);
+
+selectCharacterSpellSourceAssociations:
+SELECT assoc.spell_id, assoc.source_id, assoc.prepared
+FROM character_spell_source_assoc AS assoc
+JOIN character_spell AS spell ON spell.id = assoc.spell_id
+WHERE spell.character_id = ?
+ORDER BY spell.spell_level, spell.sort_order, assoc.source_id;
