@@ -51,7 +51,7 @@ internal fun CharacterListScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = { showCreateDialog = true }) {
-                Text("+")
+                StableAddIcon(contentDescription = "Añadir personaje")
             }
         },
     ) { scaffoldPadding ->
@@ -87,7 +87,7 @@ internal fun CharacterListScreen(
 
                 if (characters.isEmpty()) {
                     item {
-                        Text("Aún no hay personajes en esta campaña. Usa + para crear uno.")
+                        Text("Aún no hay personajes en esta campaña. Usa el botón Añadir para crear uno.")
                     }
                 } else {
                     items(characters, key = { it.id.toString() }) { character ->
@@ -146,7 +146,7 @@ private fun CreateCharacterDialog(
     var name by remember { mutableStateOf("") }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         title = { Text("Nuevo personaje") },
         text = {
             OutlinedTextField(
