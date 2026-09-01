@@ -3,27 +3,27 @@
 **Last verified:** 2026-09-01  
 **Canonical branch:** `main`  
 **Phase 4 durable working branch:** `implementation/character-data-foundation`  
-**Current recovery/increment branch:** `tmp/increment-i-shared-slot-integration`  
+**Current recovery/increment branch:** `tmp/increment-j-notes-tab`  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Increment I (`Quick Magic` / `Conjuros` shared spell-slot integration) is technically closed after a green automated Gate I. The recovery branch is ready for descendant-only fast-forward promotion to `implementation/character-data-foundation`. `main` remains untouched. Intended-device phone QA remains a separate owner acceptance boundary before any Phase 4 PR/merge.
+**Status:** Increment J (`Notas`) is technically closed after green automated Gate J. The branch is ready for descendant-only fast-forward promotion to `implementation/character-data-foundation`. `main` remains untouched. Intended-device phone QA remains separate under C-0010.
 
 ## 0. Latest verified checkpoint
 
-Increment H was closed at `bf8d5d4af8f750edd061d3589af1b6339fd8e8ee` and promoted to `implementation/character-data-foundation`.
+Increment I is durably promoted and its promoted head `4dd1e86b2ad62cea0789baede6bf20af8bae2b15` passed `Scaffold checks` run `33465502292` completely.
 
-Increment I resumed from that exact head and is closed on the current recovery branch. Gate I tested `2c79bde3dcee35c2c67d109a25cbb08fee23665b` in GitHub Actions run `33465230273`:
+Increment J resumed from that exact green head. Gate J tested `3732dbd62414e06ab8c2ef1820d14009dd518173` in run `33465839442`:
 
 - backend check: **PASS**;
 - shared Kotlin/SQLDelight tests: **PASS**;
-- Increment I shared-slot regression: **PASS** as part of the shared suite;
+- file-backed Notes persistence/reopen regression: **PASS** as part of the shared suite;
 - Android debug build: **PASS**;
 - Desktop build: **PASS**;
 - APK upload: **PASS**.
 
-Gate I APK artifact: `9784647947`, digest `sha256:a4ee65b6ed075e0b8b0d5bea3805fe37679ec589492acad540c8134befd041eb`.
+Gate J APK artifact: `9784853364`, digest `sha256:d55958ca91f1d56b0f673b003acdc386f94210babfd128b835eda7da4ef646ae`.
 
-Detailed closure: `docs/handoffs/2026-09-01_INCREMENT_I_SHARED_SLOT_CLOSURE.md`.
+Detailed closure: `docs/handoffs/2026-09-01_INCREMENT_J_NOTES_CLOSURE.md`.
 
 ## 1. Authority and working rules
 
@@ -48,56 +48,52 @@ Current status:
 - Increment F — Rasgos: **closed**;
 - Increment G — Conjuros source management: **closed**;
 - Increment H — Conjuros spell list/details: **closed**, automated gate green;
-- Increment I — Quick Magic / Conjuros shared slots: **closed**, automated gate green;
-- Increment J — Notas: **next implementation boundary**;
-- Increment K — responsive/accessibility integration: pending;
+- Increment I — Quick Magic / Conjuros shared slots: **closed**, automated gate green and durable promoted head green;
+- Increment J — Notas: **closed**, automated gate green;
+- Increment K — responsive/accessibility integration: **next implementation boundary**;
 - Increment L — final automated regression + owner QA candidate: pending.
 
 ## 3. Current character-sheet architecture
 
-The Android V4 character editor now supports the approved top-level character navigation including `Resumen`, `Habilidades`, `Combate`, `Equipo`, `Trasfondo`, `Rasgos`, conditional `Conjuros`, and the `Notas` shell.
+The Android V4 character editor supports the approved top-level character navigation including `General`, `Habilidades`, `Combate`, `Equipo`, `Trasfondo`, `Rasgos`, conditional `Conjuros`, and persistent `Notas`.
 
 `PC Settings` owns the character-wide `Lanzador de conjuros` switch:
 
 - ON shows Quick Magic and `Conjuros`;
 - OFF hides both;
 - OFF never deletes spellcasting data;
-- disabling while `Conjuros` is selected falls back to `General`/`Resumen`.
+- disabling while `Conjuros` is selected falls back to `General`.
 
-The character editor keeps its unsaved working state recreation-safe and persists through the existing central character Save boundary.
+The character editor keeps unsaved working state recreation-safe and persists through the existing central character Save boundary.
 
 ## 4. Conjuros state after Increment I
 
-### Spell sources and conceptual spells
+The model supports stable spellcasting sources, custom/non-class sources, `Todos` plus per-source views, conceptual spells associated with one or more sources, source-specific manual `Preparado`, grouped levels 0–9, spell CRUD/search/collapse/manual ordering, and permissive manual spell detail fields.
 
-The model supports:
-
-- stable spellcasting sources, optionally linked to a class;
-- custom/non-class sources;
-- `Todos` plus per-source filtered views;
-- one conceptual spell associated with one or more sources;
-- source-specific manual `Preparado` state;
-- spell grouping by `Trucos` and levels 1–9;
-- spell CRUD, search, collapsible levels, and manual within-level ordering;
-- approved permissive spell detail fields without legality/rules enforcement.
-
-Deleting a class unlinks an optional source link rather than deleting the source/spells. Deleting a source removes only its associations; conceptual spells and other associations survive.
-
-### Shared spell slots
-
-Quick Magic and `Conjuros` share the same authoritative `CharacterSheet.spellSlots` / `CharacterEditorDraftV4.spellSlots` state.
-
-- Quick Magic remains the single manual profile for spell save DC, spell attack modifier, casting ability, slot-total configuration, and slot restoration.
-- Conjuros levels 1–9 display compact spent/unspent pips for configured slot levels and can change the spent count.
-- Changes in either surface are immediately represented by the other because both mutate/read the same editor draft.
-- cantrips never show slots.
-- no second slot cache, schema, migration, or `CharacterSpellcastingDraftV4` slot field exists.
+Quick Magic and `Conjuros` share the same authoritative `CharacterSheet.spellSlots` / `CharacterEditorDraftV4.spellSlots` state. Quick Magic remains the single manual profile for spell save DC, spell attack modifier, casting ability, slot-total configuration and restoration. Conjuros level headers edit only spent counts on that same state.
 
 Focused regression: `shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterSpellSlotIntegrationTest.kt`.
 
-## 5. Persistent domain ownership
+## 5. Notas state after Increment J
 
-Current non-negotiable ownership boundaries from the approved implementation package remain:
+`Notas` implements the approved hybrid model:
+
+- prominent unrestricted `Notas generales` area;
+- optional titled note cards;
+- titled notes contain only title + content;
+- add/edit/delete;
+- compact preview;
+- long-press drag ordering;
+- no dates/tags/categories/session metadata;
+- IME padding;
+- recreation-safe unsaved JSON draft through `rememberSaveable`;
+- persistence through existing `CharacterSheet.generalNotes` and `CharacterSheet.noteCards` only.
+
+Focused regression: `shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterNotesPersistenceTest.kt`.
+
+## 6. Persistent domain ownership
+
+Current non-negotiable ownership boundaries remain:
 
 - classes own class identity/levels;
 - spellcasting sources are separate stable entities and may optionally reference classes;
@@ -111,38 +107,41 @@ Current non-negotiable ownership boundaries from the approved implementation pac
 - Notas is free-form and non-authoritative for structured game state;
 - broken optional links fail softly; destructive cascades are reserved for true ownership boundaries.
 
-## 6. Verification and manual-QA boundary
+## 7. Verification and manual-QA boundary
 
-The repository's standard automated gate remains:
+The standard automated gate remains:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-plus backend `npm install` / `npm run check` through the single `Scaffold checks` workflow.
+plus backend `npm install` / `npm run check` through `Scaffold checks`.
 
-Automated Gates G, H and I are green at their recorded closure heads. Do not convert that into a claim of phone acceptance.
+Automated Gates G, H, I and J are green at their recorded closure heads. Do not convert that into a claim of phone acceptance.
 
-Still requiring intended-device owner QA before final Phase 4 acceptance include the accumulated V4/new-domain presentation and interaction checks, including Conjuros source/spell ergonomics and the new shared-slot pip interaction. The final consolidated phone QA target is produced only after the remaining implementation sequence reaches its QA-candidate boundary.
+Still requiring intended-device owner QA include source/spell drag ergonomics, shared-slot pips, Notes text/drag/IME behavior, text-scale behavior, and portrait/landscape presentation. These are consolidated into the K/L acceptance path.
 
-## 7. Known documentation history issue resolved
+## 8. Documentation-history rule
 
-The previous `PROJECT_STATE.md`, and some older `ROADMAP.md` / `ARCHITECTURE.md` prose, still described an earlier V4/Phase 4 moment and incorrectly made later implemented domains appear deferred. On 2026-09-01 this was explicitly diagnosed during recovery. Later specific approved decisions, the consolidated implementation package, dated handoffs, actual branch graph and CI evidence control.
+Older `ROADMAP.md` / `ARCHITECTURE.md` prose contains historical phase snapshots that can lag later approved handoffs and actual branch state. Later specific decisions, the consolidated implementation package, dated handoffs, actual Git refs and CI evidence control when they conflict.
 
-This file now represents the current operative implementation state. Older historical documents remain useful for rationale but must not be used to roll back later implemented/approved reality.
+This file is the current operative state snapshot.
 
-## 8. Next exact action
+## 9. Next exact action
 
-1. Fast-forward `implementation/character-data-foundation` to the Increment I closure once descendant-only ancestry is confirmed.
+1. Confirm Increment J closure is a descendant-only update and fast-forward `implementation/character-data-foundation`.
 2. Keep `main` unchanged.
-3. Begin **Increment J — Notas tab** from that durable head on a new focused recovery-safe branch.
-4. Implement the approved hybrid notes model:
-   - prominent unrestricted `Notas generales` area;
-   - optional ordered titled note cards;
-   - each card owns only title + content;
-   - add/edit/delete;
-   - drag-and-drop order;
-   - IME-safe editing;
-   - recreation/persistence coverage;
-   - proportional wide-layout presentation.
-5. Run Gate J before promotion or moving to Increment K.
+3. Begin **Increment K — Responsive + accessibility integration pass** on a new focused branch.
+4. Audit and correct:
+   - 80/90/100/115/130% text-scale assumptions;
+   - portrait + landscape behavior;
+   - top-level tab strip integrity/selected visibility;
+   - Conjuros source-strip behavior with long/multiple names;
+   - `Habilidades` `Por atributo` two-column behavior at 115/130;
+   - wide-layout use in Trasfondo/Rasgos/Conjuros/Notas;
+   - IME-safe editors and outside-tap state safety;
+   - semantic/vector icon controls and touch targets;
+   - Unicode pseudo-buttons;
+   - drag usability at large text scale.
+5. Record static/automated findings separately from intended-device visual/ergonomic QA.
+6. Run Gate K before promotion or moving to Increment L.
