@@ -1,4 +1,4 @@
-name: Temporary Increment H spell-list wiring
+name: Temporary Increment H compiler fix
 
 on:
   push:
@@ -11,58 +11,35 @@ permissions:
   contents: write
 
 jobs:
-  patch-spells-tab:
+  patch-spell-list:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           ref: tmp/increment-h-spell-list
           fetch-depth: 0
-      - name: Apply asserted narrow Increment H wiring patch
+      - name: Apply asserted narrow Increment H compiler fix
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
 
-          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt')
+          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt')
           text = path.read_text(encoding='utf-8')
-
-          count_start = '    val visibleSpellCount = if (selectedSource == null) {'
-          count_end = '\n\n    fun updateSources(updated: List<CharacterSpellcastingSource>)'
-          count_start_index = text.find(count_start)
-          if count_start_index < 0 or text.find(count_start, count_start_index + 1) >= 0:
-              raise SystemExit('placeholder count start must occur exactly once')
-          count_end_index = text.find(count_end, count_start_index)
-          if count_end_index < 0:
-              raise SystemExit('placeholder count end marker missing')
-          text = text[:count_start_index] + text[count_end_index + 2:]
-
-          list_start = '        LazyColumn(\n            modifier = Modifier.fillMaxSize(),'
-          list_end = '\n    }\n\n    if (managerOpen) {'
-          list_start_index = text.find(list_start)
-          if list_start_index < 0 or text.find(list_start, list_start_index + 1) >= 0:
-              raise SystemExit('Increment G placeholder LazyColumn must occur exactly once')
-          list_end_index = text.find(list_end, list_start_index)
-          if list_end_index < 0:
-              raise SystemExit('Increment G placeholder end marker missing')
-
-          replacement = '''        CharacterSpellListV4(
-              draft = draft,
-              selectedSourceId = selectedSource?.id,
-              onDraftChange = onDraftChange,
-              wide = wide,
-          )'''
-          text = text[:list_start_index] + replacement + text[list_end_index:]
-
-          path.write_text(text, encoding='utf-8')
+          old = '                                else -> "Revisa los datos del conjuro.",\n                            },'
+          new = '                                else -> "Revisa los datos del conjuro."\n                            },'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'compiler-fix target must occur exactly once; found {count}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
           git diff --check
-          git diff -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt
-      - name: Commit narrow Increment H wiring patch
+          git diff -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt
+      - name: Commit narrow Increment H compiler fix
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt
-          git commit -m "Wire Increment H spell list into Conjuros"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt
+          git commit -m "Fix Increment H editor validation syntax"
           git push origin HEAD:tmp/increment-h-spell-list
