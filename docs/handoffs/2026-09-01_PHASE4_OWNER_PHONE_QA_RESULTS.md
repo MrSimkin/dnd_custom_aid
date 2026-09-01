@@ -26,6 +26,7 @@ Status values: PASS, FAIL/blocking, limitation/non-blocking, NOT TESTED.
 
 - **12A: FAIL/blocking — vertical centering.** In the Combate quick-reference row, when one label/value wraps to two lines, neighboring one-line text remains top-aligned instead of being vertically centered within the taller shared row. This reproduces and localizes the previously noted U-01 visual-alignment issue on the exact corrective surface targeted by Check 12.
 - **12B: FAIL/blocking — IME/keyboard reachability incomplete.** The combat editor remains generally usable with the keyboard open, but the owner cannot scroll far enough to bring the bottom action buttons into view. Because Check 12 explicitly requires keyboard-safe access to the full editor and actions, this cannot pass acceptance as a partial/semi-pass. The editor must provide enough inset/scroll range to reach the bottom controls while the IME is visible.
+- **12C: PASS for editor-retention / explicit-dismissal requirement, with non-blocking keyboard UX limitation.** Tapping elsewhere does not close the combat editor or discard the unsaved draft. The keyboard itself also remains open on outside tap and currently closes only through Android system Back. The core acceptance requirement here is satisfied because outside taps do not silently dismiss the editor/draft; see C-02 for the keyboard-dismissal usability limitation.
 
 Remaining Check 12 subchecks are still pending.
 
@@ -69,16 +70,22 @@ Status: **FAIL/blocking**.
 
 During Check 12B, the owner can use most of the combat editor with the Android keyboard visible, but cannot scroll far enough to see/reach the action buttons at the bottom of the window. This is the remaining IME-safety defect from the prior phone QA and directly fails the explicit Check 12 requirement.
 
+### C-02 — Outside tap does not dismiss the Android keyboard in combat editor
+
+Status: **limitation/non-blocking**.
+
+During Check 12C, tapping outside the active field does not hide the keyboard; Android system Back is required to dismiss the IME. The important editor-retention behavior is correct: the editor remains open and the draft is preserved. Treat this as a usability refinement unless later testing shows it contributes to data loss or navigation failure.
+
 ### N-01 — Android system Back exits the app instead of navigating within the app
 
 Status: **FAIL/blocking pending scope confirmation**.
 
-Owner reports that pressing the Android system Back action from an internal app screen takes them out of the app. Expected Android behavior for this product is that system Back should behave like the app's own back/navigation action through internal screens and should only exit when already at the app's main/root screen. Scope should be mapped during the remaining QA (character editor, PC Settings, campaign/character selection, modal editors), but this is already a significant navigation defect and should be corrected before merge.
+Owner reports that pressing the Android system Back action from an internal app screen takes them out of the app. Expected Android behavior for this product is that system Back should behave like the app's own back/navigation action through internal screens and should only exit when already at the app's main/root screen. Scope should be mapped during the remaining QA (character editor, PC Settings, campaign/character selection, modal editors). Note from Check 12C: when the IME is open, Android Back can first be used to dismiss the keyboard; the separate internal-navigation failure still needs its own scoped retest with the keyboard closed.
 
 ## Current QA disposition
 
 - Checks 1–11: PASS.
-- Check 12: in progress; 12A FAIL/blocking, 12B FAIL/blocking.
+- Check 12: in progress; 12A FAIL/blocking, 12B FAIL/blocking, 12C PASS with C-02 limitation.
 - Blocking defects found: E-01, U-01/12A, C-01/12B, N-01.
-- Non-blocking/reconciliation findings: T-01, E-02.
+- Non-blocking/reconciliation findings: T-01, E-02, C-02.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
