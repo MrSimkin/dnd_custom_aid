@@ -26,18 +26,8 @@ jobs:
 
           spells_path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt')
           text = spells_path.read_text(encoding='utf-8')
-          old = '''        CharacterSpellListV4(
-    draft = draft,
-    selectedSourceId = selectedSource?.id,
-    onDraftChange = onDraftChange,
-    wide = wide,
-)'''
-          new = '''        CharacterSpellListV4(
-            draft = draft,
-            selectedSourceId = selectedSource?.id,
-            onDraftChange = onDraftChange,
-            wide = wide,
-        )'''
+          old = '        CharacterSpellListV4(\n    draft = draft,\n    selectedSourceId = selectedSource?.id,\n    onDraftChange = onDraftChange,\n    wide = wide,\n)'
+          new = '        CharacterSpellListV4(\n            draft = draft,\n            selectedSourceId = selectedSource?.id,\n            onDraftChange = onDraftChange,\n            wide = wide,\n        )'
           count = text.count(old)
           if count != 1:
               raise SystemExit(f'Increment H wiring formatting target must occur exactly once; found {count}')
@@ -52,11 +42,7 @@ jobs:
               raise SystemExit(f'PROJECT_STATE status target must occur exactly once; found {count}')
           state = state.replace(old_status, new_status, 1)
           anchor = '\n## 1. Canonical baseline\n'
-          note = '''
-## 0. Latest implementation checkpoint — Conjuros
-
-Recovery audit on 2026-09-01 established `d71a47822bcbeb0d0aa9ba404ba4fd01af81b510` as the clean Increment G closure boundary. Increment H proceeds from that exact point and implements the conceptual spell list/details layer: level grouping, source-aware filtering, compact search, spell CRUD, multi-source associations, source-specific `Preparado`, manual within-level ordering, and the approved permissive spell fields. The complete validation evidence and final closure status are recorded in the latest Increment H handoff under `docs/handoffs/`.
-'''
+          note = '\n## 0. Latest implementation checkpoint — Conjuros\n\nRecovery audit on 2026-09-01 established `d71a47822bcbeb0d0aa9ba404ba4fd01af81b510` as the clean Increment G closure boundary. Increment H proceeds from that exact point and implements the conceptual spell list/details layer: level grouping, source-aware filtering, compact search, spell CRUD, multi-source associations, source-specific `Preparado`, manual within-level ordering, and the approved permissive spell fields. The complete validation evidence and final closure status are recorded in the latest Increment H handoff under `docs/handoffs/`.\n'
           if state.count(anchor) != 1:
               raise SystemExit('PROJECT_STATE canonical-baseline anchor must occur exactly once')
           if '## 0. Latest implementation checkpoint — Conjuros' not in state:
