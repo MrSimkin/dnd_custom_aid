@@ -4,175 +4,184 @@ Date: 2026-09-01
 Branch: `implementation/character-data-foundation`
 Designated owner-QA APK: Gate L artifact `9785676981` (`dnd-custom-aid-debug-apk`), tested commit `089a991c6491627961f1e75f3815959a8a1c8b48`.
 
-This file records owner real-device QA against the authoritative 42-step checklist in `2026-09-01_INCREMENT_L_PHONE_QA_TARGET.md`.
+This file is the consolidated owner real-device QA record against the authoritative 42-step checklist in `2026-09-01_INCREMENT_L_PHONE_QA_TARGET.md`.
 
-Status values: PASS, FAIL/blocking, limitation/non-blocking, NOT TESTED.
+Status values: PASS, FAIL/blocking, limitation/non-blocking, NOT TESTED / partially verified.
 
-## Checks completed
+## Checks 1–11
 
 1. **PASS — Migration preservation / pre-Phase-4 character opens.** Existing character created before Phase 4 remains present and opens normally after upgrade.
-2. **PASS — Legacy data preserved.** Owner reports prior stats/classes/saves/skills/proficiency/Quick Magic data/spell slots/combat/equipment/currencies appear preserved.
+2. **PASS — Legacy data preserved.** Prior stats/classes/saves/skills/proficiency/Quick Magic data/spell slots/combat/equipment/currencies appear preserved.
 3. **PASS — New Phase 4 domains initialize empty/default.** Background/traits/notes/conceptual spell domains are empty/default as expected for migrated legacy data.
 4. **PASS — Spellcaster-toggle migration.** Character with pre-existing meaningful spellcasting data migrated with spellcasting enabled.
-5. **PASS — Navigation tab count.** With spellcasting enabled, all 8 expected tabs are present.
-6. **PASS — Horizontal tab navigation / selected-tab visibility at all supported scales.** Owner tested 80%, 90%, 100%, 115%, and 130%; all behaved correctly.
-7. **PASS — Selected tab survives rotation/recreation.** Owner reports selected tab remains correct through orientation change.
-8. **PASS — Conjuros fallback when spellcasting is disabled.** Starting from `Conjuros`, disabling spellcasting removes the tab and returns the character sheet to `General` without crash, blank state, or invalid selection.
-9. **PASS — Re-enable spellcasting without forced navigation or data loss.** Re-enabling spellcasting restores the `Conjuros` tab and the prior spellcasting data without forcing navigation to the spell tab or resetting the character's spellcasting state.
-10. **PASS — Hide-not-delete warning for meaningful spellcasting data.** Disabling spellcasting presents a clear warning/confirmation, and after re-enabling spellcasting the prior data returns intact.
-11. **PASS — General adjustment marker and speed formatting.** Owner confirms the compact non-zero adjustment indicator behaves as intended without the redundant second-line adjustment label, and `Velocidad` follows the approved imperial-first format with approximate metric in parentheses.
+5. **PARTIALLY VERIFIED — navigation tab count.** With spellcasting enabled, all 8 expected tabs were directly confirmed. The 7-tab spellcasting-OFF count has not yet been directly counted and must not be inferred from Check 8; capture this naturally during a later OFF-state test, preferably Check 41.
+6. **PASS — Horizontal tab navigation / selected-tab visibility at all supported scales.** 80%, 90%, 100%, 115%, and 130% all behaved correctly.
+7. **PASS — Selected tab survives rotation/recreation.** Selected tab remains correct through orientation change.
+8. **PASS — Conjuros fallback when spellcasting is disabled.** Starting from `Conjuros`, disabling spellcasting removes the tab and returns to `General` without crash, blank state, or invalid selection.
+9. **PASS — Re-enable spellcasting without forced navigation or data loss.** Re-enabling restores `Conjuros` and prior spellcasting data without forcing navigation or resetting state.
+10. **PASS — Hide-not-delete warning for meaningful spellcasting data.** Warning/confirmation is clear and prior spellcasting data returns intact after re-enable.
+11. **PASS — General adjustment marker and speed formatting.** Compact non-zero adjustment indicator behaves as intended, and `Velocidad` uses the approved imperial-first format with approximate metric in parentheses.
 
-### Check 12 — Combate corrective backlog
+## Check 12 — Combate corrective backlog
 
-- **12A: FAIL/blocking — vertical centering.** In the Combate quick-reference row, when one label/value wraps to two lines, neighboring one-line text remains top-aligned instead of being vertically centered within the taller shared row. This reproduces and localizes the previously noted U-01 visual-alignment issue on the exact corrective surface targeted by Check 12.
-- **12B: FAIL/blocking — IME/keyboard reachability incomplete.** The combat editor remains generally usable with the keyboard open, but the owner cannot scroll far enough to bring the bottom action buttons into view. Because Check 12 explicitly requires keyboard-safe access to the full editor and actions, this cannot pass acceptance as a partial/semi-pass. The editor must provide enough inset/scroll range to reach the bottom controls while the IME is visible.
-- **12C: PASS for editor-retention / explicit-dismissal requirement, with non-blocking keyboard UX limitation.** Tapping elsewhere does not close the combat editor or discard the unsaved draft. The keyboard itself also remains open on outside tap and currently closes only through Android system Back. The core acceptance requirement here is satisfied because outside taps do not silently dismiss the editor/draft; see C-02 for the keyboard-dismissal usability limitation.
-- **12D: PASS for functional drag reorder, with significant discoverability/feedback limitation.** Dragging a combat block can reorder it, but the owner reports very little or no visible movement feedback while dragging, making it difficult to tell that the gesture is actually working.
+- **12A: FAIL/blocking — vertical centering.** In the Combate quick-reference row, when one label/value wraps to two lines, neighboring one-line text remains top-aligned instead of vertically centered.
+- **12B: FAIL/blocking — IME/keyboard reachability incomplete.** The combat editor cannot scroll far enough to bring bottom action buttons into view while the keyboard is open.
+- **12C: PASS core requirement, with non-blocking keyboard UX limitation.** Outside tap does not close the editor or discard the draft. The keyboard itself does not dismiss on outside tap and currently requires Android Back.
+- **12D: PASS functional drag reorder, with weak feedback.** Reorder works, but drag movement gives very little visible feedback.
 
-Check 12 is complete at the functional-subcheck level, but overall **FAIL/blocking** because 12A and 12B fail explicit acceptance requirements.
+Check 12 overall: **FAIL/blocking** because 12A and 12B fail explicit acceptance requirements.
 
-### Check 13 — Equipo corrective backlog
+## Check 13 — Equipo corrective backlog
 
-- **13A: PASS — functional drag reorder.** Retesting while watching the final order confirms that the three-line drag affordance successfully reorders equipment entries. The earlier apparent functional failure was caused by insufficient drag feedback/discoverability rather than a broken reorder operation.
-- **13B: FAIL/blocking — keyboard safety / lower controls inaccessible.** With the Android keyboard open in Equipo, the owner cannot reach all lower controls; specifically `Editar` and `Eliminar` remain hidden/inaccessible. Because Check 13 explicitly requires keyboard-safe Equipo interaction, this fails acceptance even though the rest of the editor remains usable.
-- **13C: FAIL/blocking — currencies are not compact enough.** The owner reports that the Monedas section is too tall. Because compact currency presentation is an explicit Check 13 acceptance requirement, this fails the current acceptance target. The issue is layout density rather than currency functionality.
-- **13D: PASS — responsive Equipo columns/orientation.** Owner confirms the Equipo layout responds acceptably between portrait and landscape without reported clipping, overlap, unusable narrow columns, or failure to take advantage of wider space.
-- **13E: PASS — special-equipment presentation/functionality.** Long description, location, attunement and the special-item surface are usable with no new special-equipment-specific failure reported. This PASS does not waive the already-recorded global/cross-cutting issues: excessive spacing/padding and IME-hidden controls still apply wherever the same patterns occur.
+- **13A: PASS — functional drag reorder.** Equipment entries reorder successfully; prior apparent failure was caused by weak feedback/discoverability.
+- **13B: FAIL/blocking — keyboard safety / lower controls inaccessible.** With the keyboard open, `Editar` and `Eliminar` remain hidden/inaccessible.
+- **13C: FAIL/blocking — currencies are not compact enough.** `Monedas` consumes too much vertical space.
+- **13D: PASS — responsive columns/orientation.** Equipo responds acceptably between portrait and landscape.
+- **13E: PASS — special-equipment presentation/functionality.** Long description, location, attunement, and special-item surface are usable. Known global spacing and IME-hidden-control findings remain active.
 
-Check 13 is complete; overall **FAIL/blocking** because 13B and 13C fail explicit acceptance requirements. 13A, 13D and 13E pass functionally.
+Check 13 overall: **FAIL/blocking** because 13B and 13C fail explicit acceptance requirements.
 
-### Check 14 — Habilidades responsive two-column layout
+## Check 14 — Habilidades responsive two-column layout
 
-- **14A: PASS — 115% text scale.** `Habilidades -> Por atributo` remains in the required two-column layout at 115% without reported overlap or problematic clipping.
-- **14B: PASS — 130% text scale.** `Habilidades -> Por atributo` remains in the required two-column layout at 130% without reported overlap or problematic clipping.
+- **14A: PASS — 115% text scale.** `Habilidades -> Por atributo` remains two-column without problematic overlap/clipping.
+- **14B: PASS — 130% text scale.** Same result at 130%.
 
-Check 14 is complete: **PASS**.
+Check 14 overall: **PASS**.
 
-### Check 15 — PC Settings font/theme corrections and persistence
+## Check 15 — PC Settings font/theme persistence
 
-- **15A: PASS — text-scale persistence.** After changing the text scale, leaving PC Settings, navigating elsewhere, and reopening PC Settings, the selected scale remains active and reflected by the UI.
-- **15B: PASS — theme persistence.** After changing the theme, leaving PC Settings, navigating elsewhere, and reopening PC Settings, the selected theme remains active with no reported reset or mixed old/new theme state.
+- **15A: PASS — text-scale persistence.** Scale remains selected and visibly active after leaving and reopening PC Settings.
+- **15B: PASS — theme persistence.** Chosen theme remains active and selected after leaving and reopening PC Settings, with no mixed/reset state.
 
-Check 15 is complete: **PASS**.
+Check 15 overall: **PASS**.
 
-### Check 16 — Trasfondo narrative persistence
+## Check 16 — Trasfondo narrative persistence
 
-- **16A: PASS — all currently available narrative fields editable and saveable.** Owner entered distinctive values into every currently shown Trasfondo narrative text field and saved successfully.
-- **16B: PASS — saved narrative values persist after leaving and reopening the same character.** Owner confirms all values entered in 16A are still present after reopening.
+- **16A: PASS — all currently implemented narrative fields editable and saveable.**
+- **16B: PASS — saved narrative values persist after leaving and reopening the same character.**
 
-Check 16 is complete: **PASS** for the currently implemented fields. B-01 remains an approved additive correction for two new fields.
+Check 16 overall: **PASS** for currently implemented fields. B-01 remains an additive correction request.
 
-### Check 17 — Trasfondo image placeholders
+## Check 17 — Trasfondo image placeholders
 
-- **17: PASS — both image placeholders respond acceptably to available width.** Owner checked the placeholders in portrait and landscape and reports no clipping, overlap, awkward fixed narrowness, or disproportionate scaling.
+- **17: PASS.** Both placeholders respond acceptably to available width in portrait and landscape, without clipping, overlap, awkward fixed narrowness, or disproportionate scaling.
 
-Check 17 is complete: **PASS**.
+## Check 18 — Trasfondo narrative sizing
 
-## Findings discovered during QA
+- **18: PASS.** Compact narrative cards remain appropriately smaller than the larger `Historia del Personaje` writing area. Known cross-cutting spacing/padding finding L-01 remains active and is not waived by this PASS.
 
-### T-01 — `Quick Magic` terminology mismatch
+## Check 19 — Trasfondo keyboard / outside-tap behavior
+
+- **19A: PASS — keyboard reachability.** Lower narrative content remains reachable with the Android keyboard open.
+- **19B: PASS — active edit retention.** Tapping outside an actively edited field does not silently discard the unsaved text.
+
+Check 19 overall: **PASS**.
+
+## Check 20 — Rasgos types and sources
+
+- **20A: PASS — multiple `Tipo` values.** Several entries can use different type values independently.
+- **20B: PASS — multiple `Fuente` values.** Several entries can use different sources independently.
+
+Check 20 overall: **PASS**.
+
+## Check 21 — Rasgos activation/action type
+
+- **21A: PASS.** Different activation/action-type values can be selected and retained independently across entries without silent resets or cross-entry mutation.
+
+Check 21 overall: **PASS**.
+
+## Check 22 — Rasgos uses and recovery
+
+- **22A: PASS — maximum/spent uses.** Maximum uses and spent uses can be changed independently and remain mathematically consistent for the tested entry.
+- **22B: PASS — recovery text.** Recovery/recharge text can be edited independently, remains attached to the correct Rasgo, and does not alter usage values or another Rasgo.
+
+Check 22 overall: **PASS**. R-01 remains an owner-requested presentation correction for the usage summary.
+
+# Findings / correction backlog discovered during QA
+
+## T-01 — `Quick Magic` terminology mismatch
 
 Status: **limitation/non-blocking for continued QA; must be reconciled before acceptance/merge**.
 
-The installed app uses `Quick Magic`. Owner explicitly identified that wording as an inadequate Spanish-equivalent label and instructed that the custom character-sheet PDFs be used as the terminology reference.
+The app uses `Quick Magic`. Owner directed that the custom character-sheet PDFs under `assets/character-sheets/templates/` be the terminology reference. They use `Lanzamiento de Conjuros` and related Spanish terminology. Do not silently rename during active QA; reconcile in the correction/consolidation pass with owner approval.
 
-Durable PDF terminology/visual references now exist under `assets/character-sheets/templates/`, including `REFERENCE.md` and rendered PNG pages. The PDF terminology uses `Lanzamiento de Conjuros` for the corresponding spellcasting area, together with `CD de Salvación de Conjuro`, `Modificador de Ataque Mágico`, `Aptitud Mágica`, `Espacios`, `Espacios Gastados`, and `Trucos`.
+## E-01 — Equipment drag/reorder works but lacks clear feedback
 
-Do not silently rename during this QA pass; reconcile in the correction/consolidation pass with owner approval.
+Status: **limitation/non-blocking**. Functional failure resolved by Check 13A; issue is discoverability/feedback.
 
-### E-01 — Equipment drag/reorder works but lacks clear feedback
+## E-02 — Equipment row actions are too bulky
 
-Status: **limitation/non-blocking; functional failure resolved by Check 13A**.
+Status: **limitation/non-blocking**. `Editar` and `Eliminar` consume too much space for compact phone-first rows.
 
-During Check 7, the owner initially reported that the visible triple-line/reorder affordance in Equipo appeared not to work. Check 13A confirms that the final equipment order does change successfully when the gesture is performed deliberately. The issue is therefore weak drag feedback/discoverability, consistent with D-01 in Combate, not broken reorder behavior.
+## E-03 — Equipment drag handle visually too large / handle-free long-press proposal
 
-### E-02 — Equipment row actions are too bulky
+Status: **limitation/non-blocking / design proposal**. Owner suggested press-and-hold on the row itself may be preferable, but this is not yet a final approved interaction. Any change must retain clear feedback and accessibility.
 
-Status: **limitation/non-blocking**.
+## E-04 — Equipo controls hidden with keyboard open
 
-Owner reports the `Editar` and `Eliminar` buttons consume too much space for compact equipment rows. This is a density/layout issue and should be reviewed against the intended compact equipment presentation and the owner's character-sheet visual references.
+Status: **FAIL/blocking**. `Editar` and `Eliminar` remain inaccessible with the IME open.
 
-### E-03 — Equipment drag handle is visually too large; owner proposes handle-free long-press drag
+## E-05 — Currency section too tall
 
-Status: **limitation/non-blocking / design proposal for correction pass**.
+Status: **FAIL/blocking** on the compact-currency acceptance target.
 
-During Check 13A the owner reports that the three-line drag icon is too large for a compact equipment row. The owner further suggests that a dedicated icon may not be necessary at all: press-and-hold the row/block itself, then move it to reorder. Treat this as a proposed interaction for the correction pass rather than an already-approved implementation detail. Any handle-free design must retain clear drag-start/movement feedback and avoid gesture ambiguity, while preserving adequate touch/accessibility behavior.
+## B-01 — Add `Raza` and `Religion / Fe` to Trasfondo
 
-### E-04 — Equipo controls remain hidden with keyboard open
+Status: **owner-requested additive product correction**.
 
-Status: **FAIL/blocking**.
+Add two persisted one-line fields to `Trasfondo`: `Raza` and `Religion / Fe`. Because these are durable character data, implementation requires data shape/migration/default handling, not UI-only fields.
 
-During Check 13B, the owner reports that lower controls — specifically `Editar` and `Eliminar` — remain hidden/inaccessible while the Android keyboard is open. Equipo needs sufficient IME inset/scroll range so every relevant control can be reached without dismissing the keyboard.
-
-### E-05 — Currency section is too tall
-
-Status: **FAIL/blocking on Check 13 compact-currency acceptance target**.
-
-During Check 13C, the owner reports that Monedas consumes too much vertical space. The correction should reduce unnecessary vertical padding/margins and overall control height while preserving readability and usable touch targets.
-
-### B-01 — Trasfondo should include `Raza` and `Religion / Fe`
-
-Status: **owner-requested product correction / additive scope; not a failure of the current 16A field-edit test**.
-
-During Check 16A, the owner requested two additional one-line Trasfondo fields: `Raza` and `Religion / Fe`. The owner explicitly states one line is sufficient for each. This is an additive character-data/UI requirement for the correction pass, not evidence that an existing field failed to save. Because it adds durable character data, implementation must include the corresponding persisted data shape and migration/default behavior rather than being UI-only.
-
-### U-01 — Wrapped two-line text is top-aligned instead of vertically centered
+## U-01 — Wrapped two-line text top-aligned instead of vertically centered
 
 Status: **FAIL/blocking on Combate acceptance surface; broader scope still to be mapped**.
 
-Owner first reported generally that labels/content wrapping to two lines remain aligned toward the top of their available control/row area instead of being vertically centered. Check 12A confirms the defect specifically in the Combate quick-reference row, where vertical centering was an explicit corrective requirement from the prior phone QA.
-
-### C-01 — Combat editor bottom actions remain unreachable with keyboard open
+## C-01 — Combat editor bottom actions unreachable with keyboard open
 
 Status: **FAIL/blocking**.
 
-During Check 12B, the owner can use most of the combat editor with the Android keyboard visible, but cannot scroll far enough to see/reach the action buttons at the bottom of the window. This is the remaining IME-safety defect from the prior phone QA and directly fails the explicit Check 12 requirement.
+## C-02 — Outside tap does not dismiss Android keyboard in combat editor
 
-### C-02 — Outside tap does not dismiss the Android keyboard in combat editor
+Status: **limitation/non-blocking**. Editor/draft retention itself is correct.
 
-Status: **limitation/non-blocking**.
-
-During Check 12C, tapping outside the active field does not hide the keyboard; Android system Back is required to dismiss the IME. The important editor-retention behavior is correct: the editor remains open and the draft is preserved. Treat this as a usability refinement unless later testing shows it contributes to data loss or navigation failure.
-
-### C-03 — Combat blocks are too vertically spacious
+## C-03 — Combat blocks too vertically spacious
 
 Status: **limitation/non-blocking**.
 
-Owner reports that each combat block consumes substantially more space than desirable. The combat list should be made somewhat more compact while preserving readability, touch targets, and the information hierarchy. This is consistent with the project's phone-first character-sheet workflow and should be considered together with drag affordance feedback rather than solved by shrinking interactive targets below usability requirements.
+## D-01 — Drag-and-drop lacks clear visual movement feedback
 
-### D-01 — Drag-and-drop lacks clear visual movement feedback
+Status: **limitation/non-blocking, high-priority usability correction**. Apply consistently to drag-reorder surfaces.
 
-Status: **limitation/non-blocking, but high-priority usability correction**.
+## L-01 — Owner direction: cap unnecessary padding and margins
 
-Checks 12D and 13A confirm functional drag reorder in both Combate and Equipo, but the owner had difficulty noticing that an item was moving because the gesture gives insufficient visible feedback. The drag interaction should provide clear affordance and in-progress feedback (for example visible lift/offset/reordering response) so users can tell that the item is being dragged. Apply the correction consistently anywhere this drag pattern is used.
+Status: **owner-approved cross-cutting layout direction**.
 
-### L-01 — Owner direction: cap unnecessary padding and margins in phone-first character UI
+Reduce/cap unnecessary padding and margins across phone-first character UI, especially repeated cards/rows/lists, while preserving touch/accessibility minimums. Exact numeric spacing tokens are not yet selected and should be chosen during correction implementation/review. Owner does not need to repeat this known finding on every subsequent screen.
 
-Status: **owner-approved layout direction; exact numeric tokens still to be chosen during correction pass**.
-
-After observing excessive vertical density in Combate, equipment rows, action buttons and the Monedas section, the owner directed that padding and margins should be deliberately limited rather than allowed to expand each block. The correction pass should establish a small, consistent spacing vocabulary / maximums for compact character-sheet surfaces, especially repeated rows/cards and list items. Do not invent an exact dp value from this QA note alone; choose/confirm concrete spacing tokens during implementation review, while preserving minimum touch-target/accessibility requirements.
-
-Owner clarification during Check 13E: these spacing/padding and previously observed hidden-control issues are **cross-cutting findings**. The owner will not repeat the same observation on every later screen. Future QA results should inherit these known issues when the same UI pattern is present, while still recording any newly distinct screen-specific failure.
-
-### N-01 — Android system Back exits the app instead of navigating within app
+## N-01 — Android system Back exits app instead of navigating internally
 
 Status: **FAIL/blocking pending scope confirmation**.
 
-Owner reports that pressing the Android system Back action from an internal app screen takes them out of the app. Expected Android behavior for this product is that system Back should behave like the app's own back/navigation action through internal screens and should only exit when already at the app's main/root screen. Scope should be mapped during the remaining QA (character editor, PC Settings, campaign/character selection, modal editors). Note from Check 12C: when the IME is open, Android Back can first be used to dismiss the keyboard; the separate internal-navigation failure still needs its own scoped retest with the keyboard closed.
+Expected behavior is internal back/navigation until the app root; only then should Back exit. Scope still needs mapping across character editor, PC Settings, campaign/character selection, and modal editors. With the IME open, Android Back may first dismiss the keyboard.
 
-## Current QA disposition
+## R-01 — Rasgos usage summary is unclear
 
-- Checks 1–11: PASS.
-- Check 12: complete; overall FAIL/blocking because 12A and 12B fail. 12C and functional 12D pass with usability limitations.
-- Check 13: complete; overall FAIL/blocking because 13B and 13C fail. 13A, 13D and 13E pass functionally.
-- Check 14: complete; PASS at both 115% and 130%.
-- Check 15: complete; PASS for text-scale and theme persistence.
-- Check 16: complete; PASS for currently implemented Trasfondo narrative fields and reopen persistence.
-- Check 17: complete; PASS for responsive image placeholders.
-- Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation.
-- Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
-- Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
-- Owner-requested additive correction: B-01 (`Raza` and `Religion / Fe`, one line each, persisted character data).
-- Owner-approved general layout direction: L-01 (limit/cap unnecessary padding and margins; exact spacing tokens to be selected during correction implementation without compromising touch/accessibility minimums).
-- Repeated cross-cutting observations do not need to be re-reported by the owner on every subsequent check; they remain active unless a later test demonstrates a distinct exception or new defect.
-- QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
+Status: **owner-requested usability correction / non-blocking for continued QA**.
+
+Current presentation similar to `Usos X/Y · Gastados Y-X` feels awkward/unclear. Replace it during the correction pass with a cleaner, immediately understandable Spanish presentation while preserving max/spent/remaining semantics. Exact final wording/layout is not yet approved.
+
+# Current QA disposition / resume point
+
+- Checks 1–4: PASS.
+- Check 5: **partially verified** — 8 tabs ON directly confirmed; exact 7-tab OFF count still pending direct verification.
+- Checks 6–11: PASS.
+- Check 12: **FAIL/blocking** due 12A and 12B.
+- Check 13: **FAIL/blocking** due 13B and 13C.
+- Checks 14–22: PASS for their tested acceptance criteria.
+- Confirmed blocking defects: **U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation**.
+- Non-blocking/reconciliation findings: **T-01, E-01, E-02, E-03, C-02, C-03, D-01, R-01**.
+- Owner-requested additive correction: **B-01** (`Raza`, `Religion / Fe`).
+- Owner-approved cross-cutting layout direction: **L-01**.
+- The Gate L APK is not acceptable for merge; a correction APK/retest cycle will be required after full defect collection.
+- QA remains intentionally paused after **Check 22B**.
+- **Exact next QA step on resume: Check 23 — drag-reorder Rasgos, save, leave/reopen the character, and confirm the exact trait order persists.**
+- Do not merge Phase 4 and do not restart earlier implementation/QA steps when resuming.
