@@ -5,7 +5,11 @@
 **Current working branch:** `implementation/character-data-foundation`  
 **Open review:** none  
 **Phase:** Phase 4 — MVP Buildout  
-**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 character data/persistence is functionally stable. **V4 presentation + D-0046 derived-value implementation is complete and CI-green; manual owner phone QA is now the acceptance gate before PR/merge.**
+**Status:** Phase 3 remains complete/canonical on `main`. Phase 4 continues on `implementation/character-data-foundation`. Increment G (`Conjuros` source management) is closed; Increment H spell list/details has been implemented on a recovery-safe candidate branch and is being closed through Gate H. Manual phone interaction/ergonomics remain a separate owner QA boundary before any Phase 4 PR/merge.
+
+## 0. Latest implementation checkpoint — Conjuros
+
+Recovery audit on 2026-09-01 established `d71a47822bcbeb0d0aa9ba404ba4fd01af81b510` as the clean Increment G closure boundary. Increment H proceeds from that exact point and implements the conceptual spell list/details layer: level grouping, source-aware filtering, compact search, spell CRUD, multi-source associations, source-specific `Preparado`, manual within-level ordering, and the approved permissive spell fields. The complete validation evidence and final closure status are recorded in the latest Increment H handoff under `docs/handoffs/`.
 
 ## 1. Canonical baseline
 

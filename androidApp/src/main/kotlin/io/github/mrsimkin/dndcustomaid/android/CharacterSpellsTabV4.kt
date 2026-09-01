@@ -141,11 +141,11 @@ internal fun CharacterSpellsTabV4(
         HorizontalDivider()
 
         CharacterSpellListV4(
-    draft = draft,
-    selectedSourceId = selectedSource?.id,
-    onDraftChange = onDraftChange,
-    wide = wide,
-)
+            draft = draft,
+            selectedSourceId = selectedSource?.id,
+            onDraftChange = onDraftChange,
+            wide = wide,
+        )
     }
 
     if (managerOpen) {
