@@ -51,8 +51,10 @@ internal data class SpellSourceClassOptionV4(
 @Composable
 internal fun CharacterSpellsTabV4(
     draft: CharacterSpellcastingDraftV4,
+    slotStates: List<CharacterSpellSlotUiV4>,
     classOptions: List<SpellSourceClassOptionV4>,
     onDraftChange: (CharacterSpellcastingDraftV4) -> Unit,
+    onSlotSpentChange: (Int, Int) -> Unit,
     wide: Boolean,
 ) {
     var selectedSourceId by rememberSaveable("spell-source-selection") { mutableStateOf<String?>(null) }
@@ -142,8 +144,10 @@ internal fun CharacterSpellsTabV4(
 
         CharacterSpellListV4(
             draft = draft,
+            slotStates = slotStates,
             selectedSourceId = selectedSource?.id,
             onDraftChange = onDraftChange,
+            onSlotSpentChange = onSlotSpentChange,
             wide = wide,
         )
     }

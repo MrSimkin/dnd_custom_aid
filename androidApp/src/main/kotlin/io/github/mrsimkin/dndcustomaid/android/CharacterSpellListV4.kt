@@ -43,8 +43,10 @@ import kotlin.uuid.Uuid
 @Composable
 internal fun CharacterSpellListV4(
     draft: CharacterSpellcastingDraftV4,
+    slotStates: List<CharacterSpellSlotUiV4>,
     selectedSourceId: Uuid?,
     onDraftChange: (CharacterSpellcastingDraftV4) -> Unit,
+    onSlotSpentChange: (Int, Int) -> Unit,
     wide: Boolean,
 ) {
     var search by rememberSaveable("spell-search") { mutableStateOf("") }
@@ -62,6 +64,7 @@ internal fun CharacterSpellListV4(
         normalizedSearch.isBlank() || spellMatchesSearchV4(spell, normalizedSearch)
     }
     val collapsed = parseLevelSetV4(collapsedLevels)
+    val slotByLevel = remember(slotStates) { slotStates.associateBy { it.level } }
 
     fun updateSpells(updated: List<CharacterSpell>) {
         onDraftChange(draft.copy(spells = updated))
@@ -185,8 +188,10 @@ internal fun CharacterSpellListV4(
                     totalInView = allLevelCount,
                     collapsed = isCollapsed,
                     searchActive = search.isNotBlank(),
+                    slot = slotByLevel[level],
                     sourceById = sourceById,
                     selectedSourceId = selectedSourceId,
+                    onSlotSpentChange = { spent -> onSlotSpentChange(level, spent) },
                     onToggleCollapsed = {
                         if (levelSpells.isNotEmpty()) {
                             collapsedLevels = encodeLevelSetV4(
@@ -264,8 +269,10 @@ private fun SpellLevelSectionV4(
     totalInView: Int,
     collapsed: Boolean,
     searchActive: Boolean,
+    slot: CharacterSpellSlotUiV4?,
     sourceById: Map<Uuid, io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource>,
     selectedSourceId: Uuid?,
+    onSlotSpentChange: (Int) -> Unit,
     onToggleCollapsed: () -> Unit,
     onPreparedChange: (CharacterSpell, Uuid, Boolean) -> Unit,
     onMove: (CharacterSpell, Int) -> Boolean,
@@ -274,24 +281,35 @@ private fun SpellLevelSectionV4(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column {
-            TextButton(
-                onClick = onToggleCollapsed,
-                enabled = spells.isNotEmpty(),
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                TextButton(
+                    onClick = onToggleCollapsed,
+                    enabled = spells.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                 ) {
-                    Text(spellLevelLabelV4(level), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                    Text(
-                        if (searchActive) "${spells.size}/$totalInView" else totalInView.toString(),
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                    if (spells.isNotEmpty()) {
-                        Text(if (collapsed) "  Mostrar" else "  Ocultar", style = MaterialTheme.typography.labelMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(spellLevelLabelV4(level), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                        Text(
+                            if (searchActive) "${spells.size}/$totalInView" else totalInView.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                        if (spells.isNotEmpty()) {
+                            Text(if (collapsed) "  Mostrar" else "  Ocultar", style = MaterialTheme.typography.labelMedium)
+                        }
                     }
+                }
+                if (level > 0 && slot != null && slot.total > 0) {
+                    CompactSpellSlotHeaderV4(
+                        slot = slot,
+                        onSpentChange = onSlotSpentChange,
+                    )
                 }
             }
             if (!collapsed && spells.isNotEmpty()) {

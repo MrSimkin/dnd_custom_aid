@@ -325,8 +325,25 @@ internal fun CharacterEditorScreenV4(
                     )
                     CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
                         draft = spellcastingDraft,
+                        slotStates = draft.spellSlots.map { slot ->
+                            val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                            CharacterSpellSlotUiV4(
+                                level = slot.level,
+                                total = total,
+                                spent = slot.spent.coerceIn(0, total),
+                            )
+                        },
                         classOptions = draft.classes.map { SpellSourceClassOptionV4(it.id, it.name) },
                         onDraftChange = ::updateSpellcasting,
+                        onSlotSpentChange = { level, spent ->
+                            val slot = draft.spellSlotFor(level)
+                            val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                            updateDraft(
+                                draft.withSpellSlot(
+                                    slot.copy(spent = spent.coerceIn(0, total)),
+                                ),
+                            )
+                        },
                         wide = wide,
                     )
                     CharacterTabV4.NOTES -> CharacterDomainShellV4(
