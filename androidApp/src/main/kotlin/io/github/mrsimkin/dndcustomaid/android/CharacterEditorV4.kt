@@ -118,6 +118,9 @@ internal fun CharacterEditorScreenV4(
             ),
         )
     }
+    var backgroundDraftJson by rememberSaveable(characterId.toString(), "background") {
+        mutableStateOf(characterBackgroundToJsonV4(stored.background))
+    }
     var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
     var selectedTabName by rememberSaveable(characterId.toString()) {
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
@@ -131,6 +134,7 @@ internal fun CharacterEditorScreenV4(
     )
     val combatEntries = remember(combatDraftJson) { combatEntriesFromJsonV4(combatDraftJson) }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
+    val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
 
     fun updateDraft(updated: CharacterEditorDraftV4) {
@@ -153,12 +157,18 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateBackground(updated: io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground) {
+        backgroundDraftJson = characterBackgroundToJsonV4(updated)
+        savedMessage = null
+    }
+
     fun persist(candidate: CharacterSheet) {
         val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
         val integrated = candidate.copy(
             combatEntries = combatEntriesFromJsonV4(combatDraftJson),
             inventoryItems = equipment.items,
             currencies = equipment.currencies,
+            background = characterBackgroundFromJsonV4(backgroundDraftJson),
         )
         stored = repository.saveCharacter(integrated)
         draft = CharacterEditorDraftV4.from(stored)
@@ -169,6 +179,7 @@ internal fun CharacterEditorScreenV4(
                 currencies = stored.currencies,
             ),
         )
+        backgroundDraftJson = characterBackgroundToJsonV4(stored.background)
         savedMessage = "Guardado"
     }
 
@@ -266,9 +277,10 @@ internal fun CharacterEditorScreenV4(
                         onCurrenciesChange = ::updateCurrencies,
                         wide = wide,
                     )
-                    CharacterTabV4.BACKGROUND -> CharacterDomainShellV4(
-                        title = "Trasfondo",
-                        description = "La navegación está lista. El editor persistente de Trasfondo se incorpora en el Incremento E.",
+                    CharacterTabV4.BACKGROUND -> CharacterBackgroundTabV4(
+                        background = backgroundDraft,
+                        onBackgroundChange = ::updateBackground,
+                        wide = wide,
                     )
                     CharacterTabV4.TRAITS -> CharacterDomainShellV4(
                         title = "Rasgos",
