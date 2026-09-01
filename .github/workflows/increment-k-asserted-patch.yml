@@ -1,0 +1,32 @@
+name: Increment K asserted navigation icon patch
+
+on:
+  push:
+    branches:
+      - tmp/increment-k-responsive-accessibility
+    paths:
+      - .github/workflows/increment-k-asserted-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/increment-k-responsive-accessibility
+      - name: Apply asserted K patches
+        run: python .github/scripts/increment_k_patch.py
+      - name: Commit clean K wiring
+        run: |
+          rm .github/scripts/increment_k_patch.py
+          rm .github/workflows/increment-k-asserted-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git diff --cached --quiet && { echo "No patch changes staged"; exit 1; }
+          git commit -m "Apply responsive navigation and icon corrections"
+          git push origin HEAD:tmp/increment-k-responsive-accessibility
