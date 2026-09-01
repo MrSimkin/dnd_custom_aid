@@ -74,13 +74,6 @@ import kotlin.uuid.Uuid
 import org.json.JSONArray
 import org.json.JSONObject
 
-private enum class CharacterTabV4(val label: String) {
-    OVERVIEW("General"),
-    SKILLS("Habilidades"),
-    COMBAT("Combate"),
-    EQUIPMENT("Equipo"),
-}
-
 private val classNamesV4 = listOf(
     "Artífice",
     "Bárbaro",
@@ -133,8 +126,10 @@ internal fun CharacterEditorScreenV4(
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
     }
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
-    val selectedTab = runCatching { CharacterTabV4.valueOf(selectedTabName) }
-        .getOrDefault(CharacterTabV4.OVERVIEW)
+    val selectedTab = resolvedCharacterTabV4(
+        savedTabName = selectedTabName,
+        spellcasterEnabled = stored.spellcasterEnabled,
+    )
     val combatEntries = remember(combatDraftJson) { combatEntriesFromJsonV4(combatDraftJson) }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
@@ -210,18 +205,11 @@ internal fun CharacterEditorScreenV4(
                     onSave = ::save,
                     onOpenSettings = onOpenSettings,
                 )
-                TabRow(
-                    selectedTabIndex = selectedTab.ordinal,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    CharacterTabV4.entries.forEach { tab ->
-                        Tab(
-                            selected = tab == selectedTab,
-                            onClick = { selectedTabName = tab.name },
-                            text = { Text(tab.label, maxLines = 2) },
-                        )
-                    }
-                }
+                CharacterTopTabStripV4(
+                    selectedTab = selectedTab,
+                    spellcasterEnabled = stored.spellcasterEnabled,
+                    onSelect = { selectedTabName = it.name },
+                )
                 when (selectedTab) {
                     CharacterTabV4.OVERVIEW -> OverviewTabV4(
                         draft = draft,
@@ -255,6 +243,22 @@ internal fun CharacterEditorScreenV4(
                         onItemsChange = ::updateEquipmentItems,
                         onCurrenciesChange = ::updateCurrencies,
                         wide = wide,
+                    )
+                    CharacterTabV4.BACKGROUND -> CharacterDomainShellV4(
+                        title = "Trasfondo",
+                        description = "La navegación está lista. El editor persistente de Trasfondo se incorpora en el Incremento E.",
+                    )
+                    CharacterTabV4.TRAITS -> CharacterDomainShellV4(
+                        title = "Rasgos",
+                        description = "La navegación está lista. El editor persistente de Rasgos se incorpora en el Incremento F.",
+                    )
+                    CharacterTabV4.SPELLS -> CharacterDomainShellV4(
+                        title = "Conjuros",
+                        description = "La navegación está lista. La gestión de fuentes y conjuros se incorpora en los Incrementos G y H.",
+                    )
+                    CharacterTabV4.NOTES -> CharacterDomainShellV4(
+                        title = "Notas",
+                        description = "La navegación está lista. El editor persistente de Notas se incorpora en el Incremento J.",
                     )
                 }
             }
