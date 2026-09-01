@@ -134,6 +134,16 @@ internal fun CharacterEditorScreenV4(
             ),
         )
     }
+    var notesDraftJson by rememberSaveable(characterId.toString(), "notes") {
+        mutableStateOf(
+            characterNotesDraftToJsonV4(
+                CharacterNotesDraftV4(
+                    generalNotes = stored.generalNotes,
+                    cards = stored.noteCards,
+                ),
+            ),
+        )
+    }
     var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
     var selectedTabName by rememberSaveable(characterId.toString()) {
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
@@ -150,6 +160,7 @@ internal fun CharacterEditorScreenV4(
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
     val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
     val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }
+    val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
 
     fun updateDraft(updated: CharacterEditorDraftV4) {
@@ -187,9 +198,15 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateNotes(updated: CharacterNotesDraftV4) {
+        notesDraftJson = characterNotesDraftToJsonV4(updated)
+        savedMessage = null
+    }
+
     fun persist(candidate: CharacterSheet) {
         val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
         val spellcasting = characterSpellcastingDraftFromJsonV4(spellcastingDraftJson)
+        val notes = characterNotesDraftFromJsonV4(notesDraftJson)
         val integrated = candidate.copy(
             combatEntries = combatEntriesFromJsonV4(combatDraftJson),
             inventoryItems = equipment.items,
@@ -198,6 +215,8 @@ internal fun CharacterEditorScreenV4(
             traits = characterTraitsFromJsonV4(traitsDraftJson),
             spellcastingSources = spellcasting.sources,
             spells = spellcasting.spells,
+            generalNotes = notes.generalNotes,
+            noteCards = notes.cards,
         )
         stored = repository.saveCharacter(integrated)
         draft = CharacterEditorDraftV4.from(stored)
@@ -214,6 +233,12 @@ internal fun CharacterEditorScreenV4(
             CharacterSpellcastingDraftV4(
                 sources = stored.spellcastingSources,
                 spells = stored.spells,
+            ),
+        )
+        notesDraftJson = characterNotesDraftToJsonV4(
+            CharacterNotesDraftV4(
+                generalNotes = stored.generalNotes,
+                cards = stored.noteCards,
             ),
         )
         savedMessage = "Guardado"
@@ -346,9 +371,10 @@ internal fun CharacterEditorScreenV4(
                         },
                         wide = wide,
                     )
-                    CharacterTabV4.NOTES -> CharacterDomainShellV4(
-                        title = "Notas",
-                        description = "La navegación está lista. El editor persistente de Notas se incorpora en el Incremento J.",
+                    CharacterTabV4.NOTES -> CharacterNotesTabV4(
+                        draft = notesDraft,
+                        onDraftChange = ::updateNotes,
+                        wide = wide,
                     )
                 }
             }
