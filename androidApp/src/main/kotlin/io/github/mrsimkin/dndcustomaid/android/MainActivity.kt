@@ -164,7 +164,6 @@ private fun DndCustomAidApp(
                     repository = characterRepository,
                     preferences = preferences,
                     onPreferencesChange = onPreferencesChange,
-                    onOpenSettings = { showSettings = true },
                     onBack = {
                         selectedCharacterId = null
                         screenName = AppScreen.CHARACTERS.name

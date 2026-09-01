@@ -34,8 +34,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -96,7 +94,6 @@ internal fun CharacterEditorScreenV4(
     repository: CharacterRepository,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
-    onOpenSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     var stored by remember(characterId) {
@@ -126,6 +123,8 @@ internal fun CharacterEditorScreenV4(
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
     }
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
+    var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }
+    var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }
     val selectedTab = resolvedCharacterTabV4(
         savedTabName = selectedTabName,
         spellcasterEnabled = stored.spellcasterEnabled,
@@ -188,6 +187,29 @@ internal fun CharacterEditorScreenV4(
         persist(candidate)
     }
 
+    fun persistSpellcasterEnabled(enabled: Boolean) {
+        if (enabled == stored.spellcasterEnabled) return
+        stored = repository.saveCharacter(stored.copy(spellcasterEnabled = enabled))
+        if (!enabled && selectedTabName == CharacterTabV4.SPELLS.name) {
+            selectedTabName = CharacterTabV4.OVERVIEW.name
+        }
+        savedMessage = "Guardado"
+    }
+
+    if (showPcSettings) {
+        CharacterPcSettingsV4(
+            characterName = draft.name,
+            spellcasterEnabled = stored.spellcasterEnabled,
+            onBack = { showPcSettings = false },
+            onSpellcasterEnabledChange = { enabled ->
+                if (!enabled && stored.hasMeaningfulSpellcastingDataV4()) {
+                    confirmDisableSpellcasting = true
+                } else {
+                    persistSpellcasterEnabled(enabled)
+                }
+            },
+        )
+    } else {
     Scaffold { scaffoldPadding ->
         BoxWithConstraints(
             modifier = Modifier
@@ -203,7 +225,7 @@ internal fun CharacterEditorScreenV4(
                     savable = savable,
                     onBack = onBack,
                     onSave = ::save,
-                    onOpenSettings = onOpenSettings,
+                    onOpenSettings = { showPcSettings = true },
                 )
                 CharacterTopTabStripV4(
                     selectedTab = selectedTab,
@@ -263,6 +285,28 @@ internal fun CharacterEditorScreenV4(
                 }
             }
         }
+    }
+    }
+
+    if (confirmDisableSpellcasting) {
+        AlertDialog(
+            onDismissRequest = { confirmDisableSpellcasting = false },
+            title = { Text("Ocultar funciones de conjuros") },
+            text = {
+                Text("Quick Magic y la pestaña Conjuros se ocultarán. Los datos de conjuros, fuentes, preparación y espacios se conservarán.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        persistSpellcasterEnabled(false)
+                        confirmDisableSpellcasting = false
+                    },
+                ) { Text("Ocultar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDisableSpellcasting = false }) { Text("Cancelar") }
+            },
+        )
     }
 
     if (confirmBlankNumbers) {
@@ -362,8 +406,10 @@ private fun OverviewTabV4(
         item {
             CombatCardV4(draft, wide, onDraftChange)
         }
-        item {
-            QuickMagicCardV4(draft, onDraftChange)
+        if (stored.spellcasterEnabled) {
+            item {
+                QuickMagicCardV4(draft, onDraftChange)
+            }
         }
     }
 }
