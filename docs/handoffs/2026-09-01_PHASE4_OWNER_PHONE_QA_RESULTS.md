@@ -37,8 +37,9 @@ Check 12 is complete at the functional-subcheck level, but overall **FAIL/blocki
 - **13B: FAIL/blocking — keyboard safety / lower controls inaccessible.** With the Android keyboard open in Equipo, the owner cannot reach all lower controls; specifically `Editar` and `Eliminar` remain hidden/inaccessible. Because Check 13 explicitly requires keyboard-safe Equipo interaction, this fails acceptance even though the rest of the editor remains usable.
 - **13C: FAIL/blocking — currencies are not compact enough.** The owner reports that the Monedas section is too tall. Because compact currency presentation is an explicit Check 13 acceptance requirement, this fails the current acceptance target. The issue is layout density rather than currency functionality.
 - **13D: PASS — responsive Equipo columns/orientation.** Owner confirms the Equipo layout responds acceptably between portrait and landscape without reported clipping, overlap, unusable narrow columns, or failure to take advantage of wider space.
+- **13E: PASS — special-equipment presentation/functionality.** Long description, location, attunement and the special-item surface are usable with no new special-equipment-specific failure reported. This PASS does not waive the already-recorded global/cross-cutting issues: excessive spacing/padding and IME-hidden controls still apply wherever the same patterns occur.
 
-Remaining Check 13 subchecks are pending.
+Check 13 is complete; overall **FAIL/blocking** because 13B and 13C fail explicit acceptance requirements. 13A, 13D and 13E pass functionally.
 
 ## Findings discovered during QA
 
@@ -118,6 +119,8 @@ Status: **owner-approved layout direction; exact numeric tokens still to be chos
 
 After observing excessive vertical density in Combate, equipment rows, action buttons and the Monedas section, the owner directed that padding and margins should be deliberately limited rather than allowed to expand each block. The correction pass should establish a small, consistent spacing vocabulary / maximums for compact character-sheet surfaces, especially repeated rows/cards and list items. Do not invent an exact dp value from this QA note alone; choose/confirm concrete spacing tokens during implementation review, while preserving minimum touch-target/accessibility requirements.
 
+Owner clarification during Check 13E: these spacing/padding and previously observed hidden-control issues are **cross-cutting findings**. The owner will not repeat the same observation on every later screen. Future QA results should inherit these known issues when the same UI pattern is present, while still recording any newly distinct screen-specific failure.
+
 ### N-01 — Android system Back exits the app instead of navigating within the app
 
 Status: **FAIL/blocking pending scope confirmation**.
@@ -128,9 +131,10 @@ Owner reports that pressing the Android system Back action from an internal app 
 
 - Checks 1–11: PASS.
 - Check 12: complete; overall FAIL/blocking because 12A and 12B fail. 12C and functional 12D pass with usability limitations.
-- Check 13: in progress; 13A PASS functionally, 13B FAIL/blocking, 13C FAIL/blocking, 13D PASS.
+- Check 13: complete; overall FAIL/blocking because 13B and 13C fail. 13A, 13D and 13E pass functionally.
 - Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation.
 - Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
 - Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
 - Owner-approved general layout direction: L-01 (limit/cap unnecessary padding and margins; exact spacing tokens to be selected during correction implementation without compromising touch/accessibility minimums).
+- Repeated cross-cutting observations do not need to be re-reported by the owner on every subsequent check; they remain active unless a later test demonstrates a distinct exception or new defect.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
