@@ -1,0 +1,1 @@
+Temporary validation marker for D2 safety-branch patch `f55fe9b1d69180e3e239aaa47b6bd26f84da20c5`. This file is not intended for promotion; it exists only to trigger normal Scaffold checks against the patched editor and MainActivity before validated blobs are transplanted to the implementation branch.
