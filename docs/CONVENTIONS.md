@@ -62,13 +62,16 @@ Source decision: D-0012.
 ### C-0006 — Product Spanish; technical project English
 
 **Status:** Approved  
-**Date:** 2026-08-28
+**Date:** 2026-08-28  
+**Clarified:** 2026-09-01
 
 All end-user-facing application UI, labels, messages, help/rules responses, exports intended for users, and other product-facing content should be Spanish unless a specific exception is later approved.
 
 Source code, identifiers, technical repository documentation, architecture/testing notes, development instructions, commit/PR technical prose, and agent-oriented project documentation should be English.
 
-The purpose is to keep the user experience fully accessible to the intended Spanish-speaking users while keeping development aligned with the predominantly English Android/software ecosystem and reference material.
+Technical working conversations between the project owner and ChatGPT/coding agents should also be conducted in English by default. Spanish end-user UI labels and product text may be quoted verbatim inside those English technical conversations when useful.
+
+The purpose is to keep the user experience fully accessible to the intended Spanish-speaking users while keeping development and technical collaboration aligned with the predominantly English Android/software ecosystem and reference material.
 
 ### C-0007 — SRD source provenance and user-facing D&D edition labels
 
