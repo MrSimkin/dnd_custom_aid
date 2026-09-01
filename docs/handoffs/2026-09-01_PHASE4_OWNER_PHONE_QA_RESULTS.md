@@ -27,9 +27,15 @@ Status values: PASS, FAIL/blocking, limitation/non-blocking, NOT TESTED.
 - **12A: FAIL/blocking — vertical centering.** In the Combate quick-reference row, when one label/value wraps to two lines, neighboring one-line text remains top-aligned instead of being vertically centered within the taller shared row. This reproduces and localizes the previously noted U-01 visual-alignment issue on the exact corrective surface targeted by Check 12.
 - **12B: FAIL/blocking — IME/keyboard reachability incomplete.** The combat editor remains generally usable with the keyboard open, but the owner cannot scroll far enough to bring the bottom action buttons into view. Because Check 12 explicitly requires keyboard-safe access to the full editor and actions, this cannot pass acceptance as a partial/semi-pass. The editor must provide enough inset/scroll range to reach the bottom controls while the IME is visible.
 - **12C: PASS for editor-retention / explicit-dismissal requirement, with non-blocking keyboard UX limitation.** Tapping elsewhere does not close the combat editor or discard the unsaved draft. The keyboard itself also remains open on outside tap and currently closes only through Android system Back. The core acceptance requirement here is satisfied because outside taps do not silently dismiss the editor/draft; see C-02 for the keyboard-dismissal usability limitation.
-- **12D: PASS for functional drag reorder, with significant discoverability/feedback limitation.** Dragging a combat block can reorder it, but the owner reports very little or no visible movement feedback while dragging, making it difficult to tell that the gesture is actually working. This raises a plausible reinterpretation of the earlier Equipo observation: the equipment reorder affordance may have the same feedback problem rather than being entirely non-functional. E-01 remains unresolved until the dedicated Equipo retest in Check 13; do not silently downgrade it yet.
+- **12D: PASS for functional drag reorder, with significant discoverability/feedback limitation.** Dragging a combat block can reorder it, but the owner reports very little or no visible movement feedback while dragging, making it difficult to tell that the gesture is actually working.
 
 Check 12 is complete at the functional-subcheck level, but overall **FAIL/blocking** because 12A and 12B fail explicit acceptance requirements.
+
+### Check 13 — Equipo corrective backlog
+
+- **13A: PASS — functional drag reorder.** Retesting while watching the final order confirms that the three-line drag affordance successfully reorders equipment entries. The earlier apparent functional failure was caused by insufficient drag feedback/discoverability rather than a broken reorder operation.
+
+Remaining Check 13 subchecks are pending.
 
 ## Findings discovered during QA
 
@@ -43,19 +49,23 @@ Durable PDF terminology/visual references now exist under `assets/character-shee
 
 Do not silently rename during this QA pass; reconcile in the correction/consolidation pass with owner approval.
 
-### E-01 — Equipment drag/reorder uncertain after combat drag-feedback finding
+### E-01 — Equipment drag/reorder works but lacks clear feedback
 
-Status: **UNRESOLVED / previously FAIL-blocking; dedicated Check 13 retest required**.
+Status: **limitation/non-blocking; functional failure resolved by Check 13A**.
 
-During Check 7, the owner reported that the visible triple-line/reorder affordance in Equipo did not seem to perform a drag/reorder action. During Check 12D, however, the owner discovered that combat drag reorder does function but gives so little visual feedback that it is hard to notice the movement, and explicitly suggested that the same thing may explain the earlier three-line Equipo observation.
-
-Therefore E-01 must not be treated as conclusively non-functional until Check 13 directly retests Equipo while watching for the same low-feedback behavior. If reorder changes the final order, reclassify from functional failure to drag-feedback/discoverability limitation; if it still does not change order, retain FAIL/blocking.
+During Check 7, the owner initially reported that the visible triple-line/reorder affordance in Equipo appeared not to work. Check 13A confirms that the final equipment order does change successfully when the gesture is performed deliberately. The issue is therefore weak drag feedback/discoverability, consistent with D-01 in Combate, not broken reorder behavior.
 
 ### E-02 — Equipment row actions are too bulky
 
 Status: **limitation/non-blocking**.
 
 Owner reports the `Editar` and `Eliminar` buttons consume too much space for compact equipment rows. This is a density/layout issue and should be reviewed against the intended compact equipment presentation and the owner's character-sheet visual references.
+
+### E-03 — Equipment drag handle is visually too large; owner proposes handle-free long-press drag
+
+Status: **limitation/non-blocking / design proposal for correction pass**.
+
+During Check 13A the owner reports that the three-line drag icon is too large for a compact equipment row. The owner further suggests that a dedicated icon may not be necessary at all: press-and-hold the row/block itself, then move it to reorder. Treat this as a proposed interaction for the correction pass rather than an already-approved implementation detail. Any handle-free design must retain clear drag-start/movement feedback and avoid gesture ambiguity, while preserving adequate touch/accessibility behavior.
 
 ### U-01 — Wrapped two-line text is top-aligned instead of vertically centered
 
@@ -85,7 +95,7 @@ Owner reports that each combat block consumes substantially more space than desi
 
 Status: **limitation/non-blocking, but high-priority usability correction**.
 
-Check 12D confirms functional drag reorder in Combate, but the owner had difficulty noticing that the block was moving because the gesture gives insufficient visible feedback. The drag interaction should provide clear affordance and in-progress feedback (for example visible lift/offset/reordering response) so users can tell that the item is being dragged. This finding may also explain the earlier ambiguous Equipo reorder observation and should be evaluated consistently anywhere the same drag pattern is used.
+Checks 12D and 13A confirm functional drag reorder in both Combate and Equipo, but the owner had difficulty noticing that an item was moving because the gesture gives insufficient visible feedback. The drag interaction should provide clear affordance and in-progress feedback (for example visible lift/offset/reordering response) so users can tell that the item is being dragged. Apply the correction consistently anywhere this drag pattern is used.
 
 ### N-01 — Android system Back exits the app instead of navigating within the app
 
@@ -97,7 +107,8 @@ Owner reports that pressing the Android system Back action from an internal app 
 
 - Checks 1–11: PASS.
 - Check 12: complete; overall FAIL/blocking because 12A and 12B fail. 12C and functional 12D pass with usability limitations.
+- Check 13: in progress; 13A PASS functionally.
 - Confirmed blocking defects: U-01/12A, C-01/12B, N-01 pending scope confirmation.
-- E-01 is now unresolved pending dedicated Equipo retest because 12D revealed a likely drag-feedback discoverability problem that may have caused the earlier observation.
-- Non-blocking/reconciliation findings: T-01, E-02, C-02, C-03, D-01.
+- Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
+- Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
