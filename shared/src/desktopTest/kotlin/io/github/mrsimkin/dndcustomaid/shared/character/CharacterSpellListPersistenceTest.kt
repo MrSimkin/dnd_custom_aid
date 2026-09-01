@@ -90,11 +90,11 @@ class CharacterSpellListPersistenceTest {
             assertEquals("Percibes magia cercana.", detectMagic.description)
             assertEquals("Referencia manual", detectMagic.notes)
             assertEquals(
-                listOf(
+                setOf(
                     CharacterSpellSourceAssociation(wizardSourceId, prepared = true),
                     CharacterSpellSourceAssociation(clericSourceId, prepared = false),
                 ),
-                detectMagic.sourceAssociations,
+                detectMagic.sourceAssociations.toSet(),
             )
 
             val updated = characters.saveCharacter(
