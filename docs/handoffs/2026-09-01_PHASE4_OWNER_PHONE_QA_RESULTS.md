@@ -55,6 +55,12 @@ Check 14 is complete: **PASS**.
 
 Check 15 is complete: **PASS**.
 
+### Check 16 — Trasfondo narrative persistence
+
+- **16A: PASS — all currently available narrative fields editable and saveable.** Owner entered distinctive values into every currently shown Trasfondo narrative text field and saved successfully.
+
+Remaining Check 16 persistence/reopen verification is pending.
+
 ## Findings discovered during QA
 
 ### T-01 — `Quick Magic` terminology mismatch
@@ -96,6 +102,12 @@ During Check 13B, the owner reports that lower controls — specifically `Editar
 Status: **FAIL/blocking on Check 13 compact-currency acceptance target**.
 
 During Check 13C, the owner reports that Monedas consumes too much vertical space. The correction should reduce unnecessary vertical padding/margins and overall control height while preserving readability and usable touch targets.
+
+### B-01 — Trasfondo should include `Raza` and `Religion / Fe`
+
+Status: **owner-requested product correction / additive scope; not a failure of the current 16A field-edit test**.
+
+During Check 16A, the owner requested two additional one-line Trasfondo fields: `Raza` and `Religion / Fe`. The owner explicitly states one line is sufficient for each. This is an additive character-data/UI requirement for the correction pass, not evidence that an existing field failed to save. Because it adds durable character data, implementation must include the corresponding persisted data shape and migration/default behavior rather than being UI-only.
 
 ### U-01 — Wrapped two-line text is top-aligned instead of vertically centered
 
@@ -148,9 +160,11 @@ Owner reports that pressing the Android system Back action from an internal app 
 - Check 13: complete; overall FAIL/blocking because 13B and 13C fail. 13A, 13D and 13E pass functionally.
 - Check 14: complete; PASS at both 115% and 130%.
 - Check 15: complete; PASS for text-scale and theme persistence.
+- Check 16: in progress; 16A PASS, reopen/persistence verification pending.
 - Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation.
 - Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
 - Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
+- Owner-requested additive correction: B-01 (`Raza` and `Religion / Fe`, one line each, persisted character data).
 - Owner-approved general layout direction: L-01 (limit/cap unnecessary padding and margins; exact spacing tokens to be selected during correction implementation without compromising touch/accessibility minimums).
 - Repeated cross-cutting observations do not need to be re-reported by the owner on every subsequent check; they remain active unless a later test demonstrates a distinct exception or new defect.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
