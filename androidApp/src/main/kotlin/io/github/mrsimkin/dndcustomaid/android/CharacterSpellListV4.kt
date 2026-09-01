@@ -533,7 +533,7 @@ private fun SpellEditorDialogV4(
                                 name.isBlank() -> "El nombre no puede quedar vacío."
                                 parsedLevel == null || parsedLevel !in 0..9 -> "El nivel debe estar entre 0 y 9."
                                 associated.isEmpty() -> "Selecciona al menos una fuente."
-                                else -> "Revisa los datos del conjuro.",
+                                else -> "Revisa los datos del conjuro."
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
