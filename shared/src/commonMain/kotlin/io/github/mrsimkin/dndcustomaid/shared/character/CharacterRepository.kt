@@ -72,6 +72,7 @@ class CharacterRepository(
             require(classLevel.hitDieSides >= 0) { "Hit die size must not be negative." }
             require(classLevel.hitDiceRemaining >= 0) { "Remaining hit dice must not be negative." }
         }
+        val classIdSet = classIds.toSet()
 
         val savesByAbility = sheet.savingThrows.associateBy { it.ability }
         require(savesByAbility.size == sheet.savingThrows.size) { "Each saving throw may appear only once." }
@@ -108,6 +109,50 @@ class CharacterRepository(
             require(currency.name.trim().isNotEmpty()) { "Currency name must not be blank." }
         }
 
+        val traitIds = sheet.traits.map { it.id }
+        require(traitIds.distinct().size == traitIds.size) { "Character traits must have distinct identity." }
+        sheet.traits.forEach { trait ->
+            require(trait.name.trim().isNotEmpty()) { "Trait name must not be blank." }
+            require(trait.maxUses == null || trait.maxUses >= 0) { "Trait maximum uses must not be negative." }
+            require(trait.spentUses >= 0) { "Trait spent uses must not be negative." }
+            require(trait.maxUses != null || trait.spentUses == 0) { "Trait spent uses require a configured maximum." }
+            trait.maxUses?.let { maximum ->
+                require(trait.spentUses <= maximum) { "Trait spent uses must not exceed maximum uses." }
+            }
+        }
+
+        val noteIds = sheet.noteCards.map { it.id }
+        require(noteIds.distinct().size == noteIds.size) { "Titled notes must have distinct identity." }
+        sheet.noteCards.forEach { note ->
+            require(note.title.trim().isNotEmpty()) { "Titled note title must not be blank." }
+        }
+
+        val sourceIds = sheet.spellcastingSources.map { it.id }
+        require(sourceIds.distinct().size == sourceIds.size) { "Spellcasting sources must have distinct identity." }
+        sheet.spellcastingSources.forEach { source ->
+            require(source.name.trim().isNotEmpty()) { "Spellcasting source name must not be blank." }
+        }
+        val normalizedSources = sheet.spellcastingSources.map { source ->
+            source.copy(linkedClassId = source.linkedClassId?.takeIf { it in classIdSet })
+        }
+        val normalizedSourceIds = normalizedSources.map { it.id }.toSet()
+
+        val spellIds = sheet.spells.map { it.id }
+        require(spellIds.distinct().size == spellIds.size) { "Spells must have distinct identity." }
+        sheet.spells.forEach { spell ->
+            require(spell.name.trim().isNotEmpty()) { "Spell name must not be blank." }
+            require(spell.level in 0..9) { "Spell level must be between 0 and 9." }
+            val associationIds = spell.sourceAssociations.map { it.sourceId }
+            require(associationIds.distinct().size == associationIds.size) {
+                "A spell may associate with each spellcasting source only once."
+            }
+        }
+        val normalizedSpells = sheet.spells.map { spell ->
+            spell.copy(
+                sourceAssociations = spell.sourceAssociations.filter { it.sourceId in normalizedSourceIds },
+            )
+        }
+
         val standardProficiency = standardProficiencyBonusForLevel(sheet.totalLevel)
         val adjustmentImpliedByCompatibilitySnapshot = sheet.proficiencyBonus - standardProficiency
         val proficiencyAdjustment = if (
@@ -141,6 +186,8 @@ class CharacterRepository(
                 sheet.spellSaveDc?.toLong(),
                 sheet.spellAttackModifier?.toLong(),
                 sheet.spellcastingAbility.name,
+                if (sheet.spellcasterEnabled) 1 else 0,
+                sheet.generalNotes,
                 sheet.id.toString(),
             )
 
@@ -233,6 +280,89 @@ class CharacterRepository(
                     is_default = if (currency.isDefault) 1 else 0,
                 )
             }
+
+            database.characterQueries.upsertCharacterBackground(
+                character_id = sheet.id.toString(),
+                background_name = sheet.background.name,
+                summary = sheet.background.summary,
+                personality_traits = sheet.background.personalityTraits,
+                ideals = sheet.background.ideals,
+                bonds = sheet.background.bonds,
+                flaws = sheet.background.flaws,
+                story = sheet.background.story,
+            )
+
+            database.characterQueries.deleteCharacterTraits(sheet.id.toString())
+            sheet.traits.forEachIndexed { index, trait ->
+                database.characterQueries.insertCharacterTrait(
+                    id = trait.id.toString(),
+                    character_id = sheet.id.toString(),
+                    name = trait.name.trim(),
+                    source = trait.source.trim(),
+                    trait_type = trait.type.name,
+                    description = trait.description,
+                    notes = trait.notes,
+                    max_uses = trait.maxUses?.toLong(),
+                    spent_uses = trait.spentUses.toLong(),
+                    recovery = trait.recovery,
+                    activation = trait.activation?.name,
+                    sort_order = index.toLong(),
+                )
+            }
+
+            database.characterQueries.deleteCharacterNotes(sheet.id.toString())
+            sheet.noteCards.forEachIndexed { index, note ->
+                database.characterQueries.insertCharacterNote(
+                    id = note.id.toString(),
+                    character_id = sheet.id.toString(),
+                    title = note.title.trim(),
+                    content = note.content,
+                    sort_order = index.toLong(),
+                )
+            }
+
+            database.characterQueries.deleteCharacterSpells(sheet.id.toString())
+            database.characterQueries.deleteCharacterSpellSources(sheet.id.toString())
+            normalizedSources.forEachIndexed { index, source ->
+                database.characterQueries.insertCharacterSpellSource(
+                    id = source.id.toString(),
+                    character_id = sheet.id.toString(),
+                    name = source.name.trim(),
+                    linked_class_id = source.linkedClassId?.toString(),
+                    sort_order = index.toLong(),
+                )
+            }
+
+            val spellOrderByLevel = mutableMapOf<Int, Int>()
+            normalizedSpells.forEach { spell ->
+                val levelOrder = spellOrderByLevel[spell.level] ?: 0
+                database.characterQueries.insertCharacterSpell(
+                    id = spell.id.toString(),
+                    character_id = sheet.id.toString(),
+                    name = spell.name.trim(),
+                    spell_level = spell.level.toLong(),
+                    casting_time = spell.castingTime,
+                    range_text = spell.rangeText,
+                    has_verbal = if (spell.verbal) 1 else 0,
+                    has_somatic = if (spell.somatic) 1 else 0,
+                    has_material = if (spell.material) 1 else 0,
+                    material_text = spell.materialText,
+                    duration = spell.duration,
+                    concentration = if (spell.concentration) 1 else 0,
+                    ritual = if (spell.ritual) 1 else 0,
+                    description = spell.description,
+                    notes = spell.notes,
+                    sort_order = levelOrder.toLong(),
+                )
+                spellOrderByLevel[spell.level] = levelOrder + 1
+                spell.sourceAssociations.forEach { association ->
+                    database.characterQueries.insertCharacterSpellSourceAssociation(
+                        spell_id = spell.id.toString(),
+                        source_id = association.sourceId.toString(),
+                        prepared = if (association.prepared) 1 else 0,
+                    )
+                }
+            }
         }
 
         return requireNotNull(character(sheet.id))
@@ -255,6 +385,7 @@ class CharacterRepository(
                 sortOrder = sortOrder.toInt(),
             )
         }.executeAsList()
+        val classIdSet = classes.map { it.id }.toSet()
 
         val storedSaves = database.characterQueries.selectCharacterSaves(core.id.toString()) {
                 _, abilityKey, proficient, adjustment ->
@@ -325,6 +456,95 @@ class CharacterRepository(
             )
         }.executeAsList()
 
+        val background = database.characterQueries.selectCharacterBackground(core.id.toString()) {
+                _, name, summary, personalityTraits, ideals, bonds, flaws, story ->
+            CharacterBackground(
+                name = name,
+                summary = summary,
+                personalityTraits = personalityTraits,
+                ideals = ideals,
+                bonds = bonds,
+                flaws = flaws,
+                story = story,
+            )
+        }.executeAsOneOrNull() ?: CharacterBackground()
+
+        val traits = database.characterQueries.selectCharacterTraits(core.id.toString()) {
+                id, _, name, source, type, description, notes, maxUses, spentUses, recovery, activation, sortOrder ->
+            CharacterTrait(
+                id = Uuid.parse(id),
+                name = name,
+                source = source,
+                type = runCatching { CharacterTraitType.valueOf(type) }.getOrDefault(CharacterTraitType.OTHER),
+                description = description,
+                notes = notes,
+                maxUses = maxUses?.toInt(),
+                spentUses = spentUses.toInt(),
+                recovery = recovery,
+                activation = activation?.let {
+                    runCatching { CharacterActivationType.valueOf(it) }.getOrDefault(CharacterActivationType.OTHER)
+                },
+                sortOrder = sortOrder.toInt(),
+            )
+        }.executeAsList()
+
+        val noteCards = database.characterQueries.selectCharacterNotes(core.id.toString()) {
+                id, _, title, content, sortOrder ->
+            CharacterNote(
+                id = Uuid.parse(id),
+                title = title,
+                content = content,
+                sortOrder = sortOrder.toInt(),
+            )
+        }.executeAsList()
+
+        val spellcastingSources = database.characterQueries.selectCharacterSpellSources(core.id.toString()) {
+                id, _, name, linkedClassId, sortOrder ->
+            val parsedClassId = linkedClassId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+            CharacterSpellcastingSource(
+                id = Uuid.parse(id),
+                name = name,
+                linkedClassId = parsedClassId?.takeIf { it in classIdSet },
+                sortOrder = sortOrder.toInt(),
+            )
+        }.executeAsList()
+
+        val spellAssociations = database.characterQueries.selectCharacterSpellSourceAssociations(core.id.toString()) {
+                spellId, sourceId, prepared ->
+            Uuid.parse(spellId) to CharacterSpellSourceAssociation(
+                sourceId = Uuid.parse(sourceId),
+                prepared = prepared != 0L,
+            )
+        }.executeAsList().groupBy(
+            keySelector = { it.first },
+            valueTransform = { it.second },
+        )
+
+        val spells = database.characterQueries.selectCharacterSpells(core.id.toString()) {
+                id, _, name, spellLevel, castingTime, rangeText,
+                hasVerbal, hasSomatic, hasMaterial, materialText, duration,
+                concentration, ritual, description, notes, sortOrder ->
+            val spellId = Uuid.parse(id)
+            CharacterSpell(
+                id = spellId,
+                name = name,
+                level = spellLevel.toInt(),
+                castingTime = castingTime,
+                rangeText = rangeText,
+                verbal = hasVerbal != 0L,
+                somatic = hasSomatic != 0L,
+                material = hasMaterial != 0L,
+                materialText = materialText,
+                duration = duration,
+                concentration = concentration != 0L,
+                ritual = ritual != 0L,
+                description = description,
+                notes = notes,
+                sortOrder = sortOrder.toInt(),
+                sourceAssociations = spellAssociations[spellId].orEmpty(),
+            )
+        }.executeAsList()
+
         return CharacterSheet(
             id = core.id,
             campaignId = core.campaignId,
@@ -362,6 +582,13 @@ class CharacterRepository(
             combatEntries = combatEntries,
             inventoryItems = inventoryItems,
             currencies = currencies,
+            spellcasterEnabled = core.spellcasterEnabled,
+            background = background,
+            traits = traits,
+            spellcastingSources = spellcastingSources,
+            spells = spells,
+            generalNotes = core.generalNotes,
+            noteCards = noteCards,
         )
     }
 
@@ -389,6 +616,8 @@ class CharacterRepository(
         spellSaveDc: Long?,
         spellAttackModifier: Long?,
         spellcastingAbility: String,
+        spellcasterEnabled: Long,
+        generalNotes: String,
     ) = CharacterCore(
         id = Uuid.parse(id),
         campaignId = Uuid.parse(campaignId),
@@ -414,6 +643,8 @@ class CharacterRepository(
         spellAttackModifier = spellAttackModifier?.toInt(),
         spellcastingAbility = runCatching { SpellcastingAbility.valueOf(spellcastingAbility) }
             .getOrDefault(SpellcastingAbility.NONE),
+        spellcasterEnabled = spellcasterEnabled != 0L,
+        generalNotes = generalNotes,
     )
 
     private data class CharacterCore(
@@ -440,6 +671,8 @@ class CharacterRepository(
         val spellSaveDc: Int?,
         val spellAttackModifier: Int?,
         val spellcastingAbility: SpellcastingAbility,
+        val spellcasterEnabled: Boolean,
+        val generalNotes: String,
     )
 
     private companion object {
