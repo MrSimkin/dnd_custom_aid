@@ -48,6 +48,13 @@ Check 13 is complete; overall **FAIL/blocking** because 13B and 13C fail explici
 
 Check 14 is complete: **PASS**.
 
+### Check 15 — PC Settings font/theme corrections and persistence
+
+- **15A: PASS — text-scale persistence.** After changing the text scale, leaving PC Settings, navigating elsewhere, and reopening PC Settings, the selected scale remains active and reflected by the UI.
+- **15B: PASS — theme persistence.** After changing the theme, leaving PC Settings, navigating elsewhere, and reopening PC Settings, the selected theme remains active with no reported reset or mixed old/new theme state.
+
+Check 15 is complete: **PASS**.
+
 ## Findings discovered during QA
 
 ### T-01 — `Quick Magic` terminology mismatch
@@ -140,6 +147,7 @@ Owner reports that pressing the Android system Back action from an internal app 
 - Check 12: complete; overall FAIL/blocking because 12A and 12B fail. 12C and functional 12D pass with usability limitations.
 - Check 13: complete; overall FAIL/blocking because 13B and 13C fail. 13A, 13D and 13E pass functionally.
 - Check 14: complete; PASS at both 115% and 130%.
+- Check 15: complete; PASS for text-scale and theme persistence.
 - Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation.
 - Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
 - Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
