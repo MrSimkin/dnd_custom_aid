@@ -27,78 +27,32 @@ jobs:
           path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt')
           text = path.read_text(encoding='utf-8')
 
-          def replace_once(text: str, old: str, new: str, label: str) -> str:
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
-              return text.replace(old, new, 1)
+          count_start = '    val visibleSpellCount = if (selectedSource == null) {'
+          count_end = '\n\n    fun updateSources(updated: List<CharacterSpellcastingSource>)'
+          count_start_index = text.find(count_start)
+          if count_start_index < 0 or text.find(count_start, count_start_index + 1) >= 0:
+              raise SystemExit('placeholder count start must occur exactly once')
+          count_end_index = text.find(count_end, count_start_index)
+          if count_end_index < 0:
+              raise SystemExit('placeholder count end marker missing')
+          text = text[:count_start_index] + text[count_end_index + 2:]
 
-          text = replace_once(
-              text,
-              '''    val visibleSpellCount = if (selectedSource == null) {
-              draft.spells.size
-          } else {
-              draft.spells.count { spell -> spell.sourceAssociations.any { it.sourceId == selectedSource.id } }
-          }
+          list_start = '        LazyColumn(\n            modifier = Modifier.fillMaxSize(),'
+          list_end = '\n    }\n\n    if (managerOpen) {'
+          list_start_index = text.find(list_start)
+          if list_start_index < 0 or text.find(list_start, list_start_index + 1) >= 0:
+              raise SystemExit('Increment G placeholder LazyColumn must occur exactly once')
+          list_end_index = text.find(list_end, list_start_index)
+          if list_end_index < 0:
+              raise SystemExit('Increment G placeholder end marker missing')
 
-          ''',
-              '',
-              'remove Increment G placeholder count',
-          )
-
-          old = '''        LazyColumn(
-              modifier = Modifier.fillMaxSize(),
-              contentPadding = PaddingValues(
-                  start = if (wide) 10.dp else 5.dp,
-                  end = if (wide) 10.dp else 5.dp,
-                  top = 7.dp,
-                  bottom = 150.dp,
-              ),
-              verticalArrangement = Arrangement.spacedBy(7.dp),
-          ) {
-              item {
-                  Card(modifier = Modifier.fillMaxWidth()) {
-                      Column(
-                          modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
-                          verticalArrangement = Arrangement.spacedBy(5.dp),
-                      ) {
-                          Text(
-                              selectedSource?.name ?: "Todos los conjuros",
-                              style = MaterialTheme.typography.titleSmall,
-                          )
-                          Text(
-                              if (selectedSource == null) {
-                                  "$visibleSpellCount conjuros conceptuales en la ficha."
-                              } else {
-                                  "$visibleSpellCount conjuros asociados a esta fuente."
-                              },
-                              style = MaterialTheme.typography.bodySmall,
-                          )
-                          if (draft.sources.isEmpty()) {
-                              Text(
-                                  "Aún no hay fuentes de conjuros. Puedes crear una fuente de clase, dote, origen innato o cualquier fuente personalizada.",
-                                  style = MaterialTheme.typography.bodySmall,
-                              )
-                              TextButton(onClick = { managerOpen = true }) { Text("Gestionar fuentes") }
-                          } else {
-                              Text(
-                                  "La navegación y gestión de fuentes están activas. La lista detallada y edición de conjuros se incorporan en el siguiente incremento.",
-                                  style = MaterialTheme.typography.bodySmall,
-                              )
-                          }
-                      }
-                  }
-              }
-          }
-          '''
-          new = '''        CharacterSpellListV4(
+          replacement = '''        CharacterSpellListV4(
               draft = draft,
               selectedSourceId = selectedSource?.id,
               onDraftChange = onDraftChange,
               wide = wide,
-          )
-          '''
-          text = replace_once(text, old, new, 'replace Increment G placeholder with Increment H list')
+          )'''
+          text = text[:list_start_index] + replacement + text[list_end_index:]
 
           path.write_text(text, encoding='utf-8')
           PY
