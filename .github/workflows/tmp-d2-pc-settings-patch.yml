@@ -1,0 +1,195 @@
+name: Temporary D2 PC Settings patch
+
+on:
+  push:
+    branches:
+      - tmp/increment-d2-pc-settings-wiring
+    paths:
+      - .github/d2-pc-settings-patch-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  patch-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/increment-d2-pc-settings-wiring
+          fetch-depth: 0
+      - name: Apply asserted narrow D2 patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          editor_path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt')
+          main_path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/MainActivity.kt')
+          editor = editor_path.read_text(encoding='utf-8')
+          main = main_path.read_text(encoding='utf-8')
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, found {count}: {old[:120]!r}')
+              return text.replace(old, new, 1)
+
+          editor = replace_once(
+              editor,
+              'import androidx.compose.material3.Tab\n',
+              '',
+              'remove obsolete Tab import',
+          )
+          editor = replace_once(
+              editor,
+              'import androidx.compose.material3.TabRow\n',
+              '',
+              'remove obsolete TabRow import',
+          )
+          editor = replace_once(
+              editor,
+              '    onPreferencesChange: (UiPreferences) -> Unit,\n'
+              '    onOpenSettings: () -> Unit,\n'
+              '    onBack: () -> Unit,\n',
+              '    onPreferencesChange: (UiPreferences) -> Unit,\n'
+              '    onBack: () -> Unit,\n',
+              'remove app-settings callback from character editor',
+          )
+          editor = replace_once(
+              editor,
+              '    var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }\n'
+              '    val selectedTab = resolvedCharacterTabV4(\n',
+              '    var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }\n'
+              '    var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }\n'
+              '    var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }\n'
+              '    val selectedTab = resolvedCharacterTabV4(\n',
+              'add PC Settings state',
+          )
+          editor = replace_once(
+              editor,
+              '    fun saveBlankNumbersAsZero() {\n'
+              '        val candidate = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: return\n'
+              '        confirmBlankNumbers = false\n'
+              '        persist(candidate)\n'
+              '    }\n\n'
+              '    Scaffold { scaffoldPadding ->\n',
+              '    fun saveBlankNumbersAsZero() {\n'
+              '        val candidate = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: return\n'
+              '        confirmBlankNumbers = false\n'
+              '        persist(candidate)\n'
+              '    }\n\n'
+              '    fun persistSpellcasterEnabled(enabled: Boolean) {\n'
+              '        if (enabled == stored.spellcasterEnabled) return\n'
+              '        stored = repository.saveCharacter(stored.copy(spellcasterEnabled = enabled))\n'
+              '        if (!enabled && selectedTabName == CharacterTabV4.SPELLS.name) {\n'
+              '            selectedTabName = CharacterTabV4.OVERVIEW.name\n'
+              '        }\n'
+              '        savedMessage = "Guardado"\n'
+              '    }\n\n'
+              '    if (showPcSettings) {\n'
+              '        CharacterPcSettingsV4(\n'
+              '            characterName = draft.name,\n'
+              '            spellcasterEnabled = stored.spellcasterEnabled,\n'
+              '            onBack = { showPcSettings = false },\n'
+              '            onSpellcasterEnabledChange = { enabled ->\n'
+              '                if (!enabled && stored.hasMeaningfulSpellcastingDataV4()) {\n'
+              '                    confirmDisableSpellcasting = true\n'
+              '                } else {\n'
+              '                    persistSpellcasterEnabled(enabled)\n'
+              '                }\n'
+              '            },\n'
+              '        )\n'
+              '    } else {\n'
+              '    Scaffold { scaffoldPadding ->\n',
+              'add PC Settings branch and persistence',
+          )
+          editor = replace_once(
+              editor,
+              '                    onSave = ::save,\n'
+              '                    onOpenSettings = onOpenSettings,\n'
+              '                )\n',
+              '                    onSave = ::save,\n'
+              '                    onOpenSettings = { showPcSettings = true },\n'
+              '                )\n',
+              'route character gear to PC Settings',
+          )
+          editor = replace_once(
+              editor,
+              '                }\n'
+              '            }\n'
+              '        }\n'
+              '    }\n\n'
+              '    if (confirmBlankNumbers) {\n',
+              '                }\n'
+              '            }\n'
+              '        }\n'
+              '    }\n'
+              '    }\n\n'
+              '    if (confirmDisableSpellcasting) {\n'
+              '        AlertDialog(\n'
+              '            onDismissRequest = { confirmDisableSpellcasting = false },\n'
+              '            title = { Text("Ocultar funciones de conjuros") },\n'
+              '            text = {\n'
+              '                Text("Quick Magic y la pestaña Conjuros se ocultarán. Los datos de conjuros, fuentes, preparación y espacios se conservarán.")\n'
+              '            },\n'
+              '            confirmButton = {\n'
+              '                TextButton(\n'
+              '                    onClick = {\n'
+              '                        persistSpellcasterEnabled(false)\n'
+              '                        confirmDisableSpellcasting = false\n'
+              '                    },\n'
+              '                ) { Text("Ocultar") }\n'
+              '            },\n'
+              '            dismissButton = {\n'
+              '                TextButton(onClick = { confirmDisableSpellcasting = false }) { Text("Cancelar") }\n'
+              '            },\n'
+              '        )\n'
+              '    }\n\n'
+              '    if (confirmBlankNumbers) {\n',
+              'close PC Settings branch and add hide confirmation',
+          )
+          editor = replace_once(
+              editor,
+              '        item {\n'
+              '            QuickMagicCardV4(draft, onDraftChange)\n'
+              '        }\n',
+              '        if (stored.spellcasterEnabled) {\n'
+              '            item {\n'
+              '                QuickMagicCardV4(draft, onDraftChange)\n'
+              '            }\n'
+              '        }\n',
+              'hide Quick Magic for non-casters',
+          )
+
+          main = replace_once(
+              main,
+              '                CharacterEditorScreenV4(\n'
+              '                    characterId = characterId,\n'
+              '                    repository = characterRepository,\n'
+              '                    preferences = preferences,\n'
+              '                    onPreferencesChange = onPreferencesChange,\n'
+              '                    onOpenSettings = { showSettings = true },\n'
+              '                    onBack = {\n',
+              '                CharacterEditorScreenV4(\n'
+              '                    characterId = characterId,\n'
+              '                    repository = characterRepository,\n'
+              '                    preferences = preferences,\n'
+              '                    onPreferencesChange = onPreferencesChange,\n'
+              '                    onBack = {\n',
+              'remove app-settings route from character editor call',
+          )
+
+          editor_path.write_text(editor, encoding='utf-8')
+          main_path.write_text(main, encoding='utf-8')
+          PY
+          git diff --check
+          git diff -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/MainActivity.kt
+      - name: Commit narrow D2 patch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/MainActivity.kt
+          git commit -m "Wire character PC Settings and caster visibility"
+          git push origin HEAD:tmp/increment-d2-pc-settings-wiring
