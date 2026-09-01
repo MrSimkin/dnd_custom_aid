@@ -58,8 +58,15 @@ Check 15 is complete: **PASS**.
 ### Check 16 — Trasfondo narrative persistence
 
 - **16A: PASS — all currently available narrative fields editable and saveable.** Owner entered distinctive values into every currently shown Trasfondo narrative text field and saved successfully.
+- **16B: PASS — saved narrative values persist after leaving and reopening the same character.** Owner confirms all values entered in 16A are still present after reopening.
 
-Remaining Check 16 persistence/reopen verification is pending.
+Check 16 is complete: **PASS** for the currently implemented fields. B-01 remains an approved additive correction for two new fields.
+
+### Check 17 — Trasfondo image placeholders
+
+- **17: PASS — both image placeholders respond acceptably to available width.** Owner checked the placeholders in portrait and landscape and reports no clipping, overlap, awkward fixed narrowness, or disproportionate scaling.
+
+Check 17 is complete: **PASS**.
 
 ## Findings discovered during QA
 
@@ -147,7 +154,7 @@ After observing excessive vertical density in Combate, equipment rows, action bu
 
 Owner clarification during Check 13E: these spacing/padding and previously observed hidden-control issues are **cross-cutting findings**. The owner will not repeat the same observation on every later screen. Future QA results should inherit these known issues when the same UI pattern is present, while still recording any newly distinct screen-specific failure.
 
-### N-01 — Android system Back exits the app instead of navigating within the app
+### N-01 — Android system Back exits the app instead of navigating within app
 
 Status: **FAIL/blocking pending scope confirmation**.
 
@@ -160,7 +167,8 @@ Owner reports that pressing the Android system Back action from an internal app 
 - Check 13: complete; overall FAIL/blocking because 13B and 13C fail. 13A, 13D and 13E pass functionally.
 - Check 14: complete; PASS at both 115% and 130%.
 - Check 15: complete; PASS for text-scale and theme persistence.
-- Check 16: in progress; 16A PASS, reopen/persistence verification pending.
+- Check 16: complete; PASS for currently implemented Trasfondo narrative fields and reopen persistence.
+- Check 17: complete; PASS for responsive image placeholders.
 - Confirmed blocking defects: U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation.
 - Equipment reorder is confirmed functional; E-01 is reclassified as a drag-feedback/discoverability limitation.
 - Non-blocking/reconciliation findings: T-01, E-01, E-02, E-03, C-02, C-03, D-01.
