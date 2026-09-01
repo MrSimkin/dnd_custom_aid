@@ -27,90 +27,80 @@ jobs:
           path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt')
           text = path.read_text(encoding='utf-8')
 
-          replacements = [
-              (
-                  '''private enum class CharacterTabV4(val label: String) {
-              OVERVIEW("General"),
-              SKILLS("Habilidades"),
-              COMBAT("Combate"),
-              EQUIPMENT("Equipo"),
-          }
-
-          ''',
-                  ''
-              ),
-              (
-                  '''    val selectedTab = runCatching { CharacterTabV4.valueOf(selectedTabName) }
-              .getOrDefault(CharacterTabV4.OVERVIEW)
-          ''',
-                  '''    val selectedTab = resolvedCharacterTabV4(
-              savedTabName = selectedTabName,
-              spellcasterEnabled = stored.spellcasterEnabled,
-          )
-          '''
-              ),
-              (
-                  '''                TabRow(
-              selectedTabIndex = selectedTab.ordinal,
-              modifier = Modifier.fillMaxWidth(),
-          ) {
-              CharacterTabV4.entries.forEach { tab ->
-                  Tab(
-                      selected = tab == selectedTab,
-                      onClick = { selectedTabName = tab.name },
-                      text = { Text(tab.label, maxLines = 2) },
-                  )
-              }
-          }
-          ''',
-                  '''                CharacterTopTabStripV4(
-              selectedTab = selectedTab,
-              spellcasterEnabled = stored.spellcasterEnabled,
-              onSelect = { selectedTabName = it.name },
-          )
-          '''
-              ),
-              (
-                  '''                CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
-              items = equipmentDraft.items,
-              currencies = equipmentDraft.currencies,
-              onItemsChange = ::updateEquipmentItems,
-              onCurrenciesChange = ::updateCurrencies,
-              wide = wide,
-          )
-          ''',
-                  '''                CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
-              items = equipmentDraft.items,
-              currencies = equipmentDraft.currencies,
-              onItemsChange = ::updateEquipmentItems,
-              onCurrenciesChange = ::updateCurrencies,
-              wide = wide,
-          )
-          CharacterTabV4.BACKGROUND -> CharacterDomainShellV4(
-              title = "Trasfondo",
-              description = "La navegación está lista. El editor persistente de Trasfondo se incorpora en el Incremento E.",
-          )
-          CharacterTabV4.TRAITS -> CharacterDomainShellV4(
-              title = "Rasgos",
-              description = "La navegación está lista. El editor persistente de Rasgos se incorpora en el Incremento F.",
-          )
-          CharacterTabV4.SPELLS -> CharacterDomainShellV4(
-              title = "Conjuros",
-              description = "La navegación está lista. La gestión de fuentes y conjuros se incorpora en los Incrementos G y H.",
-          )
-          CharacterTabV4.NOTES -> CharacterDomainShellV4(
-              title = "Notas",
-              description = "La navegación está lista. El editor persistente de Notas se incorpora en el Incremento J.",
-          )
-          '''
-              ),
-          ]
-
-          for old, new in replacements:
+          def replace_once(old: str, new: str) -> None:
+              global text
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f'Expected exactly one match, found {count}: {old[:80]!r}')
+                  raise SystemExit(f'Expected exactly one match, found {count}: {old[:100]!r}')
               text = text.replace(old, new, 1)
+
+          replace_once(
+              "private enum class CharacterTabV4(val label: String) {\n"
+              "    OVERVIEW(\"General\"),\n"
+              "    SKILLS(\"Habilidades\"),\n"
+              "    COMBAT(\"Combate\"),\n"
+              "    EQUIPMENT(\"Equipo\"),\n"
+              "}\n\n",
+              "",
+          )
+
+          replace_once(
+              "    val selectedTab = runCatching { CharacterTabV4.valueOf(selectedTabName) }\n"
+              "        .getOrDefault(CharacterTabV4.OVERVIEW)\n",
+              "    val selectedTab = resolvedCharacterTabV4(\n"
+              "        savedTabName = selectedTabName,\n"
+              "        spellcasterEnabled = stored.spellcasterEnabled,\n"
+              "    )\n",
+          )
+
+          replace_once(
+              "                TabRow(\n"
+              "                    selectedTabIndex = selectedTab.ordinal,\n"
+              "                    modifier = Modifier.fillMaxWidth(),\n"
+              "                ) {\n"
+              "                    CharacterTabV4.entries.forEach { tab ->\n"
+              "                        Tab(\n"
+              "                            selected = tab == selectedTab,\n"
+              "                            onClick = { selectedTabName = tab.name },\n"
+              "                            text = { Text(tab.label, maxLines = 2) },\n"
+              "                        )\n"
+              "                    }\n"
+              "                }\n",
+              "                CharacterTopTabStripV4(\n"
+              "                    selectedTab = selectedTab,\n"
+              "                    spellcasterEnabled = stored.spellcasterEnabled,\n"
+              "                    onSelect = { selectedTabName = it.name },\n"
+              "                )\n",
+          )
+
+          equipment_block = (
+              "                    CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(\n"
+              "                        items = equipmentDraft.items,\n"
+              "                        currencies = equipmentDraft.currencies,\n"
+              "                        onItemsChange = ::updateEquipmentItems,\n"
+              "                        onCurrenciesChange = ::updateCurrencies,\n"
+              "                        wide = wide,\n"
+              "                    )\n"
+          )
+          expanded_block = equipment_block + (
+              "                    CharacterTabV4.BACKGROUND -> CharacterDomainShellV4(\n"
+              "                        title = \"Trasfondo\",\n"
+              "                        description = \"La navegación está lista. El editor persistente de Trasfondo se incorpora en el Incremento E.\",\n"
+              "                    )\n"
+              "                    CharacterTabV4.TRAITS -> CharacterDomainShellV4(\n"
+              "                        title = \"Rasgos\",\n"
+              "                        description = \"La navegación está lista. El editor persistente de Rasgos se incorpora en el Incremento F.\",\n"
+              "                    )\n"
+              "                    CharacterTabV4.SPELLS -> CharacterDomainShellV4(\n"
+              "                        title = \"Conjuros\",\n"
+              "                        description = \"La navegación está lista. La gestión de fuentes y conjuros se incorpora en los Incrementos G y H.\",\n"
+              "                    )\n"
+              "                    CharacterTabV4.NOTES -> CharacterDomainShellV4(\n"
+              "                        title = \"Notas\",\n"
+              "                        description = \"La navegación está lista. El editor persistente de Notas se incorpora en el Incremento J.\",\n"
+              "                    )\n"
+          )
+          replace_once(equipment_block, expanded_block)
 
           path.write_text(text, encoding='utf-8')
           PY
