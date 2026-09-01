@@ -109,6 +109,96 @@ internal fun StableSettingsIconButton(
 }
 
 @Composable
+internal fun StableRemoveIconButton(
+    onClick: () -> Unit,
+    contentDescription: String = "Eliminar",
+) {
+    val color = MaterialTheme.colorScheme.onSurface
+    IconButton(onClick = onClick) {
+        Canvas(
+            modifier = Modifier
+                .size(24.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val stroke = 2.2.dp.toPx()
+            drawLine(
+                color = color,
+                start = Offset(size.width * 0.27f, size.height * 0.27f),
+                end = Offset(size.width * 0.73f, size.height * 0.73f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+            drawLine(
+                color = color,
+                start = Offset(size.width * 0.73f, size.height * 0.27f),
+                end = Offset(size.width * 0.27f, size.height * 0.73f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun StableDropdownIconButton(
+    onClick: () -> Unit,
+    contentDescription: String = "Abrir opciones",
+) {
+    val color = MaterialTheme.colorScheme.onSurface
+    IconButton(onClick = onClick) {
+        Canvas(
+            modifier = Modifier
+                .size(24.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val stroke = 2.2.dp.toPx()
+            drawLine(
+                color = color,
+                start = Offset(size.width * 0.25f, size.height * 0.40f),
+                end = Offset(size.width * 0.50f, size.height * 0.65f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+            drawLine(
+                color = color,
+                start = Offset(size.width * 0.50f, size.height * 0.65f),
+                end = Offset(size.width * 0.75f, size.height * 0.40f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun StableAddIcon(
+    contentDescription: String = "Añadir",
+) {
+    val color = MaterialTheme.colorScheme.onPrimaryContainer
+    Canvas(
+        modifier = Modifier
+            .size(24.dp)
+            .semantics { this.contentDescription = contentDescription },
+    ) {
+        val stroke = 2.2.dp.toPx()
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.20f, size.height * 0.50f),
+            end = Offset(size.width * 0.80f, size.height * 0.50f),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.50f, size.height * 0.20f),
+            end = Offset(size.width * 0.50f, size.height * 0.80f),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+@Composable
 internal fun StableDragHandle(
     modifier: Modifier = Modifier,
     contentDescription: String = "Reordenar",
@@ -116,15 +206,15 @@ internal fun StableDragHandle(
     val color = MaterialTheme.colorScheme.onSurfaceVariant
     Canvas(
         modifier = modifier
-            .size(40.dp)
+            .size(48.dp)
             .semantics { this.contentDescription = contentDescription },
     ) {
         val stroke = 2.dp.toPx()
-        listOf(0.32f, 0.5f, 0.68f).forEach { yFraction ->
+        listOf(0.34f, 0.5f, 0.66f).forEach { yFraction ->
             drawLine(
                 color = color,
-                start = Offset(size.width * 0.25f, size.height * yFraction),
-                end = Offset(size.width * 0.75f, size.height * yFraction),
+                start = Offset(size.width * 0.29f, size.height * yFraction),
+                end = Offset(size.width * 0.71f, size.height * yFraction),
                 strokeWidth = stroke,
                 cap = StrokeCap.Round,
             )
