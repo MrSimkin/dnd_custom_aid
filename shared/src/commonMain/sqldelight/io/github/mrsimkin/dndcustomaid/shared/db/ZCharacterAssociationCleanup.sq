@@ -1,0 +1,13 @@
+CREATE TRIGGER character_spell_delete_source_assoc
+AFTER DELETE ON character_spell
+BEGIN
+    DELETE FROM character_spell_source_assoc
+    WHERE spell_id = OLD.id;
+END;
+
+CREATE TRIGGER character_spell_source_delete_assoc
+AFTER DELETE ON character_spell_source
+BEGIN
+    DELETE FROM character_spell_source_assoc
+    WHERE source_id = OLD.id;
+END;
