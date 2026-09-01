@@ -17,6 +17,7 @@ Status values: PASS, FAIL/blocking, limitation/non-blocking, NOT TESTED.
 5. **PASS — Navigation tab count.** With spellcasting enabled, all 8 expected tabs are present.
 6. **PASS — Horizontal tab navigation / selected-tab visibility at all supported scales.** Owner tested 80%, 90%, 100%, 115%, and 130%; all behaved correctly.
 7. **PASS — Selected tab survives rotation/recreation.** Owner reports selected tab remains correct through orientation change.
+8. **PASS — Conjuros fallback when spellcasting is disabled.** Starting from `Conjuros`, disabling spellcasting removes the tab and returns the character sheet to `General` without crash, blank state, or invalid selection.
 
 ## Findings discovered during QA
 
@@ -46,9 +47,15 @@ Status: **limitation/non-blocking**.
 
 Owner reports the `Editar` and `Eliminar` buttons consume too much space for compact equipment rows. This is a density/layout issue and should be reviewed against the intended compact equipment presentation and the owner's character-sheet visual references.
 
+### U-01 — Wrapped two-line text is top-aligned instead of vertically centered
+
+Status: **limitation/non-blocking**.
+
+Owner reports that labels/content wrapping to two lines remain aligned toward the top of their available control/row area instead of being vertically centered. Record as a general visual-alignment issue and tie it to exact affected controls/screens as they are encountered during the remaining QA checks.
+
 ## Current QA disposition
 
-- Checks 1–7: PASS.
+- Checks 1–8: PASS.
 - Blocking defects found: E-01.
-- Non-blocking/reconciliation findings: T-01, E-02.
+- Non-blocking/reconciliation findings: T-01, E-02, U-01.
 - QA should continue step-by-step to discover the full defect set before deciding the correction batch, unless the owner explicitly requests an immediate stop-and-fix cycle.
