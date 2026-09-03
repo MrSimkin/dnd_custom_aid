@@ -12,7 +12,7 @@ def replace_once(old: str, new: str, label: str) -> None:
 
 replace_once(
     "**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; **Batch D active**  ",
-    "**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; **Batch E active**  ",
+    "**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; **Batch E active**",
     "execution position",
 )
 
