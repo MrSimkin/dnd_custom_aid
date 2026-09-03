@@ -5,18 +5,19 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; **B1 active**  
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; **Batch C active**  
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2B_PERSISTENCE.md` — completed schema-7 persistence gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2A_SCHEMA_DOMAIN.md` — completed schema/domain gate;
-4. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
-5. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
-6. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
-7. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md` — completed B2 gate and exact continuation into C;
+2. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
+3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2B_PERSISTENCE.md` — completed schema-7 persistence gate;
+4. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2A_SCHEMA_DOMAIN.md` — completed schema/domain gate;
+5. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
+6. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
+7. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
+8. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
 
 ## 1. Closure scope status
 
@@ -124,23 +125,80 @@ A2b controlling verification:
 
 **Full A2 gate is closed GREEN.**
 
-## 5. Current batch — B1 global editor/IME/action foundation
+## 5. Batch B1 — global editor/IME/action foundation — GREEN
 
-Goal: fix cross-cutting editor behavior once, then migrate the existing character editors to the shared pattern.
+B1 introduced the reusable IME-safe character editor shell and consistent action/confirmation/empty-state primitives, then migrated the existing character keyboard editors to that shared behavior.
 
-B1 scope:
+The migration covers character creation, Combat, Equipment, Trasfondo, Rasgos, Notes, spell sources, spell entries, Speed, spell-slot configuration and derived-value adjustment editors. Editable dialogs keep actions reachable above the Android keyboard; card/row tap is the primary edit affordance on migrated collection surfaces.
 
-- reusable IME-aware editor/dialog body/action layout so critical actions remain reachable while the Android keyboard is visible;
-- consistent primary/secondary action semantics (`Guardar`/`Cancelar` or creation verb where genuinely appropriate);
-- stable add/edit/delete/duplicate icon/touch/accessibility grammar;
-- inline validation support;
-- named destructive confirmations;
-- useful empty-state primitive;
-- preserve existing Android Back hierarchy and draft behavior.
+Final B1 code head:
 
-Initial read-only inventory already confirmed that existing tabs such as Combat, Equipment and Notes each own separate `AlertDialog`/editor implementations; outer-list `.imePadding()` alone is therefore insufficient. B1 should introduce reusable primitives rather than continue one-off padding fixes.
+- `79092402e7ff0b93579bc785f891e5e95a0333ed`.
 
-## 6. Existing baseline that must not regress
+Final B1 workflow:
+
+- `33791637168`;
+- backend PASS;
+- shared/Kotlin tests PASS;
+- Android debug assembly PASS;
+- Desktop build PASS;
+- APK upload PASS.
+
+**B1 gate is closed GREEN.**
+
+## 6. Batch B2 — ordering/search/context/drag foundation — GREEN
+
+Controlling checkpoint:
+
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md`.
+
+Implemented foundations:
+
+- shared Manual/A–Z presentation helpers that preserve stored manual order;
+- case/accent-insensitive search and immutable filter/query state;
+- reusable count/search/filter/sort toolbar;
+- reusable lifted/translated drag surface and insertion indicator;
+- configurable semantic haptic hook, ready for the persisted PC setting to be wired in C;
+- derived `Cambios sin guardar` state based on actual draft-versus-stored content;
+- unsaved-leave guard: `Guardar` / `Descartar` / `Seguir editando`;
+- context-preserving parent-owned state contract for later list-heavy domains;
+- visible drag-feedback proof integrations in Notes and Combat.
+
+Verification:
+
+- presentation/toolbar/drag foundation workflow `33792391465` — PASS;
+- unsaved-leave/dirty-state workflow `33793135304` — PASS;
+- Notes real-drag workflow `33793677310` — PASS;
+- Combat real-drag workflow `33794100599` — PASS.
+
+All controlling runs include backend, shared/Kotlin tests, Android debug assembly, Desktop build and APK upload.
+
+**B2 gate is closed GREEN.**
+
+## 7. Current batch — C PC Settings
+
+Goal: consolidate durable character-wide settings without moving application-wide preference ownership into the character model.
+
+Already verified before C implementation:
+
+- schema-7 `CharacterClosureState` already persists `progressMode`, `experiencePoints`, `milestoneProgress`, `tableModeEnabled`, `hapticsEnabled` and module overrides;
+- `CharacterClosureRepository.state(characterId)` / `saveState(characterId, state)` is the existing persistence boundary;
+- therefore those controls do not require a new schema migration;
+- application-wide theme/font/text preferences remain owned by the existing `UiPreferences` / global settings surface;
+- PC Settings should expose an entry that opens that existing application-settings surface rather than duplicating it.
+
+Batch C implementation targets:
+
+- lifecycle status moved/consolidated into PC Settings;
+- haptics setting;
+- Table/read-only setting;
+- XP/Milestone progress mode and values;
+- conditional module overrides;
+- existing spellcasting hide-not-delete setting;
+- `Configuración de la aplicación` navigation entry to the existing global settings UI;
+- correct Back hierarchy and context preservation.
+
+## 8. Existing baseline that must not regress
 
 The Phase 4 character implementation already contains persistent:
 
@@ -157,7 +215,7 @@ The Phase 4 character implementation already contains persistent:
 - schema-6 class/subclass/proficiency/resource/form/companion foundation;
 - schema-7 closure persistence under A2.
 
-## 7. Final acceptance boundary
+## 9. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity.
 
@@ -171,7 +229,7 @@ Owner acceptance matrix must include:
 
 Green CI never substitutes for real-device IME/drag/layout/tablet QA.
 
-## 8. Merge boundary
+## 10. Merge boundary
 
 Do not merge Phase 4 to `main` until:
 
@@ -183,8 +241,8 @@ Do not merge Phase 4 to `main` until:
 - final continuity/governance housekeeping is complete;
 - owner explicitly approves merge/closure.
 
-## 9. Exact continuation
+## 11. Exact continuation
 
-Resume **Batch B1 — global IME/editor/action foundation** on `implementation/phase4-character-closure`.
+Resume **Batch C — PC Settings** on `implementation/phase4-character-closure`.
 
-Create the reusable interaction primitives first, migrate representative existing editors, run the B1 Android/shared gate, and checkpoint before beginning B2.
+Wire the existing persisted `CharacterClosureState` through `CharacterClosureRepository`, preserve application-wide preference ownership, verify save/reopen/Back behavior, and checkpoint C before beginning D.
