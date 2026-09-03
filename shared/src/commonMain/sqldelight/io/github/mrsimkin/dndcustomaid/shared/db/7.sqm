@@ -1,0 +1,123 @@
+CREATE TABLE character_closure_settings (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    exhaustion_level INTEGER NOT NULL DEFAULT 0,
+    concentration_spell_id TEXT,
+    concentration_name TEXT,
+    concentration_notes TEXT,
+    portrait_ref TEXT,
+    token_ref TEXT,
+    progress_mode TEXT NOT NULL DEFAULT 'MILESTONE',
+    experience_points INTEGER NOT NULL DEFAULT 0,
+    milestone_progress TEXT NOT NULL DEFAULT '',
+    table_mode_enabled INTEGER NOT NULL DEFAULT 0,
+    haptics_enabled INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE character_condition (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_defense (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    defense_type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_movement (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    movement_type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    speed_feet INTEGER,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_sense (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    range_feet INTEGER,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_resource_recovery (
+    resource_id TEXT NOT NULL PRIMARY KEY REFERENCES character_resource(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    recovery_cadence TEXT NOT NULL DEFAULT 'NONE',
+    amount_mode TEXT NOT NULL DEFAULT 'NONE',
+    fixed_amount INTEGER,
+    notes TEXT
+);
+
+CREATE TABLE character_inventory_usage (
+    item_id TEXT NOT NULL PRIMARY KEY REFERENCES character_inventory_item(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    consumable_kind TEXT NOT NULL DEFAULT 'NONE',
+    quick_use_amount INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE character_reconciliation_checkpoint (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    created_at_epoch_seconds INTEGER NOT NULL,
+    character_updated_at_epoch_seconds INTEGER NOT NULL,
+    label TEXT,
+    notes TEXT
+);
+
+CREATE TABLE character_custom_skill (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    ability_key TEXT NOT NULL,
+    training TEXT NOT NULL DEFAULT 'NONE',
+    adjustment INTEGER NOT NULL DEFAULT 0,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_temporary_effect (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    duration_text TEXT,
+    source TEXT,
+    notes TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_module_override (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    module_kind TEXT NOT NULL,
+    override_mode TEXT NOT NULL DEFAULT 'AUTO',
+    PRIMARY KEY(character_id, module_kind)
+);
+
+CREATE TABLE character_quick_access (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    target_kind TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    sort_order INTEGER NOT NULL,
+    PRIMARY KEY(character_id, target_kind, target_id),
+    UNIQUE(character_id, sort_order)
+);
