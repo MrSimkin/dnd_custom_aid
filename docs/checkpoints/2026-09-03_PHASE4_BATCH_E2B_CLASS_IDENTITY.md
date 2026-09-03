@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING INTEGRATION GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -53,18 +53,25 @@ E2b only exposes and edits those existing fields. The draft type visibility was 
 ## Relevant integration
 
 - bot integration commit `80c38218f72d2f85935ac100ade42db306824236` — `feat: integrate Batch E2b class identity editor`;
+- controlling tested head `af6de61596d5889d84dadb328cd7cdc82e942853`;
 - `CharacterClassIdentityV4.kt` contains the new compact rows and detail editor;
 - General now calls `CharacterClassIdentityCardV4` instead of the legacy dense `ClassesCardV4` surface;
 - legacy private class UI helpers are temporarily retained but unused, avoiding unrelated cleanup inside the functional gate.
 
-## Gate required
+## Verification
 
-E2b is not GREEN until the controlling workflow on this checkpoint head passes:
+Controlling workflow `33811490741`: **PASS**.
 
-- backend type-check;
-- shared/Kotlin regression tests;
-- Android debug compile/assembly;
-- Desktop build;
-- APK artifact upload.
+Verified:
 
-If the new isolated editor exposes a Kotlin/Compose compatibility error, repair it before advancing to E3.
+- backend type-check PASS;
+- shared/Kotlin regression tests PASS;
+- Android debug compile/assembly PASS;
+- Desktop build PASS;
+- APK artifact upload PASS.
+
+**E2b gate is closed GREEN.**
+
+## Exact continuation
+
+Proceed with **E3 — Combate/Favorites/simple d20**. Quick HP operations must keep the authoritative stored sheet and the structural draft synchronized for overlapping HP fields, so later structural Save cannot overwrite a live HP operation with stale draft values. Death saves remain operational sheet state; combat-entry Favorites remain schema-7 Quick Access references.
