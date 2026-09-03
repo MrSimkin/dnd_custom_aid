@@ -365,6 +365,19 @@ internal fun CharacterEditorScreenV4(
         savedMessage = "Guardado"
     }
 
+    fun persistCombatOperationalSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        val previous = stored
+        stored = repository.saveCharacter(updated)
+        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
+            draft = draft.copy(
+                currentHp = stored.currentHp.toString(),
+                tempHp = stored.tempHp.toString(),
+            )
+        }
+        savedMessage = "Guardado"
+    }
+
     if (showSupercompact) {
         CharacterSupercompactV4(
             sheet = settingsSheet,
@@ -439,11 +452,13 @@ internal fun CharacterEditorScreenV4(
                             armorClass = draft.armorClass,
                             initiative = draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(),
                             speed = draft.speed,
-                            currentHp = draft.currentHp,
-                            maxHp = draft.maxHp,
-                            tempHp = draft.tempHp,
+                            sheet = stored,
+                            closureState = closureState,
+                            persistedEntryIds = stored.combatEntries.mapTo(mutableSetOf()) { it.id },
                             entries = combatEntries,
                             onEntriesChange = ::updateCombatEntries,
+                            onOperationalSheetChange = ::persistCombatOperationalSheet,
+                            onClosureStateChange = ::persistClosureState,
                             hapticsEnabled = closureState.hapticsEnabled,
                             wide = wide,
                         )
@@ -1612,6 +1627,10 @@ private fun SaveRowV4(
                 onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
                 modifier = Modifier.weight(1f),
             )
+            CharacterD20RollButtonV4(
+                label = "Salvación ${abilityAbbreviationV4(ability)}",
+                modifier = draft.savingThrowTotal(ability),
+            )
             SaveProficiencyToggleV4(
                 proficient = save.proficient,
                 onToggle = {
@@ -1737,6 +1756,10 @@ private fun SkillRowV4(
             ),
             onAdjustmentChange = { onDraftChange(draft.withSkill(skill.copy(adjustment = it))) },
             modifier = Modifier.width(58.dp),
+        )
+        CharacterD20RollButtonV4(
+            label = skillLabelV4(skill.key),
+            modifier = draft.skillTotal(skill.key),
         )
         TrainingSelectorV4(
             training = skill.training,
@@ -1898,6 +1921,10 @@ private fun AbilityGroupV4(
                     ),
                     onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
                     modifier = Modifier.weight(1f),
+                )
+                CharacterD20RollButtonV4(
+                    label = "Salvación $abbreviation",
+                    modifier = draft.savingThrowTotal(ability),
                 )
                 SaveProficiencyToggleV4(
                     proficient = save.proficient,

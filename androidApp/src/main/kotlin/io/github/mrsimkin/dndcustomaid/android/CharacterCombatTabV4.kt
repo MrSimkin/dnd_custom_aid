@@ -37,9 +37,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
+import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
+import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
 import kotlin.math.abs
 import kotlin.uuid.Uuid
 
@@ -48,11 +54,13 @@ internal fun CharacterCombatTabV4(
     armorClass: String,
     initiative: String,
     speed: String,
-    currentHp: String,
-    maxHp: String,
-    tempHp: String,
+    sheet: CharacterSheet,
+    closureState: CharacterClosureState,
+    persistedEntryIds: Set<Uuid>,
     entries: List<CharacterCombatEntry>,
     onEntriesChange: (List<CharacterCombatEntry>) -> Unit,
+    onOperationalSheetChange: (CharacterSheet) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
     hapticsEnabled: Boolean = true,
 ) {
@@ -113,13 +121,13 @@ internal fun CharacterCombatTabV4(
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         item {
-            CombatQuickReferenceCardV4(
+            CharacterCombatOperationalCardV4(
                 armorClass = armorClass,
                 initiative = initiative,
                 speed = speed,
-                currentHp = currentHp,
-                maxHp = maxHp,
-                tempHp = tempHp,
+                sheet = sheet,
+                onSheetChange = onOperationalSheetChange,
+                hapticsEnabled = hapticsEnabled,
             )
         }
         item {
@@ -155,6 +163,17 @@ internal fun CharacterCombatTabV4(
                                     val index = entries.indexOfFirst { it.id == entry.id }
                                     CombatEntryCardV4(
                                         entry = entry,
+                                        favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
+                                        favoriteEnabled = entry.id in persistedEntryIds,
+                                        onFavoriteChange = { enabled ->
+                                            onClosureStateChange(
+                                                closureState.withQuickAccess(
+                                                    CharacterQuickAccessKind.COMBAT_ENTRY,
+                                                    entry.id,
+                                                    enabled,
+                                                ),
+                                            )
+                                        },
                                         onEdit = { beginEdit(entry) },
                                         onMove = { offset -> move(index, offset) },
                                         onDelete = { deleteId = entry.id.toString() },
@@ -308,6 +327,9 @@ private fun ReadOnlyReferenceV4(label: String, value: String, modifier: Modifier
 @Composable
 private fun CombatEntryCardV4(
     entry: CharacterCombatEntry,
+    favorite: Boolean,
+    favoriteEnabled: Boolean,
+    onFavoriteChange: (Boolean) -> Unit,
     onEdit: () -> Unit,
     onMove: (Int) -> Boolean,
     onDelete: () -> Unit,
@@ -323,6 +345,11 @@ private fun CombatEntryCardV4(
         showDropBefore = dragging && accumulatedDrag < 0f,
         showDropAfter = dragging && accumulatedDrag > 0f,
     )
+    val glance = listOfNotNull(
+        combatEntryTypeLabelV4(entry.type),
+        entry.attackModifier?.let { "Ataque ${formatSignedCombatV4(it)}" },
+        entry.damageEffect.trim().takeIf { it.isNotEmpty() },
+    ).joinToString(" · ")
 
     Column(modifier = modifier.fillMaxWidth()) {
         CharacterDropIndicatorV4(visible = dragState.showDropBefore)
@@ -381,10 +408,22 @@ private fun CombatEntryCardV4(
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(entry.name, style = MaterialTheme.typography.labelLarge)
-                        Text(combatEntryTypeLabelV4(entry.type), style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            glance,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
-                    entry.attackModifier?.let {
-                        Text("Ataque ${formatSignedCombatV4(it)}", style = MaterialTheme.typography.labelMedium)
+                    entry.attackModifier?.let { modifierValue ->
+                        CharacterD20RollButtonV4(label = entry.name, modifier = modifierValue)
+                    }
+                    TextButton(
+                        onClick = { onFavoriteChange(!favorite) },
+                        enabled = favoriteEnabled,
+                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+                    ) {
+                        Text(if (favorite) "★" else "☆")
                     }
                 }
                 if (entry.damageEffect.isNotBlank()) {

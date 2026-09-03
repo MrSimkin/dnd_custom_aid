@@ -161,6 +161,7 @@ private fun CustomSkillRowV4(
                 )
             }
             Text(if (total >= 0) "+$total" else total.toString(), style = MaterialTheme.typography.titleSmall)
+            CharacterD20RollButtonV4(label = skill.name, modifier = total)
             TextButton(onClick = onDelete) { Text("Eliminar") }
         }
     }
