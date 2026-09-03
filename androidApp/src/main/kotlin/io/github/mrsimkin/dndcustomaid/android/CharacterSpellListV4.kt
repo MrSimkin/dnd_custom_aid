@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,13 +9,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -244,21 +243,16 @@ internal fun CharacterSpellListV4(
         if (target == null) {
             deleteSpellId = null
         } else {
-            AlertDialog(
-                onDismissRequest = {},
-                title = { Text("Eliminar conjuro") },
-                text = { Text("¿Eliminar «${target.name}» de la ficha? Esta acción elimina el conjuro conceptual y todas sus asociaciones de fuente.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            updateSpells(normalizeSpellOrdersV4(draft.spells.filterNot { it.id == target.id }))
-                            deleteSpellId = null
-                        },
-                    ) { Text("Eliminar") }
+            CharacterConfirmationDialog(
+                title = "Eliminar conjuro",
+                message = "Se eliminará «${target.name}» de la ficha, incluido el conjuro conceptual y todas sus asociaciones de fuente.",
+                onDismissRequest = { deleteSpellId = null },
+                onConfirm = {
+                    updateSpells(normalizeSpellOrdersV4(draft.spells.filterNot { it.id == target.id }))
+                    deleteSpellId = null
                 },
-                dismissButton = {
-                    TextButton(onClick = { deleteSpellId = null }) { Text("Cancelar") }
-                },
+                confirmLabel = "Eliminar",
+                destructive = true,
             )
         }
     }
@@ -360,7 +354,10 @@ private fun SpellRowV4(
     }
 
     Row(
-        modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit)
+            .padding(horizontal = 5.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (reorderEnabled) {
@@ -413,8 +410,10 @@ private fun SpellRowV4(
                 Text("Preparado", style = MaterialTheme.typography.labelSmall)
             }
         }
-        TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 5.dp)) { Text("Editar") }
-        TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 5.dp)) { Text("Eliminar") }
+        StableRemoveIconButton(
+            onClick = onDelete,
+            contentDescription = "Eliminar ${spell.name}",
+        )
     }
 }
 
@@ -456,151 +455,151 @@ private fun SpellEditorDialogV4(
     val parsedLevel = level.trim().toIntOrNull()
     val canSave = name.isNotBlank() && parsedLevel != null && parsedLevel in 0..9 && associated.isNotEmpty()
 
-    AlertDialog(
-        onDismissRequest = {},
-        title = { Text(if (spell == null) "Añadir conjuro" else "Editar conjuro") },
-        text = {
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 560.dp)
-                    .imePadding()
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(bottom = 36.dp),
-            ) {
-                item {
-                    OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                }
-                item {
-                    OutlinedTextField(level, { level = it.filter { ch -> ch.isDigit() }.take(1) }, label = { Text("Nivel (0-9)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                }
-                item {
-                    Text("Fuentes", style = MaterialTheme.typography.titleSmall)
-                    if (sources.isEmpty()) {
-                        Text("Crea al menos una fuente antes de guardar un conjuro.", style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-                sources.forEach { source ->
-                    item(key = "spell-source-edit-${source.id}") {
-                        val sourceKey = source.id.toString()
-                        val included = sourceKey in associated
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Checkbox(
-                                checked = included,
-                                onCheckedChange = { checked ->
-                                    val nextAssociated = associated.toMutableSet()
-                                    val nextPrepared = prepared.toMutableSet()
-                                    if (checked) nextAssociated += sourceKey else {
-                                        nextAssociated -= sourceKey
-                                        nextPrepared -= sourceKey
-                                    }
-                                    associatedSourceIds = nextAssociated.sorted().joinToString(",")
-                                    preparedSourceIds = nextPrepared.sorted().joinToString(",")
-                                },
-                            )
-                            Text(source.name, modifier = Modifier.weight(1f))
-                            Checkbox(
-                                checked = sourceKey in prepared,
-                                enabled = included,
-                                onCheckedChange = { checked ->
-                                    val next = prepared.toMutableSet()
-                                    if (checked) next += sourceKey else next -= sourceKey
-                                    preparedSourceIds = next.sorted().joinToString(",")
-                                },
-                            )
-                            Text("Preparado", style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                }
-                item {
-                    OutlinedTextField(castingTime, { castingTime = it }, label = { Text("Tiempo de lanzamiento") }, modifier = Modifier.fillMaxWidth())
-                }
-                item {
-                    OutlinedTextField(rangeText, { rangeText = it }, label = { Text("Alcance") }, modifier = Modifier.fillMaxWidth())
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(verbal, { verbal = it }); Text("V")
-                        Checkbox(somatic, { somatic = it }); Text("S")
-                        Checkbox(material, { material = it }); Text("M")
-                    }
-                }
-                if (material) {
-                    item {
-                        OutlinedTextField(materialText, { materialText = it }, label = { Text("Componente material (opcional)") }, modifier = Modifier.fillMaxWidth())
-                    }
-                }
-                item {
-                    OutlinedTextField(duration, { duration = it }, label = { Text("Duración") }, modifier = Modifier.fillMaxWidth())
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(concentration, { concentration = it }); Text("Concentración")
-                        Checkbox(ritual, { ritual = it }); Text("Ritual")
-                    }
-                }
-                item {
-                    OutlinedTextField(description, { description = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
-                }
-                item {
-                    OutlinedTextField(notes, { notes = it }, label = { Text("Notas (opcional)") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
-                }
-                if (!canSave) {
-                    item {
-                        Text(
-                            when {
-                                name.isBlank() -> "El nombre no puede quedar vacío."
-                                parsedLevel == null || parsedLevel !in 0..9 -> "El nivel debe estar entre 0 y 9."
-                                associated.isEmpty() -> "Selecciona al menos una fuente."
-                                else -> "Revisa los datos del conjuro."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
+    CharacterImeSafeEditorDialog(
+        title = if (spell == null) "Añadir conjuro" else "Editar conjuro",
+        onCancel = onCancel,
+        onSave = {
+            val associations = sources.mapNotNull { source ->
+                val key = source.id.toString()
+                if (key in associated) {
+                    CharacterSpellSourceAssociation(source.id, prepared = key in prepared)
+                } else null
             }
+            onApply(
+                CharacterSpell(
+                    id = spell?.id ?: Uuid.random(),
+                    name = name.trim(),
+                    level = parsedLevel!!,
+                    castingTime = castingTime.trim(),
+                    rangeText = rangeText.trim(),
+                    verbal = verbal,
+                    somatic = somatic,
+                    material = material,
+                    materialText = materialText.trim().ifBlank { null },
+                    duration = duration.trim(),
+                    concentration = concentration,
+                    ritual = ritual,
+                    description = description.trim(),
+                    notes = notes.trim().ifBlank { null },
+                    sortOrder = spell?.sortOrder ?: 0,
+                    sourceAssociations = associations,
+                ),
+            )
         },
-        confirmButton = {
-            TextButton(
-                enabled = canSave,
-                onClick = {
-                    val associations = sources.mapNotNull { source ->
-                        val key = source.id.toString()
-                        if (key in associated) {
-                            CharacterSpellSourceAssociation(source.id, prepared = key in prepared)
-                        } else null
-                    }
-                    onApply(
-                        CharacterSpell(
-                            id = spell?.id ?: Uuid.random(),
-                            name = name.trim(),
-                            level = parsedLevel!!,
-                            castingTime = castingTime.trim(),
-                            rangeText = rangeText.trim(),
-                            verbal = verbal,
-                            somatic = somatic,
-                            material = material,
-                            materialText = materialText.trim().ifBlank { null },
-                            duration = duration.trim(),
-                            concentration = concentration,
-                            ritual = ritual,
-                            description = description.trim(),
-                            notes = notes.trim().ifBlank { null },
-                            sortOrder = spell?.sortOrder ?: 0,
-                            sourceAssociations = associations,
-                        ),
-                    )
-                },
-            ) { Text("Aplicar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) { Text("Cancelar") }
-        },
-    )
+        saveEnabled = canSave,
+    ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nombre") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = level,
+            onValueChange = { level = it.filter { ch -> ch.isDigit() }.take(1) },
+            label = { Text("Nivel (0-9)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        Text("Fuentes", style = MaterialTheme.typography.titleSmall)
+        if (sources.isEmpty()) {
+            Text("Crea al menos una fuente antes de guardar un conjuro.", style = MaterialTheme.typography.bodySmall)
+        }
+        sources.forEach { source ->
+            val sourceKey = source.id.toString()
+            val included = sourceKey in associated
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = included,
+                    onCheckedChange = { checked ->
+                        val nextAssociated = associated.toMutableSet()
+                        val nextPrepared = prepared.toMutableSet()
+                        if (checked) nextAssociated += sourceKey else {
+                            nextAssociated -= sourceKey
+                            nextPrepared -= sourceKey
+                        }
+                        associatedSourceIds = nextAssociated.sorted().joinToString(",")
+                        preparedSourceIds = nextPrepared.sorted().joinToString(",")
+                    },
+                )
+                Text(source.name, modifier = Modifier.weight(1f))
+                Checkbox(
+                    checked = sourceKey in prepared,
+                    enabled = included,
+                    onCheckedChange = { checked ->
+                        val next = prepared.toMutableSet()
+                        if (checked) next += sourceKey else next -= sourceKey
+                        preparedSourceIds = next.sorted().joinToString(",")
+                    },
+                )
+                Text("Preparado", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+        OutlinedTextField(
+            value = castingTime,
+            onValueChange = { castingTime = it },
+            label = { Text("Tiempo de lanzamiento") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            value = rangeText,
+            onValueChange = { rangeText = it },
+            label = { Text("Alcance") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(verbal, { verbal = it }); Text("V")
+            Checkbox(somatic, { somatic = it }); Text("S")
+            Checkbox(material, { material = it }); Text("M")
+        }
+        if (material) {
+            OutlinedTextField(
+                value = materialText,
+                onValueChange = { materialText = it },
+                label = { Text("Componente material (opcional)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        OutlinedTextField(
+            value = duration,
+            onValueChange = { duration = it },
+            label = { Text("Duración") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(concentration, { concentration = it }); Text("Concentración")
+            Checkbox(ritual, { ritual = it }); Text("Ritual")
+        }
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Descripción") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 4,
+            maxLines = 10,
+        )
+        OutlinedTextField(
+            value = notes,
+            onValueChange = { notes = it },
+            label = { Text("Notas (opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 6,
+        )
+        CharacterInlineValidationMessage(
+            when {
+                name.isBlank() -> "El nombre no puede quedar vacío."
+                parsedLevel == null || parsedLevel !in 0..9 -> "El nivel debe estar entre 0 y 9."
+                associated.isEmpty() -> "Selecciona al menos una fuente."
+                else -> null
+            },
+        )
+    }
 }
 
 private fun spellMatchesSearchV4(spell: CharacterSpell, query: String): Boolean = listOf(
