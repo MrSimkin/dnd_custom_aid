@@ -2,27 +2,25 @@
 
 ## Current status
 
-**Phase:** Phase 3 — First Vertical Slice  
-**Architecture state:** Foundational choices approved, consolidated and simplified by the pre-main proportionality audit.  
-**Application code:** Phase 2 scaffold is canonical on `main`; the first local Android campaign slice is implemented on `implementation/local-campaign-selection`.
+**Phase:** Phase 4 — Character Foundation Closure  
+**Architecture state:** foundational choices approved; current work is additive feature/domain implementation, not a stack redesign.  
+**Active branch:** `implementation/phase4-character-closure`  
+**Canonical `main`:** remains the latest accepted merged state.
 
-Approved Phase 2 choices are D-0034 through D-0043. Together they resolve the consequential architecture questions originally tracked under D-0009. The current Phase 3 campaign slice uses the approved Android + shared Kotlin + SQLDelight foundation without requiring any new consequential architecture decision.
-
-The project deliberately targets a **personal/small-scale architecture**. C-0009 is controlling: choose the simplest safe implementation that satisfies real approved requirements and do not import enterprise-grade complexity without a concrete reason.
+The foundational architecture under D-0034 through D-0043 remains controlling. D-0044 through D-0047 define the current character-foundation direction and closure scope. C-0009 remains controlling: use the simplest safe implementation that satisfies real approved requirements.
 
 ## Approved architecture
 
-### D-0034 — Hosted providers
+### Hosted providers
 
-- **Neon PostgreSQL** — durable hosted relational database.
+- **Neon PostgreSQL** — durable hosted relational database when hosted/shared features are implemented.
 - **Cloudflare Worker/API** — project-owned hosted application gateway/backend.
 - **Descope** — authentication only.
-- **Cloudflare Workers AI** — initial LLM provider only for the approved SRD clarification feature when implemented.
-- Other Cloudflare services such as R2, Durable Objects, WebSockets, queues or caches are **not part of the initial scaffold merely because Cloudflare can provide them**. Add one only for a concrete implemented need.
-- Avoid foundational dependence on beta/preview provider features merely because they are temporarily free.
-- Keep vendor-specific integration code reasonably localized; do not build generalized provider-abstraction frameworks for hypothetical migrations.
+- **Cloudflare Workers AI** — initial LLM provider only for approved SRD clarification when implemented.
+- Do not activate R2, Durable Objects, WebSockets, queues or other services merely because Cloudflare offers them.
+- Keep vendor-specific code localized without generalized provider-abstraction frameworks.
 
-Initial hosted path:
+Initial hosted path when those features are activated:
 
 ```text
 Android / Desktop
@@ -34,140 +32,97 @@ Cloudflare Worker/API
 Neon PostgreSQL
 ```
 
-Descope supplies authentication identity to the client/backend flow; it does not own campaign/domain authorization.
+### Android
 
-### D-0035 — Android client
+- Native Kotlin + Jetpack Compose.
+- `minSdk 30 / Android 11`.
+- **Phone and tablet are first-class targets.**
+- Responsive behavior should react to available width rather than simply stretching one phone layout or using one coarse tablet boolean.
+- Portrait and landscape matter on both phone and tablet.
 
-- Native **Kotlin + Jetpack Compose**.
-- Adaptive phone/tablet UI.
-- No Flutter/React Native foundation.
+### Desktop
 
-### D-0036 — DM desktop client
+- Kotlin + Compose Multiplatform Desktop.
+- Primarily DM preparation/administration.
+- Local Save + explicit Sync is the intended MVP model when hosted sync exists.
+- Android/Desktop UI parity is not required.
 
-- Native **Kotlin + Compose Multiplatform Desktop**.
-- Desktop preparation/administration supports meaningful local/offline work through local SQLite/SQLDelight.
-- Desktop MVP persistence/synchronization is deliberately understandable: **Save locally; Sync explicitly**.
-- Failed Sync does not lose locally saved work; continuous background sync is not an MVP requirement.
-- Android and desktop may share Kotlin logic selectively without sharing UI or requiring feature parity.
+### Local persistence
 
-### D-0037 — Domain/data boundaries
+- Android and Desktop use SQLite via SQLDelight where local/offline behavior provides real value.
+- Stable UUIDs are used for mutable domain identity.
+- Migrations are explicit and data-preservation risk is tested proportionately.
+- Do not rewrite already-tested historical migrations merely to make migration numbering prettier; use additive migrations when safe.
 
-- One shared relational PostgreSQL model with explicit global/campaign scope.
-- Internal application identity is global and separate from external auth identity.
-- Campaign roles are membership relationships.
+### Domain boundaries
+
 - Characters belong to one campaign; existence, ownership and current control are distinct.
-- Mutable personal-library content is separate from campaign copies; official versioned SRD content may be referenced canonically and copied when customized.
-- Saved encounters, live encounters, durable character state, character audit history and live combat state remain distinct.
+- Durable character-sheet state remains separate from future live combat working state.
+- Saved encounters, live encounters, durable character state and audit/history remain distinct concepts.
+- Character data remains permissive for D&D 5e, D&D 5.5e and custom/homebrew content; the application is not a legality engine.
 
-### D-0038 — Local persistence and synchronization
+### Character closure data direction
 
-- Android and desktop use **SQLite via SQLDelight**.
-- Offline/local-first support is **selective** and exists where it provides real value, not as a universal product requirement.
-- Authorized useful subsets may be cached for offline work.
-- Local mutation + small sync-outbox persistence is atomic where applicable.
-- Project-owned synchronization goes through Cloudflare to Neon.
-- Ordinary durable data uses stable global IDs, idempotent mutations, optimistic revisions and simple deletion tombstones; avoid blind last-write-wins.
-- Rare genuine edit conflicts may be surfaced to the human rather than requiring a generalized automatic merge engine.
+The current Phase 4 closure is intentionally structured around reusable character domains rather than one bespoke data model per class/subclass.
 
-#### DM live combat
+The schema-6 prototype already adds:
 
-- One DM device is authoritative for an active encounter in MVP.
-- DM actions commit locally first and continue without network access.
-- Authoritative combat updates use a simple increasing combat sequence/version so delayed older state cannot overwrite newer DM state.
-- **Authority generations/lineages are deferred** until an actual cross-device DM transfer/handoff feature exists.
-- Seamless concurrent authoritative editing by multiple DM devices is outside MVP.
+- class/subclass source/provenance/catalog identity;
+- Inspiration and death saves;
+- structured proficiencies;
+- Weapon Mastery;
+- generic Resources;
+- generic class options;
+- Forms;
+- Companions.
 
-#### Player offline combat convenience
+The next additive schema-7 work will represent the remaining D-0047 durable domains such as conditions/exhaustion, defenses, senses/movement, concentration, recovery metadata, custom skills, temporary effects, module overrides, portrait/reference metadata, reconciliation checkpoints and related settings.
 
-While offline, a player may use only a tiny ephemeral local convenience layer over the last public projection:
+This deliberately supports conditional reusable surfaces such as Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros without creating a separate hard-coded persistence subsystem for every subclass.
 
-- **Next turn** locally;
-- add/remove visible conditions locally.
+### Hosted authorization/sync boundary
 
-Those temporary changes are never uploaded, never enter the sync outbox, never gain authority, and are discarded/replaced by the DM public projection when connectivity returns. Durability across player-app restart is not required.
+- Native clients never connect directly to Neon or hold PostgreSQL credentials.
+- Hosted reads/writes go through Cloudflare.
+- Descope establishes identity; application logic owns campaign/domain authorization.
+- Ordinary durable synchronization remains small/application-specific when implemented.
+- Rare conflicts may be surfaced to humans instead of requiring a generalized merge engine.
 
-#### Transport
+### Future live combat
 
-Start with ordinary HTTP request/response and simple refresh/polling. WebSockets, Durable Objects, queues and other realtime coordination are deferred unless actual use proves HTTP insufficient.
+Existing decisions remain unchanged:
 
-### D-0039 — Hosted API/authorization boundary
+- one authoritative DM device for an active encounter in MVP;
+- local-first DM combat actions;
+- simple increasing sequence/version;
+- no speculative authority-generation machinery until actual device handoff exists;
+- HTTP/request-response/polling before realtime infrastructure.
 
-- Native clients never connect directly to Neon and never hold PostgreSQL credentials.
-- Remote reads/writes/synchronization pass through project-owned Cloudflare API/backend endpoints.
-- Descope establishes identity; application logic maps it to the internal user and enforces domain permissions.
-- PostgreSQL constraints/foreign keys enforce structural integrity.
-- Use minimum sufficient runtime database privileges.
-- Blanket enterprise-style RLS, role hierarchies, duplicated authorization engines and extensive security-audit machinery are **not** MVP requirements. Add them only for a concrete risk.
+**However, DM-feature implementation is currently blocked until the Phase 4 character closure is complete and owner-accepted.** Architecture notes about combat are future constraints, not permission to start that work now.
 
-### D-0040 — PDF export
+### PDF and SRD clarification
 
-- Character-sheet PDF export is required on **Android and DM desktop**.
-- Generation is local/offline from owner-controlled non-fillable PDF templates.
-- Android uses **PdfBox-Android**; desktop uses **Apache PDFBox**.
-- Template/layout metadata may be shared where practical without inventing a generalized cross-platform PDF subsystem.
-- Export may deliberately use unsaved edits under D-0027 without saving them.
+Approved architecture remains:
 
-### D-0041 — SRD retrieval and clarification
+- local character PDF generation on Android/Desktop using the approved PDFBox variants when that feature is implemented;
+- versioned SRD 5.1 / SRD 5.2.1 PostgreSQL chunks with PostgreSQL full-text retrieval and replaceable LLM integration when SRD clarification is implemented.
 
-- Official Spanish **SRD 5.1** and **SRD 5.2.1** are stored as versioned/provenance-preserving PostgreSQL sections/chunks.
-- Initial retrieval uses PostgreSQL full-text search rather than a vector database.
-- Retrieved official excerpts are supplied to a replaceable LLM integration, initially **Cloudflare Workers AI**.
-- Exact model is configuration, not architecture.
-- MVP answers are grounded in retrieved official SRD content, in Spanish, with source/version identification.
-- Embeddings/vector/hybrid retrieval are deferred unless testing proves ordinary full-text retrieval inadequate.
-
-### D-0042 — Android minimum version
-
-- **minSdk 30 / Android 11**.
-- The project intentionally prioritizes the real device set and a modern Android UX over hypothetical legacy-device reach.
-- `compileSdk` and `targetSdk` follow current tooling/platform requirements during implementation and are not permanent compatibility promises.
-
-### D-0043 — Minimal project structure, backend language, testing and CI
-
-Initial implementation is deliberately small:
-
-- **shared** — genuinely shared Kotlin domain/persistence/sync logic;
-- **androidApp** — Android-specific app and Jetpack Compose UI;
-- **desktopApp** — desktop-specific app and Compose Desktop UI;
-- **backend** — Cloudflare Worker/API in **TypeScript**;
-- **database** — PostgreSQL schema/migrations and related load scripts.
-
-Exact generated folder/module names may vary slightly if standard tooling makes that sensible. The boundaries matter more than literal names.
-
-Testing initially protects material risks: domain/sync behavior that actually exists, combat sequence/authority, stale revisions/idempotency, SQLDelight migrations, and consequential backend auth/sync behavior. Android/desktop visual quality relies substantially on practical manual testing on the real relevant devices.
-
-Use one simple GitHub Actions build/test workflow. No coverage gates, emulator farm, staging ceremony, automatic production deployment, enterprise quality platform, provider-abstraction framework, generalized synchronization platform or speculative module hierarchy is required.
-
-## Governing architecture principles
-
-- **Personal/small-scale proportionality:** C-0009.
-- Shared durable domain truth lives in PostgreSQL; active DM combat is locally authoritative while running.
-- Native applications should remain useful offline where that is genuinely useful, not everywhere by default.
-- No privileged database credentials on clients.
-- Authentication identity is distinct from domain authorization.
-- Prefer stable/GA dependencies and reasonable migration paths.
-- Share Kotlin code only where it genuinely reduces duplication; do not force cross-platform UI parity.
-- Explain relational/data-model choices with representative SQL when useful under C-0008.
-- Selecting a provider does not imply activating every service it offers.
-- Provider replaceability means sensible code locality, not abstraction-framework ceremony.
-- Add complexity only in response to an actual requirement, measured problem or concrete risk.
-
-## Architecture gate consequence
-
-The architecture-selection gate is complete. D-0009 is resolved/Approved by D-0034 through D-0043.
-
-The pre-main proportionality audit did not replace the architecture. It simplified how approved synchronization, offline behavior and Cloudflare capabilities are implemented so the project does not kill a fly with a bazooka.
-
-Low-level reversible implementation details may be chosen during feature implementation under D-0008 and existing conventions. A genuinely new consequential architecture/product choice must still be surfaced to the owner rather than silently assumed.
+Neither area should be activated merely as housekeeping for the current character-closure batches unless the approved batch explicitly reaches it.
 
 ## Current implementation consequence
 
-The Phase 3 local campaign create/select slice deliberately exercises only the architecture it actually needs:
+The current closure work should primarily exercise:
 
-- Android Jetpack Compose UI;
-- shared Kotlin campaign behavior;
-- local SQLite/SQLDelight persistence.
+- shared Kotlin character/domain logic;
+- SQLDelight/SQLite migrations and persistence;
+- Android Compose UI/adaptive layout/state handling;
+- Desktop compilation as a shared-API regression check;
+- the existing simple CI workflow.
 
-It does **not** activate Descope, Neon, hosted synchronization, realtime infrastructure, PDF, SRD retrieval or additional Cloudflare services. That is intentional and consistent with C-0009.
+Do not introduce a new service, synchronization layer, realtime mechanism or architecture framework to solve a local character-sheet problem when ordinary shared Kotlin + SQLDelight + Compose is sufficient.
 
-The next architecture work should arise from a concrete later feature requirement, not from reopening the completed Phase 2 architecture selection.
+## Architecture gate consequence
+
+The architecture-selection gate is complete. Routine reversible implementation details may be chosen under D-0008 and existing conventions.
+
+A genuinely new consequential architecture choice must still be surfaced to the owner instead of being silently embedded in implementation.
