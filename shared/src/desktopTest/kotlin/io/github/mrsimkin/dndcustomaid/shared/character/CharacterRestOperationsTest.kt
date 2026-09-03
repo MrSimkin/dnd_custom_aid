@@ -58,6 +58,23 @@ class CharacterRestOperationsTest {
     }
 
     @Test
+    fun shortOrLongRuleProducesSameSafeProposalForBothRestButtons() {
+        val resource = resource("Reserva", 1, 6)
+        val rule = CharacterResourceRecovery(
+            resource.id,
+            CharacterRecoveryCadence.SHORT_OR_LONG_REST,
+            CharacterRecoveryAmountMode.FIXED,
+            fixedAmount = 2,
+        )
+
+        val short = previewResourceRecovery(CharacterRestKind.SHORT, listOf(resource), listOf(rule)).single()
+        val long = previewResourceRecovery(CharacterRestKind.LONG, listOf(resource), listOf(rule)).single()
+
+        assertEquals(3, short.proposedValue)
+        assertEquals(short, long)
+    }
+
+    @Test
     fun manualStructuredRuleNeverProposesNumericMutation() {
         val resource = resource("Reserva extraña", 2, 10, "Texto heredado")
         val preview = previewResourceRecovery(
