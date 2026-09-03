@@ -3,7 +3,7 @@
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
 **Canonical `main`:** untouched  
-**Status:** A2a implemented; automated gate pending before A2b repository integration
+**Status:** A2a implemented with rewrite-safety correction; automated gate pending before A2b repository integration
 
 ## Completed prerequisite
 
@@ -51,16 +51,33 @@ character_defense(id PK, character_id FK, defense_type, name, source, notes, sor
 character_custom_skill(id PK, character_id FK, name, ability_key, training, adjustment, ...)
 ```
 
-Resource recovery and inventory usage are extension rows keyed to existing durable records:
+The existing `CharacterRepository.saveCharacter()` currently rewrites inventory/resources by delete-and-reinsert. A2a therefore intentionally uses **soft UUID references** from closure metadata to those child rows, scoped by character, rather than `ON DELETE CASCADE` foreign keys to the rewritten rows:
 
 ```sql
-character_resource_recovery(resource_id PK/FK, character_id FK, recovery_cadence, amount_mode, fixed_amount, notes)
-character_inventory_usage(item_id PK/FK, character_id FK, consumable_kind, quick_use_amount)
+character_resource_recovery(
+    character_id FK,
+    resource_id,
+    recovery_cadence,
+    amount_mode,
+    fixed_amount,
+    notes,
+    PRIMARY KEY(character_id, resource_id)
+)
+
+character_inventory_usage(
+    character_id FK,
+    item_id,
+    consumable_kind,
+    quick_use_amount,
+    PRIMARY KEY(character_id, item_id)
+)
 ```
+
+This preserves recovery/consumable metadata across an ordinary character save. A2b repository hydration must filter genuinely dangling resource/item references rather than allowing stale metadata into the domain model.
 
 The existing `character_inventory_item.location` field remains the intentional location/container label. A duplicate container field was not introduced.
 
-Quick Access uses a generic reference table rather than adding a new favorite column to every future domain:
+Quick Access uses a generic soft-reference table rather than adding a new favorite column to every future domain:
 
 ```sql
 character_quick_access(character_id, target_kind, target_id, sort_order)
@@ -80,18 +97,25 @@ Existing schema-6 pinned fields remain untouched for compatibility. A2b/future U
 
 ## Commits
 
+Initial A2a:
+
 - `66e27be537657b0b2f93a3630887a12b96ea0739` — closure domain types;
 - `2f8d6ae67352f0ea1d538b8659bdd5150129f994` — current SQLDelight closure schema/queries;
 - `5327d293e3f5c471849b13b952dbb3b9a9b7d8a7` — additive schema-7 migration.
+
+Rewrite-safety correction after repository audit:
+
+- `b03de330340096aa55bebb167dfff8ad04634fd8` — closure SQL extension references changed to soft scoped UUID references;
+- `6f35997be2d11ce96b866a68c426a39671cd20ba` — schema-7 migration updated to match.
 
 ## Gate before A2b
 
 Before repository integration:
 
-1. verify GitHub Actions for the A2a schema head;
+1. verify GitHub Actions for the latest A2a code containing `6f35997be2d11ce96b866a68c426a39671cd20ba`;
 2. if SQLDelight/schema compilation fails, repair A2a and checkpoint the diagnosis;
-3. only after A2a is green, wire `CharacterClosureState` into the character repository and add migration/round-trip tests.
+3. only after A2a is green, implement A2b persistence wiring and migration/round-trip tests.
 
 ## Exact next action
 
-Check the CI run for schema head `5327d293e3f5c471849b13b952dbb3b9a9b7d8a7` (or the latest documentation descendant containing the same code). If green, begin A2b repository integration.
+Check the CI run for the latest A2a code descendant. If green, begin A2b repository integration with explicit dangling-reference filtering and a regression test proving inventory/resource metadata survives an ordinary `CharacterRepository.saveCharacter()` rewrite.
