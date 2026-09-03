@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -245,53 +246,43 @@ internal fun CharacterSpellsTabV4(
             val associationCount = draft.spells.count { spell ->
                 spell.sourceAssociations.any { it.sourceId == target.id }
             }
-            AlertDialog(
-                onDismissRequest = {},
-                title = { Text("Eliminar fuente") },
-                text = {
-                    Text(
-                        if (associationCount > 0) {
-                            "«${target.name}» está asociada a $associationCount conjuros. Se eliminará esta fuente y solo sus asociaciones. Los conjuros conceptuales permanecerán en la ficha y conservarán sus otras fuentes."
-                        } else {
-                            "¿Eliminar la fuente «${target.name}»?"
-                        },
+            val warning = if (associationCount > 0) {
+                "«${target.name}» está asociada a $associationCount conjuros. Se eliminará esta fuente y solo sus asociaciones. Los conjuros conceptuales permanecerán en la ficha y conservarán sus otras fuentes."
+            } else {
+                "¿Eliminar la fuente «${target.name}»?"
+            }
+            CharacterConfirmationDialog(
+                title = "Eliminar fuente",
+                message = warning,
+                onDismissRequest = {
+                    deleteSourceId = null
+                    managerOpen = true
+                },
+                onConfirm = {
+                    val remainingSources = draft.sources
+                        .filterNot { it.id == target.id }
+                        .mapIndexed { index, source -> source.copy(sortOrder = index) }
+                    val remainingSpells = draft.spells.map { spell ->
+                        spell.copy(
+                            sourceAssociations = spell.sourceAssociations.filterNot {
+                                it.sourceId == target.id
+                            },
+                        )
+                    }
+                    onDraftChange(
+                        draft.copy(
+                            sources = remainingSources,
+                            spells = remainingSpells,
+                        ),
                     )
+                    if (selectedSourceId == target.id.toString()) {
+                        selectedSourceId = null
+                    }
+                    deleteSourceId = null
+                    managerOpen = true
                 },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            val remainingSources = draft.sources
-                                .filterNot { it.id == target.id }
-                                .mapIndexed { index, source -> source.copy(sortOrder = index) }
-                            val remainingSpells = draft.spells.map { spell ->
-                                spell.copy(
-                                    sourceAssociations = spell.sourceAssociations.filterNot {
-                                        it.sourceId == target.id
-                                    },
-                                )
-                            }
-                            onDraftChange(
-                                draft.copy(
-                                    sources = remainingSources,
-                                    spells = remainingSpells,
-                                ),
-                            )
-                            if (selectedSourceId == target.id.toString()) {
-                                selectedSourceId = null
-                            }
-                            deleteSourceId = null
-                            managerOpen = true
-                        },
-                    ) { Text("Eliminar") }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = {
-                            deleteSourceId = null
-                            managerOpen = true
-                        },
-                    ) { Text("Cancelar") }
-                },
+                confirmLabel = "Eliminar",
+                destructive = true,
             )
         }
     }
@@ -367,7 +358,9 @@ private fun SourceManagerRowV4(
     }
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -406,12 +399,10 @@ private fun SourceManagerRowV4(
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
-            TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 6.dp)) {
-                Text("Editar")
-            }
-            TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 6.dp)) {
-                Text("Eliminar")
-            }
+            StableRemoveIconButton(
+                onClick = onDelete,
+                contentDescription = "Eliminar fuente ${source.name}",
+            )
         }
     }
 }
@@ -432,66 +423,57 @@ private fun SourceEditorDialogV4(
         classOptions.firstOrNull { it.id.toString() == id }?.name?.ifBlank { "Clase sin nombre" }
     } ?: "Sin clase vinculada"
 
-    AlertDialog(
-        onDismissRequest = {},
-        title = { Text(title) },
-        text = {
-            Column(
-                modifier = Modifier
-                    .imePadding()
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = onNameChange,
-                    label = { Text("Nombre") },
+    CharacterImeSafeEditorDialog(
+        title = title,
+        onCancel = onCancel,
+        onSave = onApply,
+        saveEnabled = name.trim().isNotEmpty(),
+    ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nombre") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text("Clase vinculada (opcional)", style = MaterialTheme.typography.labelSmall)
+            Box {
+                OutlinedButton(
+                    onClick = { classMenuOpen = true },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                )
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("Clase vinculada (opcional)", style = MaterialTheme.typography.labelSmall)
-                    Box {
-                        OutlinedButton(
-                            onClick = { classMenuOpen = true },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(linkedClassLabel, maxLines = 1)
-                        }
-                        DropdownMenu(
-                            expanded = classMenuOpen,
-                            onDismissRequest = { classMenuOpen = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Sin clase vinculada") },
-                                onClick = {
-                                    onLinkedClassChange(null)
-                                    classMenuOpen = false
-                                },
-                            )
-                            classOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.name.ifBlank { "Clase sin nombre" }) },
-                                    onClick = {
-                                        onLinkedClassChange(option.id.toString())
-                                        classMenuOpen = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    Text(
-                        "El vínculo es solo una referencia. No crea ni elimina automáticamente fuentes o conjuros.",
-                        style = MaterialTheme.typography.labelSmall,
+                ) {
+                    Text(linkedClassLabel, maxLines = 1)
+                }
+                DropdownMenu(
+                    expanded = classMenuOpen,
+                    onDismissRequest = { classMenuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Sin clase vinculada") },
+                        onClick = {
+                            onLinkedClassChange(null)
+                            classMenuOpen = false
+                        },
                     )
+                    classOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option.name.ifBlank { "Clase sin nombre" }) },
+                            onClick = {
+                                onLinkedClassChange(option.id.toString())
+                                classMenuOpen = false
+                            },
+                        )
+                    }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onApply, enabled = name.trim().isNotEmpty()) { Text("Aplicar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) { Text("Cancelar") }
-        },
-    )
+            Text(
+                "El vínculo es solo una referencia. No crea ni elimina automáticamente fuentes o conjuros.",
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        CharacterInlineValidationMessage(
+            if (name.trim().isEmpty()) "El nombre no puede quedar vacío." else null,
+        )
+    }
 }
