@@ -6,9 +6,9 @@ This file applies to every human contributor, ChatGPT conversation, coding agent
 
 The repository is the project's durable source of truth **and its operative memory**.
 
-Do not rely on chat memory, hidden context, previous conversations, personal memory, or assumptions to determine the current state of the project. Those may be used only as clues; if they conflict with the repository, the repository wins until the owner explicitly decides otherwise.
+Do not rely on chat memory, hidden context, previous conversations, personal memory, or assumptions to determine current project state. Those may be clues; if they conflict with the repository, the repository wins until the owner explicitly decides otherwise.
 
-Any information needed for another chat, AI, agent, or human to continue the project must be written to the repository. Important decisions, conventions, rationale, current work, unresolved questions, verification results, known problems, and next actions must not exist only in chat history.
+Any information needed for another chat, AI, agent, or human to continue must be written to the repository. Important decisions, conventions, rationale, current work, unresolved questions, verification results, known problems, and next actions must not exist only in chat history.
 
 The canonical accepted branch is `main`.
 
@@ -27,203 +27,157 @@ Before proposing or making changes, read:
 9. `docs/WORKFLOW.md`
 10. `docs/ARCHITECTURE.md`
 11. `docs/TESTING.md`
-12. relevant detailed files under `docs/decisions/` when deeper architecture rationale is needed
-13. any feature-specific documents relevant to the task
+12. relevant detailed files under `docs/decisions/`
+13. current files under `docs/checkpoints/` and any feature-specific documents relevant to the task
 
-Do not start implementation from a stale branch or from remembered context.
+Do not start implementation from a stale branch or remembered context.
 
 ## 3. Owner authority and working relationship
 
-The project owner makes the final decisions about the product and consequential project conventions/architecture.
+The owner makes final decisions about consequential product behavior, UX, game semantics, data ownership/sync, privacy, services/cost, compatibility and expensive-to-reverse architecture.
 
-The owner understands programming concepts but is not a professional software developer and is delegating the heavy technical execution to AI/coding agents. Do not force the owner to perform implementation work that the agent can reasonably perform.
+The owner understands programming concepts but delegates heavy technical execution to AI/coding agents. Agents should perform routine coding, testing, diagnosis and documentation rather than shifting that work to the owner.
 
-An agent may:
+Agents may make reversible low-level implementation choices that do not alter approved behavior or establish a new durable convention. Significant choices must be surfaced and approved.
 
-- explain options and consequences clearly;
-- recommend a preferred option and explain why;
-- implement approved behavior;
-- make routine low-level coding choices required to carry out an approved design, subject to the communication and convention rules below;
-- run tests, diagnose failures, refactor safely, and improve internal code quality;
-- identify missing decisions, contradictions, risks, or ambiguities.
+## 4. Explain technical work
 
-An agent must obtain owner approval before locking in a **significant** decision involving:
+Meaningful technical work must remain understandable to the owner. Explain, proportionately:
 
-- product scope or features;
-- player/DM behavior or permissions;
-- navigation or important UX flows;
-- data ownership, sync, backup, accounts, networking, or privacy;
-- monetization;
-- external services or recurring costs;
-- compatibility targets that materially affect users;
-- game-system rules or content semantics;
-- significant architecture or technology choices that would be expensive to reverse;
-- destructive migrations or deletion of user data.
+- what is changing;
+- why;
+- the important technical approach;
+- meaningful alternatives/trade-offs;
+- verification and remaining limitations.
 
-When unsure whether a decision is significant, document it as pending and present it to the owner.
+Do not silently disappear into implementation. C-0008 additionally requires representative SQL when it materially improves understanding of relational/data-model behavior.
 
-## 4. Explain technical work; do not silently disappear into implementation
+## 5. Conventions
 
-The agent doing the technical heavy lifting must keep the owner informed.
+When a new durable coding, naming, structure, formatting, testing, documentation, branching, UI or similar convention first becomes relevant and no approved convention exists:
 
-Before or while carrying out meaningful technical work, explain in proportionate detail:
+1. identify the choice;
+2. explain realistic alternatives/consequences;
+3. recommend an option;
+4. obtain owner approval;
+5. record the approved convention in Git;
+6. follow it thereafter unless there is a concrete reason to reopen it.
 
-- what is being changed;
-- why it is being changed;
-- what the important technical approach is;
-- what alternatives matter, if any;
-- what consequences or trade-offs the owner should know about.
+C-0009 is controlling: this is a personal, deliberately limited project. Prefer the **simplest safe implementation that satisfies actual approved requirements**. Do not import enterprise/SaaS machinery without a concrete need.
 
-Do not hide a meaningful technical choice merely because it is implementation-level. The distinction is:
+## 6. Design before implementation; approved architecture is baseline
 
-- the agent may execute routine work without asking permission for every line of code;
-- the owner should still understand the approach being taken and why;
-- when a choice establishes a convention or has meaningful future consequences, discuss it with the owner before treating it as settled.
+Product/interaction design precedes consequential technology/architecture choices. The foundational architecture under D-0034 through D-0043 is already approved; do not reopen it merely because historical documents describe earlier uncertainty.
 
-Explanations should respect the owner's programming knowledge: be clear and educational without assuming professional software-engineering experience and without unnecessarily oversimplifying.
-
-C-0008 additionally requires representative SQL when it materially improves the owner's understanding of relational/data-model behavior.
-
-## 5. Conventions are owner-reviewed and stored in Git
-
-When a coding, naming, structure, formatting, testing, documentation, branching, or similar convention first becomes relevant and no approved convention already exists:
-
-1. identify the convention choice;
-2. explain the realistic alternatives and practical consequences;
-3. give a recommendation;
-4. ask the owner to approve or modify it;
-5. record the approved convention in the repository before relying on it as durable project truth.
-
-Once an approved convention is recorded, agents should follow it without repeatedly asking the same question. Re-open the discussion only when there is a concrete reason to change the convention.
-
-Routine choices that do not establish a durable convention may be made by the agent, but they must still comply with approved conventions and the communication rule above.
-
-### Personal-scale proportionality
-
-C-0009 is controlling: this is a personal, deliberately limited project. Prefer the **simplest safe implementation that satisfies actual approved requirements**. Do not import enterprise/SaaS architecture, security layers, observability, test ceremony, deployment machinery, generalized abstractions, or speculative scale infrastructure merely because they are common industry patterns.
-
-Concrete current examples:
-
-- do not activate Cloudflare services merely because Cloudflare provides them;
-- use HTTP/request-response and simple polling before realtime infrastructure;
-- use Desktop local Save + explicit Sync rather than building a synchronization platform;
-- keep one authoritative DM device + increasing combat sequence for MVP rather than pre-building cross-device authority generations;
-- player offline combat convenience is ephemeral local UI state, not another synchronization domain;
-- localize vendor-specific code rather than building provider abstraction frameworks;
-- support offline operation only where it provides real value.
-
-Add complexity only for a concrete requirement, observed problem, or real risk.
-
-## 6. Design before technology; approved architecture is the baseline
-
-The initial architecture-selection sequence is complete under D-0034 through D-0043, including the 2026-08-30 proportionality clarifications.
-
-Do **not** reopen approved architecture merely because historical discovery/decision prose describes an earlier uncertainty. Follow the current `docs/DECISIONS.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCT.md`, `docs/CONVENTIONS.md`, and `docs/PROJECT_STATE.md` baseline.
-
-Future genuinely consequential architecture changes still require owner approval. Routine reversible implementation details may be selected under D-0008 and approved conventions.
+Routine reversible implementation details may be selected under D-0008. New consequential architecture still requires owner approval.
 
 ## 7. No silent invention
 
-Do not silently invent requirements.
-
 Clearly distinguish:
 
-- **Approved** — explicitly decided by the owner and recorded in the repository.
-- **Proposed** — recommended but not approved.
-- **Pending** — needs an owner decision.
-- **Implemented** — present in code and verified.
+- **Approved** — explicitly accepted by the owner and durably recorded;
+- **Proposed** — recommended but not approved;
+- **Pending** — requires an owner decision;
+- **Implemented** — present in code and verified at the stated level;
+- **Accepted** — has passed the required owner/manual acceptance gate where one exists.
 
-If implementation requires an unknown product behavior, prefer a reversible placeholder or stop at the decision boundary rather than embedding an assumption as fact.
+If implementation encounters an unknown material product behavior, do not turn momentum into a silent assumption.
 
 ## 8. Change workflow
 
 For substantial work:
 
-1. Verify the current state.
-2. Identify applicable approved decisions and conventions.
-3. Discuss meaningful alternatives or missing conventions with the owner when required.
-4. Record any new pending decision before implementation if needed.
-5. Work on a non-canonical branch unless the owner explicitly asks for a direct `main` change.
-6. Implement the smallest coherent change.
-7. Run the relevant checks and tests.
-8. Update documentation and operative memory in the same change.
-9. Summarize what changed, why, what was tested, what remains unresolved, and any owner decision needed.
-10. Merge to `main` only after the owner explicitly approves that merge or has explicitly delegated that category of merge.
+1. verify current state and branch;
+2. identify applicable approved decisions/conventions;
+3. resolve material unknowns if any;
+4. work on a focused non-`main` branch unless explicitly directed otherwise;
+5. implement the smallest coherent batch;
+6. run appropriate checks;
+7. update operative-memory documentation;
+8. leave a durable checkpoint before the next meaningful batch;
+9. summarize what changed, verification and next action;
+10. merge to `main` only after explicit owner approval or delegation.
+
+Do not bundle unrelated behavior merely to reduce commit count.
 
 ## 9. Definition of done
 
-A change is not complete merely because code was written.
+A change is not complete merely because code was written. A completed batch has, as applicable:
 
-For a change to be considered complete:
+- implementation present;
+- relevant automated checks passed, or failures explicitly recorded;
+- appropriate behavior checked;
+- documentation/current state updated;
+- consequential decisions/conventions recorded;
+- unresolved items visible;
+- an exact next action.
 
-- implementation is present;
-- relevant automated checks pass, or failures are explicitly documented;
-- behavior has been checked at the appropriate level;
-- documentation reflects the new reality;
-- `docs/PROJECT_STATE.md` is current;
-- important new decisions are durably recorded;
-- approved conventions are recorded in the appropriate repository documentation;
-- unresolved items are visible and not hidden in chat history.
+## 10. Mandatory continuity checkpoints
 
-## 10. Continuity rule
+Every meaningful project step must leave a durable checkpoint in Git before moving to the next step.
 
-At the end of every meaningful work session, leave the repository in a state where a new agent can answer:
+Meaningful steps include at minimum:
 
-- What is this project?
-- What has been decided?
-- Which conventions are approved?
-- What exists now?
-- What is currently being worked on?
-- Why was the current approach chosen?
-- What was last tested?
-- What is broken or uncertain?
-- What decision is needed next?
-- What should be done next?
-
-The primary current-state handoff file is `docs/PROJECT_STATE.md`; other authoritative details live in the files identified by `MANIFEST.md`.
-
-### Mandatory step checkpoints
-
-In addition to end-of-session continuity, **every meaningful project step must leave a durable checkpoint in Git before moving to the next step**, even when the checkpoint is short.
-
-A meaningful step includes, at minimum:
-
-- an owner decision or answered design gate;
-- completion of a QA/test batch;
+- an owner decision/design gate;
+- a QA/test batch;
 - a coherent implementation increment;
-- a diagnosis that changes the expected next action;
+- a diagnosis that changes the next action;
 - a migration/data-shape change;
-- a new blocker or recovery concern;
-- any point where losing the current chat or local hardware would otherwise require reconstructing work from memory.
+- a blocker/recovery concern;
+- any point where losing the current chat/device would otherwise require reconstructing work from memory.
 
-The checkpoint may be a normal commit that updates the authoritative decision/state/specification, or a short handoff/checkpoint file when that is clearer. It must state enough to resume safely: what was just completed or decided, what remains open, and the exact next step.
+A checkpoint may be a normal implementation/documentation commit or a focused checkpoint file. It must say what was completed, what remains, verification status and the exact next action.
 
-Do not accumulate several meaningful owner decisions, QA results, or implementation increments only in chat and postpone recording them until the end of the session. The purpose of this rule is fast recovery from hardware failure, chat loss, context loss, or agent handoff.
+## 11. Technical quality, credentials and signing material
 
-## 11. Technical quality
+Prefer maintainable, readable, testable code over clever code. Keep dependencies justified and proportional.
 
-Prefer maintainable, readable, testable code over clever code. Keep dependencies justified. Avoid secrets in the repository. Do not commit generated credentials, API keys, signing keys, local machine paths, or personal tokens.
+Never commit real secrets: passwords, API tokens, production/private credentials, production/release signing keys, private certificates, or other material whose confidentiality protects a real account/service/release identity.
 
-Before adding a dependency or service that materially affects maintenance, privacy, cost, or lock-in, document the choice and obtain approval when required by Section 3.
+### Development-only Android signing clarification
 
-Technical quality must remain proportionate under C-0009. "More architecture" is not automatically "better architecture."
+The repository currently uses a **stable development-only debug signing identity** for CI QA APKs so successive builds can update one another in place and exercise real SQLite migrations on the owner's devices.
+
+That debug identity is intentionally **not a secret trust boundary** and is not a production/release identity. Its tracked/reconstructable development material is permitted only for this explicitly documented QA purpose.
+
+Rules:
+
+- never reuse the debug identity for a production/release build;
+- never treat possession of the debug identity as authentication or security;
+- any future real release signing identity remains private and must not be committed;
+- do not expose/reproduce signing material in chat or documentation unnecessarily;
+- if the project later needs a real release pipeline, design its signing/secret handling separately before implementation.
+
+This resolves the earlier wording contradiction between the stable update-in-place QA identity and the blanket historical phrase “no signing keys.”
 
 ## 12. Recovery from inconsistency
 
 If repository documents disagree:
 
-1. Do not guess silently.
-2. Identify the contradiction.
-3. Prefer the most specific later approved decision/clarification over older general prose.
-4. Prefer newer explicitly dated current-state documentation when authority is otherwise equal.
-5. Use detailed `docs/decisions/` records for rationale, but the chronological `docs/DECISIONS.md` plus later approved amendments/clarifications control current decision state.
-6. Ask the owner only for a genuinely material ambiguity not already resolved by an approved decision.
-7. Record the resolution in the repository.
+1. do not guess silently;
+2. identify the contradiction;
+3. prefer the most specific later Approved decision/clarification over older general prose;
+4. prefer newer explicitly dated current-state documentation when authority is otherwise equal;
+5. use detailed `docs/decisions/` for rationale;
+6. ask the owner only for a genuinely material ambiguity not already resolved;
+7. record the resolution.
+
+Historical checkpoints remain historical evidence even when their next-action instructions are superseded.
 
 ## 13. Current project stage
 
-**Phases 0–2 are complete and canonical on `main`.** PR #4 merged the audited, CI-green minimal application scaffold on 2026-08-30.
+**Phases 0–3 are complete. Phase 4 — MVP Buildout is current.**
 
-**Phase 3 — First Vertical Slice is current.** The selected first slice is local Android campaign creation and active-campaign selection, using the smallest useful cross-section of Android UI + shared Kotlin + SQLDelight persistence.
+The active work is **Phase 4 Character Foundation Closure** on:
 
-Do not automatically activate authentication, hosted synchronization, realtime, PDF, SRD or other deferred infrastructure. Add each only when a concrete approved slice genuinely requires it.
+`implementation/phase4-character-closure`
+
+D-0047 is approved and requires one substantial closure package containing the retained QA fixes, owner additions, F01–F18, D01–D18, I01–I22, official class/subclass representation including Artificer, conditional reusable class modules, and first-class phone/tablet responsive behavior.
+
+Current execution entry point:
+
+`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`
+
+The implementation is divided into recoverable batches and gates. **Do not begin DM-feature implementation until the Phase 4 character closure is fully implemented, automatically verified, accepted through final owner phone + tablet QA, and explicitly approved for merge/closure.**
+
+Do not restart obsolete QA against historical artifact `9876725270` unless the owner explicitly requests historical testing. The next owner-QA target must be a new closure APK with an exact recorded commit/workflow/artifact identity.
