@@ -1,0 +1,38 @@
+name: One-time Batch E3 combat integration
+
+on:
+  push:
+    branches:
+      - implementation/phase4-character-closure
+    paths:
+      - .github/workflows/integrate-batch-e3.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4-character-closure
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Apply guarded E3 integration
+        run: python scripts/integrate_batch_e3.py
+      - name: Remove one-time scaffolding
+        run: |
+          rm scripts/integrate_batch_e3.py
+          rm .github/workflows/integrate-batch-e3.yml
+      - name: Verify whitespace
+        run: git diff --check
+      - name: Commit E3 integration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: integrate Batch E3 combat quick operations favorites and d20"
+          git push origin HEAD:implementation/phase4-character-closure
