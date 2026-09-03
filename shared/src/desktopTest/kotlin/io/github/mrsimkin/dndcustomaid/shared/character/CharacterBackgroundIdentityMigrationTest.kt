@@ -19,7 +19,14 @@ class CharacterBackgroundIdentityMigrationTest {
         try {
             DriverManager.getConnection(jdbcUrl).use { connection ->
                 connection.createStatement().use { statement ->
+                    // This fixture starts at schema version 5, just before migration 5 adds
+                    // background identity fields. Keep the additional empty tables that later
+                    // migrations legitimately alter so the fixture remains a valid schema-5 shape.
                     statement.executeUpdate("CREATE TABLE character (id TEXT NOT NULL PRIMARY KEY)")
+                    statement.executeUpdate("CREATE TABLE character_class (id TEXT NOT NULL PRIMARY KEY)")
+                    statement.executeUpdate("CREATE TABLE character_combat_entry (id TEXT NOT NULL PRIMARY KEY)")
+                    statement.executeUpdate("CREATE TABLE character_trait (id TEXT NOT NULL PRIMARY KEY)")
+                    statement.executeUpdate("CREATE TABLE character_spell (id TEXT NOT NULL PRIMARY KEY)")
                     statement.executeUpdate(
                         """CREATE TABLE character_background (
                             character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
