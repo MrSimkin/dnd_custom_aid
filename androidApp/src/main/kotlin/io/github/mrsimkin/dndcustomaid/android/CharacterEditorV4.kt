@@ -152,10 +152,8 @@ internal fun CharacterEditorScreenV4(
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
     var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }
     var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }
-
-    BackHandler(enabled = showPcSettings) {
-        showPcSettings = false
-    }
+    var confirmUnsavedLeave by rememberSaveable(characterId.toString(), "unsaved-leave") { mutableStateOf(false) }
+    var leaveAfterSave by rememberSaveable(characterId.toString(), "leave-after-save") { mutableStateOf(false) }
 
     val selectedTab = resolvedCharacterTabV4(
         savedTabName = selectedTabName,
@@ -168,6 +166,59 @@ internal fun CharacterEditorScreenV4(
     val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }
     val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
+    val storedDraftJson = remember(stored) { CharacterEditorDraftV4.from(stored).toJson() }
+    val storedCombatDraftJson = remember(stored) { combatEntriesToJsonV4(stored.combatEntries) }
+    val storedEquipmentDraftJson = remember(stored) {
+        equipmentDraftToJsonV4(
+            CharacterEquipmentDraftV4(
+                items = stored.inventoryItems,
+                currencies = stored.currencies,
+            ),
+        )
+    }
+    val storedBackgroundDraftJson = remember(stored) { characterBackgroundToJsonV4(stored.background) }
+    val storedTraitsDraftJson = remember(stored) { characterTraitsToJsonV4(stored.traits) }
+    val storedSpellcastingDraftJson = remember(stored) {
+        characterSpellcastingDraftToJsonV4(
+            CharacterSpellcastingDraftV4(
+                sources = stored.spellcastingSources,
+                spells = stored.spells,
+            ),
+        )
+    }
+    val storedNotesDraftJson = remember(stored) {
+        characterNotesDraftToJsonV4(
+            CharacterNotesDraftV4(
+                generalNotes = stored.generalNotes,
+                cards = stored.noteCards,
+            ),
+        )
+    }
+    val hasUnsavedChanges =
+        draft.toJson() != storedDraftJson ||
+            combatDraftJson != storedCombatDraftJson ||
+            equipmentDraftJson != storedEquipmentDraftJson ||
+            backgroundDraftJson != storedBackgroundDraftJson ||
+            traitsDraftJson != storedTraitsDraftJson ||
+            spellcastingDraftJson != storedSpellcastingDraftJson ||
+            notesDraftJson != storedNotesDraftJson
+
+    fun requestBack() {
+        if (hasUnsavedChanges) {
+            confirmUnsavedLeave = true
+        } else {
+            onBack()
+        }
+    }
+
+    BackHandler(enabled = showPcSettings) {
+        showPcSettings = false
+    }
+    BackHandler(
+        enabled = !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting,
+    ) {
+        requestBack()
+    }
 
     fun updateDraft(updated: CharacterEditorDraftV4) {
         draft = updated
@@ -210,6 +261,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun persist(candidate: CharacterSheet) {
+        val shouldLeaveAfterPersist = leaveAfterSave
         val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
         val spellcasting = characterSpellcastingDraftFromJsonV4(spellcastingDraftJson)
         val notes = characterNotesDraftFromJsonV4(notesDraftJson)
@@ -247,7 +299,11 @@ internal fun CharacterEditorScreenV4(
                 cards = stored.noteCards,
             ),
         )
+        leaveAfterSave = false
         savedMessage = "Guardado"
+        if (shouldLeaveAfterPersist) {
+            onBack()
+        }
     }
 
     fun save() {
@@ -288,104 +344,105 @@ internal fun CharacterEditorScreenV4(
             },
         )
     } else {
-    Scaffold { scaffoldPadding ->
-        BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(scaffoldPadding),
-        ) {
-            val wide = maxWidth >= 700.dp
-            Column(modifier = Modifier.fillMaxSize()) {
-                EditorHeaderV4(
-                    characterName = draft.name,
-                    stored = stored,
-                    savedMessage = savedMessage,
-                    savable = savable,
-                    onBack = onBack,
-                    onSave = ::save,
-                    onOpenSettings = { showPcSettings = true },
-                )
-                CharacterTopTabStripV4(
-                    selectedTab = selectedTab,
-                    spellcasterEnabled = stored.spellcasterEnabled,
-                    onSelect = { selectedTabName = it.name },
-                )
-                when (selectedTab) {
-                    CharacterTabV4.OVERVIEW -> OverviewTabV4(
-                        draft = draft,
+        Scaffold { scaffoldPadding ->
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(scaffoldPadding),
+            ) {
+                val wide = maxWidth >= 700.dp
+                Column(modifier = Modifier.fillMaxSize()) {
+                    EditorHeaderV4(
+                        characterName = draft.name,
                         stored = stored,
-                        wide = wide,
-                        onDraftChange = ::updateDraft,
+                        savedMessage = savedMessage,
+                        hasUnsavedChanges = hasUnsavedChanges,
+                        savable = savable,
+                        onBack = ::requestBack,
+                        onSave = ::save,
+                        onOpenSettings = { showPcSettings = true },
                     )
-                    CharacterTabV4.SKILLS -> SkillsTabV4(
-                        draft = draft,
-                        wide = wide,
-                        skillLayoutChoice = preferences.skillLayoutChoice,
-                        onSkillLayoutChange = {
-                            onPreferencesChange(preferences.copy(skillLayoutChoice = it))
-                        },
-                        onDraftChange = ::updateDraft,
+                    CharacterTopTabStripV4(
+                        selectedTab = selectedTab,
+                        spellcasterEnabled = stored.spellcasterEnabled,
+                        onSelect = { selectedTabName = it.name },
                     )
-                    CharacterTabV4.COMBAT -> CharacterCombatTabV4(
-                        armorClass = draft.armorClass,
-                        initiative = draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(),
-                        speed = draft.speed,
-                        currentHp = draft.currentHp,
-                        maxHp = draft.maxHp,
-                        tempHp = draft.tempHp,
-                        entries = combatEntries,
-                        onEntriesChange = ::updateCombatEntries,
-                        wide = wide,
-                    )
-                    CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
-                        items = equipmentDraft.items,
-                        currencies = equipmentDraft.currencies,
-                        onItemsChange = ::updateEquipmentItems,
-                        onCurrenciesChange = ::updateCurrencies,
-                        wide = wide,
-                    )
-                    CharacterTabV4.BACKGROUND -> CharacterBackgroundTabV4(
-                        background = backgroundDraft,
-                        onBackgroundChange = ::updateBackground,
-                        wide = wide,
-                    )
-                    CharacterTabV4.TRAITS -> CharacterTraitsTabV4(
-                        traits = traitsDraft,
-                        onTraitsChange = ::updateTraits,
-                        wide = wide,
-                    )
-                    CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
-                        draft = spellcastingDraft,
-                        slotStates = draft.spellSlots.map { slot ->
-                            val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                            CharacterSpellSlotUiV4(
-                                level = slot.level,
-                                total = total,
-                                spent = slot.spent.coerceIn(0, total),
-                            )
-                        },
-                        classOptions = draft.classes.map { SpellSourceClassOptionV4(it.id, it.name) },
-                        onDraftChange = ::updateSpellcasting,
-                        onSlotSpentChange = { level, spent ->
-                            val slot = draft.spellSlotFor(level)
-                            val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                            updateDraft(
-                                draft.withSpellSlot(
-                                    slot.copy(spent = spent.coerceIn(0, total)),
-                                ),
-                            )
-                        },
-                        wide = wide,
-                    )
-                    CharacterTabV4.NOTES -> CharacterNotesTabV4(
-                        draft = notesDraft,
-                        onDraftChange = ::updateNotes,
-                        wide = wide,
-                    )
+                    when (selectedTab) {
+                        CharacterTabV4.OVERVIEW -> OverviewTabV4(
+                            draft = draft,
+                            stored = stored,
+                            wide = wide,
+                            onDraftChange = ::updateDraft,
+                        )
+                        CharacterTabV4.SKILLS -> SkillsTabV4(
+                            draft = draft,
+                            wide = wide,
+                            skillLayoutChoice = preferences.skillLayoutChoice,
+                            onSkillLayoutChange = {
+                                onPreferencesChange(preferences.copy(skillLayoutChoice = it))
+                            },
+                            onDraftChange = ::updateDraft,
+                        )
+                        CharacterTabV4.COMBAT -> CharacterCombatTabV4(
+                            armorClass = draft.armorClass,
+                            initiative = draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(),
+                            speed = draft.speed,
+                            currentHp = draft.currentHp,
+                            maxHp = draft.maxHp,
+                            tempHp = draft.tempHp,
+                            entries = combatEntries,
+                            onEntriesChange = ::updateCombatEntries,
+                            wide = wide,
+                        )
+                        CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
+                            items = equipmentDraft.items,
+                            currencies = equipmentDraft.currencies,
+                            onItemsChange = ::updateEquipmentItems,
+                            onCurrenciesChange = ::updateCurrencies,
+                            wide = wide,
+                        )
+                        CharacterTabV4.BACKGROUND -> CharacterBackgroundTabV4(
+                            background = backgroundDraft,
+                            onBackgroundChange = ::updateBackground,
+                            wide = wide,
+                        )
+                        CharacterTabV4.TRAITS -> CharacterTraitsTabV4(
+                            traits = traitsDraft,
+                            onTraitsChange = ::updateTraits,
+                            wide = wide,
+                        )
+                        CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
+                            draft = spellcastingDraft,
+                            slotStates = draft.spellSlots.map { slot ->
+                                val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                                CharacterSpellSlotUiV4(
+                                    level = slot.level,
+                                    total = total,
+                                    spent = slot.spent.coerceIn(0, total),
+                                )
+                            },
+                            classOptions = draft.classes.map { SpellSourceClassOptionV4(it.id, it.name) },
+                            onDraftChange = ::updateSpellcasting,
+                            onSlotSpentChange = { level, spent ->
+                                val slot = draft.spellSlotFor(level)
+                                val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                                updateDraft(
+                                    draft.withSpellSlot(
+                                        slot.copy(spent = spent.coerceIn(0, total)),
+                                    ),
+                                )
+                            },
+                            wide = wide,
+                        )
+                        CharacterTabV4.NOTES -> CharacterNotesTabV4(
+                            draft = notesDraft,
+                            onDraftChange = ::updateNotes,
+                            wide = wide,
+                        )
+                    }
                 }
             }
         }
-    }
     }
 
     if (confirmDisableSpellcasting) {
@@ -412,7 +469,10 @@ internal fun CharacterEditorScreenV4(
     if (confirmBlankNumbers) {
         val missing = draft.missingRequiredNumberLabels()
         AlertDialog(
-            onDismissRequest = { confirmBlankNumbers = false },
+            onDismissRequest = {
+                confirmBlankNumbers = false
+                leaveAfterSave = false
+            },
             title = { Text("Guardar campos vacíos como 0") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -430,8 +490,33 @@ internal fun CharacterEditorScreenV4(
                 TextButton(onClick = ::saveBlankNumbersAsZero) { Text("Guardar con 0") }
             },
             dismissButton = {
-                TextButton(onClick = { confirmBlankNumbers = false }) { Text("Cancelar") }
+                TextButton(
+                    onClick = {
+                        confirmBlankNumbers = false
+                        leaveAfterSave = false
+                    },
+                ) { Text("Cancelar") }
             },
+        )
+    }
+
+    if (confirmUnsavedLeave) {
+        CharacterUnsavedChangesDialogV4(
+            onSave = {
+                confirmUnsavedLeave = false
+                leaveAfterSave = true
+                save()
+            },
+            onDiscard = {
+                confirmUnsavedLeave = false
+                leaveAfterSave = false
+                onBack()
+            },
+            onKeepEditing = {
+                confirmUnsavedLeave = false
+                leaveAfterSave = false
+            },
+            saveEnabled = savable,
         )
     }
 }
@@ -441,6 +526,7 @@ private fun EditorHeaderV4(
     characterName: String,
     stored: CharacterSheet,
     savedMessage: String?,
+    hasUnsavedChanges: Boolean,
     savable: Boolean,
     onBack: () -> Unit,
     onSave: () -> Unit,
@@ -461,8 +547,16 @@ private fun EditorHeaderV4(
                 maxLines = 1,
             )
             Text(
-                savedMessage ?: "Guardado: ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
-                style = MaterialTheme.typography.labelSmall,
+                when {
+                    hasUnsavedChanges -> "Cambios sin guardar"
+                    savedMessage != null -> savedMessage
+                    else -> "Guardado: ${formatSavedAtV4(stored.updatedAtEpochSeconds)}"
+                },
+                style = if (hasUnsavedChanges) {
+                    MaterialTheme.typography.labelMedium
+                } else {
+                    MaterialTheme.typography.labelSmall
+                },
                 maxLines = 1,
             )
         }
