@@ -7,7 +7,21 @@ package io.github.mrsimkin.dndcustomaid.shared.character
  * homebrew characters can expose or hide any reusable module without changing their class data.
  */
 fun suggestedCharacterModules(classes: List<CharacterClassLevel>): Set<CharacterModuleKind> =
-    CharacterClassCatalog.modulesFor(classes)
+    classes.flatMapTo(linkedSetOf()) { classLevel ->
+        val catalogModules = CharacterClassCatalog.modulesFor(classLevel)
+        if (catalogModules.isNotEmpty() || classLevel.catalogKey != null) {
+            catalogModules
+        } else {
+            // Older/manual Android drafts may know only the localized class name. Falling back to
+            // all catalog entries with the same name keeps broad class-level suggestions useful
+            // without pretending we know a missing subclass or source/version.
+            CharacterClassCatalog.classes
+                .asSequence()
+                .filter { it.nameEs.equals(classLevel.name.trim(), ignoreCase = true) }
+                .flatMap { it.modules.asSequence() }
+                .toSet()
+        }
+    }
 
 fun visibleCharacterModules(
     classes: List<CharacterClassLevel>,
