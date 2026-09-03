@@ -1,0 +1,38 @@
+name: One-time Batch E2a guarded wiring
+
+on:
+  push:
+    branches:
+      - implementation/phase4-character-closure
+    paths:
+      - .github/workflows/wire-batch-e2a.yml
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4-character-closure
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Apply guarded E2a wiring
+        run: python scripts/wire_batch_e2a.py
+      - name: Remove one-time scaffolding
+        run: |
+          rm scripts/wire_batch_e2a.py
+          rm .github/workflows/wire-batch-e2a.yml
+      - name: Verify whitespace
+        run: git diff --check
+      - name: Commit E2a wiring
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: wire Batch E2a general and skills closure surfaces"
+          git push origin HEAD:implementation/phase4-character-closure
