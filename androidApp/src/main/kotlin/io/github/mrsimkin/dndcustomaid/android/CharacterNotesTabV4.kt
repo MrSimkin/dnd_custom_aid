@@ -248,69 +248,89 @@ private fun CharacterNoteCardV4(
     var accumulatedDrag by remember(note.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+    val dragState = CharacterDragVisualStateV4(
+        active = dragging,
+        offsetY = accumulatedDrag,
+        showDropBefore = dragging && accumulatedDrag < 0f,
+        showDropAfter = dragging && accumulatedDrag > 0f,
+    )
 
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onEdit),
-        shape = MaterialTheme.shapes.small,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Column(
+    Column(modifier = modifier.fillMaxWidth()) {
+        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 5.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+                .characterDragFeedbackV4(dragState)
+                .clickable(onClick = onEdit),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp, vertical = 5.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                StableDragHandle(
-                    modifier = Modifier.pointerInput(note.id) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = { accumulatedDrag = 0f; dragging = true },
-                            onDragEnd = { accumulatedDrag = 0f; dragging = false },
-                            onDragCancel = { accumulatedDrag = 0f; dragging = false },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                accumulatedDrag += dragAmount.y
-                                while (abs(accumulatedDrag) >= reorderStepPx) {
-                                    val direction = if (accumulatedDrag > 0f) 1 else -1
-                                    if (onMove(direction)) {
-                                        accumulatedDrag -= direction * reorderStepPx
-                                    } else {
-                                        accumulatedDrag = 0f
-                                        break
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    StableDragHandle(
+                        modifier = Modifier.pointerInput(note.id) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = {
+                                    accumulatedDrag = 0f
+                                    dragging = true
+                                },
+                                onDragEnd = {
+                                    accumulatedDrag = 0f
+                                    dragging = false
+                                },
+                                onDragCancel = {
+                                    accumulatedDrag = 0f
+                                    dragging = false
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    accumulatedDrag += dragAmount.y
+                                    while (abs(accumulatedDrag) >= reorderStepPx) {
+                                        val direction = if (accumulatedDrag > 0f) 1 else -1
+                                        if (onMove(direction)) {
+                                            accumulatedDrag -= direction * reorderStepPx
+                                        } else {
+                                            accumulatedDrag = 0f
+                                            break
+                                        }
                                     }
-                                }
-                            },
-                        )
-                    },
-                    active = dragging,
-                    contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
-                )
+                                },
+                            )
+                        },
+                        active = dragging,
+                        contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
+                    )
+                    Text(
+                        note.title,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    StableRemoveIconButton(
+                        onClick = onDelete,
+                        contentDescription = "Eliminar ${note.title}",
+                    )
+                }
+
                 Text(
-                    note.title,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 2,
+                    note.content.ifBlank { "Sin contenido" },
+                    style = if (note.content.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
-                StableRemoveIconButton(
-                    onClick = onDelete,
-                    contentDescription = "Eliminar ${note.title}",
-                )
             }
-
-            Text(
-                note.content.ifBlank { "Sin contenido" },
-                style = if (note.content.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
+        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
