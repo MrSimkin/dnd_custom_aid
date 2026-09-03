@@ -5,21 +5,21 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; **Batch F active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; **Batch G1 active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E_GENERAL_SKILLS_COMBAT.md` — completed E gate and exact continuation into F;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E3_COMBAT_FAVORITES_D20.md` — completed E3 operational combat gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E2B_CLASS_IDENTITY.md` — completed class/subclass/source identity gate;
-4. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E2A_GENERAL_SKILLS.md` — completed General/Habilidades gate;
-5. `docs/checkpoints/2026-09-03_PHASE4_BATCH_D_GESTION.md` — completed D gate;
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_F_EQUIPMENT_CURRENCIES.md` — completed full F gate and exact continuation into G1;
+2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_F3_TABLET_MASTER_DETAIL.md` — completed wide Equipment master-detail gate;
+3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_F2_EQUIPMENT_UI.md` — dense Equipment/Currencies UI integration;
+4. `docs/checkpoints/2026-09-03_PHASE4_BATCH_F1_INVENTORY_FOUNDATION.md` — inventory usage/order/filter foundation and schema-8 carry-state migration;
+5. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E_GENERAL_SKILLS_COMBAT.md` — completed E gate;
 6. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
 7. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
 8. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
 9. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit;
-10. earlier A/B/C checkpoints as historical implementation evidence.
+10. earlier A/B/C/D/E checkpoints as historical implementation evidence.
 
 ## 1. Closure scope status
 
@@ -61,9 +61,9 @@ Known remaining index-maintenance item:
 - test commit `dd6f50afebe862222861ee8ccb39cfe99ee82df1`;
 - workflow `33785858196` — PASS.
 
-## 4. Batch A2 — schema 7 durable closure data — GREEN
+## 4. Batch A2 — durable closure data — GREEN
 
-A2 added additive schema-7/domain definitions and `CharacterClosureRepository` for Conditions/Exhaustion, Defenses, movement/senses, Concentration, recovery metadata, consumable metadata, portrait/token references, reconciliation, XP/Milestone, custom skills, temporary effects, module overrides, Table mode, haptics and Quick Access.
+A2 added additive schema/domain definitions and `CharacterClosureRepository` for Conditions/Exhaustion, Defenses, movement/senses, Concentration, recovery metadata, consumable metadata, portrait/token references, reconciliation, XP/Milestone, custom skills, temporary effects, module overrides, Table mode, haptics and Quick Access.
 
 A2b controlling workflow `33787986897` — PASS across backend, shared/Kotlin tests + SQLDelight, Android debug, Desktop and APK upload.
 
@@ -75,16 +75,7 @@ Final B1 workflow `33791637168` — PASS across backend, shared/Kotlin tests, An
 
 ## 6. Batch B2 — ordering/search/context/drag foundation — GREEN
 
-Implemented:
-
-- Manual/A–Z presentation helpers preserving stored manual order;
-- reusable search/filter/query state;
-- visible drag feedback and insertion indicators;
-- semantic haptic hook;
-- actual dirty/saved state;
-- unsaved-leave guard;
-- context-preservation primitives;
-- real drag proof integrations in Notes and Combat.
+Implemented Manual/A–Z presentation helpers preserving stored manual order, reusable search/filter/query state, visible drag feedback and insertion indicators, semantic haptics, dirty/saved state, unsaved-leave guard and context-preservation primitives.
 
 Controlling workflows `33792391465`, `33793135304`, `33793677310`, `33794100599` — PASS.
 
@@ -106,23 +97,7 @@ Hit Dice remain review-only in Rest preview; no automatic recovery rule is impos
 
 ## 9. Batch E — General + Habilidades + Combate — GREEN
 
-Controlling checkpoint:
-
-- `docs/checkpoints/2026-09-03_PHASE4_BATCH_E_GENERAL_SKILLS_COMBAT.md`.
-
-Delivered:
-
-- class/subclass/source identity with official convenience metadata and unrestricted manual/homebrew values;
-- non-enforcing Hit Die suggestions;
-- portrait/token local references;
-- Defenses, Senses and special Movement;
-- Passive Perception/Insight/Investigation;
-- custom skills in both existing Habilidades organization modes;
-- compact combat type/modifier/damage-at-glance;
-- quick damage/heal/temp-HP operations with selective structural-draft HP synchronization;
-- contextual manual death saves;
-- combat-entry Quick Access Favorites for persisted entries;
-- bounded simple `d20 + modifier` roller for attack entries, saves and skills.
+Delivered class/subclass/source identity, non-enforcing Hit Die suggestions, portrait/token references, Defenses/Senses/special Movement, Passive Perception/Insight/Investigation, custom skills in both Habilidades modes, compact combat metadata, quick HP operations, contextual death saves, combat-entry Favorites and a bounded simple d20 roller.
 
 Verification:
 
@@ -132,47 +107,67 @@ Verification:
 - E3 workflow `33812352925` — PASS;
 - E3 artifact `dnd-custom-aid-debug-apk`, ID `9915350879`.
 
-**Full Batch E gate is closed GREEN.**
+## 10. Batch F — Equipo + Monedas — GREEN
 
-## 10. Current batch — F Equipo + Monedas
+Controlling checkpoint:
 
-Goal: close the approved equipment/currency usability and metadata scope while preserving existing inventory persistence and the invariant that alphabetical display never destroys manual stored order.
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_F_EQUIPMENT_CURRENCIES.md`.
 
-Batch F targets:
+Delivered:
 
-- much denser ordinary-equipment rows;
-- much more compact currencies;
-- independent Manual/A–Z presentation for ordinary equipment and special equipment;
-- real drag feedback in Manual mode only; drag disabled/hidden in A–Z;
-- search/filter without changing stored order;
+- dense ordinary and special inventory;
+- materially compact currencies;
+- independent Manual/A–Z presentation preserving stored manual order;
+- visible Manual drag feedback with reorder hidden/disabled when projection makes it ambiguous;
+- search and carried/stored/equipped/special/consumable/ammunition/location filters;
 - total carried weight + attunement summary;
-- inventory containers/locations;
-- consumable/ammunition metadata and quick-use interaction;
-- duplicate/collapse behavior;
-- tablet multi-column/master-detail behavior where useful;
-- preserve existing IME-safe editor semantics.
+- explicit carried/stored metadata plus human-readable location/container;
+- consumable/ammunition quick decrement;
+- duplicate and collapsible sections;
+- unified unsaved Equipment draft for item + currency + metadata;
+- phone IME-safe modal editing;
+- tablet/wide multi-column plus persistent master-detail editing with selected-row highlight and preserved list context.
 
-Gate F requires sort/order, quantity/weight/attunement, persistence, IME and responsive checks before G1.
+Verification:
 
-## 11. Existing baseline that must not regress
+- F1 workflow `33813882408` — PASS;
+- F2 workflow `33814616186` — PASS;
+- F2 artifact ID `9916138915`;
+- F3 implementation `599926c94ebf4b2f7b0f09171255e4fa90152c2f`;
+- F3 controlling checkpoint head `a0f41acf0ad440f0af43694ee5e46a4c0d7f8c17`;
+- F3 workflow `33816879652` — PASS;
+- F3 artifact `dnd-custom-aid-debug-apk`, ID `9916904744`, digest `sha256:4ed09ae593f514967c16f256a7542e73467d5aea0bc7673fa25d95207eb01822`.
 
-The Phase 4 character implementation already contains persistent:
+These are integration artifacts, not the future frozen owner-QA candidate.
 
-- General/Habilidades;
-- Combate;
-- Equipo/currencies;
-- Trasfondo including Raza and Religión / Fe;
-- Rasgos;
-- conditional Conjuros with sources/prepared/shared slots;
-- Notas;
-- consolidated PC Settings;
-- experimental Supercompact projection;
-- D-0046 derived values/adjustments;
-- SQLDelight migrations/persistence tests;
-- schema-6 class/subclass/proficiency/resource/form/companion foundation;
-- schema-7 closure persistence under A2.
+## 11. Current batch — G1 Rasgos closure
 
-## 12. Final acceptance boundary
+Goal: complete Rasgos usability and Quick Access integration without changing its established durable trait model.
+
+G1 targets:
+
+- group/filter/search by source and trait type;
+- clearer remaining/max use meter while retaining exact manual Spend/Recover controls;
+- Favorite / Quick Access using existing `CharacterQuickAccessKind.TRAIT` state;
+- duplicate action;
+- real shared drag feedback/manual ordering;
+- responsive tablet grouping;
+- preserve current IME-safe trait editor and persistence behavior.
+
+Implementation discipline:
+
+- begin with pure trait presentation/grouping/duplicate/reorder helpers + tests;
+- then wire Android UI and closure-state Favorites;
+- keep drag disabled when a filtered/search projection would make persisted reorder ambiguous;
+- no new schema is expected for G1.
+
+G1 must have its own green checkpoint before beginning G2 Conjuros.
+
+## 12. Existing baseline that must not regress
+
+The Phase 4 character implementation already contains persistent General/Habilidades, Combate, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, consolidated PC Settings, experimental Supercompact projection, D-0046 derived values/adjustments, SQLDelight migrations/persistence tests, schema-6 class/subclass/proficiency/resource/form/companion foundation and closure-state persistence.
+
+## 13. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity.
 
@@ -186,20 +181,12 @@ Owner acceptance matrix must include:
 
 Green CI never substitutes for real-device IME/drag/layout/tablet QA.
 
-## 13. Merge boundary
+## 14. Merge boundary
 
-Do not merge Phase 4 to `main` until:
+Do not merge Phase 4 to `main` until all D-0047 batches are implemented, automated gates are green, one exact closure QA APK is recorded, owner phone+tablet QA is accepted, blocking findings are resolved, final continuity/governance housekeeping is complete and owner explicitly approves merge/closure.
 
-- all D-0047 batches are implemented;
-- automated gates are green;
-- one exact closure QA APK is recorded;
-- owner phone+tablet QA is accepted;
-- blocking findings are resolved;
-- final continuity/governance housekeeping is complete;
-- owner explicitly approves merge/closure.
+## 15. Exact continuation
 
-## 14. Exact continuation
+Resume **Batch G1 — Rasgos** on `implementation/phase4-character-closure`.
 
-Resume **Batch F — Equipo + Monedas** on `implementation/phase4-character-closure`.
-
-Start by defining the F presentation/query/consumable helpers and tests over the existing inventory + schema-7 `CharacterInventoryUsage` state. Then wire dense ordinary/special sections, independent Manual/A–Z mode, search/filter, compact currencies and quick-use behavior. Preserve manual stored order and existing special-item data. Add tablet layout improvements proportionately and close Gate F before beginning G1.
+Start with pure Rasgos presentation/group/filter/search/duplicate/manual-reorder helpers and focused tests. After that gate is green, wire Favorites, grouping/search/filter, usage meter, duplicate and shared visible drag feedback into `CharacterTraitsTabV4`, preserving the existing IME-safe editor and durable trait persistence. Close G1 before beginning G2 Conjuros.
