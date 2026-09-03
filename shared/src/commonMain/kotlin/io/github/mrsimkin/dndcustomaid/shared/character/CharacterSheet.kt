@@ -81,6 +81,31 @@ enum class CharacterActivationType {
     OTHER,
 }
 
+enum class CharacterRulesFamily {
+    UNSPECIFIED,
+    DND_5E,
+    DND_5_5E,
+    CUSTOM,
+}
+
+enum class CharacterProficiencyType {
+    LANGUAGE,
+    TOOL,
+    ARMOR,
+    WEAPON,
+    OTHER,
+}
+
+enum class CharacterClassOptionKind {
+    ARTIFICER_PLAN,
+    ARTIFICER_DEVICE,
+    SUBCLASS_STATE,
+    TECHNIQUE,
+    METAMAGIC,
+    INVOCATION,
+    OTHER,
+}
+
 data class CharacterSkill(
     val key: SkillKey,
     val adjustment: Int,
@@ -100,6 +125,13 @@ data class CharacterClassLevel(
     val hitDieSides: Int,
     val hitDiceRemaining: Int,
     val sortOrder: Int,
+    val rulesFamily: CharacterRulesFamily = CharacterRulesFamily.UNSPECIFIED,
+    val source: String? = null,
+    val catalogKey: String? = null,
+    val subclassName: String? = null,
+    val subclassSource: String? = null,
+    val subclassCatalogKey: String? = null,
+    val subclassRulesFamily: CharacterRulesFamily = rulesFamily,
 )
 
 data class CharacterSpellSlot(
@@ -117,6 +149,7 @@ data class CharacterCombatEntry(
     val rangeText: String?,
     val notes: String?,
     val sortOrder: Int,
+    val pinned: Boolean = false,
 )
 
 data class CharacterInventoryItem(
@@ -168,6 +201,7 @@ data class CharacterTrait(
     val recovery: String?,
     val activation: CharacterActivationType?,
     val sortOrder: Int,
+    val pinned: Boolean = false,
 )
 
 data class CharacterNote(
@@ -206,6 +240,85 @@ data class CharacterSpell(
     val notes: String?,
     val sortOrder: Int,
     val sourceAssociations: List<CharacterSpellSourceAssociation> = emptyList(),
+    val pinned: Boolean = false,
+)
+
+data class CharacterProficiency(
+    val id: Uuid,
+    val type: CharacterProficiencyType,
+    val name: String,
+    val source: String? = null,
+    val notes: String? = null,
+    val sortOrder: Int = 0,
+)
+
+data class CharacterWeaponMastery(
+    val id: Uuid,
+    val weaponName: String,
+    val masteryName: String,
+    val source: String? = null,
+    val notes: String? = null,
+    val sortOrder: Int = 0,
+)
+
+data class CharacterResource(
+    val id: Uuid,
+    val name: String,
+    val currentValue: Int,
+    val maxValue: Int? = null,
+    val recovery: String? = null,
+    val source: String? = null,
+    val notes: String? = null,
+    val pinned: Boolean = true,
+    val sortOrder: Int = 0,
+)
+
+data class CharacterClassOption(
+    val id: Uuid,
+    val linkedClassId: Uuid? = null,
+    val kind: CharacterClassOptionKind,
+    val name: String,
+    val source: String? = null,
+    val costText: String? = null,
+    val effectSummary: String = "",
+    val notes: String? = null,
+    val active: Boolean = true,
+    val pinned: Boolean = false,
+    val sortOrder: Int = 0,
+)
+
+data class CharacterForm(
+    val id: Uuid,
+    val name: String,
+    val source: String? = null,
+    val challengeRatingText: String? = null,
+    val armorClass: Int? = null,
+    val hitPoints: Int? = null,
+    val movement: String? = null,
+    val senses: String? = null,
+    val actionSummary: String = "",
+    val notes: String? = null,
+    val pinned: Boolean = false,
+    val sortOrder: Int = 0,
+)
+
+data class CharacterCompanion(
+    val id: Uuid,
+    val linkedClassId: Uuid? = null,
+    val name: String,
+    val kind: String = "",
+    val source: String? = null,
+    val armorClass: Int? = null,
+    val maxHp: Int? = null,
+    val currentHp: Int? = null,
+    val tempHp: Int = 0,
+    val speed: String? = null,
+    val abilitySummary: String? = null,
+    val sensesProficiencies: String? = null,
+    val traitsActions: String = "",
+    val notes: String? = null,
+    val active: Boolean = true,
+    val sortOrder: Int = 0,
 )
 
 data class CharacterSheet(
@@ -250,6 +363,15 @@ data class CharacterSheet(
     val spells: List<CharacterSpell> = emptyList(),
     val generalNotes: String = "",
     val noteCards: List<CharacterNote> = emptyList(),
+    val inspiration: Boolean = false,
+    val deathSaveSuccesses: Int = 0,
+    val deathSaveFailures: Int = 0,
+    val proficiencies: List<CharacterProficiency> = emptyList(),
+    val weaponMasteries: List<CharacterWeaponMastery> = emptyList(),
+    val resources: List<CharacterResource> = emptyList(),
+    val classOptions: List<CharacterClassOption> = emptyList(),
+    val forms: List<CharacterForm> = emptyList(),
+    val companions: List<CharacterCompanion> = emptyList(),
 ) {
     val totalLevel: Int
         get() = classes.sumOf { it.level }
@@ -265,6 +387,9 @@ data class CharacterSheet(
 
     val attunedItemCount: Int
         get() = inventoryItems.count { it.special && it.attuned }
+
+    val hasUnsavedLiveStateCandidates: Boolean
+        get() = currentHp != maxHp || tempHp != 0 || deathSaveSuccesses != 0 || deathSaveFailures != 0
 
     fun abilityScore(ability: CharacterAbility): Int = when (ability) {
         CharacterAbility.STRENGTH -> strength

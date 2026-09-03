@@ -1,0 +1,105 @@
+ALTER TABLE character ADD COLUMN inspiration INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE character ADD COLUMN death_save_successes INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE character ADD COLUMN death_save_failures INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE character_class ADD COLUMN rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED';
+ALTER TABLE character_class ADD COLUMN source TEXT;
+ALTER TABLE character_class ADD COLUMN catalog_key TEXT;
+ALTER TABLE character_class ADD COLUMN subclass_name TEXT;
+ALTER TABLE character_class ADD COLUMN subclass_source TEXT;
+ALTER TABLE character_class ADD COLUMN subclass_catalog_key TEXT;
+ALTER TABLE character_class ADD COLUMN subclass_rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED';
+
+ALTER TABLE character_combat_entry ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE character_trait ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE character_spell ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE character_proficiency (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    proficiency_type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_weapon_mastery (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    weapon_name TEXT NOT NULL,
+    mastery_name TEXT NOT NULL,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_resource (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    current_value INTEGER NOT NULL DEFAULT 0,
+    max_value INTEGER,
+    recovery TEXT,
+    source TEXT,
+    notes TEXT,
+    pinned INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_class_option (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    linked_class_id TEXT,
+    option_kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    source TEXT,
+    cost_text TEXT,
+    effect_summary TEXT NOT NULL DEFAULT '',
+    notes TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
+    pinned INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_form (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    source TEXT,
+    challenge_rating_text TEXT,
+    armor_class INTEGER,
+    hit_points INTEGER,
+    movement TEXT,
+    senses TEXT,
+    action_summary TEXT NOT NULL DEFAULT '',
+    notes TEXT,
+    pinned INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_companion (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    linked_class_id TEXT,
+    name TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT '',
+    source TEXT,
+    armor_class INTEGER,
+    max_hp INTEGER,
+    current_hp INTEGER,
+    temp_hp INTEGER NOT NULL DEFAULT 0,
+    speed TEXT,
+    ability_summary TEXT,
+    senses_proficiencies TEXT,
+    traits_actions TEXT NOT NULL DEFAULT '',
+    notes TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
