@@ -3,30 +3,31 @@
 **Last verified:** 2026-09-03 UTC / 2026-09-02 owner local time  
 **Canonical branch:** `main`  
 **Phase 4 durable working branch:** `implementation/character-data-foundation`  
-**Current phase:** Phase 4 correction candidate — focused owner phone retest  
+**Current phase:** Phase 4 correction candidate — owner phone QA intentionally deferred  
 **Open review:** none  
-**Status:** The original 42-step owner phone QA is complete. Its blocking findings were mapped and Corrections A/B/C were implemented. The correction candidate is green in automated CI and a new APK artifact is identified. **Focused owner real-device retest is the remaining acceptance gate. `main` remains untouched and Phase 4 is not yet merge-approved.**
+**Status:** The original 42-step owner phone QA is complete. Its blocking findings were mapped and Corrections A/B/C were implemented. The correction candidate is green in automated CI and a new APK artifact is identified. **Focused owner real-device retest remains the next acceptance gate, but the owner has intentionally deferred that QA to a later session. `main` remains untouched and Phase 4 is not yet merge-approved.**
 
 ## 0. Current continuity checkpoint
 
 Primary resume document:
 
-`docs/handoffs/2026-09-03_PHASE4_CORRECTION_CANDIDATE.md`
+`docs/handoffs/2026-09-03_PHASE4_QA_DEFERRED_CHECKPOINT.md`
 
 Supporting authoritative records:
 
+- correction-candidate implementation handoff: `docs/handoffs/2026-09-03_PHASE4_CORRECTION_CANDIDATE.md`;
 - original completed owner-QA results: `docs/handoffs/2026-09-01_PHASE4_OWNER_PHONE_QA_RESULTS.md`;
 - approved correction scope/map: `docs/handoffs/2026-09-02_PHASE4_OWNER_QA_CORRECTION_PLAN.md`;
 - original 42-check definitions: `docs/handoffs/2026-09-01_INCREMENT_L_PHONE_QA_TARGET.md`.
 
-Do **not** restart implementation increments A–L and do **not** restart all 42 QA checks by default. Continue with the focused correction retest below. If a focused retest reveals a cross-cutting regression, expand only the affected area.
+Do **not** restart implementation increments A–L and do **not** restart all 42 QA checks by default. When the owner returns, continue with the focused correction retest below. If a focused retest reveals a cross-cutting regression, expand only the affected area.
 
 ## 1. Repository / branch state at recovery verification
 
 - `main`: `471c5570669a6007bea9796d8a2c25536b10be21` — unchanged by Phase 4 work.
-- Phase 4 correction-candidate branch head before this state-document recovery commit: `7bf76f9faa5f39463c05c498abb24a69bb8c260c`.
+- Phase 4 correction-candidate branch head before recovery/checkpoint documentation commits: `7bf76f9faa5f39463c05c498abb24a69bb8c260c`.
 - That correction-candidate head is a clean descendant of `main`: **366 commits ahead, 0 behind** at verification.
-- No newer repository push/branch head was found after the correction-candidate handoff.
+- No newer implementation branch update was found after the correction-candidate handoff.
 - Historical/focused/tmp branches remain intentionally preserved. Do not delete them before the eventual post-merge unique-commit audit.
 
 The current working line therefore remains `implementation/character-data-foundation`; no alternate branch should replace it for continuation.
@@ -109,16 +110,18 @@ Correction APK identity:
 
 - artifact name: `dnd-custom-aid-debug-apk`;
 - artifact ID: `9876725270`;
-- artifact digest: `sha256:ca0bf1a9...777bd2` (full value retained in the correction-candidate handoff);
-- extracted APK SHA-256: `7eb0543a...5b9` (full value retained in the correction-candidate handoff).
+- artifact ZIP SHA-256: `ca0bf1a9aa25bb3c679a786ec126662bd429229cebec9aa0ed9d9eb551777bd2`;
+- extracted APK SHA-256: `7eb0543ac70960f50555905acf7a9580e917f9e532f44048260bd2fd445bd5b9`.
 
-The later commit `7bf76f9faa5f39463c05c498abb24a69bb8c260c` records that artifact identity and does not change application behavior.
+The later documentation-only commits do not change application behavior or replace this APK candidate.
 
 Automated success does **not** establish real-device visual, IME, Back-navigation, drag, touch-target, orientation, or migration acceptance.
 
-## 5. Focused owner real-device retest — exact next action
+## 5. Focused owner real-device retest — deferred, exact resume action
 
-Use the correction APK identified above and execute the focused correction retest. The intended order is:
+**No focused retest was performed during the recovery/checkpoint session. The owner intentionally deferred QA to another day.**
+
+When QA resumes, use artifact `9876725270` and execute:
 
 1. **Migration/data-preservation smoke** — prior character/campaign data survives; new `Raza` and `Religión / Fe` fields initialize empty on migrated data.
 2. **Android Back hierarchy (`N-01`)** — PC Settings → character editor → character list → campaigns; only root exits normally; repeat with IME open.
@@ -152,7 +155,7 @@ This is substantially newer than several root/core documentation files that stil
 
 ## 7. Known continuity / governance drift still pending
 
-This recovery verified that several long-lived project documents still contain Phase 3/scaffold-era status prose, including portions of:
+Several long-lived project documents still contain Phase 3/scaffold-era status prose, including portions of:
 
 - `README.md`;
 - `AGENTS.md` current-stage section;
@@ -190,6 +193,6 @@ Phase 4 may be proposed for merge only after:
 
 ## 9. Exact continuation rule
 
-**Next project action: perform the focused owner real-device correction retest against artifact `9876725270`.**
+**Project is intentionally paused. Next action when the owner returns: perform focused owner real-device correction retest step 1 against artifact `9876725270`.**
 
-If it passes, proceed to continuity/governance reconciliation and prepare a merge proposal for explicit owner approval. If it fails, create a focused non-`main` correction for the exact failed finding, rerun the appropriate automated gate, identify a new APK, and retest only the affected/regression scope.
+If it passes, continue through the focused sequence and then reconcile continuity/governance before preparing a merge proposal. If it fails, create a focused non-`main` correction for the exact failed finding, rerun the appropriate automated gate, identify a new APK, and retest only the affected/regression scope.
