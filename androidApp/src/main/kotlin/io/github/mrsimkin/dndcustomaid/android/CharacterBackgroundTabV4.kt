@@ -11,19 +11,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -244,40 +241,23 @@ internal fun CharacterBackgroundTabV4(
         runCatching { BackgroundNarrativeFieldV4.valueOf(name) }.getOrNull()
     }
     if (editingField != null) {
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text(editingField.label) },
-            text = {
-                LazyColumn(
-                    modifier = Modifier
-                        .heightIn(max = 500.dp)
-                        .imePadding()
-                        .navigationBarsPadding(),
-                    contentPadding = PaddingValues(bottom = 96.dp),
-                ) {
-                    item {
-                        OutlinedTextField(
-                            value = editorText,
-                            onValueChange = { editorText = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(editingField.label) },
-                            minLines = 7,
-                        )
-                    }
-                }
+        CharacterImeSafeEditorDialog(
+            title = editingField.label,
+            onCancel = { editingFieldName = null },
+            onSave = {
+                applyField(editingField, editorText)
+                editingFieldName = null
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        applyField(editingField, editorText)
-                        editingFieldName = null
-                    },
-                ) { Text("Aplicar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingFieldName = null }) { Text("Cancelar") }
-            },
-        )
+        ) {
+            OutlinedTextField(
+                value = editorText,
+                onValueChange = { editorText = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(editingField.label) },
+                minLines = 7,
+                maxLines = 14,
+            )
+        }
     }
 }
 
