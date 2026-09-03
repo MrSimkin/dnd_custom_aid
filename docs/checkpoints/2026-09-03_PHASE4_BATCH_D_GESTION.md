@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING FINAL GREEN GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope implemented
@@ -93,16 +93,23 @@ Repair commit:
 
 The repair also corrected an independently found UX validation issue: after changing a resource recovery cadence to Manual/None, a previously selected hidden FIXED amount can no longer incorrectly block saving.
 
-## Final gate required before Batch D closes
+Final controlling head before this documentation-close commit:
 
-A new controlling workflow must pass on the repaired code plus this checkpoint commit:
+- `64033be2632012cb6cac19728ebecb1d44ec553b`.
 
-- shared desktop tests;
-- Android debug assembly;
-- Desktop build;
-- backend type-check;
-- APK artifact upload.
+Final controlling workflow:
 
-Only after that run is green may this checkpoint be changed to GREEN and `PROJECT_STATE.md` advance to Batch E.
+- `33809045740` — **PASS**;
+- backend PASS;
+- shared desktop tests PASS;
+- Android debug assembly PASS;
+- Desktop build PASS;
+- APK artifact upload PASS.
+
+## Gate conclusion
+
+**Batch D is closed GREEN.**
+
+The next implementation batch is **Batch E — General + Habilidades + Combate**.
 
 Real phone/tablet portrait/landscape QA remains part of the later frozen closure-candidate acceptance gate; CI does not substitute for that owner QA.
