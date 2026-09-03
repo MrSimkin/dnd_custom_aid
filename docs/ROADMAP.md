@@ -16,108 +16,82 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 ## Phase 2 — Technical Foundation
 
-**Goal:** select proportionate architecture, scaffold it, verify it, and make the repository ready for incremental feature development.
+**Status:** Complete. Architecture checkpoint merged through PR #3; audited minimal scaffold merged through PR #4 on 2026-08-30.
 
-**Status:** **Complete.** Architecture checkpoint merged through PR #3; audited minimal scaffold merged through PR #4 on 2026-08-30.
+The canonical foundation provides one shared Kotlin Multiplatform module, Android Jetpack Compose, Compose Multiplatform Desktop, SQLDelight, a TypeScript Cloudflare Worker area, PostgreSQL migration/data-loading area and one simple GitHub Actions workflow.
 
-The canonical scaffold provides:
-
-- one shared Kotlin Multiplatform module;
-- Android Jetpack Compose application shell;
-- Compose Multiplatform Desktop application shell;
-- SQLDelight local database foundation;
-- TypeScript Cloudflare Worker shell;
-- PostgreSQL migration/data-loading area;
-- one simple GitHub Actions workflow;
-- documented setup/build/test commands.
-
-C-0009 remains controlling: no speculative Cloudflare services, provider abstractions, sync platform, realtime transport, or other infrastructure without a concrete feature need.
+C-0009 remains controlling: do not activate speculative infrastructure without a concrete approved feature need.
 
 ---
 
 ## Phase 3 — First Vertical Slice
 
-**Goal:** implement one small real user workflow end-to-end to prove the foundation without prematurely activating the whole architecture.
+**Status:** Complete. Local Android campaign creation and active-campaign selection merged through PR #5 on 2026-08-30.
 
-**Status:** **Complete.** The local Android campaign creation and active-campaign selection slice was merged through PR #5 on 2026-08-30.
-
-The completed slice proves:
-
-- a real Android Material 3 workflow;
-- shared Kotlin domain/data behavior;
-- SQLDelight persistence;
-- locally durable active-campaign selection;
-- phone and tablet manual usability at the deliberately simple first-slice level.
-
-Implemented behavior:
-
-1. show locally stored campaigns;
-2. create a campaign using a nonblank trimmed name;
-3. persist campaigns locally;
-4. allow duplicate display names with stable UUID identity;
-5. select one campaign as active;
-6. persist active selection across app/database restart;
-7. present the user-facing workflow in Spanish.
-
-Manual verification passed on an Android phone and tablet. The owner noted non-blocking future UI work: somewhat denser layouts, better wide-landscape space use once richer screens exist, and future theme support.
-
-The Phase 3 exit criterion was satisfied: a real approved campaign create/select task works end-to-end on Android with focused persistence tests and documented behavior.
+The slice proved Android Material 3 UI, shared Kotlin behavior, SQLDelight persistence and basic phone/tablet usability.
 
 ---
 
 ## Phase 4 — MVP Buildout
 
-**Goal:** implement remaining approved MVP scope incrementally.
+**Status:** Current.
 
-**Status:** **Current.** The owner approved the initial sequence:
+Phase 4 began with the Android character data foundation. That work expanded substantially through iterative owner QA and is now in a deliberate **Character Foundation Closure** cycle before any DM-feature implementation begins.
 
-1. **Android character data foundation / character workflow**;
-2. **DM combat tracker**, after the reusable character data needed by the tracker exists.
+### Phase 4A — Character Foundation Closure
 
-The ordering does **not** require the entire final sheet/PDF/audit/sync system before combat. Combat needs a stable useful character-data foundation, not a finished character subsystem.
+**Status:** In progress on `implementation/phase4-character-closure`.
 
-### Phase 4 Slice 1 — Character data foundation
+The owner explicitly approved D-0047: one substantial final character-stage package combining retained QA fixes, new character functionality, UX/design improvements, official class/subclass identity including Artificer and supplemental official material, conditional reusable class modules, and first-class phone/tablet behavior.
 
-**Status:** **In progress** on `implementation/character-data-foundation`.
+Current general character surfaces include/target:
 
-Approved first-slice data:
+- General;
+- Habilidades;
+- Combate;
+- Equipo;
+- Trasfondo;
+- Rasgos;
+- conditional Conjuros;
+- Notas;
+- Gestión.
 
-- stable UUID and one explicit campaign association;
-- character name and lifecycle state;
-- last-saved/updated freshness information;
-- multiclass-aware class/level entries;
-- hit-die size and remaining hit dice per class entry;
-- six ability scores;
-- Armor Class;
-- maximum/current/temporary HP;
-- initiative modifier;
-- speed;
-- proficiency bonus;
-- six final saving-throw modifiers;
-- passive Perception;
-- optional spell save DC;
-- all 18 standard D&D skills with final modifier plus descriptive proficiency/expertise state.
+Conditional reusable modules identified by audit:
 
-The application stores final mechanical values without automatically enforcing ordinary D&D formulas, caps or character-building legality. This supports gifts, homebrew and house rules. A possible later character-check/validation feature is deliberately deferred until late development after character and rules exceptions have been clarified substantially.
+- Artífice;
+- Formas;
+- Técnicas;
+- Metamagia;
+- Pactos;
+- Compañeros.
 
-Slice workflow:
+The closure also includes the approved F01–F18, D01–D18 and I01–I22 sets recorded in D-0047, including global IME/action consistency, responsive phone/tablet layouts, Supercompact, Table mode, resources/conditions/rest management, structured defenses/senses/proficiencies, richer equipment/spell/trait workflows and own-format local backup/import.
 
-1. enter the active campaign's character list;
-2. create a character;
-3. open/edit the character;
-4. add one or more class/level entries with independent hit dice;
-5. edit core mechanical values, saves and all skills;
-6. save locally;
-7. close/reopen and recover the saved state;
-8. preserve existing Phase 3 campaigns when the local database migrates to the character schema.
+The complete execution sequence is broken into recoverable batches under:
 
-Explicitly deferred from this slice: spells/slots, inventory/equipment/currencies, attacks/actions, features/traits, broader proficiencies/languages, biography, PDF export, grouped audit implementation, account ownership/control UI, hosted sync/auth and automatic character validation.
+`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`
 
-### Phase 4 Slice 2 — DM combat tracker
+### Phase 4A exit criterion
 
-After character-foundation acceptance, begin the DM tablet combat tracker as a separate live-state workflow. It should consume relevant persistent character data/projections when useful while preserving D-0025/D-0026 separation between durable character-sheet state and live combat state.
+Character closure is complete only when:
 
-Prefer complete testable slices over many half-finished screens. Introduce hosted sync/auth/provider integrations only when the corresponding slice needs them. Preserve C-0009 proportionality and avoid infrastructure ahead of a real selected workflow.
+- D-0047 implementation is complete;
+- migrations/persistence and automated gates are green;
+- one exact closure APK candidate is recorded;
+- owner QA passes on phone portrait/landscape and tablet portrait/landscape, including a representative larger text scale;
+- blocking findings are resolved;
+- continuity/governance housekeeping is complete;
+- the owner explicitly accepts the result and approves the merge/closure.
+
+**No DM-feature implementation begins before this exit criterion.**
+
+### Phase 4B — DM combat / live-session work
+
+**Status:** Blocked by Phase 4A.
+
+This stage will consume the stable reusable character data foundation when Phase 4A is complete. Its detailed implementation work must not begin early merely because architecture/product ideas already exist.
+
+The durable character sheet and future live combat state remain separate under D-0025/D-0026.
 
 ---
 
