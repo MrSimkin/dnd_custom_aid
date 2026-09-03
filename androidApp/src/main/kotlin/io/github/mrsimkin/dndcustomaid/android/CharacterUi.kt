@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -87,7 +84,12 @@ internal fun CharacterListScreen(
 
                 if (characters.isEmpty()) {
                     item {
-                        Text("Aún no hay personajes en esta campaña. Usa el botón Añadir para crear uno.")
+                        CharacterUsefulEmptyState(
+                            title = "Sin personajes",
+                            message = "Aún no hay personajes en esta campaña.",
+                            onAdd = { showCreateDialog = true },
+                            addLabel = "Añadir personaje",
+                        )
                     }
                 } else {
                     items(characters, key = { it.id.toString() }) { character ->
@@ -144,27 +146,26 @@ private fun CreateCharacterDialog(
     onCreate: (String) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
+    val normalizedName = name.trim()
 
-    AlertDialog(
-        onDismissRequest = {},
-        title = { Text("Nuevo personaje") },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre del personaje") },
-                singleLine = true,
-            )
-        },
-        confirmButton = {
-            Button(onClick = { onCreate(name) }, enabled = name.trim().isNotEmpty()) {
-                Text("Crear")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
+    CharacterImeSafeEditorDialog(
+        title = "Nuevo personaje",
+        onCancel = onDismiss,
+        onSave = { onCreate(normalizedName) },
+        saveLabel = "Crear",
+        saveEnabled = normalizedName.isNotEmpty(),
+    ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nombre del personaje") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        CharacterInlineValidationMessage(
+            if (name.isNotEmpty() && normalizedName.isEmpty()) "Escribe un nombre para crear el personaje." else null,
+        )
+    }
 }
 
 private fun statusLabel(status: CharacterStatus): String = when (status) {
