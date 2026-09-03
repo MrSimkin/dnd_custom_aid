@@ -944,36 +944,26 @@ private fun SpeedFieldV4(
 
     if (dialogOpen) {
         var pending by remember(dialogOpen, value) { mutableStateOf(value) }
-        AlertDialog(
-            onDismissRequest = { dialogOpen = false },
-            title = { Text(label) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Valor canónico en pies", style = MaterialTheme.typography.labelMedium)
-                    CompactIntInputV4(
-                        value = pending,
-                        onValueChange = { pending = it },
-                        modifier = Modifier.width(110.dp),
-                        placeholder = "0",
-                    )
-                    Text(
-                        "Vista: ${formatSpeedV4(pending)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+        CharacterImeSafeEditorDialog(
+            title = label,
+            onCancel = { dialogOpen = false },
+            onSave = {
+                onValueChange(pending)
+                dialogOpen = false
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onValueChange(pending)
-                        dialogOpen = false
-                    },
-                ) { Text("Aplicar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { dialogOpen = false }) { Text("Cancelar") }
-            },
-        )
+        ) {
+            Text("Valor canónico en pies", style = MaterialTheme.typography.labelMedium)
+            CompactIntInputV4(
+                value = pending,
+                onValueChange = { pending = it },
+                modifier = Modifier.width(110.dp),
+                placeholder = "0",
+            )
+            Text(
+                "Vista: ${formatSpeedV4(pending)}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
     }
 }
 
@@ -1112,53 +1102,39 @@ private fun QuickMagicCardV4(
                 },
             )
         }
-        AlertDialog(
-            onDismissRequest = { configureSlots = false },
-            title = { Text("Configurar espacios") },
-            text = {
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 420.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    items(9) { index ->
-                        val level = index + 1
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Text("Nivel $level", modifier = Modifier.weight(1f))
-                            CompactIntInputV4(
-                                value = pendingTotals[index],
-                                onValueChange = { value ->
-                                    pendingTotals = pendingTotals.mapIndexed { itemIndex, existing ->
-                                        if (itemIndex == index) value else existing
-                                    }
-                                },
-                                modifier = Modifier.width(70.dp),
-                                placeholder = "0",
-                            )
-                        }
-                    }
+        CharacterImeSafeEditorDialog(
+            title = "Configurar espacios",
+            onCancel = { configureSlots = false },
+            onSave = {
+                val updated = (1..9).map { level ->
+                    val old = draft.spellSlotFor(level)
+                    val total = pendingTotals[level - 1].toIntOrNull()?.coerceAtLeast(0) ?: 0
+                    old.copy(total = total.toString(), spent = old.spent.coerceIn(0, total))
                 }
+                onDraftChange(draft.copy(spellSlots = updated))
+                configureSlots = false
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val updated = (1..9).map { level ->
-                            val old = draft.spellSlotFor(level)
-                            val total = pendingTotals[level - 1].toIntOrNull()?.coerceAtLeast(0) ?: 0
-                            old.copy(total = total.toString(), spent = old.spent.coerceIn(0, total))
-                        }
-                        onDraftChange(draft.copy(spellSlots = updated))
-                        configureSlots = false
-                    },
-                ) { Text("Aplicar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { configureSlots = false }) { Text("Cancelar") }
-            },
-        )
+        ) {
+            (1..9).forEachIndexed { index, level ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text("Nivel $level", modifier = Modifier.weight(1f))
+                    CompactIntInputV4(
+                        value = pendingTotals[index],
+                        onValueChange = { value ->
+                            pendingTotals = pendingTotals.mapIndexed { itemIndex, existing ->
+                                if (itemIndex == index) value else existing
+                            }
+                        },
+                        modifier = Modifier.width(70.dp),
+                        placeholder = "0",
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -1298,37 +1274,27 @@ private fun DerivedTotalControlV4(
 
     if (dialogOpen) {
         var pendingAdjustment by remember(dialogOpen, adjustment) { mutableStateOf(adjustment) }
-        AlertDialog(
-            onDismissRequest = { dialogOpen = false },
-            title = { Text(dialogTitle) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    breakdownLines.forEach { line ->
-                        Text(line, style = MaterialTheme.typography.bodyMedium)
-                    }
-                    Text("Ajuste adicional", style = MaterialTheme.typography.labelMedium)
-                    CompactIntInputV4(
-                        value = pendingAdjustment,
-                        onValueChange = { pendingAdjustment = it },
-                        modifier = Modifier.width(110.dp),
-                        signed = true,
-                        placeholder = "0",
-                    )
-                    Text("Total actual ${total.ifBlank { "—" }}", style = MaterialTheme.typography.labelMedium)
-                }
+        CharacterImeSafeEditorDialog(
+            title = dialogTitle,
+            onCancel = { dialogOpen = false },
+            onSave = {
+                onAdjustmentChange(pendingAdjustment)
+                dialogOpen = false
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onAdjustmentChange(pendingAdjustment)
-                        dialogOpen = false
-                    },
-                ) { Text("Aplicar") }
-            },
-            dismissButton = {
-                TextButton(onClick = { dialogOpen = false }) { Text("Cancelar") }
-            },
-        )
+        ) {
+            breakdownLines.forEach { line ->
+                Text(line, style = MaterialTheme.typography.bodyMedium)
+            }
+            Text("Ajuste adicional", style = MaterialTheme.typography.labelMedium)
+            CompactIntInputV4(
+                value = pendingAdjustment,
+                onValueChange = { pendingAdjustment = it },
+                modifier = Modifier.width(110.dp),
+                signed = true,
+                placeholder = "0",
+            )
+            Text("Total actual ${total.ifBlank { "—" }}", style = MaterialTheme.typography.labelMedium)
+        }
     }
 }
 
