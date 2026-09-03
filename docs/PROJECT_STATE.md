@@ -5,21 +5,21 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; **Batch E active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; **Batch F active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_D_GESTION.md` — completed D gate and exact continuation into E;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_C_PC_SETTINGS.md` — completed C gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md` — completed B2 gate;
-4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
-5. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2B_PERSISTENCE.md` — completed schema-7 persistence gate;
-6. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2A_SCHEMA_DOMAIN.md` — completed schema/domain gate;
-7. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
-8. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
-9. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
-10. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E_GENERAL_SKILLS_COMBAT.md` — completed E gate and exact continuation into F;
+2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E3_COMBAT_FAVORITES_D20.md` — completed E3 operational combat gate;
+3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E2B_CLASS_IDENTITY.md` — completed class/subclass/source identity gate;
+4. `docs/checkpoints/2026-09-03_PHASE4_BATCH_E2A_GENERAL_SKILLS.md` — completed General/Habilidades gate;
+5. `docs/checkpoints/2026-09-03_PHASE4_BATCH_D_GESTION.md` — completed D gate;
+6. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
+7. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
+8. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
+9. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit;
+10. earlier A/B/C checkpoints as historical implementation evidence.
 
 ## 1. Closure scope status
 
@@ -51,224 +51,110 @@ Updated current-truth documentation:
 - `docs/ARCHITECTURE.md`;
 - `docs/TESTING.md`.
 
-Housekeeping results:
-
-- stale Phase 3/empty-scaffold status removed;
-- closure-first and DM-blocked sequencing made explicit;
-- phone/tablet portrait/landscape closure QA made explicit;
-- current implementation areas documented;
-- stable CI debug signing contradiction resolved in wording: the tracked/reconstructable identity is development-only for update-in-place QA and never a release identity.
-
 Known remaining index-maintenance item:
 
-- consolidated `docs/DECISIONS.md` still ends at D-0043 while detailed approved D-0044–D-0047 records exist. This is visible, non-blocking for implementation, and must be reconciled before the eventual Phase 4 merge proposal without renumbering historical decisions.
+- consolidated `docs/DECISIONS.md` still ends at D-0043 while detailed approved D-0044–D-0047 records exist. This remains visible and non-blocking for implementation, but must be reconciled before the eventual Phase 4 merge proposal without renumbering historical decisions.
 
 ## 3. Batch A1 — official catalog reconciliation — GREEN
 
-Implemented:
-
 - code commit `1b2f6a79924b88d71567a277f6752dea6bbbb1c9`;
-- test commit `dd6f50afebe862222861ee8ccb39cfe99ee82df1`.
-
-A1 verification:
-
-- workflow `33785858196`;
-- tested head `dd6f50afebe862222861ee8ccb39cfe99ee82df1`;
-- conclusion **PASS**.
+- test commit `dd6f50afebe862222861ee8ccb39cfe99ee82df1`;
+- workflow `33785858196` — PASS.
 
 ## 4. Batch A2 — schema 7 durable closure data — GREEN
 
-### A2a
+A2 added additive schema-7/domain definitions and `CharacterClosureRepository` for Conditions/Exhaustion, Defenses, movement/senses, Concentration, recovery metadata, consumable metadata, portrait/token references, reconciliation, XP/Milestone, custom skills, temporary effects, module overrides, Table mode, haptics and Quick Access.
 
-Added additive schema-7/domain definitions for:
-
-- Conditions/Exhaustion;
-- Defenses;
-- special movement/senses;
-- Concentration;
-- recovery/rest metadata;
-- consumable/ammunition metadata;
-- portrait/token references;
-- reconciliation checkpoints;
-- XP/Milestone progress;
-- custom skills;
-- temporary effects;
-- module overrides;
-- Table mode;
-- haptic preference;
-- generic Quick Access.
-
-Schema 6 was not rewritten. Resource/inventory extension metadata intentionally uses character-scoped soft UUID references because the existing core repository rewrites those child rows during save.
-
-A2a controlling verification:
-
-- workflow `33786927646`;
-- tested code head `6f35997be2d11ce96b866a68c426a39671cd20ba`;
-- conclusion **PASS**.
-
-### A2b
-
-Added `CharacterClosureRepository` as an additive persistence boundary beside the existing proven core `CharacterRepository`. It provides safe defaults, transactional save/load, validation, stale soft-reference normalization, module override persistence and Quick Access persistence.
-
-Regression suite covers rich closure-state round trip, additive migration, rewrite safety, stale-reference behavior, hide-no-delete separation and custom Quick Access.
-
-An initial SQLDelight mapper typing failure was diagnosed and repaired by mapping query rows to non-null raw rows first and applying `mapNotNull` after execution.
-
-A2b controlling verification:
-
-- workflow `33787986897`;
-- tested head `7f63e6be2ccdbb584152057a75887a2f74a658e9`;
-- includes test commit `ee0cdeae9341a3818fe0e704eb543832d7c214c4`;
-- backend PASS;
-- shared Kotlin/tests + SQLDelight PASS;
-- Android debug assembly PASS;
-- Desktop build PASS;
-- APK artifact upload PASS.
-
-**Full A2 gate is closed GREEN.**
+A2b controlling workflow `33787986897` — PASS across backend, shared/Kotlin tests + SQLDelight, Android debug, Desktop and APK upload.
 
 ## 5. Batch B1 — global editor/IME/action foundation — GREEN
 
-B1 introduced the reusable IME-safe character editor shell and consistent action/confirmation/empty-state primitives, then migrated the existing character keyboard editors to that shared behavior.
+Reusable IME-safe character editor and consistent action/confirmation/validation/empty-state primitives are integrated across the character keyboard editors.
 
-The migration covers character creation, Combat, Equipment, Trasfondo, Rasgos, Notes, spell sources, spell entries, Speed, spell-slot configuration and derived-value adjustment editors. Editable dialogs keep actions reachable above the Android keyboard; card/row tap is the primary edit affordance on migrated collection surfaces.
-
-Final B1 code head:
-
-- `79092402e7ff0b93579bc785f891e5e95a0333ed`.
-
-Final B1 workflow:
-
-- `33791637168`;
-- backend PASS;
-- shared/Kotlin tests PASS;
-- Android debug assembly PASS;
-- Desktop build PASS;
-- APK upload PASS.
-
-**B1 gate is closed GREEN.**
+Final B1 workflow `33791637168` — PASS across backend, shared/Kotlin tests, Android debug, Desktop and APK upload.
 
 ## 6. Batch B2 — ordering/search/context/drag foundation — GREEN
 
-Controlling checkpoint:
+Implemented:
 
-- `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md`.
+- Manual/A–Z presentation helpers preserving stored manual order;
+- reusable search/filter/query state;
+- visible drag feedback and insertion indicators;
+- semantic haptic hook;
+- actual dirty/saved state;
+- unsaved-leave guard;
+- context-preservation primitives;
+- real drag proof integrations in Notes and Combat.
 
-Implemented foundations:
-
-- shared Manual/A–Z presentation helpers that preserve stored manual order;
-- case/accent-insensitive search and immutable filter/query state;
-- reusable count/search/filter/sort toolbar;
-- reusable lifted/translated drag surface and insertion indicator;
-- configurable semantic haptic hook;
-- derived `Cambios sin guardar` state based on actual draft-versus-stored content;
-- unsaved-leave guard: `Guardar` / `Descartar` / `Seguir editando`;
-- context-preserving parent-owned state contract for later list-heavy domains;
-- visible drag-feedback proof integrations in Notes and Combat.
-
-Verification:
-
-- presentation/toolbar/drag foundation workflow `33792391465` — PASS;
-- unsaved-leave/dirty-state workflow `33793135304` — PASS;
-- Notes real-drag workflow `33793677310` — PASS;
-- Combat real-drag workflow `33794100599` — PASS.
-
-All controlling runs include backend, shared/Kotlin tests, Android debug assembly, Desktop build and APK upload.
-
-**B2 gate is closed GREEN.**
+Controlling workflows `33792391465`, `33793135304`, `33793677310`, `33794100599` — PASS.
 
 ## 7. Batch C — PC Settings consolidation — GREEN
 
-Controlling checkpoint:
+Implemented lifecycle status in PC Settings, spellcaster hide-not-delete, haptic/Table/XP settings, module auto-suggestions + manual overrides, Application Settings entry, responsive settings, Supercompact entry and Back hierarchy.
 
-- `docs/checkpoints/2026-09-03_PHASE4_BATCH_C_PC_SETTINGS.md`.
+Controlling full C workflow `33796586608` — PASS.
 
-Implemented:
-
-- lifecycle status moved from General to PC Settings;
-- spellcaster hide-not-delete behavior retained;
-- persisted haptic preference and real Notes/Combat drag haptics;
-- Table/read-only preference configuration;
-- XP/Milestone mode + progress values;
-- conditional module auto-suggestions + manual visibility overrides;
-- application-settings entry reusing existing global preference ownership;
-- responsive PC Settings layout;
-- experimental Supercompact operational projection;
-- Back hierarchy `Supercompact -> PC Settings -> editor -> character list`;
-- class/subclass rules/source/catalog identity now survives editor save/recreation instead of being silently erased.
-
-Verification:
-
-- shared module foundation workflow `33795174781` — PASS;
-- controlling full C workflow `33796586608` — PASS;
-- tested head `d8116353f96f0fc32e99ac3a5e4a1084c4b3b02b`;
-- backend PASS;
-- shared/Kotlin tests + SQLDelight PASS;
-- Android debug assembly PASS;
-- Desktop build PASS;
-- APK upload PASS.
-
-Full Table-mode edit suppression and Favorite/direct-action Supercompact behavior remain intentionally assigned to I2.
-
-**Batch C gate is closed GREEN.**
+Full Table-mode edit suppression and final Favorite/direct-action Supercompact behavior remain assigned to I2.
 
 ## 8. Batch D — Gestión live maintenance — GREEN
 
+Implemented Conditions/Exhaustion, Concentration, generic Resources, Rest preview/selective apply, temporary effects, Inspiration, contextual death saves, reconciliation checkpoints and responsive Gestión.
+
+Final controlling head `64033be2632012cb6cac19728ebecb1d44ec553b`, workflow `33809045740` — PASS across backend, shared/Kotlin tests, Android debug, Desktop and APK upload.
+
+Hit Dice remain review-only in Rest preview; no automatic recovery rule is imposed across mixed D&D 5e / 5.5e / custom characters.
+
+## 9. Batch E — General + Habilidades + Combate — GREEN
+
 Controlling checkpoint:
 
-- `docs/checkpoints/2026-09-03_PHASE4_BATCH_D_GESTION.md`.
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_E_GENERAL_SKILLS_COMBAT.md`.
 
-Implemented:
+Delivered:
 
-- Conditions + Exhaustion;
-- Concentration;
-- generic Resources with quick operations and exact editing;
-- Short/Long Rest preview + selective apply;
-- manual/custom recovery remains informational only;
-- temporary effects;
-- Inspiration;
-- contextual death saves at 0 HP;
-- reconciliation checkpoints;
-- responsive narrow/wide Gestión layout;
-- immediate operational persistence without consuming unrelated structural drafts.
+- class/subclass/source identity with official convenience metadata and unrestricted manual/homebrew values;
+- non-enforcing Hit Die suggestions;
+- portrait/token local references;
+- Defenses, Senses and special Movement;
+- Passive Perception/Insight/Investigation;
+- custom skills in both existing Habilidades organization modes;
+- compact combat type/modifier/damage-at-glance;
+- quick damage/heal/temp-HP operations with selective structural-draft HP synchronization;
+- contextual manual death saves;
+- combat-entry Quick Access Favorites for persisted entries;
+- bounded simple `d20 + modifier` roller for attack entries, saves and skills.
 
 Verification:
 
-- D1 rest-operations workflow `33797081412` — PASS;
-- first D2 workflow `33808464225` exposed one Android Kotlin smart-cast compile failure;
-- repair commit `2a5d9b35669e62ac44b92bdca9fbcf649ba5fcd0` fixed that compile issue and hidden-FIXED validation after switching to Manual/None;
-- final controlling head `64033be2632012cb6cac19728ebecb1d44ec553b`;
-- final controlling workflow `33809045740` — PASS;
-- backend PASS;
-- shared/Kotlin tests PASS;
-- Android debug assembly PASS;
-- Desktop build PASS;
-- APK upload PASS.
+- E2a workflow `33810868863` — PASS;
+- E2b workflow `33811490741` — PASS;
+- E3 controlling head `1ae8fd235b0fa863b3efc62e091a97242f295aea`;
+- E3 workflow `33812352925` — PASS;
+- E3 artifact `dnd-custom-aid-debug-apk`, ID `9915350879`.
 
-Hit Dice remain review-only in the Rest preview; no automatic recovery rule is imposed across mixed D&D 5e / 5.5e / custom characters.
+**Full Batch E gate is closed GREEN.**
 
-**Batch D gate is closed GREEN.**
+## 10. Current batch — F Equipo + Monedas
 
-## 9. Current batch — E General + Habilidades + Combate
+Goal: close the approved equipment/currency usability and metadata scope while preserving existing inventory persistence and the invariant that alphabetical display never destroys manual stored order.
 
-Goal: close the approved General/Habilidades/Combate character data and operational improvements without breaking D-0046 derived-value semantics.
+Batch F targets:
 
-Batch E targets:
+- much denser ordinary-equipment rows;
+- much more compact currencies;
+- independent Manual/A–Z presentation for ordinary equipment and special equipment;
+- real drag feedback in Manual mode only; drag disabled/hidden in A–Z;
+- search/filter without changing stored order;
+- total carried weight + attunement summary;
+- inventory containers/locations;
+- consumable/ammunition metadata and quick-use interaction;
+- duplicate/collapse behavior;
+- tablet multi-column/master-detail behavior where useful;
+- preserve existing IME-safe editor semantics.
 
-- class/subclass/source presentation and non-enforcing hit-die suggestions;
-- freshness + portrait/token;
-- defenses/senses/special movement;
-- Passive Insight + Passive Investigation;
-- custom skills integrated into both existing Habilidades organization modes;
-- Combat action type + damage/effect at a glance;
-- quick HP damage/heal/temp operations while exact editing remains available;
-- contextual death saves where useful;
-- Favorites/Quick Access integration for relevant E surfaces;
-- simple dice roller without automatic rules-resolution scope creep.
+Gate F requires sort/order, quantity/weight/attunement, persistence, IME and responsive checks before G1.
 
-Gate E requires D-0046 regression coverage, custom-skill calculations/presentation foundations, HP-operation tests and Android assembly.
-
-## 10. Existing baseline that must not regress
+## 11. Existing baseline that must not regress
 
 The Phase 4 character implementation already contains persistent:
 
@@ -286,7 +172,7 @@ The Phase 4 character implementation already contains persistent:
 - schema-6 class/subclass/proficiency/resource/form/companion foundation;
 - schema-7 closure persistence under A2.
 
-## 11. Final acceptance boundary
+## 12. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity.
 
@@ -300,7 +186,7 @@ Owner acceptance matrix must include:
 
 Green CI never substitutes for real-device IME/drag/layout/tablet QA.
 
-## 12. Merge boundary
+## 13. Merge boundary
 
 Do not merge Phase 4 to `main` until:
 
@@ -312,8 +198,8 @@ Do not merge Phase 4 to `main` until:
 - final continuity/governance housekeeping is complete;
 - owner explicitly approves merge/closure.
 
-## 13. Exact continuation
+## 14. Exact continuation
 
-Resume **Batch E — General + Habilidades + Combate** on `implementation/phase4-character-closure`.
+Resume **Batch F — Equipo + Monedas** on `implementation/phase4-character-closure`.
 
-Start with pure/testable E operations and calculated-value helpers, preserving D-0046. Then wire class/subclass/source presentation, defenses/senses/movement, Passive Insight/Investigation, custom skills, quick HP, Combat summary improvements, Favorites and the bounded simple dice roller. Checkpoint E before beginning F.
+Start by defining the F presentation/query/consumable helpers and tests over the existing inventory + schema-7 `CharacterInventoryUsage` state. Then wire dense ordinary/special sections, independent Manual/A–Z mode, search/filter, compact currencies and quick-use behavior. Preserve manual stored order and existing special-item data. Add tablet layout improvements proportionately and close Gate F before beginning G1.

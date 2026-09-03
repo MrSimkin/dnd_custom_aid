@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING INTEGRATION GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -55,20 +55,37 @@ E3 wires Favorites for the E-relevant combat-entry surface only. The approved ex
 ## Relevant integration
 
 - bot integration commit `bd340abdec50a4bbbeec44378e6f83d44b760f3f` — `feat: integrate Batch E3 combat quick operations favorites and d20`;
+- controlling tested head `1ae8fd235b0fa863b3efc62e091a97242f295aea`;
 - `CharacterCombatOperationalV4.kt` owns quick HP and contextual death-save UI;
 - `CharacterD20RollUiV4.kt` owns the reusable bounded d20 surface;
 - `CharacterCombatTabV4.kt` now projects Quick Access Favorites and compact action/damage summaries;
 - `CharacterEditorV4.kt` owns selective HP draft synchronization;
 - `CharacterCustomSkillsV4.kt` reuses the d20 surface for calculated custom-skill totals.
 
-## Gate required
+## Verification
 
-E3 is not GREEN until the controlling workflow on this checkpoint head passes:
+Controlling workflow `33812352925`: **PASS**.
 
-- backend type-check;
-- shared/Kotlin tests, including E1 HP/D-0046 operations;
-- Android debug compile/assembly;
-- Desktop build;
-- APK artifact upload.
+Verified on the checkpoint head:
 
-If E3 passes, close this checkpoint GREEN, create/close the overall Batch E checkpoint, update `PROJECT_STATE.md` to Batch F, and only then begin Equipo + Monedas closure.
+- backend install + type-check PASS;
+- shared/Kotlin regression tests PASS;
+- Android debug compile/assembly PASS;
+- Desktop build PASS;
+- APK artifact upload PASS.
+
+Workflow artifact:
+
+- name: `dnd-custom-aid-debug-apk`;
+- artifact ID: `9915350879`;
+- ZIP digest reported by GitHub: `sha256:7d57b4bcbb3a11a4e60cf32821a0a00c50ff15e6f777e0a406073f14ab0d6141`.
+
+This is integration evidence only, not the frozen owner-QA closure candidate.
+
+**E3 gate is closed GREEN.**
+
+## Exact continuation
+
+Close overall Batch E in a durable checkpoint, move `PROJECT_STATE.md` to **Batch F — Equipo + Monedas**, and only then begin F implementation.
+
+Real phone/tablet portrait/landscape and larger-text QA remains part of the later frozen closure-candidate owner gate.
