@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry
@@ -220,23 +219,16 @@ internal fun CharacterCombatTabV4(
     deleteId?.let { id ->
         val target = entries.firstOrNull { it.id.toString() == id }
         if (target != null) {
-            AlertDialog(
+            CharacterNamedDeleteConfirmationDialog(
+                itemName = target.name,
+                itemTypeLabel = "ataque o acción",
                 onDismissRequest = { deleteId = null },
-                title = { Text("Eliminar ataque o acción") },
-                text = { Text("¿Eliminar «${target.name}»? Esta acción se aplicará al guardar la ficha.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onEntriesChange(
-                                entries.filterNot { it.id == target.id }
-                                    .mapIndexed { order, item -> item.copy(sortOrder = order) },
-                            )
-                            deleteId = null
-                        },
-                    ) { Text("Eliminar") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { deleteId = null }) { Text("Cancelar") }
+                onConfirm = {
+                    onEntriesChange(
+                        entries.filterNot { it.id == target.id }
+                            .mapIndexed { order, item -> item.copy(sortOrder = order) },
+                    )
+                    deleteId = null
                 },
             )
         } else {
@@ -323,7 +315,7 @@ private fun CombatEntryCardV4(
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onEdit),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -358,7 +350,7 @@ private fun CombatEntryCardV4(
                         )
                     },
                     active = dragging,
-                contentDescription = "Mantén pulsado y arrastra para reordenar ${entry.name}",
+                    contentDescription = "Mantén pulsado y arrastra para reordenar ${entry.name}",
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(entry.name, style = MaterialTheme.typography.labelLarge)
@@ -381,12 +373,10 @@ private fun CombatEntryCardV4(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("Editar")
-                }
-                TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("Eliminar")
-                }
+                StableRemoveIconButton(
+                    onClick = onDelete,
+                    contentDescription = "Eliminar ${entry.name}",
+                )
             }
         }
     }
@@ -412,104 +402,84 @@ private fun CombatEntryEditorDialogV4(
     onApply: () -> Unit,
 ) {
     var typeMenuOpen by rememberSaveable { mutableStateOf(false) }
-    val focusManager = LocalFocusManager.current
 
-    AlertDialog(
-        modifier = Modifier
-            .imePadding()
-            .navigationBarsPadding(),
-        onDismissRequest = { focusManager.clearFocus() },
-        title = { Text(title) },
-        text = {
-            LazyColumn(
-                modifier = Modifier.heightIn(max = 480.dp),
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                item {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = onNameChange,
-                        label = { Text("Nombre") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
+    CharacterImeSafeEditorDialog(
+        title = title,
+        onCancel = onDismiss,
+        onSave = onApply,
+        saveEnabled = valid,
+    ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nombre") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        Column {
+            Text("Tipo", style = MaterialTheme.typography.labelSmall)
+            androidx.compose.foundation.layout.Box {
+                OutlinedButton(
+                    onClick = { typeMenuOpen = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(combatEntryTypeLabelV4(type))
                 }
-                item {
-                    Column {
-                        Text("Tipo", style = MaterialTheme.typography.labelSmall)
-                        androidx.compose.foundation.layout.Box {
-                            OutlinedButton(
-                                onClick = { typeMenuOpen = true },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(combatEntryTypeLabelV4(type))
-                            }
-                            DropdownMenu(
-                                expanded = typeMenuOpen,
-                                onDismissRequest = { typeMenuOpen = false },
-                            ) {
-                                CharacterCombatEntryType.entries.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(combatEntryTypeLabelV4(option)) },
-                                        onClick = {
-                                            onTypeChange(option)
-                                            typeMenuOpen = false
-                                        },
-                                    )
-                                }
-                            }
-                        }
+                DropdownMenu(
+                    expanded = typeMenuOpen,
+                    onDismissRequest = { typeMenuOpen = false },
+                ) {
+                    CharacterCombatEntryType.entries.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(combatEntryTypeLabelV4(option)) },
+                            onClick = {
+                                onTypeChange(option)
+                                typeMenuOpen = false
+                            },
+                        )
                     }
                 }
-                item {
-                    OutlinedTextField(
-                        value = attackModifier,
-                        onValueChange = onAttackModifierChange,
-                        label = { Text("Modificador de ataque (opcional)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = damageEffect,
-                        onValueChange = onDamageEffectChange,
-                        label = { Text("Daño / efecto") },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 2,
-                        maxLines = 4,
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = range,
-                        onValueChange = onRangeChange,
-                        label = { Text("Alcance (opcional)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = notes,
-                        onValueChange = onNotesChange,
-                        label = { Text("Notas (opcional)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 2,
-                        maxLines = 5,
-                    )
-                }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onApply, enabled = valid) { Text("Aplicar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
+        }
+        OutlinedTextField(
+            value = attackModifier,
+            onValueChange = onAttackModifierChange,
+            label = { Text("Modificador de ataque (opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        OutlinedTextField(
+            value = damageEffect,
+            onValueChange = onDamageEffectChange,
+            label = { Text("Daño / efecto") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 4,
+        )
+        OutlinedTextField(
+            value = range,
+            onValueChange = onRangeChange,
+            label = { Text("Alcance (opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = notes,
+            onValueChange = onNotesChange,
+            label = { Text("Notas (opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 5,
+        )
+        CharacterInlineValidationMessage(
+            when {
+                name.trim().isEmpty() -> "El nombre no puede quedar vacío."
+                attackModifier.trim().isNotEmpty() && attackModifier.toIntOrNull() == null -> "El modificador de ataque debe ser un número entero."
+                else -> null
+            },
+        )
+    }
 }
 
 private fun combatEntryTypeLabelV4(type: CharacterCombatEntryType): String = when (type) {
