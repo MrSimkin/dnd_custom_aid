@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING RETEST AFTER FIXTURE REPAIR  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -51,17 +51,43 @@ Repair commit:
 - the fixture now starts at version `8`, so only the intended migration `8.sqm` is applied;
 - no F1 production code or migration content changed in the repair.
 
-## Gate required
+## Verification
 
-F1 is not GREEN until the controlling retest workflow on this checkpoint head passes:
+Controlling retest workflow `33813882408`: **PASS** on head `45297640435a182944bf3f949b1f6aaf155551e6`.
 
-- SQLDelight schema generation/migrations;
-- focused inventory operation tests;
-- closure repository round-trip/migration tests;
-- all shared desktop tests;
-- Android debug assembly;
-- Desktop build;
-- backend type-check;
-- APK artifact upload.
+Verified:
 
-If F1 is GREEN, proceed to F2 UI wiring: dense rows, compact currencies, independent Manual/A–Z controls, search/filter, visible Manual drag only, location/container editing for ordinary and special items, quick-use metadata/actions, duplicate/collapse and proportionate tablet improvements.
+- SQLDelight generation/migration regression PASS;
+- focused inventory operation tests PASS;
+- closure repository round-trip/migration tests PASS;
+- all shared desktop tests PASS;
+- Android debug assembly PASS;
+- Desktop build PASS;
+- backend type-check PASS;
+- APK artifact upload PASS.
+
+Workflow artifact:
+
+- `dnd-custom-aid-debug-apk`;
+- artifact ID `9915876586`;
+- ZIP digest `sha256:bc41dbede7a4ed994e921862b0721763a8904b7ed918cc077eb705fba155b0f2`.
+
+This artifact is integration evidence only, not the frozen owner-QA closure candidate.
+
+**F1 gate is closed GREEN.**
+
+## Exact continuation
+
+Proceed to F2 UI wiring with no further schema change:
+
+- unify `inventoryUsage` into the same saveable Equipment draft as items/currencies so metadata also works for newly-created unsaved items;
+- dense ordinary rows and compact special rows;
+- much more compact currencies;
+- independent Manual/A–Z controls for ordinary and special sections;
+- visible drag feedback/haptics only where manual reorder is unambiguous;
+- search/filter without mutating stored manual order;
+- location/container editing for ordinary and special items;
+- carried/stored and consumable/ammunition metadata;
+- quick-use and duplicate actions;
+- collapsible sections;
+- proportionate phone/tablet layout improvements.
