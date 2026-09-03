@@ -1,0 +1,34 @@
+name: One-time Batch F1 migration fixture repair
+
+on:
+  push:
+    branches:
+      - implementation/phase4-character-closure
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Repair migration fixture
+        run: python .github/scripts/fix_batch_f1_migration_test.py
+      - name: Remove one-time scaffolding
+        run: rm .github/scripts/fix_batch_f1_migration_test.py .github/workflows/fix-batch-f1-migration-test.yml
+      - name: Verify whitespace
+        run: git diff --check
+      - name: Commit repair
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'test: repair Batch F1 migration fixture version'
+          git push
