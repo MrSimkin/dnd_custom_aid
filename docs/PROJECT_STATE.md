@@ -1,76 +1,140 @@
 # Project State
 
-**Last verified:** 2026-09-01  
+**Last verified:** 2026-09-03 UTC / 2026-09-02 owner local time  
 **Canonical branch:** `main`  
 **Phase 4 durable working branch:** `implementation/character-data-foundation`  
-**Current phase:** Phase 4 owner phone QA  
-**Open review:** none at final implementation verification  
-**Status:** Planned automated implementation sequence A–L is complete and green. The final owner-phone-QA target is identified and downloaded. Owner phone QA has **not started yet**. The build is not merge-eligible solely from CI. `main` remains untouched.
+**Current phase:** Phase 4 correction candidate — focused owner phone retest  
+**Open review:** none  
+**Status:** The original 42-step owner phone QA is complete. Its blocking findings were mapped and Corrections A/B/C were implemented. The correction candidate is green in automated CI and a new APK artifact is identified. **Focused owner real-device retest is the remaining acceptance gate. `main` remains untouched and Phase 4 is not yet merge-approved.**
 
 ## 0. Current continuity checkpoint
 
 Primary resume document:
 
-`docs/handoffs/2026-09-01_PHASE4_OWNER_QA_CONTINUITY_CHECKPOINT.md`
+`docs/handoffs/2026-09-03_PHASE4_CORRECTION_CANDIDATE.md`
 
-Full authoritative 42-step QA checklist:
+Supporting authoritative records:
 
-`docs/handoffs/2026-09-01_INCREMENT_L_PHONE_QA_TARGET.md`
+- original completed owner-QA results: `docs/handoffs/2026-09-01_PHASE4_OWNER_PHONE_QA_RESULTS.md`;
+- approved correction scope/map: `docs/handoffs/2026-09-02_PHASE4_OWNER_QA_CORRECTION_PLAN.md`;
+- original 42-check definitions: `docs/handoffs/2026-09-01_INCREMENT_L_PHONE_QA_TARGET.md`.
 
-The exact next session action is to resume with owner phone QA, beginning at check 1. Do not restart implementation A–L and do not merge to `main` before QA acceptance.
+Do **not** restart implementation increments A–L and do **not** restart all 42 QA checks by default. Continue with the focused correction retest below. If a focused retest reveals a cross-cutting regression, expand only the affected area.
 
-## 1. Latest verified implementation state
+## 1. Repository / branch state at recovery verification
 
-- `main`: `471c5570669a6007bea9796d8a2c25536b10be21` at final verification; untouched by Phase 4 work.
-- durable Phase 4 code/state head before the final continuity-only documentation commits: `102d4e045462da37538037c13f191d3012041ddd`.
-- promoted-head durability workflow: `Scaffold checks` run `33468580024` — **PASS** for backend, full Kotlin/shared suite, Android debug build, desktop build and APK upload.
-- no open PR was present at final implementation verification.
+- `main`: `471c5570669a6007bea9796d8a2c25536b10be21` — unchanged by Phase 4 work.
+- Phase 4 correction-candidate branch head before this state-document recovery commit: `7bf76f9faa5f39463c05c498abb24a69bb8c260c`.
+- That correction-candidate head is a clean descendant of `main`: **366 commits ahead, 0 behind** at verification.
+- No newer repository push/branch head was found after the correction-candidate handoff.
+- Historical/focused/tmp branches remain intentionally preserved. Do not delete them before the eventual post-merge unique-commit audit.
 
-Increment sequence:
+The current working line therefore remains `implementation/character-data-foundation`; no alternate branch should replace it for continuation.
 
-- A — baseline verification/map: **closed**;
-- B — corrective UX backlog: **implemented through recorded checkpoints**;
-- C — persistence foundation/migration: **closed**;
-- D — navigation + PC Settings: **closed**;
-- E — Trasfondo: **closed**;
-- F — Rasgos: **closed**;
-- G — Conjuros source management: **closed**;
-- H — Conjuros spell list/details: **closed**;
-- I — Quick Magic / Conjuros shared slots: **closed**;
-- J — Notas: **closed**;
-- K — responsive/accessibility integration: **closed**;
-- L — final automated regression + owner QA target: **closed automatically; owner QA pending**.
+## 2. Original owner phone-QA result
 
-## 2. Designated owner-QA APK
+The original Gate L real-device QA completed on 2026-09-02:
 
-Use the Gate L QA artifact:
+- **40 of 42 top-level checks passed**;
+- Check 12 failed because of Combate alignment/IME-action reachability;
+- Check 13 failed because of Equipo IME-action reachability and excessive Monedas height;
+- Android system Back navigation (`N-01`) was also discovered as a separate blocking defect;
+- additional non-blocking correction findings were recorded for drag feedback, terminology, spacing, Rasgos wording, numeric keyboard behavior, and Notes presentation;
+- the owner requested persisted `Raza` and `Religión / Fe` fields in Trasfondo (`B-01`).
 
-- tested commit: `089a991c6491627961f1e75f3815959a8a1c8b48`;
-- workflow run: `33468310534`;
-- artifact ID: `9785676981`;
+The original Gate L APK is historical evidence only. It is **not** the current acceptance candidate.
+
+## 3. Implemented correction lineage
+
+### Correction A — navigation + keyboard blockers
+
+Commit: `b9fb1347...`
+
+Implemented:
+
+- `N-01` Android system Back hierarchy;
+- `C-01` Combate editor IME-safe actions;
+- `E-04` Equipo editor IME-safe actions;
+- `C-02` outside-tap focus/IME dismissal without draft discard.
+
+### Correction B — persisted Trasfondo addition
+
+Commit: `81f0147b...`
+
+Implemented `B-01` end-to-end:
+
+- persisted `Raza`;
+- persisted `Religión / Fe`;
+- domain model;
+- SQLDelight current schema/query changes;
+- migration `5.sqm`;
+- repository hydration/persistence;
+- Android recreation codec;
+- Trasfondo UI;
+- migration, round-trip, and holistic regression coverage.
+
+### Correction C — presentation/usability corrections
+
+Commit: `24ef827a302349c213a915ac26c7d73e42e26853`
+
+Implemented:
+
+- `U-01` stable Combate compact-reference alignment;
+- `E-05` compact Monedas editors;
+- `L-01` / `C-03` reduced synthetic phone-first bottom whitespace;
+- `D-01` / `E-01` visible active drag feedback across reorder surfaces;
+- `E-02` compact semantic Equipo actions;
+- `E-03` preserved approved accessible drag-handle interaction rather than silently changing to handle-free row dragging;
+- `R-01` clearer Rasgos usage wording;
+- `S-01` numeric keypad for spell level `Nivel (0-9)`;
+- `T-01` product-facing `Quick Magic` terminology replaced by `Lanzamiento de Conjuros`;
+- `N-02` bounded long Notes editors with scrolling affordance;
+- `N-03` deterministic two-column titled Notes in wide/landscape layouts.
+
+## 4. Correction candidate automated verification
+
+Standard correction-candidate workflow:
+
+- workflow run: `33710347091`;
+- tested commit: `6ae415d8919efb865d7b22092d95b94b3fa7866a`;
+- conclusion: **PASS**;
+- full shared Kotlin/SQLDelight suite: **PASS**;
+- schema migration/persistence coverage including `B-01`: **PASS**;
+- Android debug assembly: **PASS**;
+- Desktop build: **PASS**;
+- backend install/type-check: **PASS**;
+- APK upload: **PASS**.
+
+Correction APK identity:
+
 - artifact name: `dnd-custom-aid-debug-apk`;
-- artifact ZIP digest: `sha256:4836f5b1fe1b9ae8cb11bdb6b61231782a2a474377afb4f9e27a347288d0f194`;
-- extracted APK SHA-256 verified at handoff: `35dd06c7fda8848a3cf6c45bd96a914d066ddebecd39fde9eb13104a8691dc48`.
+- artifact ID: `9876725270`;
+- artifact digest: `sha256:ca0bf1a9...777bd2` (full value retained in the correction-candidate handoff);
+- extracted APK SHA-256: `7eb0543a...5b9` (full value retained in the correction-candidate handoff).
 
-This exact APK is the owner acceptance target. A later promoted-head APK exists as durability evidence but does not replace the designated QA artifact.
+The later commit `7bf76f9faa5f39463c05c498abb24a69bb8c260c` records that artifact identity and does not change application behavior.
 
-## 3. Automated regression state
+Automated success does **not** establish real-device visual, IME, Back-navigation, drag, touch-target, orientation, or migration acceptance.
 
-Gate L passed:
+## 5. Focused owner real-device retest — exact next action
 
-- backend type-check;
-- full shared Kotlin/SQLDelight suite;
-- existing migration/data-preservation tests;
-- holistic `CharacterPhase4FinalRegressionTest` with representative legacy/run-#180 and all new Phase 4 domains persisted together across a real SQLite close/reopen;
-- Android debug assembly;
-- desktop build;
-- APK upload.
+Use the correction APK identified above and execute the focused correction retest. The intended order is:
 
-Automated success does **not** establish real-device visual, IME, drag, touch-target or orientation acceptance.
+1. **Migration/data-preservation smoke** — prior character/campaign data survives; new `Raza` and `Religión / Fe` fields initialize empty on migrated data.
+2. **Android Back hierarchy (`N-01`)** — PC Settings → character editor → character list → campaigns; only root exits normally; repeat with IME open.
+3. **Combate** — Check 12A alignment at normal + larger text scale; 12B action reachability with IME; outside-tap keyboard dismissal without draft loss; spacing and drag feedback.
+4. **Equipo** — Check 13B ordinary/special editor IME reachability; 13C compact Monedas in portrait/landscape with custom currency; action compactness and drag feedback.
+5. **Trasfondo `B-01`** — enter `Raza` and `Religión / Fe`, save, reopen, rotate/recreate, verify exact persistence.
+6. **Rasgos** — usage wording, Spend/Recover regression, reorder feedback/persistence, landscape layout.
+7. **Conjuros** — `Lanzamiento de Conjuros` terminology, numeric spell-level keypad, reorder feedback, shared slot synchronization/persistence.
+8. **Notas** — long-text scrolling, portrait/landscape, wide two-column titled notes, reorder/save/reopen, keyboard/rotation.
+9. **Final resilience smoke** — tab switching, screen off/on, full app reopen, rotation with in-progress edits, spellcasting OFF/ON hide-not-delete, sampled icon touch/meaning.
 
-## 4. Current product state
+Record any failure against the exact finding/component. Do not restart Phase 4 from scratch.
 
-The Android V4 character editor supports:
+## 6. Current product implementation state
+
+The Phase 4 Android V4 character editor currently includes:
 
 - General;
 - Habilidades;
@@ -80,49 +144,52 @@ The Android V4 character editor supports:
 - Rasgos;
 - conditional Conjuros;
 - Notas;
-- full-screen PC Settings with character-wide spellcaster visibility.
+- full-screen PC Settings with character-wide spellcasting visibility.
 
-Spellcasting supports stable class-linked/custom sources, conceptual multi-source spells, source-specific prepared state, search/manual ordering and one shared Quick Magic/Conjuros spell-slot state.
+The implementation includes persistent character data, migration coverage, spellcasting sources/spells/prepared state/shared slots, Notes, Trasfondo/Rasgos ownership models, responsive/accessibility work, and the owner-QA correction set summarized above.
 
-Notas supports unrestricted general notes plus ordered titled cards. Trasfondo and Rasgos use their approved ownership models.
+This is substantially newer than several root/core documentation files that still describe the earlier Phase 3/scaffold state.
 
-Responsive/accessibility integration through K includes the 80/90/100/115/130% supported scales, horizontally scrollable single-line navigation, selected Conjuros source visibility, bounded long source labels, two-column Habilidades-by-attribute on narrow layouts, responsive wide layouts, protected editor dismissal, semantic drawn icon controls in corrected surfaces and 48 dp reorder targets.
+## 7. Known continuity / governance drift still pending
 
-## 5. Owner phone-QA scope
+This recovery verified that several long-lived project documents still contain Phase 3/scaffold-era status prose, including portions of:
 
-The authoritative test has 42 numbered checks grouped into:
+- `README.md`;
+- `AGENTS.md` current-stage section;
+- `MANIFEST.md` implemented-area descriptions;
+- `docs/ARCHITECTURE.md` current-status/implementation consequence prose;
+- `docs/TESTING.md` current-status emphasis.
 
-1. migration/data preservation;
-2. navigation + PC Settings;
-3. run-#180 corrective backlog;
-4. Trasfondo;
-5. Rasgos;
-6. Conjuros;
-7. Notas;
-8. final resilience/accessibility.
+`docs/ROADMAP.md` already identifies Phase 4 as current, but its character-slice description predates much of the later implemented expansion.
 
-Real-device coverage includes 80/90/100/115/130% text scale, portrait/landscape, real keyboard behavior, drag/reorder feel, navigation visibility, app close/reopen, recreation/state preservation, spellcaster hide/show preservation and icon/touch-target usability.
+This factual continuity drift must be reconciled before an eventual merge proposal, but it does **not** require changing the already-green correction code before focused owner retest.
 
-Record each check as PASS, FAIL/blocking, or limitation/non-blocking.
+There is also a separate debug-signing governance wording contradiction to resolve before merge: CI deliberately reconstructs a stable development-only debug signing identity for update-in-place migration testing, while older broad repository rules prohibit committing signing-key material. Do not silently choose a new governance convention or expose/reproduce key material. Resolve the wording/policy explicitly before merge.
 
-## 6. Merge/defect boundary
+## 8. Merge / cleanup boundary
 
-Phase 4 may be proposed as a merge candidate only after:
+The correction candidate is **not yet owner-accepted**.
 
-- owner phone QA is complete;
+Do not:
+
+- merge Phase 4 to `main`;
+- declare Phase 4 complete/accepted;
+- delete tmp/historical branches;
+- silently patch the tested candidate after owner acceptance;
+- treat green CI as a substitute for the focused phone retest.
+
+Phase 4 may be proposed for merge only after:
+
+- focused owner phone retest completes;
 - no unresolved blocking defect remains;
-- known non-blocking limitations are recorded;
-- the exact accepted commit/APK remains identified.
+- remaining limitations are explicitly accepted/deferred where needed;
+- continuity documentation drift is reconciled;
+- debug-signing governance wording is reconciled;
+- the exact accepted commit/APK remains identified;
+- the owner explicitly approves the merge.
 
-If QA finds a blocker, fix it on a focused non-`main` branch, rerun the appropriate automated gate and issue a new QA target. Do not silently patch the accepted candidate.
+## 9. Exact continuation rule
 
-## 7. Next exact action
+**Next project action: perform the focused owner real-device correction retest against artifact `9876725270`.**
 
-Next session:
-
-1. read this file;
-2. read `docs/handoffs/2026-09-01_PHASE4_OWNER_QA_CONTINUITY_CHECKPOINT.md`;
-3. read `docs/handoffs/2026-09-01_INCREMENT_L_PHONE_QA_TARGET.md`;
-4. confirm repository refs have not moved unexpectedly;
-5. install/open the designated QA APK;
-6. begin owner phone QA at check 1 and record findings durably.
+If it passes, proceed to continuity/governance reconciliation and prepare a merge proposal for explicit owner approval. If it fails, create a focused non-`main` correction for the exact failed finding, rerun the appropriate automated gate, identify a new APK, and retest only the affected/regression scope.
