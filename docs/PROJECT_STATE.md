@@ -5,19 +5,20 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; **Batch C active**  
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; **Batch D active**  
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md` — completed B2 gate and exact continuation into C;
-2. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
-3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2B_PERSISTENCE.md` — completed schema-7 persistence gate;
-4. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2A_SCHEMA_DOMAIN.md` — completed schema/domain gate;
-5. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
-6. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
-7. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
-8. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_C_PC_SETTINGS.md` — completed C gate and exact continuation into Gestión;
+2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md` — completed B2 gate;
+3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
+4. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2B_PERSISTENCE.md` — completed schema-7 persistence gate;
+5. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2A_SCHEMA_DOMAIN.md` — completed schema/domain gate;
+6. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
+7. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
+8. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
+9. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
 
 ## 1. Closure scope status
 
@@ -158,7 +159,7 @@ Implemented foundations:
 - case/accent-insensitive search and immutable filter/query state;
 - reusable count/search/filter/sort toolbar;
 - reusable lifted/translated drag surface and insertion indicator;
-- configurable semantic haptic hook, ready for the persisted PC setting to be wired in C;
+- configurable semantic haptic hook;
 - derived `Cambios sin guardar` state based on actual draft-versus-stored content;
 - unsaved-leave guard: `Guardar` / `Descartar` / `Seguir editando`;
 - context-preserving parent-owned state contract for later list-heavy domains;
@@ -175,30 +176,67 @@ All controlling runs include backend, shared/Kotlin tests, Android debug assembl
 
 **B2 gate is closed GREEN.**
 
-## 7. Current batch — C PC Settings
+## 7. Batch C — PC Settings consolidation — GREEN
 
-Goal: consolidate durable character-wide settings without moving application-wide preference ownership into the character model.
+Controlling checkpoint:
 
-Already verified before C implementation:
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_C_PC_SETTINGS.md`.
 
-- schema-7 `CharacterClosureState` already persists `progressMode`, `experiencePoints`, `milestoneProgress`, `tableModeEnabled`, `hapticsEnabled` and module overrides;
-- `CharacterClosureRepository.state(characterId)` / `saveState(characterId, state)` is the existing persistence boundary;
-- therefore those controls do not require a new schema migration;
-- application-wide theme/font/text preferences remain owned by the existing `UiPreferences` / global settings surface;
-- PC Settings should expose an entry that opens that existing application-settings surface rather than duplicating it.
+Implemented:
 
-Batch C implementation targets:
+- lifecycle status moved from General to PC Settings;
+- spellcaster hide-not-delete behavior retained;
+- persisted haptic preference and real Notes/Combat drag haptics;
+- Table/read-only preference configuration;
+- XP/Milestone mode + progress values;
+- conditional module auto-suggestions + manual visibility overrides;
+- application-settings entry reusing existing global preference ownership;
+- responsive PC Settings layout;
+- experimental Supercompact operational projection;
+- Back hierarchy `Supercompact -> PC Settings -> editor -> character list`;
+- class/subclass rules/source/catalog identity now survives editor save/recreation instead of being silently erased.
 
-- lifecycle status moved/consolidated into PC Settings;
-- haptics setting;
-- Table/read-only setting;
-- XP/Milestone progress mode and values;
-- conditional module overrides;
-- existing spellcasting hide-not-delete setting;
-- `Configuración de la aplicación` navigation entry to the existing global settings UI;
-- correct Back hierarchy and context preservation.
+Verification:
 
-## 8. Existing baseline that must not regress
+- shared module foundation workflow `33795174781` — PASS;
+- controlling full C workflow `33796586608` — PASS;
+- tested head `d8116353f96f0fc32e99ac3a5e4a1084c4b3b02b`;
+- backend PASS;
+- shared/Kotlin tests + SQLDelight PASS;
+- Android debug assembly PASS;
+- Desktop build PASS;
+- APK upload PASS.
+
+Full Table-mode edit suppression and Favorite/direct-action Supercompact behavior remain intentionally assigned to I2.
+
+**Batch C gate is closed GREEN.**
+
+## 8. Current batch — D Gestión live maintenance
+
+Goal: add the approved live character-maintenance surface without duplicating authoritative state.
+
+Ownership already confirmed:
+
+- `CharacterClosureState`: Conditions, Exhaustion, Concentration, recovery metadata, temporary effects and reconciliation checkpoints;
+- `CharacterSheet`: generic Resources, Inspiration, death saves, HP and class hit-dice;
+- Gestión must project/edit those values rather than create parallel copies.
+
+Batch D targets:
+
+- Conditions + Exhaustion;
+- Concentration current effect/spell reference;
+- generic Resources with one-tap spend/recover and exact editing;
+- Short/Long Rest assistant with preview + selective apply only;
+- custom/manual recovery descriptions supported;
+- temporary effects/bonuses;
+- reconciliation checkpoint creation/view;
+- death saves surfaced here and/or Combat when relevant;
+- Inspiration operational control where useful;
+- relevant hit-die/resource recovery without duplicate authoritative data.
+
+No automatic legality/rules enforcement is permitted.
+
+## 9. Existing baseline that must not regress
 
 The Phase 4 character implementation already contains persistent:
 
@@ -209,13 +247,14 @@ The Phase 4 character implementation already contains persistent:
 - Rasgos;
 - conditional Conjuros with sources/prepared/shared slots;
 - Notas;
-- PC Settings spellcasting hide-not-delete behavior;
+- consolidated PC Settings;
+- experimental Supercompact projection;
 - D-0046 derived values/adjustments;
 - SQLDelight migrations/persistence tests;
 - schema-6 class/subclass/proficiency/resource/form/companion foundation;
 - schema-7 closure persistence under A2.
 
-## 9. Final acceptance boundary
+## 10. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity.
 
@@ -229,7 +268,7 @@ Owner acceptance matrix must include:
 
 Green CI never substitutes for real-device IME/drag/layout/tablet QA.
 
-## 10. Merge boundary
+## 11. Merge boundary
 
 Do not merge Phase 4 to `main` until:
 
@@ -241,8 +280,8 @@ Do not merge Phase 4 to `main` until:
 - final continuity/governance housekeeping is complete;
 - owner explicitly approves merge/closure.
 
-## 11. Exact continuation
+## 12. Exact continuation
 
-Resume **Batch C — PC Settings** on `implementation/phase4-character-closure`.
+Resume **Batch D — Gestión live character maintenance** on `implementation/phase4-character-closure`.
 
-Wire the existing persisted `CharacterClosureState` through `CharacterClosureRepository`, preserve application-wide preference ownership, verify save/reopen/Back behavior, and checkpoint C before beginning D.
+Build/test pure rest/recovery operations first, then wire the Gestión surface over existing core + closure repositories. Rest must preview proposed changes and apply only explicitly selected operations. Checkpoint D before beginning E.
