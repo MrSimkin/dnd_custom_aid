@@ -57,6 +57,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
@@ -299,9 +300,18 @@ internal fun CharacterEditorScreenV4(
             noteCards = notes.cards,
         )
         stored = repository.saveCharacter(integrated)
+        val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
+        val prunedQuickAccess = closureState.quickAccess
+            .filter { reference ->
+                reference.kind != CharacterQuickAccessKind.TRAIT || reference.targetId in liveTraitIds
+            }
+            .mapIndexed { index, reference -> reference.copy(sortOrder = index) }
         closureState = closureRepository.saveState(
             characterId,
-            closureState.copy(inventoryUsage = equipment.inventoryUsage),
+            closureState.copy(
+                inventoryUsage = equipment.inventoryUsage,
+                quickAccess = prunedQuickAccess,
+            ),
         )
         draft = CharacterEditorDraftV4.from(stored)
         combatDraftJson = combatEntriesToJsonV4(stored.combatEntries)
@@ -493,10 +503,14 @@ internal fun CharacterEditorScreenV4(
                             onBackgroundChange = ::updateBackground,
                             wide = wide,
                         )
-                        CharacterTabV4.TRAITS -> CharacterTraitsTabV4(
+                        CharacterTabV4.TRAITS -> CharacterTraitsClosureTabV4(
                             traits = traitsDraft,
+                            closureState = closureState,
+                            persistedTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id },
                             onTraitsChange = ::updateTraits,
+                            onClosureStateChange = ::persistClosureState,
                             wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
                         )
                         CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
                             draft = spellcastingDraft,
