@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,6 +23,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -30,13 +33,13 @@ import androidx.compose.ui.window.DialogProperties
  * Reusable character editor dialog for Phase 4 closure.
  *
  * The dialog owns IME/navigation insets. Only the editable body scrolls; the action row remains
- * reachable above the keyboard. Dismissing the keyboard does not dismiss the editor or discard
- * its draft. The caller remains the owner of Save/Cancel semantics.
+ * reachable above the keyboard. Back/outside dismissal clears keyboard focus instead of discarding
+ * the editor draft. Only the explicit Cancel action leaves the editor without saving.
  */
 @Composable
 internal fun CharacterImeSafeEditorDialog(
     title: String,
-    onDismissRequest: () -> Unit,
+    onCancel: () -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
     saveLabel: String = "Guardar",
@@ -45,8 +48,10 @@ internal fun CharacterImeSafeEditorDialog(
     supportingText: String? = null,
     content: @Composable () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+
     Dialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = { focusManager.clearFocus() },
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         BoxWithConstraints(
@@ -54,6 +59,9 @@ internal fun CharacterImeSafeEditorDialog(
                 .fillMaxSize()
                 .imePadding()
                 .navigationBarsPadding()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { focusManager.clearFocus() })
+                }
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
@@ -98,7 +106,7 @@ internal fun CharacterImeSafeEditorDialog(
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        TextButton(onClick = onDismissRequest) {
+                        TextButton(onClick = onCancel) {
                             Text(cancelLabel)
                         }
                         Button(
