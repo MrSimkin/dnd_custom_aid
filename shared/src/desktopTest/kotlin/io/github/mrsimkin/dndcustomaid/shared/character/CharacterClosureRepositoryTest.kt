@@ -281,7 +281,7 @@ class CharacterClosureRepositoryTest {
             val driver = JdbcSqliteDriver(jdbcUrl)
             AppDatabase.Schema.migrate(
                 driver = driver,
-                oldVersion = 7,
+                oldVersion = 8,
                 newVersion = AppDatabase.Schema.version,
             )
             driver.close()
