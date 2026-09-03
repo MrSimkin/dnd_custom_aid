@@ -3,7 +3,7 @@
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
 **Canonical `main`:** untouched  
-**Status:** persistence implementation + regression suite present; compile repair committed; final A2 gate pending
+**Status:** **GREEN / COMPLETE** — full A2 schema/persistence gate closed; B1 may proceed
 
 ## Prerequisite
 
@@ -84,7 +84,7 @@ This preserves the intended stale-reference filtering without weakening schema c
 
 ## Regression suite
 
-Test commit already present:
+Test commit:
 
 - `ee0cdeae9341a3818fe0e704eb543832d7c214c4`.
 
@@ -101,18 +101,22 @@ Test commit already present:
 - permissive custom/OTHER Quick Access target;
 - additive schema-7 migration creates closure tables while preserving the pre-existing character row.
 
-## Gate status
+## Final A2 verification
 
-Do not close A2 until a workflow descendant containing both:
+Controlling repaired run:
 
-- persistence repair `7f63e6be2ccdbb584152057a75887a2f74a658e9`;
-- regression tests `ee0cdeae9341a3818fe0e704eb543832d7c214c4`
+- workflow `33787986897`;
+- tested head `7f63e6be2ccdbb584152057a75887a2f74a658e9`;
+- this head includes regression-test commit `ee0cdeae9341a3818fe0e704eb543832d7c214c4`;
+- backend type-check: PASS;
+- shared Kotlin compilation/tests: PASS;
+- SQLDelight generation/compilation: PASS;
+- Android debug assembly: PASS;
+- Desktop build: PASS;
+- debug APK artifact upload: PASS.
 
-passes shared tests, SQLDelight generation, Android debug assembly, Desktop build and backend type-check.
+**Full Batch A2 is GREEN.** Schema 7 and its persistence boundary are now the verified foundation for the Android closure work.
 
 ## Exact next action
 
-1. Read CI for the repaired head.
-2. If compiler errors remain, repair the concrete generated-signature mismatch and update this checkpoint.
-3. If tests fail, diagnose and repair A2b without advancing scope.
-4. If full A2 gate passes, update `docs/PROJECT_STATE.md` to A2 GREEN and begin Batch B1 — global IME/editor/action foundation.
+Begin **Batch B1 — global IME/editor/action foundation**. Establish one reusable IME-aware editor/dialog pattern and consistent action/destructive/validation primitives, then migrate existing character editors incrementally. Do not begin B2 until B1 receives its own checkpoint/gate.
