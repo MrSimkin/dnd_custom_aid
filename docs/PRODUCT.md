@@ -336,14 +336,16 @@ Combat working state does not automatically mutate persistent player character s
 
 ### Explicit first-scope exclusions
 
-- death-save tracking;
-- forced tracking of player spell slots/class resources;
+- death-save tracking as mandatory DM combat bookkeeping;
+- forced tracking of player spell slots/class resources by the DM combat tracker;
 - automatic attack/damage resolution;
 - automatic rules enforcement;
 - movement/position/VTT tracking;
-- automatic persistent inventory/resource consumption;
+- automatic combat-to-persistent-character-sheet inventory/resource consumption;
 - combat-history analytics/logging;
 - seamless concurrent multi-device DM combat editing.
+
+The Phase 4 character-sheet closure may now track death saves, resources, conditions, concentration, consumables and similar **character-sheet state** under D-0047. This does not supersede the separate rule above that the future DM combat tracker does not force those values as DM-maintained combat bookkeeping or automatically mutate the durable sheet.
 
 ## 13. NPC and monster administration
 
@@ -473,7 +475,7 @@ Offline support is selective: character/local preparation/combat/PDF workflows r
 - house-rule-aware rules clarification/reusable house-rule library;
 - sophisticated NPC/monster generator;
 - AI creature creation;
-- advanced import/paste parsing;
+- advanced third-party character import/paste parsing;
 - co-DMs within the same campaign;
 - combat-history analytics;
 - automated combat resolution;
@@ -489,23 +491,121 @@ Offline support is selective: character/local preparation/combat/PDF workflows r
 
 ## 18. Current remaining product/technical work
 
-The original discovery clarification rounds and the final pre-merge product-tension pass are complete. The latter explicitly resolved:
+The foundational product and architecture decisions remain in force. Phase 4 has now expanded into an owner-approved character-foundation closure build under D-0047 before the project moves into the DM-focused combat stage.
 
-- Android live use vs desktop administration boundaries;
-- multicampaign MVP scope;
-- mixed/homebrew campaign freedom vs SRD-only MVP clarification;
-- complete monster stat blocks vs selective machine structure;
-- paper live authority vs durable digital character state;
-- local-first authoritative DM combat vs hosted shared data;
-- campaign moderation vs application-wide account administration;
-- campaign invitation/rejoin semantics.
+The closure implementation must remain proportional: the owner has intentionally approved a substantial final PC-sheet pass, but the result is still an assistant/backup/reference application rather than a legality engine or VTT.
 
-No additional product-level contradiction or unresolved behavioral tension remains from the final audit pass.
-
-The foundational Phase 2 architecture/technology choices are owner-approved under D-0034 through D-0043. The pre-main proportionality audit further clarified those existing choices without introducing a new architecture layer: player offline combat state is tiny and ephemeral, Desktop uses Save+Sync, DM combat does not pre-build authority generations, ordinary HTTP precedes realtime infrastructure, provider code is localized without abstraction-framework ceremony, and offline support is selective.
-
-After the documentation consolidation/contradiction sweep is complete, the remaining gate before implementation scaffolding is owner-authorized merge of the architecture branch into canonical `main`.
+Current exact continuation is recorded in `docs/PROJECT_STATE.md` and `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_SCOPE_APPROVED_AND_AUDITED.md`.
 
 ## 19. Discovery source material
 
-Detailed exploratory history lives under `docs/discovery/`, including `2026-08-29_CLARIFICATIONS_03.md` and `2026-08-29_TENSION_RESOLUTIONS.md`. Discovery files preserve rationale and examples but do not override this approved product definition or `docs/DECISIONS.md`.
+Detailed exploratory history lives under `docs/discovery/`. Discovery files preserve rationale and examples but do not override this approved product definition or `docs/DECISIONS.md`.
+
+## 20. Phase 4 character-foundation closure expansion
+
+D-0047 approves one substantial final character-stage build before the DM stage.
+
+### 20.1 Character data/workflow expansion
+
+The PC sheet will add or formalize:
+
+- structured class + subclass identity with D&D 5e / D&D 5.5e / Custom/source provenance;
+- official catalog conveniences including Artificer and supplemental official subclasses while preserving manual/custom entry;
+- conditions and Exhaustion;
+- resistances, immunities and vulnerabilities;
+- senses and special movement modes;
+- concentration state;
+- generic reusable class/subclass/homebrew resources;
+- consumable/ammunition quantity support;
+- inventory containers/locations;
+- optional portrait/token;
+- reconciliation checkpoints;
+- own-format local character backup/import;
+- XP or Milestone progress mode;
+- custom skills;
+- structured languages/proficiencies/training;
+- Favorite/Quick Access metadata;
+- Table/read-only mode;
+- simple dice rolling without automatic rules resolution;
+- temporary session effects;
+- death-save controls surfaced when relevant;
+- improved passive references, HP interactions, Equipment summaries/filters, Trait grouping/meters, Spell badges/filters/collapse behavior, Note previews, Background presentation, character-list freshness and unsaved-change protection.
+
+### 20.2 General management surface
+
+A new general character-management surface is approved with working Spanish label **`Gestión`**. It groups active upkeep such as conditions/Exhaustion, Concentration, Rest assistance, generic resources, reconciliation checkpoints and temporary effects.
+
+This is distinct from PC Settings: `Gestión` changes/maintains character state; PC Settings configures how the character/sheet behaves.
+
+### 20.3 PC Settings expansion
+
+PC Settings becomes the home for character-wide configuration including:
+
+- lifecycle status;
+- spellcasting visibility;
+- conditional module visibility/overrides using hide-not-delete semantics;
+- configurable haptic feedback;
+- Supercompact access/configuration;
+- Table/read-only mode;
+- XP/Milestone presentation mode where applicable;
+- access to global App Settings.
+
+### 20.4 Conditional class/subclass modules
+
+The class/subclass audit favors reusable conditional domains rather than one permanent tab per class/subclass:
+
+- Artífice / Artifice;
+- Formas / Forms;
+- Técnicas / Techniques;
+- Metamagia / Metamagic;
+- Pactos / Pacts;
+- Compañeros / Companions.
+
+Multiclass characters receive the union of relevant modules. Manual override keeps custom/homebrew options representable. Hiding a module does not delete its data.
+
+Detailed audit: `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md`.
+
+### 20.5 Interaction/design system
+
+The closure pass standardizes:
+
+- app-wide keyboard/IME-safe actions;
+- one add/edit/delete interaction language;
+- progressive disclosure;
+- rows for simple objects, cards for richer objects, panels for groups;
+- source/state badges;
+- contextual search/filter/add toolbars;
+- appropriate compact vs full editors;
+- inline validation;
+- explicit destructive confirmations;
+- useful empty states;
+- sticky grouped headers where useful;
+- configurable haptic feedback;
+- persistent saved/unsaved indication;
+- preservation of parent navigation/list/search/filter/sort context wherever technically feasible;
+- defined compact spacing hierarchy;
+- stronger visual priority for live operational data.
+
+### 20.6 Supercompact view
+
+The experimental `Vista supercompacta` is an operational projection of existing character data plus Favorites/Quick Access, not a duplicate data model.
+
+It is deliberately part of owner QA. It should use substantially more useful columns on wide/tablet surfaces while remaining usable on phone. The owner may request visual/density changes after QA without invalidating the underlying character data design.
+
+### 20.7 Phone and tablet are both closure targets
+
+The closure APK must be manually evaluated in at least:
+
+- phone portrait;
+- phone landscape;
+- tablet portrait;
+- tablet landscape;
+- representative larger text scale where practical.
+
+Responsive layouts use available window width rather than a brittle fixed `tablet = N columns` rule. Wide/tablet surfaces may use navigation rails, more columns and master-detail editing. Phone remains fully functional and compact.
+
+### 20.8 Boundary with the DM stage
+
+Several closure fields are deliberately reusable by the future DM quick view—portrait, class/subclass, AC/HP/saves, defenses, senses/movement, conditions/concentration reference, Favorites and companions—but durable character state remains separate from live combat working state.
+
+The purpose of this closure is to leave a strong reusable PC foundation and then begin the DM stage, not to postpone the DM stage until every conceivable future player feature exists.
