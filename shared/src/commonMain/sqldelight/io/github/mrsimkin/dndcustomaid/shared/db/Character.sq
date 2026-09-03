@@ -117,6 +117,8 @@ CREATE TABLE character_background (
     character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
     background_name TEXT NOT NULL DEFAULT '',
     summary TEXT NOT NULL DEFAULT '',
+    race TEXT NOT NULL DEFAULT '',
+    religion_faith TEXT NOT NULL DEFAULT '',
     personality_traits TEXT NOT NULL DEFAULT '',
     ideals TEXT NOT NULL DEFAULT '',
     bonds TEXT NOT NULL DEFAULT '',
@@ -339,12 +341,12 @@ WHERE character_id = ?;
 
 upsertCharacterBackground:
 INSERT OR REPLACE INTO character_background(
-    character_id, background_name, summary, personality_traits, ideals, bonds, flaws, story
+    character_id, background_name, summary, race, religion_faith, personality_traits, ideals, bonds, flaws, story
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectCharacterBackground:
-SELECT character_id, background_name, summary, personality_traits, ideals, bonds, flaws, story
+SELECT character_id, background_name, summary, race, religion_faith, personality_traits, ideals, bonds, flaws, story
 FROM character_background
 WHERE character_id = ?;
 

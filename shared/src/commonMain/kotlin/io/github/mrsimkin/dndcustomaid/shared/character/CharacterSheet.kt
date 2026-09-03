@@ -147,6 +147,8 @@ data class CharacterCurrency(
 data class CharacterBackground(
     val name: String = "",
     val summary: String = "",
+    val race: String = "",
+    val religionFaith: String = "",
     val personalityTraits: String = "",
     val ideals: String = "",
     val bonds: String = "",

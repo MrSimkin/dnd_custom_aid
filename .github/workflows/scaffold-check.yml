@@ -1,109 +1,47 @@
-name: Phase 4 correction B bootstrap
+name: Scaffold checks
 
 on:
   push:
-
-permissions:
-  contents: write
+  pull_request:
 
 jobs:
-  apply-correction-b:
-    if: github.ref == 'refs/heads/implementation/character-data-foundation' && contains(github.event.head_commit.message, '[apply-correction-b]')
+  kotlin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: implementation/character-data-foundation
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36"
+          log-accepted-android-sdk-licenses: "false"
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
-      - name: Apply B-01 persisted background identity fields
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+      - name: Build and test Kotlin surfaces
+        run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: dnd-custom-aid-debug-apk
+          path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          if-no-files-found: error
 
-          def replace(path, old, new, count=1):
-              p = Path(path)
-              text = p.read_text()
-              actual = text.count(old)
-              if actual != count:
-                  raise SystemExit(f"{path}: expected {count} matches, found {actual} for {old[:100]!r}")
-              p.write_text(text.replace(old, new, count))
-
-          replace('shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterSheet.kt', 'data class CharacterBackground(\n    val name: String = "",\n    val summary: String = "",\n    val personalityTraits: String = "",\n', 'data class CharacterBackground(\n    val name: String = "",\n    val summary: String = "",\n    val race: String = "",\n    val religionFaith: String = "",\n    val personalityTraits: String = "",\n')
-          replace('shared/src/commonMain/sqldelight/io/github/mrsimkin/dndcustomaid/shared/db/Character.sq', "    background_name TEXT NOT NULL DEFAULT '',\n    summary TEXT NOT NULL DEFAULT '',\n    personality_traits TEXT NOT NULL DEFAULT '',\n", "    background_name TEXT NOT NULL DEFAULT '',\n    summary TEXT NOT NULL DEFAULT '',\n    race TEXT NOT NULL DEFAULT '',\n    religion_faith TEXT NOT NULL DEFAULT '',\n    personality_traits TEXT NOT NULL DEFAULT '',\n")
-          replace('shared/src/commonMain/sqldelight/io/github/mrsimkin/dndcustomaid/shared/db/Character.sq', 'INSERT OR REPLACE INTO character_background(\n    character_id, background_name, summary, personality_traits, ideals, bonds, flaws, story\n)\nVALUES (?, ?, ?, ?, ?, ?, ?, ?);\n\nselectCharacterBackground:\nSELECT character_id, background_name, summary, personality_traits, ideals, bonds, flaws, story\n', 'INSERT OR REPLACE INTO character_background(\n    character_id, background_name, summary, race, religion_faith, personality_traits, ideals, bonds, flaws, story\n)\nVALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);\n\nselectCharacterBackground:\nSELECT character_id, background_name, summary, race, religion_faith, personality_traits, ideals, bonds, flaws, story\n')
-          Path('shared/src/commonMain/sqldelight/io/github/mrsimkin/dndcustomaid/shared/db/5.sqm').write_text("ALTER TABLE character_background ADD COLUMN race TEXT NOT NULL DEFAULT '';\nALTER TABLE character_background ADD COLUMN religion_faith TEXT NOT NULL DEFAULT '';\n")
-          replace('shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterRepository.kt', '                background_name = sheet.background.name,\n                summary = sheet.background.summary,\n                personality_traits = sheet.background.personalityTraits,\n', '                background_name = sheet.background.name,\n                summary = sheet.background.summary,\n                race = sheet.background.race,\n                religion_faith = sheet.background.religionFaith,\n                personality_traits = sheet.background.personalityTraits,\n')
-          replace('shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterRepository.kt', '        val background = database.characterQueries.selectCharacterBackground(core.id.toString()) {\n                _, name, summary, personalityTraits, ideals, bonds, flaws, story ->\n            CharacterBackground(\n                name = name,\n                summary = summary,\n                personalityTraits = personalityTraits,\n', '        val background = database.characterQueries.selectCharacterBackground(core.id.toString()) {\n                _, name, summary, race, religionFaith, personalityTraits, ideals, bonds, flaws, story ->\n            CharacterBackground(\n                name = name,\n                summary = summary,\n                race = race,\n                religionFaith = religionFaith,\n                personalityTraits = personalityTraits,\n')
-          replace('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundDraftCodecV4.kt', '        .put("name", background.name)\n        .put("summary", background.summary)\n        .put("personalityTraits", background.personalityTraits)\n', '        .put("name", background.name)\n        .put("summary", background.summary)\n        .put("race", background.race)\n        .put("religionFaith", background.religionFaith)\n        .put("personalityTraits", background.personalityTraits)\n')
-          replace('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundDraftCodecV4.kt', '        name = json.optString("name", ""),\n        summary = json.optString("summary", ""),\n        personalityTraits = json.optString("personalityTraits", ""),\n', '        name = json.optString("name", ""),\n        summary = json.optString("summary", ""),\n        race = json.optString("race", ""),\n        religionFaith = json.optString("religionFaith", ""),\n        personalityTraits = json.optString("personalityTraits", ""),\n')
-          replace('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt', '                    OutlinedTextField(\n                        value = background.summary,\n                        onValueChange = { onBackgroundChange(background.copy(summary = it)) },\n                        modifier = Modifier.fillMaxWidth(),\n                        label = { Text("Descripción / resumen") },\n                        minLines = 2,\n                    )\n', '                    if (wide) {\n                        Row(\n                            modifier = Modifier.fillMaxWidth(),\n                            horizontalArrangement = Arrangement.spacedBy(7.dp),\n                        ) {\n                            OutlinedTextField(\n                                value = background.race,\n                                onValueChange = { onBackgroundChange(background.copy(race = it)) },\n                                modifier = Modifier.weight(1f),\n                                label = { Text("Raza") },\n                                singleLine = true,\n                            )\n                            OutlinedTextField(\n                                value = background.religionFaith,\n                                onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },\n                                modifier = Modifier.weight(1f),\n                                label = { Text("Religión / Fe") },\n                                singleLine = true,\n                            )\n                        }\n                    } else {\n                        OutlinedTextField(\n                            value = background.race,\n                            onValueChange = { onBackgroundChange(background.copy(race = it)) },\n                            modifier = Modifier.fillMaxWidth(),\n                            label = { Text("Raza") },\n                            singleLine = true,\n                        )\n                        OutlinedTextField(\n                            value = background.religionFaith,\n                            onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },\n                            modifier = Modifier.fillMaxWidth(),\n                            label = { Text("Religión / Fe") },\n                            singleLine = true,\n                        )\n                    }\n                    OutlinedTextField(\n                        value = background.summary,\n                        onValueChange = { onBackgroundChange(background.copy(summary = it)) },\n                        modifier = Modifier.fillMaxWidth(),\n                        label = { Text("Descripción / resumen") },\n                        minLines = 2,\n                    )\n')
-          replace('shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterPhase4FinalRegressionTest.kt', '                        background = CharacterBackground(\n                            name = "Erudito",\n                            summary = "Investigador",\n                            personalityTraits = "Curioso",\n', '                        background = CharacterBackground(\n                            name = "Erudito",\n                            summary = "Investigador",\n                            race = "Humano",\n                            religionFaith = "Ioun",\n                            personalityTraits = "Curioso",\n')
-          replace('shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterPhase4FinalRegressionTest.kt', '                assertEquals("Erudito", reopened.background.name)\n                assertEquals("Historia persistente de Phase 4.", reopened.background.story)\n', '                assertEquals("Erudito", reopened.background.name)\n                assertEquals("Humano", reopened.background.race)\n                assertEquals("Ioun", reopened.background.religionFaith)\n                assertEquals("Historia persistente de Phase 4.", reopened.background.story)\n')
-          PY
-          echo 'cGFja2FnZSBpby5naXRodWIubXJzaW1raW4uZG5kY3VzdG9tYWlkLnNoYXJlZC5jaGFyYWN0ZXIKCmltcG9ydCBhcHAuY2FzaC5zcWxkZWxpZ2h0LmRyaXZlci5qZGJjLnNxbGl0ZS5KZGJjU3FsaXRlRHJpdmVyCmltcG9ydCBpby5naXRodWIubXJzaW1raW4uZG5kY3VzdG9tYWlkLnNoYXJlZC5jYW1wYWlnbi5DYW1wYWlnblJlcG9zaXRvcnkKaW1wb3J0IGlvLmdpdGh1Yi5tcnNpbWtpbi5kbmRjdXN0b21haWQuc2hhcmVkLmRiLkFwcERhdGFiYXNlCmltcG9ydCBqYXZhLmlvLkZpbGUKaW1wb3J0IGphdmEuc3FsLkRyaXZlck1hbmFnZXIKaW1wb3J0IGtvdGxpbi50ZXN0LlRlc3QKaW1wb3J0IGtvdGxpbi50ZXN0LmFzc2VydEVxdWFscwoKY2xhc3MgQ2hhcmFjdGVyQmFja2dyb3VuZElkZW50aXR5TWlncmF0aW9uVGVzdCB7CiAgICBAVGVzdAogICAgZnVuIG1pZ3JhdGlvbkZyb21QcmVDb3JyZWN0aW9uU2NoZW1hUHJlc2VydmVzQmFja2dyb3VuZEFuZEFkZHNFbXB0eUlkZW50aXR5RmllbGRzKCkgewogICAgICAgIHZhbCBmaWxlID0gRmlsZS5jcmVhdGVUZW1wRmlsZSgiZG5kLWN1c3RvbS1haWQtYmFja2dyb3VuZC1pZGVudGl0eSIsICIuZGIiKQogICAgICAgIGZpbGUuZGVsZXRlKCkKICAgICAgICB2YWwgamRiY1VybCA9ICJqZGJjOnNxbGl0ZToke2ZpbGUuYWJzb2x1dGVQYXRofSIKICAgICAgICB2YWwgY2hhcmFjdGVySWQgPSAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDk5IgoKICAgICAgICB0cnkgewogICAgICAgICAgICBEcml2ZXJNYW5hZ2VyLmdldENvbm5lY3Rpb24oamRiY1VybCkudXNlIHsgY29ubmVjdGlvbiAtPgogICAgICAgICAgICAgICAgY29ubmVjdGlvbi5jcmVhdGVTdGF0ZW1lbnQoKS51c2UgeyBzdGF0ZW1lbnQgLT4KICAgICAgICAgICAgICAgICAgICBzdGF0ZW1lbnQuZXhlY3V0ZVVwZGF0ZSgiQ1JFQVRFIFRBQkxFIGNoYXJhY3RlciAoaWQgVEVYVCBOT1QgTlVMTCBQUklNQVJZIEtFWSkiKQogICAgICAgICAgICAgICAgICAgIHN0YXRlbWVudC5leGVjdXRlVXBkYXRlKAogICAgICAgICAgICAgICAgICAgICAgICAiIiJDUkVBVEUgVEFCTEUgY2hhcmFjdGVyX2JhY2tncm91bmQgKAogICAgICAgICAgICAgICAgICAgICAgICAgICAgY2hhcmFjdGVyX2lkIFRFWFQgTk9UIE5VTEwgUFJJTUFSWSBLRVkgUkVGRVJFTkNFUyBjaGFyYWN0ZXIoaWQpIE9OIERFTEVURSBDQVNDQURFLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgYmFja2dyb3VuZF9uYW1lIFRFWFQgTk9UIE5VTEwgREVGQVVMVCAnJywKICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN1bW1hcnkgVEVYVCBOT1QgTlVMTCBERUZBVUxUICcnLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgcGVyc29uYWxpdHlfdHJhaXRzIFRFWFQgTk9UIE5VTEwgREVGQVVMVCAnJywKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlkZWFscyBURVhUIE5PVCBOVUxMIERFRkFVTFQgJycsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBib25kcyBURVhUIE5PVCBOVUxMIERFRkFVTFQgJycsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBmbGF3cyBURVhUIE5PVCBOVUxMIERFRkFVTFQgJycsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdG9yeSBURVhUIE5PVCBOVUxMIERFRkFVTFQgJycKICAgICAgICAgICAgICAgICAgICAgICAgKSIiIi50cmltSW5kZW50KCksCiAgICAgICAgICAgICAgICAgICAgKQogICAgICAgICAgICAgICAgICAgIHN0YXRlbWVudC5leGVjdXRlVXBkYXRlKCJJTlNFUlQgSU5UTyBjaGFyYWN0ZXIoaWQpIFZBTFVFUyAoJyRjaGFyYWN0ZXJJZCcpIikKICAgICAgICAgICAgICAgICAgICBzdGF0ZW1lbnQuZXhlY3V0ZVVwZGF0ZSgKICAgICAgICAgICAgICAgICAgICAgICAgIiIiSU5TRVJUIElOVE8gY2hhcmFjdGVyX2JhY2tncm91bmQoCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBjaGFyYWN0ZXJfaWQsIGJhY2tncm91bmRfbmFtZSwgc3VtbWFyeSwgcGVyc29uYWxpdHlfdHJhaXRzLCBpZGVhbHMsIGJvbmRzLCBmbGF3cywgc3RvcnkKICAgICAgICAgICAgICAgICAgICAgICAgKSBWQUxVRVMgKAogICAgICAgICAgICAgICAgICAgICAgICAgICAgJyRjaGFyYWN0ZXJJZCcsICdFcnVkaXRvJywgJ1Jlc3VtZW4gcHJldmlvJywgJ0N1cmlvc28nLCAnQ29ub2NpbWllbnRvJywgJ0JpYmxpb3RlY2EnLCAnT2JzZXNpdm8nLCAnSGlzdG9yaWEgcHJldmlhJwogICAgICAgICAgICAgICAgICAgICAgICApIiIiLnRyaW1JbmRlbnQoKSwKICAgICAgICAgICAgICAgICAgICApCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIHZhbCBkcml2ZXIgPSBKZGJjU3FsaXRlRHJpdmVyKGpkYmNVcmwpCiAgICAgICAgICAgIEFwcERhdGFiYXNlLlNjaGVtYS5taWdyYXRlKAogICAgICAgICAgICAgICAgZHJpdmVyID0gZHJpdmVyLAogICAgICAgICAgICAgICAgb2xkVmVyc2lvbiA9IDUsCiAgICAgICAgICAgICAgICBuZXdWZXJzaW9uID0gQXBwRGF0YWJhc2UuU2NoZW1hLnZlcnNpb24sCiAgICAgICAgICAgICkKICAgICAgICAgICAgdmFsIHZhbHVlcyA9IEFwcERhdGFiYXNlKGRyaXZlcikuY2hhcmFjdGVyUXVlcmllcy5zZWxlY3RDaGFyYWN0ZXJCYWNrZ3JvdW5kKGNoYXJhY3RlcklkKSB7CiAgICAgICAgICAgICAgICAgICAgXywgbmFtZSwgc3VtbWFyeSwgcmFjZSwgcmVsaWdpb25GYWl0aCwgcGVyc29uYWxpdHlUcmFpdHMsIGlkZWFscywgYm9uZHMsIGZsYXdzLCBzdG9yeSAtPgogICAgICAgICAgICAgICAgbGlzdE9mKG5hbWUsIHN1bW1hcnksIHJhY2UsIHJlbGlnaW9uRmFpdGgsIHBlcnNvbmFsaXR5VHJhaXRzLCBpZGVhbHMsIGJvbmRzLCBmbGF3cywgc3RvcnkpCiAgICAgICAgICAgIH0uZXhlY3V0ZUFzT25lKCkKCiAgICAgICAgICAgIGFzc2VydEVxdWFscygKICAgICAgICAgICAgICAgIGxpc3RPZigKICAgICAgICAgICAgICAgICAgICAiRXJ1ZGl0byIsCiAgICAgICAgICAgICAgICAgICAgIlJlc3VtZW4gcHJldmlvIiwKICAgICAgICAgICAgICAgICAgICAiIiwKICAgICAgICAgICAgICAgICAgICAiIiwKICAgICAgICAgICAgICAgICAgICAiQ3VyaW9zbyIsCiAgICAgICAgICAgICAgICAgICAgIkNvbm9jaW1pZW50byIsCiAgICAgICAgICAgICAgICAgICAgIkJpYmxpb3RlY2EiLAogICAgICAgICAgICAgICAgICAgICJPYnNlc2l2byIsCiAgICAgICAgICAgICAgICAgICAgIkhpc3RvcmlhIHByZXZpYSIsCiAgICAgICAgICAgICAgICApLAogICAgICAgICAgICAgICAgdmFsdWVzLAogICAgICAgICAgICApCiAgICAgICAgICAgIGRyaXZlci5jbG9zZSgpCiAgICAgICAgfSBmaW5hbGx5IHsKICAgICAgICAgICAgZmlsZS5kZWxldGUoKQogICAgICAgIH0KICAgIH0KCiAgICBAVGVzdAogICAgZnVuIHJlcG9zaXRvcnlSb3VuZFRyaXBQZXJzaXN0c1JhY2VBbmRSZWxpZ2lvbkZhaXRoKCkgewogICAgICAgIHZhbCBkcml2ZXIgPSBKZGJjU3FsaXRlRHJpdmVyKEpkYmNTcWxpdGVEcml2ZXIuSU5fTUVNT1JZKQogICAgICAgIHRyeSB7CiAgICAgICAgICAgIEFwcERhdGFiYXNlLlNjaGVtYS5jcmVhdGUoZHJpdmVyKQogICAgICAgICAgICB2YWwgZGF0YWJhc2UgPSBBcHBEYXRhYmFzZShkcml2ZXIpCiAgICAgICAgICAgIHZhbCBjYW1wYWlnbiA9IENhbXBhaWduUmVwb3NpdG9yeShkYXRhYmFzZSkuY3JlYXRlQ2FtcGFpZ24oIklkZW50aWRhZCIpCiAgICAgICAgICAgIHZhbCByZXBvc2l0b3J5ID0gQ2hhcmFjdGVyUmVwb3NpdG9yeShkYXRhYmFzZSkKICAgICAgICAgICAgdmFsIGNyZWF0ZWQgPSByZXBvc2l0b3J5LmNyZWF0ZUNoYXJhY3RlcihjYW1wYWlnbi5pZCwgIlZhbnlhIikKCiAgICAgICAgICAgIHZhbCBzYXZlZCA9IHJlcG9zaXRvcnkuc2F2ZUNoYXJhY3RlcigKICAgICAgICAgICAgICAgIGNyZWF0ZWQuY29weSgKICAgICAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kID0gY3JlYXRlZC5iYWNrZ3JvdW5kLmNvcHkoCiAgICAgICAgICAgICAgICAgICAgICAgIHJhY2UgPSAiVGllZmxpbmciLAogICAgICAgICAgICAgICAgICAgICAgICByZWxpZ2lvbkZhaXRoID0gIlNpbiBjdWx0byBmb3JtYWwiLAogICAgICAgICAgICAgICAgICAgICksCiAgICAgICAgICAgICAgICApLAogICAgICAgICAgICApCiAgICAgICAgICAgIHZhbCByZW9wZW5lZCA9IHJlcG9zaXRvcnkuY2hhcmFjdGVyKHNhdmVkLmlkKSEhCgogICAgICAgICAgICBhc3NlcnRFcXVhbHMoIlRpZWZsaW5nIiwgcmVvcGVuZWQuYmFja2dyb3VuZC5yYWNlKQogICAgICAgICAgICBhc3NlcnRFcXVhbHMoIlNpbiBjdWx0byBmb3JtYWwiLCByZW9wZW5lZC5iYWNrZ3JvdW5kLnJlbGlnaW9uRmFpdGgpCiAgICAgICAgfSBmaW5hbGx5IHsKICAgICAgICAgICAgZHJpdmVyLmNsb3NlKCkKICAgICAgICB9CiAgICB9Cn0K' | base64 --decode > shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterBackgroundIdentityMigrationTest.kt
-      - name: Validate shared migration and persistence gate
-        run: gradle :shared:desktopTest --stacktrace
-      - name: Restore normal workflow and commit correction B
-        shell: bash
-        run: |
-          cat > .github/workflows/scaffold-check.yml <<'YAML'
-          name: Scaffold checks
-
-          on:
-            push:
-            pull_request:
-
-          jobs:
-            kotlin:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v7
-                - uses: actions/setup-java@v5
-                  with:
-                    distribution: temurin
-                    java-version: "17"
-                - uses: android-actions/setup-android@v4
-                  with:
-                    packages: "platform-tools platforms;android-36"
-                    log-accepted-android-sdk-licenses: "false"
-                - uses: gradle/actions/setup-gradle@v6
-                  with:
-                    gradle-version: "9.5.0"
-                - name: Prepare stable CI debug keystore
-                  run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
-                - name: Build and test Kotlin surfaces
-                  run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
-                - name: Upload Android debug APK
-                  uses: actions/upload-artifact@v7
-                  with:
-                    name: dnd-custom-aid-debug-apk
-                    path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
-                    if-no-files-found: error
-
-            backend:
-              runs-on: ubuntu-latest
-              defaults:
-                run:
-                  working-directory: backend
-              steps:
-                - uses: actions/checkout@v7
-                - uses: actions/setup-node@v4
-                  with:
-                    node-version: "22"
-                - name: Install backend dependencies
-                  run: npm install
-                - name: Type-check Worker
-                  run: npm run check
-          YAML
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterSheet.kt shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterRepository.kt shared/src/commonMain/sqldelight/io/github/mrsimkin/dndcustomaid/shared/db/Character.sq shared/src/commonMain/sqldelight/io/github/mrsimkin/dndcustomaid/shared/db/5.sqm androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundDraftCodecV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterPhase4FinalRegressionTest.kt shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterBackgroundIdentityMigrationTest.kt .github/workflows/scaffold-check.yml
-          git commit -m "feat: persist race and religion faith in background"
-          git push origin HEAD:implementation/character-data-foundation
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install backend dependencies
+        run: npm install
+      - name: Type-check Worker
+        run: npm run check

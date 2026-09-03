@@ -106,6 +106,42 @@ internal fun CharacterBackgroundTabV4(
                         label = { Text("Nombre del trasfondo") },
                         singleLine = true,
                     )
+                    if (wide) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(7.dp),
+                        ) {
+                            OutlinedTextField(
+                                value = background.race,
+                                onValueChange = { onBackgroundChange(background.copy(race = it)) },
+                                modifier = Modifier.weight(1f),
+                                label = { Text("Raza") },
+                                singleLine = true,
+                            )
+                            OutlinedTextField(
+                                value = background.religionFaith,
+                                onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
+                                modifier = Modifier.weight(1f),
+                                label = { Text("Religión / Fe") },
+                                singleLine = true,
+                            )
+                        }
+                    } else {
+                        OutlinedTextField(
+                            value = background.race,
+                            onValueChange = { onBackgroundChange(background.copy(race = it)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Raza") },
+                            singleLine = true,
+                        )
+                        OutlinedTextField(
+                            value = background.religionFaith,
+                            onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Religión / Fe") },
+                            singleLine = true,
+                        )
+                    }
                     OutlinedTextField(
                         value = background.summary,
                         onValueChange = { onBackgroundChange(background.copy(summary = it)) },

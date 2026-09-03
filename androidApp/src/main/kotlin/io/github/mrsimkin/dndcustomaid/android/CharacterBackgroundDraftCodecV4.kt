@@ -7,6 +7,8 @@ internal fun characterBackgroundToJsonV4(background: CharacterBackground): Strin
     JSONObject()
         .put("name", background.name)
         .put("summary", background.summary)
+        .put("race", background.race)
+        .put("religionFaith", background.religionFaith)
         .put("personalityTraits", background.personalityTraits)
         .put("ideals", background.ideals)
         .put("bonds", background.bonds)
@@ -19,6 +21,8 @@ internal fun characterBackgroundFromJsonV4(raw: String): CharacterBackground = r
     CharacterBackground(
         name = json.optString("name", ""),
         summary = json.optString("summary", ""),
+        race = json.optString("race", ""),
+        religionFaith = json.optString("religionFaith", ""),
         personalityTraits = json.optString("personalityTraits", ""),
         ideals = json.optString("ideals", ""),
         bonds = json.optString("bonds", ""),

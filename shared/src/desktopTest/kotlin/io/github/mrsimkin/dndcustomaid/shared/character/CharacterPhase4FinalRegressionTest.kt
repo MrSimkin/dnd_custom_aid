@@ -135,6 +135,8 @@ class CharacterPhase4FinalRegressionTest {
                         background = CharacterBackground(
                             name = "Erudito",
                             summary = "Investigador",
+                            race = "Humano",
+                            religionFaith = "Ioun",
                             personalityTraits = "Curioso",
                             ideals = "Conocimiento",
                             bonds = "Biblioteca",
@@ -260,6 +262,8 @@ class CharacterPhase4FinalRegressionTest {
 
                 assertTrue(reopened.spellcasterEnabled)
                 assertEquals("Erudito", reopened.background.name)
+                assertEquals("Humano", reopened.background.race)
+                assertEquals("Ioun", reopened.background.religionFaith)
                 assertEquals("Historia persistente de Phase 4.", reopened.background.story)
                 assertEquals(traitId, reopened.traits.single().id)
                 assertEquals(1, reopened.traits.single().spentUses)

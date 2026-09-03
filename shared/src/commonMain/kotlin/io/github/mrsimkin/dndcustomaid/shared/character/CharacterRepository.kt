@@ -285,6 +285,8 @@ class CharacterRepository(
                 character_id = sheet.id.toString(),
                 background_name = sheet.background.name,
                 summary = sheet.background.summary,
+                race = sheet.background.race,
+                religion_faith = sheet.background.religionFaith,
                 personality_traits = sheet.background.personalityTraits,
                 ideals = sheet.background.ideals,
                 bonds = sheet.background.bonds,
@@ -458,10 +460,12 @@ class CharacterRepository(
         }.executeAsList()
 
         val background = database.characterQueries.selectCharacterBackground(core.id.toString()) {
-                _, name, summary, personalityTraits, ideals, bonds, flaws, story ->
+                _, name, summary, race, religionFaith, personalityTraits, ideals, bonds, flaws, story ->
             CharacterBackground(
                 name = name,
                 summary = summary,
+                race = race,
+                religionFaith = religionFaith,
                 personalityTraits = personalityTraits,
                 ideals = ideals,
                 bonds = bonds,
