@@ -21,11 +21,14 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Normalize validated Combat source shape
+        run: python scripts/normalize_phase4_batch_c_combat.py
       - name: Apply guarded source patch
         run: python scripts/apply_phase4_batch_c.py
       - name: Remove one-time integration scaffolding
         run: |
           rm scripts/apply_phase4_batch_c.py
+          rm scripts/normalize_phase4_batch_c_combat.py
           rm .github/workflows/phase4-batch-c-integrate.yml
       - name: Verify patch whitespace
         run: git diff --check
