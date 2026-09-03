@@ -55,7 +55,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
@@ -66,6 +69,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
+import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -93,12 +97,17 @@ private val classNamesV4 = listOf(
 internal fun CharacterEditorScreenV4(
     characterId: Uuid,
     repository: CharacterRepository,
+    closureRepository: CharacterClosureRepository,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
+    onOpenApplicationSettings: () -> Unit,
     onBack: () -> Unit,
 ) {
     var stored by remember(characterId) {
         mutableStateOf(requireNotNull(repository.character(characterId)))
+    }
+    var closureState by remember(characterId) {
+        mutableStateOf(closureRepository.state(characterId))
     }
     var draft by rememberSaveable(
         characterId.toString(),
@@ -151,6 +160,7 @@ internal fun CharacterEditorScreenV4(
     }
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
     var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }
+    var showSupercompact by rememberSaveable(characterId.toString(), "supercompact") { mutableStateOf(false) }
     var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }
     var confirmUnsavedLeave by rememberSaveable(characterId.toString(), "unsaved-leave") { mutableStateOf(false) }
     var leaveAfterSave by rememberSaveable(characterId.toString(), "leave-after-save") { mutableStateOf(false) }
@@ -165,6 +175,8 @@ internal fun CharacterEditorScreenV4(
     val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
     val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }
     val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }
+    val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored
+    val suggestedModules = suggestedCharacterModules(settingsSheet.classes)
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
     val storedDraftJson = remember(stored) { CharacterEditorDraftV4.from(stored).toJson() }
     val storedCombatDraftJson = remember(stored) { combatEntriesToJsonV4(stored.combatEntries) }
@@ -211,11 +223,14 @@ internal fun CharacterEditorScreenV4(
         }
     }
 
-    BackHandler(enabled = showPcSettings) {
+    BackHandler(enabled = showSupercompact) {
+        showSupercompact = false
+    }
+    BackHandler(enabled = !showSupercompact && showPcSettings) {
         showPcSettings = false
     }
     BackHandler(
-        enabled = !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting,
+        enabled = !showSupercompact && !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting,
     ) {
         requestBack()
     }
@@ -330,11 +345,33 @@ internal fun CharacterEditorScreenV4(
         savedMessage = "Guardado"
     }
 
-    if (showPcSettings) {
-        CharacterPcSettingsV4(
+    fun persistStatus(status: CharacterStatus) {
+        if (status == stored.status && status == draft.status) return
+        stored = repository.saveCharacter(stored.copy(status = status))
+        draft = draft.copy(status = status)
+        savedMessage = "Guardado"
+    }
+
+    fun persistClosureState(updated: CharacterClosureState) {
+        if (updated == closureState) return
+        closureState = closureRepository.saveState(characterId, updated)
+        savedMessage = "Guardado"
+    }
+
+    if (showSupercompact) {
+        CharacterSupercompactV4(
+            sheet = settingsSheet,
+            onBack = { showSupercompact = false },
+        )
+    } else if (showPcSettings) {
+        CharacterPcSettingsClosureV4(
             characterName = draft.name,
+            status = draft.status,
             spellcasterEnabled = stored.spellcasterEnabled,
+            closureState = closureState,
+            suggestedModules = suggestedModules,
             onBack = { showPcSettings = false },
+            onStatusChange = ::persistStatus,
             onSpellcasterEnabledChange = { enabled ->
                 if (!enabled && stored.hasMeaningfulSpellcastingDataV4()) {
                     confirmDisableSpellcasting = true
@@ -342,6 +379,9 @@ internal fun CharacterEditorScreenV4(
                     persistSpellcasterEnabled(enabled)
                 }
             },
+            onClosureStateChange = ::persistClosureState,
+            onOpenSupercompact = { showSupercompact = true },
+            onOpenApplicationSettings = onOpenApplicationSettings,
         )
     } else {
         Scaffold { scaffoldPadding ->
@@ -392,6 +432,7 @@ internal fun CharacterEditorScreenV4(
                             tempHp = draft.tempHp,
                             entries = combatEntries,
                             onEntriesChange = ::updateCombatEntries,
+                            hapticsEnabled = closureState.hapticsEnabled,
                             wide = wide,
                         )
                         CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
@@ -438,6 +479,7 @@ internal fun CharacterEditorScreenV4(
                             draft = notesDraft,
                             onDraftChange = ::updateNotes,
                             wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
                         )
                     }
                 }
@@ -615,23 +657,13 @@ private fun IdentityCardV4(
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
 ) {
     SectionCardV4("Personaje") {
-        Row(
+        OutlinedTextField(
+            value = draft.name,
+            onValueChange = { onDraftChange(draft.copy(name = it)) },
+            label = { Text("Nombre") },
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = draft.name,
-                onValueChange = { onDraftChange(draft.copy(name = it)) },
-                label = { Text("Nombre") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-            )
-            StatusSelectorV4(
-                status = draft.status,
-                onStatusChange = { onDraftChange(draft.copy(status = it)) },
-            )
-        }
+            singleLine = true,
+        )
         Text(
             "Nivel total ${draft.totalLevel()} · Último guardado ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
             style = MaterialTheme.typography.labelSmall,
@@ -770,7 +802,7 @@ private fun ClassSelectorV4(
             ) {
                 CompactTextFieldV4(
                     value = draft.name,
-                    onValueChange = { onChange(draft.copy(name = it)) },
+                    onValueChange = { onChange(draft.withManualName(it)) },
                     modifier = Modifier.weight(1f),
                 )
                 StableDropdownIconButton(
@@ -793,7 +825,7 @@ private fun ClassSelectorV4(
                         DropdownMenuItem(
                             text = { Text(className) },
                             onClick = {
-                                onChange(draft.copy(name = className))
+                                onChange(draft.withManualName(className))
                                 customMode = false
                                 expanded = false
                             },
@@ -803,7 +835,7 @@ private fun ClassSelectorV4(
                     DropdownMenuItem(
                         text = { Text("Otro") },
                         onClick = {
-                            onChange(draft.copy(name = if (draft.name in classNamesV4) "" else draft.name))
+                            onChange(draft.withManualName(if (draft.name in classNamesV4) "" else draft.name))
                             customMode = true
                             expanded = false
                         },
@@ -1971,7 +2003,29 @@ private data class ClassLevelDraftV4(
     val level: String,
     val hitDieSides: String,
     val hitDiceRemaining: String,
-)
+    val rulesFamily: CharacterRulesFamily = CharacterRulesFamily.UNSPECIFIED,
+    val source: String? = null,
+    val catalogKey: String? = null,
+    val subclassName: String? = null,
+    val subclassSource: String? = null,
+    val subclassCatalogKey: String? = null,
+    val subclassRulesFamily: CharacterRulesFamily = CharacterRulesFamily.UNSPECIFIED,
+) {
+    fun withManualName(value: String): ClassLevelDraftV4 = if (value == name) {
+        copy(name = value)
+    } else {
+        copy(
+            name = value,
+            rulesFamily = CharacterRulesFamily.UNSPECIFIED,
+            source = null,
+            catalogKey = null,
+            subclassName = null,
+            subclassSource = null,
+            subclassCatalogKey = null,
+            subclassRulesFamily = CharacterRulesFamily.UNSPECIFIED,
+        )
+    }
+}
 
 private data class SaveDraftV4(
     val ability: CharacterAbility,
@@ -2149,6 +2203,13 @@ private data class CharacterEditorDraftV4(
                 hitDieSides = parsedRequired(classDraft.hitDieSides)?.takeIf { it >= 0 } ?: return null,
                 hitDiceRemaining = parsedRequired(classDraft.hitDiceRemaining)?.takeIf { it >= 0 } ?: return null,
                 sortOrder = index,
+                rulesFamily = classDraft.rulesFamily,
+                source = classDraft.source,
+                catalogKey = classDraft.catalogKey,
+                subclassName = classDraft.subclassName?.trim()?.takeIf { it.isNotEmpty() },
+                subclassSource = classDraft.subclassSource,
+                subclassCatalogKey = classDraft.subclassCatalogKey,
+                subclassRulesFamily = classDraft.subclassRulesFamily,
             )
         }
         val parsedSaves = CharacterAbility.entries.map { ability ->
@@ -2252,6 +2313,13 @@ private data class CharacterEditorDraftV4(
                     put("level", item.level)
                     put("die", item.hitDieSides)
                     put("remaining", item.hitDiceRemaining)
+                    put("rulesFamily", item.rulesFamily.name)
+                    put("source", item.source ?: JSONObject.NULL)
+                    put("catalogKey", item.catalogKey ?: JSONObject.NULL)
+                    put("subclassName", item.subclassName ?: JSONObject.NULL)
+                    put("subclassSource", item.subclassSource ?: JSONObject.NULL)
+                    put("subclassCatalogKey", item.subclassCatalogKey ?: JSONObject.NULL)
+                    put("subclassRulesFamily", item.subclassRulesFamily.name)
                 })
             }
         })
@@ -2309,8 +2377,21 @@ private data class CharacterEditorDraftV4(
                     spent = stored?.spentSlots ?: 0,
                 )
             },
-            classes = sheet.classes.map {
-                ClassLevelDraftV4(it.id, it.name, it.level.toString(), it.hitDieSides.toString(), it.hitDiceRemaining.toString())
+            classes = sheet.classes.map { classLevel ->
+                ClassLevelDraftV4(
+                    id = classLevel.id,
+                    name = classLevel.name,
+                    level = classLevel.level.toString(),
+                    hitDieSides = classLevel.hitDieSides.toString(),
+                    hitDiceRemaining = classLevel.hitDiceRemaining.toString(),
+                    rulesFamily = classLevel.rulesFamily,
+                    source = classLevel.source,
+                    catalogKey = classLevel.catalogKey,
+                    subclassName = classLevel.subclassName,
+                    subclassSource = classLevel.subclassSource,
+                    subclassCatalogKey = classLevel.subclassCatalogKey,
+                    subclassRulesFamily = classLevel.subclassRulesFamily,
+                )
             },
             saves = CharacterAbility.entries.map { ability ->
                 val save = sheet.savingThrow(ability)
@@ -2328,6 +2409,18 @@ private data class CharacterEditorDraftV4(
             val classes = buildList {
                 for (index in 0 until classesJson.length()) {
                     val item = classesJson.getJSONObject(index)
+                    fun optionalString(key: String): String? =
+                        if (item.has(key) && !item.isNull(key)) item.getString(key) else null
+                    val rulesFamily = runCatching {
+                        CharacterRulesFamily.valueOf(
+                            item.optString("rulesFamily", CharacterRulesFamily.UNSPECIFIED.name),
+                        )
+                    }.getOrDefault(CharacterRulesFamily.UNSPECIFIED)
+                    val subclassRulesFamily = runCatching {
+                        CharacterRulesFamily.valueOf(
+                            item.optString("subclassRulesFamily", rulesFamily.name),
+                        )
+                    }.getOrDefault(rulesFamily)
                     add(
                         ClassLevelDraftV4(
                             id = Uuid.parse(item.getString("id")),
@@ -2335,6 +2428,13 @@ private data class CharacterEditorDraftV4(
                             level = item.getString("level"),
                             hitDieSides = item.getString("die"),
                             hitDiceRemaining = item.getString("remaining"),
+                            rulesFamily = rulesFamily,
+                            source = optionalString("source"),
+                            catalogKey = optionalString("catalogKey"),
+                            subclassName = optionalString("subclassName"),
+                            subclassSource = optionalString("subclassSource"),
+                            subclassCatalogKey = optionalString("subclassCatalogKey"),
+                            subclassRulesFamily = subclassRulesFamily,
                         ),
                     )
                 }

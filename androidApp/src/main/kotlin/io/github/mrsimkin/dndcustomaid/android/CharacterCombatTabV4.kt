@@ -54,6 +54,7 @@ internal fun CharacterCombatTabV4(
     entries: List<CharacterCombatEntry>,
     onEntriesChange: (List<CharacterCombatEntry>) -> Unit,
     wide: Boolean,
+    hapticsEnabled: Boolean = true,
 ) {
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -64,6 +65,7 @@ internal fun CharacterCombatTabV4(
     var editorRange by rememberSaveable { mutableStateOf("") }
     var editorNotes by rememberSaveable { mutableStateOf("") }
     var deleteId by rememberSaveable { mutableStateOf<String?>(null) }
+    val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
 
     fun beginAdd() {
         editingId = null
@@ -156,6 +158,7 @@ internal fun CharacterCombatTabV4(
                                         onEdit = { beginEdit(entry) },
                                         onMove = { offset -> move(index, offset) },
                                         onDelete = { deleteId = entry.id.toString() },
+                                        onHaptic = haptic,
                                         modifier = Modifier.weight(1f),
                                     )
                                 }
@@ -308,6 +311,7 @@ private fun CombatEntryCardV4(
     onEdit: () -> Unit,
     onMove: (Int) -> Boolean,
     onDelete: () -> Unit,
+    onHaptic: (CharacterHapticEventV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var accumulatedDrag by remember(entry.id) { mutableStateOf(0f) }
@@ -342,14 +346,16 @@ private fun CombatEntryCardV4(
                     StableDragHandle(
                         modifier = Modifier.pointerInput(entry.id) {
                             detectDragGesturesAfterLongPress(
-                                onDragStart = {
-                                    accumulatedDrag = 0f
-                                    dragging = true
-                                },
-                                onDragEnd = {
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
+                            onDragStart = {
+                                accumulatedDrag = 0f
+                                dragging = true
+                                onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
+                            },
+                            onDragEnd = {
+                                if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
+                                accumulatedDrag = 0f
+                                dragging = false
+                            },
                                 onDragCancel = {
                                     accumulatedDrag = 0f
                                     dragging = false
@@ -359,8 +365,9 @@ private fun CombatEntryCardV4(
                                     accumulatedDrag += dragAmount.y
                                     while (abs(accumulatedDrag) >= reorderStepPx) {
                                         val direction = if (accumulatedDrag > 0f) 1 else -1
-                                        if (onMove(direction)) {
-                                            accumulatedDrag -= direction * reorderStepPx
+                                    if (onMove(direction)) {
+                                        onHaptic(CharacterHapticEventV4.DRAG_STEP)
+                                        accumulatedDrag -= direction * reorderStepPx
                                         } else {
                                             accumulatedDrag = 0f
                                             break

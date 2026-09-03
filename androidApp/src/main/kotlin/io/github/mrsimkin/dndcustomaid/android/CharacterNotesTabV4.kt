@@ -42,12 +42,14 @@ internal fun CharacterNotesTabV4(
     draft: CharacterNotesDraftV4,
     onDraftChange: (CharacterNotesDraftV4) -> Unit,
     wide: Boolean,
+    hapticsEnabled: Boolean = true,
 ) {
     var editorOpen by rememberSaveable("note-editor-open") { mutableStateOf(false) }
     var editingId by rememberSaveable("note-editor-id") { mutableStateOf<String?>(null) }
     var editorTitle by rememberSaveable("note-editor-title") { mutableStateOf("") }
     var editorContent by rememberSaveable("note-editor-content") { mutableStateOf("") }
     var deleteId by rememberSaveable("note-delete-id") { mutableStateOf<String?>(null) }
+    val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
 
     fun normalize(cards: List<CharacterNote>): List<CharacterNote> =
         cards.mapIndexed { index, note -> note.copy(sortOrder = index) }
@@ -168,6 +170,7 @@ internal fun CharacterNotesTabV4(
                                         onEdit = { beginEdit(note) },
                                         onDelete = { deleteId = note.id.toString() },
                                         onMove = { offset -> move(index, offset) },
+                                        onHaptic = haptic,
                                         modifier = Modifier.weight(1f),
                                     )
                                 }
@@ -183,6 +186,7 @@ internal fun CharacterNotesTabV4(
                                 onEdit = { beginEdit(note) },
                                 onDelete = { deleteId = note.id.toString() },
                                 onMove = { offset -> move(index, offset) },
+                                onHaptic = haptic,
                             )
                         }
                     }
@@ -243,6 +247,7 @@ private fun CharacterNoteCardV4(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onMove: (Int) -> Boolean,
+    onHaptic: (CharacterHapticEventV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var accumulatedDrag by remember(note.id) { mutableStateOf(0f) }
@@ -282,8 +287,10 @@ private fun CharacterNoteCardV4(
                                 onDragStart = {
                                     accumulatedDrag = 0f
                                     dragging = true
+                                    onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
                                 },
                                 onDragEnd = {
+                                    if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
                                     accumulatedDrag = 0f
                                     dragging = false
                                 },
@@ -297,6 +304,7 @@ private fun CharacterNoteCardV4(
                                     while (abs(accumulatedDrag) >= reorderStepPx) {
                                         val direction = if (accumulatedDrag > 0f) 1 else -1
                                         if (onMove(direction)) {
+                                            onHaptic(CharacterHapticEventV4.DRAG_STEP)
                                             accumulatedDrag -= direction * reorderStepPx
                                         } else {
                                             accumulatedDrag = 0f

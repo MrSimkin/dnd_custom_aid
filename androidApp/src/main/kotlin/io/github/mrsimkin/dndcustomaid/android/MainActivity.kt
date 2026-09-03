@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
 import kotlin.uuid.Uuid
@@ -47,6 +48,7 @@ class MainActivity : ComponentActivity() {
 
     private val campaignRepository by lazy { CampaignRepository(database) }
     private val characterRepository by lazy { CharacterRepository(database) }
+    private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +65,7 @@ class MainActivity : ComponentActivity() {
                 DndCustomAidApp(
                     campaignRepository = campaignRepository,
                     characterRepository = characterRepository,
+                    characterClosureRepository = characterClosureRepository,
                     preferences = preferences,
                     onPreferencesChange = ::updatePreferences,
                 )
@@ -81,6 +84,7 @@ private enum class AppScreen {
 private fun DndCustomAidApp(
     campaignRepository: CampaignRepository,
     characterRepository: CharacterRepository,
+    characterClosureRepository: CharacterClosureRepository,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
 ) {
@@ -176,8 +180,10 @@ private fun DndCustomAidApp(
                 CharacterEditorScreenV4(
                     characterId = characterId,
                     repository = characterRepository,
+                    closureRepository = characterClosureRepository,
                     preferences = preferences,
                     onPreferencesChange = onPreferencesChange,
+                    onOpenApplicationSettings = { showSettings = true },
                     onBack = {
                         selectedCharacterId = null
                         screenName = AppScreen.CHARACTERS.name
