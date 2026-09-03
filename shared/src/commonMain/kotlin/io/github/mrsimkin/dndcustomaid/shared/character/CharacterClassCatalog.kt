@@ -97,7 +97,7 @@ object CharacterClassCatalog {
             sc5e("cleric-grave-5e", "Grave", "Xanathar's Guide to Everything"), sc5e("cleric-order", "Order", "Guildmasters' Guide to Ravnica"),
             sc5e("cleric-peace", "Peace", "Tasha's Cauldron of Everything"), sc5e("cleric-twilight", "Twilight", "Tasha's Cauldron of Everything"),
             sc("cleric-knowledge-2025", "Knowledge", "Forgotten Realms: Heroes of Faerûn"), sc("cleric-grave-2026", "Grave", "Ravenloft: The Horrors Within"),
-            upcoming("cleric-arcana-2026", "Arcana", "Arcana Unleashed"),
+            current("cleric-arcana-2026", "Arcana", "Arcana Unleashed"),
         )),
         core("druid", "Druida", listOf(
             phb24("druid-land-2024", "Land", setOf(CharacterModuleKind.FORMS)), phb24("druid-moon-2024", "Moon", setOf(CharacterModuleKind.FORMS)),
@@ -119,7 +119,7 @@ object CharacterClassCatalog {
             sc5e("fighter-cavalier", "Cavalier", "Xanathar's Guide to Everything"), sc5e("fighter-samurai", "Samurai", "Xanathar's Guide to Everything"),
             sc5e("fighter-rune-knight", "Rune Knight", "Tasha's Cauldron of Everything"), sc5e("fighter-echo-knight", "Echo Knight", "Explorer's Guide to Wildemount"),
             sc5e("fighter-purple-dragon-knight", "Purple Dragon Knight", "Sword Coast Adventurer's Guide"),
-            sc("fighter-banneret-2025", "Banneret", "Forgotten Realms: Heroes of Faerûn"), upcoming("fighter-arcane-archer-2026", "Arcane Archer", "Arcana Unleashed", setOf(CharacterModuleKind.TECHNIQUES)),
+            sc("fighter-banneret-2025", "Banneret", "Forgotten Realms: Heroes of Faerûn"), current("fighter-arcane-archer-2026", "Arcane Archer", "Arcana Unleashed", setOf(CharacterModuleKind.TECHNIQUES)),
         )),
         core("monk", "Monje", listOf(
             phb24("monk-mercy-2024", "Mercy"), phb24("monk-shadow-2024", "Shadow"), phb24("monk-elements-2024", "Elements"), phb24("monk-open-hand-2024", "Open Hand"),
@@ -128,7 +128,7 @@ object CharacterClassCatalog {
             sc5e("monk-sun-soul", "Sun Soul", "Sword Coast Adventurer's Guide"), sc5e("monk-drunken-master", "Drunken Master", "Xanathar's Guide to Everything"),
             sc5e("monk-kensei", "Kensei", "Xanathar's Guide to Everything"), sc5e("monk-astral-self", "Astral Self", "Tasha's Cauldron of Everything"),
             sc5e("monk-mercy-5e", "Mercy", "Tasha's Cauldron of Everything"), sc5e("monk-ascendant-dragon", "Ascendant Dragon", "Fizban's Treasury of Dragons"),
-            upcoming("monk-mystic-arts-2026", "Warrior of the Mystic Arts", "Arcana Unleashed", setOf(CharacterModuleKind.TECHNIQUES)),
+            current("monk-mystic-arts-2026", "Warrior of the Mystic Arts", "Arcana Unleashed", setOf(CharacterModuleKind.TECHNIQUES)),
         )),
         core("paladin", "Paladín", listOf(
             phb24("paladin-devotion-2024", "Devotion"), phb24("paladin-glory-2024", "Glory"), phb24("paladin-ancients-2024", "Ancients"), phb24("paladin-vengeance-2024", "Vengeance"),
@@ -179,7 +179,7 @@ object CharacterClassCatalog {
             sc5e("warlock-fathomless", "Fathomless", "Tasha's Cauldron of Everything", setOf(CharacterModuleKind.PACTS)), sc5e("warlock-genie", "Genie", "Tasha's Cauldron of Everything", setOf(CharacterModuleKind.PACTS)),
             sc5e("warlock-undead-5e", "Undead", "Van Richten's Guide to Ravenloft", setOf(CharacterModuleKind.PACTS)),
             sc("warlock-undead-2026", "Undead", "Ravenloft: The Horrors Within", modules = setOf(CharacterModuleKind.PACTS)),
-            upcoming("warlock-vestige-2026", "Vestige Patron", "Arcana Unleashed", setOf(CharacterModuleKind.PACTS, CharacterModuleKind.COMPANIONS)),
+            current("warlock-vestige-2026", "Vestige Patron", "Arcana Unleashed", setOf(CharacterModuleKind.PACTS, CharacterModuleKind.COMPANIONS)),
         ), modules = setOf(CharacterModuleKind.PACTS)),
         core("wizard", "Mago", listOf(
             phb24("wizard-abjurer-2024", "Abjurer"), phb24("wizard-diviner-2024", "Diviner"), phb24("wizard-evoker-2024", "Evoker"), phb24("wizard-illusionist-2024", "Illusionist"),
@@ -190,8 +190,8 @@ object CharacterClassCatalog {
             sc5e("wizard-bladesinging-5e", "Bladesinging", "Sword Coast Adventurer's Guide"), sc5e("wizard-war-magic", "War Magic", "Xanathar's Guide to Everything"),
             sc5e("wizard-scribes", "Order of Scribes", "Tasha's Cauldron of Everything"), sc5e("wizard-chronurgy", "Chronurgy", "Explorer's Guide to Wildemount"),
             sc5e("wizard-graviturgy", "Graviturgy", "Explorer's Guide to Wildemount"), sc("wizard-bladesinger-2025", "Bladesinger", "Forgotten Realms: Heroes of Faerûn"),
-            upcoming("wizard-conjurer-2026", "Conjurer", "Arcana Unleashed"), upcoming("wizard-enchanter-2026", "Enchanter", "Arcana Unleashed"),
-            upcoming("wizard-necromancer-2026", "Necromancer", "Arcana Unleashed", setOf(CharacterModuleKind.COMPANIONS)), upcoming("wizard-transmuter-2026", "Transmuter", "Arcana Unleashed"),
+            current("wizard-conjurer-2026", "Conjurer", "Arcana Unleashed"), current("wizard-enchanter-2026", "Enchanter", "Arcana Unleashed"),
+            current("wizard-necromancer-2026", "Necromancer", "Arcana Unleashed", setOf(CharacterModuleKind.COMPANIONS)), current("wizard-transmuter-2026", "Transmuter", "Arcana Unleashed"),
         )),
     )
 
@@ -243,7 +243,7 @@ object CharacterClassCatalog {
         modules: Set<CharacterModuleKind> = emptySet(),
     ) = CharacterSubclassCatalogEntry(key, name, source, CharacterRulesFamily.DND_5E, modules)
 
-    private fun upcoming(
+    private fun current(
         key: String,
         name: String,
         source: String,
@@ -254,6 +254,6 @@ object CharacterClassCatalog {
         source = source,
         rulesFamily = CharacterRulesFamily.DND_5_5E,
         modules = modules,
-        availabilityNote = "Oficial; acceso digital anticipado/próximo al 03-09-2026",
+        availabilityNote = null,
     )
 }
