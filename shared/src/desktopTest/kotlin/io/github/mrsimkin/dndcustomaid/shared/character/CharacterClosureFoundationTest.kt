@@ -6,6 +6,8 @@ import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
@@ -109,5 +111,50 @@ class CharacterClosureFoundationTest {
         val modules = CharacterClassCatalog.modulesFor(fighter)
         assertTrue(CharacterModuleKind.TECHNIQUES in modules)
         assertFalse(CharacterModuleKind.COMPANIONS in modules)
+    }
+
+    @Test
+    fun currentSupplementalCatalogEntriesArePresentWithoutStaleUpcomingStatus() {
+        val arcanaUnleashedKeys = listOf(
+            "cleric-arcana-2026",
+            "fighter-arcane-archer-2026",
+            "monk-mystic-arts-2026",
+            "warlock-vestige-2026",
+            "wizard-conjurer-2026",
+            "wizard-enchanter-2026",
+            "wizard-necromancer-2026",
+            "wizard-transmuter-2026",
+        )
+
+        arcanaUnleashedKeys.forEach { key ->
+            val entry = assertNotNull(CharacterClassCatalog.subclassByKey(key), "Missing catalog entry $key")
+            assertEquals("Arcana Unleashed", entry.source)
+            assertEquals(CharacterRulesFamily.DND_5_5E, entry.rulesFamily)
+            assertNull(entry.availabilityNote, "$key must not retain stale upcoming/early-access metadata")
+        }
+
+        assertTrue(CharacterModuleKind.TECHNIQUES in CharacterClassCatalog.subclassByKey("fighter-arcane-archer-2026")!!.modules)
+        assertTrue(CharacterModuleKind.TECHNIQUES in CharacterClassCatalog.subclassByKey("monk-mystic-arts-2026")!!.modules)
+        assertTrue(CharacterModuleKind.PACTS in CharacterClassCatalog.subclassByKey("warlock-vestige-2026")!!.modules)
+        assertTrue(CharacterModuleKind.COMPANIONS in CharacterClassCatalog.subclassByKey("warlock-vestige-2026")!!.modules)
+        assertTrue(CharacterModuleKind.COMPANIONS in CharacterClassCatalog.subclassByKey("wizard-necromancer-2026")!!.modules)
+    }
+
+    @Test
+    fun catalogKeepsCurrentAndLegacySourceVariantsDistinctAndCustomPathOpen() {
+        val currentArtificer = assertNotNull(CharacterClassCatalog.byKey("artificer-2025"))
+        val legacyArtificer = assertNotNull(CharacterClassCatalog.byKey("artificer-5e"))
+        assertEquals(CharacterRulesFamily.DND_5_5E, currentArtificer.rulesFamily)
+        assertEquals(CharacterRulesFamily.DND_5E, legacyArtificer.rulesFamily)
+        assertTrue(currentArtificer.source != legacyArtificer.source)
+
+        val currentBattleSmith = assertNotNull(CharacterClassCatalog.subclassByKey("artificer-battle-smith-2025"))
+        val legacyBattleSmith = assertNotNull(CharacterClassCatalog.subclassByKey("artificer-battle-smith-5e"))
+        assertTrue(currentBattleSmith.key != legacyBattleSmith.key)
+        assertTrue(currentBattleSmith.source != legacyBattleSmith.source)
+
+        assertEquals("custom", CharacterClassCatalog.CUSTOM_KEY)
+        assertNull(CharacterClassCatalog.byKey(CharacterClassCatalog.CUSTOM_KEY))
+        assertNull(CharacterClassCatalog.subclassByKey(CharacterClassCatalog.CUSTOM_KEY))
     }
 }
