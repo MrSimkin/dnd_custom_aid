@@ -36,6 +36,23 @@ class CharacterModuleVisibilityTest {
     }
 
     @Test
+    fun manualLocalizedClassNameStillGetsBroadClassSuggestion() {
+        val manualDruid = CharacterClassLevel(
+            id = Uuid.random(),
+            name = "Druida",
+            level = 5,
+            hitDieSides = 8,
+            hitDiceRemaining = 5,
+            sortOrder = 0,
+        )
+
+        val suggested = suggestedCharacterModules(listOf(manualDruid))
+
+        assertTrue(CharacterModuleKind.FORMS in suggested)
+        assertFalse(CharacterModuleKind.TECHNIQUES in suggested)
+    }
+
+    @Test
     fun manualShowAndHideOverridesAlwaysWin() {
         val classes = listOf(classLevel("druid-2024", "druid-moon-2024"))
         val overrides = listOf(
@@ -67,8 +84,7 @@ class CharacterModuleVisibilityTest {
     }
 
     @Test
-    fun changingVisibilityDoesNotTouchAnyModuleOwnedCharacterData() {
-        val formId = Uuid.random()
+    fun changingVisibilityDoesNotTouchOtherClosureState() {
         val state = CharacterClosureState(
             conditions = listOf(CharacterCondition(Uuid.random(), "Prone")),
             moduleOverrides = emptyList(),
@@ -76,7 +92,6 @@ class CharacterModuleVisibilityTest {
         val changed = state.withModuleOverride(CharacterModuleKind.FORMS, CharacterModuleOverrideMode.FORCE_HIDE)
 
         assertEquals(state.conditions, changed.conditions)
-        assertEquals(formId, formId) // explicit sentinel: visibility carries no module payload to rewrite
         assertEquals(CharacterModuleOverrideMode.FORCE_HIDE, changed.moduleOverrideMode(CharacterModuleKind.FORMS))
     }
 }
