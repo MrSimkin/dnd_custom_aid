@@ -1,7 +1,10 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage
 import kotlin.uuid.Uuid
 import org.json.JSONArray
 import org.json.JSONObject
@@ -9,6 +12,7 @@ import org.json.JSONObject
 internal data class CharacterEquipmentDraftV4(
     val items: List<CharacterInventoryItem>,
     val currencies: List<CharacterCurrency>,
+    val inventoryUsage: List<CharacterInventoryUsage> = emptyList(),
 )
 
 internal fun equipmentDraftToJsonV4(draft: CharacterEquipmentDraftV4): String = JSONObject().apply {
@@ -37,6 +41,16 @@ internal fun equipmentDraftToJsonV4(draft: CharacterEquipmentDraftV4): String = 
                 put("amount", currency.amount)
                 put("sortOrder", index)
                 put("isDefault", currency.isDefault)
+            })
+        }
+    })
+    put("inventoryUsage", JSONArray().apply {
+        draft.inventoryUsage.forEach { usage ->
+            put(JSONObject().apply {
+                put("itemId", usage.itemId.toString())
+                put("kind", usage.kind.name)
+                put("quickUseAmount", usage.quickUseAmount)
+                put("carryState", usage.carryState.name)
             })
         }
     })
@@ -80,5 +94,33 @@ internal fun equipmentDraftFromJsonV4(raw: String): CharacterEquipmentDraftV4 = 
             )
         }
     }
-    CharacterEquipmentDraftV4(items = items, currencies = currencies)
-}.getOrElse { CharacterEquipmentDraftV4(emptyList(), emptyList()) }
+    val usageJson = json.optJSONArray("inventoryUsage")
+    val inventoryUsage = buildList {
+        if (usageJson != null) {
+            for (index in 0 until usageJson.length()) {
+                val usage = usageJson.getJSONObject(index)
+                val kind = runCatching {
+                    CharacterConsumableKind.valueOf(usage.optString("kind", CharacterConsumableKind.NONE.name))
+                }.getOrDefault(CharacterConsumableKind.NONE)
+                val carryState = runCatching {
+                    CharacterInventoryCarryState.valueOf(
+                        usage.optString("carryState", CharacterInventoryCarryState.CARRIED.name),
+                    )
+                }.getOrDefault(CharacterInventoryCarryState.CARRIED)
+                add(
+                    CharacterInventoryUsage(
+                        itemId = Uuid.parse(usage.getString("itemId")),
+                        kind = kind,
+                        quickUseAmount = usage.optInt("quickUseAmount", 1).coerceAtLeast(1),
+                        carryState = carryState,
+                    ),
+                )
+            }
+        }
+    }
+    CharacterEquipmentDraftV4(
+        items = items,
+        currencies = currencies,
+        inventoryUsage = inventoryUsage,
+    )
+}.getOrElse { CharacterEquipmentDraftV4(emptyList(), emptyList(), emptyList()) }

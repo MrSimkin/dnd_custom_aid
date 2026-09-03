@@ -124,6 +124,7 @@ internal fun CharacterEditorScreenV4(
                 CharacterEquipmentDraftV4(
                     items = stored.inventoryItems,
                     currencies = stored.currencies,
+                    inventoryUsage = closureState.inventoryUsage,
                 ),
             ),
         )
@@ -180,11 +181,12 @@ internal fun CharacterEditorScreenV4(
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
     val storedDraftJson = remember(stored) { CharacterEditorDraftV4.from(stored).toJson() }
     val storedCombatDraftJson = remember(stored) { combatEntriesToJsonV4(stored.combatEntries) }
-    val storedEquipmentDraftJson = remember(stored) {
+    val storedEquipmentDraftJson = remember(stored, closureState.inventoryUsage) {
         equipmentDraftToJsonV4(
             CharacterEquipmentDraftV4(
                 items = stored.inventoryItems,
                 currencies = stored.currencies,
+                inventoryUsage = closureState.inventoryUsage,
             ),
         )
     }
@@ -255,6 +257,11 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateEquipmentDraft(updated: CharacterEquipmentDraftV4) {
+        equipmentDraftJson = equipmentDraftToJsonV4(updated)
+        savedMessage = null
+    }
+
     fun updateBackground(updated: io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground) {
         backgroundDraftJson = characterBackgroundToJsonV4(updated)
         savedMessage = null
@@ -292,12 +299,17 @@ internal fun CharacterEditorScreenV4(
             noteCards = notes.cards,
         )
         stored = repository.saveCharacter(integrated)
+        closureState = closureRepository.saveState(
+            characterId,
+            closureState.copy(inventoryUsage = equipment.inventoryUsage),
+        )
         draft = CharacterEditorDraftV4.from(stored)
         combatDraftJson = combatEntriesToJsonV4(stored.combatEntries)
         equipmentDraftJson = equipmentDraftToJsonV4(
             CharacterEquipmentDraftV4(
                 items = stored.inventoryItems,
                 currencies = stored.currencies,
+                inventoryUsage = closureState.inventoryUsage,
             ),
         )
         backgroundDraftJson = characterBackgroundToJsonV4(stored.background)
@@ -470,12 +482,11 @@ internal fun CharacterEditorScreenV4(
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
-                        CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
-                            items = equipmentDraft.items,
-                            currencies = equipmentDraft.currencies,
-                            onItemsChange = ::updateEquipmentItems,
-                            onCurrenciesChange = ::updateCurrencies,
+                        CharacterTabV4.EQUIPMENT -> CharacterEquipmentClosureTabV4(
+                            draft = equipmentDraft,
+                            onDraftChange = ::updateEquipmentDraft,
                             wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
                         )
                         CharacterTabV4.BACKGROUND -> CharacterBackgroundTabV4(
                             background = backgroundDraft,
