@@ -74,27 +74,41 @@ class CharacterClosureRepository(
             CharacterSense(Uuid.parse(rowId), name, rangeFeet?.toInt(), notes, sortOrder.toInt())
         }.executeAsList()
 
-        val resourceRecovery = database.characterClosureQueries.selectResourceRecovery(id) {
+        val resourceRecoveryRows = database.characterClosureQueries.selectResourceRecovery(id) {
                 _, resourceId, cadence, amountMode, fixedAmount, notes ->
-            val parsedId = parseUuidOrNull(resourceId)
-            if (parsedId == null || parsedId !in resourceIds) null else CharacterResourceRecovery(
-                resourceId = parsedId,
-                cadence = enumOrDefault(cadence, CharacterRecoveryCadence.NONE),
-                amountMode = enumOrDefault(amountMode, CharacterRecoveryAmountMode.NONE),
-                fixedAmount = fixedAmount?.toInt(),
-                notes = notes,
-            )
-        }.executeAsList().filterNotNull()
+            ResourceRecoveryRow(resourceId, cadence, amountMode, fixedAmount?.toInt(), notes)
+        }.executeAsList()
+        val resourceRecovery = resourceRecoveryRows.mapNotNull { row ->
+            val parsedId = parseUuidOrNull(row.resourceId)
+            if (parsedId == null || parsedId !in resourceIds) {
+                null
+            } else {
+                CharacterResourceRecovery(
+                    resourceId = parsedId,
+                    cadence = enumOrDefault(row.cadence, CharacterRecoveryCadence.NONE),
+                    amountMode = enumOrDefault(row.amountMode, CharacterRecoveryAmountMode.NONE),
+                    fixedAmount = row.fixedAmount,
+                    notes = row.notes,
+                )
+            }
+        }
 
-        val inventoryUsage = database.characterClosureQueries.selectInventoryUsage(id) {
+        val inventoryUsageRows = database.characterClosureQueries.selectInventoryUsage(id) {
                 _, itemId, kind, quickUseAmount ->
-            val parsedId = parseUuidOrNull(itemId)
-            if (parsedId == null || parsedId !in inventoryIds) null else CharacterInventoryUsage(
-                itemId = parsedId,
-                kind = enumOrDefault(kind, CharacterConsumableKind.NONE),
-                quickUseAmount = quickUseAmount.toInt(),
-            )
-        }.executeAsList().filterNotNull()
+            InventoryUsageRow(itemId, kind, quickUseAmount.toInt())
+        }.executeAsList()
+        val inventoryUsage = inventoryUsageRows.mapNotNull { row ->
+            val parsedId = parseUuidOrNull(row.itemId)
+            if (parsedId == null || parsedId !in inventoryIds) {
+                null
+            } else {
+                CharacterInventoryUsage(
+                    itemId = parsedId,
+                    kind = enumOrDefault(row.kind, CharacterConsumableKind.NONE),
+                    quickUseAmount = row.quickUseAmount,
+                )
+            }
+        }
 
         val checkpoints = database.characterClosureQueries.selectReconciliationCheckpoints(id) {
                 rowId, _, createdAt, characterUpdatedAt, label, notes ->
@@ -135,18 +149,29 @@ class CharacterClosureRepository(
             )
         }.executeAsList()
 
-        val moduleOverrides = database.characterClosureQueries.selectModuleOverrides(id) {
+        val moduleOverrideRows = database.characterClosureQueries.selectModuleOverrides(id) {
                 _, moduleKind, overrideMode ->
-            val module = runCatching { CharacterModuleKind.valueOf(moduleKind) }.getOrNull()
-            module?.let { CharacterModuleOverride(it, enumOrDefault(overrideMode, CharacterModuleOverrideMode.AUTO)) }
-        }.executeAsList().filterNotNull()
+            ModuleOverrideRow(moduleKind, overrideMode)
+        }.executeAsList()
+        val moduleOverrides = moduleOverrideRows.mapNotNull { row ->
+            val module = runCatching { CharacterModuleKind.valueOf(row.moduleKind) }.getOrNull()
+            module?.let {
+                CharacterModuleOverride(
+                    module = it,
+                    mode = enumOrDefault(row.overrideMode, CharacterModuleOverrideMode.AUTO),
+                )
+            }
+        }
 
-        val quickAccess = database.characterClosureQueries.selectQuickAccess(id) {
+        val quickAccessRows = database.characterClosureQueries.selectQuickAccess(id) {
                 _, targetKind, targetId, sortOrder ->
-            val parsedId = parseUuidOrNull(targetId)
-            val kind = runCatching { CharacterQuickAccessKind.valueOf(targetKind) }.getOrNull()
-            if (parsedId == null || kind == null) null else CharacterQuickAccessRef(kind, parsedId, sortOrder.toInt())
-        }.executeAsList().filterNotNull()
+            QuickAccessRow(targetKind, targetId, sortOrder.toInt())
+        }.executeAsList()
+        val quickAccess = quickAccessRows.mapNotNull { row ->
+            val parsedId = parseUuidOrNull(row.targetId)
+            val kind = runCatching { CharacterQuickAccessKind.valueOf(row.targetKind) }.getOrNull()
+            if (parsedId == null || kind == null) null else CharacterQuickAccessRef(kind, parsedId, row.sortOrder)
+        }
 
         val concentration = settings.concentrationName
             ?.takeIf { it.isNotBlank() }
@@ -390,5 +415,30 @@ class CharacterClosureRepository(
         val milestoneProgress: String = "",
         val tableModeEnabled: Boolean = false,
         val hapticsEnabled: Boolean = true,
+    )
+
+    private data class ResourceRecoveryRow(
+        val resourceId: String,
+        val cadence: String,
+        val amountMode: String,
+        val fixedAmount: Int?,
+        val notes: String?,
+    )
+
+    private data class InventoryUsageRow(
+        val itemId: String,
+        val kind: String,
+        val quickUseAmount: Int,
+    )
+
+    private data class ModuleOverrideRow(
+        val moduleKind: String,
+        val overrideMode: String,
+    )
+
+    private data class QuickAccessRow(
+        val targetKind: String,
+        val targetId: String,
+        val sortOrder: Int,
     )
 }
