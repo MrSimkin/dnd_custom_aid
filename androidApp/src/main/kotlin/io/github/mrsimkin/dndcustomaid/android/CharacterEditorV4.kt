@@ -358,6 +358,13 @@ internal fun CharacterEditorScreenV4(
         savedMessage = "Guardado"
     }
 
+
+    fun persistOperationalSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        stored = repository.saveCharacter(updated)
+        savedMessage = "Guardado"
+    }
+
     if (showSupercompact) {
         CharacterSupercompactV4(
             sheet = settingsSheet,
@@ -434,6 +441,14 @@ internal fun CharacterEditorScreenV4(
                             onEntriesChange = ::updateCombatEntries,
                             hapticsEnabled = closureState.hapticsEnabled,
                             wide = wide,
+                        )
+                        CharacterTabV4.MANAGEMENT -> CharacterManagementTabV4(
+                            sheet = stored,
+                            closureState = closureState,
+                            onSheetChange = ::persistOperationalSheet,
+                            onClosureStateChange = ::persistClosureState,
+                            wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
                         )
                         CharacterTabV4.EQUIPMENT -> CharacterEquipmentTabV4(
                             items = equipmentDraft.items,
