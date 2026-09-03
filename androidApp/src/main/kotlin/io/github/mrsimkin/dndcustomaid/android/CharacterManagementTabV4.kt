@@ -605,7 +605,7 @@ private fun ResourcesCardV4(
                     OutlinedButton(onClick = { onAdjust(resource, -1) }, enabled = resource.currentValue > 0) { Text("−") }
                     OutlinedButton(
                         onClick = { onAdjust(resource, 1) },
-                        enabled = resource.maxValue == null || resource.currentValue < resource.maxValue,
+                        enabled = resource.maxValue?.let { max -> resource.currentValue < max } ?: true,
                     ) { Text("+") }
                     TextButton(onClick = { onDelete(resource) }) { Text("Eliminar") }
                 }
@@ -771,9 +771,10 @@ private fun ResourceEditorDialogV4(
     val cadence = runCatching { CharacterRecoveryCadence.valueOf(cadenceName) }.getOrDefault(CharacterRecoveryCadence.NONE)
     val amountMode = runCatching { CharacterRecoveryAmountMode.valueOf(amountModeName) }.getOrDefault(CharacterRecoveryAmountMode.NONE)
     val parsedFixed = fixedAmount.takeIf { it.isNotBlank() }?.toIntOrNull()
+    val automaticCadence = cadence != CharacterRecoveryCadence.NONE && cadence != CharacterRecoveryCadence.MANUAL
     val valid = name.trim().isNotEmpty() && parsedCurrent != null && parsedCurrent >= 0 &&
         (maximum.isBlank() || (parsedMaximum != null && parsedMaximum >= parsedCurrent)) &&
-        (amountMode != CharacterRecoveryAmountMode.FIXED || (parsedFixed != null && parsedFixed >= 0))
+        (!automaticCadence || amountMode != CharacterRecoveryAmountMode.FIXED || (parsedFixed != null && parsedFixed >= 0))
 
     CharacterImeSafeEditorDialog(
         title = if (existing == null) "Añadir recurso" else "Editar recurso",
@@ -790,7 +791,7 @@ private fun ResourceEditorDialogV4(
                 pinned = existing?.pinned ?: true,
                 sortOrder = existing?.sortOrder ?: 0,
             )
-            val normalizedCadence = if (cadence == CharacterRecoveryCadence.MANUAL) cadence else cadence
+            val normalizedCadence = cadence
             val normalizedAmount = if (normalizedCadence == CharacterRecoveryCadence.MANUAL || normalizedCadence == CharacterRecoveryCadence.NONE) {
                 CharacterRecoveryAmountMode.NONE
             } else {
