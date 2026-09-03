@@ -11,27 +11,23 @@ After reading this README, continue with these files in order:
 1. `AGENTS.md` — mandatory operating rules for humans and AI agents.
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented code areas.
 3. `docs/PROJECT_STATE.md` — current verified state and next action.
-4. `docs/DECISIONS.md` — chronological significant-decision log.
+4. `docs/DECISIONS.md` — chronological significant-decision log; later detailed approved Phase 4 decisions under `docs/decisions/` also remain authoritative while the master log is being reconciled.
 5. `docs/CONVENTIONS.md` — approved recurring project conventions.
 6. `docs/PRODUCT.md` — current approved product direction and MVP.
 7. `docs/ROADMAP.md` — development phases and current phase.
 8. `docs/WORKFLOW.md` — how changes are designed, implemented, tested, documented, reviewed, and merged.
 9. `docs/ARCHITECTURE.md` — current approved architecture record and rationale.
 10. `docs/TESTING.md` — verification rules, commands, and current test status.
-11. Relevant `docs/decisions/` files when detailed architecture rationale is useful.
-12. Relevant `docs/discovery/` notes only when historical rationale is needed.
-
-Then read any feature-specific or technical files relevant to the task.
+11. Relevant `docs/decisions/`, `docs/checkpoints/`, and feature-specific files for the active work.
 
 ## Canonical source of truth
 
 - `main` is the canonical accepted project state (D-0007).
 - Git is the project's operative memory (D-0012).
 - Repository files, not chat memory, determine durable project truth.
-- Significant approved decisions are recorded in `docs/DECISIONS.md`; detailed Phase 2 records remain under `docs/decisions/` for deeper rationale.
-- Durable conventions belong in `docs/CONVENTIONS.md`.
 - `docs/PROJECT_STATE.md` is the authoritative current-state/next-action snapshot.
-- Discovery notes preserve exploratory reasoning but do not override confirmed product/decision records.
+- Discovery notes preserve exploratory reasoning but do not override approved product/decision records.
+- Substantial in-progress work remains on focused branches until explicit owner merge approval.
 
 ## Working relationship
 
@@ -44,6 +40,7 @@ C-0009 is controlling: **this is a personal/small-scale project. Prefer the simp
 ## Approved architecture snapshot
 
 - Android: **Kotlin + Jetpack Compose**, minimum Android 11 / API 30.
+- Android is explicitly designed for **phone and tablet**, portrait and landscape.
 - Desktop DM administration: **Kotlin + Compose Multiplatform Desktop**.
 - Local persistence: **SQLite + SQLDelight** where offline/local behavior provides real value.
 - Desktop MVP: **Save locally + explicit Sync**; failed Sync never discards local work.
@@ -56,45 +53,46 @@ C-0009 is controlling: **this is a personal/small-scale project. Prefer the simp
 
 See `docs/ARCHITECTURE.md` for the full record.
 
-## Implemented technical foundation
+## Current implemented foundation
 
-PR #4 merged the initial scaffold into canonical `main` on 2026-08-30.
+Phases 0–3 are complete. Phase 4 has already implemented a substantial local Android character foundation beyond the original scaffold.
 
-The repository now contains:
+Current Phase 4 character work includes, among other things:
 
-- `shared/` — one Kotlin Multiplatform shared module with SQLDelight foundation and smoke tests;
-- `androidApp/` — Android Kotlin/Jetpack Compose application shell using stable Material 3;
-- `desktopApp/` — Kotlin/Compose Multiplatform Desktop shell using the stable Material line rather than an alpha-only Desktop Material 3 dependency;
-- `backend/` — TypeScript Cloudflare Worker shell with a minimal health endpoint;
-- `database/` — PostgreSQL migration/data-loading area without speculative domain schema;
-- `.github/workflows/scaffold-check.yml` — one simple build/test workflow.
+- campaign-scoped persistent characters with UUID identity and lifecycle state;
+- multiclass entries, derived ability/skill/save/proficiency behavior and explicit adjustment escape paths;
+- General, Habilidades, Combate, Equipo, Trasfondo, Rasgos, conditional Conjuros and Notas;
+- PC Settings with spellcasting hide-not-delete behavior;
+- persistent equipment/currencies, traits, notes, spells/sources/prepared state/shared slots and background identity fields;
+- SQLDelight migrations and persistence regression coverage;
+- an owner-tested correction APK lineage;
+- a focused closure branch with preliminary schema-6 class/subclass/provenance, Inspiration/death saves, proficiencies, Weapon Mastery, Resources, Forms and Companions.
 
-The scaffold intentionally does **not** yet implement authentication, hosted synchronization, campaigns, characters, combat, PDF export, SRD retrieval, realtime transport, or deployment automation.
+The current accepted closure scope is D-0047. It expands/fixes the complete character foundation before any DM-feature implementation begins.
 
-## Development prerequisites
+## Current Phase 4 work
 
-Current scaffold prerequisites:
+Focused branch:
 
-- JDK 17;
-- Gradle 9.5;
-- Android SDK platform 36;
-- Node.js 22;
-- npm.
+`implementation/phase4-character-closure`
 
-`minSdk` remains API 30 / Android 11. Android stays on the stable SDK 36 path instead of depending on the Android 17/API 37 preview SDK channel.
+Primary execution documents:
 
-A Gradle wrapper JAR is not currently committed because the repository connector could not safely transfer the official binary wrapper JAR. CI provisions pinned Gradle 9.5 directly; a normal local Git workflow can add the standard wrapper later.
+- `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`;
+- `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md`;
+- `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md`;
+- `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md`.
+
+The closure work is intentionally divided into recoverable batches. Every meaningful batch leaves a Git checkpoint and passes its proportionate gate before dependent work proceeds.
+
+**DM feature implementation is blocked until the Phase 4 character closure package is implemented, passes final phone + tablet QA, and is owner-accepted.**
 
 ## Build and verification commands
 
+Kotlin / Android / Desktop / SQLDelight:
+
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
-```
-
-Desktop shell:
-
-```bash
-gradle :desktopApp:run
 ```
 
 Backend:
@@ -105,10 +103,10 @@ npm install
 npm run check
 ```
 
-See `docs/TESTING.md` for the latest verified revision.
+Current CI uses JDK 17, Gradle 9.5, Android SDK platform 36 and Node.js 22.
 
-## Current status
+See `docs/TESTING.md` for the current gate/QA rules and exact verified revisions.
 
-**Phases 0–2 are complete and canonical on `main`. Phase 3 — the first real vertical slice — is now current.**
+## Development signing note
 
-The first selected slice is intentionally small: **local Android campaign creation and active-campaign selection**, backed by shared Kotlin + SQLDelight. It should not introduce Descope, Neon, hosted sync, realtime, PDF, or SRD infrastructure.
+Development CI uses a stable **debug-only** Android signing identity so successive QA APKs can update one another in place and exercise real migrations. It is not a production/release identity and must never be reused for a release. See `AGENTS.md` and `docs/TESTING.md` for the governing distinction between non-secret development debug identity and protected release/private credentials.
