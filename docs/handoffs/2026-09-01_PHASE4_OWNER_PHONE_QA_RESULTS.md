@@ -97,6 +97,12 @@ Check 21 overall: **PASS**.
 
 Check 22 overall: **PASS**. R-01 remains an owner-requested presentation correction for the usage summary.
 
+## Check 23 — Rasgos drag reorder and persistence
+
+- **23: PASS.** The owner reordered multiple Rasgos entries, saved the character, left/reopened the same character, and confirmed the exact reordered sequence persisted.
+
+Check 23 overall: **PASS**. Existing D-01 weak drag-feedback/discoverability finding remains separate and does not invalidate persistence behavior.
+
 # Findings / correction backlog discovered during QA
 
 ## T-01 — `Quick Magic` terminology mismatch
@@ -176,12 +182,12 @@ Current presentation similar to `Usos X/Y · Gastados Y-X` feels awkward/unclear
 - Checks 6–11: PASS.
 - Check 12: **FAIL/blocking** due 12A and 12B.
 - Check 13: **FAIL/blocking** due 13B and 13C.
-- Checks 14–22: PASS for their tested acceptance criteria.
+- Checks 14–23: PASS for their tested acceptance criteria.
 - Confirmed blocking defects: **U-01/12A, C-01/12B, E-04/13B, E-05/13C, N-01 pending scope confirmation**.
 - Non-blocking/reconciliation findings: **T-01, E-01, E-02, E-03, C-02, C-03, D-01, R-01**.
 - Owner-requested additive correction: **B-01** (`Raza`, `Religion / Fe`).
 - Owner-approved cross-cutting layout direction: **L-01**.
 - The Gate L APK is not acceptable for merge; a correction APK/retest cycle will be required after full defect collection.
-- QA remains intentionally paused after **Check 22B**.
-- **Exact next QA step on resume: Check 23 — drag-reorder Rasgos, save, leave/reopen the character, and confirm the exact trait order persists.**
+- QA resumed on 2026-09-02 and **Check 23 passed**.
+- **Exact next QA step: Check 24 — Rasgos wide multi-column presentation.**
 - Do not merge Phase 4 and do not restart earlier implementation/QA steps when resuming.
