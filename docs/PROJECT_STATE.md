@@ -4,21 +4,23 @@
 **Canonical branch:** `main` — untouched by Phase 4  
 **Phase 4 durable line:** `implementation/character-data-foundation`  
 **Focused closure branch:** `implementation/phase4-character-closure`  
-**Current phase:** Phase 4 Character Foundation Closure — expanded scope approved and class/subclass audit complete  
-**Open review:** implementation map/gate plan not yet frozen  
-**Status:** Product/design scope for the new closure build is owner-approved. Do not resume owner QA against the previous correction APK. Next action is implementation planning, then incremental implementation and a new phone+tablet QA APK.
+**Current phase:** Phase 4 Character Foundation Closure — expanded scope approved, class/subclass audit complete, implementation map frozen  
+**Open review:** none before implementation Increment A; owner review returns at meaningful implementation/gate results and final QA  
+**Status:** Product/design scope for the new closure build is owner-approved and mapped into implementation gates. Do not resume owner QA against the previous correction APK. Implementation may now resume on the focused closure branch beginning with Increment A, followed by a new phone+tablet QA APK.
 
 ## 0. Current continuity checkpoint
 
-Primary resume document:
+Primary resume documents, in order:
 
-`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_SCOPE_APPROVED_AND_AUDITED.md`
+1. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — exact implementation/gate sequence;
+2. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_SCOPE_APPROVED_AND_AUDITED.md` — owner approval/audit checkpoint;
+3. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
+4. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — official class/subclass audit and conditional-module map.
 
-Authoritative supporting records:
+Historical records:
 
-- `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved closure product/design scope;
-- `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — official class/subclass audit and conditional-module map;
-- `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_PROPOSAL_REVIEW.md` — historical proposal checkpoint, explicitly superseded;
+- `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_PROPOSAL_REVIEW.md` — explicitly superseded after approval;
+- `docs/decisions/D-0065_PHASE4_CHARACTER_FOUNDATION_CLOSURE_EXPANSION.md` — premature implementation-era decision document, explicitly superseded by D-0047;
 - `docs/handoffs/2026-09-03_PHASE4_QA_DEFERRED_CHECKPOINT.md` — historical state before the owner began checking the correction APK;
 - `docs/handoffs/2026-09-03_PHASE4_CORRECTION_CANDIDATE.md` — historical correction-candidate evidence.
 
@@ -119,9 +121,16 @@ Prototype code checkpoint:
 - `89aad12a094476c7b6798f6f0626bf978a5d0831`;
 - CI run `33779104922` — PASS.
 
-That green result is useful technical evidence but **not product acceptance**. Before reusing prototype code, compare it to D-0047 and the class/subclass audit. Existing implementation must be changed or discarded where it does not match the approved design.
+That prototype already supplies useful schema-6 foundations for class/subclass provenance, Inspiration/death saves, proficiencies, Weapon Mastery, generic Resources, class options, Forms and Companions.
 
-Subsequent closure-branch commits are documentation/consolidation unless explicitly recorded otherwise.
+Known audit corrections/gaps include:
+
+- Arcana Unleashed prototype catalog entries are still marked as upcoming and must be reconciled to current official source availability;
+- many D-0047 durable domains remain to be added through the mapped next migration;
+- no closure Android UI was implemented in that prototype;
+- no Gestión, PC Settings consolidation, Supercompact, full adaptive tablet shell or global UX consistency pass exists yet.
+
+The green prototype result is useful technical evidence but **not product acceptance**. Reuse only the pieces aligned with D-0047 and the audit.
 
 ## 7. Existing Phase 4 baseline that must be preserved/regressed
 
@@ -140,7 +149,25 @@ The durable Phase 4 character work already contains the character editor and per
 
 The closure build extends and repairs this foundation; it must not silently regress existing persistence or migration safety.
 
-## 8. Governance/continuity cleanup still relevant
+## 8. Implementation map/gates
+
+`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` defines:
+
+- **A:** shared model/catalog/schema-7 reconciliation;
+- **B:** reusable global interaction/IME/action foundation;
+- **C:** PC Settings consolidation;
+- **D:** Gestión/live maintenance;
+- **E:** General/Habilidades/Combat completeness;
+- **F:** Equipment closure;
+- **G:** Traits/Spells/Notes/Background closure;
+- **H:** conditional class/subclass modules;
+- **I:** Supercompact/Table mode/adaptive tablet shell;
+- **J:** own-format backup + reconciliation completion;
+- full final CI gate and phone+tablet owner-QA matrix.
+
+A scope-stop rule is explicit: once D-0047 passes final gates and owner QA without blocking issues, close Phase 4 and move toward the DM stage; newly discovered non-blocking player ideas normally become later backlog.
+
+## 9. Governance/continuity cleanup still relevant
 
 Long-lived root/core documents contain some Phase 3/early-Phase-4 status drift. Reconcile relevant current-status prose before eventual Phase 4 merge proposal.
 
@@ -148,7 +175,9 @@ The older debug-signing wording contradiction also remains to be reconciled befo
 
 Historical/tmp branches remain preserved until the eventual post-merge unique-commit audit.
 
-## 9. Merge boundary
+The consolidated master `docs/DECISIONS.md` historically lagged detailed D-0044–D-0046 files. D-0047 is recorded as a detailed approved decision and this decision-log drift should be reconciled before the eventual merge proposal without renumbering the already-issued historical D-0065 identifier.
+
+## 10. Merge boundary
 
 Do not merge Phase 4 to `main` merely because D-0047 is approved.
 
@@ -163,21 +192,14 @@ Before a merge proposal:
 - preserve exact accepted commit/APK identity;
 - obtain explicit owner merge approval.
 
-## 10. Exact continuation rule
+## 11. Exact continuation rule
 
-**Next action: produce the Phase 4 closure implementation map and gate plan.**
+**Resume `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` at Increment A.**
 
-That map must cover:
+First implementation work:
 
-1. schema/domain/migration increments;
-2. PC Settings consolidation;
-3. Gestión/live-maintenance surface;
-4. class/subclass structured identity and conditional module wiring;
-5. new F01–F18 domains;
-6. D01–D18 reusable UX/adaptive patterns;
-7. I01–I22 existing-surface improvements;
-8. global IME/editor/action consistency corrections;
-9. phone/tablet responsive increments;
-10. final automated gate and phone+tablet owner-QA matrix.
-
-Only after that map is recorded should coding resume from the prototype branch.
+1. compare the schema-6/catalog prototype to the approved audit;
+2. correct official catalog metadata/module suggestions, especially Arcana Unleashed status;
+3. define additive schema 7 for the missing D-0047 durable domains;
+4. extend repository/migration/round-trip tests;
+5. run Gate A before Android closure UI work proceeds.
