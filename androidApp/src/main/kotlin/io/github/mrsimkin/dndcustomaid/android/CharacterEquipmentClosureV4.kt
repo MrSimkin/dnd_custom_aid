@@ -2,12 +2,15 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -203,8 +207,61 @@ internal fun CharacterEquipmentClosureTabV4(
         )
     }
 
-    LazyColumn(
+    val parsedEditorQuantity = editorQuantity.toIntOrNull()
+    val parsedEditorWeight = editorWeight.trim().replace(',', '.').takeIf { it.isNotEmpty() }?.toDoubleOrNull()
+    val parsedEditorKind = runCatching { CharacterConsumableKind.valueOf(editorKindName) }
+        .getOrDefault(CharacterConsumableKind.NONE)
+    val parsedEditorCarry = runCatching { CharacterInventoryCarryState.valueOf(editorCarryName) }
+        .getOrDefault(CharacterInventoryCarryState.CARRIED)
+    val parsedEditorQuickUse = editorQuickUse.toIntOrNull()
+    val editorValid = editorName.trim().isNotEmpty() &&
+        parsedEditorQuantity != null && parsedEditorQuantity >= 0 &&
+        (editorWeight.isBlank() || (parsedEditorWeight != null && parsedEditorWeight >= 0.0)) &&
+        (parsedEditorKind == CharacterConsumableKind.NONE || (parsedEditorQuickUse != null && parsedEditorQuickUse > 0))
+
+    fun applyEditor() {
+        if (!editorValid) return
+        val existing = editingId?.let { id -> draft.items.firstOrNull { it.id.toString() == id } }
+        val id = existing?.id ?: Uuid.random()
+        val item = CharacterInventoryItem(
+            id = id,
+            name = editorName.trim(),
+            quantity = parsedEditorQuantity ?: 0,
+            weightLb = parsedEditorWeight,
+            equipped = editorEquipped,
+            notes = editorNotes.trim().takeIf { it.isNotEmpty() },
+            sortOrder = existing?.sortOrder ?: draft.items.size,
+            special = editorSpecial,
+            description = if (editorSpecial) editorDescription.trim().takeIf { it.isNotEmpty() } else null,
+            location = editorLocation.trim().takeIf { it.isNotEmpty() },
+            attuned = editorSpecial && editorAttuned,
+        )
+        val usage = CharacterInventoryUsage(
+            itemId = id,
+            kind = parsedEditorKind,
+            quickUseAmount = if (parsedEditorKind == CharacterConsumableKind.NONE) 1 else (parsedEditorQuickUse ?: 1),
+            carryState = if (editorEquipped) CharacterInventoryCarryState.CARRIED else parsedEditorCarry,
+        )
+        val updatedItems = if (existing == null) {
+            draft.items + item
+        } else {
+            draft.items.map { if (it.id == id) item else it }
+        }.mapIndexed { order, current -> current.copy(sortOrder = order) }
+        onDraftChange(
+            draft.copy(
+                items = updatedItems,
+                inventoryUsage = updateUsage(usage),
+            ),
+        )
+        editorOpen = false
+    }
+
+    Row(
         modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
+        horizontalArrangement = Arrangement.spacedBy(if (wide) 8.dp else 0.dp),
+    ) {
+        LazyColumn(
+            modifier = if (wide) Modifier.weight(1f).fillMaxHeight() else Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = if (wide) 10.dp else 5.dp,
             end = if (wide) 10.dp else 5.dp,
@@ -256,6 +313,7 @@ internal fun CharacterEquipmentClosureTabV4(
                 queryActive = !query.isEmptyF2(),
                 wide = wide,
                 special = false,
+                selectedId = editingId,
                 usageFor = ::usageFor,
                 onEdit = ::beginEdit,
                 onMove = ::moveWithinSection,
@@ -281,6 +339,7 @@ internal fun CharacterEquipmentClosureTabV4(
                 queryActive = !query.isEmptyF2(),
                 wide = wide,
                 special = true,
+                selectedId = editingId,
                 usageFor = ::usageFor,
                 onEdit = ::beginEdit,
                 onMove = ::moveWithinSection,
@@ -308,19 +367,55 @@ internal fun CharacterEquipmentClosureTabV4(
         }
     }
 
-    if (editorOpen) {
-        val quantity = editorQuantity.toIntOrNull()
-        val weight = editorWeight.trim().replace(',', '.').takeIf { it.isNotEmpty() }?.toDoubleOrNull()
-        val kind = runCatching { CharacterConsumableKind.valueOf(editorKindName) }
-            .getOrDefault(CharacterConsumableKind.NONE)
-        val requestedCarry = runCatching { CharacterInventoryCarryState.valueOf(editorCarryName) }
-            .getOrDefault(CharacterInventoryCarryState.CARRIED)
-        val quickUse = editorQuickUse.toIntOrNull()
-        val valid = editorName.trim().isNotEmpty() &&
-            quantity != null && quantity >= 0 &&
-            (editorWeight.isBlank() || (weight != null && weight >= 0.0)) &&
-            (kind == CharacterConsumableKind.NONE || (quickUse != null && quickUse > 0))
+        if (wide) {
+            EquipmentEditorPanelF3(
+                editorOpen = editorOpen,
+                title = if (editingId == null) "Añadir objeto" else "Editar objeto",
+                name = editorName,
+                quantity = editorQuantity,
+                weight = editorWeight,
+                equipped = editorEquipped,
+                notes = editorNotes,
+                special = editorSpecial,
+                description = editorDescription,
+                location = editorLocation,
+                attuned = editorAttuned,
+                kind = parsedEditorKind,
+                quickUse = editorQuickUse,
+                carryState = if (editorEquipped) CharacterInventoryCarryState.CARRIED else parsedEditorCarry,
+                valid = editorValid,
+                onBeginAdd = ::beginAdd,
+                onNameChange = { editorName = it },
+                onQuantityChange = { editorQuantity = sanitizeUnsignedF2(it) },
+                onWeightChange = { editorWeight = sanitizeDecimalF2(it) },
+                onEquippedChange = { equipped ->
+                    editorEquipped = equipped
+                    if (equipped) editorCarryName = CharacterInventoryCarryState.CARRIED.name
+                },
+                onNotesChange = { editorNotes = it },
+                onSpecialChange = { requested ->
+                    if (!requested && editorSpecial && (editorDescription.isNotBlank() || editorAttuned)) {
+                        confirmSpecialRemoval = true
+                    } else {
+                        editorSpecial = requested
+                    }
+                },
+                onDescriptionChange = { editorDescription = it },
+                onLocationChange = { editorLocation = it },
+                onAttunedChange = { editorAttuned = it },
+                onKindChange = { editorKindName = it.name },
+                onQuickUseChange = { editorQuickUse = sanitizeUnsignedF2(it) },
+                onCarryStateChange = { editorCarryName = it.name },
+                onDismiss = {
+                    editorOpen = false
+                    editingId = null
+                },
+                onApply = ::applyEditor,
+            )
+        }
+    }
 
+    if (editorOpen && !wide) {
         EquipmentEditorF2(
             title = if (editingId == null) "Añadir objeto" else "Editar objeto",
             name = editorName,
@@ -332,10 +427,10 @@ internal fun CharacterEquipmentClosureTabV4(
             description = editorDescription,
             location = editorLocation,
             attuned = editorAttuned,
-            kind = kind,
+            kind = parsedEditorKind,
             quickUse = editorQuickUse,
-            carryState = if (editorEquipped) CharacterInventoryCarryState.CARRIED else requestedCarry,
-            valid = valid,
+            carryState = if (editorEquipped) CharacterInventoryCarryState.CARRIED else parsedEditorCarry,
+            valid = editorValid,
             onNameChange = { editorName = it },
             onQuantityChange = { editorQuantity = sanitizeUnsignedF2(it) },
             onWeightChange = { editorWeight = sanitizeDecimalF2(it) },
@@ -358,41 +453,7 @@ internal fun CharacterEquipmentClosureTabV4(
             onQuickUseChange = { editorQuickUse = sanitizeUnsignedF2(it) },
             onCarryStateChange = { editorCarryName = it.name },
             onDismiss = { editorOpen = false },
-            onApply = {
-                val existing = editingId?.let { id -> draft.items.firstOrNull { it.id.toString() == id } }
-                val id = existing?.id ?: Uuid.random()
-                val item = CharacterInventoryItem(
-                    id = id,
-                    name = editorName.trim(),
-                    quantity = quantity ?: 0,
-                    weightLb = weight,
-                    equipped = editorEquipped,
-                    notes = editorNotes.trim().takeIf { it.isNotEmpty() },
-                    sortOrder = existing?.sortOrder ?: draft.items.size,
-                    special = editorSpecial,
-                    description = if (editorSpecial) editorDescription.trim().takeIf { it.isNotEmpty() } else null,
-                    location = editorLocation.trim().takeIf { it.isNotEmpty() },
-                    attuned = editorSpecial && editorAttuned,
-                )
-                val usage = CharacterInventoryUsage(
-                    itemId = id,
-                    kind = kind,
-                    quickUseAmount = if (kind == CharacterConsumableKind.NONE) 1 else (quickUse ?: 1),
-                    carryState = if (editorEquipped) CharacterInventoryCarryState.CARRIED else requestedCarry,
-                )
-                val updatedItems = if (existing == null) {
-                    draft.items + item
-                } else {
-                    draft.items.map { if (it.id == id) item else it }
-                }.mapIndexed { order, current -> current.copy(sortOrder = order) }
-                onDraftChange(
-                    draft.copy(
-                        items = updatedItems,
-                        inventoryUsage = updateUsage(usage),
-                    ),
-                )
-                editorOpen = false
-            },
+            onApply = ::applyEditor,
         )
     }
 
@@ -429,6 +490,10 @@ internal fun CharacterEquipmentClosureTabV4(
                             inventoryUsage = draft.inventoryUsage.filterNot { it.itemId == target.id },
                         ),
                     )
+                    if (editingId == target.id.toString()) {
+                        editorOpen = false
+                        editingId = null
+                    }
                     deleteId = null
                 },
             )
@@ -530,6 +595,7 @@ private fun EquipmentSectionF2(
     queryActive: Boolean,
     wide: Boolean,
     special: Boolean,
+    selectedId: String?,
     usageFor: (CharacterInventoryItem) -> CharacterInventoryUsage,
     onEdit: (CharacterInventoryItem) -> Unit,
     onMove: (CharacterInventoryItem, Int) -> Boolean,
@@ -586,6 +652,7 @@ private fun EquipmentSectionF2(
                                     usage = usageFor(item),
                                     canReorder = canReorder,
                                     special = special,
+                                    selected = selectedId == item.id.toString(),
                                     onEdit = { onEdit(item) },
                                     onMove = { offset -> onMove(item, offset) },
                                     onQuickUse = { onQuickUse(item, usageFor(item)) },
@@ -619,6 +686,7 @@ private fun EquipmentDenseItemF2(
     usage: CharacterInventoryUsage,
     canReorder: Boolean,
     special: Boolean,
+    selected: Boolean,
     onEdit: () -> Unit,
     onMove: (Int) -> Boolean,
     onQuickUse: () -> Unit,
@@ -657,7 +725,10 @@ private fun EquipmentDenseItemF2(
                 .characterDragFeedbackV4(dragState)
                 .clickable(onClick = onEdit),
             shape = MaterialTheme.shapes.small,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            border = BorderStroke(
+                1.dp,
+                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+            ),
             tonalElevation = if (special) 1.dp else 0.dp,
         ) {
             Column(
@@ -746,6 +817,182 @@ private fun EquipmentDenseItemF2(
             }
         }
         CharacterDropIndicatorV4(visible = dragState.showDropAfter)
+    }
+}
+
+@Composable
+private fun EquipmentEditorPanelF3(
+    editorOpen: Boolean,
+    title: String,
+    name: String,
+    quantity: String,
+    weight: String,
+    equipped: Boolean,
+    notes: String,
+    special: Boolean,
+    description: String,
+    location: String,
+    attuned: Boolean,
+    kind: CharacterConsumableKind,
+    quickUse: String,
+    carryState: CharacterInventoryCarryState,
+    valid: Boolean,
+    onBeginAdd: () -> Unit,
+    onNameChange: (String) -> Unit,
+    onQuantityChange: (String) -> Unit,
+    onWeightChange: (String) -> Unit,
+    onEquippedChange: (Boolean) -> Unit,
+    onNotesChange: (String) -> Unit,
+    onSpecialChange: (Boolean) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onAttunedChange: (Boolean) -> Unit,
+    onKindChange: (CharacterConsumableKind) -> Unit,
+    onQuickUseChange: (String) -> Unit,
+    onCarryStateChange: (CharacterInventoryCarryState) -> Unit,
+    onDismiss: () -> Unit,
+    onApply: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .widthIn(min = 320.dp, max = 440.dp)
+            .fillMaxHeight(),
+    ) {
+        if (!editorOpen) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(14.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("Editor de equipo", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Selecciona un objeto de la lista para editarlo sin perder tu posición, búsqueda ni filtros.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Button(onClick = onBeginAdd, modifier = Modifier.padding(top = 10.dp)) {
+                    Text("+ Añadir objeto")
+                }
+            }
+            return@Card
+        }
+
+        Column(modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                TextButton(onClick = onDismiss) { Text("Cerrar") }
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = onNameChange,
+                    label = { Text("Nombre") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    OutlinedTextField(
+                        value = quantity,
+                        onValueChange = onQuantityChange,
+                        label = { Text("Cantidad") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    )
+                    OutlinedTextField(
+                        value = weight,
+                        onValueChange = onWeightChange,
+                        label = { Text("Peso/u. lb") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = equipped, onCheckedChange = onEquippedChange)
+                    Text("Equipado")
+                    Checkbox(checked = special, onCheckedChange = onSpecialChange)
+                    Text("Especial")
+                }
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = onLocationChange,
+                    label = { Text("Contenedor / ubicación") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                EnumDropdownF2(
+                    label = "Disponibilidad",
+                    current = if (equipped) "Transportado (equipado)" else carryLabelF2(carryState),
+                    options = CharacterInventoryCarryState.entries.map { it.name to carryLabelF2(it) },
+                    enabled = !equipped,
+                    onSelect = { onCarryStateChange(CharacterInventoryCarryState.valueOf(it)) },
+                )
+                EnumDropdownF2(
+                    label = "Uso de cantidad",
+                    current = consumableLabelF2(kind),
+                    options = CharacterConsumableKind.entries.map { it.name to consumableLabelF2(it) },
+                    onSelect = { onKindChange(CharacterConsumableKind.valueOf(it)) },
+                )
+                if (kind != CharacterConsumableKind.NONE) {
+                    OutlinedTextField(
+                        value = quickUse,
+                        onValueChange = onQuickUseChange,
+                        label = { Text("Cantidad por uso rápido") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    )
+                }
+                if (special) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
+                        Text("Sintonizado")
+                    }
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = onDescriptionChange,
+                        label = { Text("Descripción especial") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        maxLines = 5,
+                    )
+                }
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = onNotesChange,
+                    label = { Text("Notas") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 4,
+                )
+                CharacterInlineValidationMessage(
+                    when {
+                        name.trim().isEmpty() -> "El nombre no puede quedar vacío."
+                        quantity.toIntOrNull() == null || quantity.toInt() < 0 -> "La cantidad debe ser un entero igual o mayor que 0."
+                        weight.isNotBlank() && (weight.replace(',', '.').toDoubleOrNull() == null || weight.replace(',', '.').toDouble() < 0.0) -> "El peso debe ser un número igual o mayor que 0."
+                        kind != CharacterConsumableKind.NONE && (quickUse.toIntOrNull() == null || quickUse.toInt() <= 0) -> "El uso rápido debe consumir al menos 1 unidad."
+                        else -> null
+                    },
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onDismiss) { Text("Cancelar") }
+                Button(onClick = onApply, enabled = valid) { Text("Aplicar") }
+            }
+        }
     }
 }
 
