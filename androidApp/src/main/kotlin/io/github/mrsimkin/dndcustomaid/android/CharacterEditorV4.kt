@@ -418,17 +418,22 @@ internal fun CharacterEditorScreenV4(
                         CharacterTabV4.OVERVIEW -> OverviewTabV4(
                             draft = draft,
                             stored = stored,
+                            closureState = closureState,
                             wide = wide,
                             onDraftChange = ::updateDraft,
+                            onClosureStateChange = ::persistClosureState,
                         )
                         CharacterTabV4.SKILLS -> SkillsTabV4(
                             draft = draft,
+                            closureState = closureState,
+                            calculationSheet = settingsSheet,
                             wide = wide,
                             skillLayoutChoice = preferences.skillLayoutChoice,
                             onSkillLayoutChange = {
                                 onPreferencesChange(preferences.copy(skillLayoutChoice = it))
                             },
                             onDraftChange = ::updateDraft,
+                            onClosureStateChange = ::persistClosureState,
                         )
                         CharacterTabV4.COMBAT -> CharacterCombatTabV4(
                             armorClass = draft.armorClass,
@@ -626,8 +631,10 @@ private fun EditorHeaderV4(
 private fun OverviewTabV4(
     draft: CharacterEditorDraftV4,
     stored: CharacterSheet,
+    closureState: CharacterClosureState,
     wide: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -644,6 +651,13 @@ private fun OverviewTabV4(
     ) {
         item {
             IdentityCardV4(draft, stored, onDraftChange)
+        }
+        item {
+            CharacterGeneralClosureCardsV4(
+                state = closureState,
+                onStateChange = onClosureStateChange,
+                wide = wide,
+            )
         }
         item {
             ClassesCardV4(
@@ -1442,10 +1456,13 @@ private fun DerivedTotalControlV4(
 @Composable
 private fun SkillsTabV4(
     draft: CharacterEditorDraftV4,
+    closureState: CharacterClosureState,
+    calculationSheet: CharacterSheet,
     wide: Boolean,
     skillLayoutChoice: SkillLayoutChoice,
     onSkillLayoutChange: (SkillLayoutChoice) -> Unit,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -1463,14 +1480,33 @@ private fun SkillsTabV4(
         item {
             SkillViewSelectorV4(skillLayoutChoice, onSkillLayoutChange)
         }
+        item {
+            CharacterPassiveSkillsCardV4(calculationSheet)
+        }
         when (skillLayoutChoice) {
             SkillLayoutChoice.BY_SKILLS -> {
                 item { AbilitiesCardV4(draft, onDraftChange) }
                 item { SavesCardV4(draft, wide, onDraftChange) }
                 item { SkillsListCardV4(draft, wide, onDraftChange) }
+                item {
+                    CharacterCustomSkillsCardV4(
+                        skills = closureState.customSkills,
+                        calculationSheet = calculationSheet,
+                        layoutChoice = skillLayoutChoice,
+                        onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
+                    )
+                }
             }
             SkillLayoutChoice.BY_ATTRIBUTE -> {
                 item { AbilityGroupsCardV4(draft, wide, onDraftChange) }
+                item {
+                    CharacterCustomSkillsCardV4(
+                        skills = closureState.customSkills,
+                        calculationSheet = calculationSheet,
+                        layoutChoice = skillLayoutChoice,
+                        onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
+                    )
+                }
             }
         }
     }

@@ -53,8 +53,13 @@ internal fun CharacterGeneralClosureCardsV4(
     onStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
 ) {
-    CharacterMediaCardV4(state = state, onStateChange = onStateChange, wide = wide)
-    CharacterDefensesSensesMovementCardV4(state = state, onStateChange = onStateChange, wide = wide)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        CharacterMediaCardV4(state = state, onStateChange = onStateChange, wide = wide)
+        CharacterDefensesSensesMovementCardV4(state = state, onStateChange = onStateChange, wide = wide)
+    }
 }
 
 @Composable
