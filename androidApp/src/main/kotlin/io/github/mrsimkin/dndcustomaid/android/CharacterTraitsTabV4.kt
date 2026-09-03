@@ -11,13 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -259,20 +257,13 @@ internal fun CharacterTraitsTabV4(
     deleteId?.let { id ->
         val target = traits.firstOrNull { it.id.toString() == id }
         if (target != null) {
-            AlertDialog(
+            CharacterNamedDeleteConfirmationDialog(
+                itemName = target.name,
+                itemTypeLabel = "rasgo",
                 onDismissRequest = { deleteId = null },
-                title = { Text("Eliminar rasgo") },
-                text = { Text("¿Eliminar «${target.name}»? El cambio se hará persistente al guardar la ficha.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onTraitsChange(normalize(traits.filterNot { it.id == target.id }))
-                            deleteId = null
-                        },
-                    ) { Text("Eliminar") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { deleteId = null }) { Text("Cancelar") }
+                onConfirm = {
+                    onTraitsChange(normalize(traits.filterNot { it.id == target.id }))
+                    deleteId = null
                 },
             )
         } else {
@@ -340,7 +331,7 @@ private fun CharacterTraitCardV4(
                         )
                     },
                     active = dragging,
-                contentDescription = "Mantén pulsado y arrastra para reordenar ${trait.name}",
+                    contentDescription = "Mantén pulsado y arrastra para reordenar ${trait.name}",
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(trait.name, style = MaterialTheme.typography.labelLarge)
@@ -390,12 +381,10 @@ private fun CharacterTraitCardV4(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("Editar")
-                }
-                TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("Eliminar")
-                }
+                StableRemoveIconButton(
+                    onClick = onDelete,
+                    contentDescription = "Eliminar ${trait.name}",
+                )
             }
         }
     }
@@ -429,165 +418,145 @@ private fun CharacterTraitEditorDialogV4(
     var typeMenuOpen by rememberSaveable { mutableStateOf(false) }
     var activationMenuOpen by rememberSaveable { mutableStateOf(false) }
 
-    AlertDialog(
-        onDismissRequest = {},
-        title = { Text(title) },
-        text = {
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 520.dp)
-                    .imePadding()
-                    .navigationBarsPadding(),
-                contentPadding = PaddingValues(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                item {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = onNameChange,
-                        label = { Text("Nombre") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
+    CharacterImeSafeEditorDialog(
+        title = title,
+        onCancel = onDismiss,
+        onSave = onApply,
+        saveEnabled = valid,
+    ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nombre") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = source,
+            onValueChange = onSourceChange,
+            label = { Text("Fuente") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        Column {
+            Text("Tipo", style = MaterialTheme.typography.labelSmall)
+            Box {
+                OutlinedButton(
+                    onClick = { typeMenuOpen = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(characterTraitTypeLabelV4(type))
                 }
-                item {
-                    OutlinedTextField(
-                        value = source,
-                        onValueChange = onSourceChange,
-                        label = { Text("Fuente") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
-                }
-                item {
-                    Column {
-                        Text("Tipo", style = MaterialTheme.typography.labelSmall)
-                        Box {
-                            OutlinedButton(
-                                onClick = { typeMenuOpen = true },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(characterTraitTypeLabelV4(type))
-                            }
-                            DropdownMenu(
-                                expanded = typeMenuOpen,
-                                onDismissRequest = { typeMenuOpen = false },
-                            ) {
-                                CharacterTraitType.entries.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(characterTraitTypeLabelV4(option)) },
-                                        onClick = {
-                                            onTypeChange(option)
-                                            typeMenuOpen = false
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                item {
-                    Column {
-                        Text("Activación (opcional)", style = MaterialTheme.typography.labelSmall)
-                        Box {
-                            OutlinedButton(
-                                onClick = { activationMenuOpen = true },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(activation?.let(::characterActivationLabelV4) ?: "Sin especificar")
-                            }
-                            DropdownMenu(
-                                expanded = activationMenuOpen,
-                                onDismissRequest = { activationMenuOpen = false },
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Sin especificar") },
-                                    onClick = {
-                                        onActivationChange(null)
-                                        activationMenuOpen = false
-                                    },
-                                )
-                                CharacterActivationType.entries.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(characterActivationLabelV4(option)) },
-                                        onClick = {
-                                            onActivationChange(option)
-                                            activationMenuOpen = false
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                item {
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = onDescriptionChange,
-                        label = { Text("Descripción") },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 5,
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = notes,
-                        onValueChange = onNotesChange,
-                        label = { Text("Notas (opcional)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 3,
-                    )
-                }
-                item {
-                    Text("Seguimiento manual de usos", style = MaterialTheme.typography.labelLarge)
-                    Text(
-                        "Deja Usos máximos vacío para desactivar el seguimiento. La app no restaura usos automáticamente.",
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(7.dp),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        OutlinedTextField(
-                            value = maxUses,
-                            onValueChange = onMaxUsesChange,
-                            label = { Text("Usos máximos") },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        )
-                        OutlinedTextField(
-                            value = if (maxUses.isBlank()) "" else spentUses,
-                            onValueChange = onSpentUsesChange,
-                            label = { Text("Usos gastados") },
-                            modifier = Modifier.weight(1f),
-                            enabled = maxUses.isNotBlank(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                DropdownMenu(
+                    expanded = typeMenuOpen,
+                    onDismissRequest = { typeMenuOpen = false },
+                ) {
+                    CharacterTraitType.entries.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(characterTraitTypeLabelV4(option)) },
+                            onClick = {
+                                onTypeChange(option)
+                                typeMenuOpen = false
+                            },
                         )
                     }
-                }
-                item {
-                    OutlinedTextField(
-                        value = recovery,
-                        onValueChange = onRecoveryChange,
-                        label = { Text("Recuperación (opcional)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onApply, enabled = valid) { Text("Aplicar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
+        }
+        Column {
+            Text("Activación (opcional)", style = MaterialTheme.typography.labelSmall)
+            Box {
+                OutlinedButton(
+                    onClick = { activationMenuOpen = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(activation?.let(::characterActivationLabelV4) ?: "Sin especificar")
+                }
+                DropdownMenu(
+                    expanded = activationMenuOpen,
+                    onDismissRequest = { activationMenuOpen = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Sin especificar") },
+                        onClick = {
+                            onActivationChange(null)
+                            activationMenuOpen = false
+                        },
+                    )
+                    CharacterActivationType.entries.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(characterActivationLabelV4(option)) },
+                            onClick = {
+                                onActivationChange(option)
+                                activationMenuOpen = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+        OutlinedTextField(
+            value = description,
+            onValueChange = onDescriptionChange,
+            label = { Text("Descripción") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 5,
+            maxLines = 10,
+        )
+        OutlinedTextField(
+            value = notes,
+            onValueChange = onNotesChange,
+            label = { Text("Notas (opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3,
+            maxLines = 7,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text("Seguimiento manual de usos", style = MaterialTheme.typography.labelLarge)
+            Text(
+                "Deja Usos máximos vacío para desactivar el seguimiento. La app no restaura usos automáticamente.",
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            OutlinedTextField(
+                value = maxUses,
+                onValueChange = onMaxUsesChange,
+                label = { Text("Usos máximos") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            OutlinedTextField(
+                value = if (maxUses.isBlank()) "" else spentUses,
+                onValueChange = onSpentUsesChange,
+                label = { Text("Usos gastados") },
+                modifier = Modifier.weight(1f),
+                enabled = maxUses.isNotBlank(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+        }
+        OutlinedTextField(
+            value = recovery,
+            onValueChange = onRecoveryChange,
+            label = { Text("Recuperación (opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        CharacterInlineValidationMessage(
+            when {
+                name.trim().isEmpty() -> "El nombre no puede quedar vacío."
+                maxUses.isNotBlank() && (maxUses.toIntOrNull() == null || maxUses.toInt() <= 0) -> "Usos máximos debe ser un entero mayor que 0."
+                maxUses.isNotBlank() && (spentUses.toIntOrNull() == null || spentUses.toInt() !in 0..maxUses.toInt()) -> "Usos gastados debe estar entre 0 y Usos máximos."
+                else -> null
+            },
+        )
+    }
 }
 
 private fun traitUnsignedIntegerTextV4(raw: String): String = raw.filter(Char::isDigit)
