@@ -2,25 +2,27 @@
 
 ## Current status
 
-Phase 3 is complete and canonical on `main` after PR #5. The local Android campaign create/select slice passed focused automated verification plus manual phone and tablet checks. Post-merge CI also passed on the canonical merge commit. D-0043 remains controlling: testing protects material risks without turning this personal project into an enterprise test program.
+Phases 0–3 are complete. Phase 4 Character Foundation Closure is current on `implementation/phase4-character-closure`.
 
-C-0010 now adds a repeatable manual QA rule: after a build reaches a manual-testable state, execute the defined post-build QA suite on the feature's intended primary device/form factor before calling the feature manually accepted. The reusable suite lives in `docs/QA_CHECKLIST.md`.
+The previous correction APK/artifact `9876725270` is historical evidence only and is no longer the acceptance target. The next manual QA target must be a newly frozen closure APK with exact commit/workflow/artifact identity.
+
+The schema-6 closure prototype checkpoint `89aad12a094476c7b6798f6f0626bf978a5d0831` passed GitHub Actions run `33779104922`. The later documentation head `997340eadf0f7b3cd648d04932dca45c4c5434bd` also passed run `33782368536`. Green CI is technical evidence, not owner acceptance.
 
 ## 1. Core rule
 
 Never claim a test passed unless it was actually executed successfully against the relevant revision.
 
-Every meaningful implementation change should state concisely:
+Every meaningful implementation batch should state:
 
 - what was tested;
-- how it was tested;
-- what passed or failed;
-- what was not tested when that matters;
-- relevant environment/device information when it matters.
+- how;
+- what passed/failed;
+- what was not tested when material;
+- relevant device/environment information when material.
 
-Automated verification and manual intended-device acceptance are separate gates. Green CI does not by itself mean a feature has passed manual QA.
+Automated verification and manual real-device acceptance are separate gates.
 
-## 2. Standard verification commands
+## 2. Standard automated verification
 
 ### Kotlin / Android / Desktop / SQLDelight
 
@@ -38,126 +40,117 @@ npm install
 npm run check
 ```
 
-This runs Wrangler type generation and TypeScript type checking.
+The established full gate runs both surfaces even when one area is unchanged, unless a smaller intermediate batch gate is explicitly documented.
 
-## 3. Phase 3 final verification
+## 3. Current Phase 4 gate strategy
 
-PR #5 final review head:
+The closure is intentionally split into recoverable batches under:
 
-`124626aa6f0fabd449ee5823c1651e3cc01f3e70`
+`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`.
 
-The pull-request GitHub Actions workflow passed on that head.
+For shared/schema batches, protect the material data risks:
 
-PR #5 was then merged into `main` as:
+- schema create-from-scratch;
+- migration from relevant earlier schema versions;
+- preservation of existing campaign/character data;
+- repository round trips for new durable domains;
+- derived-value regressions where relevant;
+- Desktop compilation to catch shared API breakage;
+- Android assembly.
 
-`dc1304080f0b71bcb44690b5ee317f3877385286`
+For Android UI batches, use proportionate automated tests for state/helper logic plus Android assembly. Real IME, visual density, drag feedback, orientation and tablet usefulness still require real-device QA.
 
-GitHub Actions run #34 passed on that canonical merge commit:
+## 4. Migration rules for the closure
 
-- shared Kotlin compilation — success;
-- campaign repository tests — success;
-- SQLDelight generation — success;
-- Android debug APK assembly — success;
-- Desktop build — success;
-- Android debug APK artifact upload — success;
-- backend Wrangler/TypeScript check — success.
+The owner must be able to install the future closure APK over the currently used Phase 4 development APK lineage without losing existing data.
 
-The campaign persistence test closes SQLite, reopens the same database file, and verifies that the stored campaign and active selection survive the reopen.
+The current plan deliberately keeps the already-tested schema-6 prototype migration and adds the remaining durable D-0047 state through schema 7 rather than rewriting migration history.
 
-Documentation-only Phase 4 transition commits made after the merge also trigger the same CI workflow but do not change application behavior.
+Minimum migration regression coverage before the final candidate:
 
-## 4. Phase 3 behavior covered by automated tests
+- prior owner-APK schema -> current;
+- schema 5 -> 6 -> 7;
+- existing campaigns/characters;
+- Background including Raza and Religión / Fe;
+- Combat entries;
+- Equipment/currencies;
+- Traits;
+- Spells/sources/prepared/shared slots;
+- Notes;
+- class rows with safe default subclass/provenance state;
+- new fields initialized safely;
+- module hide/show settings never delete module records.
 
-- creating a campaign with a nonblank trimmed name succeeds;
-- blank/whitespace-only campaign names are rejected;
-- multiple campaigns persist independently;
-- duplicate display names are allowed without identity collision;
-- selecting an active campaign persists locally;
-- changing the active campaign replaces the previous active selection;
-- reopening database storage recovers campaigns and active selection.
+## 5. Intended-device rule for this closure
 
-No tests were added for hosted synchronization, membership, roles or other features excluded from the slice.
+C-0010 still applies, but D-0047 makes the current character closure explicitly a **phone + tablet acceptance package**.
 
-## 5. Manual Android verification
+Therefore final owner acceptance requires:
 
-Approved minimum is Android 11 / API 30.
+1. phone portrait;
+2. phone landscape;
+3. tablet portrait;
+4. tablet landscape;
+5. a representative larger application text scale where practical.
 
-On 2026-08-30 the owner manually verified the Phase 3 CI-built debug APK on an Android phone and tablet.
+Tablet is **not secondary** for this closure. The APK must materially exploit available width where appropriate instead of merely stretching phone components.
 
-Confirmed:
+## 6. Global real-device invariants
 
-- installation and launch succeeded;
-- campaign screen was in Spanish;
-- campaign creation worked;
-- active-campaign selection worked;
-- campaigns and active selection survived app restart;
-- phone layout was functional;
-- tablet layout was functional and not excessively stretched.
+Every user-visible closure batch should preserve or move toward:
 
-Non-blocking observations:
+- keyboard/IME action reachability;
+- Android Back hierarchy;
+- screen-off/recreation state;
+- save/reopen persistence;
+- portrait/landscape sanity;
+- phone/tablet responsiveness;
+- app text scaling;
+- accessible touch targets;
+- D16 parent/list/tab/search/filter/sort/selection context preservation where technically feasible;
+- no automatic D&D legality/rules enforcement.
 
-- current UI has more empty/dead space than desired;
-- tablet landscape underuses horizontal space;
-- richer future screens will provide a better basis for adaptive-layout decisions;
-- theme support is desired for future UI work.
+## 7. Final closure QA focus
 
-These observations did not fail the Phase 3 acceptance criteria.
+The final pass is a focused closure acceptance matrix rather than a verbatim rerun of every historical check.
 
-## 6. Scaffold baseline verification
+It must cover at least:
 
-Final Phase 2 scaffold branch head:
+- update-in-place migration/data preservation;
+- all editors with IME visible;
+- consistent actions and unsaved-change guard;
+- sorting/search/filter/drag behavior;
+- lifecycle/module/haptic/Supercompact/Table-mode PC Settings;
+- Gestión, Resources, Rest, Conditions, Concentration and effects;
+- General/Habilidades/Combat improvements;
+- compact Equipment/Monedas and containers/consumables;
+- Traits/Spells/Notes/Background regressions;
+- Artífice/Formas/Técnicas/Metamagia/Pactos/Compañeros;
+- multiclass module union and manual override/hide-not-delete;
+- Supercompact visual usefulness on phone/tablet;
+- own-format backup/import round trip;
+- rotation, screen-off/on, full app close/reopen and representative larger text.
 
-`2f8746de1053bf97cc18d7a522f2027e91879251`
+## 8. Development APK signing
 
-GitHub Actions run #14 passed on that exact revision before PR #4 merged it into `main` as `d50409270db52df05508f91363bf76385030a77d`.
+Development CI APKs use a stable **debug-only** signing identity so successive QA APKs can update one another in place. This exists specifically to test realistic SQLite migration/persistence behavior on owner devices.
 
-## 7. Known non-blocking tooling notes
+The development identity is not a production/release trust boundary and is never to be reused for a real release. A future real release signing identity must remain private and be designed/handled separately.
 
-The KMP `androidLibrary` target DSL used by `shared` currently emits a deprecation warning. The current official Kotlin KMP application template still uses the same API, so the project deliberately does not churn a green foundation merely to silence a tooling-transition warning.
+CI currently reconstructs the development debug keystore from tracked development-only material before building. Do not expose/reproduce that material in chat or docs merely because it is non-production.
 
-The Gradle wrapper JAR is not currently committed because the repository connector could not safely transfer the official binary JAR. CI provisions Gradle 9.5 directly. A normal local Git workflow can add the wrapper later.
+## 9. CI proportionality
 
-Development CI APKs now use a stable project-owned **debug-only** signing identity so successive development APKs can normally update one another in place for realistic migration/persistence testing. This identity is not a production/release signing key and must never be reused as one.
+Use the existing simple GitHub Actions workflow as a safety gate, not a deployment platform.
 
-## 8. CI
+Do not add coverage gates, emulator farms, SonarQube, staging, automated production deployment or giant screenshot suites without a concrete requirement.
 
-Use one simple GitHub Actions workflow for relevant pushes/pull requests. CI is a safety check, not deployment.
+## 10. Regression rule
 
-Initial CI does not require coverage gates, SonarQube, emulator farms, broad API matrices, staging, automatic production deployment, automated release publishing, or giant screenshot suites.
+When fixing a reproducible defect, add a focused automated regression test when practical/useful. Otherwise record the exact manual verification used.
 
-## 9. Post-build intended-device QA
+## 11. Current exact continuation
 
-C-0010 controls manual feature acceptance.
+Housekeeping is followed by Batch A1 catalog reconciliation, then A2 schema 7. Each batch gets its own checkpoint/gate before dependent work proceeds.
 
-After a build reaches a manual-testable state:
-
-1. run automated verification appropriate to the revision;
-2. identify the feature's intended primary device/form factor;
-3. execute the relevant sections of `docs/QA_CHECKLIST.md` on that intended device;
-4. record pass/fail, defects and non-blocking observations;
-5. use secondary form-factor checks only where useful/proportionate;
-6. do not call the feature manually accepted until its intended-device QA has passed or deviations are explicitly accepted.
-
-Current intended-device priorities include:
-
-- player character-sheet workflow — Android **phone first**;
-- DM combat tracker/live board — Android **tablet first**;
-- DM preparation/administration — **desktop first**.
-
-The QA checklist contains a small persistent regression core and a focused current-feature suite. Grow the persistent core only where a regression would materially matter.
-
-## 10. Phase 4 verification rule
-
-For each Phase 4 slice, add only focused automated/manual verification for behavior that actually exists and the material risks introduced by that slice.
-
-As features appear, likely verification areas include consequential SQLDelight migrations, sync/outbox/idempotency, combat sequence authority, backend auth/authz, PDF behavior, and SRD grounding. Do not create tests for infrastructure or behavior that does not exist.
-
-For the current character-foundation slice, the primary manual acceptance device is the Android phone. Tablet checks are secondary unless a concrete character-sheet defect or future tablet-specific character workflow makes them material.
-
-## 11. Regression rule
-
-When fixing a reproducible defect, add a focused automated regression test when practical/useful. Otherwise record the manual verification used.
-
-## 12. Proportionality
-
-C-0009 controls testing: protect this application's useful behavior and data, not an imaginary commercial compliance process.
+No DM-feature testing or implementation begins until the Phase 4 character closure exit gate is satisfied.
