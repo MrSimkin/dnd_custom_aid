@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING INTEGRATION GATE  
+**Status:** GREEN / COMPLETE  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -61,9 +61,17 @@ Delivered UI behavior:
 - existing IME-safe editor semantics retained;
 - persisted favorite references for deleted traits are pruned only after successful global Save, so discarding a draft deletion does not mutate durable Quick Access state.
 
-## Gate required
+## Gate result
 
-G1 is not GREEN until the controlling workflow on this checkpoint head passes:
+Controlling checkpoint head:
+
+- `95c246cafcc7147d6a1d02717456f1266a72e80f`.
+
+Controlling workflow:
+
+- `33817819671` — PASS.
+
+Verified green:
 
 - focused G1 trait operation tests;
 - all shared desktop tests;
@@ -72,4 +80,14 @@ G1 is not GREEN until the controlling workflow on this checkpoint head passes:
 - backend type-check;
 - APK artifact upload.
 
-If green, close G1 and advance to **G2 — Conjuros closure**. Do not begin G2 from implementation momentum before this gate is known.
+Evidence artifact:
+
+- name: `dnd-custom-aid-debug-apk`;
+- artifact ID: `9917236440`;
+- digest: `sha256:a81ef352b6c1a8e19cf6a5be2d582fb56c2bc1276f072d86e1e0817993adefa8`.
+
+This is integration evidence, not the future frozen owner-QA candidate.
+
+## Exact continuation
+
+Proceed to **G2 — Conjuros closure**. Preserve source/prepared/shared-slot persistence and the existing numeric spell-level input while adding the approved presentation/order/filter/Favorite/drag/tablet behavior.
