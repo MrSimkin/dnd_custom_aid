@@ -41,6 +41,11 @@ enum class CharacterConsumableKind {
     AMMUNITION,
 }
 
+enum class CharacterInventoryCarryState {
+    CARRIED,
+    STORED,
+}
+
 enum class CharacterModuleOverrideMode {
     AUTO,
     FORCE_SHOW,
@@ -112,6 +117,7 @@ data class CharacterInventoryUsage(
     val itemId: Uuid,
     val kind: CharacterConsumableKind = CharacterConsumableKind.NONE,
     val quickUseAmount: Int = 1,
+    val carryState: CharacterInventoryCarryState = CharacterInventoryCarryState.CARRIED,
 )
 
 data class CharacterReconciliationCheckpoint(

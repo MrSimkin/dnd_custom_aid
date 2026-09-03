@@ -1,0 +1,1 @@
+ALTER TABLE character_inventory_usage ADD COLUMN carry_state TEXT NOT NULL DEFAULT 'CARRIED';

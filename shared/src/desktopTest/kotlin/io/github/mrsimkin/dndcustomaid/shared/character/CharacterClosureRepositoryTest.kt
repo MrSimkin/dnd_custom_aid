@@ -136,7 +136,12 @@ class CharacterClosureRepositoryTest {
                         ),
                     ),
                     inventoryUsage = listOf(
-                        CharacterInventoryUsage(itemId, CharacterConsumableKind.AMMUNITION, 1),
+                        CharacterInventoryUsage(
+                            itemId,
+                            CharacterConsumableKind.AMMUNITION,
+                            1,
+                            CharacterInventoryCarryState.STORED,
+                        ),
                     ),
                     reconciliationCheckpoints = listOf(
                         CharacterReconciliationCheckpoint(checkpointId, 1000, core.updatedAtEpochSeconds, "Fin de sesión", "Papel reconciliado"),
@@ -178,6 +183,7 @@ class CharacterClosureRepositoryTest {
             assertEquals(60, saved.senses.single().rangeFeet)
             assertEquals(resourceId, saved.resourceRecovery.single().resourceId)
             assertEquals(CharacterConsumableKind.AMMUNITION, saved.inventoryUsage.single().kind)
+            assertEquals(CharacterInventoryCarryState.STORED, saved.inventoryUsage.single().carryState)
             assertEquals("Fin de sesión", saved.reconciliationCheckpoints.single().label)
             assertEquals(CharacterAbility.INTELLIGENCE, saved.customSkills.single().ability)
             assertEquals(SkillTraining.EXPERTISE, saved.customSkills.single().training)
@@ -243,11 +249,12 @@ class CharacterClosureRepositoryTest {
         }
 
     @Test
-    fun migrationSevenIsAdditiveAndPreservesExistingCharacterRows() {
-        val file = File.createTempFile("dnd-custom-aid-schema7", ".db")
+    fun migrationEightAddsCarriedStateWithoutLosingExistingInventoryUsage() {
+        val file = File.createTempFile("dnd-custom-aid-schema8", ".db")
         file.delete()
         val jdbcUrl = "jdbc:sqlite:${file.absolutePath}"
         val characterId = "00000000-0000-0000-0000-000000000077"
+        val itemId = "00000000-0000-0000-0000-000000000078"
 
         try {
             DriverManager.getConnection(jdbcUrl).use { connection ->
@@ -255,6 +262,19 @@ class CharacterClosureRepositoryTest {
                     statement.executeUpdate("PRAGMA foreign_keys=ON")
                     statement.executeUpdate("CREATE TABLE character (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL)")
                     statement.executeUpdate("INSERT INTO character(id, name) VALUES ('$characterId', 'Conservado')")
+                    statement.executeUpdate(
+                        """CREATE TABLE character_inventory_usage (
+                            character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+                            item_id TEXT NOT NULL,
+                            consumable_kind TEXT NOT NULL DEFAULT 'NONE',
+                            quick_use_amount INTEGER NOT NULL DEFAULT 1,
+                            PRIMARY KEY(character_id, item_id)
+                        )""".trimIndent(),
+                    )
+                    statement.executeUpdate(
+                        "INSERT INTO character_inventory_usage(character_id, item_id, consumable_kind, quick_use_amount) " +
+                            "VALUES ('$characterId', '$itemId', 'AMMUNITION', 2)",
+                    )
                 }
             }
 
@@ -267,32 +287,25 @@ class CharacterClosureRepositoryTest {
             driver.close()
 
             DriverManager.getConnection(jdbcUrl).use { connection ->
+                val row = connection.createStatement().use { statement ->
+                    statement.executeQuery(
+                        "SELECT consumable_kind, quick_use_amount, carry_state FROM character_inventory_usage WHERE item_id = '$itemId'",
+                    ).use { result ->
+                        result.next()
+                        Triple(result.getString(1), result.getInt(2), result.getString(3))
+                    }
+                }
                 val preservedName = connection.createStatement().use { statement ->
                     statement.executeQuery("SELECT name FROM character WHERE id = '$characterId'").use { result ->
                         result.next()
                         result.getString(1)
                     }
                 }
-                val closureTableCount = connection.createStatement().use { statement ->
-                    statement.executeQuery(
-                        "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'character_closure_settings'",
-                    ).use { result ->
-                        result.next()
-                        result.getInt(1)
-                    }
-                }
-                val conditionTableCount = connection.createStatement().use { statement ->
-                    statement.executeQuery(
-                        "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'character_condition'",
-                    ).use { result ->
-                        result.next()
-                        result.getInt(1)
-                    }
-                }
 
                 assertEquals("Conservado", preservedName)
-                assertEquals(1, closureTableCount)
-                assertEquals(1, conditionTableCount)
+                assertEquals("AMMUNITION", row.first)
+                assertEquals(2, row.second)
+                assertEquals("CARRIED", row.third)
             }
         } finally {
             file.delete()

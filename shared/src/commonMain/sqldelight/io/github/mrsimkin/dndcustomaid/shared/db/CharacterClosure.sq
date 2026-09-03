@@ -70,6 +70,7 @@ CREATE TABLE character_inventory_usage (
     item_id TEXT NOT NULL,
     consumable_kind TEXT NOT NULL DEFAULT 'NONE',
     quick_use_amount INTEGER NOT NULL DEFAULT 1,
+    carry_state TEXT NOT NULL DEFAULT 'CARRIED',
     PRIMARY KEY(character_id, item_id)
 );
 
@@ -207,11 +208,11 @@ deleteResourceRecovery:
 DELETE FROM character_resource_recovery WHERE character_id = ?;
 
 upsertInventoryUsage:
-INSERT OR REPLACE INTO character_inventory_usage(character_id, item_id, consumable_kind, quick_use_amount)
-VALUES (?, ?, ?, ?);
+INSERT OR REPLACE INTO character_inventory_usage(character_id, item_id, consumable_kind, quick_use_amount, carry_state)
+VALUES (?, ?, ?, ?, ?);
 
 selectInventoryUsage:
-SELECT character_id, item_id, consumable_kind, quick_use_amount
+SELECT character_id, item_id, consumable_kind, quick_use_amount, carry_state
 FROM character_inventory_usage
 WHERE character_id = ?
 ORDER BY item_id;

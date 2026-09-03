@@ -94,8 +94,8 @@ class CharacterClosureRepository(
         }
 
         val inventoryUsageRows = database.characterClosureQueries.selectInventoryUsage(id) {
-                _, itemId, kind, quickUseAmount ->
-            InventoryUsageRow(itemId, kind, quickUseAmount.toInt())
+                _, itemId, kind, quickUseAmount, carryState ->
+            InventoryUsageRow(itemId, kind, quickUseAmount.toInt(), carryState)
         }.executeAsList()
         val inventoryUsage = inventoryUsageRows.mapNotNull { row ->
             val parsedId = parseUuidOrNull(row.itemId)
@@ -106,6 +106,7 @@ class CharacterClosureRepository(
                     itemId = parsedId,
                     kind = enumOrDefault(row.kind, CharacterConsumableKind.NONE),
                     quickUseAmount = row.quickUseAmount,
+                    carryState = enumOrDefault(row.carryState, CharacterInventoryCarryState.CARRIED),
                 )
             }
         }
@@ -279,6 +280,7 @@ class CharacterClosureRepository(
                     item_id = item.itemId.toString(),
                     consumable_kind = item.kind.name,
                     quick_use_amount = item.quickUseAmount.toLong(),
+                    carry_state = item.carryState.name,
                 )
             }
 
@@ -429,6 +431,7 @@ class CharacterClosureRepository(
         val itemId: String,
         val kind: String,
         val quickUseAmount: Int,
+        val carryState: String,
     )
 
     private data class ModuleOverrideRow(
