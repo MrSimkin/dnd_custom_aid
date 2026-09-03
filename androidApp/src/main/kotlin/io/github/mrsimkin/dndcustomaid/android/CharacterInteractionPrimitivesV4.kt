@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -33,8 +34,9 @@ import androidx.compose.ui.window.DialogProperties
  * Reusable character editor dialog for Phase 4 closure.
  *
  * The dialog owns IME/navigation insets. Only the editable body scrolls; the action row remains
- * reachable above the keyboard. Back/outside dismissal clears keyboard focus instead of discarding
- * the editor draft. Only the explicit Cancel action leaves the editor without saving.
+ * reachable above the keyboard. Back dismissal clears keyboard focus instead of discarding the
+ * editor draft. Tapping the modal background clears focus; taps inside the editor surface do not.
+ * Only the explicit Cancel action leaves the editor without saving.
  */
 @Composable
 internal fun CharacterImeSafeEditorDialog(
@@ -59,12 +61,16 @@ internal fun CharacterImeSafeEditorDialog(
                 .fillMaxSize()
                 .imePadding()
                 .navigationBarsPadding()
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = { focusManager.clearFocus() })
-                }
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { focusManager.clearFocus() })
+                    },
+            )
             Surface(
                 modifier = modifier
                     .fillMaxWidth()
@@ -138,17 +144,20 @@ internal fun CharacterInlineValidationMessage(
 }
 
 @Composable
-internal fun CharacterNamedDeleteConfirmationDialog(
-    itemName: String,
+internal fun CharacterConfirmationDialog(
+    title: String,
+    message: String,
     onDismissRequest: () -> Unit,
     onConfirm: () -> Unit,
-    itemTypeLabel: String = "elemento",
+    confirmLabel: String,
+    destructive: Boolean = false,
+    cancelLabel: String = "Cancelar",
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 480.dp)
+                .widthIn(max = 520.dp)
                 .navigationBarsPadding(),
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp,
@@ -158,18 +167,39 @@ internal fun CharacterNamedDeleteConfirmationDialog(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text("Eliminar $itemTypeLabel", style = MaterialTheme.typography.headlineSmall)
-                Text("Se eliminará “$itemName”. Esta acción no se puede deshacer.")
+                Text(title, style = MaterialTheme.typography.headlineSmall)
+                Text(message)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 ) {
-                    TextButton(onClick = onDismissRequest) { Text("Cancelar") }
-                    Button(onClick = onConfirm) { Text("Eliminar") }
+                    TextButton(onClick = onDismissRequest) { Text(cancelLabel) }
+                    if (destructive) {
+                        Button(onClick = onConfirm) { Text(confirmLabel) }
+                    } else {
+                        Button(onClick = onConfirm) { Text(confirmLabel) }
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+internal fun CharacterNamedDeleteConfirmationDialog(
+    itemName: String,
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+    itemTypeLabel: String = "elemento",
+) {
+    CharacterConfirmationDialog(
+        title = "Eliminar $itemTypeLabel",
+        message = "Se eliminará “$itemName”. Esta acción no se puede deshacer.",
+        onDismissRequest = onDismissRequest,
+        onConfirm = onConfirm,
+        confirmLabel = "Eliminar",
+        destructive = true,
+    )
 }
 
 @Composable
