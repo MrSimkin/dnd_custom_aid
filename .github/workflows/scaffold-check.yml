@@ -1,14 +1,19 @@
-name: Scaffold checks
+name: Phase 4 correction C bootstrap
 
 on:
   push:
-  pull_request:
+
+permissions:
+  contents: write
 
 jobs:
-  kotlin:
+  apply-correction-c:
+    if: github.ref == 'refs/heads/implementation/character-data-foundation' && contains(github.event.head_commit.message, '[apply-correction-c]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: implementation/character-data-foundation
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -20,28 +25,257 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
-      - name: Prepare stable CI debug keystore
-        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
-      - name: Build and test Kotlin surfaces
-        run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
-      - name: Upload Android debug APK
-        uses: actions/upload-artifact@v7
-        with:
-          name: dnd-custom-aid-debug-apk
-          path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
-          if-no-files-found: error
-
-  backend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install backend dependencies
-        run: npm install
-      - name: Type-check Worker
-        run: npm run check
+      - name: Apply owner-QA correction C
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new, count=1):
+              p = Path(path)
+              text = p.read_text()
+              actual = text.count(old)
+              if actual != count:
+                  raise SystemExit(f"{path}: expected {count} matches, found {actual} for {old[:120]!r}")
+              p.write_text(text.replace(old, new, count))
+
+          def patch_drag(path):
+              p = Path(path)
+              text = p.read_text()
+              lines = text.splitlines(keepends=True)
+              matches = [i for i, line in enumerate(lines) if 'var accumulatedDrag by remember(' in line]
+              if len(matches) != 1:
+                  raise SystemExit(f"{path}: expected one accumulatedDrag state, found {len(matches)}")
+              i = matches[0]
+              indent = lines[i][:len(lines[i]) - len(lines[i].lstrip())]
+              lines.insert(i + 1, indent + 'var dragging by remember { mutableStateOf(false) }\n')
+              text = ''.join(lines)
+              for old, new in [
+                  ('onDragStart = { accumulatedDrag = 0f },', 'onDragStart = { accumulatedDrag = 0f; dragging = true },'),
+                  ('onDragEnd = { accumulatedDrag = 0f },', 'onDragEnd = { accumulatedDrag = 0f; dragging = false },'),
+                  ('onDragCancel = { accumulatedDrag = 0f },', 'onDragCancel = { accumulatedDrag = 0f; dragging = false },'),
+              ]:
+                  if text.count(old) != 1:
+                      raise SystemExit(f"{path}: expected one {old!r}, found {text.count(old)}")
+                  text = text.replace(old, new, 1)
+              marker = 'contentDescription = "Mantén pulsado y arrastra para reordenar '
+              if text.count(marker) != 1:
+                  raise SystemExit(f"{path}: expected one drag content description, found {text.count(marker)}")
+              text = text.replace(marker, 'active = dragging,\n                ' + marker, 1)
+              p.write_text(text)
+
+          # U-01: fixed-height label slots so one/two-line labels align their value surfaces.
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterLayoutV4.kt',
+              'import androidx.compose.foundation.layout.fillMaxWidth\n',
+              'import androidx.compose.foundation.layout.fillMaxWidth\nimport androidx.compose.foundation.layout.height\n',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterLayoutV4.kt',
+              'modifier = modifier.heightIn(min = labelSlotHeight),',
+              'modifier = modifier.height(labelSlotHeight),',
+          )
+
+          # D-01/E-01 and E-03 boundary: keep the 48dp accessible handle, add visible active feedback.
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/IconControls.kt',
+              '''internal fun StableDragHandle(\n    modifier: Modifier = Modifier,\n    contentDescription: String = "Reordenar",\n) {\n    val color = MaterialTheme.colorScheme.onSurfaceVariant\n''',
+              '''internal fun StableDragHandle(\n    modifier: Modifier = Modifier,\n    active: Boolean = false,\n    contentDescription: String = "Reordenar",\n) {\n    val color = MaterialTheme.colorScheme.onSurfaceVariant\n    val activeColor = MaterialTheme.colorScheme.secondaryContainer\n''',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/IconControls.kt',
+              '''    ) {\n        val stroke = 2.dp.toPx()\n        listOf(0.34f, 0.5f, 0.66f).forEach { yFraction ->\n''',
+              '''    ) {\n        if (active) {\n            drawCircle(\n                color = activeColor,\n                radius = size.minDimension * 0.43f,\n                center = Offset(size.width / 2f, size.height / 2f),\n            )\n        }\n        val stroke = 2.dp.toPx()\n        listOf(0.34f, 0.5f, 0.66f).forEach { yFraction ->\n''',
+          )
+          # Add compact edit icon used by equipment rows.
+          insert_marker = '@Composable\ninternal fun StableRemoveIconButton('
+          p = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/IconControls.kt')
+          text = p.read_text()
+          if text.count(insert_marker) != 1:
+              raise SystemExit('IconControls: edit icon insertion marker mismatch')
+          edit_icon = '''@Composable\ninternal fun StableEditIconButton(\n    onClick: () -> Unit,\n    contentDescription: String = "Editar",\n) {\n    val color = MaterialTheme.colorScheme.onSurface\n    IconButton(onClick = onClick) {\n        Canvas(\n            modifier = Modifier\n                .size(24.dp)\n                .semantics { this.contentDescription = contentDescription },\n        ) {\n            val stroke = 2.2.dp.toPx()\n            drawLine(\n                color = color,\n                start = Offset(size.width * 0.28f, size.height * 0.72f),\n                end = Offset(size.width * 0.70f, size.height * 0.30f),\n                strokeWidth = stroke,\n                cap = StrokeCap.Round,\n            )\n            drawLine(\n                color = color,\n                start = Offset(size.width * 0.24f, size.height * 0.76f),\n                end = Offset(size.width * 0.38f, size.height * 0.72f),\n                strokeWidth = stroke,\n                cap = StrokeCap.Round,\n            )\n        }\n    }\n}\n\n'''
+          p.write_text(text.replace(insert_marker, edit_icon + insert_marker, 1))
+
+          # Cross-cutting drag feedback.
+          for path in [
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCombatTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt',
+          ]:
+              patch_drag(path)
+
+          # L-01/C-03: remove synthetic bottom whitespace now that dialogs are keyboard-safe.
+          for path in [
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCombatTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt',
+          ]:
+              p = Path(path)
+              text = p.read_text()
+              if text.count('bottom = 170.dp,') != 1:
+                  raise SystemExit(f"{path}: expected one 170dp tab bottom padding")
+              p.write_text(text.replace('bottom = 170.dp,', 'bottom = 88.dp,', 1))
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt',
+              'bottom = 150.dp,',
+              'bottom = 88.dp,',
+          )
+          for path in [
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsTabV4.kt',
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+          ]:
+              p = Path(path)
+              text = p.read_text()
+              if 'contentPadding = PaddingValues(bottom = 120.dp),' in text:
+                  p.write_text(text.replace('contentPadding = PaddingValues(bottom = 120.dp),', 'contentPadding = PaddingValues(bottom = 32.dp),', 1))
+
+          # E-02: compact equipment actions while keeping 48dp semantic touch targets.
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentTabV4.kt',
+              '''            Row(\n                modifier = Modifier.fillMaxWidth(),\n                horizontalArrangement = Arrangement.End,\n            ) {\n                TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("Editar") }\n                TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("Eliminar") }\n            }\n''',
+              '''            Row(\n                modifier = Modifier.fillMaxWidth(),\n                horizontalArrangement = Arrangement.End,\n            ) {\n                StableEditIconButton(\n                    onClick = onEdit,\n                    contentDescription = "Editar ${item.name}",\n                )\n                StableRemoveIconButton(\n                    onClick = onDelete,\n                    contentDescription = "Eliminar ${item.name}",\n                )\n            }\n''',
+          )
+
+          # E-05: compact currencies into one labelled field per currency; custom delete becomes trailing icon.
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentTabV4.kt',
+              '''    Surface(\n        modifier = modifier,\n        shape = MaterialTheme.shapes.small,\n        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),\n    ) {\n        Column(\n            modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),\n            verticalArrangement = Arrangement.spacedBy(3.dp),\n        ) {\n            Text(currency.name, style = MaterialTheme.typography.labelMedium, maxLines = 1)\n            OutlinedTextField(\n                value = value,\n                onValueChange = { raw ->\n                    value = sanitizeSignedIntEquipmentV4(raw)\n                    value.toIntOrNull()?.let { parsed ->\n                        onCurrenciesChange(\n                            currencies.map { existing ->\n                                if (existing.key == currency.key) existing.copy(amount = parsed) else existing\n                            },\n                        )\n                    }\n                },\n                modifier = Modifier.fillMaxWidth(),\n                singleLine = true,\n                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),\n            )\n            if (!currency.isDefault) {\n                TextButton(\n                    onClick = { onCurrenciesChange(currencies.filterNot { it.key == currency.key }) },\n                    contentPadding = PaddingValues(horizontal = 3.dp, vertical = 0.dp),\n                ) { Text("Eliminar") }\n            }\n        }\n    }\n''',
+              '''    OutlinedTextField(\n        value = value,\n        onValueChange = { raw ->\n            value = sanitizeSignedIntEquipmentV4(raw)\n            value.toIntOrNull()?.let { parsed ->\n                onCurrenciesChange(\n                    currencies.map { existing ->\n                        if (existing.key == currency.key) existing.copy(amount = parsed) else existing\n                    },\n                )\n            }\n        },\n        modifier = modifier.fillMaxWidth(),\n        label = { Text(currency.name, maxLines = 1) },\n        singleLine = true,\n        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),\n        trailingIcon = if (currency.isDefault) {\n            null\n        } else {\n            {\n                StableRemoveIconButton(\n                    onClick = { onCurrenciesChange(currencies.filterNot { it.key == currency.key }) },\n                    contentDescription = "Eliminar moneda ${currency.name}",\n                )\n            }\n        },\n    )\n''',
+          )
+
+          # R-01: clearer trait usage wording.
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsTabV4.kt',
+              '"Usos: $remaining / $maxUses · Gastados ${trait.spentUses.coerceIn(0, maxUses)}",',
+              '"Disponibles: $remaining de $maxUses" + if (trait.spentUses > 0) " · Gastados: ${trait.spentUses.coerceIn(0, maxUses)}" else "",',
+          )
+
+          # S-01: numeric keypad for spell level.
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt',
+              'import androidx.compose.foundation.lazy.LazyColumn\n',
+              'import androidx.compose.foundation.lazy.LazyColumn\nimport androidx.compose.foundation.text.KeyboardOptions\n',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt',
+              'import androidx.compose.ui.text.style.TextOverflow\n',
+              'import androidx.compose.ui.text.input.KeyboardType\nimport androidx.compose.ui.text.style.TextOverflow\n',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt',
+              'OutlinedTextField(level, { level = it.filter { ch -> ch.isDigit() }.take(1) }, label = { Text("Nivel (0-9)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)',
+              'OutlinedTextField(level, { level = it.filter { ch -> ch.isDigit() }.take(1) }, label = { Text("Nivel (0-9)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))',
+          )
+
+          # T-01: product-facing terminology follows the character-sheet reference.
+          p = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt')
+          text = p.read_text()
+          if text.count('Quick Magic') != 2:
+              raise SystemExit(f"CharacterEditorV4: expected two Quick Magic occurrences, found {text.count('Quick Magic')}")
+          p.write_text(text.replace('Quick Magic', 'Lanzamiento de Conjuros'))
+
+          # N-02/N-03 + L-01 Notes: bounded long editors with visible scroll affordance and two-column wide cards.
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              'import androidx.compose.foundation.layout.Row\n',
+              'import androidx.compose.foundation.layout.Row\nimport androidx.compose.foundation.layout.Spacer\n',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              '''                        modifier = Modifier\n                            .fillMaxWidth()\n                            .heightIn(min = if (wide) 300.dp else 230.dp),\n                        placeholder = { Text("Escribe aquí…") },\n                        minLines = if (wide) 12 else 9,\n''',
+              '''                        modifier = Modifier\n                            .fillMaxWidth()\n                            .heightIn(\n                                min = if (wide) 220.dp else 180.dp,\n                                max = if (wide) 380.dp else 300.dp,\n                            ),\n                        placeholder = { Text("Escribe aquí…") },\n                        minLines = if (wide) 9 else 7,\n                        maxLines = if (wide) 18 else 14,\n                        supportingText = {\n                            if (draft.generalNotes.length > 400) {\n                                Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")\n                            }\n                        },\n''',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              '''                    } else {\n                        draft.cards.forEachIndexed { index, note ->\n                            CharacterNoteCardV4(\n                                note = note,\n                                onEdit = { beginEdit(note) },\n                                onDelete = { deleteId = note.id.toString() },\n                                onMove = { offset -> move(index, offset) },\n                            )\n                        }\n                    }\n''',
+              '''                    } else if (wide) {\n                        draft.cards.chunked(2).forEach { rowCards ->\n                            Row(\n                                modifier = Modifier.fillMaxWidth(),\n                                horizontalArrangement = Arrangement.spacedBy(7.dp),\n                                verticalAlignment = Alignment.Top,\n                            ) {\n                                rowCards.forEach { note ->\n                                    val index = draft.cards.indexOfFirst { it.id == note.id }\n                                    CharacterNoteCardV4(\n                                        note = note,\n                                        onEdit = { beginEdit(note) },\n                                        onDelete = { deleteId = note.id.toString() },\n                                        onMove = { offset -> move(index, offset) },\n                                        modifier = Modifier.weight(1f),\n                                    )\n                                }\n                                repeat(2 - rowCards.size) {\n                                    Spacer(modifier = Modifier.weight(1f))\n                                }\n                            }\n                        }\n                    } else {\n                        draft.cards.forEachIndexed { index, note ->\n                            CharacterNoteCardV4(\n                                note = note,\n                                onEdit = { beginEdit(note) },\n                                onDelete = { deleteId = note.id.toString() },\n                                onMove = { offset -> move(index, offset) },\n                            )\n                        }\n                    }\n''',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              '''    onDelete: () -> Unit,\n    onMove: (Int) -> Boolean,\n) {\n''',
+              '''    onDelete: () -> Unit,\n    onMove: (Int) -> Boolean,\n    modifier: Modifier = Modifier,\n) {\n''',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              '''        modifier = Modifier\n            .fillMaxWidth()\n            .clickable(onClick = onEdit),\n''',
+              '''        modifier = modifier\n            .fillMaxWidth()\n            .clickable(onClick = onEdit),\n''',
+          )
+          replace(
+              'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt',
+              '''                        modifier = Modifier\n                            .fillMaxWidth()\n                            .heightIn(min = 260.dp),\n                        minLines = 10,\n''',
+              '''                        modifier = Modifier\n                            .fillMaxWidth()\n                            .heightIn(min = 220.dp, max = 340.dp),\n                        minLines = 8,\n                        maxLines = 16,\n                        supportingText = {\n                            if (content.length > 400) {\n                                Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")\n                            }\n                        },\n''',
+          )
+          PY
+      - name: Run full correction candidate gate
+        shell: bash
+        run: |
+          base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+          gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+          cd backend
+          npm install
+          npm run check
+      - name: Restore normal workflow and commit correction C
+        shell: bash
+        run: |
+          cat > .github/workflows/scaffold-check.yml <<'YAML'
+          name: Scaffold checks
+
+          on:
+            push:
+            pull_request:
+
+          jobs:
+            kotlin:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-java@v5
+                  with:
+                    distribution: temurin
+                    java-version: "17"
+                - uses: android-actions/setup-android@v4
+                  with:
+                    packages: "platform-tools platforms;android-36"
+                    log-accepted-android-sdk-licenses: "false"
+                - uses: gradle/actions/setup-gradle@v6
+                  with:
+                    gradle-version: "9.5.0"
+                - name: Prepare stable CI debug keystore
+                  run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+                - name: Build and test Kotlin surfaces
+                  run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+                - name: Upload Android debug APK
+                  uses: actions/upload-artifact@v7
+                  with:
+                    name: dnd-custom-aid-debug-apk
+                    path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
+                    if-no-files-found: error
+
+            backend:
+              runs-on: ubuntu-latest
+              defaults:
+                run:
+                  working-directory: backend
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version: "22"
+                - name: Install backend dependencies
+                  run: npm install
+                - name: Type-check Worker
+                  run: npm run check
+          YAML
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterLayoutV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/IconControls.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCombatTabV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentTabV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsTabV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt .github/workflows/scaffold-check.yml
+          git commit -m "fix: phase 4 owner QA presentation corrections"
+          git push origin HEAD:implementation/character-data-foundation
