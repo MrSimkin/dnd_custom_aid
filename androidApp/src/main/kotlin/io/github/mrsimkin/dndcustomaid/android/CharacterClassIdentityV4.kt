@@ -1,17 +1,4 @@
-from pathlib import Path
-
-
-def replace_once(text: str, old: str, new: str, label: str) -> str:
-    count = text.count(old)
-    if count != 1:
-        raise RuntimeError(f"{label}: expected exactly one match, found {count}")
-    return text.replace(old, new, 1)
-
-new_path = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterClassIdentityV4.kt")
-if new_path.exists():
-    raise RuntimeError("CharacterClassIdentityV4.kt already exists; refusing to overwrite")
-
-new_path.write_text(r'''package io.github.mrsimkin.dndcustomaid.android
+package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -626,34 +613,3 @@ private fun rulesFamilyLabelClassV4(value: CharacterRulesFamily): String = when 
 
 private inline fun <reified T : Enum<T>> enumValueOrDefaultV4(raw: String, fallback: T): T =
     runCatching { enumValueOf<T>(raw) }.getOrDefault(fallback)
-''', encoding="utf-8")
-
-editor_path = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt")
-editor = editor_path.read_text(encoding="utf-8")
-editor = replace_once(
-    editor,
-    "private data class ClassLevelDraftV4(",
-    "internal data class ClassLevelDraftV4(",
-    "ClassLevelDraft visibility",
-)
-editor = replace_once(
-    editor,
-    """        item {
-            ClassesCardV4(
-                classes = draft.classes,
-                onClassesChange = { onDraftChange(draft.copy(classes = it)) },
-            )
-        }
-""",
-    """        item {
-            CharacterClassIdentityCardV4(
-                classes = draft.classes,
-                onClassesChange = { onDraftChange(draft.copy(classes = it)) },
-            )
-        }
-""",
-    "Overview class card replacement",
-)
-editor_path.write_text(editor, encoding="utf-8")
-
-print("Batch E2b class identity integration applied.")

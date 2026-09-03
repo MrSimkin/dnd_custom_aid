@@ -660,7 +660,7 @@ private fun OverviewTabV4(
             )
         }
         item {
-            ClassesCardV4(
+            CharacterClassIdentityCardV4(
                 classes = draft.classes,
                 onClassesChange = { onDraftChange(draft.copy(classes = it)) },
             )
@@ -2048,7 +2048,7 @@ private fun parseOptionalAdjustmentV4(value: String): Int? {
     return value.trim().toIntOrNull()
 }
 
-private data class ClassLevelDraftV4(
+internal data class ClassLevelDraftV4(
     val id: Uuid,
     val name: String,
     val level: String,
