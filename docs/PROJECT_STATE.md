@@ -5,20 +5,21 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; **Batch D active**  
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; **Batch E active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_C_PC_SETTINGS.md` — completed C gate and exact continuation into Gestión;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md` — completed B2 gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
-4. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2B_PERSISTENCE.md` — completed schema-7 persistence gate;
-5. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2A_SCHEMA_DOMAIN.md` — completed schema/domain gate;
-6. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
-7. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
-8. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
-9. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_D_GESTION.md` — completed D gate and exact continuation into E;
+2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_C_PC_SETTINGS.md` — completed C gate;
+3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_B2_ORDERING_CONTEXT_DRAG.md` — completed B2 gate;
+4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
+5. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2B_PERSISTENCE.md` — completed schema-7 persistence gate;
+6. `docs/checkpoints/2026-09-03_PHASE4_BATCH_A2A_SCHEMA_DOMAIN.md` — completed schema/domain gate;
+7. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
+8. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
+9. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
+10. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
 
 ## 1. Closure scope status
 
@@ -211,32 +212,63 @@ Full Table-mode edit suppression and Favorite/direct-action Supercompact behavio
 
 **Batch C gate is closed GREEN.**
 
-## 8. Current batch — D Gestión live maintenance
+## 8. Batch D — Gestión live maintenance — GREEN
 
-Goal: add the approved live character-maintenance surface without duplicating authoritative state.
+Controlling checkpoint:
 
-Ownership already confirmed:
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_D_GESTION.md`.
 
-- `CharacterClosureState`: Conditions, Exhaustion, Concentration, recovery metadata, temporary effects and reconciliation checkpoints;
-- `CharacterSheet`: generic Resources, Inspiration, death saves, HP and class hit-dice;
-- Gestión must project/edit those values rather than create parallel copies.
-
-Batch D targets:
+Implemented:
 
 - Conditions + Exhaustion;
-- Concentration current effect/spell reference;
-- generic Resources with one-tap spend/recover and exact editing;
-- Short/Long Rest assistant with preview + selective apply only;
-- custom/manual recovery descriptions supported;
-- temporary effects/bonuses;
-- reconciliation checkpoint creation/view;
-- death saves surfaced here and/or Combat when relevant;
-- Inspiration operational control where useful;
-- relevant hit-die/resource recovery without duplicate authoritative data.
+- Concentration;
+- generic Resources with quick operations and exact editing;
+- Short/Long Rest preview + selective apply;
+- manual/custom recovery remains informational only;
+- temporary effects;
+- Inspiration;
+- contextual death saves at 0 HP;
+- reconciliation checkpoints;
+- responsive narrow/wide Gestión layout;
+- immediate operational persistence without consuming unrelated structural drafts.
 
-No automatic legality/rules enforcement is permitted.
+Verification:
 
-## 9. Existing baseline that must not regress
+- D1 rest-operations workflow `33797081412` — PASS;
+- first D2 workflow `33808464225` exposed one Android Kotlin smart-cast compile failure;
+- repair commit `2a5d9b35669e62ac44b92bdca9fbcf649ba5fcd0` fixed that compile issue and hidden-FIXED validation after switching to Manual/None;
+- final controlling head `64033be2632012cb6cac19728ebecb1d44ec553b`;
+- final controlling workflow `33809045740` — PASS;
+- backend PASS;
+- shared/Kotlin tests PASS;
+- Android debug assembly PASS;
+- Desktop build PASS;
+- APK upload PASS.
+
+Hit Dice remain review-only in the Rest preview; no automatic recovery rule is imposed across mixed D&D 5e / 5.5e / custom characters.
+
+**Batch D gate is closed GREEN.**
+
+## 9. Current batch — E General + Habilidades + Combate
+
+Goal: close the approved General/Habilidades/Combate character data and operational improvements without breaking D-0046 derived-value semantics.
+
+Batch E targets:
+
+- class/subclass/source presentation and non-enforcing hit-die suggestions;
+- freshness + portrait/token;
+- defenses/senses/special movement;
+- Passive Insight + Passive Investigation;
+- custom skills integrated into both existing Habilidades organization modes;
+- Combat action type + damage/effect at a glance;
+- quick HP damage/heal/temp operations while exact editing remains available;
+- contextual death saves where useful;
+- Favorites/Quick Access integration for relevant E surfaces;
+- simple dice roller without automatic rules-resolution scope creep.
+
+Gate E requires D-0046 regression coverage, custom-skill calculations/presentation foundations, HP-operation tests and Android assembly.
+
+## 10. Existing baseline that must not regress
 
 The Phase 4 character implementation already contains persistent:
 
@@ -254,7 +286,7 @@ The Phase 4 character implementation already contains persistent:
 - schema-6 class/subclass/proficiency/resource/form/companion foundation;
 - schema-7 closure persistence under A2.
 
-## 10. Final acceptance boundary
+## 11. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity.
 
@@ -268,7 +300,7 @@ Owner acceptance matrix must include:
 
 Green CI never substitutes for real-device IME/drag/layout/tablet QA.
 
-## 11. Merge boundary
+## 12. Merge boundary
 
 Do not merge Phase 4 to `main` until:
 
@@ -280,8 +312,8 @@ Do not merge Phase 4 to `main` until:
 - final continuity/governance housekeeping is complete;
 - owner explicitly approves merge/closure.
 
-## 12. Exact continuation
+## 13. Exact continuation
 
-Resume **Batch D — Gestión live character maintenance** on `implementation/phase4-character-closure`.
+Resume **Batch E — General + Habilidades + Combate** on `implementation/phase4-character-closure`.
 
-Build/test pure rest/recovery operations first, then wire the Gestión surface over existing core + closure repositories. Rest must preview proposed changes and apply only explicitly selected operations. Checkpoint D before beginning E.
+Start with pure/testable E operations and calculated-value helpers, preserving D-0046. Then wire class/subclass/source presentation, defenses/senses/movement, Passive Insight/Investigation, custom skills, quick HP, Combat summary improvements, Favorites and the bounded simple dice roller. Checkpoint E before beginning F.
