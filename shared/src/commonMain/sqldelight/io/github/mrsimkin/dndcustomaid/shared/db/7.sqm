@@ -56,19 +56,21 @@ CREATE TABLE character_sense (
 );
 
 CREATE TABLE character_resource_recovery (
-    resource_id TEXT NOT NULL PRIMARY KEY REFERENCES character_resource(id) ON DELETE CASCADE,
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    resource_id TEXT NOT NULL,
     recovery_cadence TEXT NOT NULL DEFAULT 'NONE',
     amount_mode TEXT NOT NULL DEFAULT 'NONE',
     fixed_amount INTEGER,
-    notes TEXT
+    notes TEXT,
+    PRIMARY KEY(character_id, resource_id)
 );
 
 CREATE TABLE character_inventory_usage (
-    item_id TEXT NOT NULL PRIMARY KEY REFERENCES character_inventory_item(id) ON DELETE CASCADE,
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    item_id TEXT NOT NULL,
     consumable_kind TEXT NOT NULL DEFAULT 'NONE',
-    quick_use_amount INTEGER NOT NULL DEFAULT 1
+    quick_use_amount INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY(character_id, item_id)
 );
 
 CREATE TABLE character_reconciliation_checkpoint (
