@@ -1,0 +1,38 @@
+name: One-time Phase 4 Batch C integration
+
+on:
+  push:
+    branches:
+      - implementation/phase4-character-closure
+    paths:
+      - .github/workflows/phase4-batch-c-integrate.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4-character-closure
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Apply guarded source patch
+        run: python scripts/apply_phase4_batch_c.py
+      - name: Remove one-time integration scaffolding
+        run: |
+          rm scripts/apply_phase4_batch_c.py
+          rm .github/workflows/phase4-batch-c-integrate.yml
+      - name: Verify patch whitespace
+        run: git diff --check
+      - name: Commit integrated Batch C wiring
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: integrate Batch C PC settings"
+          git push origin HEAD:implementation/phase4-character-closure
