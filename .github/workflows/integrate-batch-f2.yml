@@ -20,7 +20,28 @@ jobs:
         with:
           python-version: '3.13'
       - name: Apply guarded F2 patch
-        run: python .github/scripts/apply_batch_f2.py
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          script = Path('.github/scripts/apply_batch_f2.py')
+          text = script.read_text()
+          old = '    expected=3,\n)\nreplace_once(\n'
+          new = '    expected=1,\n)\nreplace_once(\n'
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected one F2 primary guard marker, found {text.count(old)}')
+          script.write_text(text.replace(old, new, 1))
+          PY
+          python .github/scripts/apply_batch_f2.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt')
+          text = path.read_text()
+          old = '''            CharacterEquipmentDraftV4(\n                items = stored.inventoryItems,\n                currencies = stored.currencies,\n            ),\n'''
+          new = '''            CharacterEquipmentDraftV4(\n                items = stored.inventoryItems,\n                currencies = stored.currencies,\n                inventoryUsage = closureState.inventoryUsage,\n            ),\n'''
+          if text.count(old) != 2:
+              raise SystemExit(f'Expected two F2 baseline/reset blocks, found {text.count(old)}')
+          path.write_text(text.replace(old, new))
+          PY
       - name: Remove one-time scaffolding
         run: rm .github/scripts/apply_batch_f2.py .github/workflows/integrate-batch-f2.yml
       - name: Verify whitespace
