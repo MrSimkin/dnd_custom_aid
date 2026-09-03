@@ -313,72 +313,94 @@ private fun CombatEntryCardV4(
     var accumulatedDrag by remember(entry.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+    val dragState = CharacterDragVisualStateV4(
+        active = dragging,
+        offsetY = accumulatedDrag,
+        showDropBefore = dragging && accumulatedDrag < 0f,
+        showDropAfter = dragging && accumulatedDrag > 0f,
+    )
 
-    Surface(
-        modifier = modifier.clickable(onClick = onEdit),
-        shape = MaterialTheme.shapes.small,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+    Column(modifier = modifier.fillMaxWidth()) {
+        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .characterDragFeedbackV4(dragState)
+                .clickable(onClick = onEdit),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                StableDragHandle(
-                    modifier = Modifier.pointerInput(entry.id) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = { accumulatedDrag = 0f; dragging = true },
-                            onDragEnd = { accumulatedDrag = 0f; dragging = false },
-                            onDragCancel = { accumulatedDrag = 0f; dragging = false },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                accumulatedDrag += dragAmount.y
-                                while (abs(accumulatedDrag) >= reorderStepPx) {
-                                    val direction = if (accumulatedDrag > 0f) 1 else -1
-                                    if (onMove(direction)) {
-                                        accumulatedDrag -= direction * reorderStepPx
-                                    } else {
-                                        accumulatedDrag = 0f
-                                        break
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    StableDragHandle(
+                        modifier = Modifier.pointerInput(entry.id) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = {
+                                    accumulatedDrag = 0f
+                                    dragging = true
+                                },
+                                onDragEnd = {
+                                    accumulatedDrag = 0f
+                                    dragging = false
+                                },
+                                onDragCancel = {
+                                    accumulatedDrag = 0f
+                                    dragging = false
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    accumulatedDrag += dragAmount.y
+                                    while (abs(accumulatedDrag) >= reorderStepPx) {
+                                        val direction = if (accumulatedDrag > 0f) 1 else -1
+                                        if (onMove(direction)) {
+                                            accumulatedDrag -= direction * reorderStepPx
+                                        } else {
+                                            accumulatedDrag = 0f
+                                            break
+                                        }
                                     }
-                                }
-                            },
-                        )
-                    },
-                    active = dragging,
-                    contentDescription = "Mantén pulsado y arrastra para reordenar ${entry.name}",
-                )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(entry.name, style = MaterialTheme.typography.labelLarge)
-                    Text(combatEntryTypeLabelV4(entry.type), style = MaterialTheme.typography.labelSmall)
+                                },
+                            )
+                        },
+                        active = dragging,
+                        contentDescription = "Mantén pulsado y arrastra para reordenar ${entry.name}",
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(entry.name, style = MaterialTheme.typography.labelLarge)
+                        Text(combatEntryTypeLabelV4(entry.type), style = MaterialTheme.typography.labelSmall)
+                    }
+                    entry.attackModifier?.let {
+                        Text("Ataque ${formatSignedCombatV4(it)}", style = MaterialTheme.typography.labelMedium)
+                    }
                 }
-                entry.attackModifier?.let {
-                    Text("Ataque ${formatSignedCombatV4(it)}", style = MaterialTheme.typography.labelMedium)
+                if (entry.damageEffect.isNotBlank()) {
+                    Text(entry.damageEffect, style = MaterialTheme.typography.bodySmall)
                 }
-            }
-            if (entry.damageEffect.isNotBlank()) {
-                Text(entry.damageEffect, style = MaterialTheme.typography.bodySmall)
-            }
-            entry.rangeText?.takeIf { it.isNotBlank() }?.let {
-                Text("Alcance: $it", style = MaterialTheme.typography.labelSmall)
-            }
-            entry.notes?.takeIf { it.isNotBlank() }?.let {
-                Text(it, style = MaterialTheme.typography.labelSmall)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                StableRemoveIconButton(
-                    onClick = onDelete,
-                    contentDescription = "Eliminar ${entry.name}",
-                )
+                entry.rangeText?.takeIf { it.isNotBlank() }?.let {
+                    Text("Alcance: $it", style = MaterialTheme.typography.labelSmall)
+                }
+                entry.notes?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall)
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    StableRemoveIconButton(
+                        onClick = onDelete,
+                        contentDescription = "Eliminar ${entry.name}",
+                    )
+                }
             }
         }
+        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
