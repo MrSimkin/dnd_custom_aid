@@ -39,3 +39,5 @@ jobs:
           git add -A
           git commit -m "feat: integrate Batch C PC settings"
           git push origin HEAD:implementation/phase4-character-closure
+
+# Guarded retry after source-shape normalization; removed automatically on success.
