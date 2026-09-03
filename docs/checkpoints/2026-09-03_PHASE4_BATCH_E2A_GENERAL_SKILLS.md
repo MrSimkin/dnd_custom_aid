@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING INTEGRATION GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -40,18 +40,27 @@ Habilidades now includes:
 - `08e60bdaa73994d72046ee48961f13ecd341450e` — General closure reference cards;
 - `a92e209cd80e34df1a9df3f92849122d0d534fb7` — custom skills Habilidades surface;
 - `f25eab82283b00791140ba53b3039ef11ab3af99` — passive skills summary;
-- `d19fd6fc2eab2eee15354451a47f6d2cb747378c` — guarded editor wiring + explicit vertical General-card container.
+- `d19fd6fc2eab2eee15354451a47f6d2cb747378c` — guarded editor wiring + explicit vertical General-card container;
+- controlling tested head `f3a8fda2e616d88d455d717c17e95a6d2368122b`.
 
-The isolated surface head `a92e209c...` already passed workflow `33810193659`, but that did not test the later editor wiring.
+## Verification
 
-## Gate required
+Controlling workflow `33810868863`: **PASS**.
 
-This checkpoint commit exists to trigger the controlling integration run on the wired head. E2a is not GREEN until that run passes:
+Verified on the wired integration head:
 
-- backend type-check;
-- shared/Kotlin tests including prior E1/D-0046 coverage;
-- Android debug compile/assembly;
-- Desktop build;
-- APK artifact upload.
+- backend type-check PASS;
+- shared/Kotlin tests including prior E1/D-0046 coverage PASS;
+- Android debug compile/assembly PASS;
+- Desktop build PASS;
+- APK artifact upload PASS.
+
+The earlier isolated surface head `a92e209c...` also passed workflow `33810193659`, but the controlling acceptance evidence for E2a is `33810868863` because it includes the final editor wiring.
+
+**E2a gate is closed GREEN.**
+
+## Exact continuation
+
+Proceed with **E2b — class/subclass/source identity UI + non-enforcing hit-die suggestion**. Existing schema/draft persistence already preserves catalog keys, source and rules-family identity, so E2b must remain a UI/presentation/editor change rather than a new persistence model.
 
 Real phone/tablet portrait/landscape and larger-text QA remains part of the later frozen closure-candidate owner gate.
