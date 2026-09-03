@@ -36,3 +36,5 @@ jobs:
           git add -A
           git commit -m "docs: advance Phase 4 execution to Batch E"
           git push origin HEAD:implementation/phase4-character-closure
+
+# Retry after removing added-line trailing whitespace.
