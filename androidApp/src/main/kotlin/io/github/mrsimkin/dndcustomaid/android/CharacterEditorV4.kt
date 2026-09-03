@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -151,6 +152,11 @@ internal fun CharacterEditorScreenV4(
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
     var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }
     var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }
+
+    BackHandler(enabled = showPcSettings) {
+        showPcSettings = false
+    }
+
     val selectedTab = resolvedCharacterTabV4(
         savedTabName = selectedTabName,
         spellcasterEnabled = stored.spellcasterEnabled,

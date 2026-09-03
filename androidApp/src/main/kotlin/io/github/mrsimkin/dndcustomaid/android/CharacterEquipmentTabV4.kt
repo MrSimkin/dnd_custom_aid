@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency
@@ -559,17 +560,18 @@ private fun EquipmentItemEditorDialogV4(
     var customLocation by rememberSaveable(location) {
         mutableStateOf(location.isNotBlank() && location !in equipmentLocationsV4)
     }
+    val focusManager = LocalFocusManager.current
 
     AlertDialog(
-        onDismissRequest = {},
+        modifier = Modifier
+            .imePadding()
+            .navigationBarsPadding(),
+        onDismissRequest = { focusManager.clearFocus() },
         title = { Text(title) },
         text = {
             LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 520.dp)
-                    .imePadding()
-                    .navigationBarsPadding(),
-                contentPadding = PaddingValues(bottom = 96.dp),
+                modifier = Modifier.heightIn(max = 520.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 item {

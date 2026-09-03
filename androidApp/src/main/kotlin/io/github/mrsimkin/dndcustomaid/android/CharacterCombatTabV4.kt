@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry
@@ -409,17 +410,18 @@ private fun CombatEntryEditorDialogV4(
     onApply: () -> Unit,
 ) {
     var typeMenuOpen by rememberSaveable { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     AlertDialog(
-        onDismissRequest = {},
+        modifier = Modifier
+            .imePadding()
+            .navigationBarsPadding(),
+        onDismissRequest = { focusManager.clearFocus() },
         title = { Text(title) },
         text = {
             LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 480.dp)
-                    .imePadding()
-                    .navigationBarsPadding(),
-                contentPadding = PaddingValues(bottom = 96.dp),
+                modifier = Modifier.heightIn(max = 480.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 item {

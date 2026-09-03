@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -91,6 +92,19 @@ private fun DndCustomAidApp(
     val screen = runCatching { AppScreen.valueOf(screenName) }.getOrDefault(AppScreen.CAMPAIGNS)
     val selectedCampaign = selectedCampaignId?.let { id ->
         campaignRepository.listCampaigns().firstOrNull { it.id.toString() == id }
+    }
+
+    BackHandler(enabled = showSettings) {
+        showSettings = false
+    }
+    BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTERS) {
+        selectedCampaignId = null
+        selectedCharacterId = null
+        screenName = AppScreen.CAMPAIGNS.name
+    }
+    BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTER_EDITOR) {
+        selectedCharacterId = null
+        screenName = AppScreen.CHARACTERS.name
     }
 
     when (screen) {
