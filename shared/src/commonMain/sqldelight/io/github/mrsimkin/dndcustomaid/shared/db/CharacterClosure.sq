@@ -1,0 +1,289 @@
+CREATE TABLE character_closure_settings (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    exhaustion_level INTEGER NOT NULL DEFAULT 0,
+    concentration_spell_id TEXT,
+    concentration_name TEXT,
+    concentration_notes TEXT,
+    portrait_ref TEXT,
+    token_ref TEXT,
+    progress_mode TEXT NOT NULL DEFAULT 'MILESTONE',
+    experience_points INTEGER NOT NULL DEFAULT 0,
+    milestone_progress TEXT NOT NULL DEFAULT '',
+    table_mode_enabled INTEGER NOT NULL DEFAULT 0,
+    haptics_enabled INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE character_condition (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_defense (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    defense_type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_movement (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    movement_type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    speed_feet INTEGER,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_sense (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    range_feet INTEGER,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_resource_recovery (
+    resource_id TEXT NOT NULL PRIMARY KEY REFERENCES character_resource(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    recovery_cadence TEXT NOT NULL DEFAULT 'NONE',
+    amount_mode TEXT NOT NULL DEFAULT 'NONE',
+    fixed_amount INTEGER,
+    notes TEXT
+);
+
+CREATE TABLE character_inventory_usage (
+    item_id TEXT NOT NULL PRIMARY KEY REFERENCES character_inventory_item(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    consumable_kind TEXT NOT NULL DEFAULT 'NONE',
+    quick_use_amount INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE character_reconciliation_checkpoint (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    created_at_epoch_seconds INTEGER NOT NULL,
+    character_updated_at_epoch_seconds INTEGER NOT NULL,
+    label TEXT,
+    notes TEXT
+);
+
+CREATE TABLE character_custom_skill (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    ability_key TEXT NOT NULL,
+    training TEXT NOT NULL DEFAULT 'NONE',
+    adjustment INTEGER NOT NULL DEFAULT 0,
+    source TEXT,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_temporary_effect (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    duration_text TEXT,
+    source TEXT,
+    notes TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_module_override (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    module_kind TEXT NOT NULL,
+    override_mode TEXT NOT NULL DEFAULT 'AUTO',
+    PRIMARY KEY(character_id, module_kind)
+);
+
+CREATE TABLE character_quick_access (
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    target_kind TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    sort_order INTEGER NOT NULL,
+    PRIMARY KEY(character_id, target_kind, target_id),
+    UNIQUE(character_id, sort_order)
+);
+
+upsertClosureSettings:
+INSERT OR REPLACE INTO character_closure_settings(
+    character_id, exhaustion_level, concentration_spell_id, concentration_name, concentration_notes,
+    portrait_ref, token_ref, progress_mode, experience_points, milestone_progress,
+    table_mode_enabled, haptics_enabled
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectClosureSettings:
+SELECT character_id, exhaustion_level, concentration_spell_id, concentration_name, concentration_notes,
+       portrait_ref, token_ref, progress_mode, experience_points, milestone_progress,
+       table_mode_enabled, haptics_enabled
+FROM character_closure_settings
+WHERE character_id = ?;
+
+insertCondition:
+INSERT INTO character_condition(id, character_id, name, source, notes, sort_order)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectConditions:
+SELECT id, character_id, name, source, notes, sort_order
+FROM character_condition
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteConditions:
+DELETE FROM character_condition WHERE character_id = ?;
+
+insertDefense:
+INSERT INTO character_defense(id, character_id, defense_type, name, source, notes, sort_order)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectDefenses:
+SELECT id, character_id, defense_type, name, source, notes, sort_order
+FROM character_defense
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteDefenses:
+DELETE FROM character_defense WHERE character_id = ?;
+
+insertMovement:
+INSERT INTO character_movement(id, character_id, movement_type, name, speed_feet, notes, sort_order)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectMovements:
+SELECT id, character_id, movement_type, name, speed_feet, notes, sort_order
+FROM character_movement
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteMovements:
+DELETE FROM character_movement WHERE character_id = ?;
+
+insertSense:
+INSERT INTO character_sense(id, character_id, name, range_feet, notes, sort_order)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectSenses:
+SELECT id, character_id, name, range_feet, notes, sort_order
+FROM character_sense
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteSenses:
+DELETE FROM character_sense WHERE character_id = ?;
+
+upsertResourceRecovery:
+INSERT OR REPLACE INTO character_resource_recovery(
+    resource_id, character_id, recovery_cadence, amount_mode, fixed_amount, notes
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectResourceRecovery:
+SELECT resource_id, character_id, recovery_cadence, amount_mode, fixed_amount, notes
+FROM character_resource_recovery
+WHERE character_id = ?
+ORDER BY resource_id;
+
+deleteResourceRecovery:
+DELETE FROM character_resource_recovery WHERE character_id = ?;
+
+upsertInventoryUsage:
+INSERT OR REPLACE INTO character_inventory_usage(item_id, character_id, consumable_kind, quick_use_amount)
+VALUES (?, ?, ?, ?);
+
+selectInventoryUsage:
+SELECT item_id, character_id, consumable_kind, quick_use_amount
+FROM character_inventory_usage
+WHERE character_id = ?
+ORDER BY item_id;
+
+deleteInventoryUsage:
+DELETE FROM character_inventory_usage WHERE character_id = ?;
+
+insertReconciliationCheckpoint:
+INSERT INTO character_reconciliation_checkpoint(
+    id, character_id, created_at_epoch_seconds, character_updated_at_epoch_seconds, label, notes
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectReconciliationCheckpoints:
+SELECT id, character_id, created_at_epoch_seconds, character_updated_at_epoch_seconds, label, notes
+FROM character_reconciliation_checkpoint
+WHERE character_id = ?
+ORDER BY created_at_epoch_seconds DESC, id;
+
+deleteReconciliationCheckpoints:
+DELETE FROM character_reconciliation_checkpoint WHERE character_id = ?;
+
+insertCustomSkill:
+INSERT INTO character_custom_skill(
+    id, character_id, name, ability_key, training, adjustment, source, notes, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCustomSkills:
+SELECT id, character_id, name, ability_key, training, adjustment, source, notes, sort_order
+FROM character_custom_skill
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCustomSkills:
+DELETE FROM character_custom_skill WHERE character_id = ?;
+
+insertTemporaryEffect:
+INSERT INTO character_temporary_effect(
+    id, character_id, name, summary, duration_text, source, notes, active, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectTemporaryEffects:
+SELECT id, character_id, name, summary, duration_text, source, notes, active, sort_order
+FROM character_temporary_effect
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteTemporaryEffects:
+DELETE FROM character_temporary_effect WHERE character_id = ?;
+
+upsertModuleOverride:
+INSERT OR REPLACE INTO character_module_override(character_id, module_kind, override_mode)
+VALUES (?, ?, ?);
+
+selectModuleOverrides:
+SELECT character_id, module_kind, override_mode
+FROM character_module_override
+WHERE character_id = ?
+ORDER BY module_kind;
+
+deleteModuleOverrides:
+DELETE FROM character_module_override WHERE character_id = ?;
+
+insertQuickAccess:
+INSERT INTO character_quick_access(character_id, target_kind, target_id, sort_order)
+VALUES (?, ?, ?, ?);
+
+selectQuickAccess:
+SELECT character_id, target_kind, target_id, sort_order
+FROM character_quick_access
+WHERE character_id = ?
+ORDER BY sort_order, target_kind, target_id;
+
+deleteQuickAccess:
+DELETE FROM character_quick_access WHERE character_id = ?;
