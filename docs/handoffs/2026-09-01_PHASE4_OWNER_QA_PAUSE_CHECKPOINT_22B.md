@@ -1,24 +1,26 @@
-# Phase 4 Owner QA pause / resume checkpoint — after Check 22B
+# SUPERSEDED — Phase 4 Owner QA pause / resume checkpoint — after Check 22B
+
+> **Superseded on 2026-09-02. Do not resume QA from this file.** The full 42-step owner phone QA has been completed. The authoritative current record and correction backlog is `docs/handoffs/2026-09-01_PHASE4_OWNER_PHONE_QA_RESULTS.md`. Any `Exact resume step` or incomplete-QA status below is preserved only as historical context.
 
 Date: 2026-09-01
 Branch: `implementation/character-data-foundation`
 Consolidated QA results commit immediately before this checkpoint: `6bcd6e86f5881b4b3ee287cd93a07e34f99f180a`
 Designated owner-QA APK: Gate L artifact `9785676981` (`dnd-custom-aid-debug-apk`), tested commit `089a991c6491627961f1e75f3815959a8a1c8b48`.
 
-## Purpose
+## Purpose — historical
 
-The owner explicitly paused real-device Phase 4 QA after completing Check 22B. Resume from this checkpoint; do not restart implementation A–L, do not repeat already completed QA checks unless required for a focused defect retest, and do not merge Phase 4.
+The owner explicitly paused real-device Phase 4 QA after completing Check 22B. This was the correct resume point at the time. It is no longer the current project resume point.
 
-Authoritative consolidated QA record:
+Authoritative final consolidated QA record:
 `docs/handoffs/2026-09-01_PHASE4_OWNER_PHONE_QA_RESULTS.md`
 
 Authoritative checklist:
 `docs/handoffs/2026-09-01_INCREMENT_L_PHONE_QA_TARGET.md`
 
-## QA completed through pause
+## QA completed through this historical pause
 
 - Checks 1–4: PASS.
-- Check 5: partially verified — 8 tabs with spellcasting ON directly confirmed; exact 7-tab OFF count still needs a direct count later, preferably during Check 41.
+- Check 5: was partially verified at this pause — later fully closed by Check 41.
 - Checks 6–11: PASS.
 - Check 12: overall FAIL/blocking due vertical-centering defect and combat-editor IME reachability.
 - Check 13: overall FAIL/blocking due Equipo IME-hidden controls and overly tall Monedas section.
@@ -26,7 +28,7 @@ Authoritative checklist:
 - Check 22A: maximum/spent uses behavior PASS.
 - Check 22B: recovery text behavior PASS.
 
-## Active blocking findings
+## Blocking findings known at this historical pause
 
 - U-01 / 12A — wrapped/two-line Combate row content not vertically centered.
 - C-01 / 12B — combat-editor bottom actions unreachable while IME is open.
@@ -34,7 +36,7 @@ Authoritative checklist:
 - E-05 / 13C — Monedas presentation too tall / not compact enough.
 - N-01 — Android system Back exits the app instead of internal navigation; exact scope still needs mapping.
 
-## Active non-blocking / correction findings
+## Non-blocking / correction findings known at this historical pause
 
 - T-01 — replace/reconcile `Quick Magic` terminology using the owner PDFs as reference.
 - E-01 / D-01 — drag works but feedback/discoverability is weak.
@@ -44,17 +46,17 @@ Authoritative checklist:
 - C-03 — combat blocks too vertically spacious.
 - R-01 — Rasgos summary like `Usos X/Y · Gastados Y-X` is unclear and needs a cleaner Spanish presentation.
 
-## Owner-approved/additive directions
+Later QA added `S-01`, `N-02`, and `N-03`; see the authoritative final consolidated record rather than extending this historical file.
+
+## Owner-approved/additive directions known at this pause
 
 - B-01 — add persisted one-line `Raza` and `Religion / Fe` fields to Trasfondo.
-- L-01 — cap/reduce unnecessary padding and margins across phone-first character UI while preserving accessibility/touch targets. The owner will not repeat this known cross-cutting observation on every screen.
+- L-01 — cap/reduce unnecessary padding and margins across phone-first character UI while preserving accessibility/touch targets.
 
-## Exact resume step
+## Historical resume step — no longer active
 
-Resume with **Check 23 — Rasgos drag reorder + persistence**.
+The old resume point was **Check 23 — Rasgos drag reorder + persistence**. Checks 23–42 were subsequently completed.
 
-One subcheck at a time. First ask the owner to reorder several Rasgos entries, save, leave/reopen the same character, and verify that the exact order persists. Do not skip to Check 24 until Check 23 is classified.
+**Current resume point:** correction planning / implementation on a non-main branch, as defined by `2026-09-01_PHASE4_OWNER_PHONE_QA_RESULTS.md`.
 
-After Check 23, continue sequentially with Check 24 and then Conjuros checks 25–34, Notas 35–37, and resilience 38–42.
-
-Do not infer the missing 7-tab OFF count from earlier tests; capture it explicitly when a natural spellcasting-OFF state occurs, preferably Check 41.
+Do not restart the 42-step QA sequence unless a focused correction retest/regression explicitly requires individual checks to be repeated. Do not merge Phase 4 without explicit owner approval.
