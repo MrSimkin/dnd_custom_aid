@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,14 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -39,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency
@@ -288,47 +285,35 @@ internal fun CharacterEquipmentTabV4(
     }
 
     if (confirmSpecialRemoval) {
-        AlertDialog(
+        CharacterConfirmationDialog(
+            title = "Convertir en equipo normal",
+            message = "Al continuar se eliminarán la descripción especial, ubicación y estado de Sintonización de este objeto.",
             onDismissRequest = { confirmSpecialRemoval = false },
-            title = { Text("Convertir en equipo normal") },
-            text = { Text("Al continuar se eliminarán la descripción especial, ubicación y estado de Sintonización de este objeto.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        editorSpecial = false
-                        editorDescription = ""
-                        editorLocation = ""
-                        editorAttuned = false
-                        confirmSpecialRemoval = false
-                    },
-                ) { Text("Continuar") }
+            onConfirm = {
+                editorSpecial = false
+                editorDescription = ""
+                editorLocation = ""
+                editorAttuned = false
+                confirmSpecialRemoval = false
             },
-            dismissButton = {
-                TextButton(onClick = { confirmSpecialRemoval = false }) { Text("Cancelar") }
-            },
+            confirmLabel = "Continuar",
+            destructive = true,
         )
     }
 
     deleteItemId?.let { id ->
         val target = items.firstOrNull { it.id.toString() == id }
         if (target != null) {
-            AlertDialog(
+            CharacterNamedDeleteConfirmationDialog(
+                itemName = target.name,
+                itemTypeLabel = "objeto",
                 onDismissRequest = { deleteItemId = null },
-                title = { Text("Eliminar objeto") },
-                text = { Text("¿Eliminar «${target.name}»? Esta acción se aplicará al guardar la ficha.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onItemsChange(
-                                items.filterNot { it.id == target.id }
-                                    .mapIndexed { order, current -> current.copy(sortOrder = order) },
-                            )
-                            deleteItemId = null
-                        },
-                    ) { Text("Eliminar") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { deleteItemId = null }) { Text("Cancelar") }
+                onConfirm = {
+                    onItemsChange(
+                        items.filterNot { it.id == target.id }
+                            .mapIndexed { order, current -> current.copy(sortOrder = order) },
+                    )
+                    deleteItemId = null
                 },
             )
         } else {
@@ -338,63 +323,50 @@ internal fun CharacterEquipmentTabV4(
 
     if (addCurrencyOpen) {
         val amount = customCurrencyAmount.toIntOrNull()
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text("Añadir moneda") },
-            text = {
-                LazyColumn(
-                    modifier = Modifier
-                        .heightIn(max = 320.dp)
-                        .imePadding()
-                        .navigationBarsPadding(),
-                    contentPadding = PaddingValues(bottom = 72.dp),
-                    verticalArrangement = Arrangement.spacedBy(7.dp),
-                ) {
-                    item {
-                        OutlinedTextField(
-                            value = customCurrencyName,
-                            onValueChange = { customCurrencyName = it },
-                            label = { Text("Nombre") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = customCurrencyAmount,
-                            onValueChange = { customCurrencyAmount = sanitizeSignedIntEquipmentV4(it) },
-                            label = { Text("Cantidad") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        )
-                    }
+        CharacterImeSafeEditorDialog(
+            title = "Añadir moneda",
+            onCancel = { addCurrencyOpen = false },
+            onSave = {
+                val name = customCurrencyName.trim()
+                if (name.isNotEmpty() && amount != null) {
+                    onCurrenciesChange(
+                        currencies + CharacterCurrency(
+                            key = "custom:${Uuid.random()}",
+                            name = name,
+                            amount = amount,
+                            sortOrder = currencies.size,
+                            isDefault = false,
+                        ),
+                    )
+                    addCurrencyOpen = false
                 }
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val name = customCurrencyName.trim()
-                        if (name.isNotEmpty() && amount != null) {
-                            onCurrenciesChange(
-                                currencies + CharacterCurrency(
-                                    key = "custom:${Uuid.random()}",
-                                    name = name,
-                                    amount = amount,
-                                    sortOrder = currencies.size,
-                                    isDefault = false,
-                                ),
-                            )
-                            addCurrencyOpen = false
-                        }
-                    },
-                    enabled = customCurrencyName.trim().isNotEmpty() && amount != null,
-                ) { Text("Añadir") }
-            },
-            dismissButton = {
-                TextButton(onClick = { addCurrencyOpen = false }) { Text("Cancelar") }
-            },
-        )
+            saveLabel = "Añadir",
+            saveEnabled = customCurrencyName.trim().isNotEmpty() && amount != null,
+        ) {
+            OutlinedTextField(
+                value = customCurrencyName,
+                onValueChange = { customCurrencyName = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = customCurrencyAmount,
+                onValueChange = { customCurrencyAmount = sanitizeSignedIntEquipmentV4(it) },
+                label = { Text("Cantidad") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            CharacterInlineValidationMessage(
+                when {
+                    customCurrencyName.trim().isEmpty() -> "El nombre no puede quedar vacío."
+                    amount == null -> "La cantidad debe ser un número entero."
+                    else -> null
+                },
+            )
+        }
     }
 }
 
@@ -459,7 +431,7 @@ private fun EquipmentItemCardV4(
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.clickable(onClick = onEdit),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -494,7 +466,7 @@ private fun EquipmentItemCardV4(
                         )
                     },
                     active = dragging,
-                contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
+                    contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(item.name, style = MaterialTheme.typography.labelLarge)
@@ -526,10 +498,6 @@ private fun EquipmentItemCardV4(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                StableEditIconButton(
-                    onClick = onEdit,
-                    contentDescription = "Editar ${item.name}",
-                )
                 StableRemoveIconButton(
                     onClick = onDelete,
                     contentDescription = "Eliminar ${item.name}",
@@ -568,159 +536,138 @@ private fun EquipmentItemEditorDialogV4(
     var customLocation by rememberSaveable(location) {
         mutableStateOf(location.isNotBlank() && location !in equipmentLocationsV4)
     }
-    val focusManager = LocalFocusManager.current
 
-    AlertDialog(
-        modifier = Modifier
-            .imePadding()
-            .navigationBarsPadding(),
-        onDismissRequest = { focusManager.clearFocus() },
-        title = { Text(title) },
-        text = {
-            LazyColumn(
-                modifier = Modifier.heightIn(max = 520.dp),
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                item {
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = onNameChange,
-                        label = { Text("Nombre") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
-                }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+    CharacterImeSafeEditorDialog(
+        title = title,
+        onCancel = onDismiss,
+        onSave = onApply,
+        saveEnabled = valid,
+    ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nombre") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            OutlinedTextField(
+                value = quantity,
+                onValueChange = onQuantityChange,
+                label = { Text("Cantidad") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            OutlinedTextField(
+                value = weight,
+                onValueChange = onWeightChange,
+                label = { Text("Peso/u. lb") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                supportingText = {
+                    weight.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0.0 }?.let {
+                        Text(formatWeightDualV4(it))
+                    }
+                },
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = equipped, onCheckedChange = onEquippedChange)
+            Text("Equipado")
+            Checkbox(checked = special, onCheckedChange = onSpecialChange)
+            Text("Equipo especial")
+        }
+        if (special) {
+            Column {
+                Text("Ubicación", style = MaterialTheme.typography.labelSmall)
+                if (customLocation) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(
-                            value = quantity,
-                            onValueChange = onQuantityChange,
-                            label = { Text("Cantidad") },
+                            value = location,
+                            onValueChange = onLocationChange,
                             modifier = Modifier.weight(1f),
+                            label = { Text("Ubicación personalizada") },
                             singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         )
-                        OutlinedTextField(
-                            value = weight,
-                            onValueChange = onWeightChange,
-                            label = { Text("Peso/u. lb") },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            supportingText = {
-                                weight.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0.0 }?.let {
-                                    Text(formatWeightDualV4(it))
-                                }
+                        TextButton(
+                            onClick = {
+                                customLocation = false
+                                locationMenuOpen = true
                             },
-                        )
+                        ) { Text("Lista") }
                     }
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = equipped, onCheckedChange = onEquippedChange)
-                        Text("Equipado")
-                        Checkbox(checked = special, onCheckedChange = onSpecialChange)
-                        Text("Equipo especial")
-                    }
-                }
-                if (special) {
-                    item {
-                        Column {
-                            Text("Ubicación", style = MaterialTheme.typography.labelSmall)
-                            if (customLocation) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    OutlinedTextField(
-                                        value = location,
-                                        onValueChange = onLocationChange,
-                                        modifier = Modifier.weight(1f),
-                                        label = { Text("Ubicación personalizada") },
-                                        singleLine = true,
-                                    )
-                                    TextButton(
-                                        onClick = {
-                                            customLocation = false
-                                            locationMenuOpen = true
-                                        },
-                                    ) { Text("Lista") }
-                                }
-                            } else {
-                                Box {
-                                    OutlinedButton(
-                                        onClick = { locationMenuOpen = true },
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) { Text(location.ifBlank { "Sin ubicación" }) }
-                                    DropdownMenu(
-                                        expanded = locationMenuOpen,
-                                        onDismissRequest = { locationMenuOpen = false },
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text("Sin ubicación") },
-                                            onClick = {
-                                                onLocationChange("")
-                                                customLocation = false
-                                                locationMenuOpen = false
-                                            },
-                                        )
-                                        equipmentLocationsV4.forEach { option ->
-                                            DropdownMenuItem(
-                                                text = { Text(option) },
-                                                onClick = {
-                                                    onLocationChange(option)
-                                                    customLocation = false
-                                                    locationMenuOpen = false
-                                                },
-                                            )
-                                        }
-                                        DropdownMenuItem(
-                                            text = { Text("Otro") },
-                                            onClick = {
-                                                onLocationChange("")
-                                                customLocation = true
-                                                locationMenuOpen = false
-                                            },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    item {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
-                            Text("Sintonizado")
-                        }
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = description,
-                            onValueChange = onDescriptionChange,
-                            label = { Text("Descripción") },
+                } else {
+                    Box {
+                        OutlinedButton(
+                            onClick = { locationMenuOpen = true },
                             modifier = Modifier.fillMaxWidth(),
-                            minLines = 3,
-                            maxLines = 6,
-                        )
+                        ) { Text(location.ifBlank { "Sin ubicación" }) }
+                        DropdownMenu(
+                            expanded = locationMenuOpen,
+                            onDismissRequest = { locationMenuOpen = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Sin ubicación") },
+                                onClick = {
+                                    onLocationChange("")
+                                    customLocation = false
+                                    locationMenuOpen = false
+                                },
+                            )
+                            equipmentLocationsV4.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        onLocationChange(option)
+                                        customLocation = false
+                                        locationMenuOpen = false
+                                    },
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text("Otro") },
+                                onClick = {
+                                    onLocationChange("")
+                                    customLocation = true
+                                    locationMenuOpen = false
+                                },
+                            )
+                        }
                     }
-                }
-                item {
-                    OutlinedTextField(
-                        value = notes,
-                        onValueChange = onNotesChange,
-                        label = { Text("Notas") },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 2,
-                        maxLines = 4,
-                    )
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onApply, enabled = valid) { Text("Aplicar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
+                Text("Sintonizado")
+            }
+            OutlinedTextField(
+                value = description,
+                onValueChange = onDescriptionChange,
+                label = { Text("Descripción") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 6,
+            )
+        }
+        OutlinedTextField(
+            value = notes,
+            onValueChange = onNotesChange,
+            label = { Text("Notas") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 4,
+        )
+        CharacterInlineValidationMessage(
+            when {
+                name.trim().isEmpty() -> "El nombre no puede quedar vacío."
+                quantity.toIntOrNull() == null || quantity.toInt() < 0 -> "La cantidad debe ser un entero igual o mayor que 0."
+                weight.isNotBlank() && (weight.trim().replace(',', '.').toDoubleOrNull() == null || weight.trim().replace(',', '.').toDouble() < 0.0) -> "El peso debe ser un número igual o mayor que 0."
+                else -> null
+            },
+        )
+    }
 }
 
 @Composable
