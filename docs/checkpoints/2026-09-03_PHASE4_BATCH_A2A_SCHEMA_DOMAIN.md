@@ -3,7 +3,7 @@
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
 **Canonical `main`:** untouched  
-**Status:** A2a implemented with rewrite-safety correction; automated gate pending before A2b repository integration
+**Status:** **GREEN / COMPLETE** — A2b repository integration may proceed
 
 ## Completed prerequisite
 
@@ -51,7 +51,7 @@ character_defense(id PK, character_id FK, defense_type, name, source, notes, sor
 character_custom_skill(id PK, character_id FK, name, ability_key, training, adjustment, ...)
 ```
 
-The existing `CharacterRepository.saveCharacter()` currently rewrites inventory/resources by delete-and-reinsert. A2a therefore intentionally uses **soft UUID references** from closure metadata to those child rows, scoped by character, rather than `ON DELETE CASCADE` foreign keys to the rewritten rows:
+The existing `CharacterRepository.saveCharacter()` rewrites inventory/resources by delete-and-reinsert. A2a therefore intentionally uses **soft UUID references** from closure metadata to those child rows, scoped by character, rather than `ON DELETE CASCADE` foreign keys to the rewritten rows:
 
 ```sql
 character_resource_recovery(
@@ -108,14 +108,22 @@ Rewrite-safety correction after repository audit:
 - `b03de330340096aa55bebb167dfff8ad04634fd8` — closure SQL extension references changed to soft scoped UUID references;
 - `6f35997be2d11ce96b866a68c426a39671cd20ba` — schema-7 migration updated to match.
 
-## Gate before A2b
+## Verification
 
-Before repository integration:
+Corrected A2a run:
 
-1. verify GitHub Actions for the latest A2a code containing `6f35997be2d11ce96b866a68c426a39671cd20ba`;
-2. if SQLDelight/schema compilation fails, repair A2a and checkpoint the diagnosis;
-3. only after A2a is green, implement A2b persistence wiring and migration/round-trip tests.
+- workflow `33786927646`;
+- tested code head `6f35997be2d11ce96b866a68c426a39671cd20ba`;
+- final conclusion: **PASS**;
+- backend PASS;
+- shared Kotlin/tests PASS;
+- SQLDelight generation/compilation PASS;
+- Android debug assembly PASS;
+- Desktop build PASS;
+- debug APK artifact upload PASS.
+
+An earlier pre-rewrite-safety A2a run `33786719634` also passed, but `33786927646` is the controlling A2a evidence because it includes the corrected schema shape.
 
 ## Exact next action
 
-Check the CI run for the latest A2a code descendant. If green, begin A2b repository integration with explicit dangling-reference filtering and a regression test proving inventory/resource metadata survives an ordinary `CharacterRepository.saveCharacter()` rewrite.
+Begin **A2b repository integration** with explicit dangling-reference filtering and a regression test proving inventory/resource metadata survives an ordinary `CharacterRepository.saveCharacter()` rewrite. Then run the complete A2 gate before beginning B1.
