@@ -25,7 +25,7 @@ Branch: `implementation/character-data-foundation`
   - N-02 long Notes editors are bounded and explicitly advertise internal scrolling when content is long.
   - N-03 titled Notes use a deterministic two-column layout on wide/landscape screens.
 
-## Automated gate already completed before candidate marking
+## Automated validation
 
 Bootstrap workflow run `33710087103` completed successfully after applying Correction C. Its full gate completed successfully before the correction commit was pushed:
 
@@ -35,7 +35,20 @@ Bootstrap workflow run `33710087103` completed successfully after applying Corre
 - desktop build;
 - backend install/type-check.
 
-This file intentionally creates a normal-workflow candidate commit so the standard repository CI can independently rebuild the APK and publish the owner-retest artifact from an ordinary branch commit.
+The standard repository workflow then independently rebuilt the complete correction candidate from commit `6ae415d8919efb865d7b22092d95b94b3fa7866a`:
+
+- workflow run: `33710347091`;
+- Kotlin/shared/Android/desktop job: PASS;
+- backend job: PASS;
+- APK upload: PASS;
+- artifact: `dnd-custom-aid-debug-apk`;
+- artifact id: `9876725270`;
+- artifact digest: `sha256:ca0bf1a9aa25bb3c679a786ec126662bd429229cebec9aa0ed9d9eb551777bd2`;
+- artifact expires: 2026-12-02.
+
+The ZIP was also downloaded from GitHub and the contained `androidApp-debug.apk` independently hashes to `sha256:7eb0543ac70960f50555905acf7a9580e917f9e532f44048260bd2fd445bd5b9`.
+
+Status: **all planned corrections are implemented and automated gates are green; owner focused device retest is the remaining acceptance gate.**
 
 ## Owner focused retest scope
 
