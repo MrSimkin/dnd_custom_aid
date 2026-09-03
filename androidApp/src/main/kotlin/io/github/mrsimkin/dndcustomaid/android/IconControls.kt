@@ -109,6 +109,37 @@ internal fun StableSettingsIconButton(
 }
 
 @Composable
+internal fun StableEditIconButton(
+    onClick: () -> Unit,
+    contentDescription: String = "Editar",
+) {
+    val color = MaterialTheme.colorScheme.onSurface
+    IconButton(onClick = onClick) {
+        Canvas(
+            modifier = Modifier
+                .size(24.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val stroke = 2.2.dp.toPx()
+            drawLine(
+                color = color,
+                start = Offset(size.width * 0.28f, size.height * 0.72f),
+                end = Offset(size.width * 0.70f, size.height * 0.30f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+            drawLine(
+                color = color,
+                start = Offset(size.width * 0.24f, size.height * 0.76f),
+                end = Offset(size.width * 0.38f, size.height * 0.72f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+    }
+}
+
+@Composable
 internal fun StableRemoveIconButton(
     onClick: () -> Unit,
     contentDescription: String = "Eliminar",
@@ -201,14 +232,23 @@ internal fun StableAddIcon(
 @Composable
 internal fun StableDragHandle(
     modifier: Modifier = Modifier,
+    active: Boolean = false,
     contentDescription: String = "Reordenar",
 ) {
     val color = MaterialTheme.colorScheme.onSurfaceVariant
+    val activeColor = MaterialTheme.colorScheme.secondaryContainer
     Canvas(
         modifier = modifier
             .size(48.dp)
             .semantics { this.contentDescription = contentDescription },
     ) {
+        if (active) {
+            drawCircle(
+                color = activeColor,
+                radius = size.minDimension * 0.43f,
+                center = Offset(size.width / 2f, size.height / 2f),
+            )
+        }
         val stroke = 2.dp.toPx()
         listOf(0.34f, 0.5f, 0.66f).forEach { yFraction ->
             drawLine(

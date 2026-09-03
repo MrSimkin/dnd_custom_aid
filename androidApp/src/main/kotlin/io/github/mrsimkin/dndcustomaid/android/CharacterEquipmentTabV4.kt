@@ -147,7 +147,7 @@ internal fun CharacterEquipmentTabV4(
             start = if (wide) 10.dp else 5.dp,
             end = if (wide) 10.dp else 5.dp,
             top = 5.dp,
-            bottom = 170.dp,
+            bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
@@ -455,6 +455,7 @@ private fun EquipmentItemCardV4(
     modifier: Modifier = Modifier,
 ) {
     var accumulatedDrag by remember(item.id) { mutableStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
 
     Surface(
@@ -474,9 +475,9 @@ private fun EquipmentItemCardV4(
                 StableDragHandle(
                     modifier = Modifier.pointerInput(item.id) {
                         detectDragGesturesAfterLongPress(
-                            onDragStart = { accumulatedDrag = 0f },
-                            onDragEnd = { accumulatedDrag = 0f },
-                            onDragCancel = { accumulatedDrag = 0f },
+                            onDragStart = { accumulatedDrag = 0f; dragging = true },
+                            onDragEnd = { accumulatedDrag = 0f; dragging = false },
+                            onDragCancel = { accumulatedDrag = 0f; dragging = false },
                             onDrag = { change, dragAmount ->
                                 change.consume()
                                 accumulatedDrag += dragAmount.y
@@ -492,7 +493,8 @@ private fun EquipmentItemCardV4(
                             },
                         )
                     },
-                    contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
+                    active = dragging,
+                contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(item.name, style = MaterialTheme.typography.labelLarge)
@@ -524,8 +526,14 @@ private fun EquipmentItemCardV4(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("Editar") }
-                TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 7.dp)) { Text("Eliminar") }
+                StableEditIconButton(
+                    onClick = onEdit,
+                    contentDescription = "Editar ${item.name}",
+                )
+                StableRemoveIconButton(
+                    onClick = onDelete,
+                    contentDescription = "Eliminar ${item.name}",
+                )
             }
         }
     }
@@ -769,40 +777,33 @@ private fun CurrencyCellV4(
     modifier: Modifier = Modifier,
 ) {
     var value by rememberSaveable(currency.key, currency.amount) { mutableStateOf(currency.amount.toString()) }
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.small,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            Text(currency.name, style = MaterialTheme.typography.labelMedium, maxLines = 1)
-            OutlinedTextField(
-                value = value,
-                onValueChange = { raw ->
-                    value = sanitizeSignedIntEquipmentV4(raw)
-                    value.toIntOrNull()?.let { parsed ->
-                        onCurrenciesChange(
-                            currencies.map { existing ->
-                                if (existing.key == currency.key) existing.copy(amount = parsed) else existing
-                            },
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            )
-            if (!currency.isDefault) {
-                TextButton(
-                    onClick = { onCurrenciesChange(currencies.filterNot { it.key == currency.key }) },
-                    contentPadding = PaddingValues(horizontal = 3.dp, vertical = 0.dp),
-                ) { Text("Eliminar") }
+    OutlinedTextField(
+        value = value,
+        onValueChange = { raw ->
+            value = sanitizeSignedIntEquipmentV4(raw)
+            value.toIntOrNull()?.let { parsed ->
+                onCurrenciesChange(
+                    currencies.map { existing ->
+                        if (existing.key == currency.key) existing.copy(amount = parsed) else existing
+                    },
+                )
             }
-        }
-    }
+        },
+        modifier = modifier.fillMaxWidth(),
+        label = { Text(currency.name, maxLines = 1) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        trailingIcon = if (currency.isDefault) {
+            null
+        } else {
+            {
+                StableRemoveIconButton(
+                    onClick = { onCurrenciesChange(currencies.filterNot { it.key == currency.key }) },
+                    contentDescription = "Eliminar moneda ${currency.name}",
+                )
+            }
+        },
+    )
 }
 
 private fun sanitizeUnsignedIntEquipmentV4(raw: String): String = raw.filter(Char::isDigit)

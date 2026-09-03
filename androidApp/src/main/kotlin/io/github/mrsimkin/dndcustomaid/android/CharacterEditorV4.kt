@@ -393,7 +393,7 @@ internal fun CharacterEditorScreenV4(
             onDismissRequest = { confirmDisableSpellcasting = false },
             title = { Text("Ocultar funciones de conjuros") },
             text = {
-                Text("Quick Magic y la pestaña Conjuros se ocultarán. Los datos de conjuros, fuentes, preparación y espacios se conservarán.")
+                Text("Lanzamiento de Conjuros y la pestaña Conjuros se ocultarán. Los datos de conjuros, fuentes, preparación y espacios se conservarán.")
             },
             confirmButton = {
                 TextButton(
@@ -1042,7 +1042,7 @@ private fun QuickMagicCardV4(
 ) {
     var configureSlots by remember { mutableStateOf(false) }
 
-    SectionCardV4("Quick Magic") {
+    SectionCardV4("Lanzamiento de Conjuros") {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(5.dp),

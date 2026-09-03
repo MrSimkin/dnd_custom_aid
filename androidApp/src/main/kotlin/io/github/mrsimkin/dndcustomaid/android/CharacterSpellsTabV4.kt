@@ -360,6 +360,7 @@ private fun SourceManagerRowV4(
     onDelete: () -> Unit,
 ) {
     var accumulatedDrag by remember(source.id) { mutableStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
     val linkedClassName = source.linkedClassId?.let { linkedId ->
         classOptions.firstOrNull { it.id == linkedId }?.name?.ifBlank { "Clase sin nombre" }
@@ -377,9 +378,9 @@ private fun SourceManagerRowV4(
             StableDragHandle(
                 modifier = Modifier.pointerInput(source.id) {
                     detectDragGesturesAfterLongPress(
-                        onDragStart = { accumulatedDrag = 0f },
-                        onDragEnd = { accumulatedDrag = 0f },
-                        onDragCancel = { accumulatedDrag = 0f },
+                        onDragStart = { accumulatedDrag = 0f; dragging = true },
+                        onDragEnd = { accumulatedDrag = 0f; dragging = false },
+                        onDragCancel = { accumulatedDrag = 0f; dragging = false },
                         onDrag = { change, dragAmount ->
                             change.consume()
                             accumulatedDrag += dragAmount.y
@@ -395,6 +396,7 @@ private fun SourceManagerRowV4(
                         },
                     )
                 },
+                active = dragging,
                 contentDescription = "Mantén pulsado y arrastra para reordenar ${source.name}",
             )
             Column(modifier = Modifier.weight(1f)) {

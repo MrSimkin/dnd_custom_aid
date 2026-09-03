@@ -127,7 +127,7 @@ internal fun CharacterTraitsTabV4(
             start = if (wide) 10.dp else 5.dp,
             end = if (wide) 10.dp else 5.dp,
             top = 5.dp,
-            bottom = 170.dp,
+            bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -292,6 +292,7 @@ private fun CharacterTraitCardV4(
     modifier: Modifier = Modifier,
 ) {
     var accumulatedDrag by remember(trait.id) { mutableStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
     val metadata = buildList {
         trait.source.takeIf { it.isNotBlank() }?.let(::add)
@@ -320,9 +321,9 @@ private fun CharacterTraitCardV4(
                 StableDragHandle(
                     modifier = Modifier.pointerInput(trait.id) {
                         detectDragGesturesAfterLongPress(
-                            onDragStart = { accumulatedDrag = 0f },
-                            onDragEnd = { accumulatedDrag = 0f },
-                            onDragCancel = { accumulatedDrag = 0f },
+                            onDragStart = { accumulatedDrag = 0f; dragging = true },
+                            onDragEnd = { accumulatedDrag = 0f; dragging = false },
+                            onDragCancel = { accumulatedDrag = 0f; dragging = false },
                             onDrag = { change, dragAmount ->
                                 change.consume()
                                 accumulatedDrag += dragAmount.y
@@ -338,7 +339,8 @@ private fun CharacterTraitCardV4(
                             },
                         )
                     },
-                    contentDescription = "Mantén pulsado y arrastra para reordenar ${trait.name}",
+                    active = dragging,
+                contentDescription = "Mantén pulsado y arrastra para reordenar ${trait.name}",
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(trait.name, style = MaterialTheme.typography.labelLarge)
@@ -360,7 +362,7 @@ private fun CharacterTraitCardV4(
                 val remaining = (maxUses - trait.spentUses).coerceIn(0, maxUses)
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        "Usos: $remaining / $maxUses · Gastados ${trait.spentUses.coerceIn(0, maxUses)}",
+                        "Disponibles: $remaining de $maxUses" + if (trait.spentUses > 0) " · Gastados: ${trait.spentUses.coerceIn(0, maxUses)}" else "",
                         style = MaterialTheme.typography.labelMedium,
                     )
                     trait.recovery?.takeIf { it.isNotBlank() }?.let {
@@ -436,7 +438,7 @@ private fun CharacterTraitEditorDialogV4(
                     .heightIn(max = 520.dp)
                     .imePadding()
                     .navigationBarsPadding(),
-                contentPadding = PaddingValues(bottom = 120.dp),
+                contentPadding = PaddingValues(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 item {

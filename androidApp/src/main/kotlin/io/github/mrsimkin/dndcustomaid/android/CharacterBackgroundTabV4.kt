@@ -86,7 +86,7 @@ internal fun CharacterBackgroundTabV4(
             start = if (wide) 10.dp else 5.dp,
             end = if (wide) 10.dp else 5.dp,
             top = 5.dp,
-            bottom = 170.dp,
+            bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {

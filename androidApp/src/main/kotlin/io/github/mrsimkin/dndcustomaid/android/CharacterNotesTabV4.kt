@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -85,7 +86,7 @@ internal fun CharacterNotesTabV4(
             start = if (wide) 14.dp else 5.dp,
             end = if (wide) 14.dp else 5.dp,
             top = 7.dp,
-            bottom = 170.dp,
+            bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -107,9 +108,18 @@ internal fun CharacterNotesTabV4(
                         onValueChange = { onDraftChange(draft.copy(generalNotes = it)) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = if (wide) 300.dp else 230.dp),
+                            .heightIn(
+                                min = if (wide) 220.dp else 180.dp,
+                                max = if (wide) 380.dp else 300.dp,
+                            ),
                         placeholder = { Text("Escribe aquí…") },
-                        minLines = if (wide) 12 else 9,
+                        minLines = if (wide) 9 else 7,
+                        maxLines = if (wide) 18 else 14,
+                        supportingText = {
+                            if (draft.generalNotes.length > 400) {
+                                Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
+                            }
+                        },
                     )
                 }
             }
@@ -143,6 +153,28 @@ internal fun CharacterNotesTabV4(
                             "Sin notas con título. Puedes usar solo Notas generales si no necesitas separarlas.",
                             style = MaterialTheme.typography.bodySmall,
                         )
+                    } else if (wide) {
+                        draft.cards.chunked(2).forEach { rowCards ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                                verticalAlignment = Alignment.Top,
+                            ) {
+                                rowCards.forEach { note ->
+                                    val index = draft.cards.indexOfFirst { it.id == note.id }
+                                    CharacterNoteCardV4(
+                                        note = note,
+                                        onEdit = { beginEdit(note) },
+                                        onDelete = { deleteId = note.id.toString() },
+                                        onMove = { offset -> move(index, offset) },
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                }
+                                repeat(2 - rowCards.size) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
+                            }
+                        }
                     } else {
                         draft.cards.forEachIndexed { index, note ->
                             CharacterNoteCardV4(
@@ -217,12 +249,14 @@ private fun CharacterNoteCardV4(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onMove: (Int) -> Boolean,
+    modifier: Modifier = Modifier,
 ) {
     var accumulatedDrag by remember(note.id) { mutableStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
 
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onEdit),
         shape = MaterialTheme.shapes.small,
@@ -242,9 +276,9 @@ private fun CharacterNoteCardV4(
                 StableDragHandle(
                     modifier = Modifier.pointerInput(note.id) {
                         detectDragGesturesAfterLongPress(
-                            onDragStart = { accumulatedDrag = 0f },
-                            onDragEnd = { accumulatedDrag = 0f },
-                            onDragCancel = { accumulatedDrag = 0f },
+                            onDragStart = { accumulatedDrag = 0f; dragging = true },
+                            onDragEnd = { accumulatedDrag = 0f; dragging = false },
+                            onDragCancel = { accumulatedDrag = 0f; dragging = false },
                             onDrag = { change, dragAmount ->
                                 change.consume()
                                 accumulatedDrag += dragAmount.y
@@ -260,7 +294,8 @@ private fun CharacterNoteCardV4(
                             },
                         )
                     },
-                    contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
+                    active = dragging,
+                contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
                 )
                 Text(
                     note.title,
@@ -313,7 +348,7 @@ private fun CharacterNoteEditorDialogV4(
                     .heightIn(max = 540.dp)
                     .imePadding()
                     .navigationBarsPadding(),
-                contentPadding = PaddingValues(bottom = 120.dp),
+                contentPadding = PaddingValues(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 item {
@@ -332,8 +367,14 @@ private fun CharacterNoteEditorDialogV4(
                         label = { Text("Contenido") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 260.dp),
-                        minLines = 10,
+                            .heightIn(min = 220.dp, max = 340.dp),
+                        minLines = 8,
+                        maxLines = 16,
+                        supportingText = {
+                            if (content.length > 400) {
+                                Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
+                            }
+                        },
                     )
                 }
             }

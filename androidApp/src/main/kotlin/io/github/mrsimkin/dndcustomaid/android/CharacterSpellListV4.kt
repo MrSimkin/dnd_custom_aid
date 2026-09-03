@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
@@ -141,7 +143,7 @@ internal fun CharacterSpellListV4(
             start = if (wide) 10.dp else 5.dp,
             end = if (wide) 10.dp else 5.dp,
             top = 7.dp,
-            bottom = 150.dp,
+            bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
@@ -351,6 +353,7 @@ private fun SpellRowV4(
     onDelete: () -> Unit,
 ) {
     var accumulatedDrag by remember(spell.id) { mutableStateOf(0f) }
+    var dragging by remember { mutableStateOf(false) }
     val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
     val selectedAssociation = selectedSourceId?.let { sourceId ->
         spell.sourceAssociations.firstOrNull { it.sourceId == sourceId }
@@ -364,9 +367,9 @@ private fun SpellRowV4(
             StableDragHandle(
                 modifier = Modifier.pointerInput(spell.id, selectedSourceId) {
                     detectDragGesturesAfterLongPress(
-                        onDragStart = { accumulatedDrag = 0f },
-                        onDragEnd = { accumulatedDrag = 0f },
-                        onDragCancel = { accumulatedDrag = 0f },
+                        onDragStart = { accumulatedDrag = 0f; dragging = true },
+                        onDragEnd = { accumulatedDrag = 0f; dragging = false },
+                        onDragCancel = { accumulatedDrag = 0f; dragging = false },
                         onDrag = { change, dragAmount ->
                             change.consume()
                             accumulatedDrag += dragAmount.y
@@ -382,6 +385,7 @@ private fun SpellRowV4(
                         },
                     )
                 },
+                active = dragging,
                 contentDescription = "Mantén pulsado y arrastra para reordenar ${spell.name}",
             )
         }
@@ -468,7 +472,7 @@ private fun SpellEditorDialogV4(
                     OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 }
                 item {
-                    OutlinedTextField(level, { level = it.filter { ch -> ch.isDigit() }.take(1) }, label = { Text("Nivel (0-9)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(level, { level = it.filter { ch -> ch.isDigit() }.take(1) }, label = { Text("Nivel (0-9)") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                 }
                 item {
                     Text("Fuentes", style = MaterialTheme.typography.titleSmall)
