@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING INTEGRATION GATE  
+**Status:** GREEN / COMPLETE  
 **Canonical `main`:** untouched
 
 ## Why F3 exists
@@ -49,9 +49,17 @@ Wide Equipment behavior now:
 
 All inventory persistence, consumable/ammunition, carried/stored, location/container, sort-order and currency behavior continues to use the F1/F2 implementation without schema changes.
 
-## Gate required
+## Gate result
 
-F3 and Batch F are not GREEN until the controlling workflow on this checkpoint head passes:
+Controlling checkpoint head:
+
+- `a0f41acf0ad440f0af43694ee5e46a4c0d7f8c17`.
+
+Controlling workflow:
+
+- `33816879652` — PASS.
+
+Verified green:
 
 - all shared desktop tests;
 - Android debug assembly;
@@ -59,4 +67,16 @@ F3 and Batch F are not GREEN until the controlling workflow on this checkpoint h
 - backend type-check;
 - APK artifact upload.
 
-If green, close Batch F and advance to Batch G1 — Rasgos closure. No DM implementation is permitted while the Phase 4 closure plan remains open.
+Evidence artifact:
+
+- name: `dnd-custom-aid-debug-apk`;
+- artifact ID: `9916904744`;
+- workflow artifact digest: `sha256:4ed09ae593f514967c16f256a7542e73467d5aea0bc7673fa25d95207eb01822`.
+
+This artifact is integration evidence, not the final owner-QA candidate.
+
+## Result
+
+F3 is GREEN and Batch F is closed by `docs/checkpoints/2026-09-03_PHASE4_BATCH_F_EQUIPMENT_CURRENCIES.md`.
+
+Proceed to Batch G1 — Rasgos closure. No DM implementation is permitted while the Phase 4 closure plan remains open.
