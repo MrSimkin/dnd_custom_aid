@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -149,9 +148,11 @@ internal fun CharacterNotesTabV4(
                     }
 
                     if (draft.cards.isEmpty()) {
-                        Text(
-                            "Sin notas con título. Puedes usar solo Notas generales si no necesitas separarlas.",
-                            style = MaterialTheme.typography.bodySmall,
+                        CharacterUsefulEmptyState(
+                            title = "Sin notas con título",
+                            message = "Puedes usar solo Notas generales o añadir una tarjeta para una referencia concreta.",
+                            onAdd = ::beginAdd,
+                            addLabel = "Añadir nota",
                         )
                     } else if (wide) {
                         draft.cards.chunked(2).forEach { rowCards ->
@@ -199,7 +200,7 @@ internal fun CharacterNotesTabV4(
             onTitleChange = { editorTitle = it },
             onContentChange = { editorContent = it },
             onDismiss = { editorOpen = false },
-            onApply = {
+            onSave = {
                 val existing = editingId?.let { id -> draft.cards.firstOrNull { it.id.toString() == id } }
                 val note = CharacterNote(
                     id = existing?.id ?: Uuid.random(),
@@ -223,20 +224,13 @@ internal fun CharacterNotesTabV4(
         if (target == null) {
             deleteId = null
         } else {
-            AlertDialog(
+            CharacterNamedDeleteConfirmationDialog(
+                itemName = target.title,
+                itemTypeLabel = "nota",
                 onDismissRequest = { deleteId = null },
-                title = { Text("Eliminar nota") },
-                text = { Text("¿Eliminar «${target.title}»? El cambio se hará persistente al guardar la ficha.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            onDraftChange(draft.copy(cards = normalize(draft.cards.filterNot { it.id == target.id })))
-                            deleteId = null
-                        },
-                    ) { Text("Eliminar") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { deleteId = null }) { Text("Cancelar") }
+                onConfirm = {
+                    onDraftChange(draft.copy(cards = normalize(draft.cards.filterNot { it.id == target.id })))
+                    deleteId = null
                 },
             )
         }
@@ -295,7 +289,7 @@ private fun CharacterNoteCardV4(
                         )
                     },
                     active = dragging,
-                contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
+                    contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
                 )
                 Text(
                     note.title,
@@ -303,6 +297,10 @@ private fun CharacterNoteCardV4(
                     style = MaterialTheme.typography.labelLarge,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
+                )
+                StableRemoveIconButton(
+                    onClick = onDelete,
+                    contentDescription = "Eliminar ${note.title}",
                 )
             }
 
@@ -312,18 +310,6 @@ private fun CharacterNoteCardV4(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(onClick = onEdit, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("Editar")
-                }
-                TextButton(onClick = onDelete, contentPadding = PaddingValues(horizontal = 7.dp)) {
-                    Text("Eliminar")
-                }
-            }
         }
     }
 }
@@ -337,53 +323,39 @@ private fun CharacterNoteEditorDialogV4(
     onTitleChange: (String) -> Unit,
     onContentChange: (String) -> Unit,
     onDismiss: () -> Unit,
-    onApply: () -> Unit,
+    onSave: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = {},
-        title = { Text(title) },
-        text = {
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 540.dp)
-                    .imePadding()
-                    .navigationBarsPadding(),
-                contentPadding = PaddingValues(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                item {
-                    OutlinedTextField(
-                        value = noteTitle,
-                        onValueChange = onTitleChange,
-                        label = { Text("Título") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                    )
+    CharacterImeSafeEditorDialog(
+        title = title,
+        onCancel = onDismiss,
+        onSave = onSave,
+        saveLabel = "Guardar",
+        saveEnabled = valid,
+    ) {
+        OutlinedTextField(
+            value = noteTitle,
+            onValueChange = onTitleChange,
+            label = { Text("Título") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+        CharacterInlineValidationMessage(
+            if (noteTitle.isNotEmpty() && noteTitle.trim().isEmpty()) "Escribe un título para guardar la nota." else null,
+        )
+        OutlinedTextField(
+            value = content,
+            onValueChange = onContentChange,
+            label = { Text("Contenido") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 220.dp, max = 340.dp),
+            minLines = 8,
+            maxLines = 16,
+            supportingText = {
+                if (content.length > 400) {
+                    Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
                 }
-                item {
-                    OutlinedTextField(
-                        value = content,
-                        onValueChange = onContentChange,
-                        label = { Text("Contenido") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 220.dp, max = 340.dp),
-                        minLines = 8,
-                        maxLines = 16,
-                        supportingText = {
-                            if (content.length > 400) {
-                                Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
-                            }
-                        },
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onApply, enabled = valid) { Text("Aplicar") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        },
-    )
+            },
+        )
+    }
 }
