@@ -5,13 +5,13 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; Batch A1 implemented; Gate A1 awaiting/finalizing CI  
+**Current execution position:** Batch 0 complete; Batch A1 GREEN; Batch A2 started  
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
 1. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — latest completed/active checkpoint;
+2. `docs/checkpoints/2026-09-03_PHASE4_BATCH0_A1_HOUSEKEEPING_AND_CATALOG.md` — completed housekeeping/A1 checkpoint;
 3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
 4. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
 5. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit.
@@ -58,7 +58,7 @@ Known remaining index-maintenance item:
 
 - consolidated `docs/DECISIONS.md` still ends at D-0043 while detailed approved D-0044–D-0047 records exist. This is visible, non-blocking for implementation, and must be reconciled before the eventual Phase 4 merge proposal without renumbering historical decisions.
 
-## 3. Batch A1 — official catalog reconciliation
+## 3. Batch A1 — official catalog reconciliation — GREEN
 
 Implemented:
 
@@ -69,21 +69,26 @@ Changes:
 
 - all eight Arcana Unleashed audited subclasses no longer carry stale upcoming/early-access metadata;
 - source/version/module information remains intact;
-- focused tests now cover all eight keys, representative module triggers, current-vs-legacy Artificer/Battle Smith provenance and the open custom escape path.
+- focused tests cover all eight keys, representative module triggers, current-vs-legacy Artificer/Battle Smith provenance and the open custom escape path.
 
-The code commit diff was inspected and contained only the intended catalog availability/helper changes.
+A1 verification:
 
-A1 CI:
-
-- run `33785858196`;
+- GitHub Actions run `33785858196`;
 - tested head `dd6f50afebe862222861ee8ccb39cfe99ee82df1`;
-- final conclusion must be checked before Gate A1 is declared closed.
+- status: **PASS** on 2026-09-03;
+- backend check PASS;
+- shared Kotlin/tests + Android debug assembly + Desktop build PASS.
 
-## 4. Next batch — A2 schema 7
+Gate A1 is closed.
 
-Do not begin until A1 is green.
+## 4. Current batch — A2 schema 7
 
-A2 adds the remaining approved durable D-0047 domains through an additive schema-7 migration, including:
+A2 is now active. To keep this large data increment recoverable, execute it internally as:
+
+- **A2a — schema/domain definitions:** additive schema-7 tables/fields and Kotlin durable domain types;
+- **A2b — repository integration + migration/round-trip verification:** persistence wiring, migration fixtures and holistic tests.
+
+The approved durable scope includes:
 
 - Conditions/Exhaustion;
 - Defenses;
@@ -101,6 +106,8 @@ A2 adds the remaining approved durable D-0047 domains through an additive schema
 - haptic preference;
 - any required Supercompact configuration;
 - consistent Favorite/Quick Access state.
+
+Implementation remains additive: schema 6 is not rewritten. Use schema 7 for new durable state and preserve all existing Phase 4 data.
 
 A2 Gate requires create-from-scratch schema, migration preservation, holistic repository round trip and shared tests before Android closure UI work proceeds.
 
@@ -149,7 +156,6 @@ Do not merge Phase 4 to `main` until:
 
 ## 8. Exact continuation
 
-Check GitHub Actions run `33785858196`.
+Resume **Batch A2a — schema/domain definitions** on `implementation/phase4-character-closure`.
 
-- If PASS: record A1 green and begin **Batch A2 — schema 7**.
-- If FAIL: diagnose and repair A1 before any schema-7 work.
+After A2a is checkpointed, continue A2b repository integration and migration/round-trip tests. Do not begin Batch B1 until the complete A2 gate is green.
