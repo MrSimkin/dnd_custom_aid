@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 
 internal enum class CharacterTabV4(val label: String) {
     OVERVIEW("General"),
@@ -17,19 +18,31 @@ internal enum class CharacterTabV4(val label: String) {
     BACKGROUND("Trasfondo"),
     TRAITS("Rasgos"),
     SPELLS("Conjuros"),
+    ARTIFICER("Artífice"),
+    FORMS("Formas"),
     NOTES("Notas"),
 }
 
-internal fun visibleCharacterTabsV4(spellcasterEnabled: Boolean): List<CharacterTabV4> =
-    CharacterTabV4.entries.filter { tab -> spellcasterEnabled || tab != CharacterTabV4.SPELLS }
+internal fun visibleCharacterTabsV4(
+    spellcasterEnabled: Boolean,
+    visibleModules: Set<CharacterModuleKind> = emptySet(),
+): List<CharacterTabV4> = CharacterTabV4.entries.filter { tab ->
+    when (tab) {
+        CharacterTabV4.SPELLS -> spellcasterEnabled
+        CharacterTabV4.ARTIFICER -> CharacterModuleKind.ARTIFICER in visibleModules
+        CharacterTabV4.FORMS -> CharacterModuleKind.FORMS in visibleModules
+        else -> true
+    }
+}
 
 internal fun resolvedCharacterTabV4(
     savedTabName: String,
     spellcasterEnabled: Boolean,
+    visibleModules: Set<CharacterModuleKind> = emptySet(),
 ): CharacterTabV4 {
     val candidate = runCatching { CharacterTabV4.valueOf(savedTabName) }
         .getOrDefault(CharacterTabV4.OVERVIEW)
-    return candidate.takeIf { it in visibleCharacterTabsV4(spellcasterEnabled) }
+    return candidate.takeIf { it in visibleCharacterTabsV4(spellcasterEnabled, visibleModules) }
         ?: CharacterTabV4.OVERVIEW
 }
 
@@ -37,9 +50,10 @@ internal fun resolvedCharacterTabV4(
 internal fun CharacterTopTabStripV4(
     selectedTab: CharacterTabV4,
     spellcasterEnabled: Boolean,
+    visibleModules: Set<CharacterModuleKind> = emptySet(),
     onSelect: (CharacterTabV4) -> Unit,
 ) {
-    val tabs = visibleCharacterTabsV4(spellcasterEnabled)
+    val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules)
     val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
 
     ScrollableTabRow(
