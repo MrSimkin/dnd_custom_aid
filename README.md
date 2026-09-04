@@ -11,14 +11,15 @@ After reading this README, continue with these files in order:
 1. `AGENTS.md` — mandatory operating rules for humans and AI agents.
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented code areas.
 3. `docs/PROJECT_STATE.md` — current verified state and next action.
-4. `docs/DECISIONS.md` — chronological significant-decision log; later detailed approved Phase 4 decisions under `docs/decisions/` also remain authoritative while the master log is being reconciled.
-5. `docs/CONVENTIONS.md` — approved recurring project conventions.
-6. `docs/PRODUCT.md` — current approved product direction and MVP.
-7. `docs/ROADMAP.md` — development phases and current phase.
-8. `docs/WORKFLOW.md` — how changes are designed, implemented, tested, documented, reviewed, and merged.
-9. `docs/ARCHITECTURE.md` — current approved architecture record and rationale.
-10. `docs/TESTING.md` — verification rules, commands, and current test status.
-11. Relevant `docs/decisions/`, `docs/checkpoints/`, and feature-specific files for the active work.
+4. `docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md` — current practical resume checkpoint while owner QA is paused.
+5. `docs/DECISIONS.md` — chronological significant-decision log; later detailed approved Phase 4 decisions under `docs/decisions/` also remain authoritative while the master log is being reconciled.
+6. `docs/CONVENTIONS.md` — approved recurring project conventions.
+7. `docs/PRODUCT.md` — current approved product direction and MVP.
+8. `docs/ROADMAP.md` — development phases and current phase.
+9. `docs/WORKFLOW.md` — how changes are designed, implemented, tested, documented, reviewed, and merged.
+10. `docs/ARCHITECTURE.md` — current approved architecture record and rationale.
+11. `docs/TESTING.md` — verification rules, current frozen QA candidate, and owner QA matrix.
+12. Relevant `docs/decisions/`, `docs/checkpoints/`, and feature-specific files for the active work.
 
 ## Canonical source of truth
 
@@ -55,37 +56,45 @@ See `docs/ARCHITECTURE.md` for the full record.
 
 ## Current implemented foundation
 
-Phases 0–3 are complete. Phase 4 has already implemented a substantial local Android character foundation beyond the original scaffold.
+Phases 0–3 are complete. Phase 4 Character Foundation Closure implementation is complete through the pre-QA consolidation stage.
 
-Current Phase 4 character work includes, among other things:
+The current character foundation includes, among other things:
 
 - campaign-scoped persistent characters with UUID identity and lifecycle state;
-- multiclass entries, derived ability/skill/save/proficiency behavior and explicit adjustment escape paths;
-- General, Habilidades, Combate, Equipo, Trasfondo, Rasgos, conditional Conjuros and Notas;
-- PC Settings with spellcasting hide-not-delete behavior;
-- persistent equipment/currencies, traits, notes, spells/sources/prepared state/shared slots and background identity fields;
-- SQLDelight migrations and persistence regression coverage;
-- an owner-tested correction APK lineage;
-- a focused closure branch with preliminary schema-6 class/subclass/provenance, Inspiration/death saves, proficiencies, Weapon Mastery, Resources, Forms and Companions.
+- multiclass entries, official/custom class/subclass provenance, derived values and explicit adjustment escape paths;
+- General, Habilidades, Combate, Gestión, Equipo/Monedas, Trasfondo, Rasgos, conditional Conjuros and Notas;
+- structured proficiencies/languages, defenses/senses/movement, conditions/exhaustion, concentration, resources, rest support, temporary effects and death saves;
+- equipment locations/containers/consumables/ammunition, richer traits/spells and Quick Access/Favorites;
+- all six approved reusable conditional modules: Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros;
+- PC Settings, Application Settings, Supercompact and Table mode;
+- adaptive phone/tablet behavior, context preservation and last-open-tab restoration;
+- app-owned backup/export and import-as-copy with reconciliation;
+- SQLDelight migration coverage including the prior owner schema lineage;
+- bounded pre-QA dead-code/compiler-warning cleanup.
 
-The current accepted closure scope is D-0047. It expands/fixes the complete character foundation before any DM-feature implementation begins.
+The approved closure scope is D-0047. Automated implementation-completeness and code-health work is complete. The next stage is owner real-device QA.
 
-## Current Phase 4 work
+## Current Phase 4 position — M6 owner QA pending
 
-Focused branch:
+Durable pre-QA branch:
 
-`implementation/phase4-character-closure`
+`implementation/phase4-preqa-consolidation`
 
-Primary execution documents:
+Exact frozen owner-QA candidate:
 
-- `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`;
-- `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md`;
-- `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md`;
-- `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md`.
+- branch `tmp/phase4-m5-frozen-qa-candidate`;
+- commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
+- tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
+- artifact `9951922423` / `phase4-m5-frozen-qa-apk`;
+- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
 
-The closure work is intentionally divided into recoverable batches. Every meaningful batch leaves a Git checkpoint and passes its proportionate gate before dependent work proceeds.
+Current resume checkpoint:
 
-**DM feature implementation is blocked until the Phase 4 character closure package is implemented, passes final phone + tablet QA, and is owner-accepted.**
+`docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`
+
+M6 QA has **not** started yet. When it begins, the first action is the in-place upgrade/data-preservation test. Do not clear app data before that test.
+
+**DM feature implementation remains blocked until Phase 4 owner QA is accepted, final governance/merge-boundary housekeeping is complete, and the owner explicitly approves closure/merge.**
 
 ## Build and verification commands
 
@@ -99,13 +108,13 @@ Backend:
 
 ```bash
 cd backend
-npm install
+npm install --no-package-lock
 npm run check
 ```
 
 Current CI uses JDK 17, Gradle 9.5, Android SDK platform 36 and Node.js 22.
 
-See `docs/TESTING.md` for the current gate/QA rules and exact verified revisions.
+See `docs/TESTING.md` for the current gate/QA rules and exact verified candidate.
 
 ## Development signing note
 
