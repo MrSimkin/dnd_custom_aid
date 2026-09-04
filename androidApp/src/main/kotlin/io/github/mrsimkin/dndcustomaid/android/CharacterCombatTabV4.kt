@@ -61,6 +61,7 @@ internal fun CharacterCombatTabV4(
     onEntriesChange: (List<CharacterCombatEntry>) -> Unit,
     onOperationalSheetChange: (CharacterSheet) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
+    structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean = true,
 ) {
@@ -76,6 +77,7 @@ internal fun CharacterCombatTabV4(
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         editingId = null
         editorName = ""
         editorType = CharacterCombatEntryType.ATTACK.name
@@ -87,6 +89,7 @@ internal fun CharacterCombatTabV4(
     }
 
     fun beginEdit(entry: CharacterCombatEntry) {
+        if (!structuralEditingEnabled) return
         editingId = entry.id.toString()
         editorName = entry.name
         editorType = entry.type.name
@@ -98,6 +101,7 @@ internal fun CharacterCombatTabV4(
     }
 
     fun move(index: Int, offset: Int): Boolean {
+        if (!structuralEditingEnabled) return false
         val target = index + offset
         if (target !in entries.indices) return false
         val reordered = entries.toMutableList()
@@ -144,7 +148,7 @@ internal fun CharacterCombatTabV4(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text("Ataques y acciones", style = MaterialTheme.typography.titleSmall)
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     if (entries.isEmpty()) {
                         Text(
@@ -164,7 +168,7 @@ internal fun CharacterCombatTabV4(
                                     CombatEntryCardV4(
                                         entry = entry,
                                         favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
-                                        favoriteEnabled = entry.id in persistedEntryIds,
+                                        favoriteEnabled = structuralEditingEnabled && entry.id in persistedEntryIds,
                                         onFavoriteChange = { enabled ->
                                             onClosureStateChange(
                                                 closureState.withQuickAccess(
@@ -177,6 +181,7 @@ internal fun CharacterCombatTabV4(
                                         onEdit = { beginEdit(entry) },
                                         onMove = { offset -> move(index, offset) },
                                         onDelete = { deleteId = entry.id.toString() },
+                                        structuralEditingEnabled = structuralEditingEnabled,
                                         onHaptic = haptic,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -192,7 +197,7 @@ internal fun CharacterCombatTabV4(
         }
     }
 
-    if (editorOpen) {
+    if (editorOpen && structuralEditingEnabled) {
         val selectedType = runCatching { CharacterCombatEntryType.valueOf(editorType) }
             .getOrDefault(CharacterCombatEntryType.ATTACK)
         val parsedAttack = editorAttackModifier.trim().takeIf { it.isNotEmpty() }?.toIntOrNull()
@@ -238,7 +243,7 @@ internal fun CharacterCombatTabV4(
         )
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = entries.firstOrNull { it.id.toString() == id }
         if (target != null) {
             CharacterNamedDeleteConfirmationDialog(
@@ -333,6 +338,7 @@ private fun CombatEntryCardV4(
     onEdit: () -> Unit,
     onMove: (Int) -> Boolean,
     onDelete: () -> Unit,
+    structuralEditingEnabled: Boolean,
     onHaptic: (CharacterHapticEventV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -357,7 +363,7 @@ private fun CombatEntryCardV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .characterDragFeedbackV4(dragState)
-                .clickable(onClick = onEdit),
+                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
@@ -439,10 +445,12 @@ private fun CombatEntryCardV4(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    StableRemoveIconButton(
-                        onClick = onDelete,
-                        contentDescription = "Eliminar ${entry.name}",
-                    )
+                    if (structuralEditingEnabled) {
+                        StableRemoveIconButton(
+                            onClick = onDelete,
+                            contentDescription = "Eliminar ${entry.name}",
+                        )
+                    }
                 }
             }
         }

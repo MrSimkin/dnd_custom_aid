@@ -71,6 +71,7 @@ import kotlin.uuid.Uuid
 internal fun CharacterEquipmentClosureTabV4(
     draft: CharacterEquipmentDraftV4,
     onDraftChange: (CharacterEquipmentDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean,
 ) {
@@ -128,8 +129,8 @@ internal fun CharacterEquipmentClosureTabV4(
     )
     val carriedWeight = carriedInventoryWeightLb(draft.items, ::usageFor)
     val attunedCount = draft.items.count { it.special && it.attuned }
-    val canReorderOrdinary = ordinaryOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
-    val canReorderSpecial = specialOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
+    val canReorderOrdinary = structuralEditingEnabled && ordinaryOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
+    val canReorderSpecial = structuralEditingEnabled && specialOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
 
     fun updateQuery(updated: CharacterCollectionQuery) {
@@ -143,6 +144,7 @@ internal fun CharacterEquipmentClosureTabV4(
             .inventoryUsage
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         editingId = null
         editorName = ""
         editorQuantity = "1"
@@ -160,6 +162,7 @@ internal fun CharacterEquipmentClosureTabV4(
     }
 
     fun beginEdit(item: CharacterInventoryItem) {
+        if (!structuralEditingEnabled) return
         val usage = usageFor(item)
         editingId = item.id.toString()
         editorName = item.name
@@ -178,6 +181,7 @@ internal fun CharacterEquipmentClosureTabV4(
     }
 
     fun moveWithinSection(item: CharacterInventoryItem, offset: Int): Boolean {
+        if (!structuralEditingEnabled) return false
         val section = draft.items
             .filter { it.special == item.special }
             .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
@@ -196,6 +200,7 @@ internal fun CharacterEquipmentClosureTabV4(
     }
 
     fun duplicate(item: CharacterInventoryItem) {
+        if (!structuralEditingEnabled) return
         val newId = Uuid.random()
         val newItem = duplicateInventoryItem(item, newId, draft.items.size)
         val newUsage = duplicateInventoryUsage(usageFor(item), newId)
@@ -288,7 +293,7 @@ internal fun CharacterEquipmentClosureTabV4(
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     CharacterCollectionToolbarV4(
                         itemCount = ordinaryVisible.size + specialVisible.size,
@@ -323,6 +328,7 @@ internal fun CharacterEquipmentClosureTabV4(
                 },
                 onDuplicate = ::duplicate,
                 onDelete = { deleteId = it.id.toString() },
+                structuralEditingEnabled = structuralEditingEnabled,
                 onHaptic = haptic,
             )
         }
@@ -349,6 +355,7 @@ internal fun CharacterEquipmentClosureTabV4(
                 },
                 onDuplicate = ::duplicate,
                 onDelete = { deleteId = it.id.toString() },
+                structuralEditingEnabled = structuralEditingEnabled,
                 onHaptic = haptic,
             )
         }
@@ -357,6 +364,7 @@ internal fun CharacterEquipmentClosureTabV4(
             CompactCurrenciesF2(
                 currencies = draft.currencies,
                 wide = wide,
+                structuralEditingEnabled = structuralEditingEnabled,
                 onCurrenciesChange = { onDraftChange(draft.copy(currencies = it)) },
                 onAddCurrency = {
                     customCurrencyName = ""
@@ -367,7 +375,7 @@ internal fun CharacterEquipmentClosureTabV4(
         }
     }
 
-        if (wide) {
+        if (wide && structuralEditingEnabled) {
             EquipmentEditorPanelF3(
                 editorOpen = editorOpen,
                 title = if (editingId == null) "Añadir objeto" else "Editar objeto",
@@ -415,7 +423,7 @@ internal fun CharacterEquipmentClosureTabV4(
         }
     }
 
-    if (editorOpen && !wide) {
+    if (editorOpen && !wide && structuralEditingEnabled) {
         EquipmentEditorF2(
             title = if (editingId == null) "Añadir objeto" else "Editar objeto",
             name = editorName,
@@ -473,7 +481,7 @@ internal fun CharacterEquipmentClosureTabV4(
         )
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = draft.items.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -500,7 +508,7 @@ internal fun CharacterEquipmentClosureTabV4(
         }
     }
 
-    if (addCurrencyOpen) {
+    if (addCurrencyOpen && structuralEditingEnabled) {
         val amount = customCurrencyAmount.toIntOrNull()
         CharacterImeSafeEditorDialog(
             title = "Añadir moneda",
@@ -602,6 +610,7 @@ private fun EquipmentSectionF2(
     onQuickUse: (CharacterInventoryItem, CharacterInventoryUsage) -> Unit,
     onDuplicate: (CharacterInventoryItem) -> Unit,
     onDelete: (CharacterInventoryItem) -> Unit,
+    structuralEditingEnabled: Boolean,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -658,6 +667,7 @@ private fun EquipmentSectionF2(
                                     onQuickUse = { onQuickUse(item, usageFor(item)) },
                                     onDuplicate = { onDuplicate(item) },
                                     onDelete = { onDelete(item) },
+                                    structuralEditingEnabled = structuralEditingEnabled,
                                     onHaptic = onHaptic,
                                     modifier = Modifier.weight(1f),
                                 )
@@ -692,6 +702,7 @@ private fun EquipmentDenseItemF2(
     onQuickUse: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
+    structuralEditingEnabled: Boolean,
     onHaptic: (CharacterHapticEventV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -723,7 +734,7 @@ private fun EquipmentDenseItemF2(
             modifier = Modifier
                 .fillMaxWidth()
                 .characterDragFeedbackV4(dragState)
-                .clickable(onClick = onEdit),
+                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(
                 1.dp,
@@ -808,11 +819,13 @@ private fun EquipmentDenseItemF2(
                             contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
                         ) { Text("Usar −${usage.quickUseAmount}") }
                     }
-                    TextButton(
-                        onClick = onDuplicate,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                    ) { Text("Duplicar") }
-                    StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${item.name}")
+                    if (structuralEditingEnabled) {
+                        TextButton(
+                            onClick = onDuplicate,
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                        ) { Text("Duplicar") }
+                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${item.name}")
+                    }
                 }
             }
         }
@@ -1159,6 +1172,7 @@ private fun EnumDropdownF2(
 private fun CompactCurrenciesF2(
     currencies: List<CharacterCurrency>,
     wide: Boolean,
+    structuralEditingEnabled: Boolean,
     onCurrenciesChange: (List<CharacterCurrency>) -> Unit,
     onAddCurrency: () -> Unit,
 ) {
@@ -1173,7 +1187,7 @@ private fun CompactCurrenciesF2(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Monedas", style = MaterialTheme.typography.titleSmall)
-                TextButton(onClick = onAddCurrency) { Text("+ Añadir") }
+                TextButton(onClick = onAddCurrency, enabled = structuralEditingEnabled) { Text("+ Añadir") }
             }
             if (currencies.isEmpty()) {
                 Text("Sin monedas registradas.", style = MaterialTheme.typography.bodySmall)
@@ -1193,7 +1207,7 @@ private fun CompactCurrenciesF2(
                                         currencies.map { if (it.key == currency.key) it.copy(amount = amount) else it },
                                     )
                                 },
-                                onDelete = if (currency.isDefault) null else {
+                                onDelete = if (currency.isDefault || !structuralEditingEnabled) null else {
                                     { onCurrenciesChange(currencies.filterNot { it.key == currency.key }) }
                                 },
                                 modifier = Modifier.weight(1f),

@@ -71,6 +71,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
+import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.visibleCharacterModules
@@ -195,6 +196,7 @@ internal fun CharacterEditorScreenV4(
     val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored
     val suggestedModules = suggestedCharacterModules(settingsSheet.classes)
     val visibleModules = visibleCharacterModules(settingsSheet.classes, closureState.moduleOverrides)
+    val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
     val selectedTab = resolvedCharacterTabV4(
         savedTabName = selectedTabName,
         spellcasterEnabled = stored.spellcasterEnabled,
@@ -285,7 +287,13 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateStructuralDraft(updated: CharacterEditorDraftV4) {
+        if (!structuralEditingEnabled) return
+        updateDraft(updated)
+    }
+
     fun updateCombatEntries(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry>) {
+        if (!structuralEditingEnabled) return
         combatDraftJson = combatEntriesToJsonV4(updated)
         savedMessage = null
     }
@@ -306,6 +314,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun updateBackground(updated: io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground) {
+        if (!structuralEditingEnabled) return
         backgroundDraftJson = characterBackgroundToJsonV4(updated)
         savedMessage = null
     }
@@ -316,16 +325,19 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun updateSpellcasting(updated: CharacterSpellcastingDraftV4) {
+        if (!structuralEditingEnabled) return
         spellcastingDraftJson = characterSpellcastingDraftToJsonV4(updated)
         savedMessage = null
     }
 
     fun updateNotes(updated: CharacterNotesDraftV4) {
+        if (!structuralEditingEnabled) return
         notesDraftJson = characterNotesDraftToJsonV4(updated)
         savedMessage = null
     }
 
     fun updateH1Modules(updated: CharacterH1ModuleDraftV4) {
+        if (!structuralEditingEnabled) return
         h1ModuleDraftJson = characterH1ModuleDraftToJsonV4(updated)
         savedMessage = null
     }
@@ -449,6 +461,11 @@ internal fun CharacterEditorScreenV4(
         savedMessage = "Guardado"
     }
 
+    fun persistStructuralClosureState(updated: CharacterClosureState) {
+        if (!structuralEditingEnabled) return
+        persistClosureState(updated)
+    }
+
 
     fun persistOperationalSheet(updated: CharacterSheet) {
         if (updated == stored) return
@@ -553,6 +570,7 @@ internal fun CharacterEditorScreenV4(
                             savedMessage = savedMessage,
                             hasUnsavedChanges = hasUnsavedChanges,
                             savable = savable,
+                            tableModeEnabled = closureState.tableModeEnabled,
                             onBack = ::requestBack,
                             onSave = ::save,
                             onOpenSettings = { showPcSettings = true },
@@ -565,8 +583,8 @@ internal fun CharacterEditorScreenV4(
                             stored = stored,
                             closureState = closureState,
                             wide = wide,
-                            onDraftChange = ::updateDraft,
-                            onClosureStateChange = ::persistClosureState,
+                            onDraftChange = ::updateStructuralDraft,
+                            onClosureStateChange = ::persistStructuralClosureState,
                         )
                         CharacterTabV4.SKILLS -> SkillsTabV4(
                             draft = draft,
@@ -577,8 +595,8 @@ internal fun CharacterEditorScreenV4(
                             onSkillLayoutChange = {
                                 onPreferencesChange(preferences.copy(skillLayoutChoice = it))
                             },
-                            onDraftChange = ::updateDraft,
-                            onClosureStateChange = ::persistClosureState,
+                            onDraftChange = ::updateStructuralDraft,
+                            onClosureStateChange = ::persistStructuralClosureState,
                         )
                         CharacterTabV4.COMBAT -> CharacterCombatTabV4(
                             armorClass = draft.armorClass,
@@ -590,7 +608,8 @@ internal fun CharacterEditorScreenV4(
                             entries = combatEntries,
                             onEntriesChange = ::updateCombatEntries,
                             onOperationalSheetChange = ::persistCombatOperationalSheet,
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             hapticsEnabled = closureState.hapticsEnabled,
                             wide = wide,
                         )
@@ -599,12 +618,14 @@ internal fun CharacterEditorScreenV4(
                             closureState = closureState,
                             onSheetChange = ::persistOperationalSheet,
                             onClosureStateChange = ::persistClosureState,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
                         CharacterTabV4.EQUIPMENT -> CharacterEquipmentClosureTabV4(
                             draft = equipmentDraft,
                             onDraftChange = ::updateEquipmentDraft,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -618,7 +639,8 @@ internal fun CharacterEditorScreenV4(
                             closureState = closureState,
                             persistedTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id },
                             onTraitsChange = ::updateTraits,
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -636,6 +658,7 @@ internal fun CharacterEditorScreenV4(
                             closureState = closureState,
                             persistedSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id },
                             onDraftChange = ::updateSpellcasting,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             onSlotSpentChange = { level, spent ->
                                 val slot = draft.spellSlotFor(level)
                                 val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
@@ -645,7 +668,7 @@ internal fun CharacterEditorScreenV4(
                                     ),
                                 )
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -815,6 +838,7 @@ private fun EditorHeaderV4(
     savedMessage: String?,
     hasUnsavedChanges: Boolean,
     savable: Boolean,
+    tableModeEnabled: Boolean,
     onBack: () -> Unit,
     onSave: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -846,6 +870,13 @@ private fun EditorHeaderV4(
                 },
                 maxLines = 1,
             )
+            if (tableModeEnabled) {
+                Text(
+                    "Modo Mesa · edición estructural bloqueada",
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                )
+            }
         }
         StableSettingsIconButton(onClick = onOpenSettings)
         Button(onClick = onSave, enabled = savable) { Text("Guardar") }

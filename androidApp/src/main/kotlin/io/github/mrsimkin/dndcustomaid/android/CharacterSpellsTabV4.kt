@@ -61,6 +61,7 @@ internal fun CharacterSpellsTabV4(
     closureState: CharacterClosureState,
     persistedSpellIds: Set<Uuid>,
     onDraftChange: (CharacterSpellcastingDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
     onSlotSpentChange: (Int, Int) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
@@ -165,10 +166,12 @@ internal fun CharacterSpellsTabV4(
                     }
                 }
             }
-            StableSettingsIconButton(
-                onClick = { managerOpen = true },
-                contentDescription = "Gestionar fuentes de conjuros",
-            )
+            if (structuralEditingEnabled) {
+                StableSettingsIconButton(
+                    onClick = { managerOpen = true },
+                    contentDescription = "Gestionar fuentes de conjuros",
+                )
+            }
         }
 
         HorizontalDivider()
@@ -180,6 +183,7 @@ internal fun CharacterSpellsTabV4(
             closureState = closureState,
             persistedSpellIds = persistedSpellIds,
             onDraftChange = onDraftChange,
+            structuralEditingEnabled = structuralEditingEnabled,
             onSlotSpentChange = onSlotSpentChange,
             onClosureStateChange = onClosureStateChange,
             wide = wide,
@@ -187,7 +191,7 @@ internal fun CharacterSpellsTabV4(
         )
     }
 
-    if (managerOpen) {
+    if (managerOpen && structuralEditingEnabled) {
         SourceManagerDialogV4(
             sources = draft.sources,
             classOptions = classOptions,
@@ -210,7 +214,7 @@ internal fun CharacterSpellsTabV4(
         )
     }
 
-    if (editorOpen) {
+    if (editorOpen && structuralEditingEnabled) {
         SourceEditorDialogV4(
             title = if (editingSourceId == null) "Añadir fuente" else "Editar fuente",
             name = editorName,
@@ -247,7 +251,7 @@ internal fun CharacterSpellsTabV4(
         )
     }
 
-    deleteSourceId?.let { id ->
+    deleteSourceId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = draft.sources.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteSourceId = null

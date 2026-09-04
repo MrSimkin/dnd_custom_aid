@@ -69,6 +69,7 @@ internal fun CharacterTraitsClosureTabV4(
     persistedTraitIds: Set<Uuid>,
     onTraitsChange: (List<CharacterTrait>) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
+    structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean,
 ) {
@@ -100,7 +101,7 @@ internal fun CharacterTraitsClosureTabV4(
         isFavorite = { trait -> closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id) },
     )
     val groups = groupCharacterTraits(visibleTraits, grouping)
-    val canReorder = query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
+    val canReorder = structuralEditingEnabled && query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
 
     fun updateQuery(updated: CharacterCollectionQuery) {
         searchText = updated.searchText
@@ -112,6 +113,7 @@ internal fun CharacterTraitsClosureTabV4(
             .mapIndexed { index, trait -> trait.copy(sortOrder = index) }
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         editingId = null
         editorName = ""
         editorSource = ""
@@ -126,6 +128,7 @@ internal fun CharacterTraitsClosureTabV4(
     }
 
     fun beginEdit(trait: CharacterTrait) {
+        if (!structuralEditingEnabled) return
         editingId = trait.id.toString()
         editorName = trait.name
         editorSource = trait.source
@@ -150,6 +153,7 @@ internal fun CharacterTraitsClosureTabV4(
     }
 
     fun duplicate(trait: CharacterTrait) {
+        if (!structuralEditingEnabled) return
         val duplicated = duplicateCharacterTrait(
             source = trait,
             newId = Uuid.random(),
@@ -189,7 +193,7 @@ internal fun CharacterTraitsClosureTabV4(
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     CharacterCollectionToolbarV4(
                         itemCount = visibleTraits.size,
@@ -257,8 +261,9 @@ internal fun CharacterTraitsClosureTabV4(
                                         TraitCardG1(
                                             trait = trait,
                                             favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
-                                            favoriteEnabled = trait.id in persistedTraitIds,
+                                            favoriteEnabled = structuralEditingEnabled && trait.id in persistedTraitIds,
                                             canReorder = canReorder,
+                                            structuralEditingEnabled = structuralEditingEnabled,
                                             onFavoriteChange = { enabled ->
                                                 onClosureStateChange(
                                                     closureState.withQuickAccess(
@@ -303,7 +308,7 @@ internal fun CharacterTraitsClosureTabV4(
         }
     }
 
-    if (editorOpen) {
+    if (editorOpen && structuralEditingEnabled) {
         val selectedType = runCatching { CharacterTraitType.valueOf(editorTypeName) }
             .getOrDefault(CharacterTraitType.OTHER)
         val selectedActivation = editorActivationName.takeIf { it.isNotBlank() }?.let { raw ->
@@ -370,7 +375,7 @@ internal fun CharacterTraitsClosureTabV4(
         )
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = traits.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -463,6 +468,7 @@ private fun TraitCardG1(
     favorite: Boolean,
     favoriteEnabled: Boolean,
     canReorder: Boolean,
+    structuralEditingEnabled: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onEdit: () -> Unit,
     onMove: (Int) -> Boolean,
@@ -495,7 +501,7 @@ private fun TraitCardG1(
             modifier = Modifier
                 .fillMaxWidth()
                 .characterDragFeedbackV4(dragState)
-                .clickable(onClick = onEdit),
+                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
@@ -614,11 +620,13 @@ private fun TraitCardG1(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(
-                        onClick = onDuplicate,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                    ) { Text("Duplicar") }
-                    StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${trait.name}")
+                    if (structuralEditingEnabled) {
+                        TextButton(
+                            onClick = onDuplicate,
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                        ) { Text("Duplicar") }
+                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${trait.name}")
+                    }
                 }
             }
         }

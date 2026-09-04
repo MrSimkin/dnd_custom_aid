@@ -56,6 +56,7 @@ internal fun CharacterManagementTabV4(
     closureState: CharacterClosureState,
     onSheetChange: (CharacterSheet) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
+    structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean,
 ) {
@@ -128,6 +129,7 @@ internal fun CharacterManagementTabV4(
         item(key = "management-resources") {
             ResourcesCardV4(
                 resources = sheet.resources,
+                structuralEditingEnabled = structuralEditingEnabled,
                 onAdd = {
                     editingResourceId = null
                     resourceEditorOpen = true
@@ -248,7 +250,7 @@ internal fun CharacterManagementTabV4(
         )
     }
 
-    if (resourceEditorOpen) {
+    if (resourceEditorOpen && structuralEditingEnabled) {
         val existing = editingResourceId?.let { id -> sheet.resources.firstOrNull { it.id.toString() == id } }
         val existingRule = existing?.let { resource ->
             closureState.resourceRecovery.firstOrNull { it.resourceId == resource.id }
@@ -273,7 +275,7 @@ internal fun CharacterManagementTabV4(
         )
     }
 
-    deletingResourceId?.let { id ->
+    deletingResourceId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = sheet.resources.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deletingResourceId = null
@@ -569,6 +571,7 @@ private fun DeathSaveRowV4(label: String, value: Int, onChange: (Int) -> Unit) {
 @Composable
 private fun ResourcesCardV4(
     resources: List<CharacterResource>,
+    structuralEditingEnabled: Boolean,
     onAdd: () -> Unit,
     onEdit: (CharacterResource) -> Unit,
     onDelete: (CharacterResource) -> Unit,
@@ -579,7 +582,7 @@ private fun ResourcesCardV4(
             CharacterUsefulEmptyState(
                 title = "Sin recursos",
                 message = "Úsalos para dados, puntos, cargas o cualquier contador de clase, subclase o homebrew.",
-                onAdd = onAdd,
+                onAdd = if (structuralEditingEnabled) onAdd else null,
                 addLabel = "Añadir recurso",
             )
         } else {
@@ -589,7 +592,7 @@ private fun ResourcesCardV4(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = { onEdit(resource) }, modifier = Modifier.weight(1f)) {
+                    TextButton(onClick = { onEdit(resource) }, enabled = structuralEditingEnabled, modifier = Modifier.weight(1f)) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(resource.name, style = MaterialTheme.typography.labelLarge)
                             Text(
@@ -607,10 +610,10 @@ private fun ResourcesCardV4(
                         onClick = { onAdjust(resource, 1) },
                         enabled = resource.maxValue?.let { max -> resource.currentValue < max } ?: true,
                     ) { Text("+") }
-                    TextButton(onClick = { onDelete(resource) }) { Text("Eliminar") }
+                    TextButton(onClick = { onDelete(resource) }, enabled = structuralEditingEnabled) { Text("Eliminar") }
                 }
             }
-            TextButton(onClick = onAdd) { Text("+ Añadir recurso") }
+            TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir recurso") }
         }
     }
 }

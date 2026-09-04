@@ -81,6 +81,7 @@ internal fun CharacterSpellListClosureV4(
     closureState: CharacterClosureState,
     persistedSpellIds: Set<Uuid>,
     onDraftChange: (CharacterSpellcastingDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
     onSlotSpentChange: (Int, Int) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
@@ -118,7 +119,7 @@ internal fun CharacterSpellListClosureV4(
     val sourceById = remember(draft.sources) { draft.sources.associateBy { it.id } }
     val slotByLevel = remember(slotStates) { slotStates.associateBy { it.level } }
     val collapsedLevels = parseSpellLevelSetG2(collapsedLevelsText)
-    val canReorder = order == CharacterPresentationOrder.MANUAL &&
+    val canReorder = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
         query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
 
     val visibleByLevel = (0..9).associateWith { level ->
@@ -288,6 +289,7 @@ internal fun CharacterSpellListClosureV4(
             slotByLevel = slotByLevel,
             sourceById = sourceById,
             canReorder = canReorder,
+            structuralEditingEnabled = structuralEditingEnabled,
             selectedEditingId = editingSpellId?.takeIf { editorOpen },
             onQueryChange = ::updateQuery,
             onOrderChange = { orderName = it.name },
@@ -347,7 +349,7 @@ internal fun CharacterSpellListClosureV4(
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
-                if (editorOpen) {
+                if (editorOpen && structuralEditingEnabled) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -436,14 +438,14 @@ internal fun CharacterSpellListClosureV4(
                             "Selecciona un conjuro de la lista o añade uno nuevo. La lista conserva su búsqueda, filtros y posición mientras editas.",
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir conjuro") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir conjuro") }
                     }
                 }
             }
         }
     } else {
         collection(Modifier.fillMaxSize())
-        if (editorOpen) {
+        if (editorOpen && structuralEditingEnabled) {
             CharacterImeSafeEditorDialog(
                 title = if (editingSpellId == null) "Añadir conjuro" else "Editar conjuro",
                 onCancel = { editorOpen = false },
@@ -503,7 +505,7 @@ internal fun CharacterSpellListClosureV4(
         }
     }
 
-    deleteSpellId?.let { id ->
+    deleteSpellId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = draft.spells.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteSpellId = null
@@ -539,6 +541,7 @@ private fun SpellCollectionG2(
     slotByLevel: Map<Int, CharacterSpellSlotUiV4>,
     sourceById: Map<Uuid, CharacterSpellcastingSource>,
     canReorder: Boolean,
+    structuralEditingEnabled: Boolean,
     selectedEditingId: String?,
     onQueryChange: (CharacterCollectionQuery) -> Unit,
     onOrderChange: (CharacterPresentationOrder) -> Unit,
@@ -576,7 +579,7 @@ private fun SpellCollectionG2(
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = onAdd) { Text("+ Añadir") }
+                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     CharacterCollectionToolbarV4(
                         itemCount = visibleCount,
@@ -662,6 +665,7 @@ private fun SpellCollectionG2(
                         favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.SPELL, spell.id),
                         favoriteEnabled = spell.id in persistedSpellIds,
                         reorderEnabled = canReorder && sourceLevelCount > 1,
+                        structuralEditingEnabled = structuralEditingEnabled,
                         selected = selectedEditingId == spell.id.toString(),
                         onPreparedChange = { onPreparedChange(spell, it) },
                         onFavoriteChange = { onFavoriteChange(spell, it) },
@@ -728,6 +732,7 @@ private fun SpellRowG2(
     favorite: Boolean,
     favoriteEnabled: Boolean,
     reorderEnabled: Boolean,
+    structuralEditingEnabled: Boolean,
     selected: Boolean,
     onPreparedChange: (Boolean) -> Unit,
     onFavoriteChange: (Boolean) -> Unit,
@@ -756,7 +761,7 @@ private fun SpellRowG2(
             modifier = Modifier
                 .fillMaxWidth()
                 .characterDragFeedbackV4(dragState)
-                .clickable(onClick = onEdit),
+                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(
                 width = if (selected) 2.dp else 1.dp,
@@ -851,6 +856,7 @@ private fun SpellRowG2(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
                                 checked = selectedAssociation.prepared,
+                                enabled = structuralEditingEnabled,
                                 onCheckedChange = onPreparedChange,
                             )
                             Text("Prep.", style = MaterialTheme.typography.labelSmall)
@@ -859,21 +865,25 @@ private fun SpellRowG2(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         TextButton(
                             onClick = { onFavoriteChange(!favorite) },
-                            enabled = favoriteEnabled,
+                            enabled = structuralEditingEnabled && favoriteEnabled,
                             contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
                         ) {
                             Text(if (favorite) "★" else "☆")
                         }
-                        StableRemoveIconButton(
-                            onClick = onDelete,
-                            contentDescription = "Eliminar ${spell.name}",
-                        )
+                        if (structuralEditingEnabled) {
+                            StableRemoveIconButton(
+                                onClick = onDelete,
+                                contentDescription = "Eliminar ${spell.name}",
+                            )
+                        }
                     }
-                    TextButton(
-                        onClick = onDuplicate,
-                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                    ) {
-                        Text("Duplicar")
+                    if (structuralEditingEnabled) {
+                        TextButton(
+                            onClick = onDuplicate,
+                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+                        ) {
+                            Text("Duplicar")
+                        }
                     }
                 }
             }
