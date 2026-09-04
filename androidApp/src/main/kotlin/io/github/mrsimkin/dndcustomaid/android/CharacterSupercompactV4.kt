@@ -42,6 +42,7 @@ private data class SupercompactTileV4(
 internal fun CharacterSupercompactV4(
     sheet: CharacterSheet,
     closureState: CharacterClosureState,
+    liveControlsEnabled: Boolean,
     onSheetChange: (CharacterSheet) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -147,6 +148,18 @@ internal fun CharacterSupercompactV4(
                     }
                 }
 
+                if (!liveControlsEnabled) {
+                    item(key = "supercompact-pending-warning") {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                "Hay cambios estructurales sin guardar. Guarda o descártalos para habilitar PG, recursos y espacios desde esta vista.",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
+
                 item(key = "supercompact-operational") {
                     SupercompactGridV4(tiles = tiles, columns = columns)
                 }
@@ -154,6 +167,7 @@ internal fun CharacterSupercompactV4(
                 item(key = "supercompact-hp-controls") {
                     SupercompactHpControlsV4(
                         sheet = sheet,
+                        liveControlsEnabled = liveControlsEnabled,
                         onSheetChange = onSheetChange,
                     )
                 }
@@ -162,6 +176,7 @@ internal fun CharacterSupercompactV4(
                     item(key = "supercompact-slots") {
                         SupercompactSpellSlotsV4(
                             sheet = sheet,
+                            liveControlsEnabled = liveControlsEnabled,
                             onSheetChange = onSheetChange,
                         )
                     }
@@ -193,6 +208,7 @@ internal fun CharacterSupercompactV4(
                                             favorite = favorite,
                                             sheet = sheet,
                                             closureState = closureState,
+                                            liveControlsEnabled = liveControlsEnabled,
                                             onSheetChange = onSheetChange,
                                             modifier = Modifier.weight(1f),
                                         )
@@ -236,6 +252,7 @@ internal fun CharacterSupercompactV4(
 @Composable
 private fun SupercompactHpControlsV4(
     sheet: CharacterSheet,
+    liveControlsEnabled: Boolean,
     onSheetChange: (CharacterSheet) -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -260,11 +277,11 @@ private fun SupercompactHpControlsV4(
             }
             TextButton(
                 onClick = { onSheetChange(applyCharacterDamage(sheet, 1)) },
-                enabled = sheet.currentHp > 0 || sheet.tempHp > 0,
+                enabled = liveControlsEnabled && (sheet.currentHp > 0 || sheet.tempHp > 0),
             ) { Text("−1") }
             TextButton(
                 onClick = { onSheetChange(applyCharacterHealing(sheet, 1)) },
-                enabled = sheet.currentHp < sheet.maxHp,
+                enabled = liveControlsEnabled && sheet.currentHp < sheet.maxHp,
             ) { Text("+1") }
         }
     }
@@ -273,6 +290,7 @@ private fun SupercompactHpControlsV4(
 @Composable
 private fun SupercompactSpellSlotsV4(
     sheet: CharacterSheet,
+    liveControlsEnabled: Boolean,
     onSheetChange: (CharacterSheet) -> Unit,
 ) {
     Column(
@@ -316,7 +334,7 @@ private fun SupercompactSpellSlotsV4(
                                     ),
                                 )
                             },
-                            enabled = available > 0,
+                            enabled = liveControlsEnabled && available > 0,
                         ) { Text("Usar") }
                         TextButton(
                             onClick = {
@@ -332,7 +350,7 @@ private fun SupercompactSpellSlotsV4(
                                     ),
                                 )
                             },
-                            enabled = slot.spentSlots > 0,
+                            enabled = liveControlsEnabled && slot.spentSlots > 0,
                         ) { Text("Recup.") }
                     }
                 }
@@ -345,6 +363,7 @@ private fun SupercompactFavoriteCardV4(
     favorite: CharacterQuickAccessProjection,
     sheet: CharacterSheet,
     closureState: CharacterClosureState,
+    liveControlsEnabled: Boolean,
     onSheetChange: (CharacterSheet) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -385,7 +404,7 @@ private fun SupercompactFavoriteCardV4(
                                 ),
                             )
                         },
-                        enabled = resource.currentValue > 0,
+                        enabled = liveControlsEnabled && resource.currentValue > 0,
                     ) { Text("−1") }
                     TextButton(
                         onClick = {
@@ -405,7 +424,7 @@ private fun SupercompactFavoriteCardV4(
                                 ),
                             )
                         },
-                        enabled = resource.maxValue == null || resource.currentValue < resource.maxValue,
+                        enabled = liveControlsEnabled && (resource.maxValue == null || resource.currentValue < resource.maxValue),
                     ) { Text("+1") }
                 }
             }

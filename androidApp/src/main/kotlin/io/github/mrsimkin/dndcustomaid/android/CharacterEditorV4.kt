@@ -469,9 +469,39 @@ internal fun CharacterEditorScreenV4(
         savedMessage = "Guardado"
     }
 
+    fun persistSupercompactSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        val previous = stored
+        stored = repository.saveCharacter(updated)
+        var syncedDraft = draft
+        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
+            syncedDraft = syncedDraft.copy(
+                currentHp = stored.currentHp.toString(),
+                tempHp = stored.tempHp.toString(),
+            )
+        }
+        if (stored.spellSlots != previous.spellSlots) {
+            val persistedByLevel = stored.spellSlots.associateBy { it.level }
+            syncedDraft = syncedDraft.copy(
+                spellSlots = syncedDraft.spellSlots.map { slot ->
+                    val persisted = persistedByLevel[slot.level]
+                    slot.copy(
+                        total = persisted?.totalSlots?.toString() ?: "0",
+                        spent = persisted?.spentSlots ?: 0,
+                    )
+                },
+            )
+        }
+        draft = syncedDraft
+        savedMessage = "Guardado"
+    }
+
     if (showSupercompact) {
         CharacterSupercompactV4(
-            sheet = settingsSheet,
+            sheet = stored,
+            closureState = closureState,
+            liveControlsEnabled = !hasUnsavedChanges,
+            onSheetChange = ::persistSupercompactSheet,
             onBack = { showSupercompact = false },
         )
     } else if (showPcSettings) {
