@@ -4,9 +4,11 @@
 
 Phases 0–3 are complete. Phase 4 Character Foundation Closure is current on `implementation/phase4-character-closure`.
 
-The previous correction APK/artifact `9876725270` is historical evidence only and is no longer the acceptance target. The next manual QA target must be a newly frozen closure APK with exact commit/workflow/artifact identity.
+Batches 0 through H3 are complete and green. The current implementation position is **Batch I1 — adaptive shell**. The six approved conditional character modules (Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros) are implemented; H3 controlling workflow `33829736046` passed at implementation commit `4590ec0e584b8b72fe7b4ce82eb01a00d44de2c8`.
 
-The schema-6 closure prototype checkpoint `89aad12a094476c7b6798f6f0626bf978a5d0831` passed GitHub Actions run `33779104922`. The later documentation head `997340eadf0f7b3cd648d04932dca45c4c5434bd` also passed run `33782368536`. Green CI is technical evidence, not owner acceptance.
+The previous correction APK/artifact `9876725270` and all A–H integration APKs are historical/integration evidence only and are not the acceptance target. The next owner manual-QA target must be the future Batch L newly frozen closure APK with exact commit/workflow/artifact/hash identity.
+
+Green CI is technical evidence, not owner acceptance.
 
 ## 1. Core rule
 
@@ -60,11 +62,13 @@ For shared/schema batches, protect the material data risks:
 
 For Android UI batches, use proportionate automated tests for state/helper logic plus Android assembly. Real IME, visual density, drag feedback, orientation and tablet usefulness still require real-device QA.
 
+For Batch I1/I2 specifically, automated coverage should protect deterministic state decisions such as tab restoration, visibility resolution and Table-mode structural mutation suppression where practical. The final phone/tablet usefulness judgment remains real-device QA.
+
 ## 4. Migration rules for the closure
 
 The owner must be able to install the future closure APK over the currently used Phase 4 development APK lineage without losing existing data.
 
-The current plan deliberately keeps the already-tested schema-6 prototype migration and adds the remaining durable D-0047 state through schema 7 rather than rewriting migration history.
+The current implementation deliberately preserves the tested schema-6 migration and adds the remaining durable D-0047 state through additive schema 7 rather than rewriting migration history.
 
 Minimum migration regression coverage before the final candidate:
 
@@ -78,6 +82,7 @@ Minimum migration regression coverage before the final candidate:
 - Spells/sources/prepared/shared slots;
 - Notes;
 - class rows with safe default subclass/provenance state;
+- all conditional-module records including companions;
 - new fields initialized safely;
 - module hide/show settings never delete module records.
 
@@ -109,6 +114,8 @@ Every user-visible closure batch should preserve or move toward:
 - accessible touch targets;
 - D16 parent/list/tab/search/filter/sort/selection context preservation where technically feasible;
 - no automatic D&D legality/rules enforcement.
+
+Batch I additionally verifies that the last open character tab survives a full app restart and resolves safely when a conditional tab is no longer visible.
 
 ## 7. Final closure QA focus
 
@@ -151,6 +158,8 @@ When fixing a reproducible defect, add a focused automated regression test when 
 
 ## 11. Current exact continuation
 
-Housekeeping is followed by Batch A1 catalog reconciliation, then A2 schema 7. Each batch gets its own checkpoint/gate before dependent work proceeds.
+Resume **Batch I1a — shell/navigation state foundation** from the current durable closure branch.
 
-No DM-feature testing or implementation begins until the Phase 4 character closure exit gate is satisfied.
+First implement and test per-character last-open-tab persistence plus the deterministic adaptive navigation decision needed by the wide shell. Then I1b adds wide navigation rail/sticky compact header while preserving the existing phone tab strip and already-delivered F/G/H master-detail behavior. I1c is the holistic D16/responsive audit and controlling I1 gate.
+
+No I2, backup/import, candidate stabilization or DM-feature testing/implementation begins before its dependent gate is satisfied.
