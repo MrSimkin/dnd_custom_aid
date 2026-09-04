@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
 
     private val campaignRepository by lazy { CampaignRepository(database) }
     private val characterRepository by lazy { CharacterRepository(database) }
+    private val characterBackupRepository by lazy { CharacterBackupRepository(database) }
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
     private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
@@ -66,6 +68,7 @@ class MainActivity : ComponentActivity() {
                 DndCustomAidApp(
                     campaignRepository = campaignRepository,
                     characterRepository = characterRepository,
+                    characterBackupRepository = characterBackupRepository,
                     characterClosureRepository = characterClosureRepository,
                     characterNavigationPreferenceStore = characterNavigationPreferenceStore,
                     preferences = preferences,
@@ -86,6 +89,7 @@ private enum class AppScreen {
 private fun DndCustomAidApp(
     campaignRepository: CampaignRepository,
     characterRepository: CharacterRepository,
+    characterBackupRepository: CharacterBackupRepository,
     characterClosureRepository: CharacterClosureRepository,
     characterNavigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
@@ -139,6 +143,7 @@ private fun DndCustomAidApp(
                 CharacterListScreen(
                     campaign = selectedCampaign,
                     repository = characterRepository,
+                    backupRepository = characterBackupRepository,
                     onBack = {
                         selectedCampaignId = null
                         selectedCharacterId = null
@@ -159,6 +164,7 @@ private fun DndCustomAidApp(
                     CharacterListScreen(
                         campaign = selectedCampaign,
                         repository = characterRepository,
+                        backupRepository = characterBackupRepository,
                         onBack = {
                             selectedCampaignId = null
                             selectedCharacterId = null
@@ -183,6 +189,7 @@ private fun DndCustomAidApp(
                 CharacterEditorScreenV4(
                     characterId = characterId,
                     repository = characterRepository,
+                    backupRepository = characterBackupRepository,
                     closureRepository = characterClosureRepository,
                     navigationPreferenceStore = characterNavigationPreferenceStore,
                     preferences = preferences,

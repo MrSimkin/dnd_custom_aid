@@ -1,5 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +13,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,8 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupCodec
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDecodeResult
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
@@ -35,14 +45,53 @@ import kotlin.uuid.Uuid
 internal fun CharacterListScreen(
     campaign: Campaign,
     repository: CharacterRepository,
+    backupRepository: CharacterBackupRepository,
     onBack: () -> Unit,
     onEdit: (Uuid) -> Unit,
 ) {
     var characters by remember(campaign.id) { mutableStateOf(repository.listCharacters(campaign.id)) }
     var showCreateDialog by remember { mutableStateOf(false) }
+    var importedCharacterId by remember(campaign.id) { mutableStateOf<String?>(null) }
+    var importedCharacterName by remember(campaign.id) { mutableStateOf<String?>(null) }
+    var importError by remember(campaign.id) { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     fun reload() {
         characters = repository.listCharacters(campaign.id)
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            val raw = runCatching {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    input.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                } ?: error("No input stream")
+            }.getOrElse {
+                importError = "No se pudo leer el archivo seleccionado."
+                null
+            }
+            if (raw != null) {
+                when (val decoded = CharacterBackupCodec.decode(raw)) {
+                    is CharacterBackupDecodeResult.Failure -> importError = decoded.error.message
+                    is CharacterBackupDecodeResult.Success -> {
+                        runCatching {
+                            backupRepository.importAsCopy(
+                                document = decoded.document,
+                                destinationCampaignId = campaign.id,
+                                importedAtEpochSeconds = System.currentTimeMillis() / 1000L,
+                            )
+                        }.onSuccess { imported ->
+                            importedCharacterId = imported.character.id.toString()
+                            importedCharacterName = imported.character.name
+                            importError = null
+                            reload()
+                        }.onFailure {
+                            importError = "No se pudo restaurar el respaldo como una copia nueva."
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -82,6 +131,23 @@ internal fun CharacterListScreen(
                     }
                 }
 
+                item(key = "character-backup-import") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                importLauncher.launch(
+                                    arrayOf("application/json", "text/plain", "application/octet-stream"),
+                                )
+                            },
+                        ) {
+                            Text("Importar respaldo")
+                        }
+                    }
+                }
+
                 if (characters.isEmpty()) {
                     item {
                         CharacterUsefulEmptyState(
@@ -108,6 +174,48 @@ internal fun CharacterListScreen(
                 reload()
                 showCreateDialog = false
                 onEdit(character.id)
+            },
+        )
+    }
+
+    importedCharacterId?.let { id ->
+        val name = importedCharacterName.orEmpty().ifBlank { "Personaje importado" }
+        AlertDialog(
+            onDismissRequest = {
+                importedCharacterId = null
+                importedCharacterName = null
+            },
+            title = { Text("Respaldo importado") },
+            text = {
+                Text("Se creó una copia local nueva de $name en esta campaña. No se reemplazó ningún personaje existente.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        importedCharacterId = null
+                        importedCharacterName = null
+                        runCatching { Uuid.parse(id) }.getOrNull()?.let(onEdit)
+                    },
+                ) { Text("Abrir personaje") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        importedCharacterId = null
+                        importedCharacterName = null
+                    },
+                ) { Text("Cerrar") }
+            },
+        )
+    }
+
+    importError?.let { message ->
+        AlertDialog(
+            onDismissRequest = { importError = null },
+            title = { Text("No se pudo importar") },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { importError = null }) { Text("Cerrar") }
             },
         )
     }
