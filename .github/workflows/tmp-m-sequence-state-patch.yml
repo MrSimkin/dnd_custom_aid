@@ -1,0 +1,38 @@
+name: Temporary M sequence state patch
+
+on:
+  push:
+    branches:
+      - implementation/phase4-preqa-consolidation
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4-preqa-consolidation
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Patch current project state
+        run: python .github/tmp_m_sequence_state_patch.py
+      - name: Verify revised M sequence markers
+        run: |
+          grep -F 'M3 — prior-batch implementation completeness audit — COMPLETE' docs/PROJECT_STATE.md
+          grep -F 'M4 — inter-batch scope-hole closure — REQUIRED / NEXT IMPLEMENTATION BATCH' docs/PROJECT_STATE.md
+          grep -F 'M6 — owner real-device QA — DEFERRED' docs/PROJECT_STATE.md
+          ! grep -F 'Current active batch — M owner real-device QA' docs/PROJECT_STATE.md
+      - name: Commit durable state and remove temporary helpers
+        run: |
+          rm .github/tmp_m_sequence_state_patch.py .github/workflows/tmp-m-sequence-state-patch.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/PROJECT_STATE.md .github/tmp_m_sequence_state_patch.py .github/workflows/tmp-m-sequence-state-patch.yml
+          git commit -m 'docs: revise Phase 4 Batch M sequence before QA'
+          git push origin HEAD:implementation/phase4-preqa-consolidation
