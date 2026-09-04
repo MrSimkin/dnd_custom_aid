@@ -854,7 +854,7 @@ private fun SpellRowG2(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(1.dp),
                 ) {
-                    if (selectedAssociation != null && selectedSourceId != null) {
+                    if (selectedAssociation != null) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
                                 checked = selectedAssociation.prepared,

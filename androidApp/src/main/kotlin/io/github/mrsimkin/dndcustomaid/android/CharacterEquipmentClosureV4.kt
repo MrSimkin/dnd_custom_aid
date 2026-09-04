@@ -232,7 +232,7 @@ internal fun CharacterEquipmentClosureTabV4(
         val item = CharacterInventoryItem(
             id = id,
             name = editorName.trim(),
-            quantity = parsedEditorQuantity ?: 0,
+            quantity = parsedEditorQuantity,
             weightLb = parsedEditorWeight,
             equipped = editorEquipped,
             notes = editorNotes.trim().takeIf { it.isNotEmpty() },
