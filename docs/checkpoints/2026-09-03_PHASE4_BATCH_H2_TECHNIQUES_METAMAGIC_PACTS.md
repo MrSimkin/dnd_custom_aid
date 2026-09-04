@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** H2a GREEN — H2b IMPLEMENTED / PENDING FULL GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -76,9 +76,7 @@ H2a verification:
 - artifact `dnd-custom-aid-debug-apk`, ID `9920055515`;
 - digest `sha256:14728cf56308db200079d4f83a2c2578b9319e5bf4a26ef542844cd93e214cd2`.
 
-This APK is integration evidence only, not the frozen owner-QA candidate.
-
-## H2b — Android surfaces — IMPLEMENTED / PENDING GATE
+## H2b — Android surfaces — GREEN
 
 Primary implementation commits:
 
@@ -117,7 +115,7 @@ Module specifics:
 
 ### Navigation and Save integration
 
-`CharacterNavigationV4` now maps:
+`CharacterNavigationV4` maps:
 
 - `CharacterModuleKind.TECHNIQUES` -> `Técnicas`;
 - `CharacterModuleKind.METAMAGIC` -> `Metamagia`;
@@ -143,19 +141,31 @@ The mechanism was corrected to the already-proven H1 pattern: separate guarded P
 
 This was an orchestration/scaffolding failure, not an H2 product/runtime failure.
 
-## Controlling H2b gate
+## Full H2 gate — GREEN
 
-This checkpoint commit is intended to trigger the full standard gate over the actual H2 integration.
+Controlling checkpoint head:
 
-Required before H2 can be marked GREEN:
+- `58089d22d3373f236459b28c19e28b066b8710b4`.
 
-- backend type-check PASS;
-- full shared/Kotlin tests PASS, including H2a ownership/persistence tests;
-- Android debug assembly PASS with all new module destinations exhaustive;
-- Desktop build PASS;
-- APK upload PASS;
-- exact workflow/artifact/digest recorded.
+Verification:
+
+- workflow `33826729095` — PASS;
+- backend type-check — PASS;
+- full shared/Kotlin tests, including H2 ownership/persistence tests — PASS;
+- Android debug assembly with all H2 destinations exhaustive — PASS;
+- Desktop build — PASS;
+- APK upload — PASS;
+- artifact `dnd-custom-aid-debug-apk`, ID `9920277155`;
+- digest `sha256:788406604e85dae2b5ae6f7c782c037e5e1622de527d1ca2f9c2994964ce8e0d`.
+
+This APK is integration evidence only; it is not the frozen owner-QA closure candidate.
+
+## H2 closure conclusion
+
+Batch H2 is GREEN. Técnicas, Metamagia and Pactos now use explicit durable ownership over the shared class-option collection, reuse one responsive editor/list architecture, integrate with existing module suggestions/overrides, and preserve the established global Save/Discard/Favorite semantics without duplicating Spells or Resources.
 
 ## Exact next action
 
-Run/inspect the controlling H2b full gate. If GREEN, record artifact identity, mark H2 GREEN, update `docs/PROJECT_STATE.md`, and proceed to **H3 — Compañeros + module-union integration**. If failed, repair only the observed H2 regression before moving on.
+Proceed to **Batch H3 — Compañeros + module-union integration**.
+
+Start by auditing the existing durable `CharacterCompanion` model and repository behavior against the approved companion module requirements. Confirm which fields are sufficient, what companion operations/search/filter/order are needed, and how companion Favorites and hide-not-delete should integrate. Do not add schema unless the audit identifies a real durable-data gap.
