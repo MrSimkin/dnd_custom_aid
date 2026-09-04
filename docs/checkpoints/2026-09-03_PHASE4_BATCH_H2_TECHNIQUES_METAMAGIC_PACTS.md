@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** H2a GREEN — H2b ACTIVE  
+**Status:** H2a GREEN — H2b IMPLEMENTED / PENDING FULL GATE  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -26,7 +26,7 @@ Exact ownership:
 
 - Técnicas -> `TECHNIQUE`;
 - Metamagia -> `METAMAGIC`;
-- Pactos -> `INVOCATION` + new additive `PACT_CHOICE`;
+- Pactos -> `INVOCATION` + additive `PACT_CHOICE`;
 - Artífice keeps `ARTIFICER_PLAN` + `ARTIFICER_DEVICE`;
 - `SUBCLASS_STATE` and `OTHER` remain generic/unassigned and are not silently captured by H2.
 
@@ -53,7 +53,7 @@ Delivered shared behavior:
 - generic module-isolated manual reorder that replaces only positions owned by the active module family;
 - hidden Artífice/other-H2/generic positions remain fixed during a module reorder;
 - existing duplicate/global-next-order behavior reused;
-- `PACT_CHOICE` round-trips through the existing SQLDelight class-option persistence without schema change.
+- `PACT_CHOICE` round-trips through existing SQLDelight class-option persistence without schema change.
 
 Focused tests prove:
 
@@ -65,7 +65,7 @@ Focused tests prove:
 - duplicate keeps ownership and receives fresh identity/global appended order;
 - `PACT_CHOICE` saves and reopens through `CharacterRepository` with all reference fields intact.
 
-Verification:
+H2a verification:
 
 - workflow `33826037339` — PASS;
 - backend type-check — PASS;
@@ -78,30 +78,84 @@ Verification:
 
 This APK is integration evidence only, not the frozen owner-QA candidate.
 
-## H2b — Android surfaces — ACTIVE
+## H2b — Android surfaces — IMPLEMENTED / PENDING GATE
 
-Implementation must reuse the existing structural draft that already contains the full `classOptions` collection. It must not introduce a second H2 draft/authority.
+Primary implementation commits:
 
-Target architecture:
+- `bd3c81c9567ce651d6f9d2673a883f8dceef5e1b` — reusable H2 class-option module UI plus Técnicas/Metamagia/Pactos wrappers;
+- `62ce84292d205da04d3949f35f691574aa4a6e4e` — conditional H2 navigation destinations;
+- `24906e6239d96b9ac88fce80689b63a54e8ecca6` — guarded CharacterEditor integration over the existing full `classOptions` draft.
 
-- one reusable class-option module list/editor implementation parameterized for Técnicas, Metamagia and Pactos;
-- three distinct user-facing conditional destinations;
-- each surface projects only its owned kind(s) while receiving/returning the complete `classOptions` list;
+### Reusable UI architecture
+
+One `CharacterClassOptionModuleH2` implementation is parameterized into three distinct user-facing modules rather than copying three screens.
+
+Shared behavior:
+
+- search;
+- Active, Favorite and dynamic source/provenance filters;
+- independent Manual/A–Z presentation;
+- A–Z never rewrites saved manual order;
+- visible drag/drop feedback + configurable haptics only in a clean Manual view;
 - row tap edits; no generic Edit button;
-- phone IME-safe modal editor;
-- wide/tablet master-detail;
-- search, filters, Manual/A–Z;
-- visible drag/haptics only in clean Manual view;
-- Favorite through existing `CharacterQuickAccessKind.CLASS_OPTION`;
-- new/duplicated IDs cannot be Favorited until durably saved;
-- optional linked class, source, cost/reference, effect summary, notes and active state;
-- Pactos permits choosing between `Pacto / elección` and `Invocación`;
-- Técnicas and Metamagia keep fixed semantic kind in their editors;
-- hide/show remains non-destructive through existing PC Settings module overrides;
-- multiclass union creates at most one destination per module;
-- H2 joins the existing global unsaved/Save/Discard flow;
-- existing successful-Save stale `CLASS_OPTION` Quick Access pruning already covers H2.
+- duplicate;
+- exact named destructive confirmation;
+- Favorite through `CharacterQuickAccessKind.CLASS_OPTION`;
+- newly-created/duplicated IDs cannot be Favorited before durable Save;
+- optional linked character class for multiclass provenance;
+- source, cost/reference, summary/reference, notes and active state;
+- phone uses the reusable IME-safe modal editor;
+- wide/tablet uses persistent master-detail editing.
+
+Module specifics:
+
+- Técnicas fixes new entries to `TECHNIQUE`;
+- Metamagia fixes new entries to `METAMAGIC`;
+- Pactos lets the owner explicitly choose `Pacto / elección` (`PACT_CHOICE`) or `Invocación` (`INVOCATION`);
+- Sorcery Points are not duplicated in Metamagia;
+- actual Warlock spells/Mystic Arcanum spell records are not duplicated in Pactos.
+
+### Navigation and Save integration
+
+`CharacterNavigationV4` now maps:
+
+- `CharacterModuleKind.TECHNIQUES` -> `Técnicas`;
+- `CharacterModuleKind.METAMAGIC` -> `Metamagia`;
+- `CharacterModuleKind.PACTS` -> `Pactos`.
+
+The existing visible-module union/override engine remains authoritative, so multiclass produces at most one destination and PC Settings hide/show remains non-destructive.
+
+All three modules receive and return the existing **complete** `h1ModuleDraft.classOptions` structural draft. The legacy technical name `h1ModuleDraft` remains for now, but the state itself already owns the complete shared conditional class-option collection. H2 does not introduce a second draft or repository authority.
+
+Consequences inherited from H1:
+
+- H2 changes participate in the global `Cambios sin guardar` state;
+- global Save persists the complete `classOptions` collection;
+- Save / Discard / Keep editing behavior covers H2;
+- successful Save prunes stale `CLASS_OPTION` Quick Access targets;
+- hiding an H2 module never deletes its class-option data.
+
+## Integration orchestration note
+
+The first one-time wiring attempt, workflow `33826551760`, failed before creating any job because the long inline integration script was embedded directly in the workflow YAML. It produced no CharacterEditor change.
+
+The mechanism was corrected to the already-proven H1 pattern: separate guarded Python script + minimal workflow. Workflow `33826657639` then completed all integration steps successfully and created productive commit `24906e6239d96b9ac88fce80689b63a54e8ecca6`, removing its temporary script/workflow afterward.
+
+This was an orchestration/scaffolding failure, not an H2 product/runtime failure.
+
+## Controlling H2b gate
+
+This checkpoint commit is intended to trigger the full standard gate over the actual H2 integration.
+
+Required before H2 can be marked GREEN:
+
+- backend type-check PASS;
+- full shared/Kotlin tests PASS, including H2a ownership/persistence tests;
+- Android debug assembly PASS with all new module destinations exhaustive;
+- Desktop build PASS;
+- APK upload PASS;
+- exact workflow/artifact/digest recorded.
 
 ## Exact next action
 
-Implement H2b Android reusable module surface + Técnicas/Metamagia/Pactos wrappers and conditional navigation. Then run a controlling full gate before marking H2 GREEN or moving to H3.
+Run/inspect the controlling H2b full gate. If GREEN, record artifact identity, mark H2 GREEN, update `docs/PROJECT_STATE.md`, and proceed to **H3 — Compañeros + module-union integration**. If failed, repair only the observed H2 regression before moving on.
