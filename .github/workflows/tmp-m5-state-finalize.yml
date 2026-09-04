@@ -1,0 +1,41 @@
+name: Temporary M5 PROJECT_STATE finalization
+
+on:
+  push:
+    branches:
+      - implementation/phase4-preqa-consolidation
+    paths:
+      - .github/tmp_m5_state_finalize.py
+      - .github/workflows/tmp-m5-state-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-state:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4-preqa-consolidation
+          fetch-depth: 0
+      - name: Apply exact continuity patch
+        run: python3 .github/tmp_m5_state_finalize.py
+      - name: Verify M6 markers and frozen identity
+        run: |
+          grep -F '**M6 owner real-device QA is NEXT**' docs/PROJECT_STATE.md
+          grep -F '### M5 — post-repair consolidation + exact replacement candidate — GREEN / FROZEN' docs/PROJECT_STATE.md
+          grep -F '### M6 — owner real-device QA — NEXT' docs/PROJECT_STATE.md
+          grep -F 'adc286b3e1305ed706c2ed04d478a43652f6b365' docs/PROJECT_STATE.md
+          grep -F 'e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee' docs/PROJECT_STATE.md
+      - name: Remove temporary helpers and commit docs-only state
+        run: |
+          rm .github/tmp_m5_state_finalize.py .github/workflows/tmp-m5-state-finalize.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git diff --cached --name-only
+          test "$(git diff --cached --name-only)" = "docs/PROJECT_STATE.md"
+          git commit -m 'docs: mark M5 complete and M6 owner QA next'
+          git push origin HEAD:implementation/phase4-preqa-consolidation
