@@ -1,0 +1,36 @@
+name: One-time Batch H1 module wiring
+
+on:
+  push:
+    branches:
+      - implementation/phase4-character-closure
+    paths:
+      - .github/workflows/integrate-batch-h1-modules.yml
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4-character-closure
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Apply guarded H1 editor integration
+        run: python .github/scripts/integrate_h1_modules.py
+      - name: Remove one-time scaffolding
+        run: rm .github/scripts/integrate_h1_modules.py .github/workflows/integrate-batch-h1-modules.yml
+      - name: Verify whitespace
+        run: git diff --check
+      - name: Commit H1 integration
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt .github/scripts/integrate_h1_modules.py .github/workflows/integrate-batch-h1-modules.yml
+          git commit -m 'feat: integrate Batch H1 Artifice and Forms modules'
+          git push
