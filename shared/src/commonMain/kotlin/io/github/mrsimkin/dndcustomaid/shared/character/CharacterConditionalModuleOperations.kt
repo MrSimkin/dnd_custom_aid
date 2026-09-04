@@ -34,7 +34,7 @@ fun presentCharacterArtificeOptions(
             option.costText,
             option.effectSummary,
             option.notes,
-            characterArtificeOptionKindDisplayLabel(option.kind),
+            characterClassOptionKindDisplayLabel(option.kind),
         )
     },
     filterMatches = { option, filters ->
@@ -116,7 +116,7 @@ fun duplicateCharacterClassOption(
 fun nextCharacterClassOptionSortOrder(options: List<CharacterClassOption>): Int =
     options.maxOfOrNull(CharacterClassOption::sortOrder)?.plus(1) ?: 0
 
-fun characterArtificeOptionKindDisplayLabel(kind: CharacterClassOptionKind): String = when (kind) {
+fun characterClassOptionKindDisplayLabel(kind: CharacterClassOptionKind): String = when (kind) {
     CharacterClassOptionKind.ARTIFICER_PLAN -> "Plan"
     CharacterClassOptionKind.ARTIFICER_DEVICE -> "Dispositivo"
     CharacterClassOptionKind.SUBCLASS_STATE -> "Estado de subclase"
@@ -124,7 +124,11 @@ fun characterArtificeOptionKindDisplayLabel(kind: CharacterClassOptionKind): Str
     CharacterClassOptionKind.METAMAGIC -> "Metamagia"
     CharacterClassOptionKind.INVOCATION -> "Invocación"
     CharacterClassOptionKind.OTHER -> "Otro"
+    else -> kind.name
 }
+
+fun characterArtificeOptionKindDisplayLabel(kind: CharacterClassOptionKind): String =
+    characterClassOptionKindDisplayLabel(kind)
 
 fun characterFormSourceFilterKey(source: String?): String =
     "$CHARACTER_FORM_SOURCE_FILTER_PREFIX${normalizeCharacterSearchText(source.orEmpty()).ifBlank { CHARACTER_FORM_EMPTY_SOURCE_KEY }}"
