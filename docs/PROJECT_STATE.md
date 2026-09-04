@@ -1,22 +1,22 @@
 # Project State
 
-**Last verified:** 2026-09-03 owner local time / 2026-09-04 UTC  
+**Last verified:** 2026-09-04 owner local time / 2026-09-04 UTC
 **Canonical branch:** `main` — untouched by Phase 4 closure work  
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; **Batch I2b active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a gate and exact continuation into I2b;
-2. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — recoverable execution sequence through owner QA;
-3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
-4. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
-5. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
-6. earlier A–I1 checkpoints as historical implementation/verification evidence.
-
+1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed I2b gate, Batch I closure and exact continuation into J;
+2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a Supercompact gate;
+3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — recoverable execution sequence through owner QA;
+4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
+5. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
+6. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
+7. earlier A–I1 checkpoints as historical implementation/verification evidence.
 ## 1. Closure scope and merge boundary
 
 D-0047 is owner-approved. The closure includes retained QA fixes and owner requirements, F01–F18, D01–D18, I01–I22, official class/subclass identity including Artificer, conditional reusable modules, Gestión, PC Settings consolidation, Supercompact/Table mode, global IME/order/context UX, backup/import and first-class phone/tablet behavior.
@@ -135,38 +135,31 @@ Verification:
 - final workflow `33832927017` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
 - integration artifact `9922360358`, digest `sha256:2dfd189833807ff154647a6f0b28dd25d4d7d886fd899dc53c063ec12cb7f953`.
 
-## 3. Current batch — I2b Table mode
+## 3. Batch I — adaptive shell + Supercompact + Table mode — GREEN
 
-I2a Supercompact is GREEN and durably checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md`. No schema migration was required.
+I1 adaptive shell, I2a Supercompact and I2b Table mode are all GREEN. Batch I is technically complete.
 
-I2b completes F16 by applying Table/read-only mode as an explicit write-policy over the existing character UI. It must reduce accidental structural edits while preserving intentionally permitted live operational controls.
+I2b is durably checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md`.
 
-Current audit findings:
+Final controlling I2b evidence:
 
-- Table mode is already durable in `CharacterClosureState.tableModeEnabled` and configurable from PC Settings;
-- a blanket pointer-blocking overlay is not acceptable because it would also disable required live controls;
-- the editor already separates many structural and operational callbacks, so I2b should reuse those seams rather than create a second read-only sheet;
-- Combat already separates entry-structure changes from persisted operational sheet changes;
-- Spells separates spell/source edits from slot-spent changes;
-- Traits needs an explicit structural-edit flag so add/edit/delete/duplicate/reorder/Favorite configuration can lock while use meters remain live;
-- Equipment needs an explicit structural-edit flag so add/edit/delete/duplicate/reorder/currency definition changes lock while consumable/ammunition quick use remains live;
-- Gestión remains primarily operational: HP-like counters, conditions/exhaustion, concentration, resource spend/recover/rest, temporary effects and reconciliation/session operations should remain usable; resource definition add/edit/delete is structural and should lock;
-- Notes, Background and conditional-module content editors are structural and should not write while Table mode is active;
-- search/filter/group/collapse/presentation-only controls do not mutate character data and may remain usable.
+- exact clean-tree commit `a36a9b36f56b40088c9cb42b55b347a5ecf4c05b`;
+- tree `75278c4a7569722f0d54a141fa257d710c62f35e`;
+- workflow `33837303412` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
+- artifact `9923757180`, digest `sha256:d1b577750a14a023d5cca2c5cd7581a37321370ed9b1f68eb501cdbe171f065c`;
+- no schema migration;
+- Table mode is an explicit structural-write policy, not a blanket pointer blocker or second sheet model;
+- structural edits are locked while intended live/session controls and presentation-only browsing remain usable;
+- enabling Table mode over an already-dirty structural draft is prevented.
 
-Recommended recoverable I2b approach:
+### Current active batch — J
 
-1. add one explicit `structuralEditingEnabled = !tableModeEnabled` policy at the editor boundary;
-2. pass that policy only into mixed surfaces that need to distinguish structural from operational actions;
-3. block/no-op structural draft callbacks at the editor boundary as a final write guard;
-4. visually communicate Table mode and disable/hide structural affordances where practical rather than merely rejecting writes after interaction;
-5. preserve operational controls and run the full Gate I technical regression before declaring Batch I complete.
-
+Batch J owns the app's own-format backup/import and reconciliation completion. It must provide a versioned local format, safe import with no silent overwrite or identifier collision, richly populated round-trip coverage and malformed-input safety while reusing the existing durable character/domain authorities.
 ## 4. Remaining approved execution sequence
 
-After I2:
+From the current position:
 
-- **J — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;
+- **J — ACTIVE — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;
 - **K — closure candidate stabilization:** full migration regression, shared tests, Android assemble, Desktop build, backend type-check and focused integration fixes only;
 - **L — frozen phone+tablet APK candidate:** record exact commit/workflow/artifact name+ID/ZIP hash/extracted APK hash and make no silent code changes after QA begins;
 - **M — owner QA:** phone portrait, phone landscape, tablet portrait, tablet landscape and representative larger text; failures create focused repair batches/new candidate identities.
@@ -183,6 +176,8 @@ The future closure candidate must be one frozen APK with exact commit/workflow/a
 
 ## 7. Exact continuation
 
-Resume **Batch I2b — Table mode completion** on a fresh safety branch from `implementation/phase4-character-closure`.
+Resume **Batch J — own-format backup/import + reconciliation completion** on a fresh safety branch from `implementation/phase4-character-closure`.
 
-Apply explicit structural-edit permission at existing UI/callback seams. Keep search/filter/presentation behavior usable and preserve intentional live controls such as HP, resources/rest, spell slots, trait use meters, consumable/ammunition quick use and other session state. Do not implement Table mode as a blanket pointer blocker or a second sheet model. Keep `main` untouched and do not begin Batch J/DM work early.
+Implement a versioned local backup/export representation and safe import path. Preserve existing authoritative repositories/domain objects, reject malformed or unsupported input safely, prevent silent overwrite and identifier collisions, and add richly populated round-trip coverage including the closure data delivered through A–I. Complete the remaining reconciliation requirement assigned to J without broadening into DM features.
+
+Keep `main` untouched. Do not begin K until J is fully gated, and do not begin DM work before the Phase 4 exit boundary and explicit owner approval.
