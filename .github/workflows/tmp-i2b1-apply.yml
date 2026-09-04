@@ -18,13 +18,32 @@ jobs:
         with:
           ref: tmp/phase4-i2b-table-mode
           fetch-depth: 0
+      - name: Narrow known duplicate Overview anchor in working copy
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('.github/i2b1_patch.py')
+          lines = p.read_text().splitlines()
+          matches = [i for i, line in enumerate(lines) if '"overview structural callbacks",' in line]
+          if len(matches) != 1:
+              raise SystemExit(f'overview label count: {len(matches)}')
+          i = matches[0]
+          suffix = '\\n",'
+          addition = '\\n                        )\\n                        CharacterTabV4.SKILLS",'
+          for j in (i - 2, i - 1):
+              if not lines[j].endswith(suffix):
+                  raise SystemExit(f'unexpected Overview anchor line: {lines[j]}')
+              lines[j] = lines[j][:-len(suffix)] + addition
+          p.write_text('\n'.join(lines) + '\n')
+          PY
       - name: Apply guarded I2b1 patch
         shell: bash
         run: python .github/i2b1_patch.py
       - name: Commit product patch and remove helpers
         shell: bash
         run: |
-          rm .github/i2b1_patch.py .github/workflows/tmp-i2b1-apply.yml
+          rm .github/i2b1_patch.py .github/workflows/tmp-i2b1-apply.yml .github/workflows/tmp-i2b1-script-fix.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt \
@@ -34,7 +53,7 @@ jobs:
                   androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterManagementTabV4.kt \
                   androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellsTabV4.kt \
                   androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt \
-                  .github/i2b1_patch.py .github/workflows/tmp-i2b1-apply.yml
+                  .github/i2b1_patch.py .github/workflows/tmp-i2b1-apply.yml .github/workflows/tmp-i2b1-script-fix.yml
           git diff --cached --check
           git commit -m "feat: enforce Table mode on mixed character surfaces"
           git push origin HEAD:tmp/phase4-i2b-table-mode
