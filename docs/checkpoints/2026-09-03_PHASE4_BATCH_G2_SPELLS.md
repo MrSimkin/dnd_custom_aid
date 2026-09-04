@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING FINAL DENSITY GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -40,8 +40,6 @@ Semantics established:
 - moving inside a source view swaps only positions visible to that source within the same spell level, preserving hidden spell positions;
 - duplicate receives a fresh UUID and preserves conceptual/source-specific spell state.
 
-Existing persistence and shared-slot regression tests remain part of the full gate.
-
 ## G2b — Android Conjuros closure surface
 
 New isolated surface:
@@ -55,12 +53,6 @@ Primary UI commit:
 Editor/list wiring commit:
 
 - `c12db403e112017afae0418b61c5352d49d81a75` — `feat: integrate Batch G2 spells closure UI`.
-
-First full G2b verification:
-
-- checkpoint head `b3f75cc713360a396d8bd64603bd4acca4c136a2`;
-- workflow `33822274027` — PASS across backend, shared/Kotlin tests, Android debug, Desktop and APK upload;
-- artifact `dnd-custom-aid-debug-apk`, ID `9918741124`, digest `sha256:9947182fd12a8228dad9ef16053e95973539a0e10caa8aea9a27dca5ac3b3187`.
 
 Delivered UI behavior:
 
@@ -84,37 +76,49 @@ Delivered UI behavior:
 - tablet/wide uses persistent master-detail editing with selected-row highlight, independently scrollable editor and preserved list/query context;
 - deleting a source while a spell editor is open cannot leave a stale source ID satisfying spell-editor validation.
 
-The previous `CharacterSpellListV4` implementation remains present as a non-active reference/rollback surface until G2 is accepted.
+The previous `CharacterSpellListV4` remains as a non-active reference/rollback surface.
 
-## Post-gate phone-density refinement
+## Phone-density refinement
 
-The first full G2b gate was green, but visual code review identified that source-specific Prepared, Favorite, Duplicate and Delete actions were all consuming horizontal width beside the spell content on narrow phones.
+The first full G2b gate was green, but visual code review identified that source-specific Prepared, Favorite, Duplicate and Delete actions consumed too much horizontal width beside spell content on narrow phones.
 
-The refinement was intentionally isolated from semantic work:
+The refinement was isolated from semantics:
 
 - first scaffolding attempt at `5f9075b4e2223756f3b6465f9ef0d3c9036d2b41` failed before creating a job and did not modify product code;
 - simplified guarded integrator `33822601018` passed and self-cleaned;
 - product refinement commit `498df76ce092d81c965f4eb36a3c8bbd8486d91c` — `fix: refine G2 spell row phone density`.
 
-Final narrow-row composition now keeps the spell information column as the flexible width owner while stacking secondary actions in a compact right-side column:
+Final narrow-row composition keeps the spell information column as the flexible width owner while stacking secondary actions in a compact right-side column:
 
 - optional source-specific `Prep.` control;
 - Favorite + Delete together;
 - Duplicate below.
 
-This changes presentation only. Prepared semantics, Quick Access semantics, duplicate behavior and delete behavior are unchanged.
+This changed presentation only. Prepared semantics, Quick Access semantics, duplicate behavior and delete behavior remain unchanged.
 
-## Final gate required
+## Verification — GREEN
 
-G2 is not declared GREEN until the controlling workflow on the current checkpoint head, which includes `498df76ce092d81c965f4eb36a3c8bbd8486d91c`, passes:
+First full G2b gate before the density refinement:
 
-- focused G2 spell operation tests;
-- historical spell persistence / multi-source prepared-state regressions;
-- historical shared-slot integration regression;
-- all shared desktop tests;
-- Android debug assembly including sticky headers, refined narrow spell rows and tablet master-detail Compose surface;
-- Desktop build;
-- backend type-check;
-- APK artifact upload.
+- checkpoint head `b3f75cc713360a396d8bd64603bd4acca4c136a2`;
+- workflow `33822274027` — PASS;
+- artifact `dnd-custom-aid-debug-apk`, ID `9918741124`, digest `sha256:9947182fd12a8228dad9ef16053e95973539a0e10caa8aea9a27dca5ac3b3187`.
 
-If green, record the final workflow/artifact identity here, mark G2 GREEN and advance `docs/PROJECT_STATE.md` to **G3 — Notas + Trasfondo active**. Do not begin G3 implementation before this final gate is known.
+Final controlling gate including the density refinement:
+
+- controlling checkpoint head `7289c19e7db8db53ca50947b71792aed732bd0fc`;
+- included product refinement `498df76ce092d81c965f4eb36a3c8bbd8486d91c`;
+- workflow `33822722007` — PASS;
+- backend type-check — PASS;
+- focused G2 operations + historical spell persistence/multi-source prepared-state + shared-slot regressions + all shared tests — PASS;
+- Android debug + Desktop build — PASS;
+- APK upload — PASS;
+- artifact `dnd-custom-aid-debug-apk`, ID `9918883401`, digest `sha256:69df9fa57d7401d95c30417afc7e81705d574559b44686b6b845a72dca514a25`.
+
+This artifact is integration evidence, not the future frozen owner-QA candidate.
+
+## Closure
+
+Batch G2 is GREEN. Advance to **G3 — Notas + Trasfondo closure**.
+
+G3 remains a bounded UX/presentation batch over existing durable Notes/Background state. No schema change is expected. Preserve the approved lightweight Notes boundary, Raza/Religión persistence and honest two-image placeholder behavior.
