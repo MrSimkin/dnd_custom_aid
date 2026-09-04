@@ -1,11 +1,12 @@
 # Phase 4 Batch M4b — F15 Resource Favorite / Quick Access
 
 **Date:** 2026-09-04  
-**Status:** IMPLEMENTED — clean standard gate pending at checkpoint creation  
+**Status:** **GREEN / COMPLETE** — M4c may proceed  
 **Safety branch:** `tmp/phase4-m4b-resource-favorites`  
 **Authoritative M4a base:** `78d601390590822211f65fecabc4e587098a9d5b`  
 **Accepted product commit:** `efcc74c9d5f151ac5f39c571c4eb23b372ba56a4`  
 **Accepted product tree:** `f4c1993e039dcad073931d3154d33370d28bdb1f`  
+**Clean controlling checkpoint commit:** `33b2d901f7d2db5abd6ed7762a74889c0bf292cc`  
 **Canonical `main`:** untouched  
 **Historical L candidate:** untouched
 
@@ -71,7 +72,9 @@ Because Gestión receives the persisted authoritative `sheet.resources`, the Fav
 
 Supercompact requires no product change: its existing Quick Access projection already resolves `RESOURCE` references against authoritative `sheet.resources` and uses the same live Resource authority.
 
-## Guarded integration verification
+## Verification
+
+### Guarded integration gate
 
 Temporary exact-match integration workflow:
 
@@ -91,8 +94,32 @@ The workflow verified before creating the accepted product commit:
 
 The temporary integration script/workflow self-deleted in the accepted product commit and are not part of the accepted product tree.
 
-## Boundary
+### Clean controlling standard gate
+
+Ordinary repository workflow on the clean helper-free product tree plus this checkpoint:
+
+- exact tested commit `33b2d901f7d2db5abd6ed7762a74889c0bf292cc`;
+- workflow `33896924483` — **SUCCESS**;
+- backend install/type-check — PASS;
+- full shared/Kotlin desktop tests — PASS;
+- Android debug assemble — PASS;
+- Desktop build — PASS;
+- Android debug APK upload — PASS;
+- artifact ID `9946205349`, name `dnd-custom-aid-debug-apk`;
+- artifact ZIP digest `sha256:c9873ebab7e9a5e43539384def8d4c19ab1f837f599492cf1635b8e544ea1cdc`.
+
+This artifact is technical M4b evidence only. It is not the future replacement frozen M5 QA candidate.
+
+## Gate conclusion
+
+**M4b / F15 Resource Favorite / Quick Access is GREEN and complete.**
+
+Real-device visual/interaction acceptance remains M6 owner QA. That does not reopen implementation completeness unless QA exposes a real functional defect.
 
 M4b does not alter resource operational semantics, Rest semantics, Supercompact state ownership, database schema, or the historical frozen candidate.
 
-At checkpoint creation, one ordinary `scaffold-check.yml` run on this clean helper-free product tree plus this documentation checkpoint remains required before marking M4b GREEN and promoting it to the authoritative pre-QA branch.
+## Exact continuation
+
+Proceed to **M4c — I18 character-list completeness** from the clean authoritative M4b state.
+
+The character list must expose the already-approved useful identity/freshness information — class/subclass/level, freshness/last-updated signal, and portrait when available — using existing authoritative character/closure data without adding a second summary authority. Keep list behavior lightweight and do not introduce remote/backend activation or a new persistence model.
