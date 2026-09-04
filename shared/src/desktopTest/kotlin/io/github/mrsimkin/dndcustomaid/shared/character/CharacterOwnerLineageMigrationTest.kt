@@ -1,6 +1,4 @@
-from pathlib import Path
-
-TEST = r'''package io.github.mrsimkin.dndcustomaid.shared.character
+package io.github.mrsimkin.dndcustomaid.shared.character
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
@@ -463,9 +461,3 @@ class CharacterOwnerLineageMigrationTest {
         )
     }
 }
-'''
-
-path = Path("shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterOwnerLineageMigrationTest.kt")
-if path.exists():
-    raise RuntimeError(f"Refusing to overwrite existing {path}")
-path.write_text(TEST)
