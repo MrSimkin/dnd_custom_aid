@@ -1,0 +1,40 @@
+name: Temporary M6 pause PROJECT_STATE patch
+
+on:
+  push:
+    branches:
+      - tmp/phase4-m6-qa-pause-docs
+    paths:
+      - .github/tmp_m6_pause_state_patch.py
+      - .github/workflows/tmp-m6-pause-state-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-state:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/phase4-m6-qa-pause-docs
+          fetch-depth: 0
+      - name: Apply exact PROJECT_STATE patch
+        run: python3 .github/tmp_m6_pause_state_patch.py
+      - name: Verify pause markers
+        run: |
+          grep -F '**Durable pre-QA branch:** `implementation/phase4-preqa-consolidation`' docs/PROJECT_STATE.md
+          grep -F '2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md' docs/PROJECT_STATE.md
+          grep -F 'M6 owner real-device QA is NEXT' docs/PROJECT_STATE.md
+      - name: Remove helpers and commit only intended docs change
+        run: |
+          rm .github/tmp_m6_pause_state_patch.py .github/workflows/tmp-m6-pause-state-patch.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          printf '%s\n' "$(git diff --cached --name-only)"
+          expected=$(printf '%s\n' '.github/tmp_m6_pause_state_patch.py' '.github/workflows/tmp-m6-pause-state-patch.yml' 'docs/PROJECT_STATE.md')
+          test "$(git diff --cached --name-only)" = "$expected"
+          git commit -m 'docs: make M6 pause checkpoint primary resume point'
+          git push origin HEAD:tmp/phase4-m6-qa-pause-docs
