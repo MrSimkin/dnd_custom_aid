@@ -164,6 +164,7 @@ internal fun CharacterEditorScreenV4(
                 CharacterH1ModuleDraftV4(
                     classOptions = stored.classOptions,
                     forms = stored.forms,
+                    companions = stored.companions,
                 ),
             ),
         )
@@ -229,6 +230,7 @@ internal fun CharacterEditorScreenV4(
             CharacterH1ModuleDraftV4(
                 classOptions = stored.classOptions,
                 forms = stored.forms,
+                companions = stored.companions,
             ),
         )
     }
@@ -335,12 +337,14 @@ internal fun CharacterEditorScreenV4(
             noteCards = notes.cards,
             classOptions = h1Modules.classOptions,
             forms = h1Modules.forms,
+            companions = h1Modules.companions,
         )
         stored = repository.saveCharacter(integrated)
         val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
         val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
         val liveClassOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id }
         val liveFormIds = stored.forms.mapTo(mutableSetOf()) { it.id }
+        val liveCompanionIds = stored.companions.mapTo(mutableSetOf()) { it.id }
         val prunedQuickAccess = closureState.quickAccess
             .filter { reference ->
                 when (reference.kind) {
@@ -348,6 +352,7 @@ internal fun CharacterEditorScreenV4(
                     CharacterQuickAccessKind.SPELL -> reference.targetId in liveSpellIds
                     CharacterQuickAccessKind.CLASS_OPTION -> reference.targetId in liveClassOptionIds
                     CharacterQuickAccessKind.FORM -> reference.targetId in liveFormIds
+                    CharacterQuickAccessKind.COMPANION -> reference.targetId in liveCompanionIds
                     else -> true
                 }
             }
@@ -386,6 +391,7 @@ internal fun CharacterEditorScreenV4(
             CharacterH1ModuleDraftV4(
                 classOptions = stored.classOptions,
                 forms = stored.forms,
+                companions = stored.companions,
             ),
         )
         leaveAfterSave = false
@@ -653,6 +659,18 @@ internal fun CharacterEditorScreenV4(
                             persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
+                            },
+                            onClosureStateChange = ::persistClosureState,
+                            wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
+                        )
+                        CharacterTabV4.COMPANIONS -> CharacterCompanionsModuleV4(
+                            companions = h1ModuleDraft.companions,
+                            classes = settingsSheet.classes,
+                            closureState = closureState,
+                            persistedCompanionIds = stored.companions.mapTo(mutableSetOf()) { it.id },
+                            onCompanionsChange = { updated ->
+                                updateH1Modules(h1ModuleDraft.copy(companions = updated))
                             },
                             onClosureStateChange = ::persistClosureState,
                             wide = wide,
