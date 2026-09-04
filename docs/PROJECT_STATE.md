@@ -5,14 +5,14 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; **Batch G3 active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; **Batch H1 active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G2_SPELLS.md` — completed Conjuros gate and exact continuation into G3;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G1_TRAITS.md` — completed Rasgos gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_F_EQUIPMENT_CURRENCIES.md` — completed full F gate;
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G3_NOTES_BACKGROUND.md` — completed Notas + Trasfondo gate and exact continuation into H1;
+2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G2_SPELLS.md` — completed Conjuros gate;
+3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G1_TRAITS.md` — completed Rasgos gate;
 4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
 5. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level map and final QA matrix;
 6. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
@@ -84,25 +84,7 @@ Verification:
 
 ## 12. Batch G2 — Conjuros — GREEN
 
-Controlling checkpoint:
-
-- `docs/checkpoints/2026-09-03_PHASE4_BATCH_G2_SPELLS.md`.
-
-Delivered:
-
-- pure Manual/A–Z, search/filter, duplicate and source-projected manual-order operations;
-- one conceptual spell collection preserved across `Todos` and source views;
-- source-specific Prepared state preserved;
-- Favorite/Prepared/Concentration/Ritual/V/S/M filters;
-- compact V/S/M/Concentration/Ritual/prepared badges;
-- collapsible sticky spell-level headers;
-- shared Quick Magic/Conjuros slot state retained;
-- Favorites using existing Quick Access with orphan prevention/pruning on successful Save;
-- duplicate and named delete;
-- visible drag/haptics with A–Z/search/filter safety;
-- phone IME-safe editor;
-- tablet master-detail with selected-row highlight and independent editor scrolling;
-- narrow-phone action column refinement so secondary actions do not unnecessarily squeeze spell content.
+Delivered pure Manual/A–Z, search/filter, duplicate and source-projected manual-order operations; one conceptual spell collection across `Todos` and source views; source-specific Prepared state; compact badges; collapsible sticky spell levels; shared slots; Favorites; visible drag/haptics; phone IME-safe editor; tablet master-detail and narrow-phone action refinement.
 
 Verification:
 
@@ -111,66 +93,79 @@ Verification:
 - density product refinement `498df76ce092d81c965f4eb36a3c8bbd8486d91c`;
 - final controlling checkpoint head `7289c19e7db8db53ca50947b71792aed732bd0fc`;
 - final workflow `33822722007` — PASS;
-- final artifact `dnd-custom-aid-debug-apk`, ID `9918883401`, digest `sha256:69df9fa57d7401d95c30417afc7e81705d574559b44686b6b845a72dca514a25`.
+- final artifact ID `9918883401`, digest `sha256:69df9fa57d7401d95c30417afc7e81705d574559b44686b6b845a72dca514a25`.
+
+## 13. Batch G3 — Notas + Trasfondo — GREEN
+
+Controlling checkpoint:
+
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_G3_NOTES_BACKGROUND.md`.
+
+Delivered:
+
+- pure titled-note normalize/move/duplicate helpers;
+- duplicate titled note with fresh UUID and appended deterministic order;
+- explicit Notes list state/context retention;
+- existing General Notes and 3-line previews retained;
+- existing visible drag/haptics and IME-safe editor retained;
+- Background Raza and Religión/Fe unchanged;
+- both honest character-image placeholders unchanged;
+- Story defaults to a compact 3-line preview and expands in place to the full durable editor;
+- no schema, note metadata or image-persistence expansion.
+
+Verification:
+
+- G3a workflow `33823030581` — PASS;
+- G3 UI integration `1fbd6d0b4260c5a804ee2dae6ab3b71348d67d46`;
+- final controlling checkpoint head `9182d4841de2d568ba001ceeffff1ec718ab0220`;
+- final workflow `33823386958` — PASS;
+- final artifact `dnd-custom-aid-debug-apk`, ID `9919122343`, digest `sha256:588b1e90f3790acf6d39332cb25548fd8bc2ef06b856da98896a741897bced11`.
 
 These APKs remain integration evidence, not the future frozen owner-QA candidate.
 
-## 13. Current batch — G3 Notas + Trasfondo closure
+## 14. Current batch — H1 Artífice + Formas
 
-Audit result: no schema change is required.
+H1 begins with an audit, not implementation.
 
-Existing Notes baseline already provides:
+Required audit inputs:
 
-- one large unrestricted General Notes field;
-- titled cards with 3-line preview;
-- add/edit/delete;
-- real visible drag with haptics;
-- one-column phone and two-column wide presentation;
-- IME-safe long-note editor with internal scrolling;
-- persistence regression for very large General Notes and ordered note cards.
+- existing shared durable closure state and repositories;
+- `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md`;
+- approved D-0047 conditional-module scope;
+- existing PC Settings module overrides and any current conditional-module UI/state;
+- existing generic Resources/Traits/Equipment/Companion-like state that may already cover part of Artífice or Formas.
 
-Remaining G3 Notes work is bounded to:
+Audit questions:
 
-- duplicate titled note with a fresh UUID and deterministic appended order;
-- explicit LazyList state/context retention while an editor overlays;
-- preserve the deliberately lightweight title+content model; do not add tags/dates/categories.
-
-Existing Background baseline already provides:
-
-- background name + summary;
-- Raza and Religión/Fe;
-- compact personality/ideals/bonds/flaws preview cards with responsive two-column layout;
-- two honest image placeholders;
-- full long Story field;
-- migration + round-trip regression protecting Raza/Religión.
-
-Remaining G3 Background work is bounded to:
-
-- make the long Story block collapsible with a useful short preview while preserving full editing when expanded;
-- retain the approved two-image placeholder layout and all existing identity/narrative fields.
+- which H1 concepts already have durable representation and should be reused rather than duplicated;
+- whether Artífice needs a dedicated reusable module, and which mechanics belong in generic existing domains instead;
+- whether Formas can be represented as a generic reusable transformation/form module suitable for Druid and homebrew/custom classes;
+- what should be character-sheet durable reference versus live/session state;
+- how automatic class/subclass suggestion interacts with manual PC Settings module overrides;
+- whether any additive schema is truly required before H1 UI.
 
 Implementation discipline:
 
-- start with small pure note operations + focused tests for normalize/move/duplicate;
-- gate those helpers before UI wiring;
-- then update Notes and Background only;
-- no schema, no new note metadata, no image-persistence expansion;
-- G3 must have its own green checkpoint before beginning H1 Artífice + Formas.
+- do not write H1 UI until the shared-state audit is documented;
+- prefer reusable generic module concepts over class-named hard-coded tables;
+- no rules legality engine;
+- multiclass and arbitrary custom/homebrew class/subclass data remain supported;
+- avoid duplicating data already owned by Traits, Equipment, Resources, Combat, Spells or future Companion module.
 
-## 14. Existing baseline that must not regress
+## 15. Existing baseline that must not regress
 
 Persistent General/Habilidades, Combate, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, PC Settings, Supercompact projection, D-0046 derived values/adjustments and all migrations/repositories must remain compatible.
 
-## 15. Final acceptance boundary
+## 16. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity. Owner QA matrix: phone portrait, phone landscape, tablet portrait, tablet landscape and representative larger text scale. Green CI never substitutes for real-device QA.
 
-## 16. Merge boundary
+## 17. Merge boundary
 
 Do not merge Phase 4 to `main` until all D-0047 batches are implemented, automated gates are green, one exact closure QA APK is recorded, owner phone+tablet QA is accepted, blocking findings are resolved, governance housekeeping is complete and owner explicitly approves merge/closure.
 
-## 17. Exact continuation
+## 18. Exact continuation
 
-Resume **Batch G3 — Notas + Trasfondo** on `implementation/phase4-character-closure`.
+Resume **Batch H1 — Artífice + Formas** on `implementation/phase4-character-closure`.
 
-First add pure titled-note normalize/move/duplicate helpers and focused tests. After that gate is green, wire Duplicate + explicit list-context retention into Notes and make Background Story collapsible with a compact preview, retaining Raza/Religión and honest two-image placeholders. Close G3 before H1.
+First audit the existing shared durable module/state ownership and `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md`. Record which concepts can be reused, which generic module surfaces are still missing, and whether any additive schema is truly required. Only after that audit should H1 implementation be planned and gated.
