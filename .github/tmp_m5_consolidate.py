@@ -19,7 +19,7 @@ owners = {
 }
 
 def grep(symbol: str):
-    result = subprocess.run(['git', 'grep', '-n', '-F', symbol, '--', '*.kt'], text=True, capture_output=True)
+    result = subprocess.run(['git', 'grep', '-n', '-w', '-F', symbol, '--', '*.kt'], text=True, capture_output=True)
     if result.returncode not in (0, 1):
         raise SystemExit(result.stderr)
     return [line for line in result.stdout.splitlines() if line.strip()]
@@ -68,7 +68,6 @@ require(android / 'CharacterManagementTabV4.kt', ['CharacterSemanticBadgeKindV4.
 # The owner-lineage migration regression must remain in the repository and is covered by desktopTest below.
 lineage = list((root / 'shared/src').rglob('*CharacterOwnerLineageMigrationTest*'))
 if not lineage:
-    # fallback: class name may live in a differently named file
     found = subprocess.run(['git', 'grep', '-l', '-F', 'CharacterOwnerLineageMigrationTest', '--', 'shared/src/**'], text=True, capture_output=True)
     if found.returncode not in (0, 1) or not found.stdout.strip():
         raise SystemExit('CharacterOwnerLineageMigrationTest not found')
