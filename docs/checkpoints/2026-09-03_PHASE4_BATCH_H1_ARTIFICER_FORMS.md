@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING FULL GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -136,22 +136,41 @@ Quick Access behavior:
 - only successful global Save prunes `CLASS_OPTION` / `FORM` references whose durable targets no longer exist;
 - discarding the structural deletion therefore preserves the favorite reference.
 
-## Full gate required
+## Full H1 gate — GREEN
 
-H1 is not GREEN until the controlling workflow on this checkpoint head passes:
+Controlling checkpoint head before this closure update:
 
-- focused H1 operations tests;
-- existing class/subclass/module visibility tests;
-- existing full repository round-trip including Artificer option + Form + Companion representative state;
-- all shared desktop tests and migrations;
-- Android debug assembly of Artífice/Formas phone + wide surfaces and conditional navigation;
-- Desktop build;
-- backend type-check;
-- APK artifact upload.
+- `1196832fe6c05c70b471fb5c14ba527f8e85ae87`.
 
-If the gate is green:
+Verification:
 
-1. record exact workflow/artifact/digest here;
-2. mark H1 GREEN;
-3. update `docs/PROJECT_STATE.md` to **H2 — Técnicas + Metamagia + Pactos active**;
-4. do not begin H2 implementation before this gate is known.
+- workflow `33825152159` — PASS;
+- backend type-check — PASS;
+- shared/Kotlin tests — PASS;
+- H1 focused operation tests — PASS;
+- existing module visibility and repository round-trip regressions — PASS;
+- Android debug assembly — PASS;
+- Desktop build — PASS;
+- APK upload — PASS;
+- artifact `dnd-custom-aid-debug-apk`, ID `9919731254`;
+- artifact digest `sha256:67811cf83f33ff22a2516e6f1063a897e3323232fb2eee5a9f52095a98ead35e`.
+
+This APK is integration evidence only; it is not the frozen owner-QA closure candidate.
+
+## H1 closure conclusion
+
+Batch H1 is GREEN. The implementation reuses the existing durable `classOptions` and `forms` model, adds no new schema, keeps module visibility non-destructive, and preserves hidden/future class-option families while editing Artífice.
+
+## Exact next action
+
+Proceed to **Batch H2 — Técnicas + Metamagia + Pactos**.
+
+H2 must begin from the same ownership discipline used in H1:
+
+1. audit how the existing `CharacterClassOptionKind.TECHNIQUE`, `METAMAGIC`, `INVOCATION`, `SUBCLASS_STATE` and `OTHER` kinds should map to the three approved H2 surfaces;
+2. define explicit ownership so one H2 surface cannot reorder/delete another surface's hidden entries;
+3. add pure presentation/search/filter/manual-order/duplicate helpers and tests first;
+4. run the H2a shared gate;
+5. only then add the three conditional Android surfaces and navigation;
+6. keep Spells and generic Resources authoritative for spells/slots and resource counters respectively;
+7. no new schema unless the documented H2 audit demonstrates a real durable-data gap.
