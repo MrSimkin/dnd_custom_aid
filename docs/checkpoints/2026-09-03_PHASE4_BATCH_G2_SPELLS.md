@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING INTEGRATION GATE  
+**Status:** PENDING FINAL DENSITY GATE  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -56,6 +56,12 @@ Editor/list wiring commit:
 
 - `c12db403e112017afae0418b61c5352d49d81a75` — `feat: integrate Batch G2 spells closure UI`.
 
+First full G2b verification:
+
+- checkpoint head `b3f75cc713360a396d8bd64603bd4acca4c136a2`;
+- workflow `33822274027` — PASS across backend, shared/Kotlin tests, Android debug, Desktop and APK upload;
+- artifact `dnd-custom-aid-debug-apk`, ID `9918741124`, digest `sha256:9947182fd12a8228dad9ef16053e95973539a0e10caa8aea9a27dca5ac3b3187`.
+
 Delivered UI behavior:
 
 - existing `Todos` + per-source navigation retained;
@@ -80,17 +86,35 @@ Delivered UI behavior:
 
 The previous `CharacterSpellListV4` implementation remains present as a non-active reference/rollback surface until G2 is accepted.
 
-## Gate required
+## Post-gate phone-density refinement
 
-G2 is not GREEN until the controlling workflow on this checkpoint head passes:
+The first full G2b gate was green, but visual code review identified that source-specific Prepared, Favorite, Duplicate and Delete actions were all consuming horizontal width beside the spell content on narrow phones.
+
+The refinement was intentionally isolated from semantic work:
+
+- first scaffolding attempt at `5f9075b4e2223756f3b6465f9ef0d3c9036d2b41` failed before creating a job and did not modify product code;
+- simplified guarded integrator `33822601018` passed and self-cleaned;
+- product refinement commit `498df76ce092d81c965f4eb36a3c8bbd8486d91c` — `fix: refine G2 spell row phone density`.
+
+Final narrow-row composition now keeps the spell information column as the flexible width owner while stacking secondary actions in a compact right-side column:
+
+- optional source-specific `Prep.` control;
+- Favorite + Delete together;
+- Duplicate below.
+
+This changes presentation only. Prepared semantics, Quick Access semantics, duplicate behavior and delete behavior are unchanged.
+
+## Final gate required
+
+G2 is not declared GREEN until the controlling workflow on the current checkpoint head, which includes `498df76ce092d81c965f4eb36a3c8bbd8486d91c`, passes:
 
 - focused G2 spell operation tests;
 - historical spell persistence / multi-source prepared-state regressions;
 - historical shared-slot integration regression;
 - all shared desktop tests;
-- Android debug assembly including sticky headers and tablet master-detail Compose surface;
+- Android debug assembly including sticky headers, refined narrow spell rows and tablet master-detail Compose surface;
 - Desktop build;
 - backend type-check;
 - APK artifact upload.
 
-If green, close G2 and advance to **G3 — Notas + Trasfondo closure**. Do not begin G3 from implementation momentum before this gate is known.
+If green, record the final workflow/artifact identity here, mark G2 GREEN and advance `docs/PROJECT_STATE.md` to **G3 — Notas + Trasfondo active**. Do not begin G3 implementation before this final gate is known.
