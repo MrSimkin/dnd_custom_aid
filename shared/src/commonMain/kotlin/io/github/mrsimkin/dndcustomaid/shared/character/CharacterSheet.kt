@@ -1,7 +1,9 @@
 package io.github.mrsimkin.dndcustomaid.shared.character
 
+import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
+@Serializable
 enum class CharacterStatus {
     ACTIVE,
     INACTIVE,
@@ -9,6 +11,7 @@ enum class CharacterStatus {
     DEAD,
 }
 
+@Serializable
 enum class CharacterAbility {
     STRENGTH,
     DEXTERITY,
@@ -18,6 +21,7 @@ enum class CharacterAbility {
     CHARISMA,
 }
 
+@Serializable
 enum class SkillKey(val ability: CharacterAbility) {
     ACROBATICS(CharacterAbility.DEXTERITY),
     ANIMAL_HANDLING(CharacterAbility.WISDOM),
@@ -39,12 +43,14 @@ enum class SkillKey(val ability: CharacterAbility) {
     SURVIVAL(CharacterAbility.WISDOM),
 }
 
+@Serializable
 enum class SkillTraining {
     NONE,
     PROFICIENT,
     EXPERTISE,
 }
 
+@Serializable
 enum class CharacterCombatEntryType {
     ATTACK,
     ACTION,
@@ -53,6 +59,7 @@ enum class CharacterCombatEntryType {
     OTHER,
 }
 
+@Serializable
 enum class SpellcastingAbility {
     STRENGTH,
     DEXTERITY,
@@ -64,6 +71,7 @@ enum class SpellcastingAbility {
     NONE,
 }
 
+@Serializable
 enum class CharacterTraitType {
     CLASS,
     SPECIES_RACE,
@@ -73,6 +81,7 @@ enum class CharacterTraitType {
     OTHER,
 }
 
+@Serializable
 enum class CharacterActivationType {
     PASSIVE,
     ACTION,
@@ -81,6 +90,7 @@ enum class CharacterActivationType {
     OTHER,
 }
 
+@Serializable
 enum class CharacterRulesFamily {
     UNSPECIFIED,
     DND_5E,
@@ -88,6 +98,7 @@ enum class CharacterRulesFamily {
     CUSTOM,
 }
 
+@Serializable
 enum class CharacterProficiencyType {
     LANGUAGE,
     TOOL,
@@ -96,6 +107,7 @@ enum class CharacterProficiencyType {
     OTHER,
 }
 
+@Serializable
 enum class CharacterClassOptionKind {
     ARTIFICER_PLAN,
     ARTIFICER_DEVICE,
@@ -107,18 +119,21 @@ enum class CharacterClassOptionKind {
     OTHER,
 }
 
+@Serializable
 data class CharacterSkill(
     val key: SkillKey,
     val adjustment: Int,
     val training: SkillTraining,
 )
 
+@Serializable
 data class CharacterSavingThrow(
     val ability: CharacterAbility,
     val proficient: Boolean,
     val adjustment: Int,
 )
 
+@Serializable
 data class CharacterClassLevel(
     val id: Uuid,
     val name: String,
@@ -135,12 +150,14 @@ data class CharacterClassLevel(
     val subclassRulesFamily: CharacterRulesFamily = rulesFamily,
 )
 
+@Serializable
 data class CharacterSpellSlot(
     val level: Int,
     val totalSlots: Int,
     val spentSlots: Int,
 )
 
+@Serializable
 data class CharacterCombatEntry(
     val id: Uuid,
     val name: String,
@@ -153,6 +170,7 @@ data class CharacterCombatEntry(
     val pinned: Boolean = false,
 )
 
+@Serializable
 data class CharacterInventoryItem(
     val id: Uuid,
     val name: String,
@@ -170,6 +188,7 @@ data class CharacterInventoryItem(
         get() = (weightLb ?: 0.0) * quantity
 }
 
+@Serializable
 data class CharacterCurrency(
     val key: String,
     val name: String,
@@ -178,6 +197,7 @@ data class CharacterCurrency(
     val isDefault: Boolean,
 )
 
+@Serializable
 data class CharacterBackground(
     val name: String = "",
     val summary: String = "",
@@ -190,6 +210,7 @@ data class CharacterBackground(
     val story: String = "",
 )
 
+@Serializable
 data class CharacterTrait(
     val id: Uuid,
     val name: String,
@@ -205,6 +226,7 @@ data class CharacterTrait(
     val pinned: Boolean = false,
 )
 
+@Serializable
 data class CharacterNote(
     val id: Uuid,
     val title: String,
@@ -212,6 +234,7 @@ data class CharacterNote(
     val sortOrder: Int,
 )
 
+@Serializable
 data class CharacterSpellcastingSource(
     val id: Uuid,
     val name: String,
@@ -219,11 +242,13 @@ data class CharacterSpellcastingSource(
     val sortOrder: Int,
 )
 
+@Serializable
 data class CharacterSpellSourceAssociation(
     val sourceId: Uuid,
     val prepared: Boolean,
 )
 
+@Serializable
 data class CharacterSpell(
     val id: Uuid,
     val name: String,
@@ -244,6 +269,7 @@ data class CharacterSpell(
     val pinned: Boolean = false,
 )
 
+@Serializable
 data class CharacterProficiency(
     val id: Uuid,
     val type: CharacterProficiencyType,
@@ -253,6 +279,7 @@ data class CharacterProficiency(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterWeaponMastery(
     val id: Uuid,
     val weaponName: String,
@@ -262,6 +289,7 @@ data class CharacterWeaponMastery(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterResource(
     val id: Uuid,
     val name: String,
@@ -274,6 +302,7 @@ data class CharacterResource(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterClassOption(
     val id: Uuid,
     val linkedClassId: Uuid? = null,
@@ -288,6 +317,7 @@ data class CharacterClassOption(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterForm(
     val id: Uuid,
     val name: String,
@@ -303,6 +333,7 @@ data class CharacterForm(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterCompanion(
     val id: Uuid,
     val linkedClassId: Uuid? = null,
@@ -322,6 +353,7 @@ data class CharacterCompanion(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterSheet(
     val id: Uuid,
     val campaignId: Uuid,

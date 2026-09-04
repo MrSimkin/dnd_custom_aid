@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.shared.character
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 enum class CharacterModuleKind {
     ARTIFICER,
     FORMS,
