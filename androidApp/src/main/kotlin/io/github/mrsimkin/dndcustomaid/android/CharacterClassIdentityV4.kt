@@ -193,7 +193,7 @@ private fun ClassIdentityEditorDialogV4(
 
     val initialSubclassMode = when {
         existing?.subclassName.isNullOrBlank() -> SubclassIdentityModeV4.NONE
-        existing?.subclassCatalogKey != null -> SubclassIdentityModeV4.OFFICIAL
+        existing.subclassCatalogKey != null -> SubclassIdentityModeV4.OFFICIAL
         else -> SubclassIdentityModeV4.MANUAL
     }
     var subclassModeName by rememberSaveable(existing?.id?.toString(), "subclass-mode") { mutableStateOf(initialSubclassMode.name) }

@@ -1,7 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,7 +64,7 @@ internal fun CharacterTopTabStripV4(
     val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules)
     val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
 
-    ScrollableTabRow(
+    PrimaryScrollableTabRow(
         selectedTabIndex = selectedIndex,
         modifier = Modifier.fillMaxWidth(),
         edgePadding = 0.dp,
