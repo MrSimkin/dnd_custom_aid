@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +35,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterNote
+import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterNote
+import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterNoteManual
+import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterNoteSortOrder
+import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterNotes
 import kotlin.math.abs
 import kotlin.uuid.Uuid
 
@@ -50,9 +55,7 @@ internal fun CharacterNotesTabV4(
     var editorContent by rememberSaveable("note-editor-content") { mutableStateOf("") }
     var deleteId by rememberSaveable("note-delete-id") { mutableStateOf<String?>(null) }
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
-
-    fun normalize(cards: List<CharacterNote>): List<CharacterNote> =
-        cards.mapIndexed { index, note -> note.copy(sortOrder = index) }
+    val listState = rememberLazyListState()
 
     fun beginAdd() {
         editingId = null
@@ -69,16 +72,25 @@ internal fun CharacterNotesTabV4(
     }
 
     fun move(index: Int, offset: Int): Boolean {
-        val target = index + offset
-        if (target !in draft.cards.indices) return false
-        val reordered = draft.cards.toMutableList()
-        val item = reordered.removeAt(index)
-        reordered.add(target, item)
-        onDraftChange(draft.copy(cards = normalize(reordered)))
+        val note = draft.cards.getOrNull(index) ?: return false
+        val before = normalizeCharacterNotes(draft.cards)
+        val moved = moveCharacterNoteManual(draft.cards, note.id, offset)
+        if (moved == before) return false
+        onDraftChange(draft.copy(cards = moved))
         return true
     }
 
+    fun duplicate(note: CharacterNote) {
+        val copied = duplicateCharacterNote(
+            source = note,
+            newId = Uuid.random(),
+            sortOrder = nextCharacterNoteSortOrder(draft.cards),
+        )
+        onDraftChange(draft.copy(cards = normalizeCharacterNotes(draft.cards + copied)))
+    }
+
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
@@ -168,6 +180,7 @@ internal fun CharacterNotesTabV4(
                                     CharacterNoteCardV4(
                                         note = note,
                                         onEdit = { beginEdit(note) },
+                                        onDuplicate = { duplicate(note) },
                                         onDelete = { deleteId = note.id.toString() },
                                         onMove = { offset -> move(index, offset) },
                                         onHaptic = haptic,
@@ -184,6 +197,7 @@ internal fun CharacterNotesTabV4(
                             CharacterNoteCardV4(
                                 note = note,
                                 onEdit = { beginEdit(note) },
+                                onDuplicate = { duplicate(note) },
                                 onDelete = { deleteId = note.id.toString() },
                                 onMove = { offset -> move(index, offset) },
                                 onHaptic = haptic,
@@ -217,7 +231,7 @@ internal fun CharacterNotesTabV4(
                 } else {
                     draft.cards.map { item -> if (item.id == existing.id) note else item }
                 }
-                onDraftChange(draft.copy(cards = normalize(updated)))
+                onDraftChange(draft.copy(cards = normalizeCharacterNotes(updated)))
                 editorOpen = false
             },
         )
@@ -233,7 +247,7 @@ internal fun CharacterNotesTabV4(
                 itemTypeLabel = "nota",
                 onDismissRequest = { deleteId = null },
                 onConfirm = {
-                    onDraftChange(draft.copy(cards = normalize(draft.cards.filterNot { it.id == target.id })))
+                    onDraftChange(draft.copy(cards = normalizeCharacterNotes(draft.cards.filterNot { it.id == target.id })))
                     deleteId = null
                 },
             )
@@ -245,6 +259,7 @@ internal fun CharacterNotesTabV4(
 private fun CharacterNoteCardV4(
     note: CharacterNote,
     onEdit: () -> Unit,
+    onDuplicate: () -> Unit,
     onDelete: () -> Unit,
     onMove: (Int) -> Boolean,
     onHaptic: (CharacterHapticEventV4) -> Unit,
@@ -336,6 +351,17 @@ private fun CharacterNoteCardV4(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(
+                        onClick = onDuplicate,
+                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                    ) {
+                        Text("Duplicar")
+                    }
+                }
             }
         }
         CharacterDropIndicatorV4(visible = dragState.showDropAfter)

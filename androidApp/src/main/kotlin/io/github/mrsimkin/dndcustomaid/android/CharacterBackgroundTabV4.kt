@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +52,7 @@ internal fun CharacterBackgroundTabV4(
 ) {
     var editingFieldName by rememberSaveable { mutableStateOf<String?>(null) }
     var editorText by rememberSaveable { mutableStateOf("") }
+    var storyExpanded by rememberSaveable("background-story-expanded") { mutableStateOf(false) }
 
     fun fieldValue(field: BackgroundNarrativeFieldV4): String = when (field) {
         BackgroundNarrativeFieldV4.PERSONALITY -> background.personalityTraits
@@ -220,18 +223,78 @@ internal fun CharacterBackgroundTabV4(
                         .padding(horizontal = 8.dp, vertical = 7.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text("Historia del personaje", style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        "Espacio amplio para la historia completa del personaje.",
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                    OutlinedTextField(
-                        value = background.story,
-                        onValueChange = { onBackgroundChange(background.copy(story = it)) },
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Historia") },
-                        minLines = if (wide) 10 else 8,
-                    )
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Historia del personaje", style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                "Historia larga, disponible completa al expandir.",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                        TextButton(onClick = { storyExpanded = !storyExpanded }) {
+                            Text(
+                                if (storyExpanded) {
+                                    "Ocultar"
+                                } else if (background.story.isBlank()) {
+                                    "Añadir"
+                                } else {
+                                    "Mostrar"
+                                },
+                            )
+                        }
+                    }
+                    if (storyExpanded) {
+                        OutlinedTextField(
+                            value = background.story,
+                            onValueChange = { onBackgroundChange(background.copy(story = it)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(
+                                    min = if (wide) 260.dp else 220.dp,
+                                    max = if (wide) 420.dp else 360.dp,
+                                ),
+                            label = { Text("Historia") },
+                            minLines = if (wide) 10 else 8,
+                            maxLines = if (wide) 20 else 16,
+                            supportingText = {
+                                if (background.story.length > 500) {
+                                    Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
+                                }
+                            },
+                        )
+                    } else {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { storyExpanded = true },
+                            shape = MaterialTheme.shapes.small,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp),
+                            ) {
+                                Text(
+                                    background.story.ifBlank { "Sin historia registrada" },
+                                    style = if (background.story.isBlank()) {
+                                        MaterialTheme.typography.labelSmall
+                                    } else {
+                                        MaterialTheme.typography.bodySmall
+                                    },
+                                    maxLines = 3,
+                                )
+                                Text(
+                                    if (background.story.isBlank()) "Toca para añadir" else "Toca para expandir y editar",
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
