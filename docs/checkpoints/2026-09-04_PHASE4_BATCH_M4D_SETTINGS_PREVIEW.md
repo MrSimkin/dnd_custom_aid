@@ -1,7 +1,7 @@
 # Phase 4 Batch M4d — I21 real-sheet Application Settings audition
 
 **Date:** 2026-09-04  
-**Status:** IMPLEMENTED — clean standard gate pending at checkpoint creation  
+**Status:** GREEN / COMPLETE  
 **Safety branch:** `tmp/phase4-m4d-settings-preview`  
 **Authoritative M4c base:** `ed5231ed0fbfb90257e75710602592ad10009263`  
 **Accepted product commit:** `ba4b92623224e1d704834ab34b949d177c81c543`  
@@ -55,8 +55,22 @@ Verified before accepting the product commit:
 
 The temporary patch script/workflow self-deleted in accepted product commit `ba4b92623224e1d704834ab34b949d177c81c543` and are not part of the accepted product tree.
 
+## Clean standard gate
+
+Ordinary clean-tree workflow:
+
+- workflow `33901226737` — **SUCCESS**;
+- shared/Kotlin desktop tests — PASS;
+- Android debug assemble + APK upload — PASS;
+- Desktop build — PASS;
+- backend install/type-check — PASS;
+- artifact `9947820017` (`dnd-custom-aid-debug-apk`);
+- artifact ZIP digest `sha256:d2ada42e3c1b3fae8db74c4de51af621ecaacdf7d48779b90dfcbe0d2dd754f7`.
+
+This clean standard gate is the controlling final technical evidence for M4d.
+
 ## Boundary
 
-M4d closes I21 implementation completeness only. Visual usefulness at the owner's chosen fonts/themes/text sizes remains M6 real-device QA.
+M4d closes I21 implementation completeness. Visual usefulness at the owner's chosen fonts/themes/text sizes remains M6 real-device QA.
 
-At checkpoint creation, one ordinary `scaffold-check.yml` run on this clean helper-free product tree plus this checkpoint remains required before declaring M4d GREEN and promoting it.
+Next slice after clean promotion: **M4e / D06 rules-generation and source/provenance semantic badges**.
