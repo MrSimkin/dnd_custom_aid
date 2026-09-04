@@ -35,15 +35,12 @@ jobs:
                   '1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_I1_ADAPTIVE_SHELL.md` — completed I1 gate and exact continuation into I2;',
                   '1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a gate and exact continuation into I2b;',
               ),
-              (
-                  '6. earlier A–I1 checkpoints as historical implementation/verification evidence.',
-                  '6. earlier A–I1 checkpoints as historical implementation/verification evidence.',
-              ),
           ]
           for old, new in replacements:
               if old not in text:
                   raise SystemExit(f'missing project-state anchor: {old[:80]}')
               text = text.replace(old, new, 1)
+          text = text.replace('**Batch I2b active**  \n', '**Batch I2b active**\n', 1)
 
           start = text.index('## 3. Current batch — I2 Supercompact + Table mode')
           end = text.index('## 4. Remaining approved execution sequence')
