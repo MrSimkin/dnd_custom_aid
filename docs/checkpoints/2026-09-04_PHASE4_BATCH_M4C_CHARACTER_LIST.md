@@ -1,11 +1,12 @@
 # Phase 4 Batch M4c — I18 character-list completeness
 
 **Date:** 2026-09-04  
-**Status:** IMPLEMENTED — clean standard gate pending at checkpoint creation  
+**Status:** **GREEN / COMPLETE** — next M4 hole may proceed  
 **Safety branch:** `tmp/phase4-m4c-character-list`  
 **Authoritative M4b base:** `2020f195a4ced15ac1edc7ee18cd6f5d58bcf3ca`  
 **Accepted product commit:** `cde97d9b7a4ae09cdd710c6a155bea4a5dc9e4cd`  
 **Accepted product tree:** `ced96e176b3822ca10b89a3baef81437ab722241`  
+**Clean controlling checkpoint commit:** `4a47b3f22d411ac09eeff87f37fbf3cdf09aca30`  
 **Canonical `main`:** untouched  
 **Historical L candidate:** untouched
 
@@ -128,8 +129,28 @@ It verified:
 
 The temporary integration workflow/scripts self-deleted in accepted product commit `cde97d9b7a4ae09cdd710c6a155bea4a5dc9e4cd` and are not part of the accepted product tree.
 
-## Boundary
+## Clean controlling standard gate
 
-M4c closes I18 implementation completeness only. Real-device visual density, thumbnail behavior and freshness readability remain M6 owner QA.
+Ordinary repository workflow on the clean helper-free product tree plus the pending checkpoint:
 
-At checkpoint creation, one ordinary `scaffold-check.yml` run on this clean helper-free product tree plus this checkpoint is still required before marking M4c GREEN and promoting it to `implementation/phase4-preqa-consolidation`.
+- exact tested commit `4a47b3f22d411ac09eeff87f37fbf3cdf09aca30`;
+- workflow `33900280161` — **SUCCESS**;
+- backend install/type-check — PASS;
+- full shared/Kotlin desktop tests — PASS;
+- Android debug assemble — PASS;
+- Desktop build — PASS;
+- Android debug APK upload — PASS;
+- artifact ID `9947440048`, name `dnd-custom-aid-debug-apk`;
+- artifact ZIP digest `sha256:12775271da058a991cccbc00577110f64265a71cdd6117abe866d6358cb5b98e`.
+
+This artifact is technical M4c evidence only. It is not the future replacement frozen M5 QA candidate.
+
+## Gate conclusion
+
+**M4c / I18 is GREEN and complete.**
+
+M4c closes I18 implementation completeness only. Real-device visual density, thumbnail behavior and freshness readability remain M6 owner QA. That does not reopen implementation completeness unless QA exposes a real functional defect.
+
+## Exact continuation
+
+Promote the final helper-free M4c tree to `implementation/phase4-preqa-consolidation`, then consult the durable M3/M4 audit checkpoint and `PROJECT_STATE.md` to select the next confirmed M4 implementation hole. Do not infer the next hole from memory and do not advance to owner QA.
