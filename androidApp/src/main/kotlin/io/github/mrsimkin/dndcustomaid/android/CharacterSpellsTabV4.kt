@@ -43,6 +43,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource
 import kotlin.math.abs
 import kotlin.uuid.Uuid
@@ -57,9 +58,13 @@ internal fun CharacterSpellsTabV4(
     draft: CharacterSpellcastingDraftV4,
     slotStates: List<CharacterSpellSlotUiV4>,
     classOptions: List<SpellSourceClassOptionV4>,
+    closureState: CharacterClosureState,
+    persistedSpellIds: Set<Uuid>,
     onDraftChange: (CharacterSpellcastingDraftV4) -> Unit,
     onSlotSpentChange: (Int, Int) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
+    hapticsEnabled: Boolean,
 ) {
     var selectedSourceId by rememberSaveable("spell-source-selection") { mutableStateOf<String?>(null) }
     var managerOpen by rememberSaveable("spell-source-manager") { mutableStateOf(false) }
@@ -168,13 +173,17 @@ internal fun CharacterSpellsTabV4(
 
         HorizontalDivider()
 
-        CharacterSpellListV4(
+        CharacterSpellListClosureV4(
             draft = draft,
             slotStates = slotStates,
             selectedSourceId = selectedSource?.id,
+            closureState = closureState,
+            persistedSpellIds = persistedSpellIds,
             onDraftChange = onDraftChange,
             onSlotSpentChange = onSlotSpentChange,
+            onClosureStateChange = onClosureStateChange,
             wide = wide,
+            hapticsEnabled = hapticsEnabled,
         )
     }
 

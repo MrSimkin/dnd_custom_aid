@@ -221,8 +221,9 @@ internal fun CharacterSpellListClosureV4(
         )
     }
 
-    val editorAssociated = parseSpellIdSetG2(editorAssociatedSourceIds)
-    val editorPrepared = parseSpellIdSetG2(editorPreparedSourceIds)
+    val validEditorSourceKeys = draft.sources.mapTo(mutableSetOf()) { it.id.toString() }
+    val editorAssociated = parseSpellIdSetG2(editorAssociatedSourceIds).intersect(validEditorSourceKeys)
+    val editorPrepared = parseSpellIdSetG2(editorPreparedSourceIds).intersect(validEditorSourceKeys)
     val parsedEditorLevel = editorLevel.trim().toIntOrNull()
     val editorCanSave = editorName.trim().isNotEmpty() &&
         parsedEditorLevel != null && parsedEditorLevel in 0..9 && editorAssociated.isNotEmpty()

@@ -301,9 +301,14 @@ internal fun CharacterEditorScreenV4(
         )
         stored = repository.saveCharacter(integrated)
         val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
+        val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
         val prunedQuickAccess = closureState.quickAccess
             .filter { reference ->
-                reference.kind != CharacterQuickAccessKind.TRAIT || reference.targetId in liveTraitIds
+                when (reference.kind) {
+                    CharacterQuickAccessKind.TRAIT -> reference.targetId in liveTraitIds
+                    CharacterQuickAccessKind.SPELL -> reference.targetId in liveSpellIds
+                    else -> true
+                }
             }
             .mapIndexed { index, reference -> reference.copy(sortOrder = index) }
         closureState = closureRepository.saveState(
@@ -523,6 +528,8 @@ internal fun CharacterEditorScreenV4(
                                 )
                             },
                             classOptions = draft.classes.map { SpellSourceClassOptionV4(it.id, it.name) },
+                            closureState = closureState,
+                            persistedSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id },
                             onDraftChange = ::updateSpellcasting,
                             onSlotSpentChange = { level, spent ->
                                 val slot = draft.spellSlotFor(level)
@@ -533,7 +540,9 @@ internal fun CharacterEditorScreenV4(
                                     ),
                                 )
                             },
+                            onClosureStateChange = ::persistClosureState,
                             wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
                         )
                         CharacterTabV4.NOTES -> CharacterNotesTabV4(
                             draft = notesDraft,
