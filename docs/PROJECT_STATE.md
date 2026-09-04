@@ -5,18 +5,19 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; **Batch G2 active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; **Batch G3 active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G1_TRAITS.md` — completed Rasgos gate and exact continuation into G2;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_F_EQUIPMENT_CURRENCIES.md` — completed full F gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
-4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level A–J map and final QA matrix;
-5. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
-6. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — class/subclass/module audit;
-7. earlier A/B/C/D/E/F checkpoints as historical implementation evidence.
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G2_SPELLS.md` — completed Conjuros gate and exact continuation into G3;
+2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_G1_TRAITS.md` — completed Rasgos gate;
+3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_F_EQUIPMENT_CURRENCIES.md` — completed full F gate;
+4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
+5. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level map and final QA matrix;
+6. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
+7. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module audit;
+8. earlier A/B/C/D/E/F checkpoints as historical implementation evidence.
 
 ## 1. Closure scope status
 
@@ -26,7 +27,7 @@ No DM feature implementation begins before the Phase 4 exit gate.
 
 ## 2. Batch 0 housekeeping — COMPLETE
 
-Current-truth documentation was refreshed. Known remaining governance item: consolidated `docs/DECISIONS.md` still ends at D-0043 while detailed approved D-0044–D-0047 records exist. Reconcile before merge proposal without renumbering historical decisions.
+Current-truth documentation was refreshed. Known remaining governance item: consolidated `docs/DECISIONS.md` still ends at D-0043 while detailed later decision files exist. Reconcile before merge proposal without renumbering historical decisions.
 
 ## 3. Batch A1 — official catalog reconciliation — GREEN
 
@@ -73,70 +74,103 @@ Verification:
 
 ## 11. Batch G1 — Rasgos — GREEN
 
-Controlling checkpoint:
-
-- `docs/checkpoints/2026-09-03_PHASE4_BATCH_G1_TRAITS.md`.
-
-Delivered:
-
-- pure search/filter/group/reorder/duplicate/use-meter operations;
-- type/source/Favorite filters;
-- no/type/source grouping;
-- responsive two-column groups;
-- real visible grouped drag with haptics;
-- usage progress meter + Spend/Recover;
-- Quick Access ★/☆ using `CharacterQuickAccessKind.TRAIT`;
-- duplicate and named delete;
-- existing IME-safe editor retained;
-- favorite references to durably deleted traits pruned only on successful global Save.
+Delivered pure search/filter/group/reorder/duplicate/use-meter operations, type/source/Favorite filters, responsive grouping, visible drag+haptics, usage controls, Quick Access ★/☆, duplicate, named delete and IME-safe editing.
 
 Verification:
 
 - G1a workflow `33817330178` — PASS;
-- G1 controlling head `95c246cafcc7147d6a1d02717456f1266a72e80f`;
-- G1 workflow `33817819671` — PASS;
-- artifact `dnd-custom-aid-debug-apk`, ID `9917236440`, digest `sha256:a81ef352b6c1a8e19cf6a5be2d582fb56c2bc1276f072d86e1e0817993adefa8`.
+- G1 controlling workflow `33817819671` — PASS;
+- artifact ID `9917236440`, digest `sha256:a81ef352b6c1a8e19cf6a5be2d582fb56c2bc1276f072d86e1e0817993adefa8`.
 
-## 12. Current batch — G2 Conjuros closure
+## 12. Batch G2 — Conjuros — GREEN
 
-Goal: improve spell presentation/ordering/filtering and tablet editing while preserving the proven spell source/preparation/shared-slot model.
+Controlling checkpoint:
 
-G2 targets from the approved execution plan:
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_G2_SPELLS.md`.
 
-- independent Manual/A–Z presentation inside level/source rules;
-- filters;
-- V/S/M, concentration, ritual and prepared badges;
-- sticky/collapsible level groups;
-- Favorites, duplicate and real reorder;
-- shared-slot regression protection;
-- tablet master-detail;
-- preserve existing numeric spell-level input and unrestricted manual/custom content.
+Delivered:
+
+- pure Manual/A–Z, search/filter, duplicate and source-projected manual-order operations;
+- one conceptual spell collection preserved across `Todos` and source views;
+- source-specific Prepared state preserved;
+- Favorite/Prepared/Concentration/Ritual/V/S/M filters;
+- compact V/S/M/Concentration/Ritual/prepared badges;
+- collapsible sticky spell-level headers;
+- shared Quick Magic/Conjuros slot state retained;
+- Favorites using existing Quick Access with orphan prevention/pruning on successful Save;
+- duplicate and named delete;
+- visible drag/haptics with A–Z/search/filter safety;
+- phone IME-safe editor;
+- tablet master-detail with selected-row highlight and independent editor scrolling;
+- narrow-phone action column refinement so secondary actions do not unnecessarily squeeze spell content.
+
+Verification:
+
+- G2a workflow `33818362184` — PASS;
+- first full G2b workflow `33822274027` — PASS;
+- density product refinement `498df76ce092d81c965f4eb36a3c8bbd8486d91c`;
+- final controlling checkpoint head `7289c19e7db8db53ca50947b71792aed732bd0fc`;
+- final workflow `33822722007` — PASS;
+- final artifact `dnd-custom-aid-debug-apk`, ID `9918883401`, digest `sha256:69df9fa57d7401d95c30417afc7e81705d574559b44686b6b845a72dca514a25`.
+
+These APKs remain integration evidence, not the future frozen owner-QA candidate.
+
+## 13. Current batch — G3 Notas + Trasfondo closure
+
+Audit result: no schema change is required.
+
+Existing Notes baseline already provides:
+
+- one large unrestricted General Notes field;
+- titled cards with 3-line preview;
+- add/edit/delete;
+- real visible drag with haptics;
+- one-column phone and two-column wide presentation;
+- IME-safe long-note editor with internal scrolling;
+- persistence regression for very large General Notes and ordered note cards.
+
+Remaining G3 Notes work is bounded to:
+
+- duplicate titled note with a fresh UUID and deterministic appended order;
+- explicit LazyList state/context retention while an editor overlays;
+- preserve the deliberately lightweight title+content model; do not add tags/dates/categories.
+
+Existing Background baseline already provides:
+
+- background name + summary;
+- Raza and Religión/Fe;
+- compact personality/ideals/bonds/flaws preview cards with responsive two-column layout;
+- two honest image placeholders;
+- full long Story field;
+- migration + round-trip regression protecting Raza/Religión.
+
+Remaining G3 Background work is bounded to:
+
+- make the long Story block collapsible with a useful short preview while preserving full editing when expanded;
+- retain the approved two-image placeholder layout and all existing identity/narrative fields.
 
 Implementation discipline:
 
-- audit current spell/source/slot UI and codec first;
-- define pure presentation/order/filter/duplicate helpers + focused tests before Compose changes;
-- alphabetical presentation must never rewrite stored manual order;
-- drag hidden/disabled when A–Z or a partial search/filter projection makes reorder ambiguous;
-- Quick Access uses existing `CharacterQuickAccessKind.SPELL` and only persisted spell IDs;
-- no schema expected unless the audit proves a missing durable concept.
+- start with small pure note operations + focused tests for normalize/move/duplicate;
+- gate those helpers before UI wiring;
+- then update Notes and Background only;
+- no schema, no new note metadata, no image-persistence expansion;
+- G3 must have its own green checkpoint before beginning H1 Artífice + Formas.
 
-G2 must have its own green checkpoint before G3 Notas + Trasfondo.
-
-## 13. Existing baseline that must not regress
+## 14. Existing baseline that must not regress
 
 Persistent General/Habilidades, Combate, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, PC Settings, Supercompact projection, D-0046 derived values/adjustments and all migrations/repositories must remain compatible.
 
-## 14. Final acceptance boundary
+## 15. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity. Owner QA matrix: phone portrait, phone landscape, tablet portrait, tablet landscape and representative larger text scale. Green CI never substitutes for real-device QA.
 
-## 15. Merge boundary
+## 16. Merge boundary
 
 Do not merge Phase 4 to `main` until all D-0047 batches are implemented, automated gates are green, one exact closure QA APK is recorded, owner phone+tablet QA is accepted, blocking findings are resolved, governance housekeeping is complete and owner explicitly approves merge/closure.
 
-## 16. Exact continuation
+## 17. Exact continuation
 
-Resume **Batch G2 — Conjuros** on `implementation/phase4-character-closure`.
+Resume **Batch G3 — Notas + Trasfondo** on `implementation/phase4-character-closure`.
 
-Audit the current spell list/editor/source/shared-slot implementation. Then add pure presentation/filter/order/duplicate helpers and tests, gate them, wire the responsive spell UI, and close G2 before beginning G3.
+First add pure titled-note normalize/move/duplicate helpers and focused tests. After that gate is green, wire Duplicate + explicit list-context retention into Notes and make Background Story collapsible with a compact preview, retaining Raza/Religión and honest two-image placeholders. Close G3 before H1.
