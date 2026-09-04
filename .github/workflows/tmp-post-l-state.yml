@@ -1,0 +1,39 @@
+name: Post-L project state transition
+
+on:
+  push:
+    branches:
+      - tmp/phase4-post-l-state
+    paths:
+      - .github/workflows/tmp-post-l-state.yml
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/phase4-post-l-state
+          fetch-depth: 0
+      - name: Apply project-state transition
+        shell: bash
+        run: python .github/post_l_state_patch.py
+      - name: Verify current state markers
+        shell: bash
+        run: |
+          grep -F "Batch K GREEN; Batch L GREEN/FROZEN; Batch M active" docs/PROJECT_STATE.md
+          grep -F "33887576972" docs/PROJECT_STATE.md
+          grep -F "73282b433c519840e73ef9f8c8e63a311dcdf7bd9352c299469a0f7c290be079" docs/PROJECT_STATE.md
+      - name: Commit state and remove helpers
+        shell: bash
+        run: |
+          rm .github/post_l_state_patch.py .github/workflows/tmp-post-l-state.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PROJECT_STATE.md .github/post_l_state_patch.py .github/workflows/tmp-post-l-state.yml
+          git diff --cached --check
+          git commit -m "docs: advance Phase 4 to owner QA"
+          git push origin HEAD:tmp/phase4-post-l-state
