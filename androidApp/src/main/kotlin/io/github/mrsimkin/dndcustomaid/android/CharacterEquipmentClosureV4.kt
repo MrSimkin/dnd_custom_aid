@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -716,10 +717,12 @@ private fun EquipmentDenseItemF2(
         showDropAfter = dragging && accumulatedDrag > 0f,
     )
     val carry = effectiveInventoryCarryState(item, usage)
-    val meta = buildList {
+    val stateLabels = buildList {
         add(if (carry == CharacterInventoryCarryState.CARRIED) "Transportado" else "Guardado")
         if (item.equipped) add("Equipado")
         if (item.attuned) add("Sintonizado")
+    }
+    val meta = buildList {
         when (usage.kind) {
             CharacterConsumableKind.CONSUMABLE -> add("Consumible −${usage.quickUseAmount}")
             CharacterConsumableKind.AMMUNITION -> add("Munición −${usage.quickUseAmount}")
@@ -789,14 +792,27 @@ private fun EquipmentDenseItemF2(
                             contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
                         )
                     }
-                    Column(modifier = Modifier.weight(1f)) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(item.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text(
-                            meta.joinToString(" · "),
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            stateLabels.forEach { label ->
+                                CharacterSemanticBadgeV4(
+                                    label = label,
+                                    kind = CharacterSemanticBadgeKindV4.STATE,
+                                )
+                            }
+                        }
+                        if (meta.isNotEmpty()) {
+                            Text(
+                                meta.joinToString(" · "),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text("×${item.quantity}", style = MaterialTheme.typography.labelLarge)

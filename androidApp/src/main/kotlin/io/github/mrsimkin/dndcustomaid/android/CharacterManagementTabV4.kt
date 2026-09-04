@@ -518,6 +518,10 @@ private fun ConcentrationCardV4(
             Text("Sin concentración activa.", style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = onEdit) { Text("Iniciar concentración") }
         } else {
+            CharacterSemanticBadgeV4(
+                label = "Concentración activa",
+                kind = CharacterSemanticBadgeKindV4.STATE,
+            )
             Text(concentration.name, style = MaterialTheme.typography.titleSmall)
             concentration.notes?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

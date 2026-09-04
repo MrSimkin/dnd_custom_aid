@@ -42,6 +42,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -821,14 +823,14 @@ private fun SpellRowG2(
                         if (spell.verbal) SpellBadgeG2("V")
                         if (spell.somatic) SpellBadgeG2("S")
                         if (spell.material) SpellBadgeG2("M")
-                        if (spell.concentration) SpellBadgeG2("Conc.")
-                        if (spell.ritual) SpellBadgeG2("Ritual")
+                        if (spell.concentration) SpellBadgeG2("Concentración", state = true)
+                        if (spell.ritual) SpellBadgeG2("Ritual", state = true)
                         if (selectedSourceId != null && selectedAssociation?.prepared == true) {
-                            SpellBadgeG2("Preparado")
+                            SpellBadgeG2("Preparado", state = true)
                         }
                         if (selectedSourceId == null && spell.sourceAssociations.isNotEmpty()) {
                             val preparedCount = spell.sourceAssociations.count { it.prepared }
-                            SpellBadgeG2("Prep. $preparedCount/${spell.sourceAssociations.size}")
+                            SpellBadgeG2("Preparado $preparedCount/${spell.sourceAssociations.size}", state = true)
                         }
                     }
                     val summary = listOf(spell.castingTime, spell.rangeText, spell.duration)
@@ -866,6 +868,13 @@ private fun SpellRowG2(
                         TextButton(
                             onClick = { onFavoriteChange(!favorite) },
                             enabled = structuralEditingEnabled && favoriteEnabled,
+                            modifier = Modifier.semantics {
+                                contentDescription = if (favorite) {
+                                    "Quitar ${spell.name} de Favoritos"
+                                } else {
+                                    "Añadir ${spell.name} a Favoritos"
+                                }
+                            },
                             contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
                         ) {
                             Text(if (favorite) "★" else "☆")
@@ -893,19 +902,11 @@ private fun SpellRowG2(
 }
 
 @Composable
-private fun SpellBadgeG2(label: String) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Text(
-            label,
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 1,
-        )
-    }
+private fun SpellBadgeG2(label: String, state: Boolean = false) {
+    CharacterSemanticBadgeV4(
+        label = label,
+        kind = if (state) CharacterSemanticBadgeKindV4.STATE else CharacterSemanticBadgeKindV4.NEUTRAL,
+    )
 }
 
 @Composable
