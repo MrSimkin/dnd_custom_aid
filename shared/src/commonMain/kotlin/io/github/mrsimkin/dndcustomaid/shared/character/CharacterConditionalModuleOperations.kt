@@ -11,9 +11,31 @@ const val CHARACTER_FORM_FAVORITE_FILTER_KEY: String = "favorite"
 private const val CHARACTER_FORM_SOURCE_FILTER_PREFIX = "source:"
 private const val CHARACTER_FORM_EMPTY_SOURCE_KEY = "_none"
 
-fun isArtificeCharacterOption(option: CharacterClassOption): Boolean =
-    option.kind == CharacterClassOptionKind.ARTIFICER_PLAN ||
-        option.kind == CharacterClassOptionKind.ARTIFICER_DEVICE
+const val CHARACTER_CLASS_OPTION_FAVORITE_FILTER_KEY: String = "favorite"
+const val CHARACTER_CLASS_OPTION_ACTIVE_FILTER_KEY: String = "active"
+const val CHARACTER_PACT_CHOICE_FILTER_KEY: String = "kind:PACT_CHOICE"
+const val CHARACTER_PACT_INVOCATION_FILTER_KEY: String = "kind:INVOCATION"
+private const val CHARACTER_CLASS_OPTION_SOURCE_FILTER_PREFIX = "source:"
+private const val CHARACTER_CLASS_OPTION_EMPTY_SOURCE_KEY = "_none"
+
+private val ARTIFICE_OPTION_KINDS = setOf(
+    CharacterClassOptionKind.ARTIFICER_PLAN,
+    CharacterClassOptionKind.ARTIFICER_DEVICE,
+)
+private val TECHNIQUE_OPTION_KINDS = setOf(CharacterClassOptionKind.TECHNIQUE)
+private val METAMAGIC_OPTION_KINDS = setOf(CharacterClassOptionKind.METAMAGIC)
+private val PACT_OPTION_KINDS = setOf(
+    CharacterClassOptionKind.INVOCATION,
+    CharacterClassOptionKind.PACT_CHOICE,
+)
+
+fun isArtificeCharacterOption(option: CharacterClassOption): Boolean = option.kind in ARTIFICE_OPTION_KINDS
+
+fun isTechniqueCharacterOption(option: CharacterClassOption): Boolean = option.kind in TECHNIQUE_OPTION_KINDS
+
+fun isMetamagicCharacterOption(option: CharacterClassOption): Boolean = option.kind in METAMAGIC_OPTION_KINDS
+
+fun isPactCharacterOption(option: CharacterClassOption): Boolean = option.kind in PACT_OPTION_KINDS
 
 fun presentCharacterArtificeOptions(
     options: List<CharacterClassOption>,
@@ -71,17 +93,110 @@ fun moveCharacterArtificeOptionManual(
     options: List<CharacterClassOption>,
     optionId: Uuid,
     offset: Int,
+): List<CharacterClassOption> = moveCharacterClassOptionModuleManual(
+    options = options,
+    optionId = optionId,
+    offset = offset,
+    ownedKinds = ARTIFICE_OPTION_KINDS,
+)
+
+fun presentCharacterTechniqueOptions(
+    options: List<CharacterClassOption>,
+    order: CharacterPresentationOrder = CharacterPresentationOrder.MANUAL,
+    query: CharacterCollectionQuery = CharacterCollectionQuery(),
+    isFavorite: (CharacterClassOption) -> Boolean = { false },
+): List<CharacterClassOption> = presentCharacterClassOptionModuleOptions(
+    options = options,
+    ownedKinds = TECHNIQUE_OPTION_KINDS,
+    order = order,
+    query = query,
+    isFavorite = isFavorite,
+)
+
+fun presentCharacterMetamagicOptions(
+    options: List<CharacterClassOption>,
+    order: CharacterPresentationOrder = CharacterPresentationOrder.MANUAL,
+    query: CharacterCollectionQuery = CharacterCollectionQuery(),
+    isFavorite: (CharacterClassOption) -> Boolean = { false },
+): List<CharacterClassOption> = presentCharacterClassOptionModuleOptions(
+    options = options,
+    ownedKinds = METAMAGIC_OPTION_KINDS,
+    order = order,
+    query = query,
+    isFavorite = isFavorite,
+)
+
+fun presentCharacterPactOptions(
+    options: List<CharacterClassOption>,
+    order: CharacterPresentationOrder = CharacterPresentationOrder.MANUAL,
+    query: CharacterCollectionQuery = CharacterCollectionQuery(),
+    isFavorite: (CharacterClassOption) -> Boolean = { false },
+): List<CharacterClassOption> = presentCharacterClassOptionModuleOptions(
+    options = options,
+    ownedKinds = PACT_OPTION_KINDS,
+    order = order,
+    query = query,
+    isFavorite = isFavorite,
+    kindFilterKeys = mapOf(
+        CharacterClassOptionKind.PACT_CHOICE to CHARACTER_PACT_CHOICE_FILTER_KEY,
+        CharacterClassOptionKind.INVOCATION to CHARACTER_PACT_INVOCATION_FILTER_KEY,
+    ),
+)
+
+fun characterClassOptionSourceFilterKey(source: String?): String =
+    "$CHARACTER_CLASS_OPTION_SOURCE_FILTER_PREFIX${normalizeCharacterSearchText(source.orEmpty()).ifBlank { CHARACTER_CLASS_OPTION_EMPTY_SOURCE_KEY }}"
+
+fun moveCharacterTechniqueOptionManual(
+    options: List<CharacterClassOption>,
+    optionId: Uuid,
+    offset: Int,
+): List<CharacterClassOption> = moveCharacterClassOptionModuleManual(
+    options = options,
+    optionId = optionId,
+    offset = offset,
+    ownedKinds = TECHNIQUE_OPTION_KINDS,
+)
+
+fun moveCharacterMetamagicOptionManual(
+    options: List<CharacterClassOption>,
+    optionId: Uuid,
+    offset: Int,
+): List<CharacterClassOption> = moveCharacterClassOptionModuleManual(
+    options = options,
+    optionId = optionId,
+    offset = offset,
+    ownedKinds = METAMAGIC_OPTION_KINDS,
+)
+
+fun moveCharacterPactOptionManual(
+    options: List<CharacterClassOption>,
+    optionId: Uuid,
+    offset: Int,
+): List<CharacterClassOption> = moveCharacterClassOptionModuleManual(
+    options = options,
+    optionId = optionId,
+    offset = offset,
+    ownedKinds = PACT_OPTION_KINDS,
+)
+
+fun moveCharacterClassOptionModuleManual(
+    options: List<CharacterClassOption>,
+    optionId: Uuid,
+    offset: Int,
+    ownedKinds: Set<CharacterClassOptionKind>,
 ): List<CharacterClassOption> {
     val ordered = options.sortedWith(
         compareBy<CharacterClassOption> { it.sortOrder }
             .thenBy { it.id.toString() },
     )
-    if (offset == 0 || ordered.size < 2) return normalizeCharacterClassOptionOrders(ordered)
-    if (ordered.none { it.id == optionId && isArtificeCharacterOption(it) }) {
+    if (offset == 0 || ordered.size < 2 || ownedKinds.isEmpty()) {
+        return normalizeCharacterClassOptionOrders(ordered)
+    }
+    if (ordered.none { it.id == optionId && it.kind in ownedKinds }) {
         return normalizeCharacterClassOptionOrders(ordered)
     }
 
-    val visiblePositions = ordered.indices.filter { index -> isArtificeCharacterOption(ordered[index]) }
+    val visiblePositions = ordered.indices.filter { index -> ordered[index].kind in ownedKinds }
     val visibleItems = visiblePositions.map(ordered::get).toMutableList()
     val visibleIndex = visibleItems.indexOfFirst { it.id == optionId }
     val target = visibleIndex + offset
@@ -123,12 +238,72 @@ fun characterClassOptionKindDisplayLabel(kind: CharacterClassOptionKind): String
     CharacterClassOptionKind.TECHNIQUE -> "Técnica"
     CharacterClassOptionKind.METAMAGIC -> "Metamagia"
     CharacterClassOptionKind.INVOCATION -> "Invocación"
+    CharacterClassOptionKind.PACT_CHOICE -> "Pacto / elección"
     CharacterClassOptionKind.OTHER -> "Otro"
-    else -> kind.name
 }
 
 fun characterArtificeOptionKindDisplayLabel(kind: CharacterClassOptionKind): String =
     characterClassOptionKindDisplayLabel(kind)
+
+private fun presentCharacterClassOptionModuleOptions(
+    options: List<CharacterClassOption>,
+    ownedKinds: Set<CharacterClassOptionKind>,
+    order: CharacterPresentationOrder,
+    query: CharacterCollectionQuery,
+    isFavorite: (CharacterClassOption) -> Boolean,
+    kindFilterKeys: Map<CharacterClassOptionKind, String> = emptyMap(),
+): List<CharacterClassOption> = presentCharacterCollection(
+    items = options.filter { option -> option.kind in ownedKinds },
+    order = order,
+    manualOrder = CharacterClassOption::sortOrder,
+    label = CharacterClassOption::name,
+    stableKey = { it.id.toString() },
+    query = query,
+    searchableText = { option ->
+        listOf(
+            option.name,
+            option.source,
+            option.costText,
+            option.effectSummary,
+            option.notes,
+            characterClassOptionKindDisplayLabel(option.kind),
+        )
+    },
+    filterMatches = { option, activeFilters ->
+        characterClassOptionModuleFilterMatches(
+            option = option,
+            ownedKinds = ownedKinds,
+            activeFilters = activeFilters,
+            favorite = isFavorite(option),
+            kindFilterKeys = kindFilterKeys,
+        )
+    },
+)
+
+private fun characterClassOptionModuleFilterMatches(
+    option: CharacterClassOption,
+    ownedKinds: Set<CharacterClassOptionKind>,
+    activeFilters: Set<String>,
+    favorite: Boolean,
+    kindFilterKeys: Map<CharacterClassOptionKind, String>,
+): Boolean {
+    if (option.kind !in ownedKinds) return false
+    if (activeFilters.isEmpty()) return true
+
+    if (CHARACTER_CLASS_OPTION_FAVORITE_FILTER_KEY in activeFilters && !favorite) return false
+    if (CHARACTER_CLASS_OPTION_ACTIVE_FILTER_KEY in activeFilters && !option.active) return false
+
+    val sourceFilters = activeFilters.filterTo(mutableSetOf()) {
+        it.startsWith(CHARACTER_CLASS_OPTION_SOURCE_FILTER_PREFIX)
+    }
+    if (sourceFilters.isNotEmpty() && characterClassOptionSourceFilterKey(option.source) !in sourceFilters) {
+        return false
+    }
+
+    val kindFilters = activeFilters.filterTo(mutableSetOf()) { it in kindFilterKeys.values }
+    if (kindFilters.isNotEmpty() && kindFilterKeys[option.kind] !in kindFilters) return false
+    return true
+}
 
 fun characterFormSourceFilterKey(source: String?): String =
     "$CHARACTER_FORM_SOURCE_FILTER_PREFIX${normalizeCharacterSearchText(source.orEmpty()).ifBlank { CHARACTER_FORM_EMPTY_SOURCE_KEY }}"
