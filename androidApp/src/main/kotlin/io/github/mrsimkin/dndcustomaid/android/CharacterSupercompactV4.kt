@@ -424,7 +424,7 @@ private fun SupercompactFavoriteCardV4(
                                 ),
                             )
                         },
-                        enabled = liveControlsEnabled && (resource.maxValue == null || resource.currentValue < resource.maxValue),
+                        enabled = liveControlsEnabled && (resource.maxValue?.let { max -> resource.currentValue < max } ?: true),
                     ) { Text("+1") }
                 }
             }
