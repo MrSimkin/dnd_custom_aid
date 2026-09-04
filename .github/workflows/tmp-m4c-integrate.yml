@@ -36,14 +36,16 @@ jobs:
           node-version: '22'
 
       - name: Apply exact M4c character-list patch
-        run: python .github/tmp_m4c_integrate.py
+        run: |
+          python .github/tmp_m4c_integrate.py
+          python .github/tmp_m4c_mainactivity_repair.py
 
       - name: Verify I18 reachability and authority use
         run: |
           grep -F 'characterListClassSummary(character.classes)' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterUi.kt
           grep -F 'characterListFreshnessLabel(character.updatedAtEpochSeconds, nowEpochSeconds)' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterUi.kt
           grep -F 'closureState.portraitRef' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterUi.kt
-          test "$(grep -F 'closureRepository = characterClosureRepository,' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/MainActivity.kt | wc -l)" -ge 3
+          test "$(grep -F 'closureRepository = characterClosureRepository,' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/MainActivity.kt | wc -l)" -eq 3
 
       - name: Prepare stable CI debug keystore
         run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
@@ -59,12 +61,13 @@ jobs:
 
       - name: Commit accepted M4c product tree and remove temporary helpers
         run: |
-          rm .github/tmp_m4c_integrate.py .github/workflows/tmp-m4c-integrate.yml
+          rm .github/tmp_m4c_integrate.py .github/tmp_m4c_mainactivity_repair.py .github/workflows/tmp-m4c-integrate.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterUi.kt \
                   androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/MainActivity.kt \
                   .github/tmp_m4c_integrate.py \
+                  .github/tmp_m4c_mainactivity_repair.py \
                   .github/workflows/tmp-m4c-integrate.yml
           git commit -m 'feat: integrate M4c character-list completeness'
           git push origin HEAD:tmp/phase4-m4c-character-list
