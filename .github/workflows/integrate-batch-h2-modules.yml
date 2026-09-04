@@ -22,80 +22,15 @@ jobs:
         with:
           python-version: '3.x'
       - name: Apply guarded H2 editor integration
-        shell: bash
-        run: |
-          python <<'PY'
-          from pathlib import Path
-
-          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt')
-          text = path.read_text()
-          if 'CharacterTabV4.TECHNIQUES -> CharacterTechniquesModuleV4(' in text:
-              raise SystemExit('H2 editor wiring already present; refusing duplicate integration')
-
-          anchor = '''                        CharacterTabV4.FORMS -> CharacterFormsModuleV4(
-                            forms = h1ModuleDraft.forms,
-                            closureState = closureState,
-                            persistedFormIds = stored.forms.mapTo(mutableSetOf()) { it.id },
-                            onFormsChange = { updated ->
-                                updateH1Modules(h1ModuleDraft.copy(forms = updated))
-                            },
-                            onClosureStateChange = ::persistClosureState,
-                            wide = wide,
-                            hapticsEnabled = closureState.hapticsEnabled,
-                        )
-'''
-          if text.count(anchor) != 1:
-              raise SystemExit(f'Expected exactly one Forms wiring anchor, found {text.count(anchor)}')
-
-          addition = '''                        CharacterTabV4.TECHNIQUES -> CharacterTechniquesModuleV4(
-                            options = h1ModuleDraft.classOptions,
-                            classes = settingsSheet.classes,
-                            closureState = closureState,
-                            persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
-                            onOptionsChange = { updated ->
-                                updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
-                            },
-                            onClosureStateChange = ::persistClosureState,
-                            wide = wide,
-                            hapticsEnabled = closureState.hapticsEnabled,
-                        )
-                        CharacterTabV4.METAMAGIC -> CharacterMetamagicModuleV4(
-                            options = h1ModuleDraft.classOptions,
-                            classes = settingsSheet.classes,
-                            closureState = closureState,
-                            persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
-                            onOptionsChange = { updated ->
-                                updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
-                            },
-                            onClosureStateChange = ::persistClosureState,
-                            wide = wide,
-                            hapticsEnabled = closureState.hapticsEnabled,
-                        )
-                        CharacterTabV4.PACTS -> CharacterPactsModuleV4(
-                            options = h1ModuleDraft.classOptions,
-                            classes = settingsSheet.classes,
-                            closureState = closureState,
-                            persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
-                            onOptionsChange = { updated ->
-                                updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
-                            },
-                            onClosureStateChange = ::persistClosureState,
-                            wide = wide,
-                            hapticsEnabled = closureState.hapticsEnabled,
-                        )
-'''
-          text = text.replace(anchor, anchor + addition)
-          path.write_text(text)
-          PY
+        run: python .github/scripts/integrate_h2_modules.py
       - name: Remove one-time scaffolding
-        run: rm .github/workflows/integrate-batch-h2-modules.yml
+        run: rm .github/scripts/integrate_h2_modules.py .github/workflows/integrate-batch-h2-modules.yml
       - name: Verify whitespace
         run: git diff --check
       - name: Commit H2 integration
-        shell: bash
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt .github/workflows/integrate-batch-h2-modules.yml
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt .github/scripts/integrate_h2_modules.py .github/workflows/integrate-batch-h2-modules.yml
           git commit -m 'feat: integrate Batch H2 conditional modules'
-          git push origin HEAD:implementation/phase4-character-closure
+          git push
