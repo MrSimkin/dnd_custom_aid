@@ -5,20 +5,21 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J GREEN; Batch K GREEN; Batch L GREEN/FROZEN; Batch M active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J GREEN; Batch K GREEN; historical Batch L GREEN/FROZEN; expanded Batch M active — M1/M2/M3 audits complete, M4 required, owner QA deferred to M6**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_L_FROZEN_QA_CANDIDATE.md` — frozen owner-QA candidate identity and Batch M entry;
-2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_K_STABILIZATION_COMPLETE.md` — owner-schema migration proof and exact K stabilization gate;
-3. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_BACKUP_IMPORT_COMPLETE.md` — completed Batch J backup/import gate;
-4. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed Batch I closure;
-5. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — approved execution sequence through owner QA; historical next-action text is superseded by this Project State;
-6. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
-7. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
-8. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
-9. earlier A–J checkpoints as historical implementation/verification evidence.
+1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M3_PRIOR_BATCH_COMPLETENESS_AUDIT.md` — verifies that prior historical batches were actually implemented to their written contracts and identifies inter-batch D-0047 scope holes;
+2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M4_INTER_BATCH_SCOPE_HOLE_CLOSURE_PLAN.md` — required repair batch for the holes found by M3;
+3. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M2_CODE_HEALTH_AUDIT.md` — code-health/static architecture audit and bounded cleanup findings;
+4. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M1_SCOPE_TRACEABILITY_AUDIT.md` — D-0047 scope traceability audit that first exposed the missing/partial approved requirements;
+5. `docs/checkpoints/2026-09-04_PHASE4_BATCH_L_FROZEN_QA_CANDIDATE.md` — historical frozen candidate identity; preserve unchanged, but it is no longer the future final QA candidate after M4 production repairs;
+6. `docs/checkpoints/2026-09-04_PHASE4_BATCH_K_STABILIZATION_COMPLETE.md` — owner-schema migration proof and exact K stabilization gate;
+7. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_BACKUP_IMPORT_COMPLETE.md` — completed Batch J backup/import gate;
+8. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed Batch I closure;
+9. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — historical A–M execution decomposition; its original single “M = owner QA” step is now expanded by M1–M6 and does not override this current state;
+10. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` and `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — higher-level implementation scope and controlling owner-approved closure requirements.
 
 ## 1. Closure scope and merge boundary
 
@@ -229,46 +230,77 @@ Frozen candidate identity:
 
 The frozen candidate branch must not be changed. Any code repair after owner QA begins invalidates this identity and requires a new candidate.
 
-## 3. Current active batch — M owner real-device QA
+## 3. Current active Batch M — pre-QA implementation completion
 
-Automated closure work is complete through the frozen candidate. The next authority is owner real-device QA; CI cannot substitute for this gate.
+Batch M is now an expanded pre-QA consolidation sequence rather than a single immediate owner-QA step.
 
-Required device matrix:
+The distinction is deliberate:
 
-- phone portrait;
-- phone landscape;
-- tablet portrait;
-- tablet landscape;
-- representative larger text.
+- M1/M2/M3 ask whether approved functionality exists, whether the implementation is structurally healthy, and whether historical batches were actually carried out as promised;
+- they do **not** judge real-device quality, ergonomics or visual acceptance;
+- owner phone/tablet QA is deferred until missing implementation is closed and a new exact candidate is frozen.
 
-Required upgrade/data check:
+### M1 — scope traceability audit — COMPLETE
 
-- install the frozen candidate over the prior owner-QA installation/data lineage rather than clearing app data first;
-- confirm protected campaign/character data survives the schema-5 -> current upgrade;
-- only after upgrade preservation is confirmed may a clean-install check be used as supplemental evidence.
+M1 traced D-0047 against current implementation and identified four concrete missing/partial capabilities plus two design-fidelity areas.
 
-Representative closure checks must include at least:
+### M2 — code-health/static architecture audit — COMPLETE
 
-- app opens and existing campaign/character can be opened after upgrade;
-- global character navigation and remembered tab behavior;
-- General/Habilidades/Combate/Gestión/Equipo/Trasfondo/Rasgos/Conjuros/Notas protected baseline;
-- conditional Artífice/Formas/Técnicas/Metamagia/Pactos/Compañeros visibility and representative interaction where applicable;
-- global dirty/Save/Discard/unsaved-leave behavior;
-- Table mode structural lock versus intended live/session controls;
-- Supercompact/Quick Access representative live controls;
-- backup export through the Android document picker;
-- backup import into a campaign as a **new copy**, with no overwrite of the source/existing character;
-- no blocking layout, keyboard/IME, rotation, scrolling, larger-text or tablet master-detail regression.
+M2 found bounded historical Android layering/dead-code/duplication debt but no justification for a broad rewrite.
 
-Record every blocking finding with device/orientation, exact screen/module, reproduction steps and whether protected data is at risk. Do not repair on the frozen candidate branch.
+### M3 — prior-batch implementation completeness audit — COMPLETE
+
+M3 audited Batch 0/A1 through L against what each historical batch explicitly promised.
+
+Result:
+
+- **no earlier batch is currently found to be falsely GREEN relative to its own written batch contract**;
+- the problem is instead that the A–J decomposition failed to allocate/fully close several approved D-0047 requirements;
+- therefore Phase 4 is not yet implementation-complete even though the historical batches were genuinely executed.
+
+The six M3 holes are:
+
+1. F14 structured languages/proficiencies/training — missing reachable management UI;
+2. F15 generic Resource Favorite/Quick Access — partial;
+3. I18 character-list subclass/freshness/optional portrait summary — partial;
+4. I21 real-sheet theme/font audition in Application Settings — missing;
+5. D06 semantic rules/source badge treatment — partial;
+6. D07 consistent semantic state-badge grammar — partial/inconsistent.
+
+### M4 — inter-batch scope-hole closure — REQUIRED / NEXT IMPLEMENTATION BATCH
+
+M4 closes exactly those six approved-scope holes. It is not a feature-expansion batch and must not become a broad redesign.
+
+Any M4 production change means the historical Batch L APK remains immutable historical evidence only. It must not be used as the final owner-QA candidate for the repaired tree.
+
+### M5 — post-repair consolidation and replacement candidate — PLANNED
+
+After M4:
+
+- re-run D-0047 traceability against the repaired tree;
+- perform only the bounded M2 cleanup still justified after the repair;
+- run the complete automated regression/build gate;
+- verify migration and protected baseline behavior remain green;
+- freeze and record a **new** exact candidate identity, workflow, artifact and hashes.
+
+### M6 — owner real-device QA — DEFERRED
+
+Only the new M5-frozen candidate proceeds to owner QA across phone/tablet portrait/landscape and representative larger text, including upgrade/data preservation and the full interaction matrix.
+
+The original historical L candidate remains frozen and must not be patched in place.
 
 ## 4. Remaining approved execution sequence
 
 From the current position:
 
-- **M — ACTIVE — owner real-device QA** on the one frozen L candidate;
-- blocking QA findings -> focused repair branch/batch -> complete automated gate -> a **new** frozen candidate identity -> restart affected QA evidence;
-- if owner QA is accepted with no blockers, complete continuity/governance housekeeping including consolidated `docs/DECISIONS.md`, perform the unique-commit/merge-boundary audit, and prepare the Phase 4 merge proposal;
+- **M1 — COMPLETE:** D-0047 scope traceability audit;
+- **M2 — COMPLETE:** code-health/static architecture audit;
+- **M3 — COMPLETE:** historical prior-batch implementation-completeness audit;
+- **M4 — REQUIRED / NEXT:** close the six inter-batch approved-scope holes recorded by M3;
+- **M5 — AFTER M4:** bounded cleanup/re-audit, complete automated gate, and freeze a replacement exact QA candidate;
+- **M6 — AFTER M5:** owner real-device QA on that replacement candidate;
+- blocking M6 findings -> focused repair batch -> complete automated gate -> new frozen candidate identity -> restart affected QA evidence;
+- after owner QA acceptance, complete continuity/governance housekeeping including consolidated `docs/DECISIONS.md`, perform the unique-commit/merge-boundary audit, and prepare the Phase 4 merge proposal;
 - merge to `main` only after the owner explicitly approves Phase 4 closure/merge.
 
 No DM feature implementation begins before that explicit Phase 4 exit decision.
@@ -281,28 +313,33 @@ Historical/focused/tmp branches remain intentionally preserved. Do not delete th
 
 ## 6. Final acceptance boundary
 
-The frozen L APK is the only current Phase 4 QA candidate. Green CI and hashes establish technical identity; they do not establish product acceptance.
+The historical Batch L APK remains frozen evidence of the pre-M audit tree, but it is **not** the future final QA candidate once M4 changes production code.
 
 Phase 4 remains open until:
 
-1. owner phone+tablet QA is completed and accepted;
-2. blocking findings are resolved through a new candidate when necessary;
-3. continuity/governance housekeeping is complete;
-4. the unique-commit/merge-boundary audit is complete;
-5. the owner explicitly approves merge/closure.
+1. M4 closes all six M3 implementation holes;
+2. M5 re-audits the repaired tree, completes bounded justified cleanup, passes the full technical gate and freezes a new exact candidate;
+3. M6 owner phone+tablet QA is completed and accepted on that new candidate;
+4. blocking findings are resolved through a new candidate when necessary;
+5. continuity/governance housekeeping is complete;
+6. the unique-commit/merge-boundary audit is complete;
+7. the owner explicitly approves merge/closure.
+
+Implementation-completeness audits are not substitutes for QA, and QA is not a substitute for verifying that approved work was actually implemented.
 
 ## 7. Exact continuation
 
-Do **not** make another code change now.
+Do **not** begin owner QA on the historical Batch L candidate now.
 
-Use the frozen candidate APK defined by `docs/checkpoints/2026-09-04_PHASE4_BATCH_L_FROZEN_QA_CANDIDATE.md` and perform Batch M owner QA.
+Current sequence:
 
-The candidate identity is:
+1. M1 scope audit — complete;
+2. M2 code-health audit — complete;
+3. M3 prior-batch implementation-completeness audit — complete;
+4. **M4 inter-batch scope-hole closure — next implementation batch**;
+5. M5 full re-audit/gate + replacement frozen candidate;
+6. M6 owner real-device QA.
 
-- commit `5cc034d3fdf4c25d935bd698aeaf2a3f9e427f27`;
-- workflow `33887576972`;
-- artifact `9942595794`;
-- ZIP SHA-256 `04fccd1c1078e302ddc621f9b546248f6588afcf46aa5f5050b4173919c2999b`;
-- APK SHA-256 `73282b433c519840e73ef9f8c8e63a311dcdf7bd9352c299469a0f7c290be079`.
+For the present continuity update, M4 is planned but should not be treated as already executed merely because its plan exists.
 
-Keep `main` untouched. Keep `tmp/phase4-l-frozen-qa-candidate` untouched. If QA finds a blocker, open a focused repair branch from the durable closure line; never patch the frozen candidate in place. Do not begin DM work before successful Phase 4 exit and explicit owner approval.
+Keep `main` untouched. Keep `tmp/phase4-l-frozen-qa-candidate` untouched. Do not patch the historical L candidate in place. Do not begin DM work before successful Phase 4 exit and explicit owner approval.
