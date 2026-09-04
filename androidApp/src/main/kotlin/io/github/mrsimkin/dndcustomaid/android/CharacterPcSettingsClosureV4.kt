@@ -54,6 +54,8 @@ internal fun CharacterPcSettingsClosureV4(
     onSpellcasterEnabledChange: (Boolean) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
     onOpenSupercompact: () -> Unit,
+    backupExportEnabled: Boolean,
+    onExportBackup: () -> Unit,
     onOpenApplicationSettings: () -> Unit,
 ) {
     var progressEditorOpen by rememberSaveable { mutableStateOf(false) }
@@ -183,6 +185,20 @@ internal fun CharacterPcSettingsClosureV4(
                                 onClick = onOpenApplicationSettings,
                             )
                         },
+                    )
+                }
+
+                item(key = "pc-settings-backup") {
+                    NavigationSettingCardClosureV4(
+                        title = "Respaldo local",
+                        description = if (backupExportEnabled) {
+                            "Exporta a un archivo la última versión guardada de este personaje. El archivo puede importarse luego como una copia local nueva."
+                        } else {
+                            "Guarda o descarta los cambios pendientes antes de exportar un respaldo."
+                        },
+                        actionLabel = "Exportar respaldo",
+                        enabled = backupExportEnabled,
+                        onClick = onExportBackup,
                     )
                 }
             }
@@ -418,10 +434,11 @@ private fun NavigationSettingCardClosureV4(
     title: String,
     description: String,
     actionLabel: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     PcSettingCardClosureV4(title = title, description = description) {
-        TextButton(onClick = onClick) { Text(actionLabel) }
+        TextButton(onClick = onClick, enabled = enabled) { Text(actionLabel) }
     }
 }
 

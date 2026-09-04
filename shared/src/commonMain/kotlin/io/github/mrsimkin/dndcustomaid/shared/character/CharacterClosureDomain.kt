@@ -1,13 +1,16 @@
 package io.github.mrsimkin.dndcustomaid.shared.character
 
+import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
+@Serializable
 enum class CharacterDefenseType {
     RESISTANCE,
     IMMUNITY,
     VULNERABILITY,
 }
 
+@Serializable
 enum class CharacterMovementType {
     FLY,
     SWIM,
@@ -16,11 +19,13 @@ enum class CharacterMovementType {
     OTHER,
 }
 
+@Serializable
 enum class CharacterProgressMode {
     MILESTONE,
     EXPERIENCE,
 }
 
+@Serializable
 enum class CharacterRecoveryCadence {
     NONE,
     SHORT_REST,
@@ -29,29 +34,34 @@ enum class CharacterRecoveryCadence {
     MANUAL,
 }
 
+@Serializable
 enum class CharacterRecoveryAmountMode {
     NONE,
     TO_MAX,
     FIXED,
 }
 
+@Serializable
 enum class CharacterConsumableKind {
     NONE,
     CONSUMABLE,
     AMMUNITION,
 }
 
+@Serializable
 enum class CharacterInventoryCarryState {
     CARRIED,
     STORED,
 }
 
+@Serializable
 enum class CharacterModuleOverrideMode {
     AUTO,
     FORCE_SHOW,
     FORCE_HIDE,
 }
 
+@Serializable
 enum class CharacterQuickAccessKind {
     COMBAT_ENTRY,
     TRAIT,
@@ -65,6 +75,7 @@ enum class CharacterQuickAccessKind {
     OTHER,
 }
 
+@Serializable
 data class CharacterCondition(
     val id: Uuid,
     val name: String,
@@ -73,6 +84,7 @@ data class CharacterCondition(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterDefense(
     val id: Uuid,
     val type: CharacterDefenseType,
@@ -82,6 +94,7 @@ data class CharacterDefense(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterMovement(
     val id: Uuid,
     val type: CharacterMovementType,
@@ -91,6 +104,7 @@ data class CharacterMovement(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterSense(
     val id: Uuid,
     val name: String,
@@ -99,12 +113,14 @@ data class CharacterSense(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterConcentration(
     val spellId: Uuid? = null,
     val name: String,
     val notes: String? = null,
 )
 
+@Serializable
 data class CharacterResourceRecovery(
     val resourceId: Uuid,
     val cadence: CharacterRecoveryCadence = CharacterRecoveryCadence.NONE,
@@ -113,6 +129,7 @@ data class CharacterResourceRecovery(
     val notes: String? = null,
 )
 
+@Serializable
 data class CharacterInventoryUsage(
     val itemId: Uuid,
     val kind: CharacterConsumableKind = CharacterConsumableKind.NONE,
@@ -120,6 +137,7 @@ data class CharacterInventoryUsage(
     val carryState: CharacterInventoryCarryState = CharacterInventoryCarryState.CARRIED,
 )
 
+@Serializable
 data class CharacterReconciliationCheckpoint(
     val id: Uuid,
     val createdAtEpochSeconds: Long,
@@ -128,6 +146,7 @@ data class CharacterReconciliationCheckpoint(
     val notes: String? = null,
 )
 
+@Serializable
 data class CharacterCustomSkill(
     val id: Uuid,
     val name: String,
@@ -139,6 +158,7 @@ data class CharacterCustomSkill(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterTemporaryEffect(
     val id: Uuid,
     val name: String,
@@ -150,17 +170,20 @@ data class CharacterTemporaryEffect(
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterModuleOverride(
     val module: CharacterModuleKind,
     val mode: CharacterModuleOverrideMode,
 )
 
+@Serializable
 data class CharacterQuickAccessRef(
     val kind: CharacterQuickAccessKind,
     val targetId: Uuid,
     val sortOrder: Int = 0,
 )
 
+@Serializable
 data class CharacterClosureState(
     val exhaustionLevel: Int = 0,
     val concentration: CharacterConcentration? = null,

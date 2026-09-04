@@ -1,6 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -48,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -55,6 +58,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupCodec
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
@@ -102,6 +107,7 @@ private val classNamesV4 = listOf(
 internal fun CharacterEditorScreenV4(
     characterId: Uuid,
     repository: CharacterRepository,
+    backupRepository: CharacterBackupRepository,
     closureRepository: CharacterClosureRepository,
     navigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
@@ -185,6 +191,28 @@ internal fun CharacterEditorScreenV4(
     var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }
     var confirmUnsavedLeave by rememberSaveable(characterId.toString(), "unsaved-leave") { mutableStateOf(false) }
     var leaveAfterSave by rememberSaveable(characterId.toString(), "leave-after-save") { mutableStateOf(false) }
+    var backupExportMessage by rememberSaveable(characterId.toString(), "backup-export-message") { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val backupExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri != null) {
+            val result = runCatching {
+                val document = backupRepository.exportCharacter(
+                    characterId = characterId,
+                    exportedAtEpochSeconds = System.currentTimeMillis() / 1000L,
+                )
+                val encoded = CharacterBackupCodec.encode(document)
+                val output = requireNotNull(context.contentResolver.openOutputStream(uri, "wt"))
+                output.bufferedWriter(Charsets.UTF_8).use { writer -> writer.write(encoded) }
+            }
+            backupExportMessage = if (result.isSuccess) {
+                "Respaldo exportado correctamente."
+            } else {
+                "No se pudo escribir el respaldo en el archivo seleccionado."
+            }
+        }
+    }
 
     val combatEntries = remember(combatDraftJson) { combatEntriesFromJsonV4(combatDraftJson) }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
@@ -550,6 +578,16 @@ internal fun CharacterEditorScreenV4(
             },
             onClosureStateChange = ::persistClosureState,
             onOpenSupercompact = { showSupercompact = true },
+            backupExportEnabled = !hasUnsavedChanges,
+            onExportBackup = {
+                val safeBase = stored.name.trim()
+                    .ifBlank { "personaje" }
+                    .replace(Regex("[^\\p{L}\\p{N}._-]+"), "_")
+                    .trim('_')
+                    .take(48)
+                    .ifBlank { "personaje" }
+                backupExportLauncher.launch("${safeBase}_respaldo_dnd-custom-aid.json")
+            },
             onOpenApplicationSettings = onOpenApplicationSettings,
         )
     } else {
@@ -759,6 +797,17 @@ internal fun CharacterEditorScreenV4(
                 }
             }
         }
+    }
+
+    backupExportMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { backupExportMessage = null },
+            title = { Text("Respaldo local") },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { backupExportMessage = null }) { Text("Cerrar") }
+            },
+        )
     }
 
     if (confirmDisableSpellcasting) {
