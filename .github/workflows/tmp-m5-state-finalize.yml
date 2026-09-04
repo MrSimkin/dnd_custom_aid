@@ -23,7 +23,7 @@ jobs:
         run: python3 .github/tmp_m5_state_finalize.py
       - name: Verify M6 markers and frozen identity
         run: |
-          grep -F '**M6 owner real-device QA is NEXT**' docs/PROJECT_STATE.md
+          grep -F 'M6 owner real-device QA is NEXT' docs/PROJECT_STATE.md
           grep -F '### M5 — post-repair consolidation + exact replacement candidate — GREEN / FROZEN' docs/PROJECT_STATE.md
           grep -F '### M6 — owner real-device QA — NEXT' docs/PROJECT_STATE.md
           grep -F 'adc286b3e1305ed706c2ed04d478a43652f6b365' docs/PROJECT_STATE.md
