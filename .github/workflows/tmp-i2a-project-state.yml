@@ -1,0 +1,72 @@
+name: Advance project state after I2a
+
+on:
+  push:
+    branches:
+      - implementation/phase4-character-closure
+    paths:
+      - .github/workflows/tmp-i2a-project-state.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-state:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4-character-closure
+          fetch-depth: 0
+      - name: Patch current project state
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('docs/PROJECT_STATE.md')
+          text = p.read_text()
+
+          replacements = [
+              (
+                  '**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; **Batch I2 active**',
+                  '**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; **Batch I2b active**',
+              ),
+              (
+                  '1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_I1_ADAPTIVE_SHELL.md` — completed I1 gate and exact continuation into I2;',
+                  '1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a gate and exact continuation into I2b;',
+              ),
+              (
+                  '6. earlier A–I1 checkpoints as historical implementation/verification evidence.',
+                  '6. earlier A–I1 checkpoints as historical implementation/verification evidence.',
+              ),
+          ]
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'missing project-state anchor: {old[:80]}')
+              text = text.replace(old, new, 1)
+
+          start = text.index('## 3. Current batch — I2 Supercompact + Table mode')
+          end = text.index('## 4. Remaining approved execution sequence')
+          new_section = '''## 3. Current batch — I2b Table mode\n\nI2a Supercompact is GREEN and durably checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md`. No schema migration was required.\n\nI2b completes F16 by applying Table/read-only mode as an explicit write-policy over the existing character UI. It must reduce accidental structural edits while preserving intentionally permitted live operational controls.\n\nCurrent audit findings:\n\n- Table mode is already durable in `CharacterClosureState.tableModeEnabled` and configurable from PC Settings;\n- a blanket pointer-blocking overlay is not acceptable because it would also disable required live controls;\n- the editor already separates many structural and operational callbacks, so I2b should reuse those seams rather than create a second read-only sheet;\n- Combat already separates entry-structure changes from persisted operational sheet changes;\n- Spells separates spell/source edits from slot-spent changes;\n- Traits needs an explicit structural-edit flag so add/edit/delete/duplicate/reorder/Favorite configuration can lock while use meters remain live;\n- Equipment needs an explicit structural-edit flag so add/edit/delete/duplicate/reorder/currency definition changes lock while consumable/ammunition quick use remains live;\n- Gestión remains primarily operational: HP-like counters, conditions/exhaustion, concentration, resource spend/recover/rest, temporary effects and reconciliation/session operations should remain usable; resource definition add/edit/delete is structural and should lock;\n- Notes, Background and conditional-module content editors are structural and should not write while Table mode is active;\n- search/filter/group/collapse/presentation-only controls do not mutate character data and may remain usable.\n\nRecommended recoverable I2b approach:\n\n1. add one explicit `structuralEditingEnabled = !tableModeEnabled` policy at the editor boundary;\n2. pass that policy only into mixed surfaces that need to distinguish structural from operational actions;\n3. block/no-op structural draft callbacks at the editor boundary as a final write guard;\n4. visually communicate Table mode and disable/hide structural affordances where practical rather than merely rejecting writes after interaction;\n5. preserve operational controls and run the full Gate I technical regression before declaring Batch I complete.\n\n'''
+          text = text[:start] + new_section + text[end:]
+
+          old_baseline = 'Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, current Supercompact projection, D-0046 derived values/adjustments, I1 adaptive navigation/last-tab restoration and all migrations/repositories remain protected baseline behavior.'
+          new_baseline = 'Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, I2a authoritative Supercompact/Quick Access/live controls, D-0046 derived values/adjustments, I1 adaptive navigation/last-tab restoration and all migrations/repositories remain protected baseline behavior.'
+          if old_baseline not in text:
+              raise SystemExit('missing baseline anchor')
+          text = text.replace(old_baseline, new_baseline, 1)
+
+          exact_start = text.index('## 7. Exact continuation')
+          text = text[:exact_start] + '''## 7. Exact continuation\n\nResume **Batch I2b — Table mode completion** on a fresh safety branch from `implementation/phase4-character-closure`.\n\nApply explicit structural-edit permission at existing UI/callback seams. Keep search/filter/presentation behavior usable and preserve intentional live controls such as HP, resources/rest, spell slots, trait use meters, consumable/ammunition quick use and other session state. Do not implement Table mode as a blanket pointer blocker or a second sheet model. Keep `main` untouched and do not begin Batch J/DM work early.\n'''
+          p.write_text(text)
+          PY
+      - name: Commit state and remove helper
+        shell: bash
+        run: |
+          rm .github/workflows/tmp-i2a-project-state.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/PROJECT_STATE.md .github/workflows/tmp-i2a-project-state.yml
+          git diff --cached --check
+          git commit -m "docs: advance Phase 4 state to I2b"
+          git push origin HEAD:implementation/phase4-character-closure
