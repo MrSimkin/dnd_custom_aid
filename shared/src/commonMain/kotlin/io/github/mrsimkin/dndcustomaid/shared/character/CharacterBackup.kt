@@ -5,8 +5,8 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlin.uuid.Uuid
 
 const val CHARACTER_BACKUP_FORMAT = "dnd-custom-aid.character-backup"
@@ -73,14 +73,14 @@ object CharacterBackupCodec {
             )
         }
 
-        val format = root["format"]?.jsonPrimitive?.content
+        val format = (root["format"] as? JsonPrimitive)?.content
         if (format != CHARACTER_BACKUP_FORMAT) {
             return CharacterBackupDecodeResult.Failure(
                 CharacterBackupError(CharacterBackupErrorCode.WRONG_FORMAT, "El archivo no es un respaldo de personaje de D&D Custom Aid."),
             )
         }
 
-        val version = root["version"]?.jsonPrimitive?.content?.toIntOrNull()
+        val version = (root["version"] as? JsonPrimitive)?.content?.toIntOrNull()
         if (version != CHARACTER_BACKUP_VERSION) {
             return CharacterBackupDecodeResult.Failure(
                 CharacterBackupError(

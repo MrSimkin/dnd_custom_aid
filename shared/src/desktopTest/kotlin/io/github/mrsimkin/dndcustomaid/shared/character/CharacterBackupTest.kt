@@ -47,6 +47,22 @@ class CharacterBackupTest {
     }
 
     @Test
+    fun nonPrimitiveHeaderValuesReturnControlledFailures() {
+        assertEquals(
+            CharacterBackupErrorCode.WRONG_FORMAT,
+            assertIs<CharacterBackupDecodeResult.Failure>(
+                CharacterBackupCodec.decode("{\"format\":{},\"version\":1}"),
+            ).error.code,
+        )
+        assertEquals(
+            CharacterBackupErrorCode.UNSUPPORTED_VERSION,
+            assertIs<CharacterBackupDecodeResult.Failure>(
+                CharacterBackupCodec.decode("{\"format\":\"$CHARACTER_BACKUP_FORMAT\",\"version\":{}}"),
+            ).error.code,
+        )
+    }
+
+    @Test
     fun importPlanRestoresAsNewCopyAndRemapsInternalReferences() {
         val document = richDocument()
         val destinationCampaign = id("90000000-0000-0000-0000-000000000001")
