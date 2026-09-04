@@ -36,27 +36,31 @@ The slice proved Android Material 3 UI, shared Kotlin behavior, SQLDelight persi
 
 **Status:** Current.
 
-Phase 4 began with the Android character data foundation. That work expanded substantially through iterative owner QA and is now in a deliberate **Character Foundation Closure** cycle before any DM-feature implementation begins.
+Phase 4 began with the Android character data foundation. That work expanded substantially through iterative owner QA and entered a deliberate **Character Foundation Closure** cycle before any DM-feature implementation begins.
 
 ### Phase 4A — Character Foundation Closure
 
-**Status:** In progress on `implementation/phase4-character-closure`.
+**Status:** Implementation complete; **M6 owner real-device QA pending**.
 
-The owner explicitly approved D-0047: one substantial final character-stage package combining retained QA fixes, new character functionality, UX/design improvements, official class/subclass identity including Artificer and supplemental official material, conditional reusable class modules, and first-class phone/tablet behavior.
+Durable pre-QA branch:
 
-Current general character surfaces include/target:
+`implementation/phase4-preqa-consolidation`
+
+The owner approved D-0047: one substantial final character-stage package combining retained QA fixes, new character functionality, UX/design improvements, official class/subclass identity including Artificer and supplemental official material, conditional reusable class modules, and first-class phone/tablet behavior.
+
+Implemented general character surfaces:
 
 - General;
 - Habilidades;
 - Combate;
-- Equipo;
+- Gestión;
+- Equipo / Monedas;
 - Trasfondo;
 - Rasgos;
 - conditional Conjuros;
-- Notas;
-- Gestión.
+- Notas.
 
-Conditional reusable modules identified by audit:
+Implemented conditional reusable modules:
 
 - Artífice;
 - Formas;
@@ -65,29 +69,38 @@ Conditional reusable modules identified by audit:
 - Pactos;
 - Compañeros.
 
-The closure also includes the approved F01–F18, D01–D18 and I01–I22 sets recorded in D-0047, including global IME/action consistency, responsive phone/tablet layouts, Supercompact, Table mode, resources/conditions/rest management, structured defenses/senses/proficiencies, richer equipment/spell/trait workflows and own-format local backup/import.
+The closure includes the approved F01–F18, D01–D18 and I01–I22 sets recorded in D-0047, including global IME/action consistency, responsive phone/tablet layouts, Supercompact, Table mode, resources/conditions/rest management, structured defenses/senses/proficiencies, richer equipment/spell/trait workflows and own-format local backup/import.
 
-The complete execution sequence is broken into recoverable batches under:
+Pre-QA audits and consolidation are complete through M5. The exact frozen M6 candidate is:
 
-`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`
+- branch `tmp/phase4-m5-frozen-qa-candidate`;
+- commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
+- tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
+- artifact `9951922423`;
+- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+
+Current practical resume checkpoint:
+
+`docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`
 
 ### Phase 4A exit criterion
 
 Character closure is complete only when:
 
-- D-0047 implementation is complete;
-- migrations/persistence and automated gates are green;
-- one exact closure APK candidate is recorded;
-- owner QA passes on phone portrait/landscape and tablet portrait/landscape, including a representative larger text scale;
-- blocking findings are resolved;
-- continuity/governance housekeeping is complete;
-- the owner explicitly accepts the result and approves the merge/closure.
+- D-0047 implementation is complete — **done**;
+- migrations/persistence and automated gates are green — **done**;
+- one exact closure APK candidate is recorded — **done**;
+- owner QA passes on phone portrait/landscape and tablet portrait/landscape, including a representative larger text scale — **pending**;
+- blocking findings are resolved — pending only if QA finds any;
+- continuity/governance housekeeping is complete — final post-QA pass pending;
+- the unique-commit/merge-boundary audit is complete — pending post-QA;
+- the owner explicitly accepts the result and approves the merge/closure — pending.
 
 **No DM-feature implementation begins before this exit criterion.**
 
 ### Phase 4B — DM combat / live-session work
 
-**Status:** Blocked by Phase 4A.
+**Status:** Blocked by Phase 4A owner acceptance and closure.
 
 This stage will consume the stable reusable character data foundation when Phase 4A is complete. Its detailed implementation work must not begin early merely because architecture/product ideas already exist.
 
