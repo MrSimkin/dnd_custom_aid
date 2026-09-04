@@ -108,6 +108,7 @@ class CharacterQuickAccessProjectionTest {
                 CharacterQuickAccessRef(CharacterQuickAccessKind.SPELL, spellId, 2),
                 CharacterQuickAccessRef(CharacterQuickAccessKind.CLASS_OPTION, optionId, 4),
                 CharacterQuickAccessRef(CharacterQuickAccessKind.CUSTOM_SKILL, customSkillId, 7),
+                // Stale and unbacked refs must never produce invented/cached display values.
                 CharacterQuickAccessRef(CharacterQuickAccessKind.SPELL, staleId, 9),
                 CharacterQuickAccessRef(CharacterQuickAccessKind.OTHER, Uuid.random(), 10),
             ),
