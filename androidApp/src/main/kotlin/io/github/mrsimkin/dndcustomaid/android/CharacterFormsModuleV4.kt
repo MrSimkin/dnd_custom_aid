@@ -48,6 +48,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.characterFormSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterForm
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
+import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterFormManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterFormSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterFormOrders
@@ -86,6 +87,7 @@ internal fun CharacterFormsModuleV4(
     var deleteId by rememberSaveable("h1-form-delete") { mutableStateOf<String?>(null) }
 
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
     val order = runCatching { CharacterPresentationOrder.valueOf(orderName) }
         .getOrDefault(CharacterPresentationOrder.MANUAL)
     val activeFilters = decodeFormFilterSetH1(activeFiltersText)
@@ -96,7 +98,7 @@ internal fun CharacterFormsModuleV4(
         query = query,
         isFavorite = { form -> closureState.hasQuickAccess(CharacterQuickAccessKind.FORM, form.id) },
     )
-    val canReorder = order == CharacterPresentationOrder.MANUAL &&
+    val canReorder = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
         query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
     val selectedEditingId = editingId?.takeIf { editorOpen }
 
@@ -123,11 +125,13 @@ internal fun CharacterFormsModuleV4(
     }
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         resetEditor()
         editorOpen = true
     }
 
     fun beginEdit(form: CharacterForm) {
+        if (!structuralEditingEnabled) return
         editingId = form.id.toString()
         editorName = form.name
         editorSource = form.source.orEmpty()
@@ -142,6 +146,7 @@ internal fun CharacterFormsModuleV4(
     }
 
     fun duplicate(form: CharacterForm) {
+        if (!structuralEditingEnabled) return
         val copied = duplicateCharacterForm(
             source = form,
             newId = Uuid.random(),
@@ -194,6 +199,7 @@ internal fun CharacterFormsModuleV4(
             query = query,
             order = order,
             canReorder = canReorder,
+            structuralEditingEnabled = structuralEditingEnabled,
             selectedEditingId = selectedEditingId,
             onQueryChange = ::updateQuery,
             onOrderChange = { orderName = it.name },
@@ -241,7 +247,7 @@ internal fun CharacterFormsModuleV4(
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
-                if (editorOpen) {
+                if (editorOpen && structuralEditingEnabled) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(10.dp),
@@ -305,14 +311,14 @@ internal fun CharacterFormsModuleV4(
                             "Selecciona una forma de la biblioteca o añade una nueva. La ficha base no se modifica al abrirla.",
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir forma") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir forma") }
                     }
                 }
             }
         }
     } else {
         collection(Modifier.fillMaxSize())
-        if (editorOpen) {
+        if (editorOpen && structuralEditingEnabled) {
             CharacterImeSafeEditorDialog(
                 title = if (editingId == null) "Añadir forma" else "Editar forma",
                 onCancel = { editorOpen = false },
@@ -345,7 +351,7 @@ internal fun CharacterFormsModuleV4(
         }
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = forms.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -375,6 +381,7 @@ private fun FormsCollectionH1(
     query: CharacterCollectionQuery,
     order: CharacterPresentationOrder,
     canReorder: Boolean,
+    structuralEditingEnabled: Boolean,
     selectedEditingId: String?,
     onQueryChange: (CharacterCollectionQuery) -> Unit,
     onOrderChange: (CharacterPresentationOrder) -> Unit,
@@ -427,7 +434,7 @@ private fun FormsCollectionH1(
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = onAdd) { Text("+ Añadir") }
+                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     CharacterCollectionToolbarV4(
                         itemCount = visible.size,
@@ -457,7 +464,7 @@ private fun FormsCollectionH1(
                 CharacterUsefulEmptyState(
                     title = "Sin formas registradas",
                     message = "Añade una forma o transformación que quieras consultar rápidamente. No necesitas copiar un bloque completo de criatura.",
-                    onAdd = onAdd,
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
                     addLabel = "Añadir forma",
                 )
             }
@@ -481,8 +488,9 @@ private fun FormsCollectionH1(
             FormRowH1(
                 form = form,
                 favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.FORM, form.id),
-                favoriteEnabled = form.id in persistedFormIds,
+                favoriteEnabled = structuralEditingEnabled && form.id in persistedFormIds,
                 reorderEnabled = canReorder && forms.size > 1,
+                structuralEditingEnabled = structuralEditingEnabled,
                 selected = selectedEditingId == form.id.toString(),
                 onFavoriteChange = { onFavoriteChange(form, it) },
                 onMove = { offset -> onMove(form, offset) },
@@ -501,6 +509,7 @@ private fun FormRowH1(
     favorite: Boolean,
     favoriteEnabled: Boolean,
     reorderEnabled: Boolean,
+    structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onMove: (Int) -> Boolean,
@@ -525,7 +534,7 @@ private fun FormRowH1(
             modifier = Modifier
                 .fillMaxWidth()
                 .characterDragFeedbackV4(dragState)
-                .clickable(onClick = onEdit),
+                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(
                 width = if (selected) 2.dp else 1.dp,
@@ -620,15 +629,19 @@ private fun FormRowH1(
                             enabled = favoriteEnabled,
                             contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
                         ) { Text(if (favorite) "★" else "☆") }
-                        StableRemoveIconButton(
-                            onClick = onDelete,
-                            contentDescription = "Eliminar ${form.name}",
-                        )
+                        if (structuralEditingEnabled) {
+                            StableRemoveIconButton(
+                                onClick = onDelete,
+                                contentDescription = "Eliminar ${form.name}",
+                            )
+                        }
                     }
-                    TextButton(
-                        onClick = onDuplicate,
-                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                    ) { Text("Duplicar") }
+                    if (structuralEditingEnabled) {
+                        TextButton(
+                            onClick = onDuplicate,
+                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+                        ) { Text("Duplicar") }
+                    }
                 }
             }
         }

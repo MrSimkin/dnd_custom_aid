@@ -57,6 +57,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterArtificeOptionK
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterClassOption
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.isArtificeCharacterOption
+import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterArtificeOptionManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterClassOptionSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterClassOptionOrders
@@ -96,6 +97,7 @@ internal fun CharacterArtificeModuleV4(
     var deleteId by rememberSaveable("h1-artifice-delete") { mutableStateOf<String?>(null) }
 
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
     val order = runCatching { CharacterPresentationOrder.valueOf(orderName) }
         .getOrDefault(CharacterPresentationOrder.MANUAL)
     val activeFilters = decodeArtificeFilterSetH1(activeFiltersText)
@@ -109,7 +111,7 @@ internal fun CharacterArtificeModuleV4(
         },
     )
     val artificeOptions = options.filter(::isArtificeCharacterOption)
-    val canReorder = order == CharacterPresentationOrder.MANUAL &&
+    val canReorder = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
         query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
     val selectedEditingId = editingId?.takeIf { editorOpen }
 
@@ -139,11 +141,13 @@ internal fun CharacterArtificeModuleV4(
     }
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         resetEditor()
         editorOpen = true
     }
 
     fun beginEdit(option: CharacterClassOption) {
+        if (!structuralEditingEnabled) return
         editingId = option.id.toString()
         editorName = option.name
         editorKindName = option.kind.name
@@ -157,6 +161,7 @@ internal fun CharacterArtificeModuleV4(
     }
 
     fun duplicate(option: CharacterClassOption) {
+        if (!structuralEditingEnabled) return
         val copied = duplicateCharacterClassOption(
             source = option,
             newId = Uuid.random(),
@@ -212,6 +217,7 @@ internal fun CharacterArtificeModuleV4(
             query = query,
             order = order,
             canReorder = canReorder,
+            structuralEditingEnabled = structuralEditingEnabled,
             selectedEditingId = selectedEditingId,
             onQueryChange = ::updateQuery,
             onOrderChange = { orderName = it.name },
@@ -263,7 +269,7 @@ internal fun CharacterArtificeModuleV4(
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
-                if (editorOpen) {
+                if (editorOpen && structuralEditingEnabled) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(10.dp),
@@ -326,14 +332,14 @@ internal fun CharacterArtificeModuleV4(
                             "Selecciona un plan o dispositivo. La lista conserva búsqueda, filtros y orden mientras editas.",
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir registro") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir registro") }
                     }
                 }
             }
         }
     } else {
         collection(Modifier.fillMaxSize())
-        if (editorOpen) {
+        if (editorOpen && structuralEditingEnabled) {
             CharacterImeSafeEditorDialog(
                 title = if (editingId == null) "Añadir registro de Artífice" else "Editar registro de Artífice",
                 onCancel = { editorOpen = false },
@@ -365,7 +371,7 @@ internal fun CharacterArtificeModuleV4(
         }
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = options.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -397,6 +403,7 @@ private fun ArtificeCollectionH1(
     query: CharacterCollectionQuery,
     order: CharacterPresentationOrder,
     canReorder: Boolean,
+    structuralEditingEnabled: Boolean,
     selectedEditingId: String?,
     onQueryChange: (CharacterCollectionQuery) -> Unit,
     onOrderChange: (CharacterPresentationOrder) -> Unit,
@@ -458,7 +465,7 @@ private fun ArtificeCollectionH1(
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = onAdd) { Text("+ Añadir") }
+                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     CharacterCollectionToolbarV4(
                         itemCount = visible.size,
@@ -488,7 +495,7 @@ private fun ArtificeCollectionH1(
                 CharacterUsefulEmptyState(
                     title = "Sin registros de Artífice",
                     message = "Añade un plan, invención o dispositivo persistente. Los recursos y objetos reales siguen en Gestión y Equipo.",
-                    onAdd = onAdd,
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
                     addLabel = "Añadir registro",
                 )
             }
@@ -513,8 +520,9 @@ private fun ArtificeCollectionH1(
                 option = option,
                 linkedClass = option.linkedClassId?.let(classById::get),
                 favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
-                favoriteEnabled = option.id in persistedOptionIds,
+                favoriteEnabled = structuralEditingEnabled && option.id in persistedOptionIds,
                 reorderEnabled = canReorder && artificeOptions.size > 1,
+                structuralEditingEnabled = structuralEditingEnabled,
                 selected = selectedEditingId == option.id.toString(),
                 onFavoriteChange = { onFavoriteChange(option, it) },
                 onMove = { offset -> onMove(option, offset) },
@@ -534,6 +542,7 @@ private fun ArtificeRowH1(
     favorite: Boolean,
     favoriteEnabled: Boolean,
     reorderEnabled: Boolean,
+    structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onMove: (Int) -> Boolean,
@@ -558,7 +567,7 @@ private fun ArtificeRowH1(
             modifier = Modifier
                 .fillMaxWidth()
                 .characterDragFeedbackV4(dragState)
-                .clickable(onClick = onEdit),
+                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(
                 width = if (selected) 2.dp else 1.dp,
@@ -659,15 +668,19 @@ private fun ArtificeRowH1(
                             enabled = favoriteEnabled,
                             contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
                         ) { Text(if (favorite) "★" else "☆") }
-                        StableRemoveIconButton(
-                            onClick = onDelete,
-                            contentDescription = "Eliminar ${option.name}",
-                        )
+                        if (structuralEditingEnabled) {
+                            StableRemoveIconButton(
+                                onClick = onDelete,
+                                contentDescription = "Eliminar ${option.name}",
+                            )
+                        }
                     }
-                    TextButton(
-                        onClick = onDuplicate,
-                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                    ) { Text("Duplicar") }
+                    if (structuralEditingEnabled) {
+                        TextButton(
+                            onClick = onDuplicate,
+                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+                        ) { Text("Duplicar") }
+                    }
                 }
             }
         }

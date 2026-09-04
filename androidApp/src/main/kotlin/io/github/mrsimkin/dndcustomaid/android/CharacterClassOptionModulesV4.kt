@@ -57,6 +57,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterClassOptionKind
 import io.github.mrsimkin.dndcustomaid.shared.character.characterClassOptionSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterClassOption
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
+import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterMetamagicOptionManual
 import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterPactOptionManual
 import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterTechniqueOptionManual
@@ -233,6 +234,7 @@ private fun CharacterClassOptionModuleH2(
     var deleteId by rememberSaveable("h2-${config.stateKey}-delete") { mutableStateOf<String?>(null) }
 
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
     val order = runCatching { CharacterPresentationOrder.valueOf(orderName) }
         .getOrDefault(CharacterPresentationOrder.MANUAL)
     val activeFilters = decodeFilterSetH2(filtersText)
@@ -242,7 +244,7 @@ private fun CharacterClassOptionModuleH2(
     }
     val visible = config.present(options, order, query, favoritePredicate)
     val ownedOptions = options.filter { it.kind in config.allowedKinds }
-    val canReorder = order == CharacterPresentationOrder.MANUAL &&
+    val canReorder = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
         query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
     val selectedEditingId = editingId?.takeIf { editorOpen }
 
@@ -272,11 +274,13 @@ private fun CharacterClassOptionModuleH2(
     }
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         resetEditor()
         editorOpen = true
     }
 
     fun beginEdit(option: CharacterClassOption) {
+        if (!structuralEditingEnabled) return
         editingId = option.id.toString()
         editorName = option.name
         editorKindName = option.kind.name
@@ -290,6 +294,7 @@ private fun CharacterClassOptionModuleH2(
     }
 
     fun duplicate(option: CharacterClassOption) {
+        if (!structuralEditingEnabled) return
         updateOptions(
             options + duplicateCharacterClassOption(
                 source = option,
@@ -347,6 +352,7 @@ private fun CharacterClassOptionModuleH2(
             query = query,
             order = order,
             canReorder = canReorder,
+            structuralEditingEnabled = structuralEditingEnabled,
             selectedEditingId = selectedEditingId,
             onQueryChange = ::updateQuery,
             onOrderChange = { orderName = it.name },
@@ -392,7 +398,7 @@ private fun CharacterClassOptionModuleH2(
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
-                if (editorOpen) {
+                if (editorOpen && structuralEditingEnabled) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(10.dp),
@@ -452,14 +458,14 @@ private fun CharacterClassOptionModuleH2(
                             "Selecciona un registro para editarlo. La lista conserva búsqueda, filtros y orden.",
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                 }
             }
         }
     } else {
         collection(Modifier.fillMaxSize())
-        if (editorOpen) {
+        if (editorOpen && structuralEditingEnabled) {
             CharacterImeSafeEditorDialog(
                 title = if (editingId == null) "Añadir ${config.singularLabel}" else "Editar ${config.singularLabel}",
                 onCancel = { editorOpen = false },
@@ -491,7 +497,7 @@ private fun CharacterClassOptionModuleH2(
         }
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = options.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -524,6 +530,7 @@ private fun ClassOptionCollectionH2(
     query: CharacterCollectionQuery,
     order: CharacterPresentationOrder,
     canReorder: Boolean,
+    structuralEditingEnabled: Boolean,
     selectedEditingId: String?,
     onQueryChange: (CharacterCollectionQuery) -> Unit,
     onOrderChange: (CharacterPresentationOrder) -> Unit,
@@ -600,7 +607,7 @@ private fun ClassOptionCollectionH2(
                             Text(config.title, style = MaterialTheme.typography.titleSmall)
                             Text(config.description, style = MaterialTheme.typography.labelSmall)
                         }
-                        TextButton(onClick = onAdd) { Text("+ Añadir") }
+                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     CharacterCollectionToolbarV4(
                         itemCount = visible.size,
@@ -630,7 +637,7 @@ private fun ClassOptionCollectionH2(
                 CharacterUsefulEmptyState(
                     title = "Sin ${config.title.lowercase()}",
                     message = config.emptyMessage,
-                    onAdd = onAdd,
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
                     addLabel = "Añadir ${config.singularLabel}",
                 )
             }
@@ -652,8 +659,9 @@ private fun ClassOptionCollectionH2(
                 option = option,
                 linkedClass = option.linkedClassId?.let(classById::get),
                 favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
-                favoriteEnabled = option.id in persistedOptionIds,
+                favoriteEnabled = structuralEditingEnabled && option.id in persistedOptionIds,
                 reorderEnabled = canReorder && ownedOptions.size > 1,
+                structuralEditingEnabled = structuralEditingEnabled,
                 selected = selectedEditingId == option.id.toString(),
                 onFavoriteChange = { onFavoriteChange(option, it) },
                 onMove = { offset -> onMove(option, offset) },
@@ -673,6 +681,7 @@ private fun ClassOptionRowH2(
     favorite: Boolean,
     favoriteEnabled: Boolean,
     reorderEnabled: Boolean,
+    structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onMove: (Int) -> Boolean,
@@ -694,7 +703,7 @@ private fun ClassOptionRowH2(
     Column(modifier = Modifier.fillMaxWidth()) {
         CharacterDropIndicatorV4(visible = dragState.showDropBefore)
         Surface(
-            modifier = Modifier.fillMaxWidth().characterDragFeedbackV4(dragState).clickable(onClick = onEdit),
+            modifier = Modifier.fillMaxWidth().characterDragFeedbackV4(dragState).clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(
                 width = if (selected) 2.dp else 1.dp,
@@ -779,13 +788,17 @@ private fun ClassOptionRowH2(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         TextButton(
                             onClick = { onFavoriteChange(!favorite) },
-                            enabled = favoriteEnabled,
+                            enabled = structuralEditingEnabled && favoriteEnabled,
                             contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
                         ) { Text(if (favorite) "★" else "☆") }
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${option.name}")
+                        if (structuralEditingEnabled) {
+                            StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${option.name}")
+                        }
                     }
-                    TextButton(onClick = onDuplicate, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                        Text("Duplicar")
+                    if (structuralEditingEnabled) {
+                        TextButton(onClick = onDuplicate, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
+                            Text("Duplicar")
+                        }
                     }
                 }
             }

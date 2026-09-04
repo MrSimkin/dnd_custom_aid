@@ -56,6 +56,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterCompanionKindFi
 import io.github.mrsimkin.dndcustomaid.shared.character.characterCompanionSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterCompanion
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
+import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterCompanionManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterCompanionSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterCompanionOrders
@@ -102,6 +103,7 @@ internal fun CharacterCompanionsModuleV4(
     var deleteId by rememberSaveable("h3-companions-delete") { mutableStateOf<String?>(null) }
 
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
     val order = runCatching { CharacterPresentationOrder.valueOf(orderName) }
         .getOrDefault(CharacterPresentationOrder.MANUAL)
     val activeFilters = decodeFilterSetH3(filtersText)
@@ -110,7 +112,7 @@ internal fun CharacterCompanionsModuleV4(
         closureState.hasQuickAccess(CharacterQuickAccessKind.COMPANION, companion.id)
     }
     val visible = presentCharacterCompanions(companions, order, query, favoritePredicate)
-    val canReorder = order == CharacterPresentationOrder.MANUAL &&
+    val canReorder = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
         query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
     val selectedEditingId = editingId?.takeIf { editorOpen }
 
@@ -146,11 +148,13 @@ internal fun CharacterCompanionsModuleV4(
     }
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         resetEditor()
         editorOpen = true
     }
 
     fun beginEdit(companion: CharacterCompanion) {
+        if (!structuralEditingEnabled) return
         editingId = companion.id.toString()
         editorName = companion.name
         editorLinkedClassId = companion.linkedClassId?.toString().orEmpty()
@@ -170,6 +174,7 @@ internal fun CharacterCompanionsModuleV4(
     }
 
     fun duplicate(companion: CharacterCompanion) {
+        if (!structuralEditingEnabled) return
         updateCompanions(
             companions + duplicateCharacterCompanion(
                 source = companion,
@@ -233,6 +238,7 @@ internal fun CharacterCompanionsModuleV4(
             query = query,
             order = order,
             canReorder = canReorder,
+            structuralEditingEnabled = structuralEditingEnabled,
             selectedEditingId = selectedEditingId,
             onQueryChange = ::updateQuery,
             onOrderChange = { orderName = it.name },
@@ -278,7 +284,7 @@ internal fun CharacterCompanionsModuleV4(
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
-                if (editorOpen) {
+                if (editorOpen && structuralEditingEnabled) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(10.dp),
@@ -353,14 +359,14 @@ internal fun CharacterCompanionsModuleV4(
                             "Selecciona un compañero para editarlo. La lista conserva búsqueda, filtros y orden.",
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                 }
             }
         }
     } else {
         collection(Modifier.fillMaxSize())
-        if (editorOpen) {
+        if (editorOpen && structuralEditingEnabled) {
             CharacterImeSafeEditorDialog(
                 title = if (editingId == null) "Añadir compañero" else "Editar compañero",
                 onCancel = { editorOpen = false },
@@ -407,7 +413,7 @@ internal fun CharacterCompanionsModuleV4(
         }
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = companions.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -438,6 +444,7 @@ private fun CompanionCollectionH3(
     query: CharacterCollectionQuery,
     order: CharacterPresentationOrder,
     canReorder: Boolean,
+    structuralEditingEnabled: Boolean,
     selectedEditingId: String?,
     onQueryChange: (CharacterCollectionQuery) -> Unit,
     onOrderChange: (CharacterPresentationOrder) -> Unit,
@@ -511,7 +518,7 @@ private fun CompanionCollectionH3(
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = onAdd) { Text("+ Añadir") }
+                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
                     CharacterCollectionToolbarV4(
                         itemCount = visible.size,
@@ -541,7 +548,7 @@ private fun CompanionCollectionH3(
                 CharacterUsefulEmptyState(
                     title = "Sin compañeros",
                     message = "Añade una bestia, constructo, espíritu, familiar u otro compañero persistente que merezca referencia propia.",
-                    onAdd = onAdd,
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
                     addLabel = "Añadir compañero",
                 )
             }
@@ -563,8 +570,9 @@ private fun CompanionCollectionH3(
                 companion = companion,
                 linkedClass = companion.linkedClassId?.let(classById::get),
                 favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMPANION, companion.id),
-                favoriteEnabled = companion.id in persistedCompanionIds,
+                favoriteEnabled = structuralEditingEnabled && companion.id in persistedCompanionIds,
                 reorderEnabled = canReorder && companions.size > 1,
+                structuralEditingEnabled = structuralEditingEnabled,
                 selected = selectedEditingId == companion.id.toString(),
                 onFavoriteChange = { onFavoriteChange(companion, it) },
                 onMove = { offset -> onMove(companion, offset) },
@@ -584,6 +592,7 @@ private fun CompanionRowH3(
     favorite: Boolean,
     favoriteEnabled: Boolean,
     reorderEnabled: Boolean,
+    structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onMove: (Int) -> Boolean,
@@ -605,7 +614,7 @@ private fun CompanionRowH3(
     Column(modifier = Modifier.fillMaxWidth()) {
         CharacterDropIndicatorV4(visible = dragState.showDropBefore)
         Surface(
-            modifier = Modifier.fillMaxWidth().characterDragFeedbackV4(dragState).clickable(onClick = onEdit),
+            modifier = Modifier.fillMaxWidth().characterDragFeedbackV4(dragState).clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(
                 width = if (selected) 2.dp else 1.dp,
@@ -698,13 +707,17 @@ private fun CompanionRowH3(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         TextButton(
                             onClick = { onFavoriteChange(!favorite) },
-                            enabled = favoriteEnabled,
+                            enabled = structuralEditingEnabled && favoriteEnabled,
                             contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
                         ) { Text(if (favorite) "★" else "☆") }
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${companion.name}")
+                        if (structuralEditingEnabled) {
+                            StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${companion.name}")
+                        }
                     }
-                    TextButton(onClick = onDuplicate, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                        Text("Duplicar")
+                    if (structuralEditingEnabled) {
+                        TextButton(onClick = onDuplicate, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
+                            Text("Duplicar")
+                        }
                     }
                 }
             }
