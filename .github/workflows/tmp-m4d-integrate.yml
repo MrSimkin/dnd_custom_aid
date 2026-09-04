@@ -1,0 +1,70 @@
+name: Temporary M4d settings-sheet preview integration
+
+on:
+  push:
+    branches:
+      - tmp/phase4-m4d-settings-preview
+
+permissions:
+  contents: write
+
+jobs:
+  integrate-and-gate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/phase4-m4d-settings-preview
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply exact M4d settings preview patch
+        run: python .github/tmp_m4d_settings_preview.py
+
+      - name: Verify I21 preview reachability and semantics
+        run: |
+          grep -F 'SettingsSheetPreview(preferences)' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt
+          grep -F '"Alyra Voss"' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt
+          grep -F 'SettingsPreviewStatCell("CA", "17"' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt
+          grep -F 'SettingsPreviewBadge("Preparado")' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt
+          grep -F 'preferences.fontScalePercent' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt
+
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+
+      - name: Run shared tests and application builds
+        run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+
+      - name: Type-check backend
+        working-directory: backend
+        run: |
+          npm install
+          npm run check
+
+      - name: Commit accepted M4d product tree and remove temporary helpers
+        run: |
+          rm .github/tmp_m4d_settings_preview.py .github/workflows/tmp-m4d-integrate.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt \
+                  .github/tmp_m4d_settings_preview.py \
+                  .github/workflows/tmp-m4d-integrate.yml
+          git commit -m 'feat: integrate M4d real-sheet settings preview'
+          git push origin HEAD:tmp/phase4-m4d-settings-preview
