@@ -1,7 +1,7 @@
 # Phase 4 Batch M4e — D06 rules/source semantic badges
 
 **Date:** 2026-09-04  
-**Status:** IMPLEMENTED — clean standard gate pending at checkpoint creation  
+**Status:** GREEN / COMPLETE  
 **Safety branch:** `tmp/phase4-m4e-rules-source-badges`  
 **Authoritative M4d base:** `b1032aa23d896de702120d4a55e3f0c1abe2acb2`  
 **Accepted product commit:** `6522ebc7f6cfcbcc44a2c559601ffb9ae4b4d80d`  
@@ -90,10 +90,22 @@ It verified before accepting the product commit:
 - backend dependency install/type-check PASS;
 - temporary patch/workflow helpers self-deleted in accepted product commit `6522ebc7f6cfcbcc44a2c559601ffb9ae4b4d80d`.
 
+## Clean standard gate
+
+Ordinary helper-free workflow:
+
+- workflow `33907804429` — **SUCCESS**;
+- shared/Kotlin desktop tests — PASS;
+- Android debug assemble + APK upload — PASS;
+- Desktop build — PASS;
+- backend install/type-check — PASS;
+- artifact `9950264189` (`dnd-custom-aid-debug-apk`);
+- artifact ZIP digest `sha256:73e83890ace955e52ff74a4bc1db51bc0bf5a73ff8b69740a1a8f41a93116c05`.
+
+This clean standard gate is the controlling final technical evidence for M4e.
+
 ## Boundary
 
-M4e closes D06 implementation completeness only. Final visual density/readability remains M6 owner QA.
-
-At checkpoint creation, one ordinary `scaffold-check.yml` run on this helper-free product tree plus this checkpoint remains required before declaring M4e GREEN and promoting it to `implementation/phase4-preqa-consolidation`.
+M4e closes D06 implementation completeness. Final visual density/readability remains M6 owner QA.
 
 After clean promotion, the final M4 implementation slice is **M4f / D07 state-badge grammar closure**.
