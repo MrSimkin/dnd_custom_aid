@@ -425,6 +425,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun save() {
+        if (!structuralEditingEnabled) return
         if (draft.missingRequiredNumberLabels().isNotEmpty()) {
             confirmBlankNumbers = true
             return
@@ -434,6 +435,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun saveBlankNumbersAsZero() {
+        if (!structuralEditingEnabled) return
         val candidate = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: return
         confirmBlankNumbers = false
         persist(candidate)
@@ -456,6 +458,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun persistClosureState(updated: CharacterClosureState) {
+        if (!closureState.tableModeEnabled && updated.tableModeEnabled && hasUnsavedChanges) return
         if (updated == closureState) return
         closureState = closureRepository.saveState(characterId, updated)
         savedMessage = "Guardado"
@@ -528,6 +531,7 @@ internal fun CharacterEditorScreenV4(
             spellcasterEnabled = stored.spellcasterEnabled,
             closureState = closureState,
             suggestedModules = suggestedModules,
+            tableModeCanEnable = !hasUnsavedChanges || closureState.tableModeEnabled,
             onBack = {
                 showPcSettings = false
                 selectedTabName = resolvedCharacterTabV4(
@@ -632,6 +636,7 @@ internal fun CharacterEditorScreenV4(
                         CharacterTabV4.BACKGROUND -> CharacterBackgroundTabV4(
                             background = backgroundDraft,
                             onBackgroundChange = ::updateBackground,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                         )
                         CharacterTabV4.TRAITS -> CharacterTraitsClosureTabV4(
@@ -746,6 +751,7 @@ internal fun CharacterEditorScreenV4(
                         CharacterTabV4.NOTES -> CharacterNotesTabV4(
                             draft = notesDraft,
                             onDraftChange = ::updateNotes,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -879,7 +885,7 @@ private fun EditorHeaderV4(
             }
         }
         StableSettingsIconButton(onClick = onOpenSettings)
-        Button(onClick = onSave, enabled = savable) { Text("Guardar") }
+        Button(onClick = onSave, enabled = savable && !tableModeEnabled) { Text("Guardar") }
     }
 }
 

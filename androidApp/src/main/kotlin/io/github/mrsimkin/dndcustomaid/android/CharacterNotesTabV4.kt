@@ -46,6 +46,7 @@ import kotlin.uuid.Uuid
 internal fun CharacterNotesTabV4(
     draft: CharacterNotesDraftV4,
     onDraftChange: (CharacterNotesDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean = true,
 ) {
@@ -58,6 +59,7 @@ internal fun CharacterNotesTabV4(
     val listState = rememberLazyListState()
 
     fun beginAdd() {
+        if (!structuralEditingEnabled) return
         editingId = null
         editorTitle = ""
         editorContent = ""
@@ -65,6 +67,7 @@ internal fun CharacterNotesTabV4(
     }
 
     fun beginEdit(note: CharacterNote) {
+        if (!structuralEditingEnabled) return
         editingId = note.id.toString()
         editorTitle = note.title
         editorContent = note.content
@@ -72,6 +75,7 @@ internal fun CharacterNotesTabV4(
     }
 
     fun move(index: Int, offset: Int): Boolean {
+        if (!structuralEditingEnabled) return false
         val note = draft.cards.getOrNull(index) ?: return false
         val before = normalizeCharacterNotes(draft.cards)
         val moved = moveCharacterNoteManual(draft.cards, note.id, offset)
@@ -81,6 +85,7 @@ internal fun CharacterNotesTabV4(
     }
 
     fun duplicate(note: CharacterNote) {
+        if (!structuralEditingEnabled) return
         val copied = duplicateCharacterNote(
             source = note,
             newId = Uuid.random(),
@@ -119,6 +124,7 @@ internal fun CharacterNotesTabV4(
                     OutlinedTextField(
                         value = draft.generalNotes,
                         onValueChange = { onDraftChange(draft.copy(generalNotes = it)) },
+                        enabled = structuralEditingEnabled,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(
@@ -158,14 +164,14 @@ internal fun CharacterNotesTabV4(
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = ::beginAdd) { Text("+ Añadir") }
+                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
 
                     if (draft.cards.isEmpty()) {
                         CharacterUsefulEmptyState(
                             title = "Sin notas con título",
                             message = "Puedes usar solo Notas generales o añadir una tarjeta para una referencia concreta.",
-                            onAdd = ::beginAdd,
+                            onAdd = if (structuralEditingEnabled) ::beginAdd else null,
                             addLabel = "Añadir nota",
                         )
                     } else if (wide) {
@@ -183,6 +189,7 @@ internal fun CharacterNotesTabV4(
                                         onDuplicate = { duplicate(note) },
                                         onDelete = { deleteId = note.id.toString() },
                                         onMove = { offset -> move(index, offset) },
+                                        structuralEditingEnabled = structuralEditingEnabled,
                                         onHaptic = haptic,
                                         modifier = Modifier.weight(1f),
                                     )
@@ -200,6 +207,7 @@ internal fun CharacterNotesTabV4(
                                 onDuplicate = { duplicate(note) },
                                 onDelete = { deleteId = note.id.toString() },
                                 onMove = { offset -> move(index, offset) },
+                                structuralEditingEnabled = structuralEditingEnabled,
                                 onHaptic = haptic,
                             )
                         }
@@ -209,7 +217,7 @@ internal fun CharacterNotesTabV4(
         }
     }
 
-    if (editorOpen) {
+    if (editorOpen && structuralEditingEnabled) {
         CharacterNoteEditorDialogV4(
             title = if (editingId == null) "Añadir nota" else "Editar nota",
             noteTitle = editorTitle,
@@ -237,7 +245,7 @@ internal fun CharacterNotesTabV4(
         )
     }
 
-    deleteId?.let { id ->
+    deleteId?.takeIf { structuralEditingEnabled }?.let { id ->
         val target = draft.cards.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -262,6 +270,7 @@ private fun CharacterNoteCardV4(
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
     onMove: (Int) -> Boolean,
+    structuralEditingEnabled: Boolean,
     onHaptic: (CharacterHapticEventV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -281,7 +290,7 @@ private fun CharacterNoteCardV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .characterDragFeedbackV4(dragState)
-                .clickable(onClick = onEdit),
+                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
@@ -296,8 +305,9 @@ private fun CharacterNoteCardV4(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    StableDragHandle(
-                        modifier = Modifier.pointerInput(note.id) {
+                    if (structuralEditingEnabled) {
+                        StableDragHandle(
+                            modifier = Modifier.pointerInput(note.id) {
                             detectDragGesturesAfterLongPress(
                                 onDragStart = {
                                     accumulatedDrag = 0f
@@ -329,9 +339,10 @@ private fun CharacterNoteCardV4(
                                 },
                             )
                         },
-                        active = dragging,
-                        contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
-                    )
+                            active = dragging,
+                            contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
+                        )
+                    }
                     Text(
                         note.title,
                         modifier = Modifier.weight(1f),
@@ -339,10 +350,12 @@ private fun CharacterNoteCardV4(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    StableRemoveIconButton(
-                        onClick = onDelete,
-                        contentDescription = "Eliminar ${note.title}",
-                    )
+                    if (structuralEditingEnabled) {
+                        StableRemoveIconButton(
+                            onClick = onDelete,
+                            contentDescription = "Eliminar ${note.title}",
+                        )
+                    }
                 }
 
                 Text(
@@ -351,15 +364,17 @@ private fun CharacterNoteCardV4(
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(
-                        onClick = onDuplicate,
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                if (structuralEditingEnabled) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
                     ) {
-                        Text("Duplicar")
+                        TextButton(
+                            onClick = onDuplicate,
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                        ) {
+                            Text("Duplicar")
+                        }
                     }
                 }
             }

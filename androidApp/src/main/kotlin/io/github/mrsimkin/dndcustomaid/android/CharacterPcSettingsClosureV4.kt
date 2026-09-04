@@ -48,6 +48,7 @@ internal fun CharacterPcSettingsClosureV4(
     spellcasterEnabled: Boolean,
     closureState: CharacterClosureState,
     suggestedModules: Set<CharacterModuleKind>,
+    tableModeCanEnable: Boolean,
     onBack: () -> Unit,
     onStatusChange: (CharacterStatus) -> Unit,
     onSpellcasterEnabledChange: (Boolean) -> Unit,
@@ -130,8 +131,13 @@ internal fun CharacterPcSettingsClosureV4(
                         second = {
                             BooleanSettingCardClosureV4(
                                 title = "Modo mesa / solo lectura",
-                                description = "Reduce cambios estructurales accidentales durante el uso en mesa. Su aplicación completa se integra en la superficie adaptativa.",
+                                description = if (!tableModeCanEnable && !closureState.tableModeEnabled) {
+                                    "Guarda o descarta los cambios estructurales pendientes antes de activar Modo Mesa."
+                                } else {
+                                    "Bloquea la edición estructural durante el uso en mesa y conserva los controles operativos intencionales."
+                                },
                                 checked = closureState.tableModeEnabled,
+                                enabled = closureState.tableModeEnabled || tableModeCanEnable,
                                 onCheckedChange = { enabled ->
                                     onClosureStateChange(closureState.copy(tableModeEnabled = enabled))
                                 },
@@ -287,6 +293,7 @@ private fun BooleanSettingCardClosureV4(
     title: String,
     description: String,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     PcSettingCardClosureV4(title = title, description = description) {
@@ -296,7 +303,7 @@ private fun BooleanSettingCardClosureV4(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(if (checked) "Activado" else "Desactivado", style = MaterialTheme.typography.labelLarge)
-            Switch(checked = checked, onCheckedChange = onCheckedChange)
+            Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
         }
     }
 }

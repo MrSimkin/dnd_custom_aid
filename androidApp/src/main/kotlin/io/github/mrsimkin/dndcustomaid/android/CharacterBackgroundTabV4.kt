@@ -48,6 +48,7 @@ private enum class BackgroundNarrativeFieldV4(val label: String) {
 internal fun CharacterBackgroundTabV4(
     background: CharacterBackground,
     onBackgroundChange: (CharacterBackground) -> Unit,
+    structuralEditingEnabled: Boolean,
     wide: Boolean,
 ) {
     var editingFieldName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -62,6 +63,7 @@ internal fun CharacterBackgroundTabV4(
     }
 
     fun beginEdit(field: BackgroundNarrativeFieldV4) {
+        if (!structuralEditingEnabled) return
         editingFieldName = field.name
         editorText = fieldValue(field)
     }
@@ -102,6 +104,7 @@ internal fun CharacterBackgroundTabV4(
                     OutlinedTextField(
                         value = background.name,
                         onValueChange = { onBackgroundChange(background.copy(name = it)) },
+                        enabled = structuralEditingEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Nombre del trasfondo") },
                         singleLine = true,
@@ -114,6 +117,7 @@ internal fun CharacterBackgroundTabV4(
                             OutlinedTextField(
                                 value = background.race,
                                 onValueChange = { onBackgroundChange(background.copy(race = it)) },
+                                enabled = structuralEditingEnabled,
                                 modifier = Modifier.weight(1f),
                                 label = { Text("Raza") },
                                 singleLine = true,
@@ -121,6 +125,7 @@ internal fun CharacterBackgroundTabV4(
                             OutlinedTextField(
                                 value = background.religionFaith,
                                 onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
+                                enabled = structuralEditingEnabled,
                                 modifier = Modifier.weight(1f),
                                 label = { Text("Religión / Fe") },
                                 singleLine = true,
@@ -130,6 +135,7 @@ internal fun CharacterBackgroundTabV4(
                         OutlinedTextField(
                             value = background.race,
                             onValueChange = { onBackgroundChange(background.copy(race = it)) },
+                            enabled = structuralEditingEnabled,
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Raza") },
                             singleLine = true,
@@ -137,6 +143,7 @@ internal fun CharacterBackgroundTabV4(
                         OutlinedTextField(
                             value = background.religionFaith,
                             onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
+                            enabled = structuralEditingEnabled,
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Religión / Fe") },
                             singleLine = true,
@@ -145,6 +152,7 @@ internal fun CharacterBackgroundTabV4(
                     OutlinedTextField(
                         value = background.summary,
                         onValueChange = { onBackgroundChange(background.copy(summary = it)) },
+                        enabled = structuralEditingEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Descripción / resumen") },
                         minLines = 2,
@@ -194,6 +202,7 @@ internal fun CharacterBackgroundTabV4(
                                         title = field.label,
                                         value = fieldValue(field),
                                         onEdit = { beginEdit(field) },
+                                        editingEnabled = structuralEditingEnabled,
                                         modifier = Modifier.weight(1f),
                                     )
                                 }
@@ -208,6 +217,7 @@ internal fun CharacterBackgroundTabV4(
                                 title = field.label,
                                 value = fieldValue(field),
                                 onEdit = { beginEdit(field) },
+                                editingEnabled = structuralEditingEnabled,
                             )
                         }
                     }
@@ -239,7 +249,7 @@ internal fun CharacterBackgroundTabV4(
                             Text(
                                 if (storyExpanded) {
                                     "Ocultar"
-                                } else if (background.story.isBlank()) {
+                                } else if (background.story.isBlank() && structuralEditingEnabled) {
                                     "Añadir"
                                 } else {
                                     "Mostrar"
@@ -251,6 +261,7 @@ internal fun CharacterBackgroundTabV4(
                         OutlinedTextField(
                             value = background.story,
                             onValueChange = { onBackgroundChange(background.copy(story = it)) },
+                            enabled = structuralEditingEnabled,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .heightIn(
@@ -289,7 +300,11 @@ internal fun CharacterBackgroundTabV4(
                                     maxLines = 3,
                                 )
                                 Text(
-                                    if (background.story.isBlank()) "Toca para añadir" else "Toca para expandir y editar",
+                                    when {
+                                        !structuralEditingEnabled -> "Toca para expandir · Modo Mesa solo lectura"
+                                        background.story.isBlank() -> "Toca para añadir"
+                                        else -> "Toca para expandir y editar"
+                                    },
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             }
@@ -303,7 +318,7 @@ internal fun CharacterBackgroundTabV4(
     val editingField = editingFieldName?.let { name ->
         runCatching { BackgroundNarrativeFieldV4.valueOf(name) }.getOrNull()
     }
-    if (editingField != null) {
+    if (editingField != null && structuralEditingEnabled) {
         CharacterImeSafeEditorDialog(
             title = editingField.label,
             onCancel = { editingFieldName = null },
@@ -424,12 +439,13 @@ private fun BackgroundNarrativePreviewCardV4(
     title: String,
     value: String,
     onEdit: () -> Unit,
+    editingEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onEdit),
+            .clickable(enabled = editingEnabled, onClick = onEdit),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -449,7 +465,10 @@ private fun BackgroundNarrativePreviewCardV4(
                 },
                 maxLines = 2,
             )
-            Text("Toca para editar", style = MaterialTheme.typography.labelSmall)
+            Text(
+                if (editingEnabled) "Toca para editar" else "Modo Mesa · solo lectura",
+                style = MaterialTheme.typography.labelSmall,
+            )
         }
     }
 }
