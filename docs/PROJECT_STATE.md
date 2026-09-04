@@ -3,23 +3,24 @@
 **Last verified:** 2026-09-04 owner local time / 2026-09-04 UTC
 **Canonical branch:** `main` — untouched by Phase 4 closure work; exact head `471c5570669a6007bea9796d8a2c25536b10be21`  
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
-**Active focused closure branch:** `implementation/phase4-character-closure`  
-**Current phase:** Phase 4 Character Foundation Closure  
+**Durable pre-QA branch:** `implementation/phase4-preqa-consolidation`
+**Current phase:** Phase 4 Character Foundation Closure — owner QA pending
 **Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J GREEN; Batch K GREEN; historical Batch L GREEN/FROZEN; expanded Batch M pre-QA complete through M5 GREEN/FROZEN; M6 owner real-device QA is NEXT**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M5_PREQA_CONSOLIDATION.md` — controlling pre-QA closure checkpoint; M5 GREEN, exact replacement QA candidate frozen and independently validated;
-2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M4_INTER_BATCH_SCOPE_HOLE_CLOSURE_PLAN.md` — repair plan whose six approved-scope holes are now implemented and closed;
-3. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M3_PRIOR_BATCH_COMPLETENESS_AUDIT.md` — historical implementation-completeness audit that established the inter-batch holes;
-4. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M2_CODE_HEALTH_AUDIT.md` — code-health/static architecture audit that bounded the M5 cleanup;
-5. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M1_SCOPE_TRACEABILITY_AUDIT.md` — D-0047 scope traceability audit;
-6. `docs/checkpoints/2026-09-04_PHASE4_BATCH_L_FROZEN_QA_CANDIDATE.md` — historical pre-M frozen candidate; preserve unchanged as evidence only, not the active M6 candidate;
-7. `docs/checkpoints/2026-09-04_PHASE4_BATCH_K_STABILIZATION_COMPLETE.md` — owner-schema migration proof;
-8. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_BACKUP_IMPORT_COMPLETE.md` — completed backup/import gate;
-9. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed Batch I closure;
-10. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` and `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — controlling approved scope and historical execution decomposition.
+1. `docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md` — current practical resume checkpoint; M6 is ready but owner QA has not started;
+2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M5_PREQA_CONSOLIDATION.md` — controlling pre-QA closure evidence; M5 GREEN, exact replacement QA candidate frozen and independently validated;
+3. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M4_INTER_BATCH_SCOPE_HOLE_CLOSURE_PLAN.md` — repair plan whose six approved-scope holes are now implemented and closed;
+4. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M3_PRIOR_BATCH_COMPLETENESS_AUDIT.md` — historical implementation-completeness audit that established the inter-batch holes;
+5. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M2_CODE_HEALTH_AUDIT.md` — code-health/static architecture audit that bounded the M5 cleanup;
+6. `docs/checkpoints/2026-09-04_PHASE4_BATCH_M1_SCOPE_TRACEABILITY_AUDIT.md` — D-0047 scope traceability audit;
+7. `docs/checkpoints/2026-09-04_PHASE4_BATCH_L_FROZEN_QA_CANDIDATE.md` — historical pre-M frozen candidate; preserve unchanged as evidence only, not the active M6 candidate;
+8. `docs/checkpoints/2026-09-04_PHASE4_BATCH_K_STABILIZATION_COMPLETE.md` — owner-schema migration proof;
+9. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_BACKUP_IMPORT_COMPLETE.md` — completed backup/import gate;
+10. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed Batch I closure;
+11. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` and `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — controlling approved scope and historical execution decomposition.
 
 ## 1. Closure scope and merge boundary
 
