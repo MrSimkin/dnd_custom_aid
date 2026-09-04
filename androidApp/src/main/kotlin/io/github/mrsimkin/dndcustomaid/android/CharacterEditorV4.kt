@@ -57,6 +57,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
@@ -71,6 +72,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
+import io.github.mrsimkin.dndcustomaid.shared.character.visibleCharacterModules
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -156,6 +158,16 @@ internal fun CharacterEditorScreenV4(
             ),
         )
     }
+    var h1ModuleDraftJson by rememberSaveable(characterId.toString(), "h1-modules") {
+        mutableStateOf(
+            characterH1ModuleDraftToJsonV4(
+                CharacterH1ModuleDraftV4(
+                    classOptions = stored.classOptions,
+                    forms = stored.forms,
+                ),
+            ),
+        )
+    }
     var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
     var selectedTabName by rememberSaveable(characterId.toString()) {
         mutableStateOf(CharacterTabV4.OVERVIEW.name)
@@ -167,18 +179,21 @@ internal fun CharacterEditorScreenV4(
     var confirmUnsavedLeave by rememberSaveable(characterId.toString(), "unsaved-leave") { mutableStateOf(false) }
     var leaveAfterSave by rememberSaveable(characterId.toString(), "leave-after-save") { mutableStateOf(false) }
 
-    val selectedTab = resolvedCharacterTabV4(
-        savedTabName = selectedTabName,
-        spellcasterEnabled = stored.spellcasterEnabled,
-    )
     val combatEntries = remember(combatDraftJson) { combatEntriesFromJsonV4(combatDraftJson) }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
     val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
     val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }
     val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }
+    val h1ModuleDraft = remember(h1ModuleDraftJson) { characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson) }
     val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored
     val suggestedModules = suggestedCharacterModules(settingsSheet.classes)
+    val visibleModules = visibleCharacterModules(settingsSheet.classes, closureState.moduleOverrides)
+    val selectedTab = resolvedCharacterTabV4(
+        savedTabName = selectedTabName,
+        spellcasterEnabled = stored.spellcasterEnabled,
+        visibleModules = visibleModules,
+    )
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
     val storedDraftJson = remember(stored) { CharacterEditorDraftV4.from(stored).toJson() }
     val storedCombatDraftJson = remember(stored) { combatEntriesToJsonV4(stored.combatEntries) }
@@ -209,6 +224,14 @@ internal fun CharacterEditorScreenV4(
             ),
         )
     }
+    val storedH1ModuleDraftJson = remember(stored) {
+        characterH1ModuleDraftToJsonV4(
+            CharacterH1ModuleDraftV4(
+                classOptions = stored.classOptions,
+                forms = stored.forms,
+            ),
+        )
+    }
     val hasUnsavedChanges =
         draft.toJson() != storedDraftJson ||
             combatDraftJson != storedCombatDraftJson ||
@@ -216,7 +239,8 @@ internal fun CharacterEditorScreenV4(
             backgroundDraftJson != storedBackgroundDraftJson ||
             traitsDraftJson != storedTraitsDraftJson ||
             spellcastingDraftJson != storedSpellcastingDraftJson ||
-            notesDraftJson != storedNotesDraftJson
+            notesDraftJson != storedNotesDraftJson ||
+            h1ModuleDraftJson != storedH1ModuleDraftJson
 
     fun requestBack() {
         if (hasUnsavedChanges) {
@@ -231,6 +255,11 @@ internal fun CharacterEditorScreenV4(
     }
     BackHandler(enabled = !showSupercompact && showPcSettings) {
         showPcSettings = false
+        selectedTabName = resolvedCharacterTabV4(
+            savedTabName = selectedTabName,
+            spellcasterEnabled = stored.spellcasterEnabled,
+            visibleModules = visibleModules,
+        ).name
     }
     BackHandler(
         enabled = !showSupercompact && !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting,
@@ -283,11 +312,17 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateH1Modules(updated: CharacterH1ModuleDraftV4) {
+        h1ModuleDraftJson = characterH1ModuleDraftToJsonV4(updated)
+        savedMessage = null
+    }
+
     fun persist(candidate: CharacterSheet) {
         val shouldLeaveAfterPersist = leaveAfterSave
         val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
         val spellcasting = characterSpellcastingDraftFromJsonV4(spellcastingDraftJson)
         val notes = characterNotesDraftFromJsonV4(notesDraftJson)
+        val h1Modules = characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson)
         val integrated = candidate.copy(
             combatEntries = combatEntriesFromJsonV4(combatDraftJson),
             inventoryItems = equipment.items,
@@ -298,15 +333,21 @@ internal fun CharacterEditorScreenV4(
             spells = spellcasting.spells,
             generalNotes = notes.generalNotes,
             noteCards = notes.cards,
+            classOptions = h1Modules.classOptions,
+            forms = h1Modules.forms,
         )
         stored = repository.saveCharacter(integrated)
         val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
         val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
+        val liveClassOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id }
+        val liveFormIds = stored.forms.mapTo(mutableSetOf()) { it.id }
         val prunedQuickAccess = closureState.quickAccess
             .filter { reference ->
                 when (reference.kind) {
                     CharacterQuickAccessKind.TRAIT -> reference.targetId in liveTraitIds
                     CharacterQuickAccessKind.SPELL -> reference.targetId in liveSpellIds
+                    CharacterQuickAccessKind.CLASS_OPTION -> reference.targetId in liveClassOptionIds
+                    CharacterQuickAccessKind.FORM -> reference.targetId in liveFormIds
                     else -> true
                 }
             }
@@ -339,6 +380,12 @@ internal fun CharacterEditorScreenV4(
             CharacterNotesDraftV4(
                 generalNotes = stored.generalNotes,
                 cards = stored.noteCards,
+            ),
+        )
+        h1ModuleDraftJson = characterH1ModuleDraftToJsonV4(
+            CharacterH1ModuleDraftV4(
+                classOptions = stored.classOptions,
+                forms = stored.forms,
             ),
         )
         leaveAfterSave = false
@@ -417,7 +464,14 @@ internal fun CharacterEditorScreenV4(
             spellcasterEnabled = stored.spellcasterEnabled,
             closureState = closureState,
             suggestedModules = suggestedModules,
-            onBack = { showPcSettings = false },
+            onBack = {
+                showPcSettings = false
+                selectedTabName = resolvedCharacterTabV4(
+                    savedTabName = selectedTabName,
+                    spellcasterEnabled = stored.spellcasterEnabled,
+                    visibleModules = visibleModules,
+                ).name
+            },
             onStatusChange = ::persistStatus,
             onSpellcasterEnabledChange = { enabled ->
                 if (!enabled && stored.hasMeaningfulSpellcastingDataV4()) {
@@ -452,6 +506,7 @@ internal fun CharacterEditorScreenV4(
                     CharacterTopTabStripV4(
                         selectedTab = selectedTab,
                         spellcasterEnabled = stored.spellcasterEnabled,
+                        visibleModules = visibleModules,
                         onSelect = { selectedTabName = it.name },
                     )
                     when (selectedTab) {
@@ -539,6 +594,29 @@ internal fun CharacterEditorScreenV4(
                                         slot.copy(spent = spent.coerceIn(0, total)),
                                     ),
                                 )
+                            },
+                            onClosureStateChange = ::persistClosureState,
+                            wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
+                        )
+                        CharacterTabV4.ARTIFICER -> CharacterArtificeModuleV4(
+                            options = h1ModuleDraft.classOptions,
+                            classes = settingsSheet.classes,
+                            closureState = closureState,
+                            persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
+                            onOptionsChange = { updated ->
+                                updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
+                            },
+                            onClosureStateChange = ::persistClosureState,
+                            wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
+                        )
+                        CharacterTabV4.FORMS -> CharacterFormsModuleV4(
+                            forms = h1ModuleDraft.forms,
+                            closureState = closureState,
+                            persistedFormIds = stored.forms.mapTo(mutableSetOf()) { it.id },
+                            onFormsChange = { updated ->
+                                updateH1Modules(h1ModuleDraft.copy(forms = updated))
                             },
                             onClosureStateChange = ::persistClosureState,
                             wide = wide,
