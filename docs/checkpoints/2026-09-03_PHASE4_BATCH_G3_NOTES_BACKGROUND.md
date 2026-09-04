@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-03  
 **Branch:** `implementation/phase4-character-closure`  
-**Status:** PENDING INTEGRATION GATE  
+**Status:** GREEN  
 **Canonical `main`:** untouched
 
 ## Scope
@@ -65,24 +65,40 @@ Delivered Trasfondo behavior:
 - long Story editor has bounded height plus internal scrolling guidance;
 - no Story data is duplicated, summarized into storage or otherwise transformed.
 
-## Existing regressions that must remain green
+## Existing regressions protected
 
-The full G3 gate must include existing persistence/migration protection, especially:
+The controlling G3 gate retained the existing persistence/migration protection, especially:
 
 - `CharacterNotesPersistenceTest` — large General Notes, titled-card order/update/delete round trip;
 - `CharacterBackgroundIdentityMigrationTest` — migration preserves existing background and Raza/Religión round trip;
 - all shared repository/migration tests;
 - Android debug assembly and Desktop build.
 
-## Gate required
+## Final verification — GREEN
 
-G3 is not GREEN until the controlling workflow on this checkpoint head passes:
+Controlling checkpoint head:
 
-- focused G3 note-operation tests;
-- all shared desktop tests including Notes/Background persistence and migration regressions;
-- Android debug assembly including the updated Notes/Background Compose surfaces;
-- Desktop build;
-- backend type-check;
-- APK artifact upload.
+- `9182d4841de2d568ba001ceeffff1ec718ab0220`.
 
-If green, mark G3 GREEN, advance `docs/PROJECT_STATE.md` to **H1 — Artífice + Formas active**, and audit the existing shared module state before writing H1 UI. Do not begin H1 implementation from momentum before G3 is known green.
+Controlling workflow:
+
+- `33823386958` — PASS;
+- backend type-check — PASS;
+- shared/Kotlin tests including G3 note operations and historical persistence/migration regressions — PASS;
+- Android debug assembly — PASS;
+- Desktop build — PASS;
+- APK upload — PASS.
+
+Artifact:
+
+- `dnd-custom-aid-debug-apk`;
+- artifact ID `9919122343`;
+- digest `sha256:588b1e90f3790acf6d39332cb25548fd8bc2ef06b856da98896a741897bced11`.
+
+This APK is integration evidence only. It is not the future frozen owner-QA closure candidate.
+
+## Gate result
+
+**G3 is GREEN.**
+
+The next execution batch is **H1 — Artífice + Formas**. H1 must begin by auditing the existing shared durable module state and the approved class/subclass/module audit before deciding whether any data-model addition is actually required. Do not jump directly into UI implementation from assumptions.
