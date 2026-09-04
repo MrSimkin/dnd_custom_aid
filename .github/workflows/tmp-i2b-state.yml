@@ -31,7 +31,7 @@ jobs:
               if count != 1:
                   raise SystemExit(f'{label}: expected one anchor, found {count}')
               text = text.replace(old, new, 1)
-          once('**Last verified:** 2026-09-03 owner local time / 2026-09-04 UTC  ', '**Last verified:** 2026-09-04 owner local time / 2026-09-04 UTC  ', 'last verified')
+          once('**Last verified:** 2026-09-03 owner local time / 2026-09-04 UTC  ', '**Last verified:** 2026-09-04 owner local time / 2026-09-04 UTC', 'last verified')
           once('**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; **Batch I2b active**', '**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J active**', 'execution position')
           resume = '\n'.join([
               '## 0. Primary resume order',
