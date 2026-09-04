@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCondition
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConcentration
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
@@ -45,6 +46,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTemporaryEffect
 import io.github.mrsimkin.dndcustomaid.shared.character.applySelectedResourceRecovery
 import io.github.mrsimkin.dndcustomaid.shared.character.previewResourceRecovery
+import io.github.mrsimkin.dndcustomaid.shared.character.pruneCharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterQuickAccessFavorite
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -129,6 +132,9 @@ internal fun CharacterManagementTabV4(
         item(key = "management-resources") {
             ResourcesCardV4(
                 resources = sheet.resources,
+                favoriteResourceIds = closureState.quickAccess
+                    .filter { it.kind == CharacterQuickAccessKind.RESOURCE }
+                    .mapTo(mutableSetOf()) { it.targetId },
                 structuralEditingEnabled = structuralEditingEnabled,
                 onAdd = {
                     editingResourceId = null
@@ -139,6 +145,20 @@ internal fun CharacterManagementTabV4(
                     resourceEditorOpen = true
                 },
                 onDelete = { resource -> deletingResourceId = resource.id.toString() },
+                onFavoriteChange = { resource, favorite ->
+                    if (structuralEditingEnabled) {
+                        onClosureStateChange(
+                            closureState.copy(
+                                quickAccess = setCharacterQuickAccessFavorite(
+                                    quickAccess = closureState.quickAccess,
+                                    kind = CharacterQuickAccessKind.RESOURCE,
+                                    targetId = resource.id,
+                                    favorite = favorite,
+                                ),
+                            ),
+                        )
+                    }
+                },
                 onAdjust = { resource, delta ->
                     val maximum = resource.maxValue
                     val changed = (resource.currentValue + delta).coerceAtLeast(0).let { value ->
@@ -292,9 +312,17 @@ internal fun CharacterManagementTabV4(
                                 .mapIndexed { index, item -> item.copy(sortOrder = index) },
                         ),
                     )
+                    val liveResourceIds = sheet.resources
+                        .filterNot { it.id == target.id }
+                        .mapTo(mutableSetOf()) { it.id }
                     onClosureStateChange(
                         closureState.copy(
                             resourceRecovery = closureState.resourceRecovery.filterNot { it.resourceId == target.id },
+                            quickAccess = pruneCharacterQuickAccessKind(
+                                quickAccess = closureState.quickAccess,
+                                kind = CharacterQuickAccessKind.RESOURCE,
+                                liveTargetIds = liveResourceIds,
+                            ),
                         ),
                     )
                     deletingResourceId = null
@@ -571,10 +599,12 @@ private fun DeathSaveRowV4(label: String, value: Int, onChange: (Int) -> Unit) {
 @Composable
 private fun ResourcesCardV4(
     resources: List<CharacterResource>,
+    favoriteResourceIds: Set<Uuid>,
     structuralEditingEnabled: Boolean,
     onAdd: () -> Unit,
     onEdit: (CharacterResource) -> Unit,
     onDelete: (CharacterResource) -> Unit,
+    onFavoriteChange: (CharacterResource, Boolean) -> Unit,
     onAdjust: (CharacterResource, Int) -> Unit,
 ) {
     ManagementCardV4("Recursos") {
@@ -610,6 +640,13 @@ private fun ResourcesCardV4(
                         onClick = { onAdjust(resource, 1) },
                         enabled = resource.maxValue?.let { max -> resource.currentValue < max } ?: true,
                     ) { Text("+") }
+                    val favorite = resource.id in favoriteResourceIds
+                    TextButton(
+                        onClick = { onFavoriteChange(resource, !favorite) },
+                        enabled = structuralEditingEnabled,
+                    ) {
+                        Text(if (favorite) "★" else "☆")
+                    }
                     TextButton(onClick = { onDelete(resource) }, enabled = structuralEditingEnabled) { Text("Eliminar") }
                 }
             }
