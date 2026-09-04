@@ -622,6 +622,42 @@ internal fun CharacterEditorScreenV4(
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
+                        CharacterTabV4.TECHNIQUES -> CharacterTechniquesModuleV4(
+                            options = h1ModuleDraft.classOptions,
+                            classes = settingsSheet.classes,
+                            closureState = closureState,
+                            persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
+                            onOptionsChange = { updated ->
+                                updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
+                            },
+                            onClosureStateChange = ::persistClosureState,
+                            wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
+                        )
+                        CharacterTabV4.METAMAGIC -> CharacterMetamagicModuleV4(
+                            options = h1ModuleDraft.classOptions,
+                            classes = settingsSheet.classes,
+                            closureState = closureState,
+                            persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
+                            onOptionsChange = { updated ->
+                                updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
+                            },
+                            onClosureStateChange = ::persistClosureState,
+                            wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
+                        )
+                        CharacterTabV4.PACTS -> CharacterPactsModuleV4(
+                            options = h1ModuleDraft.classOptions,
+                            classes = settingsSheet.classes,
+                            closureState = closureState,
+                            persistedOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id },
+                            onOptionsChange = { updated ->
+                                updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
+                            },
+                            onClosureStateChange = ::persistClosureState,
+                            wide = wide,
+                            hapticsEnabled = closureState.hapticsEnabled,
+                        )
                         CharacterTabV4.NOTES -> CharacterNotesTabV4(
                             draft = notesDraft,
                             onDraftChange = ::updateNotes,
