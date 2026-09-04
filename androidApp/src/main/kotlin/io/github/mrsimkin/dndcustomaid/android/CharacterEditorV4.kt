@@ -38,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,6 +102,7 @@ internal fun CharacterEditorScreenV4(
     characterId: Uuid,
     repository: CharacterRepository,
     closureRepository: CharacterClosureRepository,
+    navigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
     onOpenApplicationSettings: () -> Unit,
@@ -170,8 +172,11 @@ internal fun CharacterEditorScreenV4(
         )
     }
     var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
-    var selectedTabName by rememberSaveable(characterId.toString()) {
-        mutableStateOf(CharacterTabV4.OVERVIEW.name)
+    var selectedTabName by rememberSaveable(characterId.toString(), "selected-tab") {
+        mutableStateOf(
+            navigationPreferenceStore.loadLastTabName(characterId)
+                ?: CharacterTabV4.OVERVIEW.name,
+        )
     }
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
     var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }
@@ -195,6 +200,12 @@ internal fun CharacterEditorScreenV4(
         spellcasterEnabled = stored.spellcasterEnabled,
         visibleModules = visibleModules,
     )
+    LaunchedEffect(characterId, selectedTab.name) {
+        if (selectedTabName != selectedTab.name) {
+            selectedTabName = selectedTab.name
+        }
+        navigationPreferenceStore.saveLastTabName(characterId, selectedTab.name)
+    }
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
     val storedDraftJson = remember(stored) { CharacterEditorDraftV4.from(stored).toJson() }
     val storedCombatDraftJson = remember(stored) { combatEntriesToJsonV4(stored.combatEntries) }
@@ -497,24 +508,27 @@ internal fun CharacterEditorScreenV4(
                     .fillMaxSize()
                     .padding(scaffoldPadding),
             ) {
+                val navigationPresentation = characterNavigationPresentationForWidthV4(maxWidth.value)
                 val wide = maxWidth >= 700.dp
-                Column(modifier = Modifier.fillMaxSize()) {
-                    EditorHeaderV4(
-                        characterName = draft.name,
-                        stored = stored,
-                        savedMessage = savedMessage,
-                        hasUnsavedChanges = hasUnsavedChanges,
-                        savable = savable,
-                        onBack = ::requestBack,
-                        onSave = ::save,
-                        onOpenSettings = { showPcSettings = true },
-                    )
-                    CharacterTopTabStripV4(
-                        selectedTab = selectedTab,
-                        spellcasterEnabled = stored.spellcasterEnabled,
-                        visibleModules = visibleModules,
-                        onSelect = { selectedTabName = it.name },
-                    )
+                CharacterAdaptiveShellV4(
+                    navigationPresentation = navigationPresentation,
+                    selectedTab = selectedTab,
+                    spellcasterEnabled = stored.spellcasterEnabled,
+                    visibleModules = visibleModules,
+                    onSelect = { selectedTabName = it.name },
+                    header = {
+                        EditorHeaderV4(
+                            characterName = draft.name,
+                            stored = stored,
+                            savedMessage = savedMessage,
+                            hasUnsavedChanges = hasUnsavedChanges,
+                            savable = savable,
+                            onBack = ::requestBack,
+                            onSave = ::save,
+                            onOpenSettings = { showPcSettings = true },
+                        )
+                    },
+                ) {
                     when (selectedTab) {
                         CharacterTabV4.OVERVIEW -> OverviewTabV4(
                             draft = draft,

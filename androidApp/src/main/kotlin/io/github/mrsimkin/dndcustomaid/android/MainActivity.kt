@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
     private val characterRepository by lazy { CharacterRepository(database) }
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
+    private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +67,7 @@ class MainActivity : ComponentActivity() {
                     campaignRepository = campaignRepository,
                     characterRepository = characterRepository,
                     characterClosureRepository = characterClosureRepository,
+                    characterNavigationPreferenceStore = characterNavigationPreferenceStore,
                     preferences = preferences,
                     onPreferencesChange = ::updatePreferences,
                 )
@@ -85,6 +87,7 @@ private fun DndCustomAidApp(
     campaignRepository: CampaignRepository,
     characterRepository: CharacterRepository,
     characterClosureRepository: CharacterClosureRepository,
+    characterNavigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
 ) {
@@ -181,6 +184,7 @@ private fun DndCustomAidApp(
                     characterId = characterId,
                     repository = characterRepository,
                     closureRepository = characterClosureRepository,
+                    navigationPreferenceStore = characterNavigationPreferenceStore,
                     preferences = preferences,
                     onPreferencesChange = onPreferencesChange,
                     onOpenApplicationSettings = { showSettings = true },

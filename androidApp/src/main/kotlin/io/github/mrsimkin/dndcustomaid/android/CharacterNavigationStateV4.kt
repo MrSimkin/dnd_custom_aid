@@ -8,7 +8,7 @@ internal enum class CharacterNavigationPresentationV4 {
     SIDE_RAIL,
 }
 
-internal const val CHARACTER_NAVIGATION_RAIL_MIN_WIDTH_DP = 840f
+internal const val CHARACTER_NAVIGATION_RAIL_MIN_WIDTH_DP = 900f
 
 internal fun characterNavigationPresentationForWidthV4(
     availableWidthDp: Float,
