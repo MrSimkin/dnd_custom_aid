@@ -60,7 +60,14 @@ require(editor_path, ['proficiencyDraftJson', 'CharacterProficienciesCardV4(', '
 require(android / 'CharacterManagementTabV4.kt', ['CharacterQuickAccessKind.RESOURCE', 'setCharacterQuickAccessFavorite', 'favoriteResourceIds'])
 require(android / 'CharacterUi.kt', ['characterListClassSummary(', 'characterListFreshnessLabel(', 'portraitRef'])
 require(android / 'UiPreferences.kt', ['SettingsSheetPreview(', 'Alyra Voss', 'Texto '])
-require(android / 'CharacterClassIdentityV4.kt', ['CharacterSemanticBadgeV4(', 'CharacterSemanticBadgeKindV4.RULES', 'CharacterSemanticBadgeKindV4.SOURCE'])
+
+# D06: active identity must reach the wrapper in all three intended surfaces,
+# while the separate shared primitive must retain explicit RULES/SOURCE kinds.
+identity_text = (android / 'CharacterClassIdentityV4.kt').read_text()
+if identity_text.count('CharacterRulesSourceBadgesV4(') != 3:
+    raise SystemExit('M4 traceability regression: expected exactly three CharacterRulesSourceBadgesV4 reaches in CharacterClassIdentityV4.kt')
+require(android / 'CharacterSemanticBadgesV4.kt', ['CharacterSemanticBadgeV4(', 'CharacterSemanticBadgeKindV4.RULES', 'CharacterSemanticBadgeKindV4.SOURCE'])
+
 require(android / 'CharacterSpellListClosureV4.kt', ['CharacterSemanticBadgeKindV4.STATE', 'contentDescription'])
 require(android / 'CharacterEquipmentClosureV4.kt', ['CharacterSemanticBadgeKindV4.STATE', 'Transportado', 'Sintonizado'])
 require(android / 'CharacterManagementTabV4.kt', ['CharacterSemanticBadgeKindV4.STATE', 'Concentración activa'])
