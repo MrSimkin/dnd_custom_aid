@@ -1,22 +1,24 @@
 # Project State
 
 **Last verified:** 2026-09-04 owner local time / 2026-09-04 UTC
-**Canonical branch:** `main` — untouched by Phase 4 closure work  
+**Canonical branch:** `main` — untouched by Phase 4 closure work; exact head `471c5570669a6007bea9796d8a2c25536b10be21`  
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J active; J1 GREEN on safety line; J2 paused at failed focused test-compilation gate with no J2 product commit accepted**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed I2b gate, Batch I closure and exact continuation into J;
-2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a Supercompact gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — recoverable execution sequence through owner QA;
-4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
-5. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
-6. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
-7. earlier A–I1 checkpoints as historical implementation/verification evidence.
+1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_PAUSE_HANDOFF.md` — **current operational handoff for 2026-09-05; read first**;
+2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed I2b gate, Batch I closure and transition into J;
+3. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a Supercompact gate;
+4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — approved execution sequence through owner QA; its historical `Exact next action` is stale and is superseded by this Project State + the current J handoff;
+5. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
+6. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
+7. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
+8. earlier A–I1 checkpoints as historical implementation/verification evidence.
+
 ## 1. Closure scope and merge boundary
 
 D-0047 is owner-approved. The closure includes retained QA fixes and owner requirements, F01–F18, D01–D18, I01–I22, official class/subclass identity including Artificer, conditional reusable modules, Gestión, PC Settings consolidation, Supercompact/Table mode, global IME/order/context UX, backup/import and first-class phone/tablet behavior.
@@ -154,12 +156,21 @@ Final controlling I2b evidence:
 
 ### Current active batch — J
 
-Batch J owns the app's own-format backup/import and reconciliation completion. It must provide a versioned local format, safe import with no silent overwrite or identifier collision, richly populated round-trip coverage and malformed-input safety while reusing the existing durable character/domain authorities.
+Batch J owns the app's own-format backup/import and reconciliation completion. Current operational truth is checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_PAUSE_HANDOFF.md`.
+
+Current substatus:
+
+- **J1 — GREEN on safety line.** Own-format v1 JSON contract + strict decode/validation + complete restore-as-copy identity/reference remapping are implemented and tested on exact clean commit `5a734feb66f1341bed4688a9a8122247f245f8cb`, tree `e384f0f7f04991c0db7b7b35ace5aaf965135e76`. Exact-tree retry workflow `33838622420` passed backend, shared/Kotlin tests, Android debug, Desktop and APK upload. Artifact `9924202949`, digest `sha256:95ac091f02523c9b3480f548d0597979f7afc6b5af2653daa65a73e602c62240`.
+- **J2 — PAUSED / NOT GREEN.** Guarded workflow `33838749228` applied the intended repository patch in its runner, then failed at `:shared:compileTestKotlinDesktop` because the new test fixture used stale `CharacterInventoryItem` constructor arguments (`category`, `pinned`, `container`, `visible`) and `CharacterSpell(range=...)` rather than current `special`, `description`, `location`, `attuned` and `rangeText`. Commit/self-clean was skipped. No J2 product code was accepted.
+- Active J working branch is `tmp/phase4-j-backup-import` at `4416eeacb2f2dec9f302d96b62a01506a0722a98`; it contains validated J1 product work plus the intentionally retained J2 staging helpers `.github/j2_repository_patch.py` and `.github/workflows/tmp-j2-apply.yml`.
+
+Do not restart J from the durable branch while this working branch exists. Resume the exact J2 repair from that branch as described in the handoff checkpoint.
+
 ## 4. Remaining approved execution sequence
 
 From the current position:
 
-- **J — ACTIVE — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;
+- **J — ACTIVE — own-format backup/import + reconciliation completion:** J1 GREEN; repair J2 test fixture, prove atomic repository restore-as-copy + reconciliation, then wire Android local-file export/import and run final J clean-tree gate;
 - **K — closure candidate stabilization:** full migration regression, shared tests, Android assemble, Desktop build, backend type-check and focused integration fixes only;
 - **L — frozen phone+tablet APK candidate:** record exact commit/workflow/artifact name+ID/ZIP hash/extracted APK hash and make no silent code changes after QA begins;
 - **M — owner QA:** phone portrait, phone landscape, tablet portrait, tablet landscape and representative larger text; failures create focused repair batches/new candidate identities.
@@ -176,8 +187,21 @@ The future closure candidate must be one frozen APK with exact commit/workflow/a
 
 ## 7. Exact continuation
 
-Resume **Batch J — own-format backup/import + reconciliation completion** on a fresh safety branch from `implementation/phase4-character-closure`.
+Resume from the existing Batch J safety branch, **not** from a fresh branch:
 
-Implement a versioned local backup/export representation and safe import path. Preserve existing authoritative repositories/domain objects, reject malformed or unsupported input safely, prevent silent overwrite and identifier collisions, and add richly populated round-trip coverage including the closure data delivered through A–I. Complete the remaining reconciliation requirement assigned to J without broadening into DM features.
+`tmp/phase4-j-backup-import` @ `4416eeacb2f2dec9f302d96b62a01506a0722a98`
+
+First read `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_PAUSE_HANDOFF.md` from the durable branch.
+
+Then:
+
+1. repair only the demonstrated stale constructor arguments inside `.github/j2_repository_patch.py`;
+2. for the generated `CharacterInventoryItem` fixture, use current `special`, `description`, `location`, `attuned` fields instead of stale `category`, `pinned`, `container`, `visible`;
+3. use `CharacterSpell(rangeText = "30 pies")` instead of `range = ...`;
+4. rerun the guarded focused test `gradle :shared:desktopTest --tests '*CharacterBackupRepositoryTest' --stacktrace`;
+5. do not alter J2 production semantics unless the next gate demonstrates a production defect;
+6. if focused J2 becomes GREEN, allow self-clean/commit, audit that helpers are absent, then run full exact-clean-tree CI;
+7. only after J2 is GREEN proceed to Android J3 local-file UX: import at selected-campaign/character-list context, export as character-specific action, system document picker, restore-as-new-copy messaging and existing reconciliation checkpoint surface;
+8. finish Gate J before starting K.
 
 Keep `main` untouched. Do not begin K until J is fully gated, and do not begin DM work before the Phase 4 exit boundary and explicit owner approval.
