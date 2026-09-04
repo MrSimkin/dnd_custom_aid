@@ -1,0 +1,62 @@
+name: Temporary exact M5 frozen candidate validator
+
+on:
+  push:
+    branches:
+      - tmp/phase4-m5-candidate-validator
+
+permissions:
+  contents: read
+
+jobs:
+  validate-exact-frozen-candidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: adc286b3e1305ed706c2ed04d478a43652f6b365
+          path: candidate
+          fetch-depth: 1
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove exact frozen source identity
+        run: |
+          test "$(git -C candidate rev-parse HEAD)" = "adc286b3e1305ed706c2ed04d478a43652f6b365"
+          echo "CANDIDATE_COMMIT=$(git -C candidate rev-parse HEAD)"
+          echo "CANDIDATE_TREE=$(git -C candidate rev-parse HEAD^{tree})"
+
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode candidate/androidApp/ci-debug.keystore.b64 > candidate/androidApp/ci-debug.keystore
+
+      - name: Full exact-candidate Kotlin regression
+        working-directory: candidate
+        run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+
+      - name: Exact-candidate backend type-check
+        working-directory: candidate/backend
+        run: npm install --no-package-lock && npm run check
+
+      - name: Record exact APK identity
+        run: |
+          test -f candidate/androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          sha256sum candidate/androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          stat --printf='APK_SIZE_BYTES=%s\n' candidate/androidApp/build/outputs/apk/debug/androidApp-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase4-m5-frozen-qa-apk
+          path: candidate/androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          if-no-files-found: error
