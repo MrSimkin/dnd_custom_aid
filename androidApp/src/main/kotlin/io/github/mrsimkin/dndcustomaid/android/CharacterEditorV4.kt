@@ -178,6 +178,9 @@ internal fun CharacterEditorScreenV4(
             ),
         )
     }
+    var proficiencyDraftJson by rememberSaveable(characterId.toString(), "proficiencies") {
+        mutableStateOf(characterProficienciesToJsonV4(stored.proficiencies))
+    }
     var savedMessage by rememberSaveable(characterId.toString()) { mutableStateOf<String?>(null) }
     var selectedTabName by rememberSaveable(characterId.toString(), "selected-tab") {
         mutableStateOf(
@@ -221,6 +224,7 @@ internal fun CharacterEditorScreenV4(
     val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }
     val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }
     val h1ModuleDraft = remember(h1ModuleDraftJson) { characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson) }
+    val proficiencyDraft = remember(proficiencyDraftJson) { characterProficienciesFromJsonV4(proficiencyDraftJson) }
     val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored
     val suggestedModules = suggestedCharacterModules(settingsSheet.classes)
     val visibleModules = visibleCharacterModules(settingsSheet.classes, closureState.moduleOverrides)
@@ -275,6 +279,9 @@ internal fun CharacterEditorScreenV4(
             ),
         )
     }
+    val storedProficiencyDraftJson = remember(stored) {
+        characterProficienciesToJsonV4(stored.proficiencies)
+    }
     val hasUnsavedChanges =
         draft.toJson() != storedDraftJson ||
             combatDraftJson != storedCombatDraftJson ||
@@ -283,7 +290,8 @@ internal fun CharacterEditorScreenV4(
             traitsDraftJson != storedTraitsDraftJson ||
             spellcastingDraftJson != storedSpellcastingDraftJson ||
             notesDraftJson != storedNotesDraftJson ||
-            h1ModuleDraftJson != storedH1ModuleDraftJson
+            h1ModuleDraftJson != storedH1ModuleDraftJson ||
+            proficiencyDraftJson != storedProficiencyDraftJson
 
     fun requestBack() {
         if (hasUnsavedChanges) {
@@ -370,12 +378,19 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateProficiencies(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>) {
+        if (!structuralEditingEnabled) return
+        proficiencyDraftJson = characterProficienciesToJsonV4(updated)
+        savedMessage = null
+    }
+
     fun persist(candidate: CharacterSheet) {
         val shouldLeaveAfterPersist = leaveAfterSave
         val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
         val spellcasting = characterSpellcastingDraftFromJsonV4(spellcastingDraftJson)
         val notes = characterNotesDraftFromJsonV4(notesDraftJson)
         val h1Modules = characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson)
+        val proficiencies = characterProficienciesFromJsonV4(proficiencyDraftJson)
         val integrated = candidate.copy(
             combatEntries = combatEntriesFromJsonV4(combatDraftJson),
             inventoryItems = equipment.items,
@@ -386,6 +401,7 @@ internal fun CharacterEditorScreenV4(
             spells = spellcasting.spells,
             generalNotes = notes.generalNotes,
             noteCards = notes.cards,
+            proficiencies = proficiencies,
             classOptions = h1Modules.classOptions,
             forms = h1Modules.forms,
             companions = h1Modules.companions,
@@ -445,6 +461,7 @@ internal fun CharacterEditorScreenV4(
                 companions = stored.companions,
             ),
         )
+        proficiencyDraftJson = characterProficienciesToJsonV4(stored.proficiencies)
         leaveAfterSave = false
         savedMessage = "Guardado"
         if (shouldLeaveAfterPersist) {
@@ -632,6 +649,8 @@ internal fun CharacterEditorScreenV4(
                             draft = draft,
                             closureState = closureState,
                             calculationSheet = settingsSheet,
+                            proficiencies = proficiencyDraft,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             skillLayoutChoice = preferences.skillLayoutChoice,
                             onSkillLayoutChange = {
@@ -639,6 +658,7 @@ internal fun CharacterEditorScreenV4(
                             },
                             onDraftChange = ::updateStructuralDraft,
                             onClosureStateChange = ::persistStructuralClosureState,
+                            onProficienciesChange = ::updateProficiencies,
                         )
                         CharacterTabV4.COMBAT -> CharacterCombatTabV4(
                             armorClass = draft.armorClass,
@@ -1769,11 +1789,14 @@ private fun SkillsTabV4(
     draft: CharacterEditorDraftV4,
     closureState: CharacterClosureState,
     calculationSheet: CharacterSheet,
+    proficiencies: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>,
+    structuralEditingEnabled: Boolean,
     wide: Boolean,
     skillLayoutChoice: SkillLayoutChoice,
     onSkillLayoutChange: (SkillLayoutChoice) -> Unit,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
+    onProficienciesChange: (List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -1819,6 +1842,13 @@ private fun SkillsTabV4(
                     )
                 }
             }
+        }
+        item {
+            CharacterProficienciesCardV4(
+                proficiencies = proficiencies,
+                structuralEditingEnabled = structuralEditingEnabled,
+                onProficienciesChange = onProficienciesChange,
+            )
         }
     }
 }
