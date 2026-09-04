@@ -23,6 +23,7 @@ internal enum class CharacterTabV4(val label: String) {
     TECHNIQUES("Técnicas"),
     METAMAGIC("Metamagia"),
     PACTS("Pactos"),
+    COMPANIONS("Compañeros"),
     NOTES("Notas"),
 }
 
@@ -37,6 +38,7 @@ internal fun visibleCharacterTabsV4(
         CharacterTabV4.TECHNIQUES -> CharacterModuleKind.TECHNIQUES in visibleModules
         CharacterTabV4.METAMAGIC -> CharacterModuleKind.METAMAGIC in visibleModules
         CharacterTabV4.PACTS -> CharacterModuleKind.PACTS in visibleModules
+        CharacterTabV4.COMPANIONS -> CharacterModuleKind.COMPANIONS in visibleModules
         else -> true
     }
 }
