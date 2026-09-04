@@ -1,7 +1,10 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,15 +35,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupCodec
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDecodeResult
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
+import io.github.mrsimkin.dndcustomaid.shared.character.characterListClassSummary
+import io.github.mrsimkin.dndcustomaid.shared.character.characterListFreshnessLabel
 import kotlin.uuid.Uuid
 
 @Composable
@@ -46,18 +58,30 @@ internal fun CharacterListScreen(
     campaign: Campaign,
     repository: CharacterRepository,
     backupRepository: CharacterBackupRepository,
+    closureRepository: CharacterClosureRepository,
     onBack: () -> Unit,
     onEdit: (Uuid) -> Unit,
 ) {
     var characters by remember(campaign.id) { mutableStateOf(repository.listCharacters(campaign.id)) }
+    var closureStates by remember(campaign.id) {
+        mutableStateOf(
+            characters.associate { character ->
+                character.id to closureRepository.state(character.id)
+            },
+        )
+    }
     var showCreateDialog by remember { mutableStateOf(false) }
     var importedCharacterId by remember(campaign.id) { mutableStateOf<String?>(null) }
     var importedCharacterName by remember(campaign.id) { mutableStateOf<String?>(null) }
     var importError by remember(campaign.id) { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    val nowEpochSeconds = System.currentTimeMillis() / 1000L
 
     fun reload() {
         characters = repository.listCharacters(campaign.id)
+        closureStates = characters.associate { character ->
+            character.id to closureRepository.state(character.id)
+        }
     }
 
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -159,7 +183,12 @@ internal fun CharacterListScreen(
                     }
                 } else {
                     items(characters, key = { it.id.toString() }) { character ->
-                        CharacterCard(character = character, onClick = { onEdit(character.id) })
+                        CharacterCard(
+                            character = character,
+                            closureState = closureStates[character.id] ?: CharacterClosureState(),
+                            nowEpochSeconds = nowEpochSeconds,
+                            onClick = { onEdit(character.id) },
+                        )
                     }
                 }
             }
@@ -224,26 +253,80 @@ internal fun CharacterListScreen(
 @Composable
 private fun CharacterCard(
     character: CharacterSheet,
+    closureState: CharacterClosureState,
+    nowEpochSeconds: Long,
     onClick: () -> Unit,
 ) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 9.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(character.name, style = MaterialTheme.typography.titleMedium)
-            val classSummary = if (character.classes.isEmpty()) {
-                "Sin clase registrada"
-            } else {
-                character.classes.joinToString(" / ") { "${it.name} ${it.level}" }
-            }
-            Text(classSummary, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                "${statusLabel(character.status)} · Nivel total ${character.totalLevel}",
-                style = MaterialTheme.typography.bodySmall,
+            CharacterPortraitThumbnailV4(
+                uriRef = closureState.portraitRef,
+                characterName = character.name,
             )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(character.name, style = MaterialTheme.typography.titleMedium)
+                Text(characterListClassSummary(character.classes), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "${statusLabel(character.status)} · Nivel total ${character.totalLevel}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    characterListFreshnessLabel(character.updatedAtEpochSeconds, nowEpochSeconds),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CharacterPortraitThumbnailV4(
+    uriRef: String?,
+    characterName: String,
+) {
+    val context = LocalContext.current
+    val bitmap = remember(uriRef) {
+        uriRef?.let { raw ->
+            runCatching {
+                context.contentResolver.openInputStream(Uri.parse(raw))?.use { input ->
+                    BitmapFactory.decodeStream(input)?.asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
+
+    Surface(
+        modifier = Modifier
+            .size(64.dp)
+            .clip(MaterialTheme.shapes.medium),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = "Retrato de $characterName",
+                modifier = Modifier.size(64.dp),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = characterName.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "—",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

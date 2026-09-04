@@ -144,6 +144,7 @@ private fun DndCustomAidApp(
                     campaign = selectedCampaign,
                     repository = characterRepository,
                     backupRepository = characterBackupRepository,
+                    closureRepository = characterClosureRepository,
                     onBack = {
                         selectedCampaignId = null
                         selectedCharacterId = null
@@ -165,6 +166,7 @@ private fun DndCustomAidApp(
                         campaign = selectedCampaign,
                         repository = characterRepository,
                         backupRepository = characterBackupRepository,
+                        closureRepository = characterClosureRepository,
                         onBack = {
                             selectedCampaignId = null
                             selectedCharacterId = null
