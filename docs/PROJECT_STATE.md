@@ -5,12 +5,12 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; **Batch I2 active**  
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; **Batch I2b active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_I1_ADAPTIVE_SHELL.md` — completed I1 gate and exact continuation into I2;
+1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a gate and exact continuation into I2b;
 2. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — recoverable execution sequence through owner QA;
 3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
 4. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
@@ -135,24 +135,32 @@ Verification:
 - final workflow `33832927017` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
 - integration artifact `9922360358`, digest `sha256:2dfd189833807ff154647a6f0b28dd25d4d7d886fd899dc53c063ec12cb7f953`.
 
-## 3. Current batch — I2 Supercompact + Table mode
+## 3. Current batch — I2b Table mode
 
-I2 is a completion pass over durable state/settings already introduced earlier; no schema migration is currently expected.
+I2a Supercompact is GREEN and durably checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md`. No schema migration was required.
+
+I2b completes F16 by applying Table/read-only mode as an explicit write-policy over the existing character UI. It must reduce accidental structural edits while preserving intentionally permitted live operational controls.
 
 Current audit findings:
 
-- `CharacterSupercompactV4` already projects basic identity, HP, ability values, saves/passives and responsive stat columns, but it does not yet consume ordered `CharacterClosureState.quickAccess` or expose the approved intentional live controls;
-- the editor currently enters Supercompact from the character-settings path and must use authoritative persisted sheet/closure data rather than maintaining or presenting a second mutable copy;
-- Quick Access refs already cover combat entries, traits, spells, resources, class options, forms, companions, custom skills and temporary effects;
-- stale Quick Access refs must be ignored safely while preserving stored sort order for live refs;
-- `tableModeEnabled` is already durable and configurable in PC Settings, but structural-edit suppression is intentionally not yet applied across the character UI;
-- Table mode must not be implemented as a blanket pointer-blocking overlay because explicitly permitted operational controls must remain usable.
+- Table mode is already durable in `CharacterClosureState.tableModeEnabled` and configurable from PC Settings;
+- a blanket pointer-blocking overlay is not acceptable because it would also disable required live controls;
+- the editor already separates many structural and operational callbacks, so I2b should reuse those seams rather than create a second read-only sheet;
+- Combat already separates entry-structure changes from persisted operational sheet changes;
+- Spells separates spell/source edits from slot-spent changes;
+- Traits needs an explicit structural-edit flag so add/edit/delete/duplicate/reorder/Favorite configuration can lock while use meters remain live;
+- Equipment needs an explicit structural-edit flag so add/edit/delete/duplicate/reorder/currency definition changes lock while consumable/ammunition quick use remains live;
+- Gestión remains primarily operational: HP-like counters, conditions/exhaustion, concentration, resource spend/recover/rest, temporary effects and reconciliation/session operations should remain usable; resource definition add/edit/delete is structural and should lock;
+- Notes, Background and conditional-module content editors are structural and should not write while Table mode is active;
+- search/filter/group/collapse/presentation-only controls do not mutate character data and may remain usable.
 
-Recommended recoverable I2 split:
+Recommended recoverable I2b approach:
 
-1. **I2a — Supercompact completion:** shared/testable Quick Access projection, authoritative persisted values, responsive Favorites, and deliberate live HP/resource/slot operations;
-2. **I2b — Table mode completion:** suppress add/delete/reorder/structural editors while preserving intended operational changes such as HP, resources, spell slots and other explicitly live counters;
-3. run Gate I across rotate/recreate/reopen, last-tab, phone/tablet portrait/landscape and larger-text implementation review, leaving physical-device acceptance for Batch M.
+1. add one explicit `structuralEditingEnabled = !tableModeEnabled` policy at the editor boundary;
+2. pass that policy only into mixed surfaces that need to distinguish structural from operational actions;
+3. block/no-op structural draft callbacks at the editor boundary as a final write guard;
+4. visually communicate Table mode and disable/hide structural affordances where practical rather than merely rejecting writes after interaction;
+5. preserve operational controls and run the full Gate I technical regression before declaring Batch I complete.
 
 ## 4. Remaining approved execution sequence
 
@@ -165,7 +173,7 @@ After I2:
 
 ## 5. Existing baseline that must not regress
 
-Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, current Supercompact projection, D-0046 derived values/adjustments, I1 adaptive navigation/last-tab restoration and all migrations/repositories remain protected baseline behavior.
+Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, I2a authoritative Supercompact/Quick Access/live controls, D-0046 derived values/adjustments, I1 adaptive navigation/last-tab restoration and all migrations/repositories remain protected baseline behavior.
 
 Historical/focused/tmp branches remain intentionally preserved. Do not delete them before the eventual post-merge unique-commit audit.
 
@@ -175,6 +183,6 @@ The future closure candidate must be one frozen APK with exact commit/workflow/a
 
 ## 7. Exact continuation
 
-Resume **Batch I2a — Supercompact completion** on a fresh safety branch from `implementation/phase4-character-closure`.
+Resume **Batch I2b — Table mode completion** on a fresh safety branch from `implementation/phase4-character-closure`.
 
-First add a shared/testable ordered Quick Access projection that resolves references against authoritative character + closure domains and ignores stale targets safely. Then wire Supercompact to persisted `stored` + `closureState` and deliberate live controls. Keep `main` untouched; do not begin J/DM work early.
+Apply explicit structural-edit permission at existing UI/callback seams. Keep search/filter/presentation behavior usable and preserve intentional live controls such as HP, resources/rest, spell slots, trait use meters, consumable/ammunition quick use and other session state. Do not implement Table mode as a blanket pointer blocker or a second sheet model. Keep `main` untouched and do not begin Batch J/DM work early.
