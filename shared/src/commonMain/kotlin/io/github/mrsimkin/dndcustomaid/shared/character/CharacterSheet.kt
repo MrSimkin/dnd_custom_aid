@@ -103,6 +103,7 @@ enum class CharacterClassOptionKind {
     TECHNIQUE,
     METAMAGIC,
     INVOCATION,
+    PACT_CHOICE,
     OTHER,
 }
 
