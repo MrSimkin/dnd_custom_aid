@@ -5,18 +5,18 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; **Batch H2 active**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; **Batch H3 active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_H1_ARTIFICER_FORMS.md` — completed H1 gate and exact continuation into H2;
-2. `docs/checkpoints/2026-09-03_PHASE4_BATCH_H1_ARTIFICER_FORMS_AUDIT.md` — H1 ownership audit and reusable-module precedent;
-3. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved mapping for Técnicas, Metamagia, Pactos and later Compañeros;
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_H2_TECHNIQUES_METAMAGIC_PACTS.md` — completed H2 gate and exact continuation into H3;
+2. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved companion triggers and module-union behavior;
+3. `docs/checkpoints/2026-09-03_PHASE4_BATCH_H1_ARTIFICER_FORMS_AUDIT.md` — reusable-module ownership precedent;
 4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — small recoverable execution batches;
 5. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level map and final QA matrix;
 6. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — approved product/design scope;
-7. earlier A/B/C/D/E/F/G checkpoints as historical implementation evidence.
+7. earlier A/B/C/D/E/F/G/H checkpoints as historical implementation evidence.
 
 ## 1. Closure scope status
 
@@ -108,85 +108,117 @@ Verification:
 
 ## 14. Batch H1 — Artífice + Formas — GREEN
 
-Controlling checkpoint:
-
-- `docs/checkpoints/2026-09-03_PHASE4_BATCH_H1_ARTIFICER_FORMS.md`.
-
-Architecture/result:
-
-- H1 audit confirmed no schema/migration was needed;
-- existing durable `classOptions` and `forms` remain authoritative;
-- Artífice owns only `ARTIFICER_PLAN` + `ARTIFICER_DEVICE` projections while preserving all hidden H2 class-option entries;
-- Formas uses the existing generic durable form records;
-- both surfaces support search, Manual/A–Z, visible drag/haptics, Favorite, duplicate, named delete, IME-safe phone editor and wide master-detail;
-- conditional navigation uses the existing class/subclass suggestion + PC Settings override union;
-- hiding a module is non-destructive;
-- H1 joins the global unsaved-change/Save/Discard model;
+- ownership audit confirmed no schema migration needed;
+- Artífice owns only `ARTIFICER_PLAN` + `ARTIFICER_DEVICE` projections;
+- Formas uses existing durable `forms`;
+- both use search, Manual/A–Z, visible drag/haptics, Favorites, duplicate, named delete, IME-safe phone editor and wide master-detail;
+- conditional navigation uses class/subclass suggestion + PC Settings override union;
+- H1 joins global unsaved/Save/Discard;
 - successful Save prunes stale `CLASS_OPTION` / `FORM` Quick Access references.
 
 Verification:
 
 - H1a workflow `33824278439` — PASS;
-- H1 integration commit `aa6fa34d318fde31f433c5aef15a3c322dcf1483`;
-- controlling checkpoint head `1196832fe6c05c70b471fb5c14ba527f8e85ae87`;
+- integration commit `aa6fa34d318fde31f433c5aef15a3c322dcf1483`;
 - final workflow `33825152159` — PASS;
+- artifact ID `9919731254`, digest `sha256:67811cf83f33ff22a2516e6f1063a897e3323232fb2eee5a9f52095a98ead35e`.
+
+## 15. Batch H2 — Técnicas + Metamagia + Pactos — GREEN
+
+Controlling checkpoint:
+
+- `docs/checkpoints/2026-09-03_PHASE4_BATCH_H2_TECHNIQUES_METAMAGIC_PACTS.md`.
+
+Architecture/result:
+
+- Técnicas owns `TECHNIQUE`;
+- Metamagia owns `METAMAGIC`;
+- Pactos owns `INVOCATION` + additive `PACT_CHOICE`;
+- `SUBCLASS_STATE` and `OTHER` remain generic/unassigned;
+- no SQL schema migration was required;
+- H2a proves cross-family reorder isolation and real `PACT_CHOICE` repository round-trip;
+- one reusable Android class-option module implementation drives three distinct user-facing surfaces;
+- all support search, Active/Favorite/source filters, Manual/A–Z, visible drag/haptics, duplicate, named delete, linked-class/source/reference/notes/active editing, phone IME-safe editor and wide master-detail;
+- Pactos distinguishes `Pacto / elección` from `Invocación`;
+- Sorcery Points remain generic Resources and actual spells/slots remain Conjuros authority;
+- all H2 surfaces reuse the full existing structural `classOptions` draft and global Save/Discard/Quick Access pruning;
+- module visibility remains multiclass-union + manual PC Settings override and hide-not-delete.
+
+Verification:
+
+- H2a workflow `33826037339` — PASS;
+- H2a artifact ID `9920055515`, digest `sha256:14728cf56308db200079d4f83a2c2578b9319e5bf4a26ef542844cd93e214cd2`;
+- productive integration commit `24906e6239d96b9ac88fce80689b63a54e8ecca6`;
+- final controlling checkpoint head `58089d22d3373f236459b28c19e28b066b8710b4`;
+- final workflow `33826729095` — PASS;
 - backend type-check — PASS;
 - full shared/Kotlin tests — PASS;
 - Android debug assembly — PASS;
 - Desktop build — PASS;
-- artifact `dnd-custom-aid-debug-apk`, ID `9919731254`;
-- digest `sha256:67811cf83f33ff22a2516e6f1063a897e3323232fb2eee5a9f52095a98ead35e`.
+- final artifact ID `9920277155`, digest `sha256:788406604e85dae2b5ae6f7c782c037e5e1622de527d1ca2f9c2994964ce8e0d`.
 
-These APKs remain integration evidence, not the future frozen owner-QA candidate.
+The first inline-YAML integration attempt (`33826551760`) failed before creating a job and produced no product change; the corrected H1-style guarded script workflow succeeded. All recorded H1/H2 APKs remain integration evidence, not the future frozen owner-QA candidate.
 
-## 15. Current batch — H2 Técnicas + Metamagia + Pactos
+## 16. Current batch — H3 Compañeros + module-union integration
 
-H2 reuses the shared `CharacterClassOption` model. The first required task is an explicit ownership audit before adding UI.
+H3 must finish the approved conditional-module family and verify the union behavior holistically.
 
-Audit inputs:
+Existing durable `CharacterCompanion` fields to audit:
 
-- `CharacterClassOptionKind.TECHNIQUE`;
-- `CharacterClassOptionKind.METAMAGIC`;
-- `CharacterClassOptionKind.INVOCATION`;
-- `CharacterClassOptionKind.SUBCLASS_STATE` and `OTHER` only where the approved module audit demonstrates a genuine H2 ownership need;
-- existing H1 `classOptions` draft/Save integration;
-- `CharacterModuleKind.TECHNIQUES`, `METAMAGIC`, `PACTS` suggestions + PC Settings overrides;
-- generic Resources and Spells, which remain authoritative for resource counters and spell records/slots.
+- UUID;
+- optional linked class ID;
+- name;
+- freeform kind/type;
+- source/provenance;
+- optional armor class;
+- optional max/current HP;
+- temporary HP;
+- speed text;
+- ability summary;
+- senses/proficiencies summary;
+- traits/actions text;
+- notes;
+- active state;
+- manual sort order.
 
-Required design invariants:
+H3 audit must confirm whether this is sufficient for durable character-owned companion reference/state without turning Companions into live combat state.
 
-- each H2 surface owns an explicit subset/projection of the shared `classOptions` collection;
-- reordering one H2 surface must not move hidden Artífice or other H2-family entries;
-- Manual/A–Z presentation must not destroy saved manual order;
-- module hide/show remains non-destructive;
-- Favorite uses `CharacterQuickAccessKind.CLASS_OPTION` rather than duplicate state;
-- multiclass union exposes each module at most once;
-- no rules legality engine and no automatic reconstruction of official feature text;
-- arbitrary manual/homebrew entries remain allowed;
-- no schema change unless the audit identifies an actual durable-data gap.
+Required invariants:
+
+- companion data remains durable character-sheet state, distinct from future DM live combat participants;
+- official triggers such as Beast Master, Battle Smith, Wildfire Spirit, Reanimator, Vestige and other audited companion-producing options suggest one reusable module;
+- multiclass/subclass union exposes `Compañeros` at most once;
+- manual PC Settings override supports custom/homebrew characters;
+- hiding the module does not delete companions;
+- Favorite uses `CharacterQuickAccessKind.COMPANION`;
+- search/filter/Manual-A–Z/visible drag follow the established collection rules;
+- phone IME-safe editing and wide/tablet master-detail are required;
+- current/max/temp HP are durable reference/maintenance values only; H3 does not create a DM initiative/combatant authority;
+- no schema change unless the audit identifies a real missing durable field.
 
 Execution order:
 
-1. document H2 ownership audit;
-2. add pure presentation/search/filter/manual-order/duplicate helpers and focused tests;
-3. H2a shared gate;
-4. only after H2a GREEN, add Android Técnicas/Metamagia/Pactos surfaces and conditional navigation;
-5. run the controlling H2 gate and checkpoint exact workflow/artifact identity.
+1. document H3 durable ownership/field audit;
+2. add pure companion presentation/filter/order/duplicate helpers + tests;
+3. run H3a shared gate;
+4. only after H3a GREEN, add Android Compañeros UI and conditional navigation;
+5. verify representative class/subclass triggers, multiclass union, manual override and hide-not-delete;
+6. run controlling H3 gate and record exact artifact identity.
 
-## 16. Existing baseline that must not regress
+## 17. Existing baseline that must not regress
 
-Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, Artífice, Formas, PC Settings, Supercompact projection, D-0046 derived values/adjustments and all migrations/repositories must remain compatible.
+Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, Artífice, Formas, Técnicas, Metamagia, Pactos, PC Settings, Supercompact projection, D-0046 derived values/adjustments and all migrations/repositories must remain compatible.
 
-## 17. Final acceptance boundary
+## 18. Final acceptance boundary
 
 The future closure candidate must be one frozen APK with exact commit/workflow/artifact/hash identity. Owner QA matrix: phone portrait, phone landscape, tablet portrait, tablet landscape and representative larger text scale. Green CI never substitutes for real-device QA.
 
-## 18. Merge boundary
+## 19. Merge boundary
 
 Do not merge Phase 4 to `main` until all D-0047 batches are implemented, automated gates are green, one exact closure QA APK is recorded, owner phone+tablet QA is accepted, blocking findings are resolved, governance housekeeping is complete and owner explicitly approves merge/closure.
 
-## 19. Exact continuation
+## 20. Exact continuation
 
-Resume **Batch H2 — Técnicas + Metamagia + Pactos** on `implementation/phase4-character-closure`.
+Resume **Batch H3 — Compañeros + module-union integration** on `implementation/phase4-character-closure`.
 
-Start by documenting exact `CharacterClassOptionKind` ownership for the three modules and confirming whether the current shared fields (`linkedClassId`, `name`, `source`, `costText`, `effectSummary`, `notes`, `active`, `pinned`, `sortOrder`) are sufficient. If sufficient, do not add schema. Then implement H2a pure operations + tests and gate them before any Compose UI.
+First audit the current `CharacterCompanion` model and repository round-trip against the approved module requirements. If sufficient, do not add schema. Then implement pure companion operations/tests and gate H3a before adding Compose UI.
