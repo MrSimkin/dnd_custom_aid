@@ -43,3 +43,5 @@ jobs:
           git diff --cached --check
           git commit -m "feat: add atomic character backup repository"
           git push origin HEAD:tmp/phase4-j-backup-import
+
+# Retry trigger after repairing the demonstrated stale J2 test fixture.
