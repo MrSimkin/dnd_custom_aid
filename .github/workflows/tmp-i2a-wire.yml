@@ -1,0 +1,196 @@
+name: I2a one-shot Supercompact editor wiring
+
+on:
+  push:
+    branches:
+      - tmp/phase4-i2a-supercompact
+    paths:
+      - .github/workflows/tmp-i2a-wire.yml
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/phase4-i2a-supercompact
+          fetch-depth: 0
+
+      - name: Apply anchor-checked I2a wiring
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one anchor, found {count}")
+              return text.replace(old, new, 1)
+
+          super_path = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSupercompactV4.kt")
+          super_text = super_path.read_text()
+          super_text = replace_once(
+              super_text,
+              '    closureState: CharacterClosureState,\n    onSheetChange: (CharacterSheet) -> Unit,\n',
+              '    closureState: CharacterClosureState,\n    liveControlsEnabled: Boolean,\n    onSheetChange: (CharacterSheet) -> Unit,\n',
+              'supercompact signature',
+          )
+          super_text = replace_once(
+              super_text,
+              '                item(key = "supercompact-operational") {\n                    SupercompactGridV4(tiles = tiles, columns = columns)\n                }\n',
+              '                if (!liveControlsEnabled) {\n                    item(key = "supercompact-pending-warning") {\n                        Card(modifier = Modifier.fillMaxWidth()) {\n                            Text(\n                                "Hay cambios estructurales sin guardar. Guarda o descártalos para habilitar PG, recursos y espacios desde esta vista.",\n                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),\n                                style = MaterialTheme.typography.bodySmall,\n                            )\n                        }\n                    }\n                }\n\n                item(key = "supercompact-operational") {\n                    SupercompactGridV4(tiles = tiles, columns = columns)\n                }\n',
+              'pending warning',
+          )
+          super_text = replace_once(
+              super_text,
+              '                    SupercompactHpControlsV4(\n                        sheet = sheet,\n                        onSheetChange = onSheetChange,\n                    )\n',
+              '                    SupercompactHpControlsV4(\n                        sheet = sheet,\n                        liveControlsEnabled = liveControlsEnabled,\n                        onSheetChange = onSheetChange,\n                    )\n',
+              'hp invocation',
+          )
+          super_text = replace_once(
+              super_text,
+              '                        SupercompactSpellSlotsV4(\n                            sheet = sheet,\n                            onSheetChange = onSheetChange,\n                        )\n',
+              '                        SupercompactSpellSlotsV4(\n                            sheet = sheet,\n                            liveControlsEnabled = liveControlsEnabled,\n                            onSheetChange = onSheetChange,\n                        )\n',
+              'slots invocation',
+          )
+          super_text = replace_once(
+              super_text,
+              '                                            closureState = closureState,\n                                            onSheetChange = onSheetChange,\n',
+              '                                            closureState = closureState,\n                                            liveControlsEnabled = liveControlsEnabled,\n                                            onSheetChange = onSheetChange,\n',
+              'favorite invocation',
+          )
+          super_text = replace_once(
+              super_text,
+              'private fun SupercompactHpControlsV4(\n    sheet: CharacterSheet,\n    onSheetChange: (CharacterSheet) -> Unit,\n',
+              'private fun SupercompactHpControlsV4(\n    sheet: CharacterSheet,\n    liveControlsEnabled: Boolean,\n    onSheetChange: (CharacterSheet) -> Unit,\n',
+              'hp signature',
+          )
+          super_text = replace_once(
+              super_text,
+              '                enabled = sheet.currentHp > 0 || sheet.tempHp > 0,\n',
+              '                enabled = liveControlsEnabled && (sheet.currentHp > 0 || sheet.tempHp > 0),\n',
+              'hp damage enabled',
+          )
+          super_text = replace_once(
+              super_text,
+              '                enabled = sheet.currentHp < sheet.maxHp,\n',
+              '                enabled = liveControlsEnabled && sheet.currentHp < sheet.maxHp,\n',
+              'hp healing enabled',
+          )
+          super_text = replace_once(
+              super_text,
+              'private fun SupercompactSpellSlotsV4(\n    sheet: CharacterSheet,\n    onSheetChange: (CharacterSheet) -> Unit,\n',
+              'private fun SupercompactSpellSlotsV4(\n    sheet: CharacterSheet,\n    liveControlsEnabled: Boolean,\n    onSheetChange: (CharacterSheet) -> Unit,\n',
+              'slots signature',
+          )
+          super_text = replace_once(
+              super_text,
+              '                            enabled = available > 0,\n',
+              '                            enabled = liveControlsEnabled && available > 0,\n',
+              'slot spend enabled',
+          )
+          super_text = replace_once(
+              super_text,
+              '                            enabled = slot.spentSlots > 0,\n',
+              '                            enabled = liveControlsEnabled && slot.spentSlots > 0,\n',
+              'slot recover enabled',
+          )
+          super_text = replace_once(
+              super_text,
+              '    closureState: CharacterClosureState,\n    onSheetChange: (CharacterSheet) -> Unit,\n    modifier: Modifier = Modifier,\n',
+              '    closureState: CharacterClosureState,\n    liveControlsEnabled: Boolean,\n    onSheetChange: (CharacterSheet) -> Unit,\n    modifier: Modifier = Modifier,\n',
+              'favorite signature',
+          )
+          super_text = replace_once(
+              super_text,
+              '                        enabled = resource.currentValue > 0,\n',
+              '                        enabled = liveControlsEnabled && resource.currentValue > 0,\n',
+              'resource spend enabled',
+          )
+          super_text = replace_once(
+              super_text,
+              '                        enabled = resource.maxValue == null || resource.currentValue < resource.maxValue,\n',
+              '                        enabled = liveControlsEnabled && (resource.maxValue == null || resource.currentValue < resource.maxValue),\n',
+              'resource recover enabled',
+          )
+          super_path.write_text(super_text)
+
+          editor_path = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt")
+          editor = editor_path.read_text()
+          anchor = '''    fun persistCombatOperationalSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        val previous = stored
+        stored = repository.saveCharacter(updated)
+        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
+            draft = draft.copy(
+                currentHp = stored.currentHp.toString(),
+                tempHp = stored.tempHp.toString(),
+            )
+        }
+        savedMessage = "Guardado"
+    }
+
+'''
+          replacement = anchor + '''    fun persistSupercompactSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        val previous = stored
+        stored = repository.saveCharacter(updated)
+        var syncedDraft = draft
+        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
+            syncedDraft = syncedDraft.copy(
+                currentHp = stored.currentHp.toString(),
+                tempHp = stored.tempHp.toString(),
+            )
+        }
+        if (stored.spellSlots != previous.spellSlots) {
+            val persistedByLevel = stored.spellSlots.associateBy { it.level }
+            syncedDraft = syncedDraft.copy(
+                spellSlots = syncedDraft.spellSlots.map { slot ->
+                    val persisted = persistedByLevel[slot.level]
+                    slot.copy(
+                        total = persisted?.totalSlots?.toString() ?: "0",
+                        spent = persisted?.spentSlots ?: 0,
+                    )
+                },
+            )
+        }
+        draft = syncedDraft
+        savedMessage = "Guardado"
+    }
+
+'''
+          editor = replace_once(editor, anchor, replacement, 'supercompact persistence bridge')
+          editor = replace_once(
+              editor,
+              '''        CharacterSupercompactV4(
+            sheet = settingsSheet,
+            onBack = { showSupercompact = false },
+        )
+''',
+              '''        CharacterSupercompactV4(
+            sheet = stored,
+            closureState = closureState,
+            liveControlsEnabled = !hasUnsavedChanges,
+            onSheetChange = ::persistSupercompactSheet,
+            onBack = { showSupercompact = false },
+        )
+''',
+              'supercompact editor invocation',
+          )
+          editor_path.write_text(editor)
+          PY
+
+      - name: Commit I2a product wiring
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSupercompactV4.kt \
+                  androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+          git diff --cached --check
+          git commit -m "feat: wire authoritative Supercompact live state"
+          git push origin HEAD:tmp/phase4-i2a-supercompact
