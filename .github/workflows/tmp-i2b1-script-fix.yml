@@ -21,22 +21,7 @@ jobs:
       - name: Narrow Overview callback anchor
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('.github/i2b1_patch.py')
-          text = p.read_text()
-          old = '''    "                            onDraftChange = ::updateDraft,\\n                            onClosureStateChange = ::persistClosureState,\\n",
-    "                            onDraftChange = ::updateStructuralDraft,\\n                            onClosureStateChange = ::persistStructuralClosureState,\\n",
-    "overview structural callbacks",
-'''
-          new = '''    "                            onDraftChange = ::updateDraft,\\n                            onClosureStateChange = ::persistClosureState,\\n                        )\\n                        CharacterTabV4.SKILLS",
-    "                            onDraftChange = ::updateStructuralDraft,\\n                            onClosureStateChange = ::persistStructuralClosureState,\\n                        )\\n                        CharacterTabV4.SKILLS",
-    "overview structural callbacks",
-'''
-          if text.count(old) != 1:
-              raise SystemExit(f'expected one script anchor, found {text.count(old)}')
-          p.write_text(text.replace(old, new, 1))
-          PY
+          python -c 'from pathlib import Path; p=Path(".github/i2b1_patch.py"); t=p.read_text(); old="    \"                            onDraftChange = ::updateDraft,\\\\n                            onClosureStateChange = ::persistClosureState,\\\\n\",\n    \"                            onDraftChange = ::updateStructuralDraft,\\\\n                            onClosureStateChange = ::persistStructuralClosureState,\\\\n\",\n    \"overview structural callbacks\",\n"; new="    \"                            onDraftChange = ::updateDraft,\\\\n                            onClosureStateChange = ::persistClosureState,\\\\n                        )\\\\n                        CharacterTabV4.SKILLS\",\n    \"                            onDraftChange = ::updateStructuralDraft,\\\\n                            onClosureStateChange = ::persistStructuralClosureState,\\\\n                        )\\\\n                        CharacterTabV4.SKILLS\",\n    \"overview structural callbacks\",\n"; assert t.count(old) == 1, t.count(old); p.write_text(t.replace(old,new,1))'
       - name: Commit script repair and remove helper
         shell: bash
         run: |
