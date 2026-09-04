@@ -146,10 +146,6 @@ private fun ClassIdentityRowV4(
     }
     val identityRules = if (subclass != null) draft.subclassRulesFamily else draft.rulesFamily
     val identitySource = if (subclass != null) draft.subclassSource ?: draft.source else draft.source
-    val secondary = listOfNotNull(
-        rulesFamilyLabelClassV4(identityRules).takeIf { identityRules != CharacterRulesFamily.UNSPECIFIED },
-        identitySource?.takeIf { it.isNotBlank() },
-    ).joinToString(" · ").ifBlank { "Identidad manual / sin fuente especificada" }
     val hitDice = "DG restantes ${draft.hitDiceRemaining.ifBlank { "?" }} · d${draft.hitDieSides.ifBlank { "?" }}"
 
     Surface(
@@ -167,7 +163,10 @@ private fun ClassIdentityRowV4(
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
                 Text(primary, style = MaterialTheme.typography.labelLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Text(secondary, style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                CharacterRulesSourceBadgesV4(
+                    rulesFamily = identityRules,
+                    source = identitySource,
+                )
                 Text(hitDice, style = MaterialTheme.typography.labelSmall)
             }
             TextButton(onClick = onDelete) { Text("Quitar") }
@@ -313,9 +312,9 @@ private fun ClassIdentityEditorDialogV4(
                 },
             )
             selectedClass?.let { entry ->
-                Text(
-                    "${rulesFamilyLabelClassV4(entry.rulesFamily)} · ${entry.source}",
-                    style = MaterialTheme.typography.labelSmall,
+                CharacterRulesSourceBadgesV4(
+                    rulesFamily = entry.rulesFamily,
+                    source = entry.source,
                 )
             }
         } else {
@@ -381,9 +380,9 @@ private fun ClassIdentityEditorDialogV4(
                     },
                 )
                 selectedSubclass?.let { entry ->
-                    Text(
-                        "${rulesFamilyLabelClassV4(entry.rulesFamily)} · ${entry.source}",
-                        style = MaterialTheme.typography.labelSmall,
+                    CharacterRulesSourceBadgesV4(
+                        rulesFamily = entry.rulesFamily,
+                        source = entry.source,
                     )
                 }
             }

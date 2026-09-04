@@ -44,6 +44,8 @@ import androidx.compose.ui.text.googlefonts.Font as GoogleDownloadableFont
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
+import io.github.mrsimkin.dndcustomaid.shared.character.characterRulesFamilyBadgeLabel
 
 internal enum class AppFontChoice(val label: String, val googleFontName: String) {
     MANROPE("Manrope", "Manrope"),
@@ -479,8 +481,14 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            SettingsPreviewBadge("5.5e")
-                            SettingsPreviewBadge("Preparado")
+                            CharacterSemanticBadgeV4(
+                                label = characterRulesFamilyBadgeLabel(CharacterRulesFamily.DND_5_5E),
+                                kind = CharacterSemanticBadgeKindV4.RULES,
+                            )
+                            CharacterSemanticBadgeV4(
+                                label = "Preparado",
+                                kind = CharacterSemanticBadgeKindV4.STATE,
+                            )
                         }
                     }
                 }
@@ -510,21 +518,6 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun SettingsPreviewBadge(label: String) {
-    Surface(
-        shape = MaterialTheme.shapes.extraSmall,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-    ) {
-        Text(
-            label,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
     }
 }
 
