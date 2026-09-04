@@ -2,11 +2,18 @@
 
 ## Current status
 
-Phases 0–3 are complete. Phase 4 Character Foundation Closure is current on `implementation/phase4-character-closure`.
+Phases 0–3 are complete. Phase 4 Character Foundation Closure implementation is complete through M5 pre-QA consolidation.
 
-Batches 0 through H3 are complete and green. The current implementation position is **Batch I1 — adaptive shell**. The six approved conditional character modules (Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros) are implemented; H3 controlling workflow `33829736046` passed at implementation commit `4590ec0e584b8b72fe7b4ce82eb01a00d44de2c8`.
+Current position:
 
-The previous correction APK/artifact `9876725270` and all A–H integration APKs are historical/integration evidence only and are not the acceptance target. The next owner manual-QA target must be the future Batch L newly frozen closure APK with exact commit/workflow/artifact/hash identity.
+- M1 scope traceability — COMPLETE;
+- M2 code-health/static architecture audit — COMPLETE;
+- M3 historical implementation-completeness audit — COMPLETE;
+- M4 six approved inter-batch scope holes — COMPLETE;
+- M5 bounded cleanup, full regression and replacement candidate freeze — GREEN / FROZEN;
+- M6 owner real-device QA — **NEXT / NOT YET STARTED**.
+
+The active QA candidate is not historical Batch L. Use only the M5 frozen replacement candidate recorded below.
 
 Green CI is technical evidence, not owner acceptance.
 
@@ -14,7 +21,7 @@ Green CI is technical evidence, not owner acceptance.
 
 Never claim a test passed unless it was actually executed successfully against the relevant revision.
 
-Every meaningful implementation batch should state:
+Every meaningful implementation or QA batch should state:
 
 - what was tested;
 - how;
@@ -38,128 +45,239 @@ Current CI uses JDK 17, Gradle 9.5 and Android SDK platform 36.
 
 ```bash
 cd backend
-npm install
+npm install --no-package-lock
 npm run check
 ```
 
 The established full gate runs both surfaces even when one area is unchanged, unless a smaller intermediate batch gate is explicitly documented.
 
-## 3. Current Phase 4 gate strategy
+## 3. Exact active M6 candidate
 
-The closure is intentionally split into recoverable batches under:
+Owner QA must use only:
 
-`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`.
+- branch `tmp/phase4-m5-frozen-qa-candidate`;
+- exact commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
+- exact tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
+- ordinary clean standard workflow `33911956696` — SUCCESS;
+- independent exact-SHA validator workflow `33912322920` — SUCCESS;
+- validator artifact ID `9951922423`, name `phase4-m5-frozen-qa-apk`;
+- artifact ZIP digest `sha256:5fb8d7f281dbf937def89db4377e9b4157c46343f07721912aa759bb52d6f9fa`;
+- exact APK size `35,720,588` bytes;
+- exact APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
 
-For shared/schema batches, protect the material data risks:
+Owner-facing filename:
 
-- schema create-from-scratch;
-- migration from relevant earlier schema versions;
-- preservation of existing campaign/character data;
-- repository round trips for new durable domains;
-- derived-value regressions where relevant;
-- Desktop compilation to catch shared API breakage;
-- Android assembly.
+`DND_Custom_Aid_Phase4_M6_QA_Candidate_2026-09-04.apk`
 
-For Android UI batches, use proportionate automated tests for state/helper logic plus Android assembly. Real IME, visual density, drag feedback, orientation and tablet usefulness still require real-device QA.
+The frozen candidate branch must not be changed.
 
-For Batch I1/I2 specifically, automated coverage should protect deterministic state decisions such as tab restoration, visibility resolution and Table-mode structural mutation suppression where practical. The final phone/tablet usefulness judgment remains real-device QA.
+## 4. Automated evidence already complete
 
-## 4. Migration rules for the closure
+M5 automated evidence includes:
 
-The owner must be able to install the future closure APK over the currently used Phase 4 development APK lineage without losing existing data.
+- D-0047 re-traceability for all six M4 repairs;
+- full shared/Kotlin tests;
+- `CharacterOwnerLineageMigrationTest` covering the prior owner schema lineage;
+- Android debug assemble;
+- Desktop build;
+- backend Worker type-check;
+- exact-SHA detached checkout verification;
+- exact APK hash and size capture.
 
-The current implementation deliberately preserves the tested schema-6 migration and adds the remaining durable D-0047 state through additive schema 7 rather than rewriting migration history.
+No schema or persistence migration was added by M4/M5. The current closure schema remains the tested schema 9 line.
 
-Minimum migration regression coverage before the final candidate:
+The deprecated Kotlin Multiplatform `androidLibrary` target warning is known and intentionally deferred because migrating build target APIs is a structural maintenance change, not a demonstrated QA blocker.
 
-- prior owner-APK schema -> current;
-- schema 5 -> 6 -> 7;
-- existing campaigns/characters;
-- Background including Raza and Religión / Fe;
-- Combat entries;
-- Equipment/currencies;
-- Traits;
-- Spells/sources/prepared/shared slots;
-- Notes;
-- class rows with safe default subclass/provenance state;
-- all conditional-module records including companions;
-- new fields initialized safely;
-- module hide/show settings never delete module records.
+## 5. Critical first QA rule — migration before clean install
 
-## 5. Intended-device rule for this closure
+**Do not clear app data before the first owner QA test.**
 
-C-0010 still applies, but D-0047 makes the current character closure explicitly a **phone + tablet acceptance package**.
+The first test must exercise the real owner upgrade path:
 
-Therefore final owner acceptance requires:
+1. keep the existing prior owner-QA app installation and data;
+2. install the exact M6 candidate over it;
+3. open the app;
+4. verify existing campaigns and characters still exist;
+5. verify representative General, Combate, Equipo/Monedas, Conjuros and Notas data survive and reopen;
+6. record any migration/data-preservation defect before doing anything destructive;
+7. only after this pass may the owner clear data or perform a fresh-install QA pass.
+
+A clean install cannot substitute for this migration test.
+
+## 6. Required device/layout matrix
+
+D-0047 makes this closure explicitly a **phone + tablet acceptance package**.
+
+Owner acceptance therefore requires:
 
 1. phone portrait;
 2. phone landscape;
 3. tablet portrait;
 4. tablet landscape;
-5. a representative larger application text scale where practical.
+5. representative larger application text scale.
 
-Tablet is **not secondary** for this closure. The APK must materially exploit available width where appropriate instead of merely stretching phone components.
+Tablet is not secondary. The UI should exploit available width where the implementation provides adaptive/master-detail behavior instead of merely stretching phone components.
 
-## 6. Global real-device invariants
+## 7. M6 owner QA matrix
 
-Every user-visible closure batch should preserve or move toward:
+The QA pass is a focused closure acceptance matrix rather than a verbatim rerun of every historical implementation test.
 
-- keyboard/IME action reachability;
-- Android Back hierarchy;
-- screen-off/recreation state;
-- save/reopen persistence;
-- portrait/landscape sanity;
-- phone/tablet responsiveness;
-- app text scaling;
-- accessible touch targets;
-- D16 parent/list/tab/search/filter/sort/selection context preservation where technically feasible;
-- no automatic D&D legality/rules enforcement.
+### Upgrade and persistence
 
-Batch I additionally verifies that the last open character tab survives a full app restart and resolves safely when a conditional tab is no longer visible.
+- install over existing data first;
+- campaigns survive;
+- characters survive;
+- representative durable content survives;
+- save/reopen remains correct;
+- full app close/reopen remains correct.
 
-## 7. Final closure QA focus
+### Navigation and context
 
-The final pass is a focused closure acceptance matrix rather than a verbatim rerun of every historical check.
+- all main tabs reachable;
+- conditional tabs appear/disappear correctly without deleting data;
+- last open tab restores across full restart;
+- hidden/stale last-tab destinations resolve safely;
+- rotation preserves practical context;
+- parent/list/tab/search/filter/sort/selection context behaves sensibly.
 
-It must cover at least:
+### Editing and IME
 
-- update-in-place migration/data preservation;
-- all editors with IME visible;
-- consistent actions and unsaved-change guard;
-- sorting/search/filter/drag behavior;
-- lifecycle/module/haptic/Supercompact/Table-mode PC Settings;
-- Gestión, Resources, Rest, Conditions, Concentration and effects;
-- General/Habilidades/Combat improvements;
-- compact Equipment/Monedas and containers/consumables;
-- Traits/Spells/Notes/Background regressions;
-- Artífice/Formas/Técnicas/Metamagia/Pactos/Compañeros;
-- multiclass module union and manual override/hide-not-delete;
-- Supercompact visual usefulness on phone/tablet;
-- own-format backup/import round trip;
-- rotation, screen-off/on, full app close/reopen and representative larger text.
+- keyboard does not hide required action controls;
+- Add/Edit/Delete grammar is consistent;
+- inline validation is understandable;
+- named destructive confirmation works;
+- unsaved leave offers Save / Discard / Keep editing where intended;
+- saved/unsaved state is visible and correct.
 
-## 8. Development APK signing
+### General / Habilidades / Combate
 
-Development CI APKs use a stable **debug-only** signing identity so successive QA APKs can update one another in place. This exists specifically to test realistic SQLite migration/persistence behavior on owner devices.
+- class/subclass/level identity and rules/source badges;
+- structured proficiencies/languages;
+- custom skills and passive values;
+- defenses/senses/movement;
+- quick HP and death saves;
+- combat/action metadata;
+- representative Favorite/Quick Access behavior.
+
+### Gestión
+
+- conditions/exhaustion;
+- active concentration;
+- generic resources and one-tap changes;
+- rest assistant preview/apply;
+- temporary effects;
+- reconciliation checkpoints;
+- Inspiration/death-save context.
+
+### Equipo / Monedas
+
+- dense list remains usable;
+- Manual/A–Z behavior;
+- search/filter;
+- drag/reorder in Manual mode;
+- carried/stored/location metadata;
+- equipped/attuned state badges;
+- containers/locations;
+- consumables/ammunition;
+- currencies;
+- phone and tablet editors.
+
+### Rasgos / Conjuros / Notas / Trasfondo
+
+- Traits grouping/filter/reorder/use meter/Favorites;
+- spell Manual/A–Z, filters, levels, slots, Prepared/source behavior and badges;
+- Notes preview/edit/reorder;
+- Background fields including Raza and Religión/Fe;
+- long-story collapse/expand behavior.
+
+### Conditional modules
+
+Verify representative visibility, edit, save/reopen and hide-not-delete behavior for:
+
+- Artífice;
+- Formas;
+- Técnicas;
+- Metamagia;
+- Pactos;
+- Compañeros.
+
+Multiclass union must not duplicate equivalent tabs and manual overrides must remain available for custom/homebrew use.
+
+### Table mode
+
+- intended structural edits are blocked;
+- live/session controls remain usable where designed;
+- enabling Table mode over dirty structural state remains safely handled;
+- browsing/search/filter/presentation behavior remains useful.
+
+### Supercompact / Quick Access
+
+- representative favorites/resources render usefully;
+- one-tap operational controls work;
+- exact editing remains reachable when needed;
+- phone/tablet usefulness is acceptable.
+
+### Backup/import
+
+- export own-format backup through system document picker;
+- import as a new independent copy;
+- source character remains unchanged;
+- repeated import creates independent copies;
+- reconciliation marker is visible/useful;
+- malformed/wrong input fails safely when practical to exercise.
+
+### Larger text and responsiveness
+
+- no critical actions disappear;
+- scrolling remains possible;
+- dialogs/editors remain operable;
+- adaptive/master-detail layouts remain understandable;
+- state and source/rules badges remain readable and not color-only.
+
+## 8. Defect handling during M6
+
+Classify findings before changing code:
+
+- visual/ergonomic observation that does not block acceptance;
+- minor defect suitable for post-Phase-4 maintenance;
+- blocking Phase 4 defect requiring repair before acceptance.
+
+If a blocking finding requires production code change:
+
+1. do not patch the frozen branch;
+2. create a focused repair from the appropriate durable line;
+3. add focused regression coverage where practical;
+4. run the complete automated gate;
+5. freeze a **new** exact candidate with commit/tree/workflow/artifact/hash identity;
+6. repeat the affected owner QA evidence;
+7. preserve the prior frozen candidate as historical evidence.
+
+## 9. Development APK signing
+
+Development CI APKs use a stable **debug-only** signing identity so successive QA APKs can update one another in place and exercise realistic SQLite migration/persistence behavior on owner devices.
 
 The development identity is not a production/release trust boundary and is never to be reused for a real release. A future real release signing identity must remain private and be designed/handled separately.
 
-CI currently reconstructs the development debug keystore from tracked development-only material before building. Do not expose/reproduce that material in chat or docs merely because it is non-production.
+CI reconstructs the development debug keystore from tracked development-only material before building. Do not expose/reproduce that material in chat or docs merely because it is non-production.
 
-## 9. CI proportionality
+## 10. CI proportionality
 
 Use the existing simple GitHub Actions workflow as a safety gate, not a deployment platform.
 
 Do not add coverage gates, emulator farms, SonarQube, staging, automated production deployment or giant screenshot suites without a concrete requirement.
 
-## 10. Regression rule
-
-When fixing a reproducible defect, add a focused automated regression test when practical/useful. Otherwise record the exact manual verification used.
-
 ## 11. Current exact continuation
 
-Resume **Batch I1a — shell/navigation state foundation** from the current durable closure branch.
+Current practical resume checkpoint:
 
-First implement and test per-character last-open-tab persistence plus the deterministic adaptive navigation decision needed by the wide shell. Then I1b adds wide navigation rail/sticky compact header while preserving the existing phone tab strip and already-delivered F/G/H master-detail behavior. I1c is the holistic D16/responsive audit and controlling I1 gate.
+`docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`
 
-No I2, backup/import, candidate stabilization or DM-feature testing/implementation begins before its dependent gate is satisfied.
+When the owner resumes:
+
+1. verify the frozen candidate identity above;
+2. verify the APK SHA-256;
+3. begin M6 with the in-place upgrade/data-preservation test;
+4. proceed through the required phone/tablet matrix;
+5. record findings before changing production code.
+
+No DM-feature implementation begins before successful Phase 4 owner QA, final governance/merge-boundary housekeeping and explicit owner closure/merge approval.
