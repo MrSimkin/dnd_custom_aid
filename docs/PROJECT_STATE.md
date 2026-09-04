@@ -5,19 +5,19 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J active; J1 GREEN on safety line; J2 paused at failed focused test-compilation gate with no J2 product commit accepted**
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J GREEN; Batch K active**
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_PAUSE_HANDOFF.md` — **current operational handoff for 2026-09-05; read first**;
-2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed I2b gate, Batch I closure and transition into J;
-3. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a Supercompact gate;
-4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — approved execution sequence through owner QA; its historical `Exact next action` is stale and is superseded by this Project State + the current J handoff;
+1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_BACKUP_IMPORT_COMPLETE.md` — completed Batch J gate and exact transition into K;
+2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_PAUSE_HANDOFF.md` — historical J pause/recovery evidence only; no longer current operational state;
+3. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed I2b gate and Batch I closure;
+4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — approved execution sequence through owner QA; its historical `Exact next action` is stale and superseded by this Project State;
 5. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
 6. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
 7. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
-8. earlier A–I1 checkpoints as historical implementation/verification evidence.
+8. earlier A–I checkpoints as historical implementation/verification evidence.
 
 ## 1. Closure scope and merge boundary
 
@@ -53,7 +53,7 @@ Manual/A–Z presentation, search/filter state, visible drag/reflow, haptics, sa
 
 ### Batch C — PC Settings consolidation — GREEN
 
-Lifecycle status, spellcaster hide-not-delete, haptics, Table/XP settings, module overrides, Application Settings entry and Supercompact entry. Workflow `33796586608` — PASS. Full Table-mode suppression and final Supercompact behavior remain assigned to I2.
+Lifecycle status, spellcaster hide-not-delete, haptics, Table/XP settings, module overrides, Application Settings entry and Supercompact entry. Workflow `33796586608` — PASS. Full Table-mode suppression and final Supercompact behavior were completed in I2.
 
 ### Batch D — Gestión — GREEN
 
@@ -110,7 +110,7 @@ Result:
 - workflow `33829736046` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
 - integration artifact `9921290105`, digest `sha256:119ffc2376b77ef5ab4dcd1580b03f9deb1fab30a547bf30646bef83efa0199f`.
 
-All six approved reusable conditional module families are now implemented: Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros.
+All six approved reusable conditional module families are implemented: Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros.
 
 ### Batch I1 — adaptive shell — GREEN
 
@@ -120,30 +120,32 @@ Controlling checkpoint:
 
 Result:
 
-- available-width character navigation now uses the existing top tab strip on smaller/wide layouts and a Material 3 side rail only at `900dp+`;
-- the existing `700dp+` child master-detail threshold remains independent, so moderately wide layouts retain useful content width without paying for a rail too early;
+- available-width character navigation uses the existing top tab strip on smaller/wide layouts and a Material 3 side rail only at `900dp+`;
+- the existing `700dp+` child master-detail threshold remains independent;
 - compact character/save identity remains outside scrolling tab content;
-- responsive/master-detail work already delivered in F–H remains authoritative and was not rewritten;
-- per-character last-open-tab state now persists locally across full application reopen through `CharacterNavigationPreferenceStore`;
-- `rememberSaveable` continues to cover recreation/rotation;
-- restored tabs are re-resolved against current spell/module visibility and stale hidden destinations safely fall back and are rewritten to a valid remembered tab;
+- responsive/master-detail work delivered in F–H remains authoritative;
+- per-character last-open-tab state persists locally across full application reopen through `CharacterNavigationPreferenceStore`;
+- `rememberSaveable` covers recreation/rotation;
+- restored tabs are re-resolved against current spell/module visibility and stale hidden destinations safely fall back and are rewritten;
 - no schema/domain change was required.
 
 Verification:
 
-- first exact-tree workflow `33832706244` correctly caught one invalid Compose `weight` import on the safety branch;
+- first exact-tree workflow `33832706244` caught one invalid Compose `weight` import on the safety branch;
 - repair was exactly one import deletion;
 - final tested commit `ebceb1c747ff5649d8b0038ddf38b94b9caafcc6`;
 - final workflow `33832927017` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
 - integration artifact `9922360358`, digest `sha256:2dfd189833807ff154647a6f0b28dd25d4d7d886fd899dc53c063ec12cb7f953`.
 
-## 3. Batch I — adaptive shell + Supercompact + Table mode — GREEN
+### Batch I — adaptive shell + Supercompact + Table mode — GREEN
 
-I1 adaptive shell, I2a Supercompact and I2b Table mode are all GREEN. Batch I is technically complete.
+I1 adaptive shell, I2a Supercompact and I2b Table mode are all GREEN.
 
-I2b is durably checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md`.
+I2b controlling checkpoint:
 
-Final controlling I2b evidence:
+`docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md`
+
+Final evidence:
 
 - exact clean-tree commit `a36a9b36f56b40088c9cb42b55b347a5ecf4c05b`;
 - tree `75278c4a7569722f0d54a141fa257d710c62f35e`;
@@ -154,30 +156,63 @@ Final controlling I2b evidence:
 - structural edits are locked while intended live/session controls and presentation-only browsing remain usable;
 - enabling Table mode over an already-dirty structural draft is prevented.
 
-### Current active batch — J
+### Batch J — own-format backup/import + reconciliation — GREEN
 
-Batch J owns the app's own-format backup/import and reconciliation completion. Current operational truth is checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_PAUSE_HANDOFF.md`.
+Controlling checkpoint:
 
-Current substatus:
+`docs/checkpoints/2026-09-04_PHASE4_BATCH_J_BACKUP_IMPORT_COMPLETE.md`
 
-- **J1 — GREEN on safety line.** Own-format v1 JSON contract + strict decode/validation + complete restore-as-copy identity/reference remapping are implemented and tested on exact clean commit `5a734feb66f1341bed4688a9a8122247f245f8cb`, tree `e384f0f7f04991c0db7b7b35ace5aaf965135e76`. Exact-tree retry workflow `33838622420` passed backend, shared/Kotlin tests, Android debug, Desktop and APK upload. Artifact `9924202949`, digest `sha256:95ac091f02523c9b3480f548d0597979f7afc6b5af2653daa65a73e602c62240`.
-- **J2 — PAUSED / NOT GREEN.** Guarded workflow `33838749228` applied the intended repository patch in its runner, then failed at `:shared:compileTestKotlinDesktop` because the new test fixture used stale `CharacterInventoryItem` constructor arguments (`category`, `pinned`, `container`, `visible`) and `CharacterSpell(range=...)` rather than current `special`, `description`, `location`, `attuned` and `rangeText`. Commit/self-clean was skipped. No J2 product code was accepted.
-- Active J working branch is `tmp/phase4-j-backup-import` at `4416eeacb2f2dec9f302d96b62a01506a0722a98`; it contains validated J1 product work plus the intentionally retained J2 staging helpers `.github/j2_repository_patch.py` and `.github/workflows/tmp-j2-apply.yml`.
+Result:
 
-Do not restart J from the durable branch while this working branch exists. Resume the exact J2 repair from that branch as described in the handoff checkpoint.
+- app-owned versioned character backup format and strict decode/validation;
+- richly populated character + closure-state round trip;
+- controlled malformed/wrong-format/unsupported/invalid input handling, including non-primitive header safety;
+- restore always creates a new local copy in the destination campaign;
+- nested identifiers and internal references are remapped, preventing collisions;
+- repeated imports create independent copies and preserve the source;
+- repository restore is atomic and rollback-tested;
+- imported copies receive reconciliation checkpoints;
+- Android import uses the system document picker from campaign character context;
+- Android export uses the system document picker from PC Settings and is disabled while structural drafts are pending;
+- no SQLDelight schema migration was added for Batch J.
+
+Final controlling evidence:
+
+- exact product commit `7f93fc5268e9c0a9c26a2642fdbc2348b5f08501`;
+- product tree `8cb3941f33f29ee6d2cf8c2d247944ebaaef8efd`;
+- workflow `33879662226` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
+- artifact `9939406708`, name `dnd-custom-aid-debug-apk`;
+- artifact ZIP digest `sha256:94332b1325fa8cc64a4d21520c119d6cc9f3b3fee40666a8abb2704137cccf41`;
+- completed J history promoted into the durable closure branch through PR #6 / merge commit `2e37c1321b489db7677154f887b93f64cb586d49`.
+
+The Batch J APK is technical evidence only; it is not the frozen Batch L owner-QA candidate.
+
+## 3. Current active batch — K closure candidate stabilization
+
+Batch K is stabilization only. No unrelated feature scope is permitted.
+
+Required gate:
+
+- full migration regression from the owner APK lineage;
+- all shared tests;
+- Android debug assemble;
+- Desktop build;
+- backend type-check;
+- focused cross-tab integration repairs only when the stabilization gate demonstrates a concrete defect.
+
+The migration audit must explicitly prove that the currently shipped/owner-tested database lineage can move through every subsequent SQLDelight migration to the current schema without loss of protected character data. Existing migration/repository tests are evidence but do not substitute for checking the exact lineage chain.
 
 ## 4. Remaining approved execution sequence
 
 From the current position:
 
-- **J — ACTIVE — own-format backup/import + reconciliation completion:** J1 GREEN; repair J2 test fixture, prove atomic repository restore-as-copy + reconciliation, then wire Android local-file export/import and run final J clean-tree gate;
-- **K — closure candidate stabilization:** full migration regression, shared tests, Android assemble, Desktop build, backend type-check and focused integration fixes only;
+- **K — ACTIVE — closure candidate stabilization:** prove owner-lineage migration regression, run the complete automated gate, repair only demonstrated integration defects;
 - **L — frozen phone+tablet APK candidate:** record exact commit/workflow/artifact name+ID/ZIP hash/extracted APK hash and make no silent code changes after QA begins;
 - **M — owner QA:** phone portrait, phone landscape, tablet portrait, tablet landscape and representative larger text; failures create focused repair batches/new candidate identities.
 
 ## 5. Existing baseline that must not regress
 
-Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, I2a authoritative Supercompact/Quick Access/live controls, D-0046 derived values/adjustments, I1 adaptive navigation/last-tab restoration and all migrations/repositories remain protected baseline behavior.
+Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, I2a authoritative Supercompact/Quick Access/live controls, D-0046 derived values/adjustments, I1 adaptive navigation/last-tab restoration, Batch J backup/import/reconciliation and all migrations/repositories remain protected baseline behavior.
 
 Historical/focused/tmp branches remain intentionally preserved. Do not delete them before the eventual post-merge unique-commit audit.
 
@@ -187,21 +222,19 @@ The future closure candidate must be one frozen APK with exact commit/workflow/a
 
 ## 7. Exact continuation
 
-Resume from the existing Batch J safety branch, **not** from a fresh branch:
+Start Batch K from the durable closure branch only after this state commit:
 
-`tmp/phase4-j-backup-import` @ `4416eeacb2f2dec9f302d96b62a01506a0722a98`
-
-First read `docs/checkpoints/2026-09-04_PHASE4_BATCH_J_PAUSE_HANDOFF.md` from the durable branch.
+`implementation/phase4-character-closure`
 
 Then:
 
-1. repair only the demonstrated stale constructor arguments inside `.github/j2_repository_patch.py`;
-2. for the generated `CharacterInventoryItem` fixture, use current `special`, `description`, `location`, `attuned` fields instead of stale `category`, `pinned`, `container`, `visible`;
-3. use `CharacterSpell(rangeText = "30 pies")` instead of `range = ...`;
-4. rerun the guarded focused test `gradle :shared:desktopTest --tests '*CharacterBackupRepositoryTest' --stacktrace`;
-5. do not alter J2 production semantics unless the next gate demonstrates a production defect;
-6. if focused J2 becomes GREEN, allow self-clean/commit, audit that helpers are absent, then run full exact-clean-tree CI;
-7. only after J2 is GREEN proceed to Android J3 local-file UX: import at selected-campaign/character-list context, export as character-specific action, system document picker, restore-as-new-copy messaging and existing reconciliation checkpoint surface;
-8. finish Gate J before starting K.
+1. create a fresh Batch K safety branch;
+2. identify the exact database/schema version represented by the owner APK lineage and the current schema version;
+3. inspect every intervening SQLDelight migration and the existing migration tests;
+4. add or repair only the minimum migration regression needed to prove that lineage end-to-end;
+5. run the focused migration gate first;
+6. if GREEN, run all shared tests, Android debug assemble, Desktop build and backend type-check on one exact clean tree;
+7. if that full K gate is GREEN with no integration defects, checkpoint K and proceed to candidate Batch L;
+8. if the gate demonstrates a defect, repair only that defect and repeat the exact-clean K gate.
 
-Keep `main` untouched. Do not begin K until J is fully gated, and do not begin DM work before the Phase 4 exit boundary and explicit owner approval.
+Keep `main` untouched. Do not freeze the Batch L owner-QA candidate until K is fully GREEN. Do not begin DM work before the Phase 4 exit boundary and explicit owner approval.
