@@ -1,11 +1,12 @@
 # Phase 4 Batch M4a — F14 structured proficiencies/languages
 
 **Date:** 2026-09-04  
-**Status:** IMPLEMENTED — final clean standard gate pending at checkpoint creation  
+**Status:** **GREEN / COMPLETE** — M4b may proceed  
 **Safety branch:** `tmp/phase4-m4-implementation`  
 **Authoritative pre-M4 base:** `d028147307732bc81938f2e8a531d6220e03c631`  
-**Accepted product head before this checkpoint:** `8c4c5f32d201e0080ee1af2af95d39f38179ac5a`  
-**Product tree:** `c1e159fa6c3a8860c10186dcf428f7f8ef2c8b95`  
+**Accepted product commit:** `8c4c5f32d201e0080ee1af2af95d39f38179ac5a`  
+**Accepted product tree:** `c1e159fa6c3a8860c10186dcf428f7f8ef2c8b95`  
+**Clean controlling checkpoint commit:** `2fce2d1678c193fc11bea8ae2b511c4fbd7e98bc`  
 **Canonical `main`:** untouched  
 **Historical L candidate:** untouched
 
@@ -104,7 +105,9 @@ Integration adds a separate saveable proficiency draft to `CharacterEditorScreen
 
 An unsaved proficiency mutation therefore behaves like the other structural character domains: it cannot silently persist, disappear from dirty detection, or bypass Table-mode structural locking.
 
-## Guarded integration gate
+## Verification
+
+### Guarded integration gate
 
 Temporary exact-match integration workflow:
 
@@ -121,12 +124,34 @@ Before creating the accepted product commit, that workflow verified:
 - Desktop build PASS;
 - backend dependency install/type-check PASS.
 
-The temporary integration script/workflow self-deleted in the accepted product commit. They are not part of the product tree.
+The temporary integration script/workflow self-deleted in the accepted product commit. They are not part of the accepted product tree.
 
-## Boundary
+### Clean controlling standard gate
 
-M4a closes F14 implementation completeness. It does not claim owner device acceptance.
+Ordinary repository workflow on clean helper-free product tree plus this checkpoint:
+
+- exact tested commit `2fce2d1678c193fc11bea8ae2b511c4fbd7e98bc`;
+- workflow `33895701076` — **SUCCESS**;
+- backend install/type-check — PASS;
+- full shared/Kotlin desktop tests — PASS;
+- Android debug assemble — PASS;
+- Desktop build — PASS;
+- Android debug APK upload — PASS;
+- artifact ID `9945748159`, name `dnd-custom-aid-debug-apk`;
+- artifact ZIP digest `sha256:8c429d8f683340814b9c8c4ffbfc9cedb7fab9f2a37c4481a1144a2ccf331c28`.
+
+This artifact is technical M4a evidence only. It is not the future replacement frozen M5 QA candidate.
+
+## Gate conclusion
+
+**M4a / F14 is GREEN and complete.**
+
+The feature is now implemented and technically gated. Whether its layout/interaction quality is acceptable on real phones/tablets remains M6 owner QA; that does not reopen implementation completeness unless QA exposes a real functional defect.
 
 No schema migration was added. No repository redesign was performed. `main` and the historical Batch L candidate remain untouched.
 
-At checkpoint creation, one ordinary `scaffold-check.yml` run on this clean helper-free product tree plus this documentation checkpoint is still required before marking M4a fully GREEN and advancing to M4b.
+## Exact continuation
+
+Proceed to **M4b — F15 Resource Favorite / Quick Access** on a safety branch from the accepted M4a durable state.
+
+Use the existing `CharacterQuickAccessKind.RESOURCE` authority. Add a reachable Favorite toggle in Gestión for durably saved Resources, preserve operational `−/+` resource controls, prune stale Resource Quick Access references after successful deletion persistence, and treat Favorite configuration as structural under Table mode. Do not add a new favorite storage model or schema migration.
