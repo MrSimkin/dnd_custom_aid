@@ -20,6 +20,9 @@ internal enum class CharacterTabV4(val label: String) {
     SPELLS("Conjuros"),
     ARTIFICER("Artífice"),
     FORMS("Formas"),
+    TECHNIQUES("Técnicas"),
+    METAMAGIC("Metamagia"),
+    PACTS("Pactos"),
     NOTES("Notas"),
 }
 
@@ -31,6 +34,9 @@ internal fun visibleCharacterTabsV4(
         CharacterTabV4.SPELLS -> spellcasterEnabled
         CharacterTabV4.ARTIFICER -> CharacterModuleKind.ARTIFICER in visibleModules
         CharacterTabV4.FORMS -> CharacterModuleKind.FORMS in visibleModules
+        CharacterTabV4.TECHNIQUES -> CharacterModuleKind.TECHNIQUES in visibleModules
+        CharacterTabV4.METAMAGIC -> CharacterModuleKind.METAMAGIC in visibleModules
+        CharacterTabV4.PACTS -> CharacterModuleKind.PACTS in visibleModules
         else -> true
     }
 }
