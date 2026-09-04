@@ -4,7 +4,7 @@ path = Path('docs/PROJECT_STATE.md')
 text = path.read_text(encoding='utf-8')
 
 old_header = "**Active focused closure branch:** `implementation/phase4-character-closure`  \n**Current phase:** Phase 4 Character Foundation Closure  "
-new_header = "**Durable pre-QA branch:** `implementation/phase4-preqa-consolidation`  \n**Current phase:** Phase 4 Character Foundation Closure — owner QA pending  "
+new_header = "**Durable pre-QA branch:** `implementation/phase4-preqa-consolidation`\n**Current phase:** Phase 4 Character Foundation Closure — owner QA pending"
 if old_header not in text:
     raise SystemExit('expected PROJECT_STATE header seam not found')
 text = text.replace(old_header, new_header, 1)
