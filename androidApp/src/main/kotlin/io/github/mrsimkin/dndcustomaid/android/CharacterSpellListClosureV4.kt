@@ -843,32 +843,39 @@ private fun SpellRowG2(
                         }
                     }
                 }
-                if (selectedAssociation != null && selectedSourceId != null) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Checkbox(
-                            checked = selectedAssociation.prepared,
-                            onCheckedChange = onPreparedChange,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
+                    if (selectedAssociation != null && selectedSourceId != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = selectedAssociation.prepared,
+                                onCheckedChange = onPreparedChange,
+                            )
+                            Text("Prep.", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextButton(
+                            onClick = { onFavoriteChange(!favorite) },
+                            enabled = favoriteEnabled,
+                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+                        ) {
+                            Text(if (favorite) "★" else "☆")
+                        }
+                        StableRemoveIconButton(
+                            onClick = onDelete,
+                            contentDescription = "Eliminar ${spell.name}",
                         )
-                        Text("Preparado", style = MaterialTheme.typography.labelSmall)
+                    }
+                    TextButton(
+                        onClick = onDuplicate,
+                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+                    ) {
+                        Text("Duplicar")
                     }
                 }
-                TextButton(
-                    onClick = { onFavoriteChange(!favorite) },
-                    enabled = favoriteEnabled,
-                    contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                ) {
-                    Text(if (favorite) "★" else "☆")
-                }
-                TextButton(
-                    onClick = onDuplicate,
-                    contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                ) {
-                    Text("Duplicar")
-                }
-                StableRemoveIconButton(
-                    onClick = onDelete,
-                    contentDescription = "Eliminar ${spell.name}",
-                )
             }
         }
         CharacterDropIndicatorV4(visible = dragState.showDropAfter)
