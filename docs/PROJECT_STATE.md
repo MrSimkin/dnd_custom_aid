@@ -5,17 +5,17 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Active focused closure branch:** `implementation/phase4-character-closure`  
 **Current phase:** Phase 4 Character Foundation Closure  
-**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; **Batch I1 active**  
+**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; **Batch I2 active**  
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
 
-1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_H3_COMPANIONS.md` — completed H3 gate and exact continuation into I1;
+1. `docs/checkpoints/2026-09-03_PHASE4_BATCH_I1_ADAPTIVE_SHELL.md` — completed I1 gate and exact continuation into I2;
 2. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — recoverable execution sequence through owner QA;
 3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
 4. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
 5. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
-6. earlier A–H checkpoints as historical implementation/verification evidence.
+6. earlier A–I1 checkpoints as historical implementation/verification evidence.
 
 ## 1. Closure scope and merge boundary
 
@@ -110,39 +110,54 @@ Result:
 
 All six approved reusable conditional module families are now implemented: Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros.
 
-## 3. Current batch — I1 adaptive shell
+### Batch I1 — adaptive shell — GREEN
 
-I1 is a holistic completion pass, **not** a rewrite of responsive work already completed in F/G/H.
+Controlling checkpoint:
 
-Approved I1 responsibilities:
+`docs/checkpoints/2026-09-03_PHASE4_BATCH_I1_ADAPTIVE_SHELL.md`
 
-- make the character shell react intentionally to available width across phone/tablet;
-- add a navigation rail on suitable wide layouts rather than always using the phone-style tab strip;
-- provide the D01 sticky compact character header;
-- preserve/reuse existing master-detail implementations and fill only actual list-heavy gaps;
-- audit/complete D16 context preservation across tab/list/search/filter/sort/selection/editor transitions;
-- ensure I19 last-open-tab-per-character survives a full app restart as required by Gate I;
-- retain Android Back hierarchy, IME behavior, unsaved-change guard, text scaling and phone/tablet portrait/landscape sanity.
+Result:
 
-Current audit findings before I1 implementation:
+- available-width character navigation now uses the existing top tab strip on smaller/wide layouts and a Material 3 side rail only at `900dp+`;
+- the existing `700dp+` child master-detail threshold remains independent, so moderately wide layouts retain useful content width without paying for a rail too early;
+- compact character/save identity remains outside scrolling tab content;
+- responsive/master-detail work already delivered in F–H remains authoritative and was not rewritten;
+- per-character last-open-tab state now persists locally across full application reopen through `CharacterNavigationPreferenceStore`;
+- `rememberSaveable` continues to cover recreation/rotation;
+- restored tabs are re-resolved against current spell/module visibility and stale hidden destinations safely fall back and are rewritten to a valid remembered tab;
+- no schema/domain change was required.
 
-- many list-heavy surfaces already have wide/master-detail behavior from F/G/H and should not be rewritten;
-- the editor currently derives a `wide` threshold from available width, but still uses the same top tab strip for all widths;
-- no `NavigationRail` implementation currently exists;
-- the selected character tab is currently only `rememberSaveable`, so it survives recreation but not a full application restart;
-- global `UiPreferences` currently persists theme/font/font scale/skill layout only, not per-character last-tab state.
+Verification:
 
-Recommended recoverable I1 split:
+- first exact-tree workflow `33832706244` correctly caught one invalid Compose `weight` import on the safety branch;
+- repair was exactly one import deletion;
+- final tested commit `ebceb1c747ff5649d8b0038ddf38b94b9caafcc6`;
+- final workflow `33832927017` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
+- integration artifact `9922360358`, digest `sha256:2dfd189833807ff154647a6f0b28dd25d4d7d886fd899dc53c063ec12cb7f953`.
 
-1. **I1a — shell/navigation state foundation:** durable per-character last-tab preference + pure/isolated adaptive navigation decisions;
-2. **I1b — wide adaptive shell:** navigation rail + sticky compact header while preserving the current phone tab strip;
-3. **I1c — D16/responsive audit:** verify existing master-detail surfaces and repair only demonstrated context/restoration gaps; run Gate I1.
+## 3. Current batch — I2 Supercompact + Table mode
+
+I2 is a completion pass over durable state/settings already introduced earlier; no schema migration is currently expected.
+
+Current audit findings:
+
+- `CharacterSupercompactV4` already projects basic identity, HP, ability values, saves/passives and responsive stat columns, but it does not yet consume ordered `CharacterClosureState.quickAccess` or expose the approved intentional live controls;
+- the editor currently enters Supercompact from the character-settings path and must use authoritative persisted sheet/closure data rather than maintaining or presenting a second mutable copy;
+- Quick Access refs already cover combat entries, traits, spells, resources, class options, forms, companions, custom skills and temporary effects;
+- stale Quick Access refs must be ignored safely while preserving stored sort order for live refs;
+- `tableModeEnabled` is already durable and configurable in PC Settings, but structural-edit suppression is intentionally not yet applied across the character UI;
+- Table mode must not be implemented as a blanket pointer-blocking overlay because explicitly permitted operational controls must remain usable.
+
+Recommended recoverable I2 split:
+
+1. **I2a — Supercompact completion:** shared/testable Quick Access projection, authoritative persisted values, responsive Favorites, and deliberate live HP/resource/slot operations;
+2. **I2b — Table mode completion:** suppress add/delete/reorder/structural editors while preserving intended operational changes such as HP, resources, spell slots and other explicitly live counters;
+3. run Gate I across rotate/recreate/reopen, last-tab, phone/tablet portrait/landscape and larger-text implementation review, leaving physical-device acceptance for Batch M.
 
 ## 4. Remaining approved execution sequence
 
-After I1:
+After I2:
 
-- **I2 — Supercompact + Table mode:** authoritative/Favorite-based compact projection, responsive density/columns, structural-edit suppression while allowed live controls remain usable;
 - **J — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;
 - **K — closure candidate stabilization:** full migration regression, shared tests, Android assemble, Desktop build, backend type-check and focused integration fixes only;
 - **L — frozen phone+tablet APK candidate:** record exact commit/workflow/artifact name+ID/ZIP hash/extracted APK hash and make no silent code changes after QA begins;
@@ -150,7 +165,7 @@ After I1:
 
 ## 5. Existing baseline that must not regress
 
-Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, current Supercompact projection, D-0046 derived values/adjustments and all migrations/repositories remain protected baseline behavior.
+Persistent General/Habilidades, Combate, Gestión, Equipo/currencies, Trasfondo including Raza and Religión/Fe, Rasgos, conditional Conjuros with sources/prepared/shared slots, Notas, all six conditional modules, PC Settings, current Supercompact projection, D-0046 derived values/adjustments, I1 adaptive navigation/last-tab restoration and all migrations/repositories remain protected baseline behavior.
 
 Historical/focused/tmp branches remain intentionally preserved. Do not delete them before the eventual post-merge unique-commit audit.
 
@@ -160,6 +175,6 @@ The future closure candidate must be one frozen APK with exact commit/workflow/a
 
 ## 7. Exact continuation
 
-Resume **Batch I1a — shell/navigation state foundation** on `implementation/phase4-character-closure`.
+Resume **Batch I2a — Supercompact completion** on a fresh safety branch from `implementation/phase4-character-closure`.
 
-Implement per-character last-open-tab persistence without making UI preferences character mechanics, then add/test the adaptive navigation-state decision needed for I1b. Keep `main` untouched and do not begin I2/backup/DM work early.
+First add a shared/testable ordered Quick Access projection that resolves references against authoritative character + closure domains and ignores stale targets safely. Then wire Supercompact to persisted `stored` + `closureState` and deliberate live controls. Keep `main` untouched; do not begin J/DM work early.
