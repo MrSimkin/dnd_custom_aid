@@ -1,0 +1,44 @@
+name: I2a one-shot smartcast repair
+
+on:
+  push:
+    branches:
+      - tmp/phase4-i2a-supercompact
+    paths:
+      - .github/workflows/tmp-i2a-smartcast-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: tmp/phase4-i2a-supercompact
+          fetch-depth: 0
+      - name: Apply exact one-line repair
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSupercompactV4.kt')
+          text = path.read_text()
+          old = '                        enabled = liveControlsEnabled && (resource.maxValue == null || resource.currentValue < resource.maxValue),\n'
+          new = '                        enabled = liveControlsEnabled && (resource.maxValue?.let { max -> resource.currentValue < max } ?: true),\n'
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected one smartcast anchor, found {count}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit repair and remove helper
+        shell: bash
+        run: |
+          rm .github/workflows/tmp-i2a-smartcast-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSupercompactV4.kt .github/workflows/tmp-i2a-smartcast-fix.yml
+          git diff --cached --check
+          git commit -m "fix: avoid cross-module resource smart cast"
+          git push origin HEAD:tmp/phase4-i2a-supercompact
