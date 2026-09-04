@@ -23,82 +23,69 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           p = Path('docs/PROJECT_STATE.md')
           text = p.read_text()
-
           def once(old, new, label):
               global text
               count = text.count(old)
               if count != 1:
                   raise SystemExit(f'{label}: expected one anchor, found {count}')
               text = text.replace(old, new, 1)
-
-          once(
-              '**Last verified:** 2026-09-03 owner local time / 2026-09-04 UTC  ',
-              '**Last verified:** 2026-09-04 owner local time / 2026-09-04 UTC  ',
-              'last verified',
-          )
-          once(
-              '**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; **Batch I2b active**',
-              '**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J active**',
-              'execution position',
-          )
-
+          once('**Last verified:** 2026-09-03 owner local time / 2026-09-04 UTC  ', '**Last verified:** 2026-09-04 owner local time / 2026-09-04 UTC  ', 'last verified')
+          once('**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; **Batch I2b active**', '**Current execution position:** Batch 0 complete; A1 GREEN; A2 GREEN; B1 GREEN; B2 GREEN; C GREEN; D GREEN; E GREEN; F GREEN; G1 GREEN; G2 GREEN; G3 GREEN; H1 GREEN; H2 GREEN; H3 GREEN; I1 GREEN; I2a GREEN; I2b GREEN; **Batch I complete; Batch J active**', 'execution position')
+          resume = '\n'.join([
+              '## 0. Primary resume order',
+              '',
+              '1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed I2b gate, Batch I closure and exact continuation into J;',
+              '2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a Supercompact gate;',
+              '3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — recoverable execution sequence through owner QA;',
+              '4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;',
+              '5. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;',
+              '6. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;',
+              '7. earlier A–I1 checkpoints as historical implementation/verification evidence.',
+              '',
+          ])
           start = text.index('## 0. Primary resume order')
-          end = text.index('\n## 1. Closure scope and merge boundary', start)
-          resume = '''## 0. Primary resume order
-
-1. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md` — completed I2b gate, Batch I closure and exact continuation into J;
-2. `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2A_SUPERCOMPACT.md` — completed I2a Supercompact gate;
-3. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md` — recoverable execution sequence through owner QA;
-4. `docs/checkpoints/2026-09-03_PHASE4_CLOSURE_IMPLEMENTATION_MAP.md` — higher-level implementation/gate map and final QA matrix;
-5. `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md` — controlling owner-approved closure scope;
-6. `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md` — approved class/subclass/module triggers and boundaries;
-7. earlier A–I1 checkpoints as historical implementation/verification evidence.
-'''
+          end = text.index('## 1. Closure scope and merge boundary', start)
           text = text[:start] + resume + text[end:]
-
+          completed = '\n'.join([
+              '## 3. Batch I — adaptive shell + Supercompact + Table mode — GREEN',
+              '',
+              'I1 adaptive shell, I2a Supercompact and I2b Table mode are all GREEN. Batch I is technically complete.',
+              '',
+              'I2b is durably checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md`.',
+              '',
+              'Final controlling I2b evidence:',
+              '',
+              '- exact clean-tree commit `a36a9b36f56b40088c9cb42b55b347a5ecf4c05b`;',
+              '- tree `75278c4a7569722f0d54a141fa257d710c62f35e`;',
+              '- workflow `33837303412` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;',
+              '- artifact `9923757180`, digest `sha256:d1b577750a14a023d5cca2c5cd7581a37321370ed9b1f68eb501cdbe171f065c`;',
+              '- no schema migration;',
+              '- Table mode is an explicit structural-write policy, not a blanket pointer blocker or second sheet model;',
+              '- structural edits are locked while intended live/session controls and presentation-only browsing remain usable;',
+              '- enabling Table mode over an already-dirty structural draft is prevented.',
+              '',
+              '### Current active batch — J',
+              '',
+              "Batch J owns the app's own-format backup/import and reconciliation completion. It must provide a versioned local format, safe import with no silent overwrite or identifier collision, richly populated round-trip coverage and malformed-input safety while reusing the existing durable character/domain authorities.",
+              '',
+          ])
           start = text.index('## 3. Current batch — I2b Table mode')
-          end = text.index('\n## 4. Remaining approved execution sequence', start)
-          completed = '''## 3. Batch I — adaptive shell + Supercompact + Table mode — GREEN
-
-I1 adaptive shell, I2a Supercompact and I2b Table mode are all GREEN. Batch I is technically complete.
-
-I2b is durably checkpointed in `docs/checkpoints/2026-09-04_PHASE4_BATCH_I2B_TABLE_MODE.md`.
-
-Final controlling I2b evidence:
-
-- exact clean-tree commit `a36a9b36f56b40088c9cb42b55b347a5ecf4c05b`;
-- tree `75278c4a7569722f0d54a141fa257d710c62f35e`;
-- workflow `33837303412` — PASS across backend, shared/Kotlin tests, Android debug assemble, Desktop build and APK upload;
-- artifact `9923757180`, digest `sha256:d1b577750a14a023d5cca2c5cd7581a37321370ed9b1f68eb501cdbe171f065c`;
-- no schema migration;
-- Table mode is an explicit structural-write policy, not a blanket pointer blocker or second sheet model;
-- structural edits are locked across mixed and structural-only character surfaces while intended live/session controls and presentation-only browsing remain usable;
-- enabling Table mode over an already-dirty structural draft is prevented, closing the stale-draft transition loophole.
-
-### Current active batch — J
-
-Batch J owns the app's own-format backup/import and reconciliation completion. It must provide a versioned local format, safe import with no silent overwrite or identifier collision, richly populated round-trip coverage and malformed-input safety while reusing the existing durable character/domain authorities.
-'''
+          end = text.index('## 4. Remaining approved execution sequence', start)
           text = text[:start] + completed + text[end:]
-
-          once(
-              'After I2:\n\n- **J — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;',
-              'From the current position:\n\n- **J — ACTIVE — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;',
-              'remaining sequence',
-          )
-
+          once('After I2:\n\n- **J — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;', 'From the current position:\n\n- **J — ACTIVE — own-format backup/import + reconciliation completion:** versioned local format, safe import, no silent overwrite/ID collision, richly populated round trip and malformed-input safety;', 'remaining sequence')
+          continuation = '\n'.join([
+              '## 7. Exact continuation',
+              '',
+              'Resume **Batch J — own-format backup/import + reconciliation completion** on a fresh safety branch from `implementation/phase4-character-closure`.',
+              '',
+              'Implement a versioned local backup/export representation and safe import path. Preserve existing authoritative repositories/domain objects, reject malformed or unsupported input safely, prevent silent overwrite and identifier collisions, and add richly populated round-trip coverage including the closure data delivered through A–I. Complete the remaining reconciliation requirement assigned to J without broadening into DM features.',
+              '',
+              'Keep `main` untouched. Do not begin K until J is fully gated, and do not begin DM work before the Phase 4 exit boundary and explicit owner approval.',
+              '',
+          ])
           start = text.index('## 7. Exact continuation')
-          continuation = '''## 7. Exact continuation
-
-Resume **Batch J — own-format backup/import + reconciliation completion** on a fresh safety branch from `implementation/phase4-character-closure`.
-
-Implement a versioned local backup/export representation and safe import path. Preserve existing authoritative repositories/domain objects, reject malformed or unsupported input safely, prevent silent overwrite and identifier collisions, and add richly populated round-trip coverage including the closure data delivered through A–I. Complete the remaining reconciliation requirement assigned to J without broadening into DM features.
-
-Keep `main` untouched. Do not begin K until J is fully gated, and do not begin DM work before the Phase 4 exit boundary and explicit owner approval.
-'''
           text = text[:start] + continuation
           p.write_text(text)
           PY
