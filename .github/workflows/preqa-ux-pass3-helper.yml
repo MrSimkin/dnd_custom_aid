@@ -23,6 +23,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Correct transform anchor for current navigation implementation
+        run: python tools/preqa_ux_pass3_fix.py
+
       - name: Apply fail-closed repair pass
         run: python tools/preqa_ux_pass3.py
 
@@ -79,8 +82,10 @@ jobs:
           path: ${{ runner.temp }}/DND_Custom_Aid_0.4.0-preqa.3_Build_40300_debug.apk
           if-no-files-found: error
 
-      - name: Remove temporary transformation tool
-        run: rm tools/preqa_ux_pass3.py
+      - name: Remove temporary transformation tools
+        run: |
+          rm tools/preqa_ux_pass3.py
+          rm tools/preqa_ux_pass3_fix.py
 
       - name: Commit tested product repair
         run: |
