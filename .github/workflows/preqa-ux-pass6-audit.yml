@@ -1,0 +1,29 @@
+name: Pre-QA UX repair pass 6 audit
+
+on:
+  push:
+    branches:
+      - implementation/phase4-preqa-ux-repair
+    paths:
+      - '.github/workflows/preqa-ux-pass6-audit.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Inventory responsive column caps
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== constrainedCardColumnsV4 calls ==='
+          grep -R -n --include='*.kt' 'constrainedCardColumnsV4' androidApp/src/main/kotlin || true
+          echo
+          echo '=== requestedCardColumnsV4 calls ==='
+          grep -R -n --include='*.kt' 'requestedCardColumnsV4' androidApp/src/main/kotlin || true
+          echo
+          echo '=== explicit phoneMax/wideMax arguments ==='
+          grep -R -n --include='*.kt' -E 'phoneMax[[:space:]]*=|wideMax[[:space:]]*=' androidApp/src/main/kotlin || true
+          echo
+          echo '=== likely grid chunking sites ==='
+          grep -R -n --include='*.kt' -E '\.chunked\(columns\)|repeat\(columns -|columns[[:space:]]*=' androidApp/src/main/kotlin || true
