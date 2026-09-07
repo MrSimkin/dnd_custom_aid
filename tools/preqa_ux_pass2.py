@@ -89,6 +89,11 @@ replace_once(
 )
 replace_once(
     ui_path,
+    "import androidx.compose.material3.Text\n",
+    "import androidx.compose.material3.Text\nimport androidx.compose.material3.TextButton\n",
+)
+replace_once(
+    ui_path,
     "import androidx.compose.ui.platform.LocalDensity\n",
     "import androidx.compose.ui.platform.LocalConfiguration\nimport androidx.compose.ui.platform.LocalDensity\n",
 )
