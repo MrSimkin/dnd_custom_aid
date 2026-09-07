@@ -340,14 +340,18 @@ internal fun CharacterSpellListClosureV4(
                 .fillMaxSize()
                 .imePadding()
                 .navigationBarsPadding(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
             collection(Modifier.weight(1f))
             Surface(
                 modifier = Modifier
                     .width(340.dp)
                     .fillMaxHeight()
-                    .padding(top = 5.dp, end = 8.dp, bottom = 8.dp),
+                    .padding(
+                        top = appSpacingV4(5.dp),
+                        end = appSpacingV4(8.dp),
+                        bottom = appSpacingV4(8.dp),
+                    ),
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
@@ -356,8 +360,8 @@ internal fun CharacterSpellListClosureV4(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                            .padding(appSpacingV4(10.dp)),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -431,7 +435,7 @@ internal fun CharacterSpellListClosureV4(
                     }
                 } else {
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        modifier = Modifier.fillMaxSize().padding(appSpacingV4(16.dp)),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
@@ -558,61 +562,73 @@ private fun SpellCollectionG2(
     onSlotSpentChange: (Int, Int) -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
-    LazyColumn(
+    Column(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = appSpacingV4(6.dp),
-            end = appSpacingV4(6.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        item(key = "spell-g2-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = appSpacingV4(6.dp),
+                    end = appSpacingV4(6.dp),
+                    top = appSpacingV4(5.dp),
+                ),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
                         horizontal = appSpacingV4(7.dp),
                         vertical = appSpacingV4(6.dp),
                     ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Conjuros", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                if (selectedSourceId == null) "Todos los conjuros conceptuales" else "Vista filtrada por fuente",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-                    CharacterCollectionToolbarV4(
-                        itemCount = visibleCount,
-                        query = query,
-                        onQueryChange = onQueryChange,
-                        order = order,
-                        onOrderChange = onOrderChange,
-                        filters = spellFiltersG2(selectedSourceId),
-                        searchLabel = "Buscar conjuros",
-                    )
-                    if (!canReorder && visibleCount > 0) {
-                        Text(
-                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                            } else {
-                                "Limpia búsqueda y filtros para reordenar manualmente."
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
+                    Text("Conjuros", style = MaterialTheme.typography.titleSmall)
+                    TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                 }
+                CharacterCollectionToolbarV4(
+                    itemCount = visibleCount,
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    order = order,
+                    onOrderChange = onOrderChange,
+                    filters = spellFiltersG2(selectedSourceId),
+                    searchLabel = "Buscar conjuros",
+                )
             }
         }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(6.dp),
+                end = appSpacingV4(6.dp),
+                top = 0.dp,
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            if (!canReorder && visibleCount > 0) {
+                item(key = "spell-g2-order-help") {
+                    Text(
+                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                        } else {
+                            "Limpia búsqueda y filtros para reordenar manualmente."
+                        },
+                        modifier = Modifier.padding(horizontal = appSpacingV4(3.dp)),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
 
         if (draft.spells.isEmpty()) {
             item {
@@ -688,6 +704,7 @@ private fun SpellCollectionG2(
                 }
             }
         }
+    }
     }
 }
 

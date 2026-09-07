@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
@@ -276,19 +277,23 @@ internal fun CharacterCompanionsModuleV4(
     if (wide) {
         Row(
             modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
             collection(Modifier.weight(1f))
             Surface(
-                modifier = Modifier.width(420.dp).fillMaxHeight().padding(top = 5.dp, end = 8.dp, bottom = 8.dp),
+                modifier = Modifier.width(420.dp).fillMaxHeight().padding(
+                    top = appSpacingV4(5.dp),
+                    end = appSpacingV4(8.dp),
+                    bottom = appSpacingV4(8.dp),
+                ),
                 shape = MaterialTheme.shapes.medium,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             ) {
                 if (editorOpen && structuralEditingEnabled) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(appSpacingV4(10.dp)),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                     ) {
                         item {
                             Row(
@@ -350,7 +355,7 @@ internal fun CharacterCompanionsModuleV4(
                     }
                 } else {
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        modifier = Modifier.fillMaxSize().padding(appSpacingV4(16.dp)),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
@@ -433,6 +438,7 @@ internal fun CharacterCompanionsModuleV4(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CompanionCollectionH3(
     modifier: Modifier,
@@ -497,14 +503,22 @@ private fun CompanionCollectionH3(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(start = 6.dp, end = 6.dp, top = 5.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        contentPadding = PaddingValues(
+            start = appSpacingV4(6.dp),
+            end = appSpacingV4(6.dp),
+            top = appSpacingV4(5.dp),
+            bottom = appSpacingV4(88.dp),
+        ),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        item(key = "h3-companions-tools") {
+        stickyHeader(key = "h3-companions-tools") {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth().padding(
+                        horizontal = appSpacingV4(7.dp),
+                        vertical = appSpacingV4(6.dp),
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

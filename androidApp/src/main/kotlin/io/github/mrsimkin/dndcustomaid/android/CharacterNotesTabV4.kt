@@ -101,20 +101,23 @@ internal fun CharacterNotesTabV4(
             .imePadding()
             .navigationBarsPadding(),
         contentPadding = PaddingValues(
-            start = if (wide) 14.dp else 5.dp,
-            end = if (wide) 14.dp else 5.dp,
-            top = 7.dp,
-            bottom = 88.dp,
+            start = appSpacingV4(if (wide) 14.dp else 5.dp),
+            end = appSpacingV4(if (wide) 14.dp else 5.dp),
+            top = appSpacingV4(7.dp),
+            bottom = appSpacingV4(88.dp),
         ),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
     ) {
         item(key = "general-notes") {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = if (wide) 12.dp else 7.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                        .padding(
+                            horizontal = appSpacingV4(if (wide) 12.dp else 7.dp),
+                            vertical = appSpacingV4(8.dp),
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Text("Notas generales", style = MaterialTheme.typography.titleSmall)
                     Text(
@@ -149,8 +152,11 @@ internal fun CharacterNotesTabV4(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = if (wide) 12.dp else 7.dp, vertical = 7.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                        .padding(
+                            horizontal = appSpacingV4(if (wide) 12.dp else 7.dp),
+                            vertical = appSpacingV4(7.dp),
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -179,7 +185,7 @@ internal fun CharacterNotesTabV4(
                         draft.cards.chunked(columns).forEach { rowCards ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                                 verticalAlignment = Alignment.Top,
                             ) {
                                 rowCards.forEach { note ->
