@@ -1,10 +1,12 @@
 # Phase 4 pre-QA UX repair — Pass 02
 
 **Date:** 2026-09-07  
-**Status:** IMPLEMENTED + AUTOMATED GATE GREEN; owner visual/device review still pending  
+**Status:** IMPLEMENTED + AUTOMATED GATE GREEN + DURABLY PUBLISHED; owner visual/device review still pending  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
 **Tested product commit:** `16210721115c3a04a6be7142d85f13ad79bdee7b`  
 **Tested product tree:** `cb49f221e588bf5fdcd3222a3a287a1e176043a0`  
+**Pass checkpoint commit:** `e9858ace5a08a6ced178ba009ef03f085eeeac45`  
+**Temporary publisher cleanup commit:** `0ac8bc65223f07d2ea8c01d0fd2201a031505c14`  
 **Helper workflow run:** `34165128594`  
 **Review version:** `0.4.0-preqa.2`  
 **Review build:** `40200`  
@@ -17,7 +19,7 @@ The historical 2026-09-04 M6 pause checkpoint said owner QA was next. On 2026-09
 ## Pass 02 completed
 
 - explicit Android version/build identity: version `0.4.0-preqa.2`, build `40200`;
-- APK and GitHub artifact naming include both version and build;
+- the Pass 02 review APK and GitHub artifact naming include both version and build;
 - Application Settings exposes an explicit **Acerca de** dialog showing VERSION, BUILD and BUILD TYPE prominently;
 - text-size audition expanded to 70–200%; 145%+ shows a phone-specific warning rather than blocking the choice;
 - ten new font candidates added to the existing audition set: Inter, Figtree, Public Sans, Barlow Semi Condensed, Space Grotesk, Recursive, Cabin Condensed, Encode Sans Condensed, PT Sans Narrow and League Spartan;
@@ -27,7 +29,8 @@ The historical 2026-09-04 M6 pause checkpoint said owner QA was next. On 2026-09
 - character-name input forces the first visible character uppercase while preserving the rest of the entered name; shared tests cover normal, accented and temporary blank input;
 - the activity already used `adjustResize`; Settings and campaign-name dialogs explicitly add IME/navigation-bar insets, while the reusable character editor dialog retains IME-safe scroll behavior;
 - `AGENTS.md` requires `docs/checkpoints/LATEST.md` to be refreshed after every implementation/review pass;
-- `docs/PROJECT_STATE.md` points to the active repair branch/LATEST checkpoint instead of incorrectly resuming historical M6.
+- `docs/PROJECT_STATE.md` points to the active repair branch/LATEST checkpoint instead of incorrectly resuming historical M6;
+- the temporary Pass 02 publisher workflow was removed after the tested product and checkpoint were durably pushed, so no pass-specific workflow machinery is left active.
 
 ## Still open — next repair pass
 
@@ -41,7 +44,7 @@ The historical 2026-09-04 M6 pause checkpoint said owner QA was next. On 2026-09
 
 ## Verification
 
-The helper gate passed `git diff --check`, `:shared:desktopTest`, `:androidApp:assembleDebug`, `:desktopApp:build` and backend TypeScript check before the tested product commit was created.
+The helper gate passed `git diff --check`, `:shared:desktopTest`, `:androidApp:assembleDebug`, `:desktopApp:build` and backend TypeScript check before the tested product commit was created. The review artifact was uploaded successfully before publication.
 
 ## Exact resume instruction
 
