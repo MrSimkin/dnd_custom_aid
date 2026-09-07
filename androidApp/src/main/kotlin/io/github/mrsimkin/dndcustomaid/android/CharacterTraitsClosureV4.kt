@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
@@ -62,6 +63,7 @@ import kotlin.uuid.Uuid
 
 private const val TRAIT_FILTER_SEPARATOR_G1 = "\u001E"
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun CharacterTraitsClosureTabV4(
     traits: List<CharacterTrait>,
@@ -168,18 +170,21 @@ internal fun CharacterTraitsClosureTabV4(
             .imePadding()
             .navigationBarsPadding(),
         contentPadding = PaddingValues(
-            start = if (wide) 10.dp else 5.dp,
-            end = if (wide) 10.dp else 5.dp,
-            top = 5.dp,
-            bottom = 88.dp,
+            start = appSpacingV4(if (wide) 10.dp else 5.dp),
+            end = appSpacingV4(if (wide) 10.dp else 5.dp),
+            top = appSpacingV4(5.dp),
+            bottom = appSpacingV4(88.dp),
         ),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
     ) {
-        item {
+        stickyHeader(key = "traits-tools") {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth().padding(
+                        horizontal = appSpacingV4(7.dp),
+                        vertical = appSpacingV4(6.dp),
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

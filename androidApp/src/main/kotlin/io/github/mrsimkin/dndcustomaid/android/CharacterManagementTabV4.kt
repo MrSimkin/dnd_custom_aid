@@ -77,51 +77,21 @@ internal fun CharacterManagementTabV4(
     var checkpointEditorOpen by rememberSaveable { mutableStateOf(false) }
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding(),
-        contentPadding = PaddingValues(
-            start = if (wide) 14.dp else 6.dp,
-            end = if (wide) 14.dp else 6.dp,
-            top = 8.dp,
-            bottom = 88.dp,
-        ),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
     ) {
-        item(key = "management-state") {
-            ManagementPairV4(
-                wide = wide,
-                first = {
-                    ConditionsExhaustionCardV4(
-                        state = closureState,
-                        onExhaustionChange = { level ->
-                            onClosureStateChange(closureState.copy(exhaustionLevel = level.coerceAtLeast(0)))
-                        },
-                        onAddCondition = {
-                            editingConditionId = null
-                            conditionEditorOpen = true
-                        },
-                        onEditCondition = { condition ->
-                            editingConditionId = condition.id.toString()
-                            conditionEditorOpen = true
-                        },
-                        onDeleteCondition = { condition -> deletingConditionId = condition.id.toString() },
-                    )
-                },
-                second = {
-                    ConcentrationCardV4(
-                        concentration = closureState.concentration,
-                        onEdit = { concentrationEditorOpen = true },
-                        onClear = {
-                            onClosureStateChange(closureState.copy(concentration = null))
-                        },
-                    )
-                },
-            )
-        }
-
-        item(key = "management-operational") {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = appSpacingV4(if (wide) 14.dp else 6.dp),
+                    end = appSpacingV4(if (wide) 14.dp else 6.dp),
+                    top = appSpacingV4(8.dp),
+                ),
+        ) {
             OperationalStateCardV4(
                 sheet = sheet,
                 onSheetChange = onSheetChange,
@@ -129,91 +99,136 @@ internal fun CharacterManagementTabV4(
             )
         }
 
-        item(key = "management-resources") {
-            ResourcesCardV4(
-                resources = sheet.resources,
-                favoriteResourceIds = closureState.quickAccess
-                    .filter { it.kind == CharacterQuickAccessKind.RESOURCE }
-                    .mapTo(mutableSetOf()) { it.targetId },
-                structuralEditingEnabled = structuralEditingEnabled,
-                onAdd = {
-                    editingResourceId = null
-                    resourceEditorOpen = true
-                },
-                onEdit = { resource ->
-                    editingResourceId = resource.id.toString()
-                    resourceEditorOpen = true
-                },
-                onDelete = { resource -> deletingResourceId = resource.id.toString() },
-                onFavoriteChange = { resource, favorite ->
-                    if (structuralEditingEnabled) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 14.dp else 6.dp),
+                end = appSpacingV4(if (wide) 14.dp else 6.dp),
+                top = 0.dp,
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
+        ) {
+            item(key = "management-state") {
+                ManagementPairV4(
+                    wide = wide,
+                    first = {
+                        ConditionsExhaustionCardV4(
+                            state = closureState,
+                            onExhaustionChange = { level ->
+                                onClosureStateChange(closureState.copy(exhaustionLevel = level.coerceAtLeast(0)))
+                            },
+                            onAddCondition = {
+                                editingConditionId = null
+                                conditionEditorOpen = true
+                            },
+                            onEditCondition = { condition ->
+                                editingConditionId = condition.id.toString()
+                                conditionEditorOpen = true
+                            },
+                            onDeleteCondition = { condition -> deletingConditionId = condition.id.toString() },
+                        )
+                    },
+                    second = {
+                        ConcentrationCardV4(
+                            concentration = closureState.concentration,
+                            onEdit = { concentrationEditorOpen = true },
+                            onClear = {
+                                onClosureStateChange(closureState.copy(concentration = null))
+                            },
+                        )
+                    },
+                )
+            }
+
+            item(key = "management-resources") {
+                ResourcesCardV4(
+                    resources = sheet.resources,
+                    favoriteResourceIds = closureState.quickAccess
+                        .filter { it.kind == CharacterQuickAccessKind.RESOURCE }
+                        .mapTo(mutableSetOf()) { it.targetId },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    onAdd = {
+                        editingResourceId = null
+                        resourceEditorOpen = true
+                    },
+                    onEdit = { resource ->
+                        editingResourceId = resource.id.toString()
+                        resourceEditorOpen = true
+                    },
+                    onDelete = { resource -> deletingResourceId = resource.id.toString() },
+                    onFavoriteChange = { resource, favorite ->
+                        if (structuralEditingEnabled) {
+                            onClosureStateChange(
+                                closureState.copy(
+                                    quickAccess = setCharacterQuickAccessFavorite(
+                                        quickAccess = closureState.quickAccess,
+                                        kind = CharacterQuickAccessKind.RESOURCE,
+                                        targetId = resource.id,
+                                        favorite = favorite,
+                                    ),
+                                ),
+                            )
+                        }
+                    },
+                    onAdjust = { resource, delta ->
+                        val maximum = resource.maxValue
+                        val changed = (resource.currentValue + delta).coerceAtLeast(0).let { value ->
+                            maximum?.let { value.coerceAtMost(it) } ?: value
+                        }
+                        if (changed != resource.currentValue) {
+                            haptic(CharacterHapticEventV4.RESOURCE)
+                            onSheetChange(
+                                sheet.copy(
+                                    resources = sheet.resources.map {
+                                        if (it.id == resource.id) it.copy(currentValue = changed) else it
+                                    },
+                                ),
+                            )
+                        }
+                    },
+                )
+            }
+
+            item(key = "management-rest") {
+                RestAssistantCardV4(
+                    onShortRest = { restKindName = CharacterRestKind.SHORT.name },
+                    onLongRest = { restKindName = CharacterRestKind.LONG.name },
+                )
+            }
+
+            item(key = "management-effects") {
+                TemporaryEffectsCardV4(
+                    effects = closureState.temporaryEffects,
+                    onAdd = {
+                        editingEffectId = null
+                        effectEditorOpen = true
+                    },
+                    onEdit = { effect ->
+                        editingEffectId = effect.id.toString()
+                        effectEditorOpen = true
+                    },
+                    onDelete = { effect -> deletingEffectId = effect.id.toString() },
+                    onToggle = { effect, active ->
                         onClosureStateChange(
                             closureState.copy(
-                                quickAccess = setCharacterQuickAccessFavorite(
-                                    quickAccess = closureState.quickAccess,
-                                    kind = CharacterQuickAccessKind.RESOURCE,
-                                    targetId = resource.id,
-                                    favorite = favorite,
-                                ),
-                            ),
-                        )
-                    }
-                },
-                onAdjust = { resource, delta ->
-                    val maximum = resource.maxValue
-                    val changed = (resource.currentValue + delta).coerceAtLeast(0).let { value ->
-                        maximum?.let { value.coerceAtMost(it) } ?: value
-                    }
-                    if (changed != resource.currentValue) {
-                        haptic(CharacterHapticEventV4.RESOURCE)
-                        onSheetChange(
-                            sheet.copy(
-                                resources = sheet.resources.map {
-                                    if (it.id == resource.id) it.copy(currentValue = changed) else it
+                                temporaryEffects = closureState.temporaryEffects.map {
+                                    if (it.id == effect.id) it.copy(active = active) else it
                                 },
                             ),
                         )
-                    }
-                },
-            )
-        }
+                    },
+                )
+            }
 
-        item(key = "management-rest") {
-            RestAssistantCardV4(
-                onShortRest = { restKindName = CharacterRestKind.SHORT.name },
-                onLongRest = { restKindName = CharacterRestKind.LONG.name },
-            )
-        }
-
-        item(key = "management-effects") {
-            TemporaryEffectsCardV4(
-                effects = closureState.temporaryEffects,
-                onAdd = {
-                    editingEffectId = null
-                    effectEditorOpen = true
-                },
-                onEdit = { effect ->
-                    editingEffectId = effect.id.toString()
-                    effectEditorOpen = true
-                },
-                onDelete = { effect -> deletingEffectId = effect.id.toString() },
-                onToggle = { effect, active ->
-                    onClosureStateChange(
-                        closureState.copy(
-                            temporaryEffects = closureState.temporaryEffects.map {
-                                if (it.id == effect.id) it.copy(active = active) else it
-                            },
-                        ),
-                    )
-                },
-            )
-        }
-
-        item(key = "management-checkpoints") {
-            ReconciliationCardV4(
-                checkpoints = closureState.reconciliationCheckpoints,
-                onAdd = { checkpointEditorOpen = true },
-            )
+            item(key = "management-checkpoints") {
+                ReconciliationCardV4(
+                    checkpoints = closureState.reconciliationCheckpoints,
+                    onAdd = { checkpointEditorOpen = true },
+                )
+            }
         }
     }
 
@@ -424,14 +439,14 @@ private fun ManagementPairV4(
     if (wide) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
             verticalAlignment = Alignment.Top,
         ) {
             Box(modifier = Modifier.weight(1f)) { first() }
             Box(modifier = Modifier.weight(1f)) { second() }
         }
     } else {
-        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp))) {
             first()
             second()
         }
@@ -445,8 +460,11 @@ private fun ManagementCardV4(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 9.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+            modifier = Modifier.fillMaxWidth().padding(
+                horizontal = appSpacingV4(10.dp),
+                vertical = appSpacingV4(9.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             content()

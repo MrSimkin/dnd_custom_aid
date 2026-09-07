@@ -560,14 +560,22 @@ private fun SpellCollectionG2(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(start = 6.dp, end = 6.dp, top = 5.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        contentPadding = PaddingValues(
+            start = appSpacingV4(6.dp),
+            end = appSpacingV4(6.dp),
+            top = appSpacingV4(5.dp),
+            bottom = appSpacingV4(88.dp),
+        ),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         item(key = "spell-g2-tools") {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth().padding(
+                        horizontal = appSpacingV4(7.dp),
+                        vertical = appSpacingV4(6.dp),
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

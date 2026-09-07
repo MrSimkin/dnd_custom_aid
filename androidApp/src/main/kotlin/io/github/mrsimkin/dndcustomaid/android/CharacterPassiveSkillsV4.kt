@@ -18,7 +18,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.passiveInvestigation
 internal fun CharacterPassiveSkillsCardV4(sheet: CharacterSheet) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(7.dp)),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             PassiveSkillValueV4("Percepción", sheet.passivePerception)

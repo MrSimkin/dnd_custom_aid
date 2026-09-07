@@ -124,14 +124,17 @@ internal fun CharacterSpellsTabV4(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = if (wide) 10.dp else 5.dp, vertical = 5.dp),
+                .padding(
+                    horizontal = appSpacingV4(if (wide) 10.dp else 5.dp),
+                    vertical = appSpacingV4(5.dp),
+                ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             LazyRow(
                 modifier = Modifier.weight(1f),
                 state = sourceListState,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 item(key = "all-sources") {

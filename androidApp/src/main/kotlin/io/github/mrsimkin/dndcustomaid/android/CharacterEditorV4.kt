@@ -1540,57 +1540,72 @@ private fun SkillsTabV4(
     onClosureStateChange: (CharacterClosureState) -> Unit,
     onProficienciesChange: (List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>) -> Unit,
 ) {
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
             .navigationBarsPadding(),
-        contentPadding = PaddingValues(
-            start = if (wide) 10.dp else 5.dp,
-            end = if (wide) 10.dp else 5.dp,
-            top = 5.dp,
-            bottom = 170.dp,
-        ),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        item {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = appSpacingV4(if (wide) 10.dp else 5.dp),
+                    end = appSpacingV4(if (wide) 10.dp else 5.dp),
+                    top = appSpacingV4(5.dp),
+                ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
             SkillViewSelectorV4(skillLayoutChoice, onSkillLayoutChange)
-        }
-        item {
             CharacterPassiveSkillsCardV4(calculationSheet)
         }
-        when (skillLayoutChoice) {
-            SkillLayoutChoice.BY_SKILLS -> {
-                item { AbilitiesCardV4(draft, onDraftChange) }
-                item { SavesCardV4(draft, wide, onDraftChange) }
-                item { SkillsListCardV4(draft, wide, onDraftChange) }
-                item {
-                    CharacterCustomSkillsCardV4(
-                        skills = closureState.customSkills,
-                        calculationSheet = calculationSheet,
-                        layoutChoice = skillLayoutChoice,
-                        onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
-                    )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 10.dp else 5.dp),
+                end = appSpacingV4(if (wide) 10.dp else 5.dp),
+                top = 0.dp,
+                bottom = appSpacingV4(170.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            when (skillLayoutChoice) {
+                SkillLayoutChoice.BY_SKILLS -> {
+                    item { AbilitiesCardV4(draft, onDraftChange) }
+                    item { SavesCardV4(draft, wide, onDraftChange) }
+                    item { SkillsListCardV4(draft, wide, onDraftChange) }
+                    item {
+                        CharacterCustomSkillsCardV4(
+                            skills = closureState.customSkills,
+                            calculationSheet = calculationSheet,
+                            layoutChoice = skillLayoutChoice,
+                            onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
+                        )
+                    }
+                }
+                SkillLayoutChoice.BY_ATTRIBUTE -> {
+                    item { AbilityGroupsCardV4(draft, wide, onDraftChange) }
+                    item {
+                        CharacterCustomSkillsCardV4(
+                            skills = closureState.customSkills,
+                            calculationSheet = calculationSheet,
+                            layoutChoice = skillLayoutChoice,
+                            onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
+                        )
+                    }
                 }
             }
-            SkillLayoutChoice.BY_ATTRIBUTE -> {
-                item { AbilityGroupsCardV4(draft, wide, onDraftChange) }
-                item {
-                    CharacterCustomSkillsCardV4(
-                        skills = closureState.customSkills,
-                        calculationSheet = calculationSheet,
-                        layoutChoice = skillLayoutChoice,
-                        onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
-                    )
-                }
+            item {
+                CharacterProficienciesCardV4(
+                    proficiencies = proficiencies,
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    onProficienciesChange = onProficienciesChange,
+                )
             }
-        }
-        item {
-            CharacterProficienciesCardV4(
-                proficiencies = proficiencies,
-                structuralEditingEnabled = structuralEditingEnabled,
-                onProficienciesChange = onProficienciesChange,
-            )
         }
     }
 }
@@ -1616,7 +1631,7 @@ private fun SkillViewSelectorV4(
                 ) {
                     Text(
                         choice.label,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(8.dp)),
                         textAlign = TextAlign.Center,
                         style = if (selected) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
                         maxLines = 2,
