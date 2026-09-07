@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -111,20 +112,22 @@ internal fun CharacterCombatTabV4(
         return true
     }
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
             .navigationBarsPadding(),
-        contentPadding = PaddingValues(
-            start = if (wide) 10.dp else 5.dp,
-            end = if (wide) 10.dp else 5.dp,
-            top = 5.dp,
-            bottom = 88.dp,
-        ),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        item {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = if (wide) 10.dp else 5.dp,
+                    end = if (wide) 10.dp else 5.dp,
+                    top = 5.dp,
+                ),
+        ) {
             CharacterCombatOperationalCardV4(
                 armorClass = armorClass,
                 initiative = initiative,
@@ -134,7 +137,20 @@ internal fun CharacterCombatTabV4(
                 hapticsEnabled = hapticsEnabled,
             )
         }
-        item {
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(
+                start = if (wide) 10.dp else 5.dp,
+                end = if (wide) 10.dp else 5.dp,
+                top = 0.dp,
+                bottom = 88.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
@@ -194,6 +210,7 @@ internal fun CharacterCombatTabV4(
                     }
                 }
             }
+        }
         }
     }
 
@@ -421,9 +438,6 @@ private fun CombatEntryCardV4(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                    entry.attackModifier?.let { modifierValue ->
-                        CharacterD20RollButtonV4(label = entry.name, modifier = modifierValue)
                     }
                     TextButton(
                         onClick = { onFavoriteChange(!favorite) },

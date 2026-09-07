@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.mrsimkin.dndcustomaid"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 40200
-        versionName = "0.4.0-preqa.2"
+        versionCode = 40300
+        versionName = "0.4.0-preqa.3"
     }
 
     if (ciDebugKeystore.exists()) {

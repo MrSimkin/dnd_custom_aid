@@ -660,6 +660,11 @@ internal fun CharacterEditorScreenV4(
                             hapticsEnabled = closureState.hapticsEnabled,
                             wide = wide,
                         )
+                        CharacterTabV4.DICE -> CharacterDiceRollTabV4(
+                            sheet = settingsSheet,
+                            closureState = closureState,
+                            combatEntries = combatEntries,
+                        )
                         CharacterTabV4.MANAGEMENT -> CharacterManagementTabV4(
                             sheet = stored,
                             closureState = closureState,
@@ -1690,10 +1695,6 @@ private fun SaveRowV4(
                 onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
                 modifier = Modifier.weight(1f),
             )
-            CharacterD20RollButtonV4(
-                label = "Salvación ${abilityAbbreviationV4(ability)}",
-                modifier = draft.savingThrowTotal(ability),
-            )
             SaveProficiencyToggleV4(
                 proficient = save.proficient,
                 onToggle = {
@@ -1819,10 +1820,6 @@ private fun SkillRowV4(
             ),
             onAdjustmentChange = { onDraftChange(draft.withSkill(skill.copy(adjustment = it))) },
             modifier = Modifier.width(58.dp),
-        )
-        CharacterD20RollButtonV4(
-            label = skillLabelV4(skill.key),
-            modifier = draft.skillTotal(skill.key),
         )
         TrainingSelectorV4(
             training = skill.training,
@@ -1984,10 +1981,6 @@ private fun AbilityGroupV4(
                     ),
                     onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
                     modifier = Modifier.weight(1f),
-                )
-                CharacterD20RollButtonV4(
-                    label = "Salvación $abbreviation",
-                    modifier = draft.savingThrowTotal(ability),
                 )
                 SaveProficiencyToggleV4(
                     proficient = save.proficient,

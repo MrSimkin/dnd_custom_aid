@@ -13,6 +13,7 @@ internal enum class CharacterTabV4(val label: String) {
     OVERVIEW("General"),
     SKILLS("Habilidades"),
     COMBAT("Combate"),
+    DICE("Dados"),
     MANAGEMENT("Gestión"),
     EQUIPMENT("Equipo"),
     BACKGROUND("Trasfondo"),

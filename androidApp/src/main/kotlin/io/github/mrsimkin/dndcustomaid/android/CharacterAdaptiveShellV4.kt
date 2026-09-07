@@ -112,6 +112,7 @@ private fun characterTabRailMarkV4(tab: CharacterTabV4): String = when (tab) {
     CharacterTabV4.OVERVIEW -> "GE"
     CharacterTabV4.SKILLS -> "HA"
     CharacterTabV4.COMBAT -> "CO"
+    CharacterTabV4.DICE -> "TD"
     CharacterTabV4.MANAGEMENT -> "GT"
     CharacterTabV4.EQUIPMENT -> "EQ"
     CharacterTabV4.BACKGROUND -> "TR"
