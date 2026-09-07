@@ -1,0 +1,2 @@
+This marker triggers the guarded durable publisher for pre-QA UX repair pass 2.
+It is removed by the tested product commit.
