@@ -1,7 +1,7 @@
 from pathlib import Path
 import os
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
 
 project = ROOT / "docs/PROJECT_STATE.md"
 text = project.read_text(encoding="utf-8")
