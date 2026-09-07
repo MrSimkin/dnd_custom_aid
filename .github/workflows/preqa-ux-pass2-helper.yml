@@ -80,10 +80,11 @@ jobs:
           echo "PRODUCT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
           echo "PRODUCT_TREE=$(git rev-parse HEAD^{tree})" >> "$GITHUB_ENV"
 
-      - name: Restore checkpoint helper and write checkpoint
+      - name: Write owner-required pass checkpoint
         run: |
-          git show HEAD^:tools/preqa_checkpoint_pass2.py > "$RUNNER_TEMP/preqa_checkpoint_pass2.py"
-          python "$RUNNER_TEMP/preqa_checkpoint_pass2.py"
+          git show HEAD^:tools/preqa_checkpoint_pass2.py > tools/preqa_checkpoint_pass2_runtime.py
+          python tools/preqa_checkpoint_pass2_runtime.py
+          rm tools/preqa_checkpoint_pass2_runtime.py
 
       - name: Commit checkpoint
         run: |
