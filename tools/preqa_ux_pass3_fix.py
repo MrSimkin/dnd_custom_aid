@@ -26,5 +26,11 @@ if text.count(old_rail_anchor) != 1:
     raise RuntimeError(f"rail transform patch expected 1 match, found {text.count(old_rail_anchor)}")
 text = text.replace(old_rail_anchor, new_rail_anchor, 1)
 
+old_combat_arg = '                            combatEntries = combatDraft,\n'
+new_combat_arg = '                            combatEntries = combatEntries,\n'
+if text.count(old_combat_arg) != 1:
+    raise RuntimeError(f"dice combat argument patch expected 1 match, found {text.count(old_combat_arg)}")
+text = text.replace(old_combat_arg, new_combat_arg, 1)
+
 path.write_text(text, encoding="utf-8")
-print("Pass 03 transformer corrected for current navigation and rail implementation.")
+print("Pass 03 transformer corrected for navigation, rail, and in-scope combat entries.")
