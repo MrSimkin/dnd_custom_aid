@@ -1,0 +1,112 @@
+name: Pre-QA UX repair pass 5 helper
+
+on:
+  push:
+    branches:
+      - implementation/phase4-preqa-ux-repair
+
+permissions:
+  contents: write
+
+env:
+  REVIEW_VERSION: "0.4.0-preqa.5"
+  REVIEW_BUILD: "40500"
+  REVIEW_APK: "DND_Custom_Aid_0.4.0-preqa.5_Build_40500_debug.apk"
+  REVIEW_ARTIFACT: "DND-Custom-Aid-0.4.0-preqa.5-build-40500-debug"
+
+jobs:
+  repair:
+    if: github.event.head_commit.message == 'Execute durable pre-QA UX repair pass 5'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Apply fail-closed repair pass
+        run: python tools/preqa_ux_pass5.py
+
+      - name: Verify repair shape
+        run: |
+          git diff --check
+          grep -q 'versionCode = 40500' androidApp/build.gradle.kts
+          grep -q 'versionName = "0.4.0-preqa.5"' androidApp/build.gradle.kts
+          grep -q 'stickyHeader(key = "h2-${config.stateKey}-tools")' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterClassOptionModulesV4.kt
+          grep -q 'stickyHeader(key = "h1-artifice-tools")' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterArtificeModuleV4.kt
+          grep -q 'stickyHeader(key = "h1-forms-tools")' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterFormsModuleV4.kt
+          grep -q 'stickyHeader(key = "h3-companions-tools")' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCompanionsModuleV4.kt
+          if grep -q 'item(key = "spell-g2-tools")' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt; then
+            echo "Spell tools remain inside the level list" >&2
+            exit 1
+          fi
+          grep -q 'item(key = "spell-g2-order-help")' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt
+          grep -q '.width(340.dp)' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt
+          grep -q '.width(420.dp)' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCompanionsModuleV4.kt
+          grep -q 'start = appSpacingV4(if (wide) 14.dp else 5.dp)' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterNotesTabV4.kt
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36"
+          log-accepted-android-sdk-licenses: "false"
+
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "9.5.0"
+
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+
+      - name: Build and test Kotlin surfaces
+        run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Type-check backend
+        working-directory: backend
+        run: npm install --no-package-lock && npm run check
+
+      - name: Prepare identified review APK
+        run: |
+          cp androidApp/build/outputs/apk/debug/androidApp-debug.apk "$RUNNER_TEMP/$REVIEW_APK"
+          echo "APK_SHA256=$(sha256sum "$RUNNER_TEMP/$REVIEW_APK" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "APK_SIZE=$(stat -c%s "$RUNNER_TEMP/$REVIEW_APK")" >> "$GITHUB_ENV"
+
+      - name: Upload review APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: DND-Custom-Aid-0.4.0-preqa.5-build-40500-debug
+          path: ${{ runner.temp }}/DND_Custom_Aid_0.4.0-preqa.5_Build_40500_debug.apk
+          if-no-files-found: error
+
+      - name: Remove temporary repair infrastructure
+        run: |
+          cp tools/preqa_checkpoint_pass5.py "$RUNNER_TEMP/preqa_checkpoint_pass5.py"
+          rm -f tools/preqa_ux_pass5.py tools/preqa_checkpoint_pass5.py
+          rm -f .github/workflows/preqa-ux-pass5-helper.yml
+
+      - name: Commit tested product repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement pre-QA UX repair pass 5"
+          echo "PRODUCT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "PRODUCT_TREE=$(git rev-parse HEAD^{tree})" >> "$GITHUB_ENV"
+
+      - name: Write owner-required pass checkpoint
+        run: python "$RUNNER_TEMP/preqa_checkpoint_pass5.py"
+
+      - name: Commit checkpoint
+        run: |
+          git add docs/PROJECT_STATE.md docs/checkpoints
+          git commit -m "Checkpoint pre-QA UX repair pass 5"
+
+      - name: Push tested repair and checkpoint
+        run: git push origin HEAD:implementation/phase4-preqa-ux-repair
