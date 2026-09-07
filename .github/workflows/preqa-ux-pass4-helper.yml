@@ -23,6 +23,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Correct transform anchor for current spell-source implementation
+        run: python tools/preqa_ux_pass4_fix.py
+
       - name: Apply fail-closed repair pass
         run: python tools/preqa_ux_pass4.py
 
@@ -85,7 +88,7 @@ jobs:
       - name: Remove temporary repair infrastructure
         run: |
           cp tools/preqa_checkpoint_pass4.py "$RUNNER_TEMP/preqa_checkpoint_pass4.py"
-          rm -f tools/preqa_ux_pass4.py tools/preqa_checkpoint_pass4.py
+          rm -f tools/preqa_ux_pass4.py tools/preqa_ux_pass4_fix.py tools/preqa_checkpoint_pass4.py
           rm -f .github/workflows/preqa-ux-pass3-helper.yml .github/workflows/preqa-ux-pass4-helper.yml
 
       - name: Commit tested product repair
