@@ -1,31 +1,17 @@
-from pathlib import Path
-import os
-
-root = Path(__file__).resolve().parents[1]
-project = root / "docs/PROJECT_STATE.md"
-text = project.read_text(encoding="utf-8")
-old = "**Current execution position:** Owner explicitly reopened pre-QA implementation on 2026-09-07 after reviewing the M5/M6 candidate. Active work is iterative UX repair on `implementation/phase4-preqa-ux-repair`; formal M6 owner QA remains deferred until a new replacement review build is accepted for QA."
-new = "**Current execution position:** Owner explicitly reopened pre-QA implementation on 2026-09-07 after reviewing the M5/M6 candidate. Active work is iterative UX repair on `implementation/phase4-preqa-ux-repair`. Pass 03 produced review identity version `0.4.0-preqa.3` / build `40300`; formal M6 owner QA remains deferred until the owner says the replacement review build is ready."
-if text.count(old) != 1:
-    raise RuntimeError("PROJECT_STATE current-position anchor mismatch")
-project.write_text(text.replace(old, new, 1), encoding="utf-8")
-
-checkpoint = root / "docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_03.md"
-checkpoint.write_text(
-    f"""# Phase 4 pre-QA UX repair — Pass 03
+# Phase 4 pre-QA UX repair — Pass 03
 
 **Date:** 2026-09-07  
 **Status:** IMPLEMENTED + AUTOMATED GATE GREEN; owner visual/device review still pending  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
-**Tested product commit:** `{os.environ['PRODUCT_SHA']}`  
-**Tested product tree:** `{os.environ['PRODUCT_TREE']}`  
-**Helper workflow run:** `{os.environ['GITHUB_RUN_ID']}`  
-**Review version:** `{os.environ['REVIEW_VERSION']}`  
-**Review build:** `{os.environ['REVIEW_BUILD']}`  
-**Review APK filename:** `{os.environ['REVIEW_APK']}`  
-**Review artifact name:** `{os.environ['REVIEW_ARTIFACT']}`  
-**APK SHA-256:** `{os.environ['APK_SHA256']}`  
-**APK size:** `{os.environ['APK_SIZE']}` bytes
+**Tested product commit:** `68f74dad84ac2496431a3ae81c8e6e0864d5d772`  
+**Tested product tree:** `fb1181befc32dff9caebbfae2fdd3c38dcb76435`  
+**Helper workflow run:** `34167905159`  
+**Review version:** `0.4.0-preqa.3`  
+**Review build:** `40300`  
+**Review APK filename:** `DND_Custom_Aid_0.4.0-preqa.3_Build_40300_debug.apk`  
+**Review artifact name:** `DND-Custom-Aid-0.4.0-preqa.3-build-40300-debug`  
+**APK SHA-256:** `292349b9e43ac2e653393dbba5e6134ea79dd9c58c8d5ffe64b084288ac30b27`  
+**APK size:** `36161616` bytes
 
 ## Pass 03 completed
 
@@ -37,7 +23,7 @@ checkpoint.write_text(
 - the selectable roll catalogue scrolls below the fixed panel, so adding roll targets no longer consumes permanent horizontal space in the character rows;
 - the Combat operational card is now fixed outside the attacks/actions `LazyColumn`; attacks/actions scroll independently below it;
 - the global character identity/save header was already fixed by the adaptive shell and remains unchanged;
-- Android review identity advanced to version `{os.environ['REVIEW_VERSION']}` / build `{os.environ['REVIEW_BUILD']}`; About continues to read the real BuildConfig values.
+- Android review identity advanced to version `0.4.0-preqa.3` / build `40300`; About continues to read the real BuildConfig values.
 
 ## Still open — next repair pass
 
@@ -59,23 +45,3 @@ Automated green is technical evidence only. Phone/tablet visual acceptance has n
 ## Exact resume instruction
 
 Read `AGENTS.md`, then `docs/checkpoints/LATEST.md`, then this checkpoint. Continue with the per-tab fixed/sticky audit plus remaining spacing-scale and IME propagation. Do not return to historical M6 unless the owner explicitly requests comparison.
-""",
-    encoding="utf-8",
-)
-
-latest = root / "docs/checkpoints/LATEST.md"
-latest.write_text(
-    f"""# Latest project checkpoint
-
-**Updated:** 2026-09-07  
-**Active branch:** `implementation/phase4-preqa-ux-repair`  
-**Current review identity:** version `{os.environ['REVIEW_VERSION']}` / build `{os.environ['REVIEW_BUILD']}`  
-**Current pass:** Phase 4 pre-QA UX repair Pass 03  
-**Detailed checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_03.md`
-
-The owner explicitly reopened pre-QA implementation after the historical M6 pause. Formal M6 QA is deferred. Resume with the detailed checkpoint above and continue the per-tab fixed/sticky audit, remaining spacing-scale propagation and IME/window audit.
-""",
-    encoding="utf-8",
-)
-
-print("Pass 03 checkpoint written.")
