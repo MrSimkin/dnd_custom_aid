@@ -31,6 +31,10 @@ jobs:
               'def replace_all(path: str, old: str, new: str, minimum: int = 1) -> int:\n    text = read(path)\n',
               'def replace_all(path: str, old: str, new: str, minimum: int = 1) -> int:\n    old = old.replace("\\\\n", "\\n")\n    new = new.replace("\\\\n", "\\n")\n    text = read(path)\n',
           )
+          s = s.replace(
+              'replace_all(editor_path, "padding(horizontal = 4.dp, vertical = 6.dp)", "padding(horizontal = 3.dp, vertical = 4.dp)", minimum=3)',
+              'replace_all(editor_path, "padding(horizontal = 4.dp, vertical = 6.dp)", "padding(horizontal = 3.dp, vertical = 4.dp)", minimum=2)',
+          )
           p.write_text(s, encoding='utf-8')
           PY
 
