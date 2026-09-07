@@ -50,7 +50,7 @@ internal fun CompactMenuSurfaceV4(
         color = MaterialTheme.colorScheme.surface,
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 3.dp, vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(3.dp), vertical = appSpacingV4(4.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Text(text, style = MaterialTheme.typography.bodySmall, maxLines = 1)

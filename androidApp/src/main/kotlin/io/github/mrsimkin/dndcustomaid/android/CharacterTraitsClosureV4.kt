@@ -226,7 +226,7 @@ internal fun CharacterTraitsClosureTabV4(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         "Sin rasgos registrados. La app no crea rasgos automáticamente desde otras secciones.",
-                        modifier = Modifier.padding(10.dp),
+                        modifier = Modifier.padding(appSpacingV4(10.dp)),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -236,7 +236,7 @@ internal fun CharacterTraitsClosureTabV4(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         "No hay rasgos que coincidan con la búsqueda y filtros actuales.",
-                        modifier = Modifier.padding(10.dp),
+                        modifier = Modifier.padding(appSpacingV4(10.dp)),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -246,8 +246,8 @@ internal fun CharacterTraitsClosureTabV4(
                 item(key = "trait-group-${group.key}") {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 5.dp),
-                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                         ) {
                             if (grouping != CharacterTraitGrouping.NONE) {
                                 Text(
@@ -259,7 +259,7 @@ internal fun CharacterTraitsClosureTabV4(
                             group.traits.chunked(columns).forEach { rowTraits ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                                     verticalAlignment = Alignment.Top,
                                 ) {
                                     rowTraits.forEach { trait ->
@@ -439,11 +439,11 @@ private fun TraitGroupingControlsG1(
     grouping: CharacterTraitGrouping,
     onGroupingChange: (CharacterTraitGrouping) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
         Text("Agrupar", style = MaterialTheme.typography.labelSmall)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             CharacterTraitGrouping.entries.forEach { option ->
                 val label = when (option) {
@@ -511,12 +511,12 @@ private fun TraitCardG1(
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 5.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (canReorder) {
@@ -586,7 +586,7 @@ private fun TraitCardG1(
                 )
 
                 meter?.let { usage ->
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
                         LinearProgressIndicator(
                             progress = { usage.remainingFraction },
                             modifier = Modifier.fillMaxWidth(),
@@ -745,7 +745,7 @@ private fun TraitEditorDialogG1(
             minLines = 2,
             maxLines = 5,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
             OutlinedTextField(
                 value = maxUses,
                 onValueChange = onMaxUsesChange,

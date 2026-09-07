@@ -621,12 +621,12 @@ private fun EquipmentSectionF2(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("$title (${items.size})", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
@@ -653,12 +653,12 @@ private fun EquipmentSectionF2(
                     val columns = constrainedCardColumnsV4(
                         wide = wide,
                         phoneMax = if (special) 2 else 3,
-                        wideMax = if (special) 3 else 4,
+                        wideMax = if (special) 3 else 5,
                     )
                     items.chunked(columns).forEach { rowItems ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                             verticalAlignment = Alignment.Top,
                         ) {
                             rowItems.forEach { item ->
@@ -751,12 +751,12 @@ private fun EquipmentDenseItemF2(
             tonalElevation = if (special) 1.dp else 0.dp,
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (canReorder) {
@@ -797,12 +797,12 @@ private fun EquipmentDenseItemF2(
                             contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
                         )
                     }
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
                         Text(item.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (special) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                             ) {
                                 stateLabels.forEach { label ->
                                     CharacterSemanticBadgeV4(
@@ -900,7 +900,7 @@ private fun EquipmentEditorPanelF3(
     ) {
         if (!editorOpen) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(14.dp),
+                modifier = Modifier.fillMaxSize().padding(appSpacingV4(14.dp)),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -909,14 +909,14 @@ private fun EquipmentEditorPanelF3(
                     "Selecciona un objeto de la lista para editarlo sin perder tu posición, búsqueda ni filtros.",
                     style = MaterialTheme.typography.bodySmall,
                 )
-                Button(onClick = onBeginAdd, modifier = Modifier.padding(top = 10.dp)) {
+                Button(onClick = onBeginAdd, modifier = Modifier.padding(top = appSpacingV4(10.dp))) {
                     Text("+ Añadir objeto")
                 }
             }
             return@Card
         }
 
-        Column(modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp)) {
+        Column(modifier = Modifier.fillMaxSize().padding(horizontal = appSpacingV4(10.dp), vertical = appSpacingV4(8.dp))) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -930,7 +930,7 @@ private fun EquipmentEditorPanelF3(
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             ) {
                 OutlinedTextField(
                     value = name,
@@ -939,7 +939,7 @@ private fun EquipmentEditorPanelF3(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
                     OutlinedTextField(
                         value = quantity,
                         onValueChange = onQuantityChange,
@@ -1026,7 +1026,7 @@ private fun EquipmentEditorPanelF3(
                 )
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = appSpacingV4(6.dp)),
                 horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(onClick = onDismiss) { Text("Cancelar") }
@@ -1074,7 +1074,7 @@ private fun EquipmentEditorF2(
         saveEnabled = valid,
     ) {
         OutlinedTextField(value = name, onValueChange = onNameChange, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
             OutlinedTextField(
                 value = quantity,
                 onValueChange = onQuantityChange,
@@ -1205,8 +1205,8 @@ private fun CompactCurrenciesF2(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1223,7 +1223,7 @@ private fun CompactCurrenciesF2(
                 currencies.chunked(columns).forEach { rowCurrencies ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                         verticalAlignment = Alignment.Top,
                     ) {
                         rowCurrencies.forEach { currency ->
@@ -1262,8 +1262,8 @@ private fun CompactCurrencyCellF2(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(3.dp)),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {

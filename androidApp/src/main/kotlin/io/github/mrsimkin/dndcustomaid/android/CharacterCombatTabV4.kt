@@ -117,7 +117,7 @@ internal fun CharacterCombatTabV4(
             .fillMaxSize()
             .imePadding()
             .navigationBarsPadding(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         Box(
             modifier = Modifier
@@ -143,20 +143,20 @@ internal fun CharacterCombatTabV4(
                 .fillMaxWidth()
                 .weight(1f),
             contentPadding = PaddingValues(
-                start = if (wide) 10.dp else 5.dp,
-                end = if (wide) 10.dp else 5.dp,
+                start = appSpacingV4(if (wide) 10.dp else 5.dp),
+                end = appSpacingV4(if (wide) 10.dp else 5.dp),
                 top = 0.dp,
-                bottom = 88.dp,
+                bottom = appSpacingV4(88.dp),
             ),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 7.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                        .padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(6.dp)),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -176,7 +176,7 @@ internal fun CharacterCombatTabV4(
                         entries.chunked(columns).forEach { rowEntries ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                                 verticalAlignment = Alignment.Top,
                             ) {
                                 rowEntries.forEach { entry ->
@@ -294,13 +294,13 @@ private fun CombatQuickReferenceCardV4(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 7.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+                .padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(6.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Text("Referencia rápida", style = MaterialTheme.typography.titleSmall)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ReadOnlyReferenceV4("CA", armorClass, Modifier.weight(1f))
@@ -309,7 +309,7 @@ private fun CombatQuickReferenceCardV4(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ReadOnlyReferenceV4("PG actuales", currentHp, Modifier.weight(1f))
@@ -337,7 +337,7 @@ private fun ReadOnlyReferenceV4(label: String, value: String, modifier: Modifier
             color = MaterialTheme.colorScheme.surfaceVariant,
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+                modifier = Modifier.padding(horizontal = appSpacingV4(4.dp), vertical = appSpacingV4(6.dp)),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(value.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
@@ -386,8 +386,8 @@ private fun CombatEntryCardV4(
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+                modifier = Modifier.padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

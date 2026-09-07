@@ -92,14 +92,14 @@ internal fun CharacterSupercompactV4(
                 modifier = Modifier
                     .fillMaxSize()
                     .navigationBarsPadding(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(8.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             ) {
                 item(key = "supercompact-header") {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     ) {
                         StableBackIconButton(
                             onClick = onBack,
@@ -122,8 +122,8 @@ internal fun CharacterSupercompactV4(
                 item(key = "supercompact-identity") {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                            modifier = Modifier.padding(horizontal = appSpacingV4(10.dp), vertical = appSpacingV4(8.dp)),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                         ) {
                             Text(sheet.name, style = MaterialTheme.typography.titleMedium)
                             Text(
@@ -153,7 +153,7 @@ internal fun CharacterSupercompactV4(
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Text(
                                 "Hay cambios estructurales sin guardar. Guarda o descártalos para habilitar PG, recursos y espacios desde esta vista.",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                modifier = Modifier.padding(horizontal = appSpacingV4(10.dp), vertical = appSpacingV4(8.dp)),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
@@ -185,14 +185,14 @@ internal fun CharacterSupercompactV4(
                 item(key = "supercompact-favorites") {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                     ) {
                         Text("Favoritos", style = MaterialTheme.typography.titleSmall)
                         if (favorites.isEmpty()) {
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Text(
                                     "Aún no hay accesos rápidos. Marca ★ en ataques, rasgos, conjuros, recursos, formas, compañeros u otros elementos de la ficha.",
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 9.dp),
+                                    modifier = Modifier.padding(horizontal = appSpacingV4(10.dp), vertical = appSpacingV4(9.dp)),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
@@ -200,7 +200,7 @@ internal fun CharacterSupercompactV4(
                             favorites.chunked(favoriteColumns).forEach { rowFavorites ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                                     verticalAlignment = Alignment.Top,
                                 ) {
                                     rowFavorites.forEach { favorite ->
@@ -225,7 +225,7 @@ internal fun CharacterSupercompactV4(
                 item(key = "supercompact-abilities") {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                     ) {
                         Text("Características", style = MaterialTheme.typography.titleSmall)
                         val abilityTiles = CharacterAbility.entries.map { ability ->
@@ -259,8 +259,8 @@ private fun SupercompactHpControlsV4(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 9.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                .padding(horizontal = appSpacingV4(9.dp), vertical = appSpacingV4(6.dp)),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -295,7 +295,7 @@ private fun SupercompactSpellSlotsV4(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         Text("Espacios de conjuro", style = MaterialTheme.typography.titleSmall)
         sheet.spellSlots
@@ -307,8 +307,8 @@ private fun SupercompactSpellSlotsV4(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 9.dp, vertical = 5.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            .padding(horizontal = appSpacingV4(9.dp), vertical = appSpacingV4(5.dp)),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text("Nivel ${slot.level}", style = MaterialTheme.typography.labelMedium)
@@ -376,8 +376,8 @@ private fun SupercompactFavoriteCardV4(
 
     Card(modifier = modifier) {
         Column(
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+            modifier = Modifier.padding(horizontal = appSpacingV4(9.dp), vertical = appSpacingV4(7.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
         ) {
             Text(supercompactFavoriteKindLabelV4(favorite.kind), style = MaterialTheme.typography.labelSmall)
             Text(favorite.name, style = MaterialTheme.typography.titleSmall, maxLines = 2)
@@ -534,20 +534,20 @@ private fun SupercompactGridV4(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         tiles.chunked(columns.coerceAtLeast(1)).forEach { rowTiles ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 rowTiles.forEach { tile ->
                     Card(modifier = Modifier.weight(1f)) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 7.dp),
+                            modifier = Modifier.padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(7.dp)),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
                         ) {
                             Text(tile.label, style = MaterialTheme.typography.labelSmall, maxLines = 2)
                             Text(tile.value, style = MaterialTheme.typography.titleSmall, maxLines = 2)

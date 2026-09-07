@@ -290,12 +290,12 @@ private fun CharacterNoteCardV4(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 5.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                    .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (structuralEditingEnabled) {
