@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -38,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -45,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font as GoogleDownloadableFont
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.characterRulesFamilyBadgeLabel
@@ -62,6 +67,16 @@ internal enum class AppFontChoice(
     IBM_PLEX_SANS_CONDENSED("IBM Plex Sans Condensed", "IBM Plex Sans Condensed", "IBM"),
     MONA_SANS_CONDENSED("Mona Sans Condensed", sourceLabel = "GitHub / Degarism"),
     GEIST("Geist", sourceLabel = "Vercel"),
+    INTER("Inter", "Inter", "Rasmus Andersson"),
+    FIGTREE("Figtree", "Figtree", "Erik Kennedy"),
+    PUBLIC_SANS("Public Sans", "Public Sans", "U.S. Web Design System"),
+    BARLOW_SEMI_CONDENSED("Barlow Semi Condensed", "Barlow Semi Condensed", "Jeremy Tribby"),
+    SPACE_GROTESK("Space Grotesk", "Space Grotesk", "Florian Karsten"),
+    RECURSIVE("Recursive", "Recursive", "Arrow Type"),
+    CABIN_CONDENSED("Cabin Condensed", "Cabin Condensed", "Impallari Type"),
+    ENCODE_SANS_CONDENSED("Encode Sans Condensed", "Encode Sans Condensed", "Impallari Type"),
+    PT_SANS_NARROW("PT Sans Narrow", "PT Sans Narrow", "ParaType"),
+    LEAGUE_SPARTAN("League Spartan", "League Spartan", "The League of Moveable Type"),
 }
 
 internal enum class AppThemeChoice(val label: String) {
@@ -95,6 +110,7 @@ internal data class UiPreferences(
     val phoneLandscapeColumns: Int = 2,
     val tabletPortraitColumns: Int = 2,
     val tabletLandscapeColumns: Int = 3,
+    val spacingScalePercent: Int = 100,
 )
 
 internal val LocalUiPreferencesV4 = staticCompositionLocalOf { UiPreferences() }
@@ -121,10 +137,12 @@ internal class UiPreferencesStore(context: Context) {
         val skillLayout = preferences.getString(KEY_SKILL_LAYOUT, null)
             ?.let { runCatching { SkillLayoutChoice.valueOf(it) }.getOrNull() }
             ?: SkillLayoutChoice.BY_SKILLS
-        val phonePortraitColumns = preferences.getInt(KEY_PHONE_PORTRAIT_COLUMNS, 1).coerceIn(1, 3)
-        val phoneLandscapeColumns = preferences.getInt(KEY_PHONE_LANDSCAPE_COLUMNS, 2).coerceIn(1, 4)
-        val tabletPortraitColumns = preferences.getInt(KEY_TABLET_PORTRAIT_COLUMNS, 2).coerceIn(1, 4)
-        val tabletLandscapeColumns = preferences.getInt(KEY_TABLET_LANDSCAPE_COLUMNS, 3).coerceIn(1, 4)
+        val phonePortraitColumns = preferences.getInt(KEY_PHONE_PORTRAIT_COLUMNS, 1).coerceIn(1, 4)
+        val phoneLandscapeColumns = preferences.getInt(KEY_PHONE_LANDSCAPE_COLUMNS, 2).coerceIn(1, 5)
+        val tabletPortraitColumns = preferences.getInt(KEY_TABLET_PORTRAIT_COLUMNS, 2).coerceIn(1, 5)
+        val tabletLandscapeColumns = preferences.getInt(KEY_TABLET_LANDSCAPE_COLUMNS, 3).coerceIn(1, 6)
+        val spacingScalePercent = preferences.getInt(KEY_SPACING_SCALE, 100)
+            .takeIf { it in SPACING_SCALE_OPTIONS } ?: 100
 
         return UiPreferences(
             fontScalePercent = scale,
@@ -135,6 +153,7 @@ internal class UiPreferencesStore(context: Context) {
             phoneLandscapeColumns = phoneLandscapeColumns,
             tabletPortraitColumns = tabletPortraitColumns,
             tabletLandscapeColumns = tabletLandscapeColumns,
+            spacingScalePercent = spacingScalePercent,
         )
     }
 
@@ -148,6 +167,7 @@ internal class UiPreferencesStore(context: Context) {
             .putInt(KEY_PHONE_LANDSCAPE_COLUMNS, value.phoneLandscapeColumns)
             .putInt(KEY_TABLET_PORTRAIT_COLUMNS, value.tabletPortraitColumns)
             .putInt(KEY_TABLET_LANDSCAPE_COLUMNS, value.tabletLandscapeColumns)
+            .putInt(KEY_SPACING_SCALE, value.spacingScalePercent)
             .apply()
     }
 
@@ -161,10 +181,16 @@ internal class UiPreferencesStore(context: Context) {
         const val KEY_PHONE_LANDSCAPE_COLUMNS = "phone_landscape_columns"
         const val KEY_TABLET_PORTRAIT_COLUMNS = "tablet_portrait_columns"
         const val KEY_TABLET_LANDSCAPE_COLUMNS = "tablet_landscape_columns"
+        const val KEY_SPACING_SCALE = "spacing_scale_percent"
     }
 }
 
-internal val FONT_SCALE_OPTIONS = listOf(80, 90, 100, 115, 130)
+internal val FONT_SCALE_OPTIONS = listOf(70, 80, 90, 100, 110, 120, 130, 145, 160, 180, 200)
+internal val SPACING_SCALE_OPTIONS = listOf(100, 90, 80, 70, 60)
+
+@Composable
+internal fun appSpacingV4(value: Dp): Dp =
+    value * (LocalUiPreferencesV4.current.spacingScalePercent / 100f)
 
 private val googleFontProvider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
@@ -453,7 +479,13 @@ internal fun AppSettingsDialog(
     onPreferencesChange: (UiPreferences) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var showAbout by remember { mutableStateOf(false) }
+    val configuration = LocalConfiguration.current
+    val phoneLike = minOf(configuration.screenWidthDp, configuration.screenHeightDp) < 600
+    val veryLargePhoneText = phoneLike && preferences.fontScalePercent >= 145
+
     AlertDialog(
+        modifier = Modifier.imePadding().navigationBarsPadding(),
         onDismissRequest = onDismiss,
         title = { Text("Ajustes") },
         text = {
@@ -461,17 +493,48 @@ internal fun AppSettingsDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 620.dp),
-                contentPadding = PaddingValues(bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                contentPadding = PaddingValues(bottom = appSpacingV4(12.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(12.dp)),
             ) {
                 item {
-                    SettingSelector(
-                        label = "Tamaño de texto",
-                        value = "${preferences.fontScalePercent}%",
-                        options = FONT_SCALE_OPTIONS,
-                        optionLabel = { "$it%" },
-                        onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
+                        SettingSelector(
+                            label = "Tamaño de texto",
+                            value = "${preferences.fontScalePercent}%",
+                            options = FONT_SCALE_OPTIONS,
+                            optionLabel = { "$it%" },
+                            onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
+                        )
+                        if (veryLargePhoneText) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                shape = MaterialTheme.shapes.small,
+                            ) {
+                                Text(
+                                    "Advertencia para teléfono: ${preferences.fontScalePercent}% reduce mucho el área útil. La app conservará el valor y recurrirá a scroll cuando sea necesario.",
+                                    modifier = Modifier.padding(appSpacingV4(7.dp)),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                )
+                            }
+                        }
+                    }
+                }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
+                        SettingSelector(
+                            label = "Compactación adicional de espacios",
+                            value = "${preferences.spacingScalePercent}%",
+                            options = SPACING_SCALE_OPTIONS,
+                            optionLabel = { "$it%" },
+                            onSelect = { onPreferencesChange(preferences.copy(spacingScalePercent = it)) },
+                        )
+                        Text(
+                            "No reemplaza la vista Supercompacta. Reduce todavía más los márgenes, paddings y separaciones que controla la app; iconos y touch targets conservan su tamaño.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 item {
                     FontChoicePicker(
@@ -491,23 +554,63 @@ internal fun AppSettingsDialog(
                         onSelect = { onPreferencesChange(preferences.copy(themeChoice = it)) },
                     )
                 }
-                item {
-                    SettingsSheetPreview(preferences)
-                }
+                item { SettingsSheetPreview(preferences) }
                 item {
                     Text(
-                        "La organización de habilidades se configura desde la ficha. Las tipografías mostradas aquí ya están depuradas; futuras sustituciones sólo se añadirán después de una audición específica.",
+                        "La audición tipográfica mezcla candidatos de distintos orígenes; el distribuidor no decide la selección final.",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
         },
         confirmButton = {
-            Button(onClick = onDismiss) { Text("Listo") }
+            Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                TextButton(onClick = { showAbout = true }) { Text("Acerca de") }
+                Button(onClick = onDismiss) { Text("Listo") }
+            }
         },
     )
+
+    if (showAbout) {
+        AboutBuildDialogV4(onDismiss = { showAbout = false })
+    }
 }
 
+@Composable
+private fun AboutBuildDialogV4(onDismiss: () -> Unit) {
+    AlertDialog(
+        modifier = Modifier.imePadding().navigationBarsPadding(),
+        onDismissRequest = onDismiss,
+        title = { Text("Acerca de D&D Custom Aid") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp))) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = MaterialTheme.shapes.medium,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(appSpacingV4(12.dp)),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+                    ) {
+                        Text("VERSIÓN", style = MaterialTheme.typography.labelMedium)
+                        Text(BuildConfig.VERSION_NAME, style = MaterialTheme.typography.titleLarge)
+                        Text("BUILD", style = MaterialTheme.typography.labelMedium)
+                        Text(BuildConfig.VERSION_CODE.toString(), style = MaterialTheme.typography.titleLarge)
+                        Text("TIPO", style = MaterialTheme.typography.labelMedium)
+                        Text(BuildConfig.BUILD_TYPE.uppercase(), style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+                Text(
+                    "Revisión actual: versión ${BuildConfig.VERSION_NAME} · build ${BuildConfig.VERSION_CODE} · ${BuildConfig.BUILD_TYPE}.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(BuildConfig.APPLICATION_ID, style = MaterialTheme.typography.labelSmall)
+            }
+        },
+        confirmButton = { Button(onClick = onDismiss) { Text("Cerrar") } },
+    )
+}
 
 @Composable
 private fun LayoutColumnSettingsV4(
@@ -516,39 +619,39 @@ private fun LayoutColumnSettingsV4(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        Text("Columnas de tarjetas · audición", style = MaterialTheme.typography.labelLarge)
+        Text("Columnas de tarjetas · opt-in", style = MaterialTheme.typography.labelLarge)
         Text(
-            "Define el máximo deseado por formato/orientación. Cada pantalla conserva límites razonables cuando una tarjeta necesita más ancho.",
+            "Son máximos elegidos por el usuario. Puedes pedir más columnas que las predeterminadas en teléfono o tablet; cada superficie conserva sus propios límites de legibilidad cuando corresponda.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         SettingSelector(
             label = "Teléfono · vertical",
             value = preferences.phonePortraitColumns.toString(),
-            options = (1..3).toList(),
+            options = (1..4).toList(),
             optionLabel = Int::toString,
             onSelect = { onPreferencesChange(preferences.copy(phonePortraitColumns = it)) },
         )
         SettingSelector(
             label = "Teléfono · horizontal",
             value = preferences.phoneLandscapeColumns.toString(),
-            options = (1..4).toList(),
+            options = (1..5).toList(),
             optionLabel = Int::toString,
             onSelect = { onPreferencesChange(preferences.copy(phoneLandscapeColumns = it)) },
         )
         SettingSelector(
             label = "Tablet · vertical",
             value = preferences.tabletPortraitColumns.toString(),
-            options = (1..4).toList(),
+            options = (1..5).toList(),
             optionLabel = Int::toString,
             onSelect = { onPreferencesChange(preferences.copy(tabletPortraitColumns = it)) },
         )
         SettingSelector(
             label = "Tablet · horizontal",
             value = preferences.tabletLandscapeColumns.toString(),
-            options = (1..4).toList(),
+            options = (1..6).toList(),
             optionLabel = Int::toString,
             onSelect = { onPreferencesChange(preferences.copy(tabletLandscapeColumns = it)) },
         )
@@ -623,7 +726,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                 }
 
                 Text(
-                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}%",
+                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}%",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

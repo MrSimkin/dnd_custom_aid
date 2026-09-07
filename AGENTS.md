@@ -128,6 +128,12 @@ Meaningful steps include at minimum:
 
 A checkpoint may be a normal implementation/documentation commit or a focused checkpoint file. It must say what was completed, what remains, verification status and the exact next action.
 
+### Stable latest-checkpoint rule
+
+The owner requires a checkpoint update after **every implementation/review pass**, even when several passes happen inside one chat. `docs/checkpoints/LATEST.md` is the stable resume pointer and must be refreshed before a pass is declared complete. A new chat receiving only “retoma proyecto / revisa checkpoint” must be able to read `AGENTS.md`, then `docs/checkpoints/LATEST.md`, and recover the active branch, exact tested build identity, completed work, unresolved work and next action without depending on chat memory.
+
+Do not leave `LATEST.md` pointing at a historical frozen-QA state after the owner explicitly reopens implementation.
+
 ## 11. Technical quality, credentials and signing material
 
 Prefer maintainable, readable, testable code over clever code. Keep dependencies justified and proportional.

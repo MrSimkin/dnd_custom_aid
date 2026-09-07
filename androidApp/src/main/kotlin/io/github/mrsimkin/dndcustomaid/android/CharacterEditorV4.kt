@@ -72,6 +72,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
+import io.github.mrsimkin.dndcustomaid.shared.character.characterProperNameInput
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
@@ -951,7 +952,7 @@ private fun OverviewTabV4(
             top = 5.dp,
             bottom = 150.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         item {
             IdentityCardV4(draft, stored, onDraftChange)
@@ -993,7 +994,7 @@ private fun IdentityCardV4(
         Text("Nombre", style = MaterialTheme.typography.labelSmall)
         CompactTextFieldV4(
             value = draft.name,
-            onValueChange = { onDraftChange(draft.copy(name = it)) },
+            onValueChange = { onDraftChange(draft.copy(name = characterProperNameInput(it))) },
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
@@ -1545,7 +1546,7 @@ private fun SkillsTabV4(
             top = 5.dp,
             bottom = 170.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         item {
             SkillViewSelectorV4(skillLayoutChoice, onSkillLayoutChange)

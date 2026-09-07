@@ -145,7 +145,7 @@ private fun CharacterToolbarChipV4(
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
     ) {
         Box(
-            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(3.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Text(text, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -167,7 +167,7 @@ private fun CharacterCompactSearchV4(
         color = MaterialTheme.colorScheme.surface,
     ) {
         Box(
-            modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
             contentAlignment = Alignment.CenterStart,
         ) {
             if (value.isBlank()) {
@@ -202,12 +202,12 @@ internal fun CharacterCollectionToolbarV4(
         tonalElevation = 1.dp,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 CharacterCompactSearchV4(
@@ -220,7 +220,7 @@ internal fun CharacterCollectionToolbarV4(
             }
 
             if (order != null && onOrderChange != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
                     CharacterToolbarChipV4(
                         text = "Manual",
                         selected = order == CharacterPresentationOrder.MANUAL,
@@ -237,7 +237,7 @@ internal fun CharacterCollectionToolbarV4(
             if (filters.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                 ) {
                     filters.forEach { filter ->
                         val active = filter.key in query.activeFilterKeys

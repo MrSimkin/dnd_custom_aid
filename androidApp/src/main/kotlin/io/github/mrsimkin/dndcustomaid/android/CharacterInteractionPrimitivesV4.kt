@@ -52,7 +52,7 @@ internal fun CharacterImeSafeEditorDialog(
                 .fillMaxSize()
                 .imePadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .padding(horizontal = appSpacingV4(10.dp), vertical = appSpacingV4(8.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Box(
@@ -68,7 +68,7 @@ internal fun CharacterImeSafeEditorDialog(
             ) {
                 Column(
                     modifier = Modifier.padding(top = 12.dp, start = 12.dp, end = 12.dp, bottom = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                 ) {
                     Text(title, style = MaterialTheme.typography.titleMedium)
                     supportingText?.takeIf { it.isNotBlank() }?.let {
@@ -79,7 +79,7 @@ internal fun CharacterImeSafeEditorDialog(
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                         ) { content() }
                     }
                     Row(
@@ -129,8 +129,8 @@ internal fun CharacterConfirmationDialog(
             shadowElevation = 6.dp,
         ) {
             Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(appSpacingV4(12.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
             ) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(message, style = MaterialTheme.typography.bodyMedium)
@@ -177,8 +177,8 @@ internal fun CharacterUsefulEmptyState(
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.padding(appSpacingV4(10.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
