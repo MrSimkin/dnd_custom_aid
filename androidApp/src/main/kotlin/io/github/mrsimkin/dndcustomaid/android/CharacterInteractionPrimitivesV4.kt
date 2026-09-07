@@ -29,14 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
-/**
- * Reusable character editor dialog for Phase 4 closure.
- *
- * The dialog owns IME/navigation insets. Only the editable body scrolls; the action row remains
- * reachable above the keyboard. Back dismissal clears keyboard focus instead of discarding the
- * editor draft. Tapping the modal background clears focus; taps inside the editor surface do not.
- * Only the explicit Cancel action leaves the editor without saving.
- */
 @Composable
 internal fun CharacterImeSafeEditorDialog(
     title: String,
@@ -60,66 +52,43 @@ internal fun CharacterImeSafeEditorDialog(
                 .fillMaxSize()
                 .imePadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 10.dp, vertical = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = { focusManager.clearFocus() })
-                    },
+                modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+                    detectTapGestures(onTap = { focusManager.clearFocus() })
+                },
             )
             Surface(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 680.dp)
-                    .heightIn(max = maxHeight),
-                shape = MaterialTheme.shapes.extraLarge,
-                tonalElevation = 6.dp,
-                shadowElevation = 8.dp,
+                modifier = modifier.fillMaxWidth().widthIn(max = 640.dp).heightIn(max = maxHeight),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 5.dp,
+                shadowElevation = 6.dp,
             ) {
                 Column(
-                    modifier = Modifier.padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(top = 12.dp, start = 12.dp, end = 12.dp, bottom = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(title, style = MaterialTheme.typography.headlineSmall)
+                    Text(title, style = MaterialTheme.typography.titleMedium)
                     supportingText?.takeIf { it.isNotBlank() }?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-
                     Box(
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState()),
+                        modifier = Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()),
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            content()
-                        }
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) { content() }
                     }
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        TextButton(onClick = onCancel) {
-                            Text(cancelLabel)
-                        }
-                        Button(
-                            onClick = onSave,
-                            enabled = saveEnabled,
-                        ) {
-                            Text(saveLabel)
-                        }
+                        TextButton(onClick = onCancel) { Text(cancelLabel) }
+                        Button(onClick = onSave, enabled = saveEnabled) { Text(saveLabel) }
                     }
                 }
             }
@@ -154,30 +123,23 @@ internal fun CharacterConfirmationDialog(
 ) {
     Dialog(onDismissRequest = onDismissRequest) {
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 520.dp)
-                .navigationBarsPadding(),
-            shape = MaterialTheme.shapes.extraLarge,
-            tonalElevation = 6.dp,
-            shadowElevation = 8.dp,
+            modifier = Modifier.fillMaxWidth().widthIn(max = 500.dp).navigationBarsPadding(),
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = 5.dp,
+            shadowElevation = 6.dp,
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text(title, style = MaterialTheme.typography.headlineSmall)
-                Text(message)
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(message, style = MaterialTheme.typography.bodyMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
                 ) {
                     TextButton(onClick = onDismissRequest) { Text(cancelLabel) }
-                    if (destructive) {
-                        Button(onClick = onConfirm) { Text(confirmLabel) }
-                    } else {
-                        Button(onClick = onConfirm) { Text(confirmLabel) }
-                    }
+                    Button(onClick = onConfirm) { Text(confirmLabel) }
                 }
             }
         }
@@ -212,21 +174,15 @@ internal fun CharacterUsefulEmptyState(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.medium,
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (onAdd != null) {
-                TextButton(onClick = onAdd) { Text(addLabel) }
-            }
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (onAdd != null) TextButton(onClick = onAdd) { Text(addLabel) }
         }
     }
 }

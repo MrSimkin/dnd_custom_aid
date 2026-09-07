@@ -21,7 +21,7 @@ internal fun StableBackIconButton(
     contentDescription: String = "Volver",
 ) {
     val color = MaterialTheme.colorScheme.onSurface
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
         Canvas(
             modifier = Modifier
                 .size(24.dp)
@@ -60,7 +60,7 @@ internal fun StableSettingsIconButton(
     contentDescription: String = "Ajustes",
 ) {
     val color = MaterialTheme.colorScheme.onSurface
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
         Canvas(
             modifier = Modifier
                 .size(24.dp)
@@ -114,7 +114,7 @@ internal fun StableEditIconButton(
     contentDescription: String = "Editar",
 ) {
     val color = MaterialTheme.colorScheme.onSurface
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
         Canvas(
             modifier = Modifier
                 .size(24.dp)
@@ -139,13 +139,43 @@ internal fun StableEditIconButton(
     }
 }
 
+
+@Composable
+internal fun StableDuplicateIconButton(
+    onClick: () -> Unit,
+    contentDescription: String = "Duplicar",
+) {
+    val color = MaterialTheme.colorScheme.onSurface
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+        Canvas(
+            modifier = Modifier
+                .size(20.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val stroke = 1.8.dp.toPx()
+            drawRect(
+                color = color,
+                topLeft = Offset(size.width * 0.18f, size.height * 0.18f),
+                size = androidx.compose.ui.geometry.Size(size.width * 0.52f, size.height * 0.52f),
+                style = Stroke(width = stroke),
+            )
+            drawRect(
+                color = color,
+                topLeft = Offset(size.width * 0.32f, size.height * 0.32f),
+                size = androidx.compose.ui.geometry.Size(size.width * 0.52f, size.height * 0.52f),
+                style = Stroke(width = stroke),
+            )
+        }
+    }
+}
+
 @Composable
 internal fun StableRemoveIconButton(
     onClick: () -> Unit,
     contentDescription: String = "Eliminar",
 ) {
     val color = MaterialTheme.colorScheme.onSurface
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
         Canvas(
             modifier = Modifier
                 .size(24.dp)
@@ -176,7 +206,7 @@ internal fun StableDropdownIconButton(
     contentDescription: String = "Abrir opciones",
 ) {
     val color = MaterialTheme.colorScheme.onSurface
-    IconButton(onClick = onClick) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
         Canvas(
             modifier = Modifier
                 .size(24.dp)
@@ -239,7 +269,7 @@ internal fun StableDragHandle(
     val activeColor = MaterialTheme.colorScheme.secondaryContainer
     Canvas(
         modifier = modifier
-            .size(48.dp)
+            .size(36.dp)
             .semantics { this.contentDescription = contentDescription },
     ) {
         if (active) {

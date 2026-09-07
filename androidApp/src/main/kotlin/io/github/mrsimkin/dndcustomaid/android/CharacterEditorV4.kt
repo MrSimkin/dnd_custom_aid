@@ -902,43 +902,32 @@ private fun EditorHeaderV4(
     onSave: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        StableBackIconButton(onClick = onBack, contentDescription = "Volver a personajes")
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                characterName.ifBlank { "Ficha de personaje" },
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-            )
-            Text(
-                when {
-                    hasUnsavedChanges -> "Cambios sin guardar"
-                    savedMessage != null -> savedMessage
-                    else -> "Guardado: ${formatSavedAtV4(stored.updatedAtEpochSeconds)}"
-                },
-                style = if (hasUnsavedChanges) {
-                    MaterialTheme.typography.labelMedium
-                } else {
-                    MaterialTheme.typography.labelSmall
-                },
-                maxLines = 1,
-            )
-            if (tableModeEnabled) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 3.dp, vertical = 1.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            StableBackIconButton(onClick = onBack, contentDescription = "Volver a personajes")
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Modo Mesa · edición estructural bloqueada",
-                    style = MaterialTheme.typography.labelSmall,
+                    characterName.ifBlank { "Ficha de personaje" },
+                    style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                 )
+                when {
+                    hasUnsavedChanges -> Text("Cambios sin guardar", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                    tableModeEnabled -> Text("Modo Mesa", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                    savedMessage != null -> Text(savedMessage, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                }
             }
+            StableSettingsIconButton(onClick = onOpenSettings)
+            TextButton(
+                onClick = onSave,
+                enabled = savable && !tableModeEnabled,
+                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 2.dp),
+            ) { Text("Guardar", style = MaterialTheme.typography.labelMedium) }
         }
-        StableSettingsIconButton(onClick = onOpenSettings)
-        Button(onClick = onSave, enabled = savable && !tableModeEnabled) { Text("Guardar") }
     }
 }
 
@@ -968,13 +957,6 @@ private fun OverviewTabV4(
             IdentityCardV4(draft, stored, onDraftChange)
         }
         item {
-            CharacterGeneralClosureCardsV4(
-                state = closureState,
-                onStateChange = onClosureStateChange,
-                wide = wide,
-            )
-        }
-        item {
             CharacterClassIdentityCardV4(
                 classes = draft.classes,
                 onClassesChange = { onDraftChange(draft.copy(classes = it)) },
@@ -991,6 +973,13 @@ private fun OverviewTabV4(
                 QuickMagicCardV4(draft, onDraftChange)
             }
         }
+        item {
+            CharacterGeneralClosureCardsV4(
+                state = closureState,
+                onStateChange = onClosureStateChange,
+                wide = wide,
+            )
+        }
     }
 }
 
@@ -1001,12 +990,11 @@ private fun IdentityCardV4(
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
 ) {
     SectionCardV4("Personaje") {
-        OutlinedTextField(
+        Text("Nombre", style = MaterialTheme.typography.labelSmall)
+        CompactTextFieldV4(
             value = draft.name,
             onValueChange = { onDraftChange(draft.copy(name = it)) },
-            label = { Text("Nombre") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
         )
         Text(
             "Nivel total ${draft.totalLevel()} · Último guardado ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
@@ -1161,14 +1149,14 @@ private fun SpeedFieldV4(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 38.dp)
+                .heightIn(min = 34.dp)
                 .clickable { dialogOpen = true },
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             color = MaterialTheme.colorScheme.surface,
         ) {
             Box(
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+                modifier = Modifier.padding(horizontal = 3.dp, vertical = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(formatSpeedV4(value), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
@@ -1479,7 +1467,7 @@ private fun DerivedTotalControlV4(
 
     Surface(
         modifier = modifier
-            .heightIn(min = 38.dp)
+            .heightIn(min = 34.dp)
             .clickable { dialogOpen = true },
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -1853,7 +1841,7 @@ private fun TrainingSelectorV4(
             onClick = { expanded = true },
             modifier = Modifier
                 .width(44.dp)
-                .heightIn(min = 38.dp),
+                .heightIn(min = 34.dp),
             contentPadding = PaddingValues(0.dp),
         ) {
             TrainingGlyphV4(training)
@@ -2028,8 +2016,8 @@ private fun SectionCardV4(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 5.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+                .padding(horizontal = 4.dp, vertical = 3.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             content()
@@ -2068,13 +2056,13 @@ private fun CompactIntInputV4(
     placeholder: String = "",
 ) {
     Surface(
-        modifier = modifier.heightIn(min = 38.dp),
+        modifier = modifier.heightIn(min = 34.dp),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         color = MaterialTheme.colorScheme.surface,
     ) {
         Box(
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 3.dp, vertical = 4.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (value.isBlank() && placeholder.isNotBlank()) {
@@ -2110,13 +2098,13 @@ private fun CompactTextFieldV4(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.heightIn(min = 38.dp),
+        modifier = modifier.heightIn(min = 34.dp),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         color = MaterialTheme.colorScheme.surface,
     ) {
         Box(
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
             contentAlignment = Alignment.CenterStart,
         ) {
             BasicTextField(

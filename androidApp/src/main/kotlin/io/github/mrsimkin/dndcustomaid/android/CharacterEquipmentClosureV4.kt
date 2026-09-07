@@ -616,7 +616,7 @@ private fun EquipmentSectionF2(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 5.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(
@@ -645,11 +645,11 @@ private fun EquipmentSectionF2(
                 if (items.isEmpty()) {
                     Text("Sin elementos visibles.", style = MaterialTheme.typography.bodySmall)
                 } else {
-                    val columns = when {
-                        !wide -> 1
-                        special -> 2
-                        else -> 3
-                    }
+                    val columns = constrainedCardColumnsV4(
+                        wide = wide,
+                        phoneMax = if (special) 2 else 3,
+                        wideMax = if (special) 3 else 4,
+                    )
                     items.chunked(columns).forEach { rowItems ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -709,7 +709,7 @@ private fun EquipmentDenseItemF2(
 ) {
     var accumulatedDrag by remember(item.id) { mutableStateOf(0f) }
     var dragging by remember(item.id) { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 40.dp.toPx() }
+    val reorderStepPx = with(LocalDensity.current) { (if (special) 72.dp else 62.dp).toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -794,16 +794,25 @@ private fun EquipmentDenseItemF2(
                     }
                     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(item.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Row(
-                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            stateLabels.forEach { label ->
-                                CharacterSemanticBadgeV4(
-                                    label = label,
-                                    kind = CharacterSemanticBadgeKindV4.STATE,
-                                )
+                        if (special) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            ) {
+                                stateLabels.forEach { label ->
+                                    CharacterSemanticBadgeV4(
+                                        label = label,
+                                        kind = CharacterSemanticBadgeKindV4.STATE,
+                                    )
+                                }
                             }
+                        } else {
+                            Text(
+                                stateLabels.joinToString(" · "),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                         if (meta.isNotEmpty()) {
                             Text(
@@ -836,10 +845,7 @@ private fun EquipmentDenseItemF2(
                         ) { Text("Usar −${usage.quickUseAmount}") }
                     }
                     if (structuralEditingEnabled) {
-                        TextButton(
-                            onClick = onDuplicate,
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                        ) { Text("Duplicar") }
+                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${item.name}")
                         StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${item.name}")
                     }
                 }
@@ -884,7 +890,7 @@ private fun EquipmentEditorPanelF3(
 ) {
     Card(
         modifier = Modifier
-            .widthIn(min = 320.dp, max = 440.dp)
+            .widthIn(min = 280.dp, max = 360.dp)
             .fillMaxHeight(),
     ) {
         if (!editorOpen) {
@@ -1194,7 +1200,7 @@ private fun CompactCurrenciesF2(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 5.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(

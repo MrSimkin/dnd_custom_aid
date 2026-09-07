@@ -90,22 +90,19 @@ private fun CharacterMediaCardV4(
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text("Retrato y token", style = MaterialTheme.typography.titleSmall)
-            Text(
-                "Referencias locales opcionales. La imagen permanece en tu dispositivo; la ficha guarda solo el permiso/URI de lectura.",
-                style = MaterialTheme.typography.labelSmall,
-            )
             if (wide) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     CharacterImageReferenceV4(
                         title = "Retrato",
                         uriRef = state.portraitRef,
                         onChoose = { portraitLauncher.launch(arrayOf("image/*")) },
                         onClear = { onStateChange(state.copy(portraitRef = null)) },
                         round = false,
+                        imageSize = 56.dp,
                         modifier = Modifier.weight(1f),
                     )
                     CharacterImageReferenceV4(
@@ -114,6 +111,7 @@ private fun CharacterMediaCardV4(
                         onChoose = { tokenLauncher.launch(arrayOf("image/*")) },
                         onClear = { onStateChange(state.copy(tokenRef = null)) },
                         round = true,
+                        imageSize = 56.dp,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -124,6 +122,7 @@ private fun CharacterMediaCardV4(
                     onChoose = { portraitLauncher.launch(arrayOf("image/*")) },
                     onClear = { onStateChange(state.copy(portraitRef = null)) },
                     round = false,
+                    imageSize = 44.dp,
                 )
                 CharacterImageReferenceV4(
                     title = "Token",
@@ -131,6 +130,7 @@ private fun CharacterMediaCardV4(
                     onChoose = { tokenLauncher.launch(arrayOf("image/*")) },
                     onClear = { onStateChange(state.copy(tokenRef = null)) },
                     round = true,
+                    imageSize = 44.dp,
                 )
             }
         }
@@ -144,6 +144,7 @@ private fun CharacterImageReferenceV4(
     onChoose: () -> Unit,
     onClear: () -> Unit,
     round: Boolean,
+    imageSize: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -162,12 +163,12 @@ private fun CharacterImageReferenceV4(
         tonalElevation = 1.dp,
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(
-                modifier = Modifier.size(86.dp).clip(if (round) CircleShape else MaterialTheme.shapes.small),
+                modifier = Modifier.size(imageSize).clip(if (round) CircleShape else MaterialTheme.shapes.small),
                 shape = if (round) CircleShape else MaterialTheme.shapes.small,
                 color = MaterialTheme.colorScheme.surfaceVariant,
             ) {
@@ -175,25 +176,22 @@ private fun CharacterImageReferenceV4(
                     Image(
                         bitmap = bitmap,
                         contentDescription = title,
-                        modifier = Modifier.size(86.dp),
+                        modifier = Modifier.size(imageSize),
                         contentScale = ContentScale.Crop,
                     )
                 } else {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(if (uriRef == null) "Sin imagen" else "No disponible", style = MaterialTheme.typography.labelSmall)
+                        Text("—", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(title, style = MaterialTheme.typography.labelLarge)
-                Text(
-                    if (uriRef == null) "No configurado" else "Referencia local guardada",
-                    style = MaterialTheme.typography.labelSmall,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TextButton(onClick = onChoose) { Text(if (uriRef == null) "Elegir" else "Cambiar") }
-                    if (uriRef != null) TextButton(onClick = onClear) { Text("Quitar") }
-                }
+            Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+            TextButton(
+                onClick = onChoose,
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 5.dp, vertical = 1.dp),
+            ) { Text(if (uriRef == null) "Elegir" else "Cambiar", style = MaterialTheme.typography.labelSmall) }
+            if (uriRef != null) {
+                StableRemoveIconButton(onClick = onClear, contentDescription = "Quitar $title")
             }
         }
     }
@@ -221,10 +219,6 @@ private fun CharacterDefensesSensesMovementCardV4(
             verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             Text("Defensas, sentidos y movimiento especial", style = MaterialTheme.typography.titleSmall)
-            Text(
-                "Referencia estructurada para la ficha y para futuras vistas rápidas del DM. No aplica reglas automáticamente.",
-                style = MaterialTheme.typography.labelSmall,
-            )
             if (wide) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -380,7 +374,7 @@ private fun <T> GeneralReferenceGroupV4(
     modifier: Modifier = Modifier,
 ) {
     Surface(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.small, tonalElevation = 1.dp) {
-        Column(modifier = Modifier.fillMaxWidth().padding(6.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.labelLarge)
             if (entries.isEmpty()) Text("Sin registros", style = MaterialTheme.typography.labelSmall)
             entries.forEach { entry ->
@@ -395,7 +389,7 @@ private fun <T> GeneralReferenceGroupV4(
                         Text(label(entry), style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         detail(entry)?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1) }
                     }
-                    TextButton(onClick = { onDelete(entry) }) { Text("Eliminar") }
+                    StableRemoveIconButton(onClick = { onDelete(entry) }, contentDescription = "Eliminar ${label(entry)}")
                 }
             }
             TextButton(onClick = onAdd) { Text("+ $addLabel") }

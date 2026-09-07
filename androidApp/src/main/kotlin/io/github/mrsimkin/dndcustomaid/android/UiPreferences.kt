@@ -30,6 +30,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font as GoogleDownloadableFont
@@ -47,12 +49,19 @@ import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.characterRulesFamilyBadgeLabel
 
-internal enum class AppFontChoice(val label: String, val googleFontName: String) {
-    MANROPE("Manrope", "Manrope"),
-    SORA("Sora", "Sora"),
-    SOURCE_SANS_3("Source Sans 3", "Source Sans 3"),
-    ROBOTO_CONDENSED("Roboto Condensed", "Roboto Condensed"),
-    ARCHIVO_NARROW("Archivo Narrow", "Archivo Narrow"),
+internal enum class AppFontChoice(
+    val label: String,
+    val googleFontName: String? = null,
+    val sourceLabel: String,
+) {
+    MANROPE("Manrope", "Manrope", "Google Fonts"),
+    SORA("Sora", "Sora", "Google Fonts"),
+    SOURCE_SANS_3("Source Sans 3", "Source Sans 3", "Adobe / Google Fonts"),
+    ROBOTO_CONDENSED("Roboto Condensed", "Roboto Condensed", "Google"),
+    ARCHIVO_NARROW("Archivo Narrow", "Archivo Narrow", "Omnibus-Type / Google Fonts"),
+    IBM_PLEX_SANS_CONDENSED("IBM Plex Sans Condensed", "IBM Plex Sans Condensed", "IBM"),
+    MONA_SANS_CONDENSED("Mona Sans Condensed", sourceLabel = "GitHub / Degarism"),
+    GEIST("Geist", sourceLabel = "Vercel"),
 }
 
 internal enum class AppThemeChoice(val label: String) {
@@ -82,7 +91,13 @@ internal data class UiPreferences(
     val fontChoice: AppFontChoice = AppFontChoice.MANROPE,
     val themeChoice: AppThemeChoice = AppThemeChoice.SYSTEM,
     val skillLayoutChoice: SkillLayoutChoice = SkillLayoutChoice.BY_SKILLS,
+    val phonePortraitColumns: Int = 1,
+    val phoneLandscapeColumns: Int = 2,
+    val tabletPortraitColumns: Int = 2,
+    val tabletLandscapeColumns: Int = 3,
 )
+
+internal val LocalUiPreferencesV4 = staticCompositionLocalOf { UiPreferences() }
 
 internal class UiPreferencesStore(context: Context) {
     private val preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -106,12 +121,20 @@ internal class UiPreferencesStore(context: Context) {
         val skillLayout = preferences.getString(KEY_SKILL_LAYOUT, null)
             ?.let { runCatching { SkillLayoutChoice.valueOf(it) }.getOrNull() }
             ?: SkillLayoutChoice.BY_SKILLS
+        val phonePortraitColumns = preferences.getInt(KEY_PHONE_PORTRAIT_COLUMNS, 1).coerceIn(1, 3)
+        val phoneLandscapeColumns = preferences.getInt(KEY_PHONE_LANDSCAPE_COLUMNS, 2).coerceIn(1, 4)
+        val tabletPortraitColumns = preferences.getInt(KEY_TABLET_PORTRAIT_COLUMNS, 2).coerceIn(1, 4)
+        val tabletLandscapeColumns = preferences.getInt(KEY_TABLET_LANDSCAPE_COLUMNS, 3).coerceIn(1, 4)
 
         return UiPreferences(
             fontScalePercent = scale,
             fontChoice = font,
             themeChoice = theme,
             skillLayoutChoice = skillLayout,
+            phonePortraitColumns = phonePortraitColumns,
+            phoneLandscapeColumns = phoneLandscapeColumns,
+            tabletPortraitColumns = tabletPortraitColumns,
+            tabletLandscapeColumns = tabletLandscapeColumns,
         )
     }
 
@@ -121,6 +144,10 @@ internal class UiPreferencesStore(context: Context) {
             .putString(KEY_FONT, value.fontChoice.name)
             .putString(KEY_THEME, value.themeChoice.name)
             .putString(KEY_SKILL_LAYOUT, value.skillLayoutChoice.name)
+            .putInt(KEY_PHONE_PORTRAIT_COLUMNS, value.phonePortraitColumns)
+            .putInt(KEY_PHONE_LANDSCAPE_COLUMNS, value.phoneLandscapeColumns)
+            .putInt(KEY_TABLET_PORTRAIT_COLUMNS, value.tabletPortraitColumns)
+            .putInt(KEY_TABLET_LANDSCAPE_COLUMNS, value.tabletLandscapeColumns)
             .apply()
     }
 
@@ -130,6 +157,10 @@ internal class UiPreferencesStore(context: Context) {
         const val KEY_FONT = "font_family"
         const val KEY_THEME = "theme"
         const val KEY_SKILL_LAYOUT = "skill_layout"
+        const val KEY_PHONE_PORTRAIT_COLUMNS = "phone_portrait_columns"
+        const val KEY_PHONE_LANDSCAPE_COLUMNS = "phone_landscape_columns"
+        const val KEY_TABLET_PORTRAIT_COLUMNS = "tablet_portrait_columns"
+        const val KEY_TABLET_LANDSCAPE_COLUMNS = "tablet_landscape_columns"
     }
 }
 
@@ -164,11 +195,35 @@ private fun downloadableFontFamily(name: String): FontFamily = FontFamily(
     ),
 )
 
-private val fontFamilies: Map<AppFontChoice, FontFamily> by lazy {
-    AppFontChoice.entries.associateWith { downloadableFontFamily(it.googleFontName) }
+private val downloadableFontFamilies: Map<AppFontChoice, FontFamily> by lazy {
+    AppFontChoice.entries.mapNotNull { choice ->
+        choice.googleFontName?.let { choice to downloadableFontFamily(it) }
+    }.toMap()
 }
 
-private fun AppFontChoice.family(): FontFamily = requireNotNull(fontFamilies[this])
+private val monaSansCondensedFamily by lazy {
+    FontFamily(
+        Font(R.font.mona_sans_condensed_vf, FontWeight.Normal),
+        Font(R.font.mona_sans_condensed_vf, FontWeight.Medium),
+        Font(R.font.mona_sans_condensed_vf, FontWeight.SemiBold),
+        Font(R.font.mona_sans_condensed_vf, FontWeight.Bold),
+    )
+}
+
+private val geistFamily by lazy {
+    FontFamily(
+        Font(R.font.geist_vf, FontWeight.Normal),
+        Font(R.font.geist_vf, FontWeight.Medium),
+        Font(R.font.geist_vf, FontWeight.SemiBold),
+        Font(R.font.geist_vf, FontWeight.Bold),
+    )
+}
+
+private fun AppFontChoice.family(): FontFamily = when (this) {
+    AppFontChoice.MONA_SANS_CONDENSED -> monaSansCondensedFamily
+    AppFontChoice.GEIST -> geistFamily
+    else -> requireNotNull(downloadableFontFamilies[this])
+}
 
 @Composable
 internal fun DndCustomAidTheme(
@@ -184,7 +239,10 @@ internal fun DndCustomAidTheme(
     val typography = remember(family) { typographyWithFamily(family) }
     val colorScheme = resolveColorScheme(preferences.themeChoice)
 
-    CompositionLocalProvider(LocalDensity provides adjustedDensity) {
+    CompositionLocalProvider(
+        LocalDensity provides adjustedDensity,
+        LocalUiPreferencesV4 provides preferences,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = typography,
@@ -422,6 +480,12 @@ internal fun AppSettingsDialog(
                     )
                 }
                 item {
+                    LayoutColumnSettingsV4(
+                        preferences = preferences,
+                        onPreferencesChange = onPreferencesChange,
+                    )
+                }
+                item {
                     ThemeChoicePicker(
                         selected = preferences.themeChoice,
                         onSelect = { onPreferencesChange(preferences.copy(themeChoice = it)) },
@@ -442,6 +506,53 @@ internal fun AppSettingsDialog(
             Button(onClick = onDismiss) { Text("Listo") }
         },
     )
+}
+
+
+@Composable
+private fun LayoutColumnSettingsV4(
+    preferences: UiPreferences,
+    onPreferencesChange: (UiPreferences) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text("Columnas de tarjetas · audición", style = MaterialTheme.typography.labelLarge)
+        Text(
+            "Define el máximo deseado por formato/orientación. Cada pantalla conserva límites razonables cuando una tarjeta necesita más ancho.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SettingSelector(
+            label = "Teléfono · vertical",
+            value = preferences.phonePortraitColumns.toString(),
+            options = (1..3).toList(),
+            optionLabel = Int::toString,
+            onSelect = { onPreferencesChange(preferences.copy(phonePortraitColumns = it)) },
+        )
+        SettingSelector(
+            label = "Teléfono · horizontal",
+            value = preferences.phoneLandscapeColumns.toString(),
+            options = (1..4).toList(),
+            optionLabel = Int::toString,
+            onSelect = { onPreferencesChange(preferences.copy(phoneLandscapeColumns = it)) },
+        )
+        SettingSelector(
+            label = "Tablet · vertical",
+            value = preferences.tabletPortraitColumns.toString(),
+            options = (1..4).toList(),
+            optionLabel = Int::toString,
+            onSelect = { onPreferencesChange(preferences.copy(tabletPortraitColumns = it)) },
+        )
+        SettingSelector(
+            label = "Tablet · horizontal",
+            value = preferences.tabletLandscapeColumns.toString(),
+            options = (1..4).toList(),
+            optionLabel = Int::toString,
+            onSelect = { onPreferencesChange(preferences.copy(tabletLandscapeColumns = it)) },
+        )
+    }
 }
 
 @Composable
@@ -572,7 +683,7 @@ private fun FontChoicePicker(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "${choice.label} · Aa Bb 123",
+                        "${choice.label} · Aa Bb 123 · ${choice.sourceLabel}",
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.titleSmall.copy(fontFamily = choice.family()),
                         maxLines = 1,

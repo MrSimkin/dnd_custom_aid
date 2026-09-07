@@ -75,7 +75,7 @@ private fun CharacterNavigationRailV4(
     val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules)
 
     NavigationRail(
-        modifier = Modifier.fillMaxHeight().width(164.dp),
+        modifier = Modifier.fillMaxHeight().width(112.dp),
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

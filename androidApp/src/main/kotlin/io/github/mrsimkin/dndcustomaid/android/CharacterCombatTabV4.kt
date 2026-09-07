@@ -156,7 +156,7 @@ internal fun CharacterCombatTabV4(
                             style = MaterialTheme.typography.bodySmall,
                         )
                     } else {
-                        val columns = if (wide) 2 else 1
+                        val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
                         entries.chunked(columns).forEach { rowEntries ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -344,7 +344,7 @@ private fun CombatEntryCardV4(
 ) {
     var accumulatedDrag by remember(entry.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+    val reorderStepPx = with(LocalDensity.current) { 66.dp.toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -355,6 +355,7 @@ private fun CombatEntryCardV4(
         combatEntryTypeLabelV4(entry.type),
         entry.attackModifier?.let { "Ataque ${formatSignedCombatV4(it)}" },
         entry.damageEffect.trim().takeIf { it.isNotEmpty() },
+        entry.rangeText?.takeIf { it.isNotBlank() }?.let { "Alcance $it" },
     ).joinToString(" · ")
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -427,30 +428,19 @@ private fun CombatEntryCardV4(
                     TextButton(
                         onClick = { onFavoriteChange(!favorite) },
                         enabled = favoriteEnabled,
-                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                     ) {
                         Text(if (favorite) "★" else "☆")
                     }
-                }
-                if (entry.damageEffect.isNotBlank()) {
-                    Text(entry.damageEffect, style = MaterialTheme.typography.bodySmall)
-                }
-                entry.rangeText?.takeIf { it.isNotBlank() }?.let {
-                    Text("Alcance: $it", style = MaterialTheme.typography.labelSmall)
-                }
-                entry.notes?.takeIf { it.isNotBlank() }?.let {
-                    Text(it, style = MaterialTheme.typography.labelSmall)
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
                     if (structuralEditingEnabled) {
                         StableRemoveIconButton(
                             onClick = onDelete,
                             contentDescription = "Eliminar ${entry.name}",
                         )
                     }
+                }
+                entry.notes?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }

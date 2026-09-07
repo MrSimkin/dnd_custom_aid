@@ -174,11 +174,12 @@ internal fun CharacterNotesTabV4(
                             onAdd = if (structuralEditingEnabled) ::beginAdd else null,
                             addLabel = "Añadir nota",
                         )
-                    } else if (wide) {
-                        draft.cards.chunked(2).forEach { rowCards ->
+                    } else {
+                        val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
+                        draft.cards.chunked(columns).forEach { rowCards ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 verticalAlignment = Alignment.Top,
                             ) {
                                 rowCards.forEach { note ->
@@ -194,22 +195,8 @@ internal fun CharacterNotesTabV4(
                                         modifier = Modifier.weight(1f),
                                     )
                                 }
-                                repeat(2 - rowCards.size) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                                repeat(columns - rowCards.size) { Spacer(modifier = Modifier.weight(1f)) }
                             }
-                        }
-                    } else {
-                        draft.cards.forEachIndexed { index, note ->
-                            CharacterNoteCardV4(
-                                note = note,
-                                onEdit = { beginEdit(note) },
-                                onDuplicate = { duplicate(note) },
-                                onDelete = { deleteId = note.id.toString() },
-                                onMove = { offset -> move(index, offset) },
-                                structuralEditingEnabled = structuralEditingEnabled,
-                                onHaptic = haptic,
-                            )
                         }
                     }
                 }
@@ -276,7 +263,7 @@ private fun CharacterNoteCardV4(
 ) {
     var accumulatedDrag by remember(note.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+    val reorderStepPx = with(LocalDensity.current) { 68.dp.toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -369,12 +356,7 @@ private fun CharacterNoteCardV4(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                     ) {
-                        TextButton(
-                            onClick = onDuplicate,
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                        ) {
-                            Text("Duplicar")
-                        }
+                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${note.title}")
                     }
                 }
             }

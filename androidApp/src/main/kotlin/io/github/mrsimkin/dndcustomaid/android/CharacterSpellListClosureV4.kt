@@ -345,7 +345,7 @@ internal fun CharacterSpellListClosureV4(
             collection(Modifier.weight(1f))
             Surface(
                 modifier = Modifier
-                    .width(390.dp)
+                    .width(340.dp)
                     .fillMaxHeight()
                     .padding(top = 5.dp, end = 8.dp, bottom = 8.dp),
                 shape = MaterialTheme.shapes.medium,
@@ -746,7 +746,7 @@ private fun SpellRowG2(
 ) {
     var accumulatedDrag by remember(spell.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+    val reorderStepPx = with(LocalDensity.current) { 66.dp.toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -887,12 +887,7 @@ private fun SpellRowG2(
                         }
                     }
                     if (structuralEditingEnabled) {
-                        TextButton(
-                            onClick = onDuplicate,
-                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                        ) {
-                            Text("Duplicar")
-                        }
+                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${spell.name}")
                     }
                 }
             }

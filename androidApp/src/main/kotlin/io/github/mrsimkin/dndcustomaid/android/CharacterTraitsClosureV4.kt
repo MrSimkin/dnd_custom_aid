@@ -250,7 +250,7 @@ internal fun CharacterTraitsClosureTabV4(
                                     style = MaterialTheme.typography.titleSmall,
                                 )
                             }
-                            val columns = if (wide) 2 else 1
+                            val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
                             group.traits.chunked(columns).forEach { rowTraits ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -481,7 +481,7 @@ private fun TraitCardG1(
 ) {
     var accumulatedDrag by remember(trait.id) { mutableStateOf(0f) }
     var dragging by remember(trait.id) { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
+    val reorderStepPx = with(LocalDensity.current) { 68.dp.toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -621,10 +621,7 @@ private fun TraitCardG1(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (structuralEditingEnabled) {
-                        TextButton(
-                            onClick = onDuplicate,
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                        ) { Text("Duplicar") }
+                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${trait.name}")
                         StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${trait.name}")
                     }
                 }

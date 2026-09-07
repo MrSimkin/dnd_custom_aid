@@ -16,13 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
-/**
- * Reserves the same vertical label slot for adjacent compact controls.
- *
- * At 115%/130% an individual two-line label must not push only its own field
- * downward while neighboring fields stay higher. The slot scales with the
- * effective font scale (including Android accessibility scaling).
- */
 @Composable
 internal fun CompactFieldLabelV4(
     text: String,
@@ -30,9 +23,9 @@ internal fun CompactFieldLabelV4(
 ) {
     val fontScale = LocalDensity.current.fontScale
     val labelSlotHeight = when {
-        fontScale >= 1.25f -> 46.dp
-        fontScale >= 1.10f -> 40.dp
-        else -> 34.dp
+        fontScale >= 1.25f -> 40.dp
+        fontScale >= 1.10f -> 34.dp
+        else -> 29.dp
     }
     Text(
         text = text,
@@ -42,7 +35,6 @@ internal fun CompactFieldLabelV4(
     )
 }
 
-/** Compact selector geometry matching the custom compact numeric/text fields. */
 @Composable
 internal fun CompactMenuSurfaceV4(
     text: String,
@@ -51,19 +43,17 @@ internal fun CompactMenuSurfaceV4(
 ) {
     Surface(
         modifier = modifier
-            .heightIn(min = 38.dp)
+            .heightIn(min = 34.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         color = MaterialTheme.colorScheme.surface,
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 6.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 3.dp, vertical = 4.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+            Text(text, style = MaterialTheme.typography.bodySmall, maxLines = 1)
         }
     }
 }
