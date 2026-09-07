@@ -50,12 +50,12 @@ internal fun CharacterCombatOperationalCardV4(
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         ) {
             Text("Referencia rápida", style = MaterialTheme.typography.titleSmall)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 OperationalReferenceV4("CA", armorClass, Modifier.weight(1f))
@@ -64,7 +64,7 @@ internal fun CharacterCombatOperationalCardV4(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 OperationalReferenceV4("PG actuales", sheet.currentHp.toString(), Modifier.weight(1f))
@@ -73,7 +73,7 @@ internal fun CharacterCombatOperationalCardV4(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
             ) {
                 OutlinedButton(
                     onClick = { operationName = CharacterHpOperationV4.DAMAGE.name },
@@ -93,7 +93,7 @@ internal fun CharacterCombatOperationalCardV4(
                 Text("Salvaciones de muerte", style = MaterialTheme.typography.labelLarge)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     DeathSaveCounterV4(
@@ -174,7 +174,7 @@ private fun DeathSaveCounterV4(
     Column(modifier = modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall)
         Row(
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedButton(onClick = { onChange(value - 1) }, enabled = value > 0) { Text("−") }

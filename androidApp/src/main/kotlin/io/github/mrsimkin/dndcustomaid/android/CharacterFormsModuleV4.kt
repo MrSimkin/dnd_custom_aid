@@ -559,7 +559,7 @@ private fun FormRowH1(
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
                 if (reorderEnabled) {
                     StableDragHandle(
@@ -601,7 +601,7 @@ private fun FormRowH1(
                 }
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                 ) {
                     Text(
                         form.name.ifBlank { "Forma sin nombre" },
@@ -609,7 +609,7 @@ private fun FormRowH1(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
                         form.challengeRatingText?.takeIf(String::isNotBlank)?.let { ModuleBadgeH1("CR $it") }
                         form.armorClass?.let { ModuleBadgeH1("CA $it") }
                         form.hitPoints?.let { ModuleBadgeH1("PG $it") }
@@ -709,7 +709,7 @@ private fun FormEditorFieldsH1(
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
     ) {
         OutlinedTextField(
             value = armorClass,

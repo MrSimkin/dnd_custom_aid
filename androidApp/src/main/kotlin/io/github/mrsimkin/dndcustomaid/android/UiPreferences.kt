@@ -662,7 +662,7 @@ private fun LayoutColumnSettingsV4(
 private fun SettingsSheetPreview(preferences: UiPreferences) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         Text("Vista previa · ficha", style = MaterialTheme.typography.labelLarge)
         Surface(
@@ -673,7 +673,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
         ) {
             Column(
                 modifier = Modifier.padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             ) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -682,7 +682,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                 ) {
                     Column(
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     ) {
                         Text(
                             "Alyra Voss",
@@ -694,7 +694,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
                             CharacterSemanticBadgeV4(
                                 label = characterRulesFamilyBadgeLabel(CharacterRulesFamily.DND_5_5E),
                                 kind = CharacterSemanticBadgeKindV4.RULES,
@@ -709,14 +709,14 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     SettingsPreviewStatCell("CA", "17", Modifier.weight(1f))
                     SettingsPreviewStatCell("PG", "42 / 42", Modifier.weight(1f))
                     SettingsPreviewStatCell("CD", "15", Modifier.weight(1f))
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
                     Text("Bola de fuego · Nivel 3", style = MaterialTheme.typography.titleSmall)
                     Text(
                         "Concentración · V/S/M",
@@ -764,7 +764,7 @@ private fun FontChoicePicker(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         Text("Tipografía · audición", style = MaterialTheme.typography.labelLarge)
         AppFontChoice.entries.forEach { choice ->
@@ -807,13 +807,13 @@ private fun ThemeChoicePicker(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         Text("Tema · audición", style = MaterialTheme.typography.labelLarge)
         AppThemeChoice.entries.chunked(2).forEach { rowThemes ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 rowThemes.forEach { choice ->
@@ -850,10 +850,10 @@ private fun ThemePreviewCard(
     ) {
         Column(
             modifier = Modifier.padding(6.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Text(choice.label, style = MaterialTheme.typography.labelMedium, maxLines = 2)
-            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
                 Box(
                     modifier = Modifier
                         .size(24.dp)
@@ -885,7 +885,7 @@ private fun <T> SettingSelector(
     var expanded by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge)
         OutlinedButton(

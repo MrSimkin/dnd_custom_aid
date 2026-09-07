@@ -67,7 +67,7 @@ internal fun CharacterRulesSourceBadgesV4(
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(3.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
     ) {
         CharacterSemanticBadgeV4(
             label = characterRulesFamilyBadgeLabel(rulesFamily),

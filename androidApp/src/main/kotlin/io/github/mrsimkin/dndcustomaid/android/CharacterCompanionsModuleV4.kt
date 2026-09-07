@@ -639,7 +639,7 @@ private fun CompanionRowH3(
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
                 if (reorderEnabled) {
                     StableDragHandle(
@@ -679,14 +679,14 @@ private fun CompanionRowH3(
                         contentDescription = "Mantén pulsado y arrastra para reordenar ${companion.name}",
                     )
                 }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
                     Text(
                         companion.name.ifBlank { "Compañero sin nombre" },
                         style = MaterialTheme.typography.labelLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
                         companion.kind.takeIf(String::isNotBlank)?.let { ModuleBadgeH1(it) }
                         ModuleBadgeH1(if (companion.active) "Activo" else "Inactivo")
                     }
@@ -809,7 +809,7 @@ private fun CompanionEditorFieldsH3(
         singleLine = true,
     )
 
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
         CompanionNumericFieldH3(
             value = armorClass,
             onValueChange = onArmorClassChange,
@@ -825,7 +825,7 @@ private fun CompanionEditorFieldsH3(
             modifier = Modifier.weight(1f),
         )
     }
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
         CompanionNumericFieldH3(
             value = currentHp,
             onValueChange = onCurrentHpChange,

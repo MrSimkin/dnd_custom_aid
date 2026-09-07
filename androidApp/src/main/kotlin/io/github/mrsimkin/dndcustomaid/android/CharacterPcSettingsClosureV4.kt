@@ -73,13 +73,13 @@ internal fun CharacterPcSettingsClosureV4(
                     top = 8.dp,
                     bottom = 32.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
             ) {
                 item(key = "pc-settings-header") {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     ) {
                         StableBackIconButton(
                             onClick = onBack,
@@ -231,7 +231,7 @@ private fun PcSettingsPairClosureV4(
     if (wide) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
             verticalAlignment = Alignment.Top,
         ) {
             Box(modifier = Modifier.weight(1f)) { first() }
@@ -240,7 +240,7 @@ private fun PcSettingsPairClosureV4(
     } else {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
         ) {
             first()
             second()
@@ -336,7 +336,7 @@ private fun ProgressSettingsCardClosureV4(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
             if (state.progressMode == CharacterProgressMode.MILESTONE) {
                 Button(onClick = { onModeChange(CharacterProgressMode.MILESTONE) }) { Text("Hitos") }
@@ -399,7 +399,7 @@ private fun ModuleSettingRowClosureV4(
             .fillMaxWidth()
             .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(pcModuleLabelClosureV4(module), style = MaterialTheme.typography.labelLarge)
@@ -453,7 +453,7 @@ private fun PcSettingCardClosureV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Text(description, style = MaterialTheme.typography.bodySmall)

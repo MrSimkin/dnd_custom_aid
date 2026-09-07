@@ -90,7 +90,7 @@ internal fun CharacterBackgroundTabV4(
             top = 5.dp,
             bottom = 88.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(7.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
     ) {
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -98,7 +98,7 @@ internal fun CharacterBackgroundTabV4(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 7.dp),
-                    verticalArrangement = Arrangement.spacedBy(7.dp),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                 ) {
                     Text("Trasfondo", style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
@@ -112,7 +112,7 @@ internal fun CharacterBackgroundTabV4(
                     if (wide) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(7.dp),
+                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                         ) {
                             OutlinedTextField(
                                 value = background.race,
@@ -164,7 +164,7 @@ internal fun CharacterBackgroundTabV4(
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 CharacterImagePlaceholderV4(
@@ -186,7 +186,7 @@ internal fun CharacterBackgroundTabV4(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 7.dp, vertical = 6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Text("Perfil narrativo", style = MaterialTheme.typography.titleSmall)
                     val fields = BackgroundNarrativeFieldV4.entries
@@ -194,7 +194,7 @@ internal fun CharacterBackgroundTabV4(
                         fields.chunked(2).forEach { rowFields ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                                 verticalAlignment = Alignment.Top,
                             ) {
                                 rowFields.forEach { field ->
@@ -231,7 +231,7 @@ internal fun CharacterBackgroundTabV4(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 7.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -288,7 +288,7 @@ internal fun CharacterBackgroundTabV4(
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-                                verticalArrangement = Arrangement.spacedBy(3.dp),
+                                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                             ) {
                                 Text(
                                     background.story.ifBlank { "Sin historia registrada" },
@@ -453,7 +453,7 @@ private fun BackgroundNarrativePreviewCardV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 7.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.labelLarge)
             Text(

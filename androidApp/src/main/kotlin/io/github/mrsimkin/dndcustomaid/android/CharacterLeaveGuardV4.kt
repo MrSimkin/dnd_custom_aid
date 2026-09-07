@@ -37,7 +37,7 @@ internal fun CharacterUnsavedChangesDialogV4(
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(14.dp)),
             ) {
                 Text("Cambios sin guardar", style = MaterialTheme.typography.headlineSmall)
                 Text(

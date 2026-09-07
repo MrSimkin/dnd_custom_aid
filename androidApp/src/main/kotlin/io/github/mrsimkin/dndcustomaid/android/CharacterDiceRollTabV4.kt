@@ -58,7 +58,7 @@ internal fun CharacterDiceRollTabV4(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         CharacterDiceFixedPanelV4(
             target = selected,
@@ -71,7 +71,7 @@ internal fun CharacterDiceRollTabV4(
                 .fillMaxWidth()
                 .weight(1f),
             contentPadding = PaddingValues(start = 6.dp, end = 6.dp, top = 0.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             characterDiceGroupOrderV4.forEach { group ->
                 val groupTargets = targets.filter { it.group == group }
@@ -114,7 +114,7 @@ private fun CharacterDiceFixedPanelV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 9.dp, vertical = 7.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             Text("Tirada de dados", style = MaterialTheme.typography.titleMedium)
             if (target == null) {
@@ -122,7 +122,7 @@ private fun CharacterDiceFixedPanelV4(
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -177,7 +177,7 @@ private fun CharacterDiceTargetRowV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {

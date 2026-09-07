@@ -55,7 +55,7 @@ internal fun CharacterGeneralClosureCardsV4(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         CharacterMediaCardV4(state = state, onStateChange = onStateChange, wide = wide)
         CharacterDefensesSensesMovementCardV4(state = state, onStateChange = onStateChange, wide = wide)
@@ -91,11 +91,11 @@ private fun CharacterMediaCardV4(
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             Text("Retrato y token", style = MaterialTheme.typography.titleSmall)
             if (wide) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
                     CharacterImageReferenceV4(
                         title = "Retrato",
                         uriRef = state.portraitRef,
@@ -164,7 +164,7 @@ private fun CharacterImageReferenceV4(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(
@@ -216,13 +216,13 @@ private fun CharacterDefensesSensesMovementCardV4(
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
         ) {
             Text("Defensas, sentidos y movimiento especial", style = MaterialTheme.typography.titleSmall)
             if (wide) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                     verticalAlignment = Alignment.Top,
                 ) {
                     GeneralReferenceGroupV4(
@@ -374,13 +374,13 @@ private fun <T> GeneralReferenceGroupV4(
     modifier: Modifier = Modifier,
 ) {
     Surface(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.small, tonalElevation = 1.dp) {
-        Column(modifier = Modifier.fillMaxWidth().padding(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(4.dp), verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
             Text(title, style = MaterialTheme.typography.labelLarge)
             if (entries.isEmpty()) Text("Sin registros", style = MaterialTheme.typography.labelSmall)
             entries.forEach { entry ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(

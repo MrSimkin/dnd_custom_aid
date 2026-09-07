@@ -850,7 +850,7 @@ internal fun CharacterEditorScreenV4(
             },
             title = { Text("Guardar campos vacíos como 0") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
                     Text("Hay campos numéricos requeridos vacíos. Si continúas, se guardarán como 0.")
                     if (missing.isNotEmpty()) {
                         val shown = missing.take(8).joinToString(", ")
@@ -911,7 +911,7 @@ private fun EditorHeaderV4(
     Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 3.dp, vertical = 1.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             StableBackIconButton(onClick = onBack, contentDescription = "Volver a personajes")
@@ -1026,7 +1026,7 @@ private fun AbilitiesRowV4(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
     ) {
         CharacterAbility.entries.forEach { ability ->
             Column(
@@ -1059,7 +1059,7 @@ private fun CombatCardV4(
         if (wide) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -1119,7 +1119,7 @@ private fun CombatExplicitRowV4(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CompactIntFieldV4(labels.first, values.first, onFirst, Modifier.weight(1f))
@@ -1209,7 +1209,7 @@ private fun TripleExplicitFieldsV4(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.Top,
     ) {
         CompactIntFieldV4(firstLabel, firstValue, onFirst, Modifier.weight(1f), signed = true)
@@ -1225,7 +1225,7 @@ private fun SecondaryCombatRowV4(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         DerivedValueCellV4(
@@ -1263,7 +1263,7 @@ private fun QuickMagicCardV4(
     SectionCardV4("Lanzamiento de Conjuros") {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
             verticalAlignment = Alignment.Top,
         ) {
             CompactIntFieldV4(
@@ -1302,7 +1302,7 @@ private fun QuickMagicCardV4(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         ) {
             TextButton(onClick = { configureSlots = true }) {
                 Text("Configurar espacios")
@@ -1347,7 +1347,7 @@ private fun QuickMagicCardV4(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                 ) {
                     Text("Nivel $level", modifier = Modifier.weight(1f))
                     CompactIntInputV4(
@@ -1405,16 +1405,16 @@ private fun SpellSlotRowV4(
     val spent = slot.spent.coerceIn(0, total)
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         verticalAlignment = Alignment.Top,
     ) {
         Text("Nivel ${slot.level}", modifier = Modifier.width(55.dp), style = MaterialTheme.typography.labelMedium)
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             (0 until total).toList().chunked(8).forEach { indices ->
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
                     indices.forEach { index ->
                         val isSpent = index < spent
                         val borderColor = if (isSpent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
@@ -1657,7 +1657,7 @@ private fun SavesCardV4(
         CharacterAbility.entries.chunked(columns).forEach { abilities ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 abilities.forEach { ability ->
@@ -1691,7 +1691,7 @@ private fun SaveRowV4(
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelMedium)
@@ -1771,7 +1771,7 @@ private fun SkillsListCardV4(
             val midpoint = (draft.skills.size + 1) / 2
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -1816,7 +1816,7 @@ private fun SkillRowV4(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -1920,7 +1920,7 @@ private fun AbilityGroupsCardV4(
         CharacterAbility.entries.chunked(columns).forEach { rowAbilities ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 rowAbilities.forEach { ability ->
@@ -1957,11 +1957,11 @@ private fun AbilityGroupV4(
     ) {
         Column(
             modifier = Modifier.padding(4.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(abbreviation, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, maxLines = 1)
@@ -1978,7 +1978,7 @@ private fun AbilityGroupV4(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Salv.", style = MaterialTheme.typography.labelSmall, maxLines = 1)
@@ -2026,7 +2026,7 @@ private fun SectionCardV4(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 3.dp),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             content()

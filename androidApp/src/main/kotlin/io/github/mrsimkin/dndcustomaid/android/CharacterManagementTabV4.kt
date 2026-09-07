@@ -487,7 +487,7 @@ private fun ConditionsExhaustionCardV4(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("Agotamiento", style = MaterialTheme.typography.labelLarge)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
                 OutlinedButton(onClick = { onExhaustionChange(state.exhaustionLevel - 1) }, enabled = state.exhaustionLevel > 0) {
                     Text("−")
                 }
@@ -506,7 +506,7 @@ private fun ConditionsExhaustionCardV4(
             state.conditions.forEach { condition ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = { onEditCondition(condition) }, modifier = Modifier.weight(1f)) {
@@ -542,7 +542,7 @@ private fun ConcentrationCardV4(
             )
             Text(concentration.name, style = MaterialTheme.typography.titleSmall)
             concentration.notes?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
                 TextButton(onClick = onEdit) { Text("Cambiar") }
                 TextButton(onClick = onClear) { Text("Terminar") }
             }
@@ -610,7 +610,7 @@ private fun DeathSaveRowV4(label: String, value: Int, onChange: (Int) -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
             OutlinedButton(onClick = { onChange(value - 1) }, enabled = value > 0) { Text("−") }
             Text("$value/3")
             OutlinedButton(onClick = { onChange(value + 1) }, enabled = value < 3) { Text("+") }
@@ -641,7 +641,7 @@ private fun ResourcesCardV4(
             resources.sortedBy { it.sortOrder }.forEach { resource ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = { onEdit(resource) }, enabled = structuralEditingEnabled, modifier = Modifier.weight(1f)) {
@@ -684,7 +684,7 @@ private fun RestAssistantCardV4(onShortRest: () -> Unit, onLongRest: () -> Unit)
             "Previsualiza recuperaciones configuradas y aplica solo las que confirmes. Las reglas manuales nunca se ejecutan solas.",
             style = MaterialTheme.typography.bodySmall,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp))) {
             OutlinedButton(onClick = onShortRest) { Text("Descanso corto") }
             Button(onClick = onLongRest) { Text("Descanso largo") }
         }
@@ -711,7 +711,7 @@ private fun TemporaryEffectsCardV4(
             effects.sortedBy { it.sortOrder }.forEach { effect ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = { onEdit(effect) }, modifier = Modifier.weight(1f)) {
@@ -880,7 +880,7 @@ private fun ResourceEditorDialogV4(
         supportingText = "La recuperación automática es opcional. Si eliges Manual, el descanso solo mostrará la indicación y nunca cambiará el contador.",
     ) {
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp))) {
             OutlinedTextField(value = current, onValueChange = { current = it.filter(Char::isDigit) }, label = { Text("Actual") }, modifier = Modifier.weight(1f), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
             OutlinedTextField(value = maximum, onValueChange = { maximum = it.filter(Char::isDigit) }, label = { Text("Máximo opcional") }, modifier = Modifier.weight(1f), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
         }
@@ -959,7 +959,7 @@ private fun RestPreviewDialogV4(
             preview.forEach { item ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (item.hasAutomaticChange) {

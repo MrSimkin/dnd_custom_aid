@@ -728,7 +728,7 @@ private fun SpellLevelStickyHeaderG2(
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             TextButton(
                 onClick = onToggleCollapsed,
@@ -838,11 +838,11 @@ private fun SpellRowG2(
                         contentDescription = "Mantén pulsado y arrastra para reordenar ${spell.name}",
                     )
                 }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
                     Text(spell.name.ifBlank { "Conjuro sin nombre" }, style = MaterialTheme.typography.labelLarge)
                     Row(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         if (spell.verbal) SpellBadgeG2("V")
@@ -877,7 +877,7 @@ private fun SpellRowG2(
                 }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp)),
                 ) {
                     if (selectedAssociation != null) {
                         Row(verticalAlignment = Alignment.CenterVertically) {

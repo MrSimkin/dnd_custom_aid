@@ -40,12 +40,12 @@ internal fun CharacterPcSettingsV4(
                 .fillMaxSize()
                 .navigationBarsPadding()
                 .padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             ) {
                 StableBackIconButton(
                     onClick = onBack,
@@ -69,11 +69,11 @@ internal fun CharacterPcSettingsV4(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(12.dp)),
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     ) {
                         Text(
                             text = "Lanzador de conjuros",

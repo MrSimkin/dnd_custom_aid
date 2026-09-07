@@ -592,7 +592,7 @@ private fun ArtificeRowH1(
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
                 if (reorderEnabled) {
                     StableDragHandle(
@@ -634,7 +634,7 @@ private fun ArtificeRowH1(
                 }
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                 ) {
                     Text(
                         option.name.ifBlank { "Registro sin nombre" },
@@ -642,7 +642,7 @@ private fun ArtificeRowH1(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
                         ModuleBadgeH1(characterArtificeOptionKindDisplayLabel(option.kind))
                         ModuleBadgeH1(if (option.active) "Activo" else "Inactivo")
                     }
@@ -735,7 +735,7 @@ private fun ArtificeEditorFieldsH1(
     Text("Tipo", style = MaterialTheme.typography.titleSmall)
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
     ) {
         if (kind == CharacterClassOptionKind.ARTIFICER_PLAN) {
             Button(onClick = { onKindChange(CharacterClassOptionKind.ARTIFICER_PLAN) }) { Text("Plan") }

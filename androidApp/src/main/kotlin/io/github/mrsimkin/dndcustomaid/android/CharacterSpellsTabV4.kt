@@ -322,7 +322,7 @@ private fun SourceManagerDialogV4(
                 modifier = Modifier
                     .heightIn(max = 500.dp)
                     .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 contentPadding = PaddingValues(bottom = 32.dp),
             ) {
                 item {
@@ -452,7 +452,7 @@ private fun SourceEditorDialogV4(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
             Text("Clase vinculada (opcional)", style = MaterialTheme.typography.labelSmall)
             Box {
                 OutlinedButton(

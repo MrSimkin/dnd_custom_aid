@@ -137,7 +137,7 @@ internal fun CharacterListScreen(
                     .fillMaxSize()
                     .padding(horizontal = 14.dp),
                 contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             ) {
                 item {
                     Row(
@@ -147,7 +147,7 @@ internal fun CharacterListScreen(
                         StableBackIconButton(onClick = onBack, contentDescription = "Volver a campañas")
                         Column(
                             modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(1.dp),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp)),
                         ) {
                             Text("Personajes", style = MaterialTheme.typography.headlineMedium)
                             Text(campaign.name, style = MaterialTheme.typography.titleMedium)
@@ -262,7 +262,7 @@ private fun CharacterCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 9.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             CharacterPortraitThumbnailV4(
@@ -271,7 +271,7 @@ private fun CharacterCard(
             )
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
             ) {
                 Text(character.name, style = MaterialTheme.typography.titleMedium)
                 Text(characterListClassSummary(character.classes), style = MaterialTheme.typography.bodyMedium)

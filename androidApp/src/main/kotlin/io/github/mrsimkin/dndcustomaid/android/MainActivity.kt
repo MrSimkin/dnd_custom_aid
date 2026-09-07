@@ -251,7 +251,7 @@ private fun CampaignScreen(
                     .fillMaxSize()
                     .padding(horizontal = 14.dp),
                 contentPadding = PaddingValues(top = 12.dp, bottom = 88.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             ) {
                 item {
                     Row(
@@ -261,7 +261,7 @@ private fun CampaignScreen(
                     ) {
                         Column(
                             modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
                         ) {
                             Text(
                                 text = "Campañas",
@@ -331,7 +331,7 @@ private fun CampaignCard(
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
             RadioButton(
                 selected = isActive,
@@ -339,7 +339,7 @@ private fun CampaignCard(
             )
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp)),
             ) {
                 Text(
                     text = campaign.name,

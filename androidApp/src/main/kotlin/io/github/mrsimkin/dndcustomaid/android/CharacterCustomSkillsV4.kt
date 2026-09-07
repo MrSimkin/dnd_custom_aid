@@ -46,7 +46,7 @@ internal fun CharacterCustomSkillsCardV4(
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 5.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -148,7 +148,7 @@ private fun CustomSkillRowV4(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(

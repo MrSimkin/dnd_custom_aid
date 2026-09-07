@@ -728,7 +728,7 @@ private fun ClassOptionRowH2(
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
                 if (reorderEnabled) {
                     StableDragHandle(
@@ -768,14 +768,14 @@ private fun ClassOptionRowH2(
                         contentDescription = "Mantén pulsado y arrastra para reordenar ${option.name}",
                     )
                 }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
                     Text(
                         option.name.ifBlank { "Registro sin nombre" },
                         style = MaterialTheme.typography.labelLarge,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
                         ModuleBadgeH1(characterClassOptionKindDisplayLabel(option.kind))
                         ModuleBadgeH1(if (option.active) "Activo" else "Inactivo")
                     }
@@ -855,7 +855,7 @@ private fun ClassOptionEditorFieldsH2(
 
     if (config.allowedKinds.size > 1) {
         Text("Tipo", style = MaterialTheme.typography.titleSmall)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
             config.allowedKinds.forEach { optionKind ->
                 if (kind == optionKind) {
                     Button(onClick = { onKindChange(optionKind) }) { Text(characterClassOptionKindDisplayLabel(optionKind)) }
@@ -865,7 +865,7 @@ private fun ClassOptionEditorFieldsH2(
             }
         }
     } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
             Text("Tipo:", style = MaterialTheme.typography.labelMedium)
             ModuleBadgeH1(characterClassOptionKindDisplayLabel(config.allowedKinds.first()))
         }

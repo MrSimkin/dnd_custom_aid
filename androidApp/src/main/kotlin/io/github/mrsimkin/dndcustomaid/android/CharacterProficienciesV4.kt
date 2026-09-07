@@ -57,7 +57,7 @@ internal fun CharacterProficienciesCardV4(
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -94,7 +94,7 @@ internal fun CharacterProficienciesCardV4(
                     ) {
                         Column(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                         ) {
                             Text(proficiency.name, style = MaterialTheme.typography.labelLarge)
                             Text(
@@ -221,7 +221,7 @@ private fun CharacterProficiencyEditorDialogV4(
         saveEnabled = name.trim().isNotEmpty(),
         supportingText = "Registro libre: la app conserva la información sin imponer reglas de clase, especie o dote.",
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
             Text("Tipo", style = MaterialTheme.typography.labelSmall)
             Box {
                 OutlinedButton(

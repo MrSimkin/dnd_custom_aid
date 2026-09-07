@@ -58,7 +58,7 @@ internal fun CharacterClassIdentityCardV4(
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 5.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -155,12 +155,12 @@ private fun ClassIdentityRowV4(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f).clickable(onClick = onOpen).padding(vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp)),
             ) {
                 Text(primary, style = MaterialTheme.typography.labelLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 CharacterRulesSourceBadgesV4(
@@ -411,7 +411,7 @@ private fun ClassIdentityEditorDialogV4(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             verticalAlignment = Alignment.Top,
         ) {
             NumericClassFieldV4("Nivel", level, { level = it }, Modifier.weight(1f))

@@ -44,7 +44,7 @@ internal fun CompactSpellSlotHeaderV4(
         modifier = Modifier
             .widthIn(max = 180.dp)
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         (0 until total).forEach { index ->
