@@ -1,0 +1,42 @@
+name: Pre-QA UX repair pass 7 audit
+
+on:
+  push:
+    branches:
+      - implementation/phase4-preqa-ux-repair
+    paths:
+      - '.github/workflows/preqa-ux-pass7-audit.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Inventory residual app-controlled whitespace
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android
+          echo '=== raw Arrangement.spacedBy numeric literals by file ==='
+          grep -R -n --include='*.kt' -E 'Arrangement\.spacedBy\([0-9]+\.dp\)' "$ROOT" || true
+          echo
+          echo '=== simple raw Modifier.padding numeric literals by file ==='
+          grep -R -n --include='*.kt' -E '\.padding\([0-9]+\.dp\)' "$ROOT" || true
+          echo
+          echo '=== raw horizontal/vertical Modifier.padding pairs ==='
+          grep -R -n --include='*.kt' -E '\.padding\(horizontal = [0-9]+\.dp, vertical = [0-9]+\.dp\)' "$ROOT" || true
+          echo
+          echo '=== files already using appSpacingV4 ==='
+          grep -R -l --include='*.kt' 'appSpacingV4(' "$ROOT" | sort || true
+          echo
+          echo '=== files with UI input but neither direct imePadding nor reusable safe dialog ==='
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android')
+          for p in sorted(root.glob('*.kt')):
+              text = p.read_text(encoding='utf-8')
+              if 'OutlinedTextField(' not in text and 'BasicTextField(' not in text:
+                  continue
+              if '.imePadding()' not in text and 'CharacterImeSafeEditorDialog(' not in text:
+                  print(p.name)
+          PY
