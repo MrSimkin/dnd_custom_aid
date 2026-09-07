@@ -6,7 +6,7 @@
 **Durable pre-QA branch:** `implementation/phase4-preqa-consolidation`  
 **Active owner-requested repair branch:** `implementation/phase4-preqa-ux-repair`
 **Current phase:** Phase 4 Character Foundation Closure — owner QA pending
-**Current execution position:** Owner explicitly reopened pre-QA implementation on 2026-09-07 after reviewing the M5/M6 candidate. Active work is iterative UX repair on `implementation/phase4-preqa-ux-repair`. Pass 04 produced review identity version `0.4.0-preqa.4` / build `40400`; formal M6 owner QA remains deferred until the owner says the replacement review build is ready.
+**Current execution position:** Owner explicitly reopened pre-QA implementation on 2026-09-07 after reviewing the M5/M6 candidate. Active work is iterative UX repair on `implementation/phase4-preqa-ux-repair`. Pass 05 produced review identity version `0.4.0-preqa.5` / build `40500`; formal M6 owner QA remains deferred until the owner says the replacement review build is ready.
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
