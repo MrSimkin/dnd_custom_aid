@@ -20,6 +20,30 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Repair temporary EOF sentinel mechanics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools/preqa_governance_reconcile.py')
+          text = p.read_text(encoding='utf-8')
+
+          agents_old = '''path = "AGENTS.md"\ntext = read(path)\ntext = replace_section(\n    text,\n    "## 13. Current project stage",'''
+          agents_new = '''path = "AGENTS.md"\ntext = read(path)\ntext = text.rstrip() + "\\n\\n__END__\\n"\ntext = replace_section(\n    text,\n    "## 13. Current project stage",'''
+          if text.count(agents_old) != 1:
+              raise RuntimeError(f'AGENTS sentinel patch anchor count={text.count(agents_old)}')
+          text = text.replace(agents_old, agents_new, 1)
+
+          state_old = '''text = replace_section(\n    text,\n    "## 7. Exact continuation",\n    "__END__",'''
+          state_new = '''text = text.rstrip() + "\\n\\n__END__\\n"\ntext = replace_section(\n    text,\n    "## 7. Exact continuation",\n    "__END__",'''
+          if text.count(state_old) != 1:
+              raise RuntimeError(f'PROJECT_STATE sentinel patch anchor count={text.count(state_old)}')
+          text = text.replace(state_old, state_new, 1)
+
+          p.write_text(text, encoding='utf-8')
+          PY
+
       - name: Apply fail-closed governance reconciliation
         run: python tools/preqa_governance_reconcile.py
 
@@ -63,4 +87,4 @@ jobs:
           git commit -m "Reconcile post-Pass7 governance state"
           git push origin HEAD:implementation/phase4-preqa-ux-repair
 
-# Trigger commit for the fail-closed reconciliation gate.
+# Trigger commit for the fail-closed reconciliation gate; EOF sentinel mechanics repaired in-run.
