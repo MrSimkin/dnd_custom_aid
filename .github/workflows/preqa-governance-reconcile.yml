@@ -62,3 +62,5 @@ jobs:
           git diff --cached --check
           git commit -m "Reconcile post-Pass7 governance state"
           git push origin HEAD:implementation/phase4-preqa-ux-repair
+
+# Trigger commit for the fail-closed reconciliation gate.
