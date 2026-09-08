@@ -2,7 +2,6 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,7 +29,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -277,13 +275,17 @@ private fun CharacterNoteCardV4(
         showDropAfter = dragging && accumulatedDrag > 0f,
     )
 
+    fun finishDrag() {
+        accumulatedDrag = 0f
+        dragging = false
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
         CharacterDropIndicatorV4(visible = dragState.showDropBefore)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
+                .characterDragFeedbackV4(dragState),
             shape = MaterialTheme.shapes.small,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
@@ -296,53 +298,52 @@ private fun CharacterNoteCardV4(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                 ) {
-                    if (structuralEditingEnabled) {
-                        StableDragHandle(
-                            modifier = Modifier.pointerInput(note.id) {
-                            detectDragGesturesAfterLongPress(
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .characterLongPressDragV4(
+                                enabled = structuralEditingEnabled,
+                                onHaptic = onHaptic,
                                 onDragStart = {
                                     accumulatedDrag = 0f
                                     dragging = true
-                                    onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
                                 },
-                                onDragEnd = {
-                                    if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
-                                onDragCancel = {
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    accumulatedDrag += dragAmount.y
+                                onDragDelta = { deltaY ->
+                                    accumulatedDrag += deltaY
+                                    var moved = false
                                     while (abs(accumulatedDrag) >= reorderStepPx) {
                                         val direction = if (accumulatedDrag > 0f) 1 else -1
                                         if (onMove(direction)) {
-                                            onHaptic(CharacterHapticEventV4.DRAG_STEP)
                                             accumulatedDrag -= direction * reorderStepPx
+                                            moved = true
                                         } else {
                                             accumulatedDrag = 0f
                                             break
                                         }
                                     }
+                                    moved
                                 },
+                                onDragEnd = ::finishDrag,
+                                onDragCancel = ::finishDrag,
                             )
-                        },
-                            active = dragging,
-                            contentDescription = "Mantén pulsado y arrastra para reordenar ${note.title}",
+                            .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                    ) {
+                        Text(
+                            note.title,
+                            style = MaterialTheme.typography.labelLarge,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            note.content.ifBlank { "Sin contenido" },
+                            style = if (note.content.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    Text(
-                        note.title,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.labelLarge,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
                     if (structuralEditingEnabled) {
                         StableRemoveIconButton(
                             onClick = onDelete,
@@ -351,12 +352,6 @@ private fun CharacterNoteCardV4(
                     }
                 }
 
-                Text(
-                    note.content.ifBlank { "Sin contenido" },
-                    style = if (note.content.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
                 if (structuralEditingEnabled) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
