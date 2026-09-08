@@ -3,11 +3,11 @@
 ## Current status
 
 **Phase:** Phase 4A — Character Foundation Closure  
-**Canonical branch:** `main` under D-0048  
+**Canonical branch:** `main` under D-0066  
 **Architecture state:** foundational choices approved; no stack redesign is active  
 **Product state:** debug/pre-QA; known owner-observed UX defects remain
 
-The foundational architecture under D-0034 through D-0043 remains controlling. D-0044 through D-0047 define the character-foundation direction and closure scope. D-0048 changes the repository consolidation boundary only; it does not change the approved stack or mark the current UX accepted.
+The foundational architecture under D-0034 through D-0043 remains controlling. D-0044 through D-0047 define the character-foundation direction and closure scope. D-0066 changes the repository consolidation boundary only; it does not change the approved stack or mark the current UX accepted.
 
 C-0009 remains controlling: use the simplest safe implementation that satisfies real approved requirements.
 
@@ -71,7 +71,7 @@ Neon PostgreSQL
 
 The Phase 4 closure remains structured around reusable character domains rather than one bespoke persistence subsystem per class/subclass.
 
-The current tested closure line is schema 9. No schema migration was added by pre-QA UX repair Pass 03–07 or by D-0048 documentation consolidation.
+The current tested closure line is schema 9. No schema migration was added by pre-QA UX repair Pass 03–07 or by D-0066 documentation consolidation.
 
 Reusable durable domains support the six approved conditional module families:
 
@@ -156,9 +156,9 @@ Neither area should be activated merely as housekeeping for the current characte
 
 ## Current implementation consequence
 
-The architecture consequence of the D-0048 state is deliberately small:
+The architecture consequence of the D-0066 state is deliberately small:
 
-- `main` becomes the canonical current development baseline;
+- `main` is the canonical current development baseline;
 - keep the existing shared Kotlin + SQLDelight + Compose foundation unless a concrete owner-observed defect demonstrates a need to change it;
 - treat build `0.4.0-preqa.7` / `40700` as the latest technically verified product build, not as an accepted UX baseline;
 - collect the owner's remaining non-QA observations before designing the successor repair batch;
