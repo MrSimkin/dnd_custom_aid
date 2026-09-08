@@ -5,7 +5,7 @@
 **Current review identity:** version `0.4.0-preqa.7` / build `40700` / `debug`  
 **Current technical state:** focused pre-QA UX repair Pass 07 green/stable; no new product build started during owner audition  
 **Current governance state:** current-stage prose reconciled through D-0047/Pass 07  
-**Owner audition state:** IN PROGRESS — primary phone Stage A/B/C/D/E complete; Stage F in progress through Gestión + Habilidades  
+**Owner audition state:** PAUSED BY OWNER — primary phone Stage A/B/C/D/E complete; Stage F in progress through Gestión + Habilidades  
 **Detailed Stage F checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md`  
 **Stage E checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_E.md`  
 **Prior Stage D checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_D.md`  
@@ -42,6 +42,10 @@ Continue the staged QA/audition and **record findings instead of implementing ea
 
 Build `40700` remains the active technically verified pre-QA owner-audition build, not a frozen formal M6 candidate.
 
-**Next action:** continue Stage F with **F3 — Conjuros** on the Redmi Note 11 Pro 5G. Inspect the combined permanent footprint of source selector + spell toolbar + sticky current-level header in portrait first, then landscape, and report which layers earn their space or should be merged/condensed.
+## Pause / exact resume point
+
+Owner paused the audition on 2026-09-07 after completing phone Stage E and Stage F through Gestión + Habilidades. No further product changes or audition findings should be assumed after this checkpoint.
+
+**Resume directly at Stage F3 — Conjuros, phone portrait.** Inspect the combined permanent footprint of source selector + spell toolbar + sticky current-level header. Report which layers earn their permanent space, which consume unnecessary height, whether elements can be merged into one row, and whether the overall fixed stack feels comfortable or too tall. Only after portrait is recorded should the same surface be checked in landscape.
 
 Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
