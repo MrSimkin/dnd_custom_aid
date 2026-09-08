@@ -51,8 +51,8 @@ private data class CharacterDiceTargetV4(
 internal fun CharacterDiceRollTabV4(
     sheet: CharacterSheet,
     closureState: CharacterClosureState,
-    successorState: CharacterSuccessorState,
     combatEntries: List<CharacterCombatEntry>,
+    successorState: CharacterSuccessorState = CharacterSuccessorState(),
 ) {
     val targets = characterDiceTargetsV4(sheet, closureState, successorState, combatEntries)
     var selectedKey by rememberSaveable(sheet.id.toString()) { mutableStateOf<String?>(null) }
