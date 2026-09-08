@@ -2,14 +2,14 @@
 
 ## Current status
 
-**Phase:** Phase 4 — Character Foundation Closure  
-**Architecture state:** foundational choices approved; Phase 4 character/adaptive implementation and the focused pre-QA UX repair line are technically stable; no stack redesign is active.  
-**Active branch:** `implementation/phase4-preqa-ux-repair`  
-**Canonical `main`:** remains the latest accepted merged state.
+**Phase:** Phase 4A — Character Foundation Closure  
+**Canonical branch:** `main` under D-0048  
+**Architecture state:** foundational choices approved; no stack redesign is active  
+**Product state:** debug/pre-QA; known owner-observed UX defects remain
 
-The foundational architecture under D-0034 through D-0043 remains controlling. D-0044 through D-0047 define the current character-foundation direction and closure scope. C-0009 remains controlling: use the simplest safe implementation that satisfies real approved requirements.
+The foundational architecture under D-0034 through D-0043 remains controlling. D-0044 through D-0047 define the character-foundation direction and closure scope. D-0048 changes the repository consolidation boundary only; it does not change the approved stack or mark the current UX accepted.
 
-Batches A1–L, historical M1–M5 and the owner-reopened pre-QA repair Pass 03–07 are implemented/verified at their recorded levels. The current execution position is owner visual audition plus governance/acceptance preparation; do not reopen schema/domain architecture for perceptual UI questions or speculative cleanup.
+C-0009 remains controlling: use the simplest safe implementation that satisfies real approved requirements.
 
 ## Approved architecture
 
@@ -38,10 +38,12 @@ Neon PostgreSQL
 
 - Native Kotlin + Jetpack Compose.
 - `minSdk 30 / Android 11`.
-- **Phone and tablet are first-class targets.**
-- Responsive behavior should react to available width rather than simply stretching one phone layout or using one coarse tablet boolean.
-- Portrait and landscape matter on both phone and tablet.
-- The implemented adaptive navigation shell/rail uses ordinary Compose state/layout primitives and did not require a new navigation framework or architecture layer.
+- Phone and tablet are first-class targets.
+- Portrait and landscape matter on both form factors.
+- Responsive behavior must not equate "wide window" with "tablet interaction model" blindly.
+- A physical phone in landscape should remain a phone-appropriate interaction model unless an explicitly designed responsive behavior says otherwise.
+- Tablet/wide layouts should exploit width only where doing so demonstrably improves use.
+- The owner has explicitly rejected the current wide/tablet presentation as sufficient; this is a UX/layout repair requirement, not a reason to introduce a new navigation architecture/framework.
 
 ### Desktop
 
@@ -55,7 +57,7 @@ Neon PostgreSQL
 - Android and Desktop use SQLite via SQLDelight where local/offline behavior provides real value.
 - Stable UUIDs are used for mutable domain identity.
 - Migrations are explicit and data-preservation risk is tested proportionately.
-- Do not rewrite already-tested historical migrations merely to make migration numbering prettier; use additive migrations when safe.
+- Do not rewrite already-tested historical migrations merely to make numbering prettier; use additive migrations when safe.
 
 ### Domain boundaries
 
@@ -63,40 +65,67 @@ Neon PostgreSQL
 - Durable character-sheet state remains separate from future live combat working state.
 - Saved encounters, live encounters, durable character state and audit/history remain distinct concepts.
 - Character data remains permissive for D&D 5e, D&D 5.5e and custom/homebrew content; the application is not a legality engine.
-- Character-owned companions are durable sheet/reference records. They are not future DM live-combat participants/authority merely because they store reference HP/AC/state.
+- Character-owned companions are durable sheet/reference records, not future DM live-combat authority merely because they store reference HP/AC/state.
 
-### Character closure data direction
+## Character closure data direction
 
-The current Phase 4 closure is intentionally structured around reusable character domains rather than one bespoke data model per class/subclass.
+The Phase 4 closure remains structured around reusable character domains rather than one bespoke persistence subsystem per class/subclass.
 
-Schema 6 provides the initial closure prototype additions including:
+The current tested closure line is schema 9. No schema migration was added by pre-QA UX repair Pass 03–07 or by D-0048 documentation consolidation.
 
-- class/subclass source/provenance/catalog identity;
-- Inspiration and death saves;
-- structured proficiencies;
-- Weapon Mastery;
-- generic Resources;
-- generic class options;
-- Forms;
-- Companions.
+Reusable durable domains support the six approved conditional module families:
 
-Additive schema 7 now represents the remaining D-0047 durable domains, including conditions/exhaustion, defenses, senses/movement, concentration, recovery metadata, custom skills, temporary effects, module overrides, portrait/reference metadata, reconciliation checkpoints and related settings.
+- Artífice;
+- Formas;
+- Técnicas;
+- Metamagia;
+- Pactos;
+- Compañeros.
 
-The current tested closure line is schema 9. No schema migration was added by pre-QA repair Pass 03–07. H1/H2/H3 confirmed that Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros can use the existing reusable durable domains without one hard-coded persistence subsystem per subclass.
+## Provenance/source modeling direction after owner audition
 
-### UI/adaptive state boundary
+The owner audition identified a cross-cutting UI/information-architecture problem: a generic `source` property has often been exposed as a full `Fuente` field even where that provenance does not earn independent user-facing space.
 
-Character presentation/navigation state must remain conceptually separate from character mechanics.
+This does **not** require destructive schema cleanup merely for visual tidiness.
 
-The implemented boundary remains:
+Current preferred UI direction:
 
-- available-width shell decisions are UI behavior, not character-domain data;
-- per-character last-open-tab state is persisted as local UI preference/navigation state rather than added to the character rules/domain schema;
-- conditional-tab restoration must resolve safely through existing module/spell visibility rules if the previously open tab is no longer available;
-- existing list search/filter/sort/selection context should be preserved by the UI-state mechanisms already introduced under B2/D16 rather than copied into durable character records;
-- existing F/G/H master-detail implementations should be reused, not replaced by a new generalized UI framework.
+- preserve stored source/provenance data where compatibility/future migration benefits from doing so;
+- expose provenance only when it has a concrete user-facing purpose;
+- where provenance is useful, prefer a structured compact origin model with **origin type + specific origin** on one row when space allows;
+- default origin type may be `Clase`, with other user-facing categories such as `Dote`, `Pacto`, `Objeto`, `Raza`, `Trasfondo`, `Otro`, etc.;
+- do not confuse this generic provenance concept with the real Conjuros spellcasting-source domain.
 
-### Hosted authorization/sync boundary
+The Conjuros source system remains a functional domain relationship:
+
+- a spellcasting source is a named object;
+- it may be linked to a class or be completely custom/non-class;
+- spell-source associations drive filtering/prepared-state behavior;
+- that relationship must be preserved.
+
+A later repair may adapt UI/data mapping without inventing a new generalized provenance framework.
+
+## UI/adaptive state boundary
+
+Character presentation/navigation state remains separate from character mechanics.
+
+The existing boundary remains:
+
+- window/form-factor layout decisions are UI behavior, not character-domain data;
+- per-character last-open-tab state is local UI preference/navigation state rather than character rules data;
+- conditional-tab restoration resolves through existing module/spell visibility rules;
+- list search/filter/sort/selection context should remain UI state rather than durable character mechanics;
+- existing master-detail/list components may be repaired/reused where useful, but the current tablet/wide UX is not protected merely because it exists.
+
+The owner phone audition adds these repair constraints:
+
+- rotation should preserve useful scroll/context where practical;
+- phone landscape must not be promoted to tablet behavior solely from a width breakpoint;
+- fixed/sticky regions must leave a practical primary-content viewport;
+- Conjuros currently violates that rule in phone landscape;
+- app-wide compactness should be solved through shared layout primitives where safe rather than per-screen arbitrary shrinkage.
+
+## Hosted authorization/sync boundary
 
 - Native clients never connect directly to Neon or hold PostgreSQL credentials.
 - Hosted reads/writes go through Cloudflare.
@@ -104,7 +133,7 @@ The implemented boundary remains:
 - Ordinary durable synchronization remains small/application-specific when implemented.
 - Rare conflicts may be surfaced to humans instead of requiring a generalized merge engine.
 
-### Future live combat
+## Future live combat
 
 Existing decisions remain unchanged:
 
@@ -114,30 +143,28 @@ Existing decisions remain unchanged:
 - no speculative authority-generation machinery until actual device handoff exists;
 - HTTP/request-response/polling before realtime infrastructure.
 
-**DM-feature implementation remains blocked until the Phase 4 character closure is complete and owner-accepted.** Architecture notes about combat are future constraints, not permission to start that work now.
+**DM-feature implementation remains blocked until Phase 4A is owner-accepted and explicitly closed.** Architecture notes about combat are future constraints, not permission to begin that work.
 
-### PDF and SRD clarification
+## PDF and SRD clarification
 
 Approved architecture remains:
 
 - local character PDF generation on Android/Desktop using the approved PDFBox variants when that feature is implemented;
 - versioned SRD 5.1 / SRD 5.2.1 PostgreSQL chunks with PostgreSQL full-text retrieval and replaceable LLM integration when SRD clarification is implemented.
 
-Neither area should be activated merely as housekeeping for the current character-closure batches unless the approved batch explicitly reaches it.
+Neither area should be activated merely as housekeeping for the current character-repair cycle.
 
 ## Current implementation consequence
 
-The architecture consequence of the current pre-QA state is deliberately small:
+The architecture consequence of the D-0048 state is deliberately small:
 
-- keep the existing shared Kotlin + SQLDelight + Compose character foundation intact unless a concrete owner-observed defect demonstrates a need to change it;
-- treat build `0.4.0-preqa.7` / `40700` as the current visual-audition identity, not as permission for further speculative architecture or UX framework work;
-- use the staged phone/tablet audition to resolve remaining perceptual questions about typography, density, fixed/sticky footprint, high-column layouts and keyboard ergonomics;
-- any concrete blocking finding receives a focused repair plus the existing complete automated gate and a new identified build;
-- freeze a replacement formal M6 candidate only after explicit owner readiness;
-- continue using Desktop compilation and backend type-check as regression checks even when the active change is Android presentation;
-- do not introduce a new service, synchronization layer, realtime mechanism, navigation framework or architecture framework for this closure work.
-
-DM-feature implementation remains blocked until Phase 4 formal owner QA, governance/merge-boundary completion and explicit owner closure/merge approval.
+- `main` becomes the canonical current development baseline;
+- keep the existing shared Kotlin + SQLDelight + Compose foundation unless a concrete owner-observed defect demonstrates a need to change it;
+- treat build `0.4.0-preqa.7` / `40700` as the latest technically verified product build, not as an accepted UX baseline;
+- collect the owner's remaining non-QA observations before designing the successor repair batch;
+- repair known UI families using the simplest shared mechanisms that solve them safely;
+- do not introduce a new service, synchronization layer, realtime mechanism, navigation framework or architecture framework to solve presentation defects;
+- after a successor build is technically green, use targeted real-device retesting before any later formal M6 freeze.
 
 ## Architecture gate consequence
 
