@@ -1,7 +1,7 @@
 # Phase 4 pre-QA owner audition — phone Stage E
 
 **Date:** 2026-09-07  
-**Status:** OWNER PHONE STAGE E IN PROGRESS; first keyboard/editor finding recorded  
+**Status:** OWNER PHONE STAGE E IN PROGRESS; E1 corrected to PASS and E2 findings recorded  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
 **Review identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary phone:** Redmi Note 11 Pro 5G
@@ -15,16 +15,28 @@
 
 ## Stage E1 — Notas long general text editor
 
-Owner tested an extremely long general-notes text with the software keyboard visible.
+**Result:** PASS
 
-### E-F01 — long text remains reachable under IME
+Owner clarified that the prior reported action/rotation failures were not from the general Notes editor. The general long-text editor works correctly for the current phone audition.
+
+Protected result:
+
+- long text remains reachable by scrolling with the software keyboard visible;
+- required interaction is usable for the owner's E1 test;
+- no E1-specific action-reachability or rotation defect is recorded.
+
+## Stage E2 — titled note editor
+
+Owner tested an extremely long titled-note body with the software keyboard visible.
+
+### E-F01 — titled-note text remains reachable under IME
 
 **Result:** PASS
 
 - owner can reach all text by scrolling, even with extremely long content;
 - no content-length threshold was encountered that made the active text unreachable.
 
-### E-F02 — editor actions unreachable while software keyboard is open
+### E-F02 — titled-note actions unreachable while software keyboard is open
 
 **Severity:** major
 
@@ -34,30 +46,30 @@ This fails the Stage E pass criterion that cancel/save/apply actions remain reac
 
 Later repair should preserve intrinsic touch targets while making the action area reachable via IME-aware scrolling, pinned actions, or another phone-appropriate composition.
 
-### E-F03 — editor disappears on rotation to landscape and reappears on return to portrait
+### E-F03 — titled-note editor disappears on rotation to landscape and reappears on return to portrait
 
 **Severity:** major
 
-With the editor open:
+With the titled-note editor open:
 
 - rotating the Redmi Note 11 Pro 5G to landscape makes the editor window disappear;
 - rotating back to portrait makes the editor window reappear.
 
-The observed behavior suggests editor visibility/composition is not stable across the phone's responsive mode change. Do not infer that editor state is lost, because the editor returns when portrait is restored.
-
-This finding should be considered together with Stage D's broader phone-landscape/tablet-breakpoint issue, but remains separate because it affects an active editing workflow and can interrupt user action.
+Do not infer that editor state is lost, because the editor returns when portrait is restored. This should be considered alongside Stage D's phone-landscape/tablet-breakpoint finding, while remaining a separate active-editing workflow defect.
 
 ## Stage E current outcome
 
-Stage E is **not complete**. The first representative editor already demonstrates two major IME/orientation issues:
+Stage E is **not complete**.
 
-1. action buttons are unreachable while the keyboard is visible;
-2. the active editor disappears in landscape and returns in portrait.
+Current distinction is important:
 
-Continue Stage E across other representative editor families to determine whether this is shared infrastructure behavior or surface-specific.
+- E1 general Notes editor: PASS;
+- E2 titled-note editor: text scrolling PASS, but action reachability and rotation stability FAIL/major.
+
+Continue Stage E across other representative editor families to determine whether the E2 failure is specific to the titled-note dialog or shared with other modal editors.
 
 ## Next action
 
-Proceed to **Stage E2 — titled note editor** on the Redmi Note 11 Pro 5G using build `40700`.
+Proceed to **Stage E3 — Equipo editor** on the Redmi Note 11 Pro 5G using build `40700`.
 
-Open/create a titled note, keep the software keyboard visible, use enough title/body text to require scrolling, and check whether the focused fields plus cancel/save actions remain reachable. Also rotate once with the editor open and note whether the same disappear/reappear behavior occurs.
+Open an existing equipment item or create one, keep the software keyboard visible, use enough editable content to require scrolling where possible, confirm focused fields plus cancel/save actions remain reachable, and rotate once with the editor open to observe whether the same disappear/reappear behavior occurs.
