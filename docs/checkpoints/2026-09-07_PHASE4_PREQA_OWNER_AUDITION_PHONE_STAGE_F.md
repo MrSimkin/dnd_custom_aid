@@ -1,7 +1,7 @@
 # Phase 4 pre-QA owner audition — phone Stage F
 
 **Date:** 2026-09-07; continued 2026-09-08  
-**Status:** OWNER PHONE STAGE F IN PROGRESS; Gestión, Habilidades, and Conjuros portrait recorded  
+**Status:** OWNER PHONE STAGE F IN PROGRESS; Gestión, Habilidades, and Conjuros portrait/landscape recorded  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
 **Review identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary phone:** Redmi Note 11 Pro 5G
@@ -145,6 +145,37 @@ This is the same family already recorded during Stage E5; Stage F3 confirms it r
 
 Owner explicitly confirms that equivalent observations already recorded for excessive padding/margins, row usage, editor/IME behavior, and card density still apply where the Conjuros surface uses the same patterns. Do not create separate fixes for every occurrence when a shared layout/editor primitive can solve the family safely.
 
+### F3 landscape
+
+**Result:** FAIL / blocking-for-usability landscape composition on the phone.
+
+The owner cannot see the spell list at all in phone landscape because the source selector and filter/fixed-control stack consumes the full usable content viewport.
+
+### F-F14 — fixed Conjuros controls consume the entire phone-landscape viewport
+
+**Severity:** major / effectively unusable surface in this orientation
+
+On the Redmi Note 11 Pro 5G in landscape:
+
+- the source selector and filters occupy all useful vertical space;
+- no spells are visible;
+- the problem is therefore no longer only inefficient compactness: the primary content disappears from the usable viewport.
+
+This must be repaired before phone landscape can be considered a first-class supported layout.
+
+### F-F15 — Conjuros landscape confirms the existing phone-to-tablet breakpoint failure
+
+**Severity:** major cross-cutting responsive-design defect
+
+This result reinforces Stage D finding D-F01: rotating the phone causes the character UI to adopt the wide/tablet-like interaction model based on width alone. The owner had already rejected that behavior as unsuitable for a phone in landscape.
+
+The Conjuros failure must therefore not be treated as an isolated spell-screen spacing patch. Later repair should address both:
+
+1. the physical phone must retain a phone-appropriate interaction model in landscape; and
+2. fixed/sticky controls must compact or reflow so primary content remains visible.
+
+The broader tablet/wide presentation itself remains subject to separate redesign/audit; do not assume that using the current tablet-style composition is an acceptable solution for phone landscape.
+
 ## Cross-cutting owner UX directions recorded during Stage F
 
 These are not isolated Stage F defects but directly affect compactness and later repair design.
@@ -186,17 +217,11 @@ Current navigation switches to side rail based only on available width (`>= 760d
 - F1 Gestión: fixed footprint FAIL/major; death-save compactness and cross-tab coherence findings recorded.
 - F2 Habilidades: sticky presence PASS; minor semantic/compactness improvements recorded.
 - F3 Conjuros portrait: FAIL/major compactness; source selector and filters earn permanent space; spell list remains visible; filter rows, spell cards, spacing, action layout, direct-reorder interaction, and leading-zero input findings recorded.
-- F3 Conjuros landscape: not yet completed.
+- F3 Conjuros landscape: FAIL/major; fixed selector/filter stack consumes the full usable viewport and no spells are visible; reinforces the already rejected phone-landscape tablet-like breakpoint behavior.
 - F4 long-collection sticky toolbars: not yet completed.
 
 ## Next action
 
-Continue **F3 — Conjuros, phone landscape** on the Redmi Note 11 Pro 5G using the same build `0.4.0-preqa.7` / `40700` / `debug`.
+Continue **F4 — long-collection sticky toolbars** on the Redmi Note 11 Pro 5G using the same build `0.4.0-preqa.7` / `40700` / `debug`.
 
-Do not re-audit the already recorded portrait findings from scratch. Check how the same source-selector + filter + sticky-level stack behaves after rotation, especially:
-
-- whether landscape gains useful horizontal compaction or instead preserves unnecessary vertical rows;
-- whether the fixed stack leaves a practical spell-list viewport;
-- whether any phone-landscape tablet/master-detail behavior worsens the Conjuros surface;
-- whether spell cards become meaningfully denser or continue wasting space;
-- any clipping, overlap, inaccessible controls, or new landscape-only defect.
+Do not re-report the already established general padding/margin, row-fragmentation, IME, card-density, direct-reorder, or phone-landscape/tablet-breakpoint findings unless a surface behaves materially differently. Focus F4 on whether long collections preserve enough primary-content viewport while keeping genuinely useful controls reachable.
