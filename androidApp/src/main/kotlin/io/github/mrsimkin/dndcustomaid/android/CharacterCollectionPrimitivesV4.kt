@@ -4,22 +4,24 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -135,7 +137,7 @@ private fun CharacterToolbarChipV4(
 ) {
     Surface(
         modifier = Modifier
-            .heightIn(min = 30.dp)
+            .heightIn(min = 34.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(
@@ -145,7 +147,7 @@ private fun CharacterToolbarChipV4(
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
     ) {
         Box(
-            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(3.dp)),
+            modifier = Modifier.padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(3.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Text(text, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -171,7 +173,13 @@ private fun CharacterCompactSearchV4(
             contentAlignment = Alignment.CenterStart,
         ) {
             if (value.isBlank()) {
-                Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
             BasicTextField(
                 value = value,
@@ -195,60 +203,93 @@ internal fun CharacterCollectionToolbarV4(
     filters: List<CharacterFilterOptionV4> = emptyList(),
     searchLabel: String = "Buscar",
     modifier: Modifier = Modifier,
+    contextContent: (@Composable () -> Unit)? = null,
+    onAdd: (() -> Unit)? = null,
 ) {
+    var orderMenuOpen by remember { mutableStateOf(false) }
+    var filterMenuOpen by remember { mutableStateOf(false) }
+    val activeFilterCount = query.activeFilterKeys.size
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.small,
         tonalElevation = 1.dp,
     ) {
-        Column(
+        Row(
             modifier = Modifier.padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                CharacterCompactSearchV4(
-                    value = query.searchText,
-                    onValueChange = { onQueryChange(query.copy(searchText = it)) },
-                    label = searchLabel,
-                    modifier = Modifier.weight(1f),
-                )
-                Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium)
-            }
+            contextContent?.invoke()
+
+            CharacterCompactSearchV4(
+                value = query.searchText,
+                onValueChange = { onQueryChange(query.copy(searchText = it)) },
+                label = searchLabel,
+                modifier = Modifier.weight(1f),
+            )
+
+            Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
 
             if (order != null && onOrderChange != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                Box {
                     CharacterToolbarChipV4(
-                        text = "Manual",
-                        selected = order == CharacterPresentationOrder.MANUAL,
-                        onClick = { onOrderChange(CharacterPresentationOrder.MANUAL) },
+                        text = if (order == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z",
+                        selected = order != CharacterPresentationOrder.MANUAL,
+                        onClick = { orderMenuOpen = true },
                     )
-                    CharacterToolbarChipV4(
-                        text = "A–Z",
-                        selected = order == CharacterPresentationOrder.ALPHABETICAL,
-                        onClick = { onOrderChange(CharacterPresentationOrder.ALPHABETICAL) },
-                    )
+                    DropdownMenu(
+                        expanded = orderMenuOpen,
+                        onDismissRequest = { orderMenuOpen = false },
+                    ) {
+                        CharacterPresentationOrder.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        if (option == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z",
+                                    )
+                                },
+                                onClick = {
+                                    onOrderChange(option)
+                                    orderMenuOpen = false
+                                },
+                            )
+                        }
+                    }
                 }
             }
 
             if (filters.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                ) {
-                    filters.forEach { filter ->
-                        val active = filter.key in query.activeFilterKeys
-                        val text = filter.count?.let { "${filter.label} ($it)" } ?: filter.label
-                        CharacterToolbarChipV4(
-                            text = text,
-                            selected = active,
-                            onClick = { onQueryChange(query.toggleFilter(filter.key)) },
-                        )
+                Box {
+                    CharacterToolbarChipV4(
+                        text = if (activeFilterCount == 0) "Filtros" else "Filtros $activeFilterCount",
+                        selected = activeFilterCount > 0,
+                        onClick = { filterMenuOpen = true },
+                    )
+                    DropdownMenu(
+                        expanded = filterMenuOpen,
+                        onDismissRequest = { filterMenuOpen = false },
+                    ) {
+                        filters.forEach { filter ->
+                            val active = filter.key in query.activeFilterKeys
+                            val countSuffix = filter.count?.let { " ($it)" }.orEmpty()
+                            DropdownMenuItem(
+                                text = {
+                                    Text("${if (active) "✓ " else ""}${filter.label}$countSuffix")
+                                },
+                                onClick = { onQueryChange(query.toggleFilter(filter.key)) },
+                            )
+                        }
                     }
                 }
+            }
+
+            if (onAdd != null) {
+                CharacterToolbarChipV4(
+                    text = "+",
+                    selected = false,
+                    onClick = onAdd,
+                )
             }
         }
     }
