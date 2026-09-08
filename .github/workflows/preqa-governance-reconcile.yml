@@ -1,0 +1,64 @@
+name: Post-Pass7 governance reconciliation
+
+on:
+  push:
+    branches:
+      - implementation/phase4-preqa-ux-repair
+    paths:
+      - '.github/workflows/preqa-governance-reconcile.yml'
+      - 'tools/preqa_governance_reconcile.py'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.event.head_commit.message == 'Execute post-Pass7 governance reconciliation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Apply fail-closed governance reconciliation
+        run: python tools/preqa_governance_reconcile.py
+
+      - name: Verify governance-only shape
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+
+          grep -q 'versionCode = 40700' androidApp/build.gradle.kts
+          grep -q 'versionName = "0.4.0-preqa.7"' androidApp/build.gradle.kts
+
+          grep -q 'owner staged phone/tablet visual audition' docs/checkpoints/LATEST.md
+          grep -q 'PHASE4_PREQA_GOVERNANCE_RECONCILIATION' docs/checkpoints/LATEST.md
+          grep -q '## D-0047 — Phase 4 character closure expansion' docs/DECISIONS.md
+          grep -q 'formal M6 deferred' docs/PROJECT_STATE.md
+          grep -q '0.4.0-preqa.7' README.md
+          grep -q 'implementation/phase4-preqa-ux-repair' AGENTS.md
+          grep -q 'Current pre-QA owner-audition identity' docs/TESTING.md
+          grep -q 'Current Phase 4 pre-QA manual entry point' docs/QA_CHECKLIST.md
+
+          changed="$(git diff --name-only)"
+          printf '%s\n' "$changed"
+          if printf '%s\n' "$changed" | grep -E '^(androidApp|shared|desktopApp|backend|database)/'; then
+            echo 'Governance reconciliation touched product/source paths' >&2
+            exit 1
+          fi
+
+      - name: Remove temporary reconciliation infrastructure
+        run: |
+          rm -f tools/preqa_governance_reconcile.py
+          rm -f .github/workflows/preqa-governance-reconcile.yml
+
+      - name: Commit and push reconciled governance state
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Reconcile post-Pass7 governance state"
+          git push origin HEAD:implementation/phase4-preqa-ux-repair
