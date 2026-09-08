@@ -26,12 +26,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
+import io.github.mrsimkin.dndcustomaid.shared.character.abilityReference
 import io.github.mrsimkin.dndcustomaid.shared.character.characterD20Roll
+import io.github.mrsimkin.dndcustomaid.shared.character.customSavingThrowTotal
 import io.github.mrsimkin.dndcustomaid.shared.character.customSkillTotal
 import kotlin.random.Random
 
@@ -47,9 +51,10 @@ private data class CharacterDiceTargetV4(
 internal fun CharacterDiceRollTabV4(
     sheet: CharacterSheet,
     closureState: CharacterClosureState,
+    successorState: CharacterSuccessorState,
     combatEntries: List<CharacterCombatEntry>,
 ) {
-    val targets = characterDiceTargetsV4(sheet, closureState, combatEntries)
+    val targets = characterDiceTargetsV4(sheet, closureState, successorState, combatEntries)
     var selectedKey by rememberSaveable(sheet.id.toString()) { mutableStateOf<String?>(null) }
     var dieResult by rememberSaveable(sheet.id.toString(), "dice-result") { mutableStateOf<Int?>(null) }
     val selected = targets.firstOrNull { it.key == selectedKey } ?: targets.firstOrNull()
@@ -200,6 +205,7 @@ private val characterDiceGroupOrderV4 = listOf(
 private fun characterDiceTargetsV4(
     sheet: CharacterSheet,
     closureState: CharacterClosureState,
+    successorState: CharacterSuccessorState,
     combatEntries: List<CharacterCombatEntry>,
 ): List<CharacterDiceTargetV4> = buildList {
     CharacterAbility.entries.forEach { ability ->
@@ -210,6 +216,18 @@ private fun characterDiceTargetsV4(
                 label = abilityLabelDiceV4(ability),
                 context = "Prueba de característica · ${abilityAbbreviationDiceV4(ability)}",
                 modifier = sheet.abilityModifier(ability),
+            ),
+        )
+    }
+
+    successorState.customAttributes.sortedBy { it.sortOrder }.forEach { attribute ->
+        add(
+            CharacterDiceTargetV4(
+                key = "custom-ability-${attribute.id}",
+                group = "Características",
+                label = attribute.name,
+                context = "Prueba de característica · ${attribute.abbreviation}",
+                modifier = attribute.modifier,
             ),
         )
     }
@@ -226,6 +244,20 @@ private fun characterDiceTargetsV4(
         )
     }
 
+    successorState.customAttributes.sortedBy { it.sortOrder }.forEach { attribute ->
+        sheet.customSavingThrowTotal(attribute)?.let { modifier ->
+            add(
+                CharacterDiceTargetV4(
+                    key = "custom-save-${attribute.id}",
+                    group = "Salvaciones",
+                    label = "Salvación de ${attribute.name}",
+                    context = "Tirada de salvación · ${attribute.abbreviation}",
+                    modifier = modifier,
+                ),
+            )
+        }
+    }
+
     SkillKey.entries.forEach { skill ->
         add(
             CharacterDiceTargetV4(
@@ -239,6 +271,8 @@ private fun characterDiceTargetsV4(
     }
 
     closureState.customSkills.sortedBy { it.sortOrder }.forEach { skill ->
+        val modifier = sheet.customSkillTotal(skill, successorState) ?: return@forEach
+        val abilityReference = skill.abilityReference(successorState)
         add(
             CharacterDiceTargetV4(
                 key = "custom-${skill.id}",
@@ -246,10 +280,10 @@ private fun characterDiceTargetsV4(
                 label = skill.name,
                 context = listOfNotNull(
                     "Habilidad personalizada",
-                    abilityAbbreviationDiceV4(skill.ability),
+                    abilityAbbreviationDiceV4(abilityReference, successorState),
                     skill.source?.trim()?.takeIf { it.isNotEmpty() },
                 ).joinToString(" · "),
-                modifier = sheet.customSkillTotal(skill),
+                modifier = modifier,
             ),
         )
     }
@@ -287,6 +321,19 @@ private fun abilityAbbreviationDiceV4(ability: CharacterAbility): String = when 
     CharacterAbility.INTELLIGENCE -> "INT"
     CharacterAbility.WISDOM -> "SAB"
     CharacterAbility.CHARISMA -> "CAR"
+}
+
+private fun abilityAbbreviationDiceV4(
+    reference: CharacterAbilityReference,
+    successorState: CharacterSuccessorState,
+): String? = when {
+    reference.builtIn != null -> abilityAbbreviationDiceV4(reference.builtIn)
+    reference.customAttributeId != null -> successorState.customAttributes
+        .firstOrNull { it.id == reference.customAttributeId }
+        ?.abbreviation
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+    else -> null
 }
 
 private fun skillLabelDiceV4(skill: SkillKey): String = when (skill) {
