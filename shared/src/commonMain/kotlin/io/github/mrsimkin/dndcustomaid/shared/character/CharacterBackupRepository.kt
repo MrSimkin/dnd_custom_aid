@@ -6,7 +6,7 @@ import kotlin.uuid.Uuid
 /**
  * Repository-level bridge for the app-owned character backup format.
  *
- * V1 import semantics are deliberately restore-as-copy: importing never targets an existing
+ * Import semantics are deliberately restore-as-copy: importing never targets an existing
  * character row and therefore cannot silently overwrite one. The entire restore is wrapped in a
  * database transaction so a stricter persistence invariant cannot leave a placeholder behind.
  */
@@ -15,6 +15,7 @@ class CharacterBackupRepository(
 ) {
     private val characters = CharacterRepository(database)
     private val closure = CharacterClosureRepository(database)
+    private val successor = CharacterSuccessorRepository(database)
 
     fun exportCharacter(
         characterId: Uuid,
@@ -28,6 +29,7 @@ class CharacterBackupRepository(
             exportedAtEpochSeconds = exportedAtEpochSeconds,
             character = character,
             closureState = closure.state(characterId),
+            successorState = successor.state(characterId),
         )
         val validation = characterBackupValidationMessage(document)
         require(validation == null) { validation ?: "Invalid character backup." }
@@ -48,7 +50,7 @@ class CharacterBackupRepository(
         database.transaction {
             // Creating the row first lets the existing authoritative repositories enforce all of
             // their normal local persistence rules. The outer transaction guarantees rollback if
-            // either aggregate rejects the candidate afterwards.
+            // any aggregate rejects the candidate afterwards.
             val placeholder = characters.createCharacter(
                 campaignId = destinationCampaignId,
                 rawName = document.character.name,
@@ -73,11 +75,15 @@ class CharacterBackupRepository(
                     reconciliationCheckpoints = plan.closureState.reconciliationCheckpoints + importCheckpoint,
                 ),
             )
+            // Successor state is saved last because it may reference custom skills from the
+            // closure aggregate as well as spell sources/attacks/resources from the core sheet.
+            val savedSuccessor = successor.saveState(savedCharacter.id, plan.successorState)
             result = CharacterBackupImportResult(
                 sourceCharacterId = plan.sourceCharacterId,
                 sourceCampaignId = plan.sourceCampaignId,
                 character = savedCharacter,
                 closureState = savedClosure,
+                successorState = savedSuccessor,
                 importCheckpoint = requireNotNull(
                     savedClosure.reconciliationCheckpoints.firstOrNull { it.id == importCheckpoint.id },
                 ),
@@ -92,5 +98,6 @@ data class CharacterBackupImportResult(
     val sourceCampaignId: Uuid,
     val character: CharacterSheet,
     val closureState: CharacterClosureState,
+    val successorState: CharacterSuccessorState,
     val importCheckpoint: CharacterReconciliationCheckpoint,
 )
