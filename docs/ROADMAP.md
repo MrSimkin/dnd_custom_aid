@@ -36,19 +36,15 @@ The slice proved Android Material 3 UI, shared Kotlin behavior, SQLDelight persi
 
 **Status:** Current.
 
-Phase 4 began with the Android character data foundation. That work expanded substantially through iterative owner QA and entered a deliberate **Character Foundation Closure** cycle before any DM-feature implementation begins.
+Phase 4 began with the Android character data foundation and expanded into a deliberate **Character Foundation Closure** cycle before DM-focused implementation.
 
 ### Phase 4A — Character Foundation Closure
 
-**Status:** Closure implementation + focused pre-QA repair line technically stable; **owner visual audition pending; formal M6 deferred**.
+**Status:** implementation broadly complete; current debug baseline consolidated into `main`; owner-driven UX/repair cycle remains open; formal acceptance deferred.
 
-Active owner-requested pre-QA repair branch:
+D-0047 remains the controlling character-closure scope. It includes retained QA fixes, F01–F18, D01–D18, I01–I22, official/custom class/subclass identity, all six approved conditional modules, Gestión, PC Settings, Supercompact/Table mode, backup/import and first-class phone/tablet intent.
 
-`implementation/phase4-preqa-ux-repair`
-
-The owner approved D-0047: one substantial final character-stage package combining retained QA fixes, new character functionality, UX/design improvements, official class/subclass identity including Artificer and supplemental official material, conditional reusable class modules, and first-class phone/tablet behavior.
-
-Implemented general character surfaces:
+Implemented general character surfaces include:
 
 - General;
 - Habilidades;
@@ -69,46 +65,55 @@ Implemented conditional reusable modules:
 - Pactos;
 - Compañeros.
 
-The closure includes the approved F01–F18, D01–D18 and I01–I22 sets recorded in D-0047, including global IME/action consistency, responsive phone/tablet layouts, Supercompact, Table mode, resources/conditions/rest management, structured defenses/senses/proficiencies, richer equipment/spell/trait workflows and own-format local backup/import.
+Historical implementation/audit lines A1–L and M1–M5 plus the focused pre-QA repair Pass 03–07 remain durable evidence.
 
-Historical M1–M5 audits/consolidation are complete. After reviewing that candidate, the owner explicitly reopened pre-QA implementation. Focused UX repair Pass 03–07 is now technically green and stable.
+D-0048 changed the **repository merge boundary**, not the acceptance boundary: the owner explicitly approved promoting the current in-progress Phase 4 state into canonical `main` to eliminate branch sprawl and make one coherent development baseline.
 
-Current owner-audition identity:
+Therefore:
 
-- version `0.4.0-preqa.7` / build `40700`;
+- `main` now contains the canonical current Phase 4 development reality;
+- the current baseline is still debug/pre-QA and known to have defects;
+- old implementation/tmp branches are historical, not alternate current baselines;
+- future repair work starts from `main` on a focused branch;
+- presence on `main` does not satisfy the Phase 4A exit criterion.
+
+Current latest technically verified product identity:
+
+- version `0.4.0-preqa.7` / build `40700` / `debug`;
 - tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
 - workflow `34171466714` — SUCCESS;
 - artifact `10035895186`;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-This review build is **not a frozen formal M6 candidate**. The next gate is the staged phone/tablet visual audition in `docs/PREQA_OWNER_VISUAL_AUDITION.md`. Only after the owner explicitly declares a build ready will one exact replacement candidate be frozen and formal M6 resume.
+The owner phone audition has sufficiently covered Stages A–F for this build and produced a substantial repair backlog rather than acceptance. No physical owner tablet acceptance has been completed.
 
-Current practical resume pointer:
-
-`docs/checkpoints/LATEST.md`
+Current next step is **not** more speculative testing of build `40700`. The owner is compiling additional non-QA observations to combine with the existing audition backlog. After those are recorded, one coherent successor repair batch should be designed and implemented from canonical `main`.
 
 ### Phase 4A exit criterion
 
-Character closure is complete only when:
+Phase 4A is complete only when:
 
-- D-0047 implementation is complete — **done**;
-- migrations/persistence and automated gates are green — **done**;
-- focused automated pre-QA repair audits are green through Pass 07 — **done**;
-- current-stage governance prose is reconciled through the Pass 07 state — **done**;
-- owner staged visual audition on phone/tablet identifies an acceptable baseline with no unresolved blocking visual/IME/layout findings — **pending**;
-- one exact replacement formal M6 candidate is explicitly frozen after owner readiness — **pending**;
-- formal owner QA passes on phone portrait/landscape and tablet portrait/landscape, including representative larger text — **pending**;
-- blocking findings are resolved — pending only if audition/QA finds any;
-- the unique-commit/merge-boundary audit is complete — pending post-QA;
-- the owner explicitly accepts the result and approves the merge/closure — pending.
+- D-0047 implementation is present — **done**;
+- migrations/persistence and automated gates are green at the relevant tested build — **done for build 40700**;
+- current owner phone-audition findings are durably recorded — **done for the current build**;
+- additional owner observations intended for the same repair cycle are captured/reconciled — **pending**;
+- the known cross-cutting repair families are implemented and automatically verified in a successor build — **pending**;
+- phone retesting demonstrates the repaired baseline is acceptable — **pending**;
+- tablet portrait/landscape acceptance is completed on an owner device or another explicitly approved acceptance method — **pending**;
+- one exact replacement formal M6 candidate is explicitly frozen when ready — **pending**;
+- formal owner QA passes, including upgrade/persistence and relevant regression coverage — **pending**;
+- blocking findings are resolved — **pending**;
+- the owner explicitly accepts/closes Phase 4A — **pending**.
 
-**No DM-feature implementation begins before this exit criterion.**
+The repository is already consolidated into `main` under D-0048, so "merge to main" is no longer itself an exit criterion. **Acceptance and closure remain separate.**
+
+**No DM-feature implementation begins before Phase 4A acceptance/closure.**
 
 ### Phase 4B — DM combat / live-session work
 
 **Status:** Blocked by Phase 4A owner acceptance and closure.
 
-This stage will consume the stable reusable character data foundation when Phase 4A is complete. Its detailed implementation work must not begin early merely because architecture/product ideas already exist.
+This stage will consume the stable reusable character data foundation only after Phase 4A is explicitly closed. Its detailed implementation must not begin merely because architecture/product ideas already exist.
 
 The durable character sheet and future live combat state remain separate under D-0025/D-0026.
 
