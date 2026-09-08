@@ -1,7 +1,7 @@
 # Phase 4 pre-QA owner audition — phone Stage F
 
-**Date:** 2026-09-07  
-**Status:** OWNER PHONE STAGE F IN PROGRESS; Gestión and Habilidades recorded  
+**Date:** 2026-09-07; continued 2026-09-08  
+**Status:** OWNER PHONE STAGE F IN PROGRESS; Gestión, Habilidades, and Conjuros portrait recorded  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
 **Review identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary phone:** Redmi Note 11 Pro 5G
@@ -72,6 +72,79 @@ Suggested direction, not frozen implementation:
 
 Exact wording/iconography can be optimized during repair; the protected intent is horizontal use of space rather than vertically stacked label/value pairs.
 
+## F3 — Conjuros fixed selector, filters, and spell-card footprint
+
+### F3 portrait
+
+**Result:** FAIL / major compactness and interaction-efficiency problem, while core list visibility remains usable.
+
+The owner confirms that the **spellcasting source selector** and the **filters** deserve permanent screen space. The problem is not their presence; it is the amount of padding, margin, row fragmentation, and card chrome around them.
+
+### F-F06 — source selector and filters earn permanent space, but consume too much height
+
+**Severity:** major UX/layout
+
+Owner direction:
+
+- keep the source selector permanently available;
+- keep filters permanently available;
+- materially reduce padding and margins, especially vertical spacing;
+- preserve usability at high text zoom, but at ordinary zoom do not spread controls across multiple rows when they can fit clearly in one.
+
+### F-F07 — filter controls are fragmented into too many rows
+
+**Severity:** major compactness UX
+
+At ordinary phone portrait scale, several filter controls that could reasonably share one row are distributed across multiple rows. Later repair should use horizontal space more efficiently and only wrap to additional rows when zoom/available width actually requires it.
+
+### F-F08 — spell list remains visible despite the fixed stack
+
+**Severity:** positive usability evidence
+
+The owner can still see and use the spell list in portrait. Therefore the current fixed layers do not make the surface unusable, but they waste more vertical space than necessary.
+
+### F-F09 — spell cards/windows waste substantial internal space
+
+**Severity:** major UX/layout
+
+Spell cards/windows repeat the broader Stage D/E compactness problem: excessive padding and margins reduce information density without adding equivalent usability.
+
+The same previously recorded compactness observations continue to apply here and should be treated as a cross-cutting family rather than isolated per-screen defects.
+
+### F-F10 — spell card actions are spread inefficiently
+
+**Severity:** major UX/interaction design
+
+Owner reports that spell action buttons should be grouped together rather than consuming multiple lines. The present layout spends approximately three lines largely to support move/reorder controls.
+
+Owner direction for later repair:
+
+- group related spell-card actions together;
+- remove unnecessary dedicated vertical footprint for move controls;
+- prefer direct card manipulation for reordering where practical.
+
+### F-F11 — whole-card hold-and-drag should be the general card-reorder interaction
+
+**Severity:** owner UX direction / cross-cutting interaction design
+
+Owner prefers being able to **press-and-hold and move a card from any practical part of the card**, instead of requiring a large dedicated drag/move affordance that consumes layout space.
+
+This direction applies not only to spell cards but to equivalent reorderable cards throughout the character UI. Later design must still preserve normal button/text-field interactions, discoverability, accessibility, and reliable gesture disambiguation.
+
+### F-F12 — spell-level leading-zero numeric-entry defect persists
+
+**Severity:** minor functional/input defect
+
+The previously recorded issue remains reproducible: when the spell-level field contains `0`, the owner cannot simply type another digit after it to obtain the intended level naturally. Numeric replacement/normalization should allow ordinary editing instead of making the initial zero obstruct input.
+
+This is the same family already recorded during Stage E5; Stage F3 confirms it remains present in build `40700`.
+
+### F-F13 — prior equivalent spacing/IME/card observations remain applicable
+
+**Severity:** cross-cutting confirmation
+
+Owner explicitly confirms that equivalent observations already recorded for excessive padding/margins, row usage, editor/IME behavior, and card density still apply where the Conjuros surface uses the same patterns. Do not create separate fixes for every occurrence when a shared layout/editor primitive can solve the family safely.
+
 ## Cross-cutting owner UX directions recorded during Stage F
 
 These are not isolated Stage F defects but directly affect compactness and later repair design.
@@ -94,6 +167,10 @@ Owner UX principle:
 
 Apply this as a review heuristic, not as an absolute rule when accessibility, readability or touch targets would suffer.
 
+### General reorderable-card interaction direction
+
+Where cards are reorderable, prefer direct hold-and-drag on the card over a visually dominant dedicated move control, provided nested controls, accessibility, touch targets, and gesture disambiguation remain safe. This is a cross-cutting owner preference first reconfirmed explicitly during F3 Conjuros.
+
 ### App Settings — user-reorderable character tabs
 
 Owner requests that App Settings allow the user to reorder character-sheet tabs.
@@ -108,9 +185,18 @@ Current navigation switches to side rail based only on available width (`>= 760d
 
 - F1 Gestión: fixed footprint FAIL/major; death-save compactness and cross-tab coherence findings recorded.
 - F2 Habilidades: sticky presence PASS; minor semantic/compactness improvements recorded.
-- F3 Conjuros: not yet completed.
+- F3 Conjuros portrait: FAIL/major compactness; source selector and filters earn permanent space; spell list remains visible; filter rows, spell cards, spacing, action layout, direct-reorder interaction, and leading-zero input findings recorded.
+- F3 Conjuros landscape: not yet completed.
 - F4 long-collection sticky toolbars: not yet completed.
 
 ## Next action
 
-Continue **F3 — Conjuros** on the Redmi Note 11 Pro 5G. Inspect the combined permanent footprint of source selector + spell toolbar + current sticky level header in portrait first, then landscape. Report whether each layer earns its space and whether any can be merged/condensed without losing usability.
+Continue **F3 — Conjuros, phone landscape** on the Redmi Note 11 Pro 5G using the same build `0.4.0-preqa.7` / `40700` / `debug`.
+
+Do not re-audit the already recorded portrait findings from scratch. Check how the same source-selector + filter + sticky-level stack behaves after rotation, especially:
+
+- whether landscape gains useful horizontal compaction or instead preserves unnecessary vertical rows;
+- whether the fixed stack leaves a practical spell-list viewport;
+- whether any phone-landscape tablet/master-detail behavior worsens the Conjuros surface;
+- whether spell cards become meaningfully denser or continue wasting space;
+- any clipping, overlap, inaccessible controls, or new landscape-only defect.
