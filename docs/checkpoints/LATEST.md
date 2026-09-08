@@ -5,7 +5,7 @@
 **Current review identity:** version `0.4.0-preqa.7` / build `40700` / `debug`  
 **Current technical state:** focused pre-QA UX repair Pass 07 green/stable; no new product build started during owner audition  
 **Current governance state:** current-stage prose reconciled through D-0047/Pass 07  
-**Owner audition state:** primary phone Stage A/B/C/D/E complete; Stage F in progress through F3 Conjuros portrait + landscape  
+**Owner audition state:** primary phone Stage A/B/C/D/E complete; Stage F in progress through F4 Equipo + Rasgos  
 **Detailed Stage F checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md`  
 **Stage E checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_E.md`  
 **Prior Stage D checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_D.md`  
@@ -36,11 +36,20 @@ Primary recorded phone test device: **Redmi Note 11 Pro 5G**. Build `0.4.0-preqa
 - Stage F3 confirms the spell-level leading-zero numeric-entry defect remains present in build `40700`.
 - Stage F3 Conjuros landscape: FAIL/major. Source selector + filters/fixed controls consume the entire usable vertical viewport, so **no spells are visible**.
 - Stage F3 landscape reinforces the earlier rejected phone-landscape tablet-like breakpoint behavior. This is a compound responsive/compactness issue, not merely an isolated Conjuros spacing defect. Current tablet/wide composition must not be assumed acceptable for phone landscape and remains subject to separate redesign/audit.
-- Cross-cutting UX direction: do not consume two rows when one clearer row is practical; preserve accessibility/tapability.
+- Stage F4 Equipo: sticky toolbar is useful and earns its permanent space. Existing card/button/reorder and density findings apply globally rather than needing repetition on Equipo.
+- Stage F4 Equipo: `Consumible` / `Munición` UX is unclear and takes too much space; later repair must address both semantics/presentation and compactness.
+- Terminology correction: currency must use **Electrum**, not `Electro`.
+- Stage F4 Rasgos: same toolbar/compactness family as Equipo. In the current UI, `Fuente` and `Tipo` are perceived as duplicate filtering/information and consume two spaces; later semantic/UI audit must either merge them or make a real distinction clear enough to justify both.
+- Owner terminology decision: use **`Raza` only**; never present `Especie/raza`.
+- Class/subclass finding: Spanish app currently presents class/subclass names in English; they should be localized into Spanish. The current 5e/5.5e distinction is also unclear and does not earn user-facing complexity while it has no concrete SRD/rules/custom matching function.
+- App-wide card direction: direct hold-and-drag from reorderable cards where safe; improve visual/tactile move feedback consistently; avoid large dedicated move controls and unnecessary action rows.
+- App-wide density direction: excessive margin/padding applies to buttons, boxes, cards, dialogs/windows and other elements. Treat this as a shared layout-family repair, not repeated per-screen bugs.
+- App-wide row-efficiency direction: when controls/information fit clearly in one row at the current scale, do not spread them across several rows; wrap only when width/text-scale/accessibility requires it.
+- App-wide landscape direction: phone landscape must not switch wholesale into the current tablet/wide UI. The existing tablet/wide presentation itself is not considered good enough and requires separate redesign/audit.
 - Cross-cutting help-text direction: App Settings should allow explanatory text as **Siempre visible / tooltip circled-i / Oculto**.
 - Cross-cutting navigation direction: App Settings should allow user reordering of character tabs while conditional-module visibility logic remains intact.
 
-The accumulated next-build backlog includes 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, compact sticky/fixed footprints, shared modal-editor IME/orientation repair, help-text presentation preference, tab-order preference, compact death-save/passive-skill layouts, Conjuros fixed/filter compaction, denser spell cards/action layout, whole-card reorder interaction, leading-zero numeric-entry repair, and explicit redesign/audit of tablet/wide layouts rather than reusing them as the phone-landscape answer.
+The accumulated next-build backlog includes 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, compact sticky/fixed footprints, shared modal-editor IME/orientation repair, help-text presentation preference, tab-order preference, compact death-save/passive-skill layouts, Conjuros fixed/filter compaction, denser spell cards/action layout, whole-card reorder interaction and stronger move feedback, leading-zero numeric-entry repair, explicit redesign/audit of tablet/wide layouts, Consumible/Munición UX compaction/clarification, Rasgos Fuente/Tipo semantic consolidation/clarification, Electrum terminology correction, Raza-only terminology, and Spanish class/subclass presentation with version metadata simplified until it has functional meaning.
 
 ### Owner QA workflow rule
 
@@ -50,8 +59,8 @@ Build `40700` remains the active technically verified pre-QA owner-audition buil
 
 ## Pause / exact resume point
 
-Stage F3 **Conjuros portrait and landscape are now recorded** on 2026-09-08. Do not repeat them from scratch.
+Stage F4 **Equipo and Rasgos are now recorded** on 2026-09-08. Do not repeat the global card, padding/margin, row-fragmentation, IME, or landscape findings on every remaining screen unless a surface materially differs.
 
-**Resume directly at Stage F4 — long-collection sticky toolbars.** On the Redmi Note 11 Pro 5G, inspect representative long collection screens and determine whether their permanently visible controls earn their space and still leave a practical content viewport. Do not re-report the already established general padding/margin, row-fragmentation, IME, direct-reorder, or phone-landscape/tablet-breakpoint findings unless a surface behaves materially differently.
+**Resume directly with one representative conditional-module toolbar to finish F4.** Check only whether its sticky/permanent toolbar earns its space, leaves a practical content viewport, and introduces any genuinely module-specific problem not already covered by the global findings.
 
 Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
