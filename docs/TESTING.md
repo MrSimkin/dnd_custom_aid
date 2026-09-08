@@ -2,7 +2,7 @@
 
 ## Current status
 
-Phases 0–3 are complete. Phase 4 Character Foundation Closure implementation is complete through M5 pre-QA consolidation.
+Phases 0–3 are complete. Phase 4 Character Foundation Closure implementation is complete, historical M1–M5 audits/consolidation are complete, and the owner-reopened pre-QA UX repair line is technically green through Pass 07.
 
 Current position:
 
@@ -10,10 +10,12 @@ Current position:
 - M2 code-health/static architecture audit — COMPLETE;
 - M3 historical implementation-completeness audit — COMPLETE;
 - M4 six approved inter-batch scope holes — COMPLETE;
-- M5 bounded cleanup, full regression and replacement candidate freeze — GREEN / FROZEN;
-- M6 owner real-device QA — **NEXT / NOT YET STARTED**.
+- M5 bounded cleanup/full regression/historical replacement freeze — GREEN / historical frozen evidence;
+- pre-QA UX repair Pass 03–07 — GREEN; focused technical repair line stable;
+- owner staged phone/tablet visual audition — **NEXT**;
+- M6 owner formal real-device QA — **DEFERRED / NOT ACTIVE until an exact replacement candidate is explicitly frozen**.
 
-The active QA candidate is not historical Batch L. Use only the M5 frozen replacement candidate recorded below.
+Current owner-audition identity is build `40700`; it is **not** a formal frozen M6 candidate. The historical M5 and Batch L frozen branches remain immutable evidence only.
 
 Green CI is technical evidence, not owner acceptance.
 
@@ -51,29 +53,37 @@ npm run check
 
 The established full gate runs both surfaces even when one area is unchanged, unless a smaller intermediate batch gate is explicitly documented.
 
-## 3. Exact active M6 candidate
+## 3. Current pre-QA owner-audition identity
 
-Owner QA must use only:
+Use the following build for the staged visual audition described in `docs/PREQA_OWNER_VISUAL_AUDITION.md`:
+
+- branch `implementation/phase4-preqa-ux-repair`;
+- review version `0.4.0-preqa.7` / build `40700`;
+- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+- tested tree `3b2f2ab471097d3b108c9a787fc2342c5aad683a`;
+- helper workflow `34171466714` — SUCCESS;
+- checkpoint/branch head `4c6da4577b57e472819e096ecff55bd6750e026d`;
+- artifact ID `10035895186`, name `DND-Custom-Aid-0.4.0-preqa.7-build-40700-debug`;
+- APK size `36,161,616` bytes;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
+
+This build is a **pre-QA visual-audition build**, not a frozen formal M6 target. Do not label it accepted merely because the automated gate is green.
+
+### Historical M5 frozen candidate
+
+The September 4 M5 candidate remains immutable historical evidence:
 
 - branch `tmp/phase4-m5-frozen-qa-candidate`;
 - exact commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
 - exact tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
-- ordinary clean standard workflow `33911956696` — SUCCESS;
-- independent exact-SHA validator workflow `33912322920` — SUCCESS;
-- validator artifact ID `9951922423`, name `phase4-m5-frozen-qa-apk`;
-- artifact ZIP digest `sha256:5fb8d7f281dbf937def89db4377e9b4157c46343f07721912aa759bb52d6f9fa`;
-- exact APK size `35,720,588` bytes;
-- exact APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+- validator artifact `9951922423` / `phase4-m5-frozen-qa-apk`;
+- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
 
-Owner-facing filename:
-
-`DND_Custom_Aid_Phase4_M6_QA_Candidate_2026-09-04.apk`
-
-The frozen candidate branch must not be changed.
+It ceased to be the active QA target when the owner explicitly reopened implementation on 2026-09-07. Do not mutate it and do not resume QA against it unless the owner explicitly requests historical comparison.
 
 ## 4. Automated evidence already complete
 
-M5 automated evidence includes:
+Historical M5 automated evidence includes:
 
 - D-0047 re-traceability for all six M4 repairs;
 - full shared/Kotlin tests;
@@ -84,18 +94,18 @@ M5 automated evidence includes:
 - exact-SHA detached checkout verification;
 - exact APK hash and size capture.
 
-No schema or persistence migration was added by M4/M5. The current closure schema remains the tested schema 9 line.
+No schema or persistence migration was added by M4/M5 or by pre-QA UX repair Pass 03–07. The current closure schema remains the tested schema 9 line. Pass 07 additionally completed the full shared/Kotlin, Android, Desktop and backend gate before producing build `40700`.
 
 The deprecated Kotlin Multiplatform `androidLibrary` target warning is known and intentionally deferred because migrating build target APIs is a structural maintenance change, not a demonstrated QA blocker.
 
-## 5. Critical first QA rule — migration before clean install
+## 5. Critical first formal-M6 rule — migration before clean install
 
-**Do not clear app data before the first owner QA test.**
+**When a replacement formal M6 candidate is frozen, do not clear app data before its first owner QA test.**
 
-The first test must exercise the real owner upgrade path:
+The first formal-M6 test must exercise the real owner upgrade path:
 
 1. keep the existing prior owner-QA app installation and data;
-2. install the exact M6 candidate over it;
+2. install the exact frozen replacement M6 candidate over it;
 3. open the app;
 4. verify existing campaigns and characters still exist;
 5. verify representative General, Combate, Equipo/Monedas, Conjuros and Notas data survive and reopen;
@@ -268,16 +278,27 @@ Do not add coverage gates, emulator farms, SonarQube, staging, automated product
 
 ## 11. Current exact continuation
 
-Current practical resume checkpoint:
+Current resume pointer:
 
-`docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`
+`docs/checkpoints/LATEST.md`
 
-When the owner resumes:
+Current detailed checkpoint:
 
-1. verify the frozen candidate identity above;
-2. verify the APK SHA-256;
-3. begin M6 with the in-place upgrade/data-preservation test;
-4. proceed through the required phone/tablet matrix;
-5. record findings before changing production code.
+`docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`
+
+Current owner action guide:
+
+`docs/PREQA_OWNER_VISUAL_AUDITION.md`
+
+Next sequence:
+
+1. use exact build `0.4.0-preqa.7` / `40700` for staged phone/tablet visual audition;
+2. record concrete visual/IME/layout findings using the guide;
+3. if a blocking finding exists, repair it on the durable pre-QA line and run the complete automated gate with a new identified build;
+4. when the owner explicitly says a build is ready, freeze that exact build as the replacement formal M6 candidate;
+5. only then begin formal M6, starting with the in-place upgrade/data-preservation test before any clean install;
+6. preserve historical M5/L branches as immutable evidence.
+
+Further speculative UX polishing is not the next action.
 
 No DM-feature implementation begins before successful Phase 4 owner QA, final governance/merge-boundary housekeeping and explicit owner closure/merge approval.

@@ -11,14 +11,14 @@ After reading this README, continue with these files in order:
 1. `AGENTS.md` — mandatory operating rules for humans and AI agents.
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented code areas.
 3. `docs/PROJECT_STATE.md` — current verified state and next action.
-4. `docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md` — current practical resume checkpoint while owner QA is paused.
+4. `docs/checkpoints/LATEST.md` — stable current resume pointer; it names the exact active checkpoint/build and next action.
 5. `docs/DECISIONS.md` — chronological significant-decision log; later detailed approved Phase 4 decisions under `docs/decisions/` also remain authoritative while the master log is being reconciled.
 6. `docs/CONVENTIONS.md` — approved recurring project conventions.
 7. `docs/PRODUCT.md` — current approved product direction and MVP.
 8. `docs/ROADMAP.md` — development phases and current phase.
 9. `docs/WORKFLOW.md` — how changes are designed, implemented, tested, documented, reviewed, and merged.
 10. `docs/ARCHITECTURE.md` — current approved architecture record and rationale.
-11. `docs/TESTING.md` — verification rules, current frozen QA candidate, and owner QA matrix.
+11. `docs/TESTING.md` — verification rules, current pre-QA review identity, and the formal owner-QA matrix that will apply after a replacement candidate is frozen.
 12. Relevant `docs/decisions/`, `docs/checkpoints/`, and feature-specific files for the active work.
 
 ## Canonical source of truth
@@ -72,27 +72,40 @@ The current character foundation includes, among other things:
 - SQLDelight migration coverage including the prior owner schema lineage;
 - bounded pre-QA dead-code/compiler-warning cleanup.
 
-The approved closure scope is D-0047. Automated implementation-completeness and code-health work is complete. The next stage is owner real-device QA.
+The approved closure scope is D-0047. After the historical M5 freeze, the owner explicitly reopened pre-QA implementation and the focused UX repair line completed Pass 03–07. Automated repair gates are green through review build `0.4.0-preqa.7` / `40700`. The next stage is staged owner phone/tablet visual audition; formal M6 remains deferred until the owner explicitly freezes a replacement candidate.
 
-## Current Phase 4 position — M6 owner QA pending
+## Current Phase 4 position — pre-QA repair line stable; owner audition next
 
-Durable pre-QA branch:
+Active owner-requested repair branch:
 
-`implementation/phase4-preqa-consolidation`
+`implementation/phase4-preqa-ux-repair`
 
-Exact frozen owner-QA candidate:
+Current technically verified review identity:
 
-- branch `tmp/phase4-m5-frozen-qa-candidate`;
-- commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
-- tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
-- artifact `9951922423` / `phase4-m5-frozen-qa-apk`;
-- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+- version `0.4.0-preqa.7` / build `40700`;
+- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+- tested tree `3b2f2ab471097d3b108c9a787fc2342c5aad683a`;
+- checkpoint/branch head `4c6da4577b57e472819e096ecff55bd6750e026d`;
+- workflow `34171466714` — SUCCESS;
+- artifact `10035895186` / `DND-Custom-Aid-0.4.0-preqa.7-build-40700-debug`;
+- APK size `36,161,616` bytes;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-Current resume checkpoint:
+Current resume pointer:
 
-`docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`
+`docs/checkpoints/LATEST.md`
 
-M6 QA has **not** started yet. When it begins, the first action is the in-place upgrade/data-preservation test. Do not clear app data before that test.
+Detailed current checkpoint:
+
+`docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`
+
+Owner audition guide:
+
+`docs/PREQA_OWNER_VISUAL_AUDITION.md`
+
+The September 4 M5 frozen candidate remains immutable historical evidence, but it is **not the active owner-QA target** after the owner explicitly reopened implementation. Build `40700` is a pre-QA visual-audition build, not yet a frozen formal M6 candidate.
+
+Further speculative UX implementation is stopped. The owner should now perform the staged phone/tablet audition; concrete blocking findings may produce a focused successor build. Formal M6 resumes only after the owner explicitly says an exact replacement build is ready to freeze.
 
 **DM feature implementation remains blocked until Phase 4 owner QA is accepted, final governance/merge-boundary housekeeping is complete, and the owner explicitly approves closure/merge.**
 

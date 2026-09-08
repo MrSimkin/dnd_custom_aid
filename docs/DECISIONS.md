@@ -910,3 +910,50 @@ Automated tests initially focus on failures that could materially hurt the proje
 Coverage gates, emulator farms, staging infrastructure, automated production deployment, enterprise quality tooling, generalized synchronization platforms, universal offline support and speculative module hierarchies are not required.
 
 This completes the foundational architecture/technology decision set under D-0009 and permits implementation scaffolding after explicit owner-reviewed merge of the architecture branch into canonical `main`.
+
+---
+
+## D-0044 — Phase 4 begins with character data foundation, then combat tracker
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0044_PHASE4_CHARACTER_FOUNDATION_ORDER.md`
+
+Phase 4 establishes a stable, usable Android/local character data foundation before DM combat work consumes character records. Persistent character-sheet state and future live combat working state remain separate. The application stays permissive: durable character values may represent homebrew/house-rule exceptions and the character foundation is not a legality engine.
+
+---
+
+## D-0045 — Character-sheet presentation preferences
+
+**Status:** Approved where explicitly stated in the detailed record; recorded pending items remain pending  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0045_CHARACTER_SHEET_PRESENTATION.md`
+
+Character-sheet presentation is digital/adaptive rather than a literal copy of the paper references. The sheet supports the approved alternative skills/ability organizations, compact progressive presentation, and application-level presentation settings that are not character mechanics. The detailed record contains the successive owner QA clarifications; later approved closure decisions/current checkpoints control where early QA candidate details were superseded.
+
+---
+
+## D-0046 — Character derived values and explicit adjustments
+
+**Status:** Approved  
+**Date:** 2026-08-30  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0046_CHARACTER_DERIVED_VALUES_AND_ADJUSTMENTS.md`
+
+Ordinary deterministic character arithmetic is calculated from known source values while optional explicit adjustments preserve gifts, homebrew, house rules and other exceptions. This covers ability modifiers, skills, saving throws, Passive Perception, Initiative and proficiency bonus under the detailed formulas. The principle is calculation assistance, not rules enforcement or character-build legality checking.
+
+---
+
+## D-0047 — Phase 4 character closure expansion
+
+**Status:** Approved  
+**Date:** 2026-09-03  
+**Decision owner:** Project owner  
+**Detailed record:** `docs/decisions/D-0047_PHASE4_CHARACTER_CLOSURE_EXPANSION.md`
+
+Before DM-focused implementation begins, Phase 4 receives one substantial character-foundation closure package combining retained owner QA corrections, new owner requirements, F01–F18, D01–D18, I01–I22, verified official class/subclass identity, reusable conditional class modules and first-class phone/tablet portrait/landscape behavior.
+
+The closure keeps the product permissive rather than turning it into a guided/legal character builder. It establishes Gestión, PC Settings responsibilities, structured live-maintenance/reference domains, backup/import, responsive/adaptive behavior, Supercompact/Table mode, reusable conditional modules, consistent collection/editor UX and the explicit owner acceptance boundary recorded in the detailed decision.
+

@@ -172,18 +172,24 @@ Historical checkpoints remain historical evidence even when their next-action in
 
 ## 13. Current project stage
 
-**Phases 0–3 are complete. Phase 4 — MVP Buildout is current.**
+**Phases 0–3 are complete. Phase 4 — MVP Buildout / Character Foundation Closure is current.**
 
-The active work is **Phase 4 Character Foundation Closure** on:
+The active owner-requested pre-QA line is:
 
-`implementation/phase4-character-closure`
+`implementation/phase4-preqa-ux-repair`
 
-D-0047 is approved and requires one substantial closure package containing the retained QA fixes, owner additions, F01–F18, D01–D18, I01–I22, official class/subclass representation including Artificer, conditional reusable class modules, and first-class phone/tablet responsive behavior.
+D-0047 remains the controlling approved closure scope. Historical implementation batches A1–L and M1–M5 remain durable evidence. After reviewing the historical M5 candidate, the owner explicitly reopened implementation; focused UX repair Pass 03–07 is now technically green and stable at review version `0.4.0-preqa.7` / build `40700`.
 
 Current execution entry point:
 
-`docs/checkpoints/2026-09-03_PHASE4_CLOSURE_EXECUTION_BATCH_PLAN.md`
+1. `docs/checkpoints/LATEST.md`;
+2. `docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`;
+3. `docs/PREQA_OWNER_VISUAL_AUDITION.md`.
 
-The implementation is divided into recoverable batches and gates. **Do not begin DM-feature implementation until the Phase 4 character closure is fully implemented, automatically verified, accepted through final owner phone + tablet QA, and explicitly approved for merge/closure.**
+The next action is **owner phone/tablet visual audition**, not speculative UX implementation and not historical M6. Build `40700` is an identified pre-QA audition build, not yet a frozen formal M6 candidate.
 
-Do not restart obsolete QA against historical artifact `9876725270` unless the owner explicitly requests historical testing. The next owner-QA target must be a new closure APK with an exact recorded commit/workflow/artifact identity.
+If the owner observes a concrete blocking/regression finding, repair it on the durable pre-QA line, run the complete automated gate and identify the successor build. When the owner explicitly says an exact build is ready, freeze that replacement candidate and resume formal M6 beginning with the in-place upgrade/data-preservation test.
+
+Historical frozen branches, including the September 4 M5 candidate, remain immutable evidence and must not be repurposed as the active target after implementation was reopened.
+
+**Do not begin DM-feature implementation until the Phase 4 character closure is fully implemented, automatically verified, accepted through final owner phone + tablet QA, governance/merge-boundary housekeeping is complete, and the owner explicitly approves merge/closure.**

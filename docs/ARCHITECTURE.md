@@ -3,13 +3,13 @@
 ## Current status
 
 **Phase:** Phase 4 — Character Foundation Closure  
-**Architecture state:** foundational choices approved; current work is additive character/adaptive implementation, not a stack redesign.  
-**Active branch:** `implementation/phase4-character-closure`  
+**Architecture state:** foundational choices approved; Phase 4 character/adaptive implementation and the focused pre-QA UX repair line are technically stable; no stack redesign is active.  
+**Active branch:** `implementation/phase4-preqa-ux-repair`  
 **Canonical `main`:** remains the latest accepted merged state.
 
 The foundational architecture under D-0034 through D-0043 remains controlling. D-0044 through D-0047 define the current character-foundation direction and closure scope. C-0009 remains controlling: use the simplest safe implementation that satisfies real approved requirements.
 
-Batches A1 through H3 are implemented. The current execution position is Batch I1 adaptive-shell completion; do not reopen schema/domain architecture merely because the closure has moved into holistic responsive work.
+Batches A1–L, historical M1–M5 and the owner-reopened pre-QA repair Pass 03–07 are implemented/verified at their recorded levels. The current execution position is owner visual audition plus governance/acceptance preparation; do not reopen schema/domain architecture for perceptual UI questions or speculative cleanup.
 
 ## Approved architecture
 
@@ -41,7 +41,7 @@ Neon PostgreSQL
 - **Phone and tablet are first-class targets.**
 - Responsive behavior should react to available width rather than simply stretching one phone layout or using one coarse tablet boolean.
 - Portrait and landscape matter on both phone and tablet.
-- Batch I1 may introduce an adaptive navigation shell/rail using ordinary Compose state/layout primitives; this does not require a new navigation framework or architecture layer.
+- The implemented adaptive navigation shell/rail uses ordinary Compose state/layout primitives and did not require a new navigation framework or architecture layer.
 
 ### Desktop
 
@@ -82,16 +82,16 @@ Schema 6 provides the initial closure prototype additions including:
 
 Additive schema 7 now represents the remaining D-0047 durable domains, including conditions/exhaustion, defenses, senses/movement, concentration, recovery metadata, custom skills, temporary effects, module overrides, portrait/reference metadata, reconciliation checkpoints and related settings.
 
-No further schema work is currently implied by Batch I1/I2. H1/H2/H3 confirmed that Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros can use the existing reusable durable domains without one hard-coded persistence subsystem per subclass.
+The current tested closure line is schema 9. No schema migration was added by pre-QA repair Pass 03–07. H1/H2/H3 confirmed that Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros can use the existing reusable durable domains without one hard-coded persistence subsystem per subclass.
 
 ### UI/adaptive state boundary
 
 Character presentation/navigation state must remain conceptually separate from character mechanics.
 
-For Batch I1:
+The implemented boundary remains:
 
 - available-width shell decisions are UI behavior, not character-domain data;
-- per-character last-open-tab state may be persisted as local UI preference/navigation state rather than added to the character rules/domain schema;
+- per-character last-open-tab state is persisted as local UI preference/navigation state rather than added to the character rules/domain schema;
 - conditional-tab restoration must resolve safely through existing module/spell visibility rules if the previously open tab is no longer available;
 - existing list search/filter/sort/selection context should be preserved by the UI-state mechanisms already introduced under B2/D16 rather than copied into durable character records;
 - existing F/G/H master-detail implementations should be reused, not replaced by a new generalized UI framework.
@@ -127,16 +127,17 @@ Neither area should be activated merely as housekeeping for the current characte
 
 ## Current implementation consequence
 
-The remaining Phase 4 closure work should primarily exercise:
+The architecture consequence of the current pre-QA state is deliberately small:
 
-- Android Compose adaptive shell/state handling in I1/I2;
-- existing shared Kotlin/SQLDelight persistence as regression-protected foundations rather than new architecture work;
-- own-format local backup/import in Batch J using the existing character repositories/domain model;
-- Desktop compilation as a shared-API regression check;
-- the existing simple CI workflow;
-- focused migration/integration stabilization in K before freezing L.
+- keep the existing shared Kotlin + SQLDelight + Compose character foundation intact unless a concrete owner-observed defect demonstrates a need to change it;
+- treat build `0.4.0-preqa.7` / `40700` as the current visual-audition identity, not as permission for further speculative architecture or UX framework work;
+- use the staged phone/tablet audition to resolve remaining perceptual questions about typography, density, fixed/sticky footprint, high-column layouts and keyboard ergonomics;
+- any concrete blocking finding receives a focused repair plus the existing complete automated gate and a new identified build;
+- freeze a replacement formal M6 candidate only after explicit owner readiness;
+- continue using Desktop compilation and backend type-check as regression checks even when the active change is Android presentation;
+- do not introduce a new service, synchronization layer, realtime mechanism, navigation framework or architecture framework for this closure work.
 
-Do not introduce a new service, synchronization layer, realtime mechanism, navigation framework or architecture framework to solve these local character-sheet completion tasks when ordinary shared Kotlin + SQLDelight + Compose is sufficient.
+DM-feature implementation remains blocked until Phase 4 formal owner QA, governance/merge-boundary completion and explicit owner closure/merge approval.
 
 ## Architecture gate consequence
 

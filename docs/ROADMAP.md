@@ -40,11 +40,11 @@ Phase 4 began with the Android character data foundation. That work expanded sub
 
 ### Phase 4A — Character Foundation Closure
 
-**Status:** Implementation complete; **M6 owner real-device QA pending**.
+**Status:** Closure implementation + focused pre-QA repair line technically stable; **owner visual audition pending; formal M6 deferred**.
 
-Durable pre-QA branch:
+Active owner-requested pre-QA repair branch:
 
-`implementation/phase4-preqa-consolidation`
+`implementation/phase4-preqa-ux-repair`
 
 The owner approved D-0047: one substantial final character-stage package combining retained QA fixes, new character functionality, UX/design improvements, official class/subclass identity including Artificer and supplemental official material, conditional reusable class modules, and first-class phone/tablet behavior.
 
@@ -71,17 +71,21 @@ Implemented conditional reusable modules:
 
 The closure includes the approved F01–F18, D01–D18 and I01–I22 sets recorded in D-0047, including global IME/action consistency, responsive phone/tablet layouts, Supercompact, Table mode, resources/conditions/rest management, structured defenses/senses/proficiencies, richer equipment/spell/trait workflows and own-format local backup/import.
 
-Pre-QA audits and consolidation are complete through M5. The exact frozen M6 candidate is:
+Historical M1–M5 audits/consolidation are complete. After reviewing that candidate, the owner explicitly reopened pre-QA implementation. Focused UX repair Pass 03–07 is now technically green and stable.
 
-- branch `tmp/phase4-m5-frozen-qa-candidate`;
-- commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
-- tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
-- artifact `9951922423`;
-- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+Current owner-audition identity:
 
-Current practical resume checkpoint:
+- version `0.4.0-preqa.7` / build `40700`;
+- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+- workflow `34171466714` — SUCCESS;
+- artifact `10035895186`;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-`docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`
+This review build is **not a frozen formal M6 candidate**. The next gate is the staged phone/tablet visual audition in `docs/PREQA_OWNER_VISUAL_AUDITION.md`. Only after the owner explicitly declares a build ready will one exact replacement candidate be frozen and formal M6 resume.
+
+Current practical resume pointer:
+
+`docs/checkpoints/LATEST.md`
 
 ### Phase 4A exit criterion
 
@@ -89,10 +93,12 @@ Character closure is complete only when:
 
 - D-0047 implementation is complete — **done**;
 - migrations/persistence and automated gates are green — **done**;
-- one exact closure APK candidate is recorded — **done**;
-- owner QA passes on phone portrait/landscape and tablet portrait/landscape, including a representative larger text scale — **pending**;
-- blocking findings are resolved — pending only if QA finds any;
-- continuity/governance housekeeping is complete — final post-QA pass pending;
+- focused automated pre-QA repair audits are green through Pass 07 — **done**;
+- current-stage governance prose is reconciled through the Pass 07 state — **done**;
+- owner staged visual audition on phone/tablet identifies an acceptable baseline with no unresolved blocking visual/IME/layout findings — **pending**;
+- one exact replacement formal M6 candidate is explicitly frozen after owner readiness — **pending**;
+- formal owner QA passes on phone portrait/landscape and tablet portrait/landscape, including representative larger text — **pending**;
+- blocking findings are resolved — pending only if audition/QA finds any;
 - the unique-commit/merge-boundary audit is complete — pending post-QA;
 - the owner explicitly accepts the result and approves the merge/closure — pending.
 

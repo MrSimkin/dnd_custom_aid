@@ -18,11 +18,17 @@ This inventory of durable project-control files and implemented areas.
 ### `docs/PROJECT_STATE.md`
 Authoritative snapshot of current branches, implementation reality, verification, blockers and exact next action.
 
-### `docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`
-Current practical resume checkpoint while owner QA is paused. It records the exact frozen M6 candidate, APK identity, mandatory first migration test, QA matrix, branch invariants and exact resume sequence.
+### `docs/checkpoints/LATEST.md`
+Stable current resume pointer. It names the active checkpoint, review identity and exact next action without requiring historical reconstruction.
+
+### `docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`
+Current technical repair checkpoint. Pass 07 marks the focused fixed/sticky, spacing-scale, IME/window and card-column audit line technically stable at build `40700`; formal M6 remains deferred.
+
+### `docs/PREQA_OWNER_VISUAL_AUDITION.md`
+Staged owner phone/tablet visual-audition guide for typography, text scale, spacing, columns/rotation, IME behavior and fixed/sticky footprint before any replacement formal M6 candidate is frozen.
 
 ### `docs/DECISIONS.md`
-Chronological significant-decision log. Detailed later Phase 4 decisions under `docs/decisions/` remain authoritative where the consolidated master log has not yet been reconciled. Full reconciliation through D-0044–D-0047 is intentionally deferred to post-QA governance housekeeping.
+Chronological significant-decision log, reconciled through D-0047. Detailed records under `docs/decisions/` remain the authoritative source for full rationale and approved nuance.
 
 ### `docs/decisions/`
 Detailed approved decision records. Current Phase 4 character work is governed especially by D-0044 through D-0047. Historical `D-0065...` is explicitly superseded by D-0047 and must not be treated as a competing decision.
@@ -34,7 +40,7 @@ Owner-approved recurring project conventions, including product-Spanish/technica
 Approved product scope and product boundaries.
 
 ### `docs/ROADMAP.md`
-Development phases and current Phase 4 closure boundary. Phase 4A implementation is complete; M6 owner real-device QA is the next gate.
+Development phases and current Phase 4 closure boundary. The focused pre-QA repair line is technically stable through Pass 07; staged owner visual audition precedes freezing a replacement formal M6 candidate.
 
 ### `docs/WORKFLOW.md`
 Approved design/implementation/verification/checkpoint/review/merge workflow.
@@ -43,10 +49,10 @@ Approved design/implementation/verification/checkpoint/review/merge workflow.
 Current approved architecture and implementation consequences.
 
 ### `docs/TESTING.md`
-Verification policy, commands, exact frozen M6 QA candidate and current phone/tablet owner-QA matrix.
+Verification policy, commands, current pre-QA review identity, owner visual-audition boundary and the formal phone/tablet M6 matrix to use after a replacement candidate is explicitly frozen.
 
 ### `docs/checkpoints/`
-Durable implementation, QA and handoff checkpoints. The current resume entry point is `2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md`. Historical batch checkpoints remain evidence and must not override the current resume point.
+Durable implementation, QA and handoff checkpoints. The current resume entry point is always `LATEST.md`; historical batch/M6-pause checkpoints remain evidence and must not override the current pointer.
 
 ### `docs/CHARACTER_CLASS_SUBCLASS_MODULE_AUDIT.md`
 Class/subclass audit and conditional-module design input that informed D-0047.
@@ -63,7 +69,7 @@ Do not split this into speculative architecture-layer Gradle modules without a c
 ### `androidApp/`
 Native Kotlin + Jetpack Compose Android application, `minSdk 30`.
 
-The Phase 4 character editor includes General, Habilidades, Combate, Gestión, Equipo/Monedas, Trasfondo, Rasgos, conditional Conjuros, Notas, PC Settings, Application Settings, Supercompact/Table mode and all six approved conditional class/subclass module families, with phone/tablet adaptive behavior. Phase 4A implementation is now frozen for M6 owner QA.
+The Phase 4 character editor includes General, Habilidades, Combate, Gestión, Equipo/Monedas, Trasfondo, Rasgos, conditional Conjuros, Notas, PC Settings, Application Settings, Supercompact/Table mode and all six approved conditional class/subclass module families, with phone/tablet adaptive behavior. The focused pre-QA repair line is technically stable through Pass 07; it is awaiting owner visual audition rather than frozen formal M6 QA.
 
 ### `desktopApp/`
 Kotlin + Compose Multiplatform Desktop DM preparation/administration shell. It builds against shared APIs; full Android feature parity is not required.
@@ -79,17 +85,20 @@ Current simple CI gate: JDK 17, Android SDK 36, Gradle 9.5, shared desktop tests
 
 The workflow also prepares a stable development-only Android debug signing identity for update-in-place QA/migration testing. This is not a release signing identity.
 
-## Active frozen QA candidate
+## Current pre-QA review identity
 
-Owner QA must use only:
+The current owner-audition build is:
 
-- branch `tmp/phase4-m5-frozen-qa-candidate`;
-- commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
-- tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
-- artifact `9951922423` / `phase4-m5-frozen-qa-apk`;
-- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+- branch `implementation/phase4-preqa-ux-repair`;
+- review version `0.4.0-preqa.7` / build `40700`;
+- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+- tested tree `3b2f2ab471097d3b108c9a787fc2342c5aad683a`;
+- checkpoint head `4c6da4577b57e472819e096ecff55bd6750e026d`;
+- workflow `34171466714` — SUCCESS;
+- artifact `10035895186` / `DND-Custom-Aid-0.4.0-preqa.7-build-40700-debug`;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-The historical Batch L frozen candidate remains immutable evidence only and is not the active QA target.
+This is **not yet a frozen formal M6 candidate**. Use `docs/PREQA_OWNER_VISUAL_AUDITION.md` first. The historical M5 and Batch L frozen branches remain immutable evidence and are not the active audition target.
 
 ## Character-sheet assets
 
@@ -122,7 +131,7 @@ If documents appear to conflict:
 3. `docs/CONVENTIONS.md` controls recurring approved practice;
 4. `docs/PRODUCT.md` controls approved product direction;
 5. `docs/PROJECT_STATE.md` controls current implementation/next action;
-6. `docs/checkpoints/2026-09-04_PHASE4_M6_QA_PAUSE_HANDOFF.md` is the practical resume checkpoint while QA is paused;
+6. `docs/checkpoints/LATEST.md` is the stable practical resume pointer;
 7. other current checkpoints provide exact historical work evidence;
 8. discovery/history is contextual only;
 9. surface material contradictions instead of guessing.

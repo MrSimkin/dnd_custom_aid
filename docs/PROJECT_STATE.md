@@ -5,8 +5,8 @@
 **Phase 4 durable historical line:** `implementation/character-data-foundation`  
 **Durable pre-QA branch:** `implementation/phase4-preqa-consolidation`  
 **Active owner-requested repair branch:** `implementation/phase4-preqa-ux-repair`
-**Current phase:** Phase 4 Character Foundation Closure — owner QA pending
-**Current execution position:** Owner explicitly reopened pre-QA implementation on 2026-09-07 after reviewing the M5/M6 candidate. The focused implementation repair line is technically stable through Pass 07 on `implementation/phase4-preqa-ux-repair`, review identity version `0.4.0-preqa.7` / build `40700`; owner visual/device audition and governance reconciliation remain before any replacement formal M6 candidate is frozen.
+**Current phase:** Phase 4 Character Foundation Closure — owner visual audition pending; formal M6 deferred
+**Current execution position:** Owner explicitly reopened pre-QA implementation on 2026-09-07 after reviewing the historical M5/M6 candidate. The focused implementation repair line is technically stable through Pass 07 on `implementation/phase4-preqa-ux-repair`, review identity version `0.4.0-preqa.7` / build `40700`. Current-stage governance prose is reconciled through D-0047/Pass 07. Next action is owner phone/tablet visual audition; formal M6 remains deferred until the owner explicitly freezes an exact replacement candidate.
 **DM work:** explicitly blocked until Phase 4 closure is fully implemented, phone+tablet QA accepted, and owner approves closure/merge
 
 ## 0. Primary resume order
@@ -29,7 +29,7 @@ No DM feature implementation begins before that exit gate.
 
 ### Batch 0 — repository housekeeping — COMPLETE
 
-Current-truth documentation was refreshed. Known remaining governance item: consolidated `docs/DECISIONS.md` still ends at D-0043 while detailed D-0044–D-0047 files exist. Reconcile before merge proposal without renumbering historical decisions.
+Current-truth documentation is refreshed through the owner-reopened Pass 07 line. The consolidated `docs/DECISIONS.md` is reconciled through D-0047 without renumbering historical decisions. The remaining later governance boundary is the post-acceptance unique-commit/merge audit and final merge proposal.
 
 ### Batch A1 — official class/subclass catalog — GREEN
 
@@ -226,7 +226,7 @@ Frozen candidate identity:
 
 The frozen candidate branch must not be changed. Any code repair after owner QA begins invalidates this identity and requires a new candidate.
 
-## 3. Expanded Batch M — pre-QA complete; owner QA next
+## 3. Expanded Batch M — historical pre-repair audit line; owner later reopened implementation
 
 Batch M was expanded from the historical single owner-QA step so implementation completeness and code health were proven before asking the owner to perform device QA.
 
@@ -280,7 +280,7 @@ M5 completed:
 - ordinary clean repository gate;
 - independent exact-SHA candidate validation.
 
-Exact active M6 candidate identity:
+Historical M5 frozen candidate identity (superseded as the active target when the owner reopened implementation on 2026-09-07):
 
 - branch `tmp/phase4-m5-frozen-qa-candidate`;
 - commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
@@ -294,42 +294,43 @@ Exact active M6 candidate identity:
 
 The frozen M5 candidate branch must not be changed. The historical L branch remains frozen historical evidence only.
 
-### M6 — owner real-device QA — NEXT
+### M6 — owner real-device QA — DEFERRED / NOT ACTIVE
 
-Owner QA now begins only on the exact M5 candidate above.
+The September 4 M5 freeze remains immutable historical evidence, but the owner explicitly reopened implementation before starting formal M6. Do not resume formal QA against that historical target unless the owner explicitly requests comparison.
 
-Critical migration order:
+### Owner-reopened pre-QA UX repair Pass 03–07 — GREEN / TECHNICALLY STABLE
 
-1. **Do not clear app data before the upgrade test.**
-2. Install the exact M5 candidate over the prior owner-QA installation/data so the schema lineage is exercised on the real device.
-3. Verify existing campaigns, characters and representative General/Combat/Equipment/Spells/Notes data survive and reopen.
-4. Only after the upgrade/data-preservation check is complete may a clean-install pass be used for fresh-install behavior.
+The reopened repair line addressed owner-observed presentation/ergonomic concerns before formal QA. Across Pass 03–07 it completed the planned fixed/sticky controls, application text/font/spacing options, spacing-scale propagation, IME/window audit, conditional long-collection controls, card-column readability audit and final residual spacing sweep.
 
-Required device/layout matrix:
+Current review identity:
 
-- phone portrait;
-- phone landscape;
-- tablet portrait;
-- tablet landscape;
-- representative larger text setting.
+- branch `implementation/phase4-preqa-ux-repair`;
+- version `0.4.0-preqa.7` / build `40700`;
+- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+- tested tree `3b2f2ab471097d3b108c9a787fc2342c5aad683a`;
+- workflow `34171466714` — SUCCESS;
+- artifact `10035895186` / `DND-Custom-Aid-0.4.0-preqa.7-build-40700-debug`;
+- APK size `36,161,616` bytes;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`;
+- checkpoint/branch head `4c6da4577b57e472819e096ecff55bd6750e026d`.
 
-Core QA coverage includes all main and conditional tabs, dirty/Save/Discard behavior, Table mode, Supercompact, backup export/import-as-copy, IME/keyboard safety, rotation/context retention, scrolling/larger text and responsive/master-detail behavior.
+Pass 07 established a technical stopping rule: further speculative visual code changes are not recommended before owner phone/tablet observation. Build `40700` is therefore the current **visual-audition build**, not a frozen formal M6 candidate.
 
-QA is quality/real-device acceptance. It does not reopen M1–M5 unless a demonstrated QA finding requires a production repair.
+Use `docs/PREQA_OWNER_VISUAL_AUDITION.md`. Any concrete blocking finding receives a focused repair/new identified build. Formal M6 resumes only after the owner explicitly declares an exact build ready to freeze.
 
 ## 4. Remaining approved execution sequence
 
 From the current position:
 
-- **M1 — COMPLETE:** scope traceability audit;
-- **M2 — COMPLETE:** code-health/static architecture audit;
-- **M3 — COMPLETE:** prior-batch implementation-completeness audit;
-- **M4 — COMPLETE:** six inter-batch approved-scope holes closed;
-- **M5 — GREEN / FROZEN:** repaired tree re-audited, bounded cleanup complete, full automated gates green, replacement exact QA candidate frozen and independently validated;
-- **M6 — NEXT:** owner real-device QA on that exact candidate;
-- blocking M6 finding requiring production change -> focused repair -> complete automated gate -> new frozen candidate identity -> repeat affected QA evidence;
-- after owner QA acceptance, complete continuity/governance housekeeping including consolidated `docs/DECISIONS.md`, perform the unique-commit/merge-boundary audit, and prepare the Phase 4 merge proposal;
-- merge to `main` only after the owner explicitly approves Phase 4 closure/merge.
+- historical M1–M5 — **COMPLETE/GREEN** at their recorded levels; historical frozen branches remain immutable evidence;
+- pre-QA UX repair Pass 03–07 — **GREEN / TECHNICALLY STABLE**;
+- current-state governance reconciliation through D-0047/Pass 07 — **COMPLETE**;
+- **NEXT:** owner staged phone/tablet visual audition using build `40700` and `docs/PREQA_OWNER_VISUAL_AUDITION.md`;
+- blocking audition finding requiring production change -> focused repair -> complete automated gate -> new identified review build -> repeat affected audition evidence;
+- when owner explicitly says the replacement build is ready -> freeze one exact formal M6 candidate with commit/tree/workflow/artifact/hash identity;
+- formal M6 begins on that frozen candidate with the in-place upgrade/data-preservation test before any clean install;
+- after owner QA acceptance -> complete the unique-commit/merge-boundary audit and prepare the Phase 4 merge proposal;
+- merge to `main` only after explicit owner closure/merge approval.
 
 No DM feature implementation begins before that explicit Phase 4 exit decision.
 
@@ -341,29 +342,35 @@ Historical/focused/tmp branches remain intentionally preserved. Do not delete th
 
 ## 6. Final acceptance boundary
 
-The historical Batch L APK remains frozen evidence of the pre-M audit tree. The exact M5 frozen candidate is now the active owner-QA target.
+Historical Batch L and M5 frozen branches remain evidence of their respective pre-repair trees. Neither is the active QA target after the owner reopened implementation. Build `40700` is the current owner-audition identity and is not yet formal M6.
 
 Phase 4 remains open until:
 
-1. M6 owner phone+tablet QA is completed and accepted on the exact M5 candidate (or a replacement candidate created after a blocking QA repair);
-2. blocking findings are resolved and affected QA evidence repeated when necessary;
-3. continuity/governance housekeeping is complete;
-4. the unique-commit/merge-boundary audit is complete;
-5. the owner explicitly approves merge/closure.
+1. staged owner phone/tablet visual audition is complete with no unresolved blocking visual/IME/layout findings;
+2. one exact replacement formal M6 candidate is explicitly frozen after owner readiness;
+3. M6 owner phone+tablet QA is completed and accepted on that exact replacement candidate;
+4. blocking findings are resolved and affected evidence repeated when necessary;
+5. the unique-commit/merge-boundary audit and final continuity housekeeping are complete;
+6. the owner explicitly approves merge/closure.
 
-Implementation-completeness audits are not substitutes for QA, and QA is not a substitute for verifying that approved work was actually implemented.
+Implementation-completeness audits are not substitutes for QA, and automated green is not owner acceptance.
 
 ## 7. Exact continuation
 
-**Next action: M6 owner real-device QA.**
+**Next action: owner staged phone/tablet visual audition on build `40700`.**
 
-Use only:
+Resume in this order:
 
-- branch `tmp/phase4-m5-frozen-qa-candidate`;
-- commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
-- artifact `9951922423` / `phase4-m5-frozen-qa-apk`;
-- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+1. `docs/checkpoints/LATEST.md`;
+2. `docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`;
+3. `docs/PREQA_OWNER_VISUAL_AUDITION.md`.
 
-Begin with the in-place upgrade/data-preservation test; do not clear app data first.
+Current audition identity:
 
-Keep `main` untouched. Keep both historical `tmp/phase4-l-frozen-qa-candidate` and active `tmp/phase4-m5-frozen-qa-candidate` untouched. Do not begin DM work before successful Phase 4 exit and explicit owner approval.
+- branch `implementation/phase4-preqa-ux-repair`;
+- version `0.4.0-preqa.7` / build `40700`;
+- product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+- artifact `10035895186`;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
+
+Do not begin formal M6 yet. Do not clear app data for a hypothetical M6 migration test until an exact replacement candidate is actually frozen. Preserve the historical M5/L branches unchanged. Keep `main` untouched. Do not begin DM work before successful Phase 4 exit and explicit owner approval.
