@@ -122,6 +122,53 @@ data class CharacterResourceSuccessorConfiguration(
     val placements: Set<CharacterResourcePlacement> = setOf(CharacterResourcePlacement.MANAGEMENT),
 )
 
+/** Stable shared keys for user-configurable character-sheet tab order. */
+@Serializable
+enum class CharacterSheetTabKey {
+    OVERVIEW,
+    SKILLS,
+    COMBAT,
+    DICE,
+    MANAGEMENT,
+    EQUIPMENT,
+    BACKGROUND,
+    TRAITS,
+    SPELLS,
+    ARTIFICER,
+    FORMS,
+    TECHNIQUES,
+    METAMAGIC,
+    PACTS,
+    COMPANIONS,
+    NOTES,
+}
+
+@Serializable
+data class CharacterSuccessorPreferences(
+    val valuablesText: String = "",
+    val tabOrder: List<CharacterSheetTabKey> = CharacterSheetTabKey.entries,
+)
+
+@Serializable
+enum class CharacterBackgroundImageSlot {
+    PRIMARY,
+    SECONDARY,
+}
+
+/**
+ * App-owned image payload. Android is responsible for resizing/compressing before persistence.
+ * Encoded data intentionally lives in the aggregate so reopen and own-format backup/import do not
+ * depend on a transient external content URI.
+ */
+@Serializable
+data class CharacterBackgroundImage(
+    val id: Uuid,
+    val slot: CharacterBackgroundImageSlot,
+    val mimeType: String,
+    val encodedData: String,
+    val originalName: String? = null,
+)
+
 @Serializable
 data class CharacterSuccessorState(
     val customAttributes: List<CharacterCustomAttribute> = emptyList(),
@@ -130,6 +177,8 @@ data class CharacterSuccessorState(
     val combatDamage: List<CharacterCombatDamageProfile> = emptyList(),
     val customMarkers: List<CharacterCustomMarker> = emptyList(),
     val resourceConfigurations: List<CharacterResourceSuccessorConfiguration> = emptyList(),
+    val preferences: CharacterSuccessorPreferences = CharacterSuccessorPreferences(),
+    val backgroundImages: List<CharacterBackgroundImage> = emptyList(),
 )
 
 fun CharacterSheet.abilityScore(
