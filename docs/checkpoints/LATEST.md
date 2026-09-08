@@ -1,11 +1,11 @@
 # Latest project checkpoint
 
-**Updated:** 2026-09-07  
+**Updated:** 2026-09-08  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
 **Current review identity:** version `0.4.0-preqa.7` / build `40700` / `debug`  
 **Current technical state:** focused pre-QA UX repair Pass 07 green/stable; no new product build started during owner audition  
 **Current governance state:** current-stage prose reconciled through D-0047/Pass 07  
-**Owner audition state:** PAUSED BY OWNER — primary phone Stage A/B/C/D/E complete; Stage F in progress through Gestión + Habilidades  
+**Owner audition state:** primary phone Stage A/B/C/D/E complete; Stage F in progress through F3 Conjuros portrait  
 **Detailed Stage F checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md`  
 **Stage E checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_E.md`  
 **Prior Stage D checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_D.md`  
@@ -30,11 +30,15 @@ Primary recorded phone test device: **Redmi Note 11 Pro 5G**. Build `0.4.0-preqa
 - Stage F Gestión: fixed `Estado operativo` is too large, especially on phone landscape. Death saves use excessive vertical space and should be redesigned toward one compact row with clearer controls/icons.
 - Stage F Gestión cross-tab coherence: General can show edited PG above 0 while Gestión may still render persisted 0-HP/death-save state before save; later repair must distinguish unsaved-draft coherence from any saved-state functional defect.
 - Stage F Habilidades: fixed selector/passive-reference band earns its place, but Percepción/Perspicacia/Investigación should explicitly communicate that they are **pasivas**. Owner prefers horizontal label+value presentation with separators to recover a few vertical pixels.
+- Stage F3 Conjuros portrait: source selector and filters earn permanent space, but excessive vertical padding/margins and unnecessary row fragmentation make the fixed area too tall. Spell list remains visible.
+- Stage F3 Conjuros portrait: spell cards/windows also waste substantial space; action controls should be grouped rather than consuming multiple lines.
+- Stage F3 reorder direction: owner prefers hold-and-drag directly on reorderable cards, without a visually dominant dedicated move control, where interaction/accessibility remain safe. Apply this direction across equivalent card surfaces.
+- Stage F3 confirms the spell-level leading-zero numeric-entry defect remains present in build `40700`.
 - Cross-cutting UX direction: do not consume two rows when one clearer row is practical; preserve accessibility/tapability.
 - Cross-cutting help-text direction: App Settings should allow explanatory text as **Siempre visible / tooltip circled-i / Oculto**.
 - Cross-cutting navigation direction: App Settings should allow user reordering of character tabs while conditional-module visibility logic remains intact.
 
-The accumulated next-build backlog includes 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, compact sticky/fixed footprints, shared modal-editor IME/orientation repair, help-text presentation preference, tab-order preference, and compact death-save/passive-skill layouts.
+The accumulated next-build backlog includes 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, compact sticky/fixed footprints, shared modal-editor IME/orientation repair, help-text presentation preference, tab-order preference, compact death-save/passive-skill layouts, Conjuros fixed/filter compaction, denser spell cards/action layout, whole-card reorder interaction, and leading-zero numeric-entry repair.
 
 ### Owner QA workflow rule
 
@@ -44,8 +48,10 @@ Build `40700` remains the active technically verified pre-QA owner-audition buil
 
 ## Pause / exact resume point
 
-Owner paused the audition on 2026-09-07 after completing phone Stage E and Stage F through Gestión + Habilidades. No further product changes or audition findings should be assumed after this checkpoint.
+Stage F3 **Conjuros portrait is now recorded** on 2026-09-08. Do not repeat portrait from scratch.
 
-**Resume directly at Stage F3 — Conjuros, phone portrait.** Inspect the combined permanent footprint of source selector + spell toolbar + sticky current-level header. Report which layers earn their permanent space, which consume unnecessary height, whether elements can be merged into one row, and whether the overall fixed stack feels comfortable or too tall. Only after portrait is recorded should the same surface be checked in landscape.
+**Resume directly at Stage F3 — Conjuros, phone landscape.** Inspect the same source selector + filters + sticky current-level stack after rotation. Check whether landscape uses horizontal space to reduce rows, whether enough spell-list viewport remains, whether the known phone-landscape tablet/master-detail behavior worsens this screen, whether spell cards become denser, and whether any clipping/overlap/inaccessible controls appear.
+
+After F3 landscape is recorded, continue to F4 long-collection sticky toolbars.
 
 Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
