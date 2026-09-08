@@ -1,66 +1,105 @@
 # Latest project checkpoint
 
 **Updated:** 2026-09-08  
-**Active branch:** `implementation/phase4-preqa-ux-repair`  
-**Current review identity:** version `0.4.0-preqa.7` / build `40700` / `debug`  
-**Current technical state:** focused pre-QA UX repair Pass 07 green/stable; no new product build started during owner audition  
-**Current governance state:** current-stage prose reconciled through D-0047/Pass 07  
-**Owner audition state:** primary phone Stage A/B/C/D/E complete; Stage F in progress through F4 Equipo + Rasgos  
-**Detailed Stage F checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md`  
-**Stage E checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_E.md`  
-**Prior Stage D checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_D.md`  
-**Owner test devices:** `docs/TEST_DEVICES.md`  
-**Owner audition guide:** `docs/PREQA_OWNER_VISUAL_AUDITION.md`
+**Controlling decision:** D-0048  
+**Canonical baseline after consolidation:** `main`  
+**Consolidation source:** `implementation/phase4-preqa-ux-repair`  
+**Current product status:** debug / pre-QA; known owner-observed defects remain  
+**Latest technically verified product identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
+**Primary owner test phone:** Redmi Note 11 Pro 5G  
+**Phone audition:** Stages A–F sufficiently covered; findings recorded; build did not pass visual acceptance  
+**Tablet acceptance:** not complete; no physical owner tablet recorded  
+**DM implementation:** blocked pending later Phase 4A closure acceptance
 
-Primary recorded phone test device: **Redmi Note 11 Pro 5G**. Build `0.4.0-preqa.7` / `40700` installed and launched successfully, and `Ajustes -> Acerca de` confirmed the expected version/build/type.
+## Read next
 
-### Recorded phone evidence
+1. `docs/PROJECT_STATE.md` — authoritative current-state snapshot;
+2. `docs/BRANCH_STATUS.md` — interpretation of the many remaining historical branch refs;
+3. `docs/decisions/D-0048_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md` — why the current pre-QA state is being consolidated into `main` before release acceptance;
+4. `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md` — latest detailed phone-audition findings;
+5. `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md` — source/provenance information-architecture follow-up.
 
-- Typography: Mona Sans Condensed rejected as too compressed/difficult to read; League Spartan rejected as visually unpleasant; PT Sans Narrow remains provisional pending a satisfactory Bold presentation; other sampled candidates pass this elimination stage.
-- Text scale: very large sizes are difficult but the warning is clear/acceptable; very small sizes are intentionally very small and the owner wants the range retained.
-- Spacing: 100% has too much whitespace; 80% still has a lot but is acceptable; 60% is good for the owner; owner wants to audition 40% in a future build.
-- Dialog/window spacing: compactness does not apply consistently; fixed/framework dialog spacing remains a later repair target.
-- Stage D portrait density: 1–2 columns comfortable; 3+ cramped for readability; buttons remain comfortable; no overlap/clipping.
-- Stage D phone landscape: major responsive-mode finding — vertical tabs and tablet-like/master-detail presentation appear on phone landscape. Current code confirms side rail is selected from width alone at `>=760dp`. Owner expects phone landscape to remain a phone interaction model.
-- Stage D reordering: cards in multi-column presentation can be moved vertically but not laterally; later UX/implementation audit required.
-- Stage D rotation: selected tab survives, but scroll/list position resets to the start.
-- Stage E1 general Notes editor: PASS.
-- Stage E2-E7: titled Notes, Equipo, Rasgos, Conjuros, conditional modules and Gestión reproduce the same major IME/editor family: lower content/actions cannot all remain practically reachable with keyboard visible, and active editor composition is disrupted by rotation. Stage E is complete for the phone with findings recorded.
-- Stage E5 also records a minor spell-level leading-zero replacement/normalization defect.
-- Stage F Gestión: fixed `Estado operativo` is too large, especially on phone landscape. Death saves use excessive vertical space and should be redesigned toward one compact row with clearer controls/icons.
-- Stage F Gestión cross-tab coherence: General can show edited PG above 0 while Gestión may still render persisted 0-HP/death-save state before save; later repair must distinguish unsaved-draft coherence from any saved-state functional defect.
-- Stage F Habilidades: fixed selector/passive-reference band earns its place, but Percepción/Perspicacia/Investigación should explicitly communicate that they are **pasivas**. Owner prefers horizontal label+value presentation with separators to recover a few vertical pixels.
-- Stage F3 Conjuros portrait: source selector and filters earn permanent space, but excessive vertical padding/margins and unnecessary row fragmentation make the fixed area too tall. Spell list remains visible.
-- Stage F3 Conjuros portrait: spell cards/windows also waste substantial space; action controls should be grouped rather than consuming multiple lines.
-- Stage F3 reorder direction: owner prefers hold-and-drag directly on reorderable cards, without a visually dominant dedicated move control, where interaction/accessibility remain safe. Apply this direction across equivalent card surfaces.
-- Stage F3 confirms the spell-level leading-zero numeric-entry defect remains present in build `40700`.
-- Stage F3 Conjuros landscape: FAIL/major. Source selector + filters/fixed controls consume the entire usable vertical viewport, so **no spells are visible**.
-- Stage F3 landscape reinforces the earlier rejected phone-landscape tablet-like breakpoint behavior. This is a compound responsive/compactness issue, not merely an isolated Conjuros spacing defect. Current tablet/wide composition must not be assumed acceptable for phone landscape and remains subject to separate redesign/audit.
-- Stage F4 Equipo: sticky toolbar is useful and earns its permanent space. Existing card/button/reorder and density findings apply globally rather than needing repetition on Equipo.
-- Stage F4 Equipo: `Consumible` / `Munición` UX is unclear and takes too much space; later repair must address both semantics/presentation and compactness.
-- Terminology correction: currency must use **Electrum**, not `Electro`.
-- Stage F4 Rasgos: same toolbar/compactness family as Equipo. In the current UI, `Fuente` and `Tipo` are perceived as duplicate filtering/information and consume two spaces; later semantic/UI audit must either merge them or make a real distinction clear enough to justify both.
-- Owner terminology decision: use **`Raza` only**; never present `Especie/raza`.
-- Class/subclass finding: Spanish app currently presents class/subclass names in English; they should be localized into Spanish. The current 5e/5.5e distinction is also unclear and does not earn user-facing complexity while it has no concrete SRD/rules/custom matching function.
-- App-wide card direction: direct hold-and-drag from reorderable cards where safe; improve visual/tactile move feedback consistently; avoid large dedicated move controls and unnecessary action rows.
-- App-wide density direction: excessive margin/padding applies to buttons, boxes, cards, dialogs/windows and other elements. Treat this as a shared layout-family repair, not repeated per-screen bugs.
-- App-wide row-efficiency direction: when controls/information fit clearly in one row at the current scale, do not spread them across several rows; wrap only when width/text-scale/accessibility requires it.
-- App-wide landscape direction: phone landscape must not switch wholesale into the current tablet/wide UI. The existing tablet/wide presentation itself is not considered good enough and requires separate redesign/audit.
-- Cross-cutting help-text direction: App Settings should allow explanatory text as **Siempre visible / tooltip circled-i / Oculto**.
-- Cross-cutting navigation direction: App Settings should allow user reordering of character tabs while conditional-module visibility logic remains intact.
+## What D-0048 changed
 
-The accumulated next-build backlog includes 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, compact sticky/fixed footprints, shared modal-editor IME/orientation repair, help-text presentation preference, tab-order preference, compact death-save/passive-skill layouts, Conjuros fixed/filter compaction, denser spell cards/action layout, whole-card reorder interaction and stronger move feedback, leading-zero numeric-entry repair, explicit redesign/audit of tablet/wide layouts, Consumible/Munición UX compaction/clarification, Rasgos Fuente/Tipo semantic consolidation/clarification, Electrum terminology correction, Raza-only terminology, and Spanish class/subclass presentation with version metadata simplified until it has functional meaning.
+The owner explicitly requested that the repository stop carrying the entire current Phase 4 development state only on confusing long-lived branches.
 
-### Owner QA workflow rule
+Therefore the current development baseline is promoted into canonical `main` **without claiming that it is a good release**.
 
-Continue the staged QA/audition and **record findings instead of implementing each one immediately**. Batch recorded findings into a later identified repair build only when the owner explicitly requests it or a blocking defect prevents meaningful continuation.
+This consolidation means:
 
-Build `40700` remains the active technically verified pre-QA owner-audition build, not a frozen formal M6 candidate.
+- `main` becomes the single current source of truth;
+- the current debug state and its known bugs become canonical development reality;
+- old implementation/tmp branches become historical evidence only;
+- frozen QA-evidence branches remain immutable;
+- future repairs branch from `main`.
 
-## Pause / exact resume point
+It does **not** mean Phase 4 is accepted or closed.
 
-Stage F4 **Equipo and Rasgos are now recorded** on 2026-09-08. Do not repeat the global card, padding/margin, row-fragmentation, IME, or landscape findings on every remaining screen unless a surface materially differs.
+## Latest verified product code
 
-**Resume directly with one representative conditional-module toolbar to finish F4.** Check only whether its sticky/permanent toolbar earns its space, leaves a practical content viewport, and introduces any genuinely module-specific problem not already covered by the global findings.
+The full automated gate last passed for product commit:
 
-Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
+`43ca1f5662123ce4d355d9d618b0bfba66d17697`
+
+Review identity:
+
+- version `0.4.0-preqa.7`;
+- build `40700`;
+- workflow `34171466714` — SUCCESS;
+- artifact `10035895186`;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
+
+The D-0048 audit verified that the 39 commits after that tested product commit through pre-consolidation head `0ac2d3d190f989549ced4914d7ce98274118a0d3` were documentation/governance-only. No newer untested product-code change is being smuggled into `main` by this consolidation.
+
+## Phone audition result
+
+Do **not** resume old M6 or repeat the whole phone audition on build `40700`.
+
+Stages A–F have yielded enough evidence to design a successor repair cycle. Important recorded families include:
+
+- app-wide excessive padding/margins and row fragmentation;
+- card action/reorder density and weak move feedback;
+- major shared editor/IME problems;
+- phone landscape incorrectly entering an inadequate wide/tablet presentation;
+- current tablet/wide UI itself requiring redesign/audit;
+- Conjuros fixed controls consuming the entire phone-landscape viewport;
+- scroll/context reset on rotation;
+- compactness issues in Gestión/death saves and various sticky regions;
+- unclear Consumible/Munición presentation;
+- generic `Fuente` provenance over-exposed in editors;
+- preferred structured one-row origin model: origin type + specific origin, with `Clase` as default origin type;
+- preserve real Conjuros spellcasting-source associations because they drive behavior and can themselves be custom/non-class sources;
+- `Electrum` terminology;
+- `Raza` only, never `Especie/raza`;
+- Spanish class/subclass presentation;
+- do not foreground D&D 5e/5.5e metadata where it currently has no operational purpose;
+- help-text display preference and character-tab-order preference;
+- 40% spacing option for successor audition;
+- PT Sans Narrow Bold still needs a satisfactory presentation before typography acceptance.
+
+Detailed evidence remains in the Stage A–F checkpoints; do not duplicate all findings into every future screen report.
+
+## Historical detour preserved
+
+The temporary `tmp/phase4-m6-qa-pause-docs` branch had one unique owner-QA progress file. It has been copied into canonical history as:
+
+`docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md`
+
+That file is explicitly **HISTORICAL / SUPERSEDED**. It records a real historical in-place-upgrade PASS but is not the current QA path.
+
+## Exact next action
+
+The owner is currently compiling additional observations that are **outside the formal QA exercise** and wants them included in the same upcoming development cycle.
+
+Therefore:
+
+1. finish the D-0048 main/branch consolidation;
+2. receive and durably record the owner's additional observations;
+3. reconcile them with the existing audition backlog;
+4. only then design the coherent successor repair batch;
+5. create a new focused branch from canonical `main` for implementation;
+6. run the complete automated gate and produce a new identified debug build;
+7. use targeted owner retesting of repaired families rather than blindly rerunning all prior checks;
+8. defer formal M6 freeze/QA until the repaired phone/tablet baseline is acceptable.
+
+No DM-feature implementation begins before the separate Phase 4A closure gate is later satisfied and explicitly approved.
