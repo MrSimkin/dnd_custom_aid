@@ -5,9 +5,9 @@
 **Current review identity:** version `0.4.0-preqa.7` / build `40700` / `debug`  
 **Current technical state:** focused pre-QA UX repair Pass 07 green/stable; no new product build started during owner audition  
 **Current governance state:** current-stage prose reconciled through D-0047/Pass 07  
-**Owner audition state:** IN PROGRESS — primary phone Stage A/B/C/D recorded; Stage E next  
-**Detailed checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_D.md`  
-**Prior phone checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_ABC.md`  
+**Owner audition state:** IN PROGRESS — primary phone Stage A/B/C/D recorded; Stage E in progress  
+**Detailed checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_E.md`  
+**Prior Stage D checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_D.md`  
 **Owner test devices:** `docs/TEST_DEVICES.md`  
 **Owner audition guide:** `docs/PREQA_OWNER_VISUAL_AUDITION.md`
 
@@ -24,8 +24,11 @@ Primary recorded phone test device: **Redmi Note 11 Pro 5G**. Build `0.4.0-preqa
 - Stage D reordering: cards in multi-column presentation can be moved vertically but not laterally; later UX/implementation audit required.
 - Stage D rotation: selected tab survives, but scroll/list position resets to the start.
 - Stage D Gestión: fixed `Estado operativo` occupies almost the entire phone-landscape viewport, leaving effectively no visible room for the rest of the tab.
+- Stage E1 Notas long text: all text remains reachable by scrolling with the IME visible, even with extremely long content.
+- Stage E1 action reachability: required editor buttons are unreachable while the software keyboard remains visible — major.
+- Stage E1 rotation: active editor disappears in landscape and reappears after returning to portrait — major; state appears to survive but the editing surface is not continuously available.
 
-The detailed checkpoints contain the accumulated next-build backlog, including 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation and fixed-footprint issues.
+The detailed checkpoints contain the accumulated next-build backlog, including 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, fixed-footprint issues and IME/editor-orientation failures.
 
 ### Owner QA workflow rule
 
@@ -33,6 +36,6 @@ Continue the staged QA/audition and **record findings instead of implementing ea
 
 Build `40700` remains the active technically verified pre-QA owner-audition build, not a frozen formal M6 candidate.
 
-**Next action:** Stage E keyboard/editor-window behavior on the Redmi Note 11 Pro 5G. Test representative long-form and modal editors with the software keyboard visible; confirm focused fields and cancel/save/apply actions remain reachable. Record findings without repairing during the stage.
+**Next action:** continue Stage E with the titled-note editor on the Redmi Note 11 Pro 5G. Test long title/body content with the software keyboard visible, verify focused-field and cancel/save reachability, and rotate once with the editor open to determine whether the same disappear/reappear behavior is shared.
 
 Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
