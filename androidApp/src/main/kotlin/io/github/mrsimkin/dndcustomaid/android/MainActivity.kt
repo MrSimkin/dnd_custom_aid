@@ -40,6 +40,7 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterDirectoryRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
 import kotlin.uuid.Uuid
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity() {
 
     private val campaignRepository by lazy { CampaignRepository(database) }
     private val characterRepository by lazy { CharacterRepository(database) }
+    private val characterDirectoryRepository by lazy { CharacterDirectoryRepository(database, characterRepository) }
     private val characterBackupRepository by lazy { CharacterBackupRepository(database) }
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
@@ -70,6 +72,7 @@ class MainActivity : ComponentActivity() {
                 DndCustomAidApp(
                     campaignRepository = campaignRepository,
                     characterRepository = characterRepository,
+                    characterDirectoryRepository = characterDirectoryRepository,
                     characterBackupRepository = characterBackupRepository,
                     characterClosureRepository = characterClosureRepository,
                     characterNavigationPreferenceStore = characterNavigationPreferenceStore,
@@ -91,104 +94,65 @@ private enum class AppScreen {
 private fun DndCustomAidApp(
     campaignRepository: CampaignRepository,
     characterRepository: CharacterRepository,
+    characterDirectoryRepository: CharacterDirectoryRepository,
     characterBackupRepository: CharacterBackupRepository,
     characterClosureRepository: CharacterClosureRepository,
     characterNavigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
 ) {
-    var screenName by rememberSaveable { mutableStateOf(AppScreen.CAMPAIGNS.name) }
-    var selectedCampaignId by rememberSaveable { mutableStateOf<String?>(null) }
+    var screenName by rememberSaveable { mutableStateOf(AppScreen.CHARACTERS.name) }
     var selectedCharacterId by rememberSaveable { mutableStateOf<String?>(null) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
-    val screen = runCatching { AppScreen.valueOf(screenName) }.getOrDefault(AppScreen.CAMPAIGNS)
-    val selectedCampaign = selectedCampaignId?.let { id ->
-        campaignRepository.listCampaigns().firstOrNull { it.id.toString() == id }
-    }
+    val screen = runCatching { AppScreen.valueOf(screenName) }.getOrDefault(AppScreen.CHARACTERS)
 
     BackHandler(enabled = showSettings) {
         showSettings = false
     }
-    BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTERS) {
-        selectedCampaignId = null
+    BackHandler(enabled = !showSettings && screen == AppScreen.CAMPAIGNS) {
         selectedCharacterId = null
-        screenName = AppScreen.CAMPAIGNS.name
+        screenName = AppScreen.CHARACTERS.name
     }
     BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTER_EDITOR) {
         selectedCharacterId = null
         screenName = AppScreen.CHARACTERS.name
     }
 
+    val directory: @Composable () -> Unit = {
+        CharacterDirectoryScreen(
+            campaignRepository = campaignRepository,
+            repository = characterRepository,
+            directoryRepository = characterDirectoryRepository,
+            backupRepository = characterBackupRepository,
+            onOpenCampaigns = {
+                selectedCharacterId = null
+                screenName = AppScreen.CAMPAIGNS.name
+            },
+            onOpenSettings = { showSettings = true },
+            onEdit = { character ->
+                selectedCharacterId = character.id.toString()
+                screenName = AppScreen.CHARACTER_EDITOR.name
+            },
+        )
+    }
+
     when (screen) {
         AppScreen.CAMPAIGNS -> CampaignScreen(
             repository = campaignRepository,
-            onOpenSettings = { showSettings = true },
-            onOpenCharacters = { campaign ->
-                selectedCampaignId = campaign.id.toString()
+            onBack = {
                 selectedCharacterId = null
                 screenName = AppScreen.CHARACTERS.name
             },
+            onOpenSettings = { showSettings = true },
         )
 
-        AppScreen.CHARACTERS -> {
-            if (selectedCampaign == null) {
-                CampaignScreen(
-                    repository = campaignRepository,
-                    onOpenSettings = { showSettings = true },
-                    onOpenCharacters = { campaign ->
-                        selectedCampaignId = campaign.id.toString()
-                        screenName = AppScreen.CHARACTERS.name
-                    },
-                )
-            } else {
-                CharacterListScreen(
-                    campaign = selectedCampaign,
-                    repository = characterRepository,
-                    backupRepository = characterBackupRepository,
-                    closureRepository = characterClosureRepository,
-                    onBack = {
-                        selectedCampaignId = null
-                        selectedCharacterId = null
-                        screenName = AppScreen.CAMPAIGNS.name
-                    },
-                    onEdit = { characterId ->
-                        selectedCharacterId = characterId.toString()
-                        screenName = AppScreen.CHARACTER_EDITOR.name
-                    },
-                )
-            }
-        }
+        AppScreen.CHARACTERS -> directory()
 
         AppScreen.CHARACTER_EDITOR -> {
             val characterId = selectedCharacterId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
-            if (characterId == null || selectedCampaign == null) {
-                if (selectedCampaign != null) {
-                    CharacterListScreen(
-                        campaign = selectedCampaign,
-                        repository = characterRepository,
-                        backupRepository = characterBackupRepository,
-                        closureRepository = characterClosureRepository,
-                        onBack = {
-                            selectedCampaignId = null
-                            selectedCharacterId = null
-                            screenName = AppScreen.CAMPAIGNS.name
-                        },
-                        onEdit = { id ->
-                            selectedCharacterId = id.toString()
-                            screenName = AppScreen.CHARACTER_EDITOR.name
-                        },
-                    )
-                } else {
-                    CampaignScreen(
-                        repository = campaignRepository,
-                        onOpenSettings = { showSettings = true },
-                        onOpenCharacters = { campaign ->
-                            selectedCampaignId = campaign.id.toString()
-                            screenName = AppScreen.CHARACTERS.name
-                        },
-                    )
-                }
+            if (characterId == null) {
+                directory()
             } else {
                 CharacterEditorScreenV4(
                     characterId = characterId,
@@ -220,8 +184,8 @@ private fun DndCustomAidApp(
 @Composable
 private fun CampaignScreen(
     repository: CampaignRepository,
+    onBack: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenCharacters: (Campaign) -> Unit,
 ) {
     var campaigns by remember { mutableStateOf(repository.listCampaigns()) }
     var activeCampaignId by remember { mutableStateOf(repository.activeCampaign()?.id) }
@@ -256,9 +220,13 @@ private fun CampaignScreen(
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        StableBackIconButton(
+                            onClick = onBack,
+                            contentDescription = "Volver a personajes",
+                        )
                         Column(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
@@ -268,7 +236,7 @@ private fun CampaignScreen(
                                 style = MaterialTheme.typography.headlineMedium,
                             )
                             Text(
-                                text = "Elige la campaña que quieres usar en este dispositivo.",
+                                text = "Administra campañas y elige la campaña activa.",
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
@@ -295,7 +263,6 @@ private fun CampaignScreen(
                                 repository.setActiveCampaign(campaign.id)
                                 reload()
                             },
-                            onOpenCharacters = { onOpenCharacters(campaign) },
                         )
                     }
                 }
@@ -320,7 +287,6 @@ private fun CampaignCard(
     campaign: Campaign,
     isActive: Boolean,
     onSelect: () -> Unit,
-    onOpenCharacters: () -> Unit,
 ) {
     Card(
         onClick = onSelect,
@@ -350,11 +316,6 @@ private fun CampaignCard(
                         text = "Campaña activa",
                         style = MaterialTheme.typography.bodySmall,
                     )
-                }
-            }
-            if (isActive) {
-                TextButton(onClick = onOpenCharacters) {
-                    Text("Personajes")
                 }
             }
         }

@@ -1,0 +1,4 @@
+selectAllCharacterIds:
+SELECT id
+FROM character
+ORDER BY name COLLATE NOCASE, id;
