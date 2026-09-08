@@ -28,13 +28,13 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
-internal enum class CharacterHelpModeV4 {
-    ALWAYS_VISIBLE,
-    INFO,
-    HIDDEN,
+internal enum class CharacterHelpModeV4(val label: String) {
+    ALWAYS_VISIBLE("Siempre visible"),
+    INFO("ⓘ / tooltip"),
+    HIDDEN("Oculto"),
 }
 
-internal val LocalCharacterHelpModeV4 = staticCompositionLocalOf { CharacterHelpModeV4.INFO }
+internal val LocalCharacterHelpModeV4 = staticCompositionLocalOf { CharacterHelpModeV4.ALWAYS_VISIBLE }
 
 @Composable
 internal fun CharacterHelpModeProviderV4(
