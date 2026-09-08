@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterDamage
 import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterHealing
+import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterTemporaryHp
 import kotlin.math.abs
 
@@ -212,7 +213,7 @@ private fun HpOperationDialogV4(
     ) {
         OutlinedTextField(
             value = amountText,
-            onValueChange = { amountText = it.filter(Char::isDigit) },
+            onValueChange = { amountText = normalizeCharacterUnsignedIntegerInput(it) },
             label = { Text(if (operation == CharacterHpOperationV4.TEMP_HP) "PG temporales" else "Cantidad") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
