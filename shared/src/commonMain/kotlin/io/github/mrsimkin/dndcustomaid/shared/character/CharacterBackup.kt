@@ -167,6 +167,7 @@ fun prepareCharacterBackupImport(
     val successor = document.successorState
     val customAttributeIds = remap(successor.customAttributes.map { it.id })
     val customMarkerIds = remap(successor.customMarkers.map { it.id })
+    val backgroundImageIds = remap(successor.backgroundImages.map { it.id })
 
     val importedSheet = source.copy(
         id = targetCharacterId,
@@ -273,6 +274,9 @@ fun prepareCharacterBackupImport(
         resourceConfigurations = successor.resourceConfigurations.map { item ->
             item.copy(resourceId = resourceIds.getValue(item.resourceId))
         },
+        backgroundImages = successor.backgroundImages.map { item ->
+            item.copy(id = backgroundImageIds.getValue(item.id))
+        },
     )
 
     return CharacterBackupImportPlan(
@@ -364,10 +368,14 @@ internal fun characterBackupValidationMessage(document: CharacterBackupDocument)
     val successor = document.successorState
     duplicateMessage(successor.customAttributes.map { it.id }, "atributos personalizados")?.let { return it }
     duplicateMessage(successor.customMarkers.map { it.id }, "marcadores personalizados")?.let { return it }
+    duplicateMessage(successor.backgroundImages.map { it.id }, "imágenes de trasfondo")?.let { return it }
     if (successor.customSkillAbilities.map { it.customSkillId }.distinct().size != successor.customSkillAbilities.size) return "El respaldo contiene configuraciones de habilidad personalizada duplicadas."
     if (successor.spellcastingProfiles.map { it.sourceId }.distinct().size != successor.spellcastingProfiles.size) return "El respaldo contiene perfiles de lanzamiento duplicados."
     if (successor.combatDamage.map { it.combatEntryId }.distinct().size != successor.combatDamage.size) return "El respaldo contiene perfiles de daño duplicados."
     if (successor.resourceConfigurations.map { it.resourceId }.distinct().size != successor.resourceConfigurations.size) return "El respaldo contiene configuraciones de recurso duplicadas."
+    if (successor.preferences.tabOrder.distinct().size != successor.preferences.tabOrder.size || successor.preferences.tabOrder.toSet() != CharacterSheetTabKey.entries.toSet()) return "El respaldo contiene un orden de pestañas inválido."
+    if (successor.backgroundImages.map { it.slot }.distinct().size != successor.backgroundImages.size) return "El respaldo contiene más de una imagen para la misma posición de Trasfondo."
+    if (successor.backgroundImages.any { !it.mimeType.trim().startsWith("image/") || it.encodedData.isBlank() }) return "El respaldo contiene una imagen de Trasfondo inválida."
 
     val customAttributeIds = successor.customAttributes.mapTo(mutableSetOf()) { it.id }
     val customSkillIds = state.customSkills.mapTo(mutableSetOf()) { it.id }
