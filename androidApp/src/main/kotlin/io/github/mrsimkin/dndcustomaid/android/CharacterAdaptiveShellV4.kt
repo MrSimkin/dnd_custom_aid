@@ -31,11 +31,14 @@ internal fun CharacterAdaptiveShellV4(
     header: @Composable () -> Unit,
     content: @Composable () -> Unit,
 ) {
+    val layoutContext = characterLayoutContextV4()
+    val effectiveNavigationPresentation = characterNavigationPresentationForLayoutV4(layoutContext)
+
     Column(modifier = Modifier.fillMaxSize()) {
         // D01: the compact identity/save header remains outside all scrolling tab content.
         header()
 
-        when (navigationPresentation) {
+        when (effectiveNavigationPresentation) {
             CharacterNavigationPresentationV4.TOP_TABS -> {
                 CharacterTopTabStripV4(
                     selectedTab = selectedTab,
