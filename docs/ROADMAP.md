@@ -67,7 +67,7 @@ Implemented conditional reusable modules:
 
 Historical implementation/audit lines A1–L and M1–M5 plus the focused pre-QA repair Pass 03–07 remain durable evidence.
 
-D-0048 changed the **repository merge boundary**, not the acceptance boundary: the owner explicitly approved promoting the current in-progress Phase 4 state into canonical `main` to eliminate branch sprawl and make one coherent development baseline.
+D-0066 changed the **repository merge boundary**, not the acceptance boundary: the owner explicitly approved promoting the current in-progress Phase 4 state into canonical `main` to eliminate branch sprawl and make one coherent development baseline.
 
 Therefore:
 
@@ -105,7 +105,7 @@ Phase 4A is complete only when:
 - blocking findings are resolved — **pending**;
 - the owner explicitly accepts/closes Phase 4A — **pending**.
 
-The repository is already consolidated into `main` under D-0048, so "merge to main" is no longer itself an exit criterion. **Acceptance and closure remain separate.**
+The repository is already consolidated into `main` under D-0066, so "merge to main" is no longer itself an exit criterion. **Acceptance and closure remain separate.**
 
 **No DM-feature implementation begins before Phase 4A acceptance/closure.**
 
