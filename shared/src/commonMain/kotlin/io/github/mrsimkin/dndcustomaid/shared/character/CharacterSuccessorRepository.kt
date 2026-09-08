@@ -38,7 +38,7 @@ class CharacterSuccessorRepository(
         val storedProfiles = database.characterSuccessorQueries.selectSpellSourceCasting(id) {
                 sourceId, _, abilityKind, abilityValue, saveAdjustment, attackAdjustment,
                 legacySaveDc, legacyAttack ->
-            val parsedSourceId = parseUuidOrNull(sourceId) ?: return@selectSpellSourceCasting null
+            val parsedSourceId = Uuid.parse(sourceId)
             parsedSourceId to CharacterSpellcastingProfile(
                 sourceId = parsedSourceId,
                 ability = parseAbilityReference(abilityKind, abilityValue, customAttributeIds),
@@ -47,7 +47,7 @@ class CharacterSuccessorRepository(
                 legacySaveDcOverride = legacySaveDc?.toInt(),
                 legacySpellAttackOverride = legacyAttack?.toInt(),
             )
-        }.executeAsList().filterNotNull().toMap()
+        }.executeAsList().toMap()
 
         val sourceIds = sheet.spellcastingSources.map { it.id }.toSet()
         val spellcastingProfiles = sheet.spellcastingSources.map { source ->
@@ -56,9 +56,8 @@ class CharacterSuccessorRepository(
 
         val damageRows = database.characterSuccessorQueries.selectCombatDamageComponents(id) {
                 combatEntryId, _, componentOrder, componentKind, expression, typeText ->
-            val entryId = parseUuidOrNull(combatEntryId) ?: return@selectCombatDamageComponents null
             DamageRow(
-                combatEntryId = entryId,
+                combatEntryId = Uuid.parse(combatEntryId),
                 order = componentOrder.toInt(),
                 component = CharacterDamageComponent(
                     kind = enumOrDefault(componentKind, CharacterDamageComponentKind.TEXT),
@@ -66,7 +65,7 @@ class CharacterSuccessorRepository(
                     typeText = typeText,
                 ),
             )
-        }.executeAsList().filterNotNull().groupBy { it.combatEntryId }
+        }.executeAsList().groupBy { it.combatEntryId }
 
         val combatDamage = sheet.combatEntries.map { entry ->
             val persisted = damageRows[entry.id]
@@ -104,13 +103,13 @@ class CharacterSuccessorRepository(
 
         val storedResourceConfigurations = database.characterSuccessorQueries.selectResourceSuccessorConfigs(id) {
                 resourceId, _, valueKind, placements ->
-            val parsedId = parseUuidOrNull(resourceId) ?: return@selectResourceSuccessorConfigs null
+            val parsedId = Uuid.parse(resourceId)
             parsedId to CharacterResourceSuccessorConfiguration(
                 resourceId = parsedId,
                 valueKind = enumOrDefault(valueKind, CharacterTrackableValueKind.CURRENT_MAX),
                 placements = parsePlacements(placements),
             )
-        }.executeAsList().filterNotNull().toMap()
+        }.executeAsList().toMap()
 
         val resourceConfigurations = sheet.resources.map { resource ->
             storedResourceConfigurations[resource.id] ?: CharacterResourceSuccessorConfiguration(
