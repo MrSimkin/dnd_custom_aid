@@ -4,7 +4,7 @@ This file maps the authoritative project-control files and implemented areas so 
 
 ## Canonical rule
 
-`main` is the single canonical current development baseline under D-0048.
+`main` is the single canonical current development baseline under D-0066.
 
 The current baseline is still debug/pre-QA with known defects. Presence on `main` does not imply release acceptance.
 
@@ -30,12 +30,12 @@ Authoritative current implementation/QA state, known defect families and exact n
 Stable practical resume pointer.
 
 ### `docs/BRANCH_STATUS.md`
-Controlling interpretation of historical implementation/tmp/frozen branches after D-0048 consolidation.
+Controlling interpretation of historical implementation/tmp/frozen branches after D-0066 consolidation.
 
 ### `docs/DECISIONS.md`
 Master chronological decision log, reconciled through D-0047. Later detailed approved decisions under `docs/decisions/` remain authoritative even before the master log is next reconciled.
 
-### `docs/decisions/D-0048_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md`
+### `docs/decisions/D-0066_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md`
 Owner-approved decision to consolidate the current in-progress Phase 4 development state into `main` without implying QA/release acceptance.
 
 ### `docs/CONVENTIONS.md`
@@ -79,6 +79,9 @@ Fixed/sticky footprint findings plus the promoted app-wide density/card/landscap
 ### `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md`
 Cross-cutting source/provenance information-architecture audit and owner-preferred compact origin model.
 
+### `docs/checkpoints/2026-09-08_MAIN_CANONICAL_CONSOLIDATION.md`
+Completed D-0066 repository/main consolidation, graph audit, orphan-evidence handling and decision-number collision correction.
+
 ### `docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md`
 Historical/superseded preservation of the one unique M6-detour upgrade-test record. Not a current resume point.
 
@@ -121,7 +124,7 @@ The workflow reconstructs a stable development-only Android debug signing identi
 - artifact `10035895186`;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-Later consolidation commits are documentation/governance-only unless a newer checkpoint explicitly identifies newer product code.
+Later D-0066 consolidation/finalization commits are documentation/governance-only unless a newer checkpoint explicitly identifies newer product code.
 
 ## Historical/discovery material
 
@@ -132,7 +135,7 @@ Historical exploratory reasoning. It does not override approved decisions/curren
 Durable implementation, QA and handoff history. Historical next-action text may be superseded; `LATEST.md` controls the current resume point.
 
 ### historical branches
-Branch refs remain evidence/history but are non-canonical after D-0048. Frozen candidates are immutable. See `docs/BRANCH_STATUS.md`.
+Branch refs remain evidence/history but are non-canonical after D-0066. Frozen candidates are immutable. See `docs/BRANCH_STATUS.md`.
 
 ## Authority rule
 
