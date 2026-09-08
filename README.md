@@ -32,7 +32,7 @@ Read in this order:
 - Old implementation/tmp branches are historical evidence and must not be treated as competing current state; see `docs/BRANCH_STATUS.md`.
 - Frozen QA-evidence branches remain immutable historical evidence.
 
-D-0048 explicitly consolidated the current in-progress Phase 4 development state into `main` before formal QA/closure. **Canonical does not mean release-ready.** The current product is still a debug/pre-QA build with known defects.
+D-0066 explicitly consolidated the current in-progress Phase 4 development state into `main` before formal QA/closure. **Canonical does not mean release-ready.** The current product is still a debug/pre-QA build with known defects.
 
 ## Working relationship
 
@@ -83,7 +83,7 @@ Latest full automated-gate product identity:
 - artifact `10035895186`;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-Later commits through the D-0048 consolidation are documentation/governance changes only unless a newer checkpoint explicitly says otherwise.
+Later commits through the D-0066 consolidation are documentation/governance changes only unless a newer checkpoint explicitly says otherwise.
 
 Build `40700` is **not** a frozen formal M6 candidate and is not release-ready.
 
