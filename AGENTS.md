@@ -1,48 +1,64 @@
 # AGENTS.md — Mandatory Project Operating Rules
 
-This file applies to every human contributor, ChatGPT conversation, coding agent, autonomous agent, or other AI working in this repository.
+This file applies to every human contributor, ChatGPT conversation, coding agent, autonomous agent or other AI working in this repository.
 
 ## 1. Repository authority and operative memory
 
 The repository is the project's durable source of truth **and its operative memory**.
 
-Do not rely on chat memory, hidden context, previous conversations, personal memory, or assumptions to determine current project state. Those may be clues; if they conflict with the repository, the repository wins until the owner explicitly decides otherwise.
+Do not rely on chat memory, hidden context, previous conversations or assumptions to determine current project state. Those may be clues; repository truth controls until the owner explicitly changes it.
 
-Any information needed for another chat, AI, agent, or human to continue must be written to the repository. Important decisions, conventions, rationale, current work, unresolved questions, verification results, known problems, and next actions must not exist only in chat history.
+The canonical current branch is **`main`**.
 
-The canonical accepted branch is `main`.
+D-0048 explicitly allows the current in-progress/debug Phase 4 state to live on `main` for repository consolidation. Therefore **canonical does not imply release-ready, QA-accepted or Phase-closed**.
+
+Any information needed for another chat, AI, agent or human to continue must be written to Git.
 
 ## 2. Mandatory read order before work
 
 Before proposing or making changes, read:
 
-1. `README.md`
-2. `AGENTS.md`
-3. `MANIFEST.md`
-4. `docs/PROJECT_STATE.md`
-5. `docs/DECISIONS.md`
-6. `docs/CONVENTIONS.md`
-7. `docs/PRODUCT.md`
-8. `docs/ROADMAP.md`
-9. `docs/WORKFLOW.md`
-10. `docs/ARCHITECTURE.md`
-11. `docs/TESTING.md`
-12. relevant detailed files under `docs/decisions/`
-13. current files under `docs/checkpoints/` and any feature-specific documents relevant to the task
+1. `README.md`;
+2. `AGENTS.md`;
+3. `MANIFEST.md`;
+4. `docs/PROJECT_STATE.md`;
+5. `docs/checkpoints/LATEST.md`;
+6. `docs/BRANCH_STATUS.md`;
+7. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
+8. `docs/CONVENTIONS.md`;
+9. `docs/PRODUCT.md`;
+10. `docs/ROADMAP.md`;
+11. `docs/WORKFLOW.md`;
+12. `docs/ARCHITECTURE.md`;
+13. `docs/TESTING.md`;
+14. current checkpoints/feature files relevant to the task.
 
-Do not start implementation from a stale branch or remembered context.
+Do not start implementation from a historical branch merely because it has a newer-looking name or a frozen QA label.
 
-## 3. Owner authority and working relationship
+## 3. Branch interpretation
+
+`main` is the only canonical current baseline.
+
+Old discovery/foundation/architecture/implementation/tmp branches are historical evidence unless a current checkpoint explicitly says otherwise. Use `docs/BRANCH_STATUS.md` rather than reconstructing current truth from the visible GitHub branch list.
+
+Frozen QA-evidence branches remain immutable and must not be repurposed, especially:
+
+- `tmp/phase4-l-frozen-qa-candidate`;
+- `tmp/phase4-m5-frozen-qa-candidate`.
+
+Future substantial work starts from current `main` on a new focused branch unless the owner explicitly requests a direct `main` change.
+
+## 4. Owner authority and working relationship
 
 The owner makes final decisions about consequential product behavior, UX, game semantics, data ownership/sync, privacy, services/cost, compatibility and expensive-to-reverse architecture.
 
-The owner understands programming concepts but delegates heavy technical execution to AI/coding agents. Agents should perform routine coding, testing, diagnosis and documentation rather than shifting that work to the owner.
+The owner delegates heavy technical execution to AI/coding agents. Agents should perform routine coding, testing, diagnosis and documentation rather than shifting that work back to the owner.
 
-Agents may make reversible low-level implementation choices that do not alter approved behavior or establish a new durable convention. Significant choices must be surfaced and approved.
+Reversible low-level implementation details may be chosen under D-0008. Material product/architecture choices must be surfaced and approved.
 
-## 4. Explain technical work
+## 5. Explain technical work
 
-Meaningful technical work must remain understandable to the owner. Explain, proportionately:
+Meaningful technical work must remain understandable to the owner. Explain proportionately:
 
 - what is changing;
 - why;
@@ -50,9 +66,9 @@ Meaningful technical work must remain understandable to the owner. Explain, prop
 - meaningful alternatives/trade-offs;
 - verification and remaining limitations.
 
-Do not silently disappear into implementation. C-0008 additionally requires representative SQL when it materially improves understanding of relational/data-model behavior.
+C-0008 additionally requires representative SQL when it materially improves understanding of relational/data-model behavior.
 
-## 5. Conventions
+## 6. Conventions and proportionality
 
 When a new durable coding, naming, structure, formatting, testing, documentation, branching, UI or similar convention first becomes relevant and no approved convention exists:
 
@@ -65,13 +81,15 @@ When a new durable coding, naming, structure, formatting, testing, documentation
 
 C-0009 is controlling: this is a personal, deliberately limited project. Prefer the **simplest safe implementation that satisfies actual approved requirements**. Do not import enterprise/SaaS machinery without a concrete need.
 
-## 6. Design before implementation; approved architecture is baseline
+## 7. Approved architecture is baseline
 
-Product/interaction design precedes consequential technology/architecture choices. The foundational architecture under D-0034 through D-0043 is already approved; do not reopen it merely because historical documents describe earlier uncertainty.
+Product/interaction design precedes consequential architecture choices. The foundational architecture under D-0034 through D-0043 is already approved; do not reopen it because historical documents describe earlier uncertainty.
 
-Routine reversible implementation details may be selected under D-0008. New consequential architecture still requires owner approval.
+D-0047 controls the Phase 4 character-closure scope. D-0048 controls the repository/main consolidation boundary.
 
-## 7. No silent invention
+Routine reversible implementation details remain autonomous under D-0008. New consequential architecture still requires owner approval.
+
+## 8. No silent invention
 
 Clearly distinguish:
 
@@ -79,82 +97,61 @@ Clearly distinguish:
 - **Proposed** — recommended but not approved;
 - **Pending** — requires an owner decision;
 - **Implemented** — present in code and verified at the stated level;
-- **Accepted** — has passed the required owner/manual acceptance gate where one exists.
+- **Accepted** — passed the required owner/manual gate where one exists.
 
-If implementation encounters an unknown material product behavior, do not turn momentum into a silent assumption.
+Do not infer `Accepted` from `Implemented`, green CI or presence on `main`.
 
-## 8. Change workflow
+## 9. Change workflow
 
 For substantial work:
 
-1. verify current state and branch;
-2. identify applicable approved decisions/conventions;
-3. resolve material unknowns if any;
-4. work on a focused non-`main` branch unless explicitly directed otherwise;
-5. implement the smallest coherent batch;
-6. run appropriate checks;
-7. update operative-memory documentation;
-8. leave a durable checkpoint before the next meaningful batch;
-9. summarize what changed, verification and next action;
-10. merge to `main` only after explicit owner approval or delegation.
+1. verify `main`, `PROJECT_STATE`, `LATEST` and applicable decisions;
+2. identify material unknowns;
+3. work on a focused non-`main` branch unless explicitly directed otherwise;
+4. implement the smallest coherent batch;
+5. run appropriate checks;
+6. update operative-memory documentation;
+7. leave a durable checkpoint;
+8. summarize verification and next action;
+9. merge/publish only under owner approval/delegation.
 
 Do not bundle unrelated behavior merely to reduce commit count.
 
-## 9. Definition of done
+## 10. Definition of done and continuity checkpoints
 
-A change is not complete merely because code was written. A completed batch has, as applicable:
+A change is not complete merely because code exists. A completed batch has, as applicable:
 
 - implementation present;
 - relevant automated checks passed, or failures explicitly recorded;
 - appropriate behavior checked;
-- documentation/current state updated;
+- current-state documentation updated;
 - consequential decisions/conventions recorded;
 - unresolved items visible;
 - an exact next action.
 
-## 10. Mandatory continuity checkpoints
+Every meaningful project step must leave durable Git evidence before moving on.
 
-Every meaningful project step must leave a durable checkpoint in Git before moving to the next step.
-
-Meaningful steps include at minimum:
-
-- an owner decision/design gate;
-- a QA/test batch;
-- a coherent implementation increment;
-- a diagnosis that changes the next action;
-- a migration/data-shape change;
-- a blocker/recovery concern;
-- any point where losing the current chat/device would otherwise require reconstructing work from memory.
-
-A checkpoint may be a normal implementation/documentation commit or a focused checkpoint file. It must say what was completed, what remains, verification status and the exact next action.
-
-### Stable latest-checkpoint rule
-
-The owner requires a checkpoint update after **every implementation/review pass**, even when several passes happen inside one chat. `docs/checkpoints/LATEST.md` is the stable resume pointer and must be refreshed before a pass is declared complete. A new chat receiving only “retoma proyecto / revisa checkpoint” must be able to read `AGENTS.md`, then `docs/checkpoints/LATEST.md`, and recover the active branch, exact tested build identity, completed work, unresolved work and next action without depending on chat memory.
-
-Do not leave `LATEST.md` pointing at a historical frozen-QA state after the owner explicitly reopens implementation.
+`docs/checkpoints/LATEST.md` is the stable resume pointer and must be refreshed before a meaningful pass is declared complete. A fresh chat must be able to recover the active state from Git alone.
 
 ## 11. Technical quality, credentials and signing material
 
 Prefer maintainable, readable, testable code over clever code. Keep dependencies justified and proportional.
 
-Never commit real secrets: passwords, API tokens, production/private credentials, production/release signing keys, private certificates, or other material whose confidentiality protects a real account/service/release identity.
+Never commit real secrets: passwords, API tokens, production/private credentials, production/release signing keys, private certificates or other confidentiality-dependent material.
 
-### Development-only Android signing clarification
+### Development-only Android signing
 
-The repository currently uses a **stable development-only debug signing identity** for CI QA APKs so successive builds can update one another in place and exercise real SQLite migrations on the owner's devices.
+The repository uses a stable **development-only debug signing identity** for CI QA APKs so successive builds can update one another in place and exercise SQLite migrations.
 
-That debug identity is intentionally **not a secret trust boundary** and is not a production/release identity. Its tracked/reconstructable development material is permitted only for this explicitly documented QA purpose.
+That identity is not a production/release trust boundary.
 
 Rules:
 
-- never reuse the debug identity for a production/release build;
-- never treat possession of the debug identity as authentication or security;
+- never reuse it for a production/release build;
+- never treat possession of it as authentication/security;
 - any future real release signing identity remains private and must not be committed;
-- do not expose/reproduce signing material in chat or documentation unnecessarily;
-- if the project later needs a real release pipeline, design its signing/secret handling separately before implementation.
-
-This resolves the earlier wording contradiction between the stable update-in-place QA identity and the blanket historical phrase “no signing keys.”
+- do not expose/reproduce signing material in chat/docs unnecessarily;
+- design release signing separately if/when a real release pipeline exists.
 
 ## 12. Recovery from inconsistency
 
@@ -168,28 +165,30 @@ If repository documents disagree:
 6. ask the owner only for a genuinely material ambiguity not already resolved;
 7. record the resolution.
 
-Historical checkpoints remain historical evidence even when their next-action instructions are superseded.
+Historical checkpoints remain evidence even when their next-action instructions are superseded.
 
 ## 13. Current project stage
 
-**Phases 0–3 are complete. Phase 4 — MVP Buildout / Character Foundation Closure is current.**
+**Phases 0–3 are complete. Phase 4A Character Foundation Closure is current and remains open.**
 
-The active owner-requested pre-QA line is:
+D-0048 consolidates the current pre-QA/debug state into canonical `main`; it does not accept or close Phase 4A.
 
-`implementation/phase4-preqa-ux-repair`
+Latest technically verified product identity:
 
-D-0047 remains the controlling approved closure scope. Historical implementation batches A1–L and M1–M5 remain durable evidence. After reviewing the historical M5 candidate, the owner explicitly reopened implementation; focused UX repair Pass 03–07 is now technically green and stable at review version `0.4.0-preqa.7` / build `40700`.
+- `0.4.0-preqa.7` / build `40700` / `debug`;
+- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+- workflow `34171466714` — SUCCESS.
+
+The owner phone audition has produced a substantial repair backlog. No physical tablet acceptance has been completed. The owner is currently compiling additional non-QA observations to include in the same upcoming development cycle.
 
 Current execution entry point:
 
 1. `docs/checkpoints/LATEST.md`;
-2. `docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`;
-3. `docs/PREQA_OWNER_VISUAL_AUDITION.md`.
+2. `docs/PROJECT_STATE.md`;
+3. `docs/BRANCH_STATUS.md`.
 
-The next action is **owner phone/tablet visual audition**, not speculative UX implementation and not historical M6. Build `40700` is an identified pre-QA audition build, not yet a frozen formal M6 candidate.
+Do not resume historical M6 by default and do not repeat the entire phone audition on build `40700` unless a specific reproduction is needed.
 
-If the owner observes a concrete blocking/regression finding, repair it on the durable pre-QA line, run the complete automated gate and identify the successor build. When the owner explicitly says an exact build is ready, freeze that replacement candidate and resume formal M6 beginning with the in-place upgrade/data-preservation test.
+Do not begin broad repair implementation until the owner's current additional observations have been durably captured and reconciled with the existing backlog.
 
-Historical frozen branches, including the September 4 M5 candidate, remain immutable evidence and must not be repurposed as the active target after implementation was reopened.
-
-**Do not begin DM-feature implementation until the Phase 4 character closure is fully implemented, automatically verified, accepted through final owner phone + tablet QA, governance/merge-boundary housekeeping is complete, and the owner explicitly approves merge/closure.**
+**Do not begin DM-feature implementation until the separate Phase 4A repair/QA/acceptance gate is later satisfied and the owner explicitly approves closure.**
