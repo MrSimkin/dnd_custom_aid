@@ -12,15 +12,20 @@ CREATE TABLE character_custom_attribute (
     UNIQUE(character_id, sort_order)
 );
 
+-- Child identity is intentionally not a foreign key: legacy closure saves rebuild custom-skill
+-- rows with delete/reinsert. Character ownership plus repository validation protects integrity
+-- without allowing that compatibility rewrite to cascade-delete successor configuration.
 CREATE TABLE character_custom_skill_ability (
-    custom_skill_id TEXT NOT NULL PRIMARY KEY REFERENCES character_custom_skill(id) ON DELETE CASCADE,
+    custom_skill_id TEXT NOT NULL PRIMARY KEY,
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
     ability_kind TEXT NOT NULL DEFAULT 'BUILT_IN',
     ability_value TEXT
 );
 
+-- Same compatibility rule for source/attack/resource extensions below. The legacy core repository
+-- rebuilds those child tables; successor state must survive when the durable child ID is reused.
 CREATE TABLE character_spell_source_casting (
-    source_id TEXT NOT NULL PRIMARY KEY REFERENCES character_spell_source(id) ON DELETE CASCADE,
+    source_id TEXT NOT NULL PRIMARY KEY,
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
     ability_kind TEXT NOT NULL DEFAULT 'NONE',
     ability_value TEXT,
@@ -31,7 +36,7 @@ CREATE TABLE character_spell_source_casting (
 );
 
 CREATE TABLE character_combat_damage_component (
-    combat_entry_id TEXT NOT NULL REFERENCES character_combat_entry(id) ON DELETE CASCADE,
+    combat_entry_id TEXT NOT NULL,
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
     component_order INTEGER NOT NULL,
     component_kind TEXT NOT NULL,
@@ -56,7 +61,7 @@ CREATE TABLE character_custom_marker (
 );
 
 CREATE TABLE character_resource_successor_config (
-    resource_id TEXT NOT NULL PRIMARY KEY REFERENCES character_resource(id) ON DELETE CASCADE,
+    resource_id TEXT NOT NULL PRIMARY KEY,
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
     value_kind TEXT NOT NULL DEFAULT 'CURRENT_MAX',
     placements TEXT NOT NULL DEFAULT 'MANAGEMENT'
