@@ -1,7 +1,7 @@
 # Phase 4 pre-QA owner audition — phone Stage E
 
 **Date:** 2026-09-07  
-**Status:** OWNER PHONE STAGE E IN PROGRESS; E1 PASS, E2-E6 shared IME/editor failures recorded  
+**Status:** OWNER PHONE STAGE E COMPLETE; E1 PASS, E2-E7 shared IME/editor failures recorded  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
 **Review identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary phone:** Redmi Note 11 Pro 5G
@@ -119,31 +119,42 @@ All three reproduce the same Stage E shared failure pattern already seen in Equi
 
 This materially broadens the evidence. The problem is now demonstrated across titled Notes, core collection editors and three different conditional-module families, so later repair should begin at shared editor/responsive infrastructure rather than at individual modules.
 
+## Stage E7 — Gestión editor/preview
+
+**Result:** FAIL / major; same shared behavior as E2-E6.
+
+Owner reports `E7 igual`: the representative Gestión editor/preview reproduces the already-recorded family of failures. Treat this as confirmation that the problem is not limited to Notes, Equipo, Rasgos, Conjuros or conditional modules.
+
+Recorded interpretation:
+
+- software-keyboard visibility prevents a comfortable end-to-end traversal of editor content plus required actions;
+- the same action-reachability problem observed across E2-E6 is present in Gestión;
+- the same orientation-related active-editor discontinuity should be treated as part of the shared failure family unless later repair analysis demonstrates a Gestión-specific exception.
+
 ## Technical characterization note — shared editor guarantee appears regressed/incomplete
 
 Historical Batch B1a explicitly established `CharacterImeSafeEditorDialog` with the intended guarantee that editable content scrolls while `Guardar` / `Cancelar` remain reachable above the keyboard. B1a also migrated titled Notes into that shared pattern and stated that later work should migrate remaining character-sheet editors, including Equipment and Rasgos.
 
-Read-only inspection of the current primitive confirms the intended IME-aware structure still exists: the full dialog uses `imePadding()` and `navigationBarsPadding()`, with scrollable editor content followed by an action row. Nevertheless, current real-device evidence in build `40700` contradicts the intended runtime guarantee across titled Notes, Equipo, Rasgos, Conjuros, Pacto, Metamagia and Forma.
+Read-only inspection of the current primitive confirms the intended IME-aware structure still exists: the full dialog uses `imePadding()` and `navigationBarsPadding()`, with scrollable editor content followed by an action row. Nevertheless, current real-device evidence in build `40700` contradicts the intended runtime guarantee across titled Notes, Equipo, Rasgos, Conjuros, Pacto, Metamagia, Forma and Gestión.
 
 The repeated behavior should therefore be treated first as a shared infrastructure/regression candidate for later repair analysis rather than local fixes. Do not overstate the exact root cause yet: later implementation analysis should determine whether IME inset ownership, weighted scroll/action-row composition, focus-driven bring-into-view behavior, or interaction with the phone-landscape responsive switch is responsible.
 
 The Conjuros implementation also confirms a credible connection with the Stage D phone-landscape finding: non-wide mode uses `CharacterImeSafeEditorDialog`, while wide mode uses a persistent right-side editor panel. A phone that incorrectly crosses into `wide` behavior on landscape can therefore change editor composition during rotation. This is a strong architectural lead, not yet a final root-cause determination.
 
-## Stage E current outcome
+## Stage E final phone outcome
 
-Stage E is **not complete** because the audition guide still requires one representative Gestión editor/preview check.
+Stage E is **complete for the Redmi Note 11 Pro 5G audition**, with failures recorded rather than repaired during the audition.
 
-Current results:
+Final results:
 
 - E1 general Notes editor: PASS;
 - E2 titled-note editor: text scrolling PASS, but action reachability and rotation stability FAIL/major;
 - E3 Equipo editor: FAIL/major;
 - E4 Rasgos editor: FAIL/major;
 - E5 Conjuro editor: FAIL/major plus minor level-entry normalization defect;
-- E6 conditional modules: Pacto, Metamagia and Forma all FAIL/major with the same shared pattern.
+- E6 conditional modules: Pacto, Metamagia and Forma all FAIL/major with the same shared pattern;
+- E7 Gestión: FAIL/major, same shared pattern.
 
 ## Next action
 
-Complete **Stage E7 — Gestión editor/preview** on the Redmi Note 11 Pro 5G, then Stage E can be closed for the phone.
-
-In parallel, Stage F fixed/sticky-footprint observation may begin in portrait, starting with Gestión `Estado operativo` and then Conjuros sticky/fixed bands.
+Continue **Stage F — fixed/sticky footprint** on the Redmi Note 11 Pro 5G. Gestión and Habilidades already have owner observations; continue with Conjuros and then long-collection sticky toolbars.
