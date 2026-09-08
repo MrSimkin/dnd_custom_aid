@@ -1,20 +1,16 @@
 package io.github.mrsimkin.dndcustomaid.android
 
-import android.content.res.Configuration
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
 
 @Composable
 internal fun requestedCardColumnsV4(): Int {
-    val configuration = LocalConfiguration.current
+    val layoutContext = characterLayoutContextV4()
     val preferences = LocalUiPreferencesV4.current
-    val tabletLike = minOf(configuration.screenWidthDp, configuration.screenHeightDp) >= 600
-    val landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    return when {
-        tabletLike && landscape -> preferences.tabletLandscapeColumns
-        tabletLike -> preferences.tabletPortraitColumns
-        landscape -> preferences.phoneLandscapeColumns
-        else -> preferences.phonePortraitColumns
+    return when (layoutContext.formFactor) {
+        CharacterFormFactorV4.PHONE_PORTRAIT -> preferences.phonePortraitColumns
+        CharacterFormFactorV4.PHONE_LANDSCAPE -> preferences.phoneLandscapeColumns
+        CharacterFormFactorV4.TABLET_PORTRAIT -> preferences.tabletPortraitColumns
+        CharacterFormFactorV4.TABLET_LANDSCAPE -> preferences.tabletLandscapeColumns
     }
 }
 
@@ -23,4 +19,8 @@ internal fun constrainedCardColumnsV4(
     wide: Boolean,
     phoneMax: Int = 2,
     wideMax: Int = 4,
-): Int = requestedCardColumnsV4().coerceIn(1, if (wide) wideMax else phoneMax)
+): Int {
+    val layoutContext = characterLayoutContextV4()
+    val effectiveMax = if (layoutContext.isTablet) wideMax else phoneMax
+    return requestedCardColumnsV4().coerceIn(1, effectiveMax)
+}
