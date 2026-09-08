@@ -1,0 +1,139 @@
+CREATE TABLE character_custom_attribute (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    abbreviation TEXT NOT NULL,
+    score INTEGER NOT NULL DEFAULT 10,
+    saving_throw_enabled INTEGER NOT NULL DEFAULT 0,
+    saving_throw_proficient INTEGER NOT NULL DEFAULT 0,
+    saving_throw_adjustment INTEGER NOT NULL DEFAULT 0,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_spell_source_casting (
+    source_id TEXT NOT NULL PRIMARY KEY REFERENCES character_spell_source(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    ability_kind TEXT NOT NULL DEFAULT 'NONE',
+    ability_value TEXT,
+    save_dc_adjustment INTEGER NOT NULL DEFAULT 0,
+    spell_attack_adjustment INTEGER NOT NULL DEFAULT 0,
+    legacy_save_dc_override INTEGER,
+    legacy_spell_attack_override INTEGER
+);
+
+CREATE TABLE character_combat_damage_component (
+    combat_entry_id TEXT NOT NULL REFERENCES character_combat_entry(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    component_order INTEGER NOT NULL,
+    component_kind TEXT NOT NULL,
+    expression TEXT NOT NULL,
+    type_text TEXT,
+    PRIMARY KEY(combat_entry_id, component_order)
+);
+
+CREATE TABLE character_custom_marker (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    value_kind TEXT NOT NULL DEFAULT 'COUNTER',
+    current_value INTEGER NOT NULL DEFAULT 0,
+    max_value INTEGER,
+    recovery_cadence TEXT NOT NULL DEFAULT 'NONE',
+    recovery_amount_mode TEXT NOT NULL DEFAULT 'NONE',
+    recovery_fixed_amount INTEGER,
+    notes TEXT,
+    sort_order INTEGER NOT NULL,
+    UNIQUE(character_id, sort_order)
+);
+
+CREATE TABLE character_resource_successor_config (
+    resource_id TEXT NOT NULL PRIMARY KEY REFERENCES character_resource(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    value_kind TEXT NOT NULL DEFAULT 'CURRENT_MAX',
+    placements TEXT NOT NULL DEFAULT 'MANAGEMENT'
+);
+
+insertCustomAttribute:
+INSERT INTO character_custom_attribute(
+    id, character_id, name, abbreviation, score,
+    saving_throw_enabled, saving_throw_proficient, saving_throw_adjustment, notes, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCustomAttributes:
+SELECT id, character_id, name, abbreviation, score,
+       saving_throw_enabled, saving_throw_proficient, saving_throw_adjustment, notes, sort_order
+FROM character_custom_attribute
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCustomAttributes:
+DELETE FROM character_custom_attribute WHERE character_id = ?;
+
+upsertSpellSourceCasting:
+INSERT OR REPLACE INTO character_spell_source_casting(
+    source_id, character_id, ability_kind, ability_value,
+    save_dc_adjustment, spell_attack_adjustment,
+    legacy_save_dc_override, legacy_spell_attack_override
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+selectSpellSourceCasting:
+SELECT source_id, character_id, ability_kind, ability_value,
+       save_dc_adjustment, spell_attack_adjustment,
+       legacy_save_dc_override, legacy_spell_attack_override
+FROM character_spell_source_casting
+WHERE character_id = ?
+ORDER BY source_id;
+
+deleteSpellSourceCasting:
+DELETE FROM character_spell_source_casting WHERE character_id = ?;
+
+insertCombatDamageComponent:
+INSERT INTO character_combat_damage_component(
+    combat_entry_id, character_id, component_order, component_kind, expression, type_text
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectCombatDamageComponents:
+SELECT combat_entry_id, character_id, component_order, component_kind, expression, type_text
+FROM character_combat_damage_component
+WHERE character_id = ?
+ORDER BY combat_entry_id, component_order;
+
+deleteCombatDamageComponents:
+DELETE FROM character_combat_damage_component WHERE character_id = ?;
+
+insertCustomMarker:
+INSERT INTO character_custom_marker(
+    id, character_id, name, value_kind, current_value, max_value,
+    recovery_cadence, recovery_amount_mode, recovery_fixed_amount, notes, sort_order
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectCustomMarkers:
+SELECT id, character_id, name, value_kind, current_value, max_value,
+       recovery_cadence, recovery_amount_mode, recovery_fixed_amount, notes, sort_order
+FROM character_custom_marker
+WHERE character_id = ?
+ORDER BY sort_order, id;
+
+deleteCustomMarkers:
+DELETE FROM character_custom_marker WHERE character_id = ?;
+
+upsertResourceSuccessorConfig:
+INSERT OR REPLACE INTO character_resource_successor_config(
+    resource_id, character_id, value_kind, placements
+)
+VALUES (?, ?, ?, ?);
+
+selectResourceSuccessorConfigs:
+SELECT resource_id, character_id, value_kind, placements
+FROM character_resource_successor_config
+WHERE character_id = ?
+ORDER BY resource_id;
+
+deleteResourceSuccessorConfigs:
+DELETE FROM character_resource_successor_config WHERE character_id = ?;
