@@ -6,6 +6,8 @@
 **Current implementation branch:** `implementation/phase4a-successor-cycle`  
 **Current reconciliation state:** SUCCESSOR IMPLEMENTATION ACTIVE  
 **Increment A:** COMPLETE / automated foundation gate GREEN  
+**Increment B:** COMPLETE / shared UX primitive gate GREEN; drag feel pending owner device acceptance  
+**Current increment:** C — navigation + PC Settings + General/Habilidades  
 **Current product status:** successor implementation in progress; owner visual acceptance not yet run  
 **Latest owner-auditioned practical identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary owner test phone:** Redmi Note 11 Pro 5G  
@@ -15,13 +17,14 @@
 
 ## Read next
 
-1. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_A_DATA_FOUNDATION.md` — **latest completed implementation checkpoint and verified migration/compatibility evidence**;
+1. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_B_SHARED_UX_PRIMITIVES.md` — **latest completed implementation checkpoint; shared responsive/density/toolbar/drag/IME/help foundation and owner drag-feel qualifier**;
 2. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling successor implementation order and build/retest boundaries;
-3. `docs/checkpoints/2026-09-08_D0067_RECONCILIATION_PENDING_DECISIONS.md` — despite the historical filename, records the resolved owner decisions and compact Conjuros source-context design;
-4. `docs/decisions/D-0067_OWNER_NEXT_CYCLE_CHARACTER_UX_AND_FEATURE_REFINEMENTS.md` — full owner non-QA package;
-5. `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md` — detailed prior-build phone fixed-footprint evidence;
-6. `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md` — provenance/source IA follow-up;
-7. `docs/PROJECT_STATE.md` — broader state snapshot.
+3. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_A_DATA_FOUNDATION.md` — completed schema/domain/storage foundation and verified migration/compatibility evidence;
+4. `docs/checkpoints/2026-09-08_D0067_RECONCILIATION_PENDING_DECISIONS.md` — despite the historical filename, records the resolved owner decisions and compact Conjuros source-context design;
+5. `docs/decisions/D-0067_OWNER_NEXT_CYCLE_CHARACTER_UX_AND_FEATURE_REFINEMENTS.md` — full owner non-QA package;
+6. `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md` — detailed prior-build phone fixed-footprint evidence;
+7. `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md` — provenance/source IA follow-up;
+8. `docs/PROJECT_STATE.md` — broader state snapshot.
 
 ## Canonical baseline and branch discipline
 
@@ -39,23 +42,23 @@ Old implementation/tmp branches are historical evidence. Frozen QA branches rema
 
 ## Latest automated successor foundation
 
-Increment A's full automated gate passed for product commit:
+Increment B's full automated gate passed for product commit:
 
-`7bfdeed2fe353dad609060d4b933ee22eab30f2e`
+`f0762d115c6bb577fb4785c210439613688e075c`
 
 Workflow:
 
-`34286023454` — SUCCESS
+`34291047675` / Scaffold checks run `#981` — SUCCESS
 
 Verified together:
 
-- backend type/check surface: PASS;
-- shared desktop tests: PASS;
+- backend check: PASS;
+- shared/Kotlin tests: PASS;
 - Android debug compilation/assembly: PASS;
-- desktop build: PASS;
+- desktop compilation/build: PASS;
 - Android debug APK artifact upload: PASS.
 
-This is an **automated foundation checkpoint**, not an owner-auditioned replacement build.
+This is an **automated/shared-foundation checkpoint**, not an owner-auditioned replacement build.
 
 ## Latest owner-auditioned practical build
 
@@ -69,16 +72,16 @@ The last owner-auditioned practical identity remains:
 - prior artifact `10035895186`;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-Do not interpret the new successor foundation artifact as owner visual acceptance.
+Do not interpret successor foundation artifacts as owner visual acceptance.
 
 ## Increment A completed foundation
 
-The successor data layer now includes:
+The successor data layer includes:
 
 - generalized ability references covering built-in and custom attributes;
 - full custom attributes with standard modifier math and optional saving throws;
 - successor custom-skill ability mapping;
-- generalized Dice target/calculation architecture for custom abilities/saves/skills, with persisted successor-state injection into the legacy editor deferred to later surface rebuilding;
+- generalized Dice target/calculation architecture for custom abilities/saves/skills;
 - per-spellcasting-source ability/save-DC/attack configuration with safe legacy projection;
 - structured combat damage while preserving legacy free text without speculative parsing;
 - reusable binary/counter/current-max + structured recovery semantics;
@@ -92,7 +95,30 @@ The successor data layer now includes:
 - SQLDelight migrations 9, 10 and 11;
 - regression coverage proving successor extensions survive legacy child-table delete/reinsert saves.
 
-A critical child-FK cascade issue was found during the Increment A audit and corrected with migration 11 before the foundation was closed. See the Increment A checkpoint for exact rationale and test evidence.
+A critical child-FK cascade issue was found during the Increment A audit and corrected with migration 11 before the foundation was closed.
+
+## Increment B completed shared UX foundation
+
+Shared successor interaction/layout primitives now include:
+
+- explicit phone portrait / phone landscape / tablet portrait / tablet landscape context rather than width-only phone-to-tablet switching;
+- centralized spacing/density behavior including the owner-requested 40% audition option;
+- shared compact long-collection toolbar with real Equipo/Conjuros consumers;
+- shared whole-card long-press drag foundation with pickup/step/drop haptics and visible drag state;
+- representative whole-card drag integration in Notas without a bulky dedicated handle;
+- a correction for stale drag callbacks/index state during live reorder (`975e10a87b7e0040ed01f81c3d866810d428ad26`);
+- softened visual drag/drop behavior;
+- shared IME-safe editor family with actions kept reachable above the keyboard;
+- shared numeric normalization + focused tests for leading-zero replacement;
+- reusable contextual help honoring `Siempre visible` / `ⓘ` / `Oculto`;
+- persisted global help mode with compatibility-safe default `Siempre visible`;
+- compact provenance primitive `Tipo de origen | Origen específico`, defaulting to `Clase` where applicable.
+
+### Drag-feel acceptance qualifier
+
+The owner's prior finding that card movement felt stiff/mechanical remains **open for real-device acceptance**.
+
+The implementation now fixes a concrete stale-callback/index problem and improves visual motion, but this is not considered solved merely because it compiles. If device audition still feels stiff, prioritize geometry/midpoint-based reorder and sibling displacement animation rather than blindly reducing the drag threshold.
 
 ## Resolved model directions remain controlling
 
@@ -105,14 +131,15 @@ A critical child-FK cascade issue was found during the Increment A audit and cor
 - `Gemas / arte` is a compact free-form valuables box this cycle.
 - Requested Cthulhu source is Sandy Petersen's Cthulhu Mythos for D&D 5e; proprietary Spanish descriptions remain content-source dependent.
 - Contextual help uses one canonical explanation rendered according to global mode: `Siempre visible` / circled-`i` tooltip-info / `Oculto`.
+- Provenance uses `Tipo de origen | Origen específico`, default `Clase`, only where it has user-facing value; do not duplicate Conjuros' functional spell-source association model.
 - Use `Raza`, not `Especie/raza`.
 - `Electrum`, not `Electro`.
 
 ## Successor implementation order
 
 1. **A — schema/domain/storage foundation:** COMPLETE / GREEN;
-2. **B — shared UX/responsive primitives:** **CURRENT**;
-3. **C — navigation + PC Settings + General/Habilidades**;
+2. **B — shared UX/responsive primitives:** COMPLETE / GREEN; drag feel pending owner audition;
+3. **C — navigation + PC Settings + General/Habilidades:** **CURRENT**;
 4. **D — Combat + Dados** using structured attacks and one target engine;
 5. **E — Gestión + Markers + Resources + cross-domain rests/conditions**;
 6. **F — Conjuros compact source-context redesign**, followed by early phone portrait/landscape owner retest;
@@ -130,20 +157,25 @@ Do not rerun build `40700` screen-by-screen. Global findings already cover app-w
 
 - focused automated tests accompany migrations/domain work;
 - full gate after coherent product boundaries using the established Kotlin/Android/Desktop and backend checks;
-- Increment B must demonstrate shared representative responsive/density/toolbar/drag/IME/help primitives before broad tab conversion;
-- early targeted owner phone retest remains after the Conjuros/interaction foundation rather than immediately after data foundation;
+- Increment B has demonstrated representative responsive/density/toolbar/drag/IME/help primitives and is technically green;
+- Increment C must make owner identity/configuration and skill semantics coherent on phone portrait before moving to operational surfaces;
+- early targeted owner phone retest remains after the Conjuros/interaction foundation rather than immediately after data/shared foundations;
 - consolidated successor audition remains after collection/settings/responsive integration;
-- physical tablet acceptance still required before Phase 4A closure;
+- physical tablet acceptance remains required before Phase 4A closure;
 - formal replacement M6 remains deferred until the repaired phone/tablet baseline is acceptable.
 
 ## Exact next action
 
-Proceed on `implementation/phase4a-successor-cycle` with **Increment B — shared UX and responsive primitives**.
+Proceed on `implementation/phase4a-successor-cycle` with **Increment C — navigation, PC Settings and General/Habilidades**.
 
-Begin with:
+Begin with **C1 — character-first application entry**:
 
-1. B1 form-factor-aware shell so phone landscape cannot switch into tablet composition from width alone;
-2. B2 centralized successor spacing/density primitives including the 40% audition option;
-3. then B3 compact toolbar, B4 card manipulation, B5 IME/editor and B6 help/provenance primitives.
+1. audit the current startup/navigation ownership and character/campaign list models;
+2. make the character list the application entry surface;
+3. show at least character name, `Raza`, class(es) + levels and campaign from canonical data without persisting a duplicate summary model;
+4. retain campaign administration as an accessible secondary route;
+5. preserve correct Android Back hierarchy.
+
+Then continue C2 PC Settings, C3/C4 General and C5 Habilidades as one coherent increment.
 
 Keep `main` untouched and do not begin DM features.
