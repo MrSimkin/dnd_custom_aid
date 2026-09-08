@@ -17,6 +17,7 @@ class CharacterSuccessorRepository(
         val sheet = requireNotNull(CharacterRepository(database).character(characterId)) {
             "Character must already exist locally."
         }
+        val closure = CharacterClosureRepository(database).state(characterId)
         val id = characterId.toString()
 
         val customAttributes = database.characterSuccessorQueries.selectCustomAttributes(id) {
@@ -34,6 +35,18 @@ class CharacterSuccessorRepository(
             )
         }.executeAsList()
         val customAttributeIds = customAttributes.map { it.id }.toSet()
+
+        val storedCustomSkillAbilities = database.characterSuccessorQueries.selectCustomSkillAbilities(id) {
+                customSkillId, _, abilityKind, abilityValue ->
+            val parsedSkillId = Uuid.parse(customSkillId)
+            parsedSkillId to parseAbilityReference(abilityKind, abilityValue, customAttributeIds)
+        }.executeAsList().toMap()
+        val customSkillAbilities = closure.customSkills.map { skill ->
+            CharacterCustomSkillAbilityConfiguration(
+                customSkillId = skill.id,
+                ability = storedCustomSkillAbilities[skill.id] ?: CharacterAbilityReference.builtIn(skill.ability),
+            )
+        }
 
         val storedProfiles = database.characterSuccessorQueries.selectSpellSourceCasting(id) {
                 sourceId, _, abilityKind, abilityValue, saveAdjustment, attackAdjustment,
@@ -125,6 +138,7 @@ class CharacterSuccessorRepository(
 
         return CharacterSuccessorState(
             customAttributes = customAttributes,
+            customSkillAbilities = customSkillAbilities,
             spellcastingProfiles = spellcastingProfiles,
             combatDamage = combatDamage,
             customMarkers = customMarkers,
@@ -136,7 +150,8 @@ class CharacterSuccessorRepository(
         val sheet = requireNotNull(CharacterRepository(database).character(characterId)) {
             "Character must already exist locally."
         }
-        validate(sheet, state)
+        val closure = CharacterClosureRepository(database).state(characterId)
+        validate(sheet, closure, state)
         val id = characterId.toString()
 
         database.transaction {
@@ -144,6 +159,7 @@ class CharacterSuccessorRepository(
             database.characterSuccessorQueries.deleteCombatDamageComponents(id)
             database.characterSuccessorQueries.deleteResourceSuccessorConfigs(id)
             database.characterSuccessorQueries.deleteCustomMarkers(id)
+            database.characterSuccessorQueries.deleteCustomSkillAbilities(id)
             database.characterSuccessorQueries.deleteCustomAttributes(id)
 
             state.customAttributes.forEachIndexed { index, item ->
@@ -158,6 +174,16 @@ class CharacterSuccessorRepository(
                     saving_throw_adjustment = item.savingThrowAdjustment.toLong(),
                     notes = item.notes,
                     sort_order = index.toLong(),
+                )
+            }
+
+            state.customSkillAbilities.forEach { item ->
+                val storedAbility = serializeAbilityReference(item.ability)
+                database.characterSuccessorQueries.upsertCustomSkillAbility(
+                    custom_skill_id = item.customSkillId.toString(),
+                    character_id = id,
+                    ability_kind = storedAbility.first,
+                    ability_value = storedAbility.second,
                 )
             }
 
@@ -219,7 +245,11 @@ class CharacterSuccessorRepository(
         return state(characterId)
     }
 
-    private fun validate(sheet: CharacterSheet, state: CharacterSuccessorState) {
+    private fun validate(
+        sheet: CharacterSheet,
+        closure: CharacterClosureState,
+        state: CharacterSuccessorState,
+    ) {
         requireDistinctIds(state.customAttributes.map { it.id }, "Custom attributes")
         state.customAttributes.forEach { item ->
             require(item.name.trim().isNotEmpty()) { "Custom attribute name must not be blank." }
@@ -227,6 +257,13 @@ class CharacterSuccessorRepository(
             require(item.score >= 0) { "Custom attribute score must not be negative." }
         }
         val customAttributeIds = state.customAttributes.map { it.id }.toSet()
+
+        val customSkillIds = closure.customSkills.map { it.id }.toSet()
+        requireDistinctIds(state.customSkillAbilities.map { it.customSkillId }, "Custom skill ability configurations")
+        state.customSkillAbilities.forEach { item ->
+            require(item.customSkillId in customSkillIds) { "Custom skill ability must reference an existing custom skill." }
+            validateAbilityReference(item.ability, customAttributeIds)
+        }
 
         val sourceIds = sheet.spellcastingSources.map { it.id }.toSet()
         requireDistinctIds(state.spellcastingProfiles.map { it.sourceId }, "Spellcasting profiles")
