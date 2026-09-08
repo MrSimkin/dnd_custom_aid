@@ -1,14 +1,15 @@
 # Branch status and repository-ordering map
 
 **Updated:** 2026-09-08  
-**Controlling decision:** D-0048  
-**Canonical branch after the consolidation:** `main`
+**Controlling decision:** D-0066  
+**Canonical branch:** `main`  
+**Consolidation status:** COMPLETE
 
 This file exists because the repository accumulated many implementation, safety, retry and QA branches during Phase 4. Branch existence does **not** imply current authority.
 
 ## 1. Current authority
 
-After D-0048 is applied to `main`:
+After the completed D-0066 consolidation:
 
 - `main` is the only canonical current development baseline;
 - `docs/PROJECT_STATE.md` is the authoritative current-state snapshot;
@@ -18,17 +19,18 @@ After D-0048 is applied to `main`:
 
 Canonical does not mean release-ready. The current baseline remains pre-QA/debug with known defects and an open repair backlog.
 
-## 2. Verified durable lineage already contained by the consolidation source
+## 2. Verified durable lineage represented by `main`
 
-The following durable Phase 4 lines were directly verified as ancestors of `implementation/phase4-preqa-ux-repair` or of its durable consolidation ancestor:
+The following durable Phase 4 lines were verified as ancestors of the pre-consolidation source line and are now represented by canonical `main`:
 
 - `implementation/character-data-foundation`;
 - `implementation/phase4-character-closure`;
-- `implementation/phase4-preqa-consolidation`.
+- `implementation/phase4-preqa-consolidation`;
+- `implementation/phase4-preqa-ux-repair`.
 
-`implementation/phase4-preqa-ux-repair` is the source line being promoted to canonical `main` under D-0048.
+Before the D-0066 documentation commits, `implementation/phase4-preqa-ux-repair` was 791 commits ahead of old `main` and 0 commits behind it. The prepared consolidation checkpoint was then 804 commits ahead and 0 behind old `main`. `main` was advanced by a normal non-force fast-forward; no history rewrite was required.
 
-Before the D-0048 documentation commits, that branch was 791 commits ahead of old `main` and 0 commits behind it, so the repository can be consolidated through a non-destructive fast-forward rather than a history rewrite.
+The old implementation branches are now historical lineage labels, not current development bases.
 
 ## 3. Frozen immutable QA evidence — KEEP
 
@@ -45,7 +47,7 @@ Do not force-move, repurpose or treat them as current development branches.
 
 `docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md`
 
-That record has now been copied into canonical history with an explicit **HISTORICAL / SUPERSEDED** notice. The branch itself is no longer needed for current reconstruction.
+That record has been copied into canonical history with an explicit **HISTORICAL / SUPERSEDED** notice. The branch itself is no longer needed for current reconstruction.
 
 ## 5. Temporary validator/helper content deliberately excluded from product `main`
 
@@ -128,7 +130,7 @@ Do not start new work from them.
 
 ## 8. Branch-ref cleanup policy
 
-After canonical consolidation, obsolete non-frozen branch refs are safe candidates for repository-host cleanup once the owner wants the visible branch list reduced. Deleting a merged/superseded branch ref is branch-list housekeeping, not deletion of canonical history already present in `main`.
+Obsolete non-frozen branch refs are safe candidates for repository-host cleanup if the owner wants the visible branch list reduced. Deleting a merged/superseded branch ref is branch-list housekeeping, not deletion of canonical history already present in `main`.
 
 Never delete the explicitly frozen evidence branches above merely for tidiness.
 
