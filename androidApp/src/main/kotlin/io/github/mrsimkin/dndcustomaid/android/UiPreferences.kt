@@ -111,6 +111,7 @@ internal data class UiPreferences(
     val tabletPortraitColumns: Int = 2,
     val tabletLandscapeColumns: Int = 3,
     val spacingScalePercent: Int = 100,
+    val helpMode: CharacterHelpModeV4 = CharacterHelpModeV4.ALWAYS_VISIBLE,
 )
 
 internal val LocalUiPreferencesV4 = staticCompositionLocalOf { UiPreferences() }
@@ -143,6 +144,9 @@ internal class UiPreferencesStore(context: Context) {
         val tabletLandscapeColumns = preferences.getInt(KEY_TABLET_LANDSCAPE_COLUMNS, 3).coerceIn(1, 6)
         val spacingScalePercent = preferences.getInt(KEY_SPACING_SCALE, 100)
             .takeIf { it in SPACING_SCALE_OPTIONS } ?: 100
+        val helpMode = preferences.getString(KEY_HELP_MODE, null)
+            ?.let { runCatching { CharacterHelpModeV4.valueOf(it) }.getOrNull() }
+            ?: CharacterHelpModeV4.ALWAYS_VISIBLE
 
         return UiPreferences(
             fontScalePercent = scale,
@@ -154,6 +158,7 @@ internal class UiPreferencesStore(context: Context) {
             tabletPortraitColumns = tabletPortraitColumns,
             tabletLandscapeColumns = tabletLandscapeColumns,
             spacingScalePercent = spacingScalePercent,
+            helpMode = helpMode,
         )
     }
 
@@ -168,6 +173,7 @@ internal class UiPreferencesStore(context: Context) {
             .putInt(KEY_TABLET_PORTRAIT_COLUMNS, value.tabletPortraitColumns)
             .putInt(KEY_TABLET_LANDSCAPE_COLUMNS, value.tabletLandscapeColumns)
             .putInt(KEY_SPACING_SCALE, value.spacingScalePercent)
+            .putString(KEY_HELP_MODE, value.helpMode.name)
             .apply()
     }
 
@@ -182,6 +188,7 @@ internal class UiPreferencesStore(context: Context) {
         const val KEY_TABLET_PORTRAIT_COLUMNS = "tablet_portrait_columns"
         const val KEY_TABLET_LANDSCAPE_COLUMNS = "tablet_landscape_columns"
         const val KEY_SPACING_SCALE = "spacing_scale_percent"
+        const val KEY_HELP_MODE = "help_mode"
     }
 }
 
@@ -268,6 +275,7 @@ internal fun DndCustomAidTheme(
     CompositionLocalProvider(
         LocalDensity provides adjustedDensity,
         LocalUiPreferencesV4 provides preferences,
+        LocalCharacterHelpModeV4 provides preferences.helpMode,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -537,6 +545,22 @@ internal fun AppSettingsDialog(
                     }
                 }
                 item {
+                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
+                        SettingSelector(
+                            label = "Ayuda contextual",
+                            value = preferences.helpMode.label,
+                            options = CharacterHelpModeV4.entries,
+                            optionLabel = { it.label },
+                            onSelect = { onPreferencesChange(preferences.copy(helpMode = it)) },
+                        )
+                        Text(
+                            "Controla si las explicaciones aparecen siempre, desde ⓘ, o se ocultan.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                item {
                     FontChoicePicker(
                         selected = preferences.fontChoice,
                         onSelect = { onPreferencesChange(preferences.copy(fontChoice = it)) },
@@ -726,7 +750,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                 }
 
                 Text(
-                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}%",
+                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · Ayuda ${preferences.helpMode.label}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
