@@ -1,7 +1,9 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import android.view.HapticFeedbackConstants
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -82,21 +84,48 @@ internal fun Modifier.characterDragFeedbackV4(
 ): Modifier {
     val scale = animateFloatAsState(
         targetValue = if (state.active) 1.045f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
         label = "character-drag-scale",
     ).value
     val elevation = animateFloatAsState(
         targetValue = if (state.active) 24f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
         label = "character-drag-elevation",
     ).value
     val alpha = animateFloatAsState(
         targetValue = if (state.active) 0.96f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
         label = "character-drag-alpha",
+    ).value
+    val offsetY = animateFloatAsState(
+        targetValue = state.offsetY,
+        animationSpec = if (state.active) {
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessHigh,
+            )
+        } else {
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            )
+        },
+        label = "character-drag-offset",
     ).value
 
     return this
         .zIndex(if (state.active) 20f else 0f)
         .graphicsLayer {
-            translationY = state.offsetY
+            translationY = offsetY
             scaleX = scale
             scaleY = scale
             shadowElevation = elevation.dp.toPx()
