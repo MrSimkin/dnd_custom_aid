@@ -21,10 +21,12 @@ Do **not** simply keep a vague full-width `Fuente` textbox everywhere, and do **
 
 Prefer a compact **two-part origin model on one row** where provenance is useful:
 
-1. **Tipo de origen / fuente** — for example `Clase`, `Dote`, `Pacto`, `Objeto`, `Raza`, `Trasfondo`, `Otro`, etc.;
+1. **Tipo de origen / fuente** — for example `Clase`, `Dote`, `Pacto`, `Objeto`, `Raza`, `Trasfondo`, `Otro`, etc.; **default: `Clase`**;
 2. **Origen / fuente específica** — select the actual class/dote/pact/item/etc., or enter/select a custom value when `Otro` applies.
 
 Both controls should share one row at ordinary text scale when width allows, following the app-wide rule that information fitting clearly in one row should not be spread across several rows. High zoom/accessibility may wrap as needed.
+
+`Clase` is the default because it is expected to be the most common origin in normal character-sheet use. The user must still be able to change the type directly to another origin without first clearing or navigating through extra UI.
 
 This model should be reused only where the provenance has a concrete user-facing purpose. A backing-model `source` property by itself is not sufficient reason to expose a normal UI field.
 
