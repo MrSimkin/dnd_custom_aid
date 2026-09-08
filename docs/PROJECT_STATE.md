@@ -1,15 +1,18 @@
 # Project State
 
 **Last verified:** 2026-09-08  
-**Canonical branch:** `main` under D-0048  
-**Consolidation source:** `implementation/phase4-preqa-ux-repair`  
+**Canonical branch:** `main` under D-0066  
+**Repository consolidation:** COMPLETE  
+**Historical consolidation source:** `implementation/phase4-preqa-ux-repair`  
 **Current phase:** Phase 4A — Character Foundation Closure / owner-driven repair cycle  
 **Release status:** debug / pre-QA; known defects remain; not release-ready  
 **DM work:** blocked until the separate Phase 4A closure/acceptance gate is later satisfied and explicitly approved
 
-## 1. Canonical state after D-0048
+## 1. Canonical state after D-0066
 
 The owner explicitly approved consolidating the current Phase 4 development baseline into `main` on 2026-09-08 even though formal QA/closure is not complete.
+
+The consolidation is complete. `main` was advanced by a normal non-force fast-forward from old head `471c5570669a6007bea9796d8a2c25536b10be21` to the prepared consolidation checkpoint. Verification showed the new mainline 804 commits ahead and 0 behind the old head, with the old head preserved as merge base.
 
 This is a repository-ordering decision, not a release or QA acceptance decision.
 
@@ -23,7 +26,11 @@ From this point forward:
 
 Controlling decision:
 
-`docs/decisions/D-0048_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md`
+`docs/decisions/D-0066_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md`
+
+Completed consolidation checkpoint:
+
+`docs/checkpoints/2026-09-08_MAIN_CANONICAL_CONSOLIDATION.md`
 
 ## 2. Latest technically verified product build
 
@@ -39,9 +46,9 @@ The latest product code that completed the full automated gate remains:
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`;
 - APK size `36,161,616` bytes.
 
-A repository comparison performed during D-0048 consolidation verified that the 39 commits between the tested product commit and the pre-consolidation active head `0ac2d3d190f989549ced4914d7ce98274118a0d3` changed only documentation/governance files. No application source, schema, Gradle, backend or build-workflow product code changed in that interval.
+A repository comparison performed during consolidation verified that the 39 commits between the tested product commit and pre-consolidation active head `0ac2d3d190f989549ced4914d7ce98274118a0d3` changed only documentation/governance files. No application source, schema, Gradle, backend or build-workflow product code changed in that interval.
 
-Therefore the canonical repository may advance while build `40700` remains the latest technically verified **product** identity.
+The D-0066 consolidation/finalization commits are also documentation/governance-only. Therefore build `40700` remains the latest technically verified **product** identity while the canonical repository state advances.
 
 ## 3. Owner phone audition status
 
@@ -49,7 +56,7 @@ Primary real device:
 
 **Redmi Note 11 Pro 5G**
 
-The staged phone audition has now covered Stages A–F sufficiently for this build. The owner explicitly generalized repeated findings rather than re-reporting them on every surface.
+The staged phone audition has covered Stages A–F sufficiently for this build. The owner explicitly generalized repeated findings rather than re-reporting them on every surface.
 
 This does **not** mean the build passed visual QA. The audition intentionally produced a substantial repair backlog.
 
@@ -121,7 +128,7 @@ No physical owner tablet device has been recorded yet.
 
 Tablet acceptance is therefore **not complete**.
 
-However, tablet work should not block repository consolidation. The current wide/tablet model already has known design concerns and should be repaired before treating tablet QA as a final acceptance gate.
+The current wide/tablet model already has known design concerns and should be repaired before treating tablet QA as a final acceptance gate.
 
 ## 6. Historical QA evidence
 
@@ -145,10 +152,12 @@ The repository accumulated many historical safety/retry branches during Phase 4.
 Key verified lineage facts from the consolidation audit:
 
 - old `main` head `471c5570669a6007bea9796d8a2c25536b10be21` was the merge base of the pre-consolidation active line;
-- `implementation/phase4-preqa-ux-repair` was 791 commits ahead and 0 behind old `main` before the D-0048 documentation commits;
+- `implementation/phase4-preqa-ux-repair` was 791 commits ahead and 0 behind old `main` before the D-0066 documentation commits;
 - `implementation/character-data-foundation`, `implementation/phase4-character-closure` and `implementation/phase4-preqa-consolidation` are historical durable ancestors of the current line;
 - the temporary M6 docs branch had one unique historical record, now preserved canonically;
 - the temporary M5 candidate-validator branch has one unique one-off validator workflow, deliberately excluded from product `main` because it has no continuing purpose.
+
+The visible historical branch refs have not been physically deleted. Their presence does not make them current alternatives to `main`.
 
 See:
 
@@ -156,24 +165,25 @@ See:
 
 ## 8. Current execution position
 
+The repository/main consolidation is complete.
+
 The owner is compiling additional observations that are **outside the formal QA exercise** so they can be included in the same upcoming development cycle.
 
 Do not start a broad repair implementation merely from partial chat memory while that owner input is still being assembled.
 
 Exact next sequence:
 
-1. finish D-0048 repository/main consolidation;
-2. collect and durably record the owner's additional non-QA observations;
-3. reconcile those observations with the existing audition backlog;
-4. design one coherent successor repair batch from canonical `main`;
-5. implement on a new focused branch;
-6. run the complete automated gate and identify a successor debug build;
-7. perform targeted owner retesting of repaired families instead of blindly repeating every old check;
-8. only later, after an acceptable phone/tablet baseline exists, freeze a replacement formal M6 candidate and execute the formal acceptance matrix.
+1. collect and durably record the owner's additional non-QA observations;
+2. reconcile those observations with the existing audition backlog;
+3. design one coherent successor repair batch from canonical `main`;
+4. implement on a new focused branch;
+5. run the complete automated gate and identify a successor debug build;
+6. perform targeted owner retesting of repaired families instead of blindly repeating every old check;
+7. only later, after an acceptable phone/tablet baseline exists, freeze a replacement formal M6 candidate and execute the formal acceptance matrix.
 
 ## 9. Phase 4 closure boundary remains open
 
-D-0048 changes the repository merge boundary, **not** the Phase 4 acceptance boundary.
+D-0066 changes the repository merge boundary, **not** the Phase 4 acceptance boundary.
 
 Phase 4A is not closed until the owner later accepts the repaired result through the required real-device gates and explicitly approves closure.
 
