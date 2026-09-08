@@ -122,9 +122,11 @@ class CharacterSuccessorPresentationTest {
             }
 
             val driver = JdbcSqliteDriver(jdbcUrl)
+            // Start before migration 9 so this synthetic fixture follows the same predecessor chain
+            // that creates the successor extension tables migration 11 later rebuilds.
             AppDatabase.Schema.migrate(
                 driver = driver,
-                oldVersion = 10,
+                oldVersion = 9,
                 newVersion = AppDatabase.Schema.version,
             )
             driver.close()
