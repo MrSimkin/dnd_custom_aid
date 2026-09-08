@@ -1,43 +1,30 @@
 # Latest project checkpoint
 
 **Updated:** 2026-09-08  
-**Controlling decision:** D-0066  
-**Canonical baseline:** `main`  
-**Repository consolidation:** COMPLETE  
-**Historical consolidation source:** `implementation/phase4-preqa-ux-repair`  
-**Current product status:** debug / pre-QA; known owner-observed defects remain  
+**Canonical branch:** `main`  
+**Repository consolidation:** COMPLETE under D-0066  
+**Current owner development input:** D-0067 RECORDED  
+**Current product status:** debug / pre-QA; known defects remain  
 **Latest technically verified product identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary owner test phone:** Redmi Note 11 Pro 5G  
-**Phone audition:** Stages A–F sufficiently covered; findings recorded; build did not pass visual acceptance  
-**Tablet acceptance:** not complete; no physical owner tablet recorded  
+**Phone audition:** Stages A–F sufficiently covered; findings recorded; visual acceptance NOT passed  
+**Tablet acceptance:** not complete; current tablet/wide UX is itself a redesign target  
 **DM implementation:** blocked pending later Phase 4A closure acceptance
 
 ## Read next
 
 1. `docs/PROJECT_STATE.md` — authoritative current-state snapshot;
-2. `docs/BRANCH_STATUS.md` — interpretation of the many remaining historical branch refs;
-3. `docs/decisions/D-0066_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md` — why the current pre-QA state was consolidated into `main` before release acceptance;
-4. `docs/checkpoints/2026-09-08_MAIN_CANONICAL_CONSOLIDATION.md` — completed graph/repository consolidation evidence;
-5. `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md` — latest detailed phone-audition findings;
-6. `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md` — source/provenance information-architecture follow-up.
+2. `docs/decisions/D-0067_OWNER_NEXT_CYCLE_CHARACTER_UX_AND_FEATURE_REFINEMENTS.md` — owner non-QA development package for the upcoming cycle;
+3. `docs/checkpoints/2026-09-08_OWNER_NEXT_CYCLE_INPUT_RECORDED.md` — exact recording/checkpoint status;
+4. `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md` — detailed latest QA/audition findings;
+5. `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md` — provenance/source information-architecture follow-up;
+6. `docs/decisions/D-0066_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md` and `docs/BRANCH_STATUS.md` only when branch/repository history matters.
 
-## What D-0066 changed
+## Canonical baseline
 
-The owner explicitly requested that the repository stop carrying the entire current Phase 4 development state only on confusing long-lived branches.
+D-0066 consolidated the current Phase 4 development reality into `main` by a normal non-force fast-forward. This made `main` the single current development baseline without claiming release readiness or QA acceptance.
 
-The current development baseline has therefore been promoted into canonical `main` **without claiming that it is a good release**.
-
-The promotion was a normal non-force fast-forward. Relative to the old `main` head `471c5570669a6007bea9796d8a2c25536b10be21`, the consolidation checkpoint was 804 commits ahead and 0 behind; the old head remained the merge base.
-
-This consolidation means:
-
-- `main` is the single current source of truth;
-- the current debug state and its known bugs are canonical development reality;
-- old implementation/tmp branches are historical evidence only;
-- frozen QA-evidence branches remain immutable;
-- future repairs branch from `main`.
-
-It does **not** mean Phase 4 is accepted or closed.
+Old implementation/tmp branches are historical evidence, not competing current truth. Frozen QA branches remain immutable historical evidence.
 
 ## Latest verified product code
 
@@ -53,58 +40,77 @@ Review identity:
 - artifact `10035895186`;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-The consolidation audit verified that the 39 commits after that tested product commit through pre-consolidation head `0ac2d3d190f989549ced4914d7ce98274118a0d3` were documentation/governance-only. The subsequent consolidation/finalization commits are also documentation/governance-only. No newer untested product-code change is being presented as build evidence.
+All repository changes since that tested product revision through D-0066/D-0067 are documentation/governance only unless a later checkpoint explicitly says otherwise. Build `40700` therefore remains the latest technically verified product identity.
 
-## Phone audition result
+## Existing QA/audition backlog remains active
 
-Do **not** resume old M6 or repeat the whole phone audition on build `40700`.
+Do not repeat the whole phone audition on build `40700`.
 
-Stages A–F have yielded enough evidence to design a successor repair cycle. Important recorded families include:
+Cross-cutting recorded families include:
 
-- app-wide excessive padding/margins and row fragmentation;
-- card action/reorder density and weak move feedback;
-- major shared editor/IME problems;
-- phone landscape incorrectly entering an inadequate wide/tablet presentation;
-- current tablet/wide UI itself requiring redesign/audit;
-- Conjuros fixed controls consuming the entire phone-landscape viewport;
+- excessive app-wide padding/margins and unnecessary multi-row layouts;
+- card density, direct hold-and-drag reordering and weak movement feedback;
+- shared editor/IME reachability/orientation defects;
+- phone landscape incorrectly entering an inadequate tablet/wide presentation;
+- complete tablet/wide UX redesign/optimization;
+- Conjuros fixed controls exhausting the landscape content viewport;
 - scroll/context reset on rotation;
-- compactness issues in Gestión/death saves and various sticky regions;
-- unclear Consumible/Munición presentation;
-- generic `Fuente` provenance over-exposed in editors;
-- preferred structured one-row origin model: origin type + specific origin, with `Clase` as default origin type;
-- preserve real Conjuros spellcasting-source associations because they drive behavior and can themselves be custom/non-class sources;
-- `Electrum` terminology;
-- `Raza` only, never `Especie/raza`;
-- Spanish class/subclass presentation;
-- do not foreground D&D 5e/5.5e metadata where it currently has no operational purpose;
-- help-text display preference and character-tab-order preference;
-- 40% spacing option for successor audition;
-- PT Sans Narrow Bold still needs a satisfactory presentation before typography acceptance.
+- compactness problems in Gestión/death saves and other permanent regions;
+- generic `Fuente` provenance over-exposed;
+- unclear Consumible/Munición UX;
+- `Electrum`, `Raza`-only and Spanish class/subclass terminology corrections;
+- help-text/`ⓘ` presentation preference;
+- user-configurable tab order;
+- 40% spacing successor audition and PT Sans Narrow Bold follow-up.
 
-Detailed evidence remains in the Stage A–F checkpoints; do not duplicate all findings into every future screen report.
+## D-0067 owner next-cycle package
 
-## Historical detour preserved
+The owner supplied a separate non-QA package to take advantage of the same development cycle. Major additions include:
 
-The temporary `tmp/phase4-m6-qa-pause-docs` branch had one unique owner-QA progress file. It has been copied into canonical history as:
+- compact `Clases`, derived hit-die maximum from level and stronger same-data consistency across tabs;
+- persistent images in Trasfondo;
+- character-first initial PC list showing Raza, classes/levels and campaign;
+- proportional tab widths and user-set tab order;
+- structured multi-component attack damage;
+- spellcasting label/formula help and multiclass spellcasting abilities;
+- armor/language visibility and custom attributes;
+- custom skills managed in PC Settings but rendered normally/italic in Habilidades; alphabetical skills; `Conocimiento Arcano`;
+- compact attack-card hierarchy;
+- redesigned character-aware dice workflow, selectable result presentation, damage rolls and custom rolls;
+- configurable Inspiration/custom markers, predefined conditions/help, concentration DC assistance and cross-domain rest recovery metadata;
+- `Gemas / arte`;
+- Notes search/filter;
+- haptic strength/duration;
+- full-screen Application Settings with stepped live-preview sliders, visual column previews, simpler font UI, theme renames and six new delegated theme families;
+- conditional official-existing-vs-custom add flows only when the relevant official corpus is actually available.
 
-`docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md`
+Detailed requirements and dependencies are in D-0067; do not implement from this summary alone.
 
-That file is explicitly **HISTORICAL / SUPERSEDED**. It records a real historical in-place-upgrade PASS but is not the current QA path.
+## Important conditional boundary
+
+The current product does **not** load an official SRD spell/trait corpus into the character app. D-0067 therefore records `Buscar existente`/official catalog flows as conditional requirements, not authorization to silently add SRD ingestion to the immediate repair cycle.
+
+`Mitos de Cthulhu` explanatory condition content likewise requires an appropriate content/licensing source before bundled rules text is added.
 
 ## Exact next action
 
-The repository/main consolidation is complete.
+**Do not start piecemeal product implementation yet.**
 
-The owner is currently compiling additional observations that are **outside the formal QA exercise** and wants them included in the same upcoming development cycle.
+Next step is one reconciliation/design pass that combines:
 
-Therefore:
+1. existing Stage A–F QA/audition findings;
+2. the `Fuente` audit;
+3. D-0067 owner non-QA requirements.
 
-1. receive and durably record the owner's additional observations;
-2. reconcile them with the existing audition backlog;
-3. only then design the coherent successor repair batch;
-4. create a new focused branch from canonical `main` for implementation;
-5. run the complete automated gate and produce a new identified debug build;
-6. use targeted owner retesting of repaired families rather than blindly rerunning all prior checks;
-7. defer formal M6 freeze/QA until the repaired phone/tablet baseline is acceptable.
+That pass must produce a coherent implementation plan identifying:
+
+- shared/cross-cutting primitives to repair once;
+- schema/domain/storage changes versus UI-only work;
+- dependencies between attack/dice, custom attributes/skills, recovery/Gestión, images/backup and responsive design;
+- conditional/deferred SRD-backed items;
+- sensible implementation order and build boundaries;
+- targeted automated and owner real-device retest scope.
+
+Only after that plan is coherent should a new focused product branch be created from canonical `main`.
 
 No DM-feature implementation begins before the separate Phase 4A closure gate is later satisfied and explicitly approved.
