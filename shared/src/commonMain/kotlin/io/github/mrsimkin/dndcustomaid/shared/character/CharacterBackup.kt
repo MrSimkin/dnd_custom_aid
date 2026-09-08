@@ -10,12 +10,13 @@ import kotlinx.serialization.json.jsonObject
 import kotlin.uuid.Uuid
 
 const val CHARACTER_BACKUP_FORMAT = "dnd-custom-aid.character-backup"
-const val CHARACTER_BACKUP_VERSION = 1
+const val CHARACTER_BACKUP_VERSION = 2
+private const val CHARACTER_BACKUP_MIN_SUPPORTED_VERSION = 1
 
 /**
  * Versioned, app-owned character backup. This is intentionally not a third-party import schema.
- * The payload joins the two existing authoritative character persistence aggregates rather than
- * introducing a second character model.
+ * The payload joins the authoritative character persistence aggregates rather than introducing a
+ * second character model. V1 files omit [successorState] and decode through its empty default.
  */
 @Serializable
 data class CharacterBackupDocument(
@@ -24,6 +25,7 @@ data class CharacterBackupDocument(
     val exportedAtEpochSeconds: Long,
     val character: CharacterSheet,
     val closureState: CharacterClosureState,
+    val successorState: CharacterSuccessorState = CharacterSuccessorState(),
 )
 
 enum class CharacterBackupErrorCode {
@@ -81,7 +83,7 @@ object CharacterBackupCodec {
         }
 
         val version = (root["version"] as? JsonPrimitive)?.content?.toIntOrNull()
-        if (version != CHARACTER_BACKUP_VERSION) {
+        if (version == null || version !in CHARACTER_BACKUP_MIN_SUPPORTED_VERSION..CHARACTER_BACKUP_VERSION) {
             return CharacterBackupDecodeResult.Failure(
                 CharacterBackupError(
                     CharacterBackupErrorCode.UNSUPPORTED_VERSION,
@@ -114,7 +116,7 @@ object CharacterBackupCodec {
 }
 
 /**
- * Fully remapped import candidate. V1 import semantics are deliberately "restore as a new copy":
+ * Fully remapped import candidate. Import semantics are deliberately "restore as a new copy":
  * no original database identity is reused, so an import cannot overwrite a local character or
  * collide with child-row primary keys from the source backup.
  */
@@ -123,6 +125,7 @@ data class CharacterBackupImportPlan(
     val sourceCampaignId: Uuid,
     val character: CharacterSheet,
     val closureState: CharacterClosureState,
+    val successorState: CharacterSuccessorState,
 )
 
 fun prepareCharacterBackupImport(
@@ -160,6 +163,10 @@ fun prepareCharacterBackupImport(
     val customSkillIds = remap(closure.customSkills.map { it.id })
     val effectIds = remap(closure.temporaryEffects.map { it.id })
     val otherQuickAccessIds = mutableMapOf<Uuid, Uuid>()
+
+    val successor = document.successorState
+    val customAttributeIds = remap(successor.customAttributes.map { it.id })
+    val customMarkerIds = remap(successor.customMarkers.map { it.id })
 
     val importedSheet = source.copy(
         id = targetCharacterId,
@@ -233,17 +240,53 @@ fun prepareCharacterBackupImport(
         quickAccess = closure.quickAccess.map(::remapQuickAccess),
     )
 
+    fun remapAbility(reference: CharacterAbilityReference): CharacterAbilityReference = when {
+        reference.customAttributeId != null -> CharacterAbilityReference.custom(
+            customAttributeIds.getValue(reference.customAttributeId),
+        )
+        reference.builtIn != null -> CharacterAbilityReference.builtIn(reference.builtIn)
+        else -> CharacterAbilityReference.NONE
+    }
+
+    val importedSuccessor = successor.copy(
+        customAttributes = successor.customAttributes.map { item ->
+            item.copy(id = customAttributeIds.getValue(item.id))
+        },
+        customSkillAbilities = successor.customSkillAbilities.map { item ->
+            item.copy(
+                customSkillId = customSkillIds.getValue(item.customSkillId),
+                ability = remapAbility(item.ability),
+            )
+        },
+        spellcastingProfiles = successor.spellcastingProfiles.map { item ->
+            item.copy(
+                sourceId = spellSourceIds.getValue(item.sourceId),
+                ability = remapAbility(item.ability),
+            )
+        },
+        combatDamage = successor.combatDamage.map { item ->
+            item.copy(combatEntryId = combatIds.getValue(item.combatEntryId))
+        },
+        customMarkers = successor.customMarkers.map { item ->
+            item.copy(id = customMarkerIds.getValue(item.id))
+        },
+        resourceConfigurations = successor.resourceConfigurations.map { item ->
+            item.copy(resourceId = resourceIds.getValue(item.resourceId))
+        },
+    )
+
     return CharacterBackupImportPlan(
         sourceCharacterId = source.id,
         sourceCampaignId = source.campaignId,
         character = importedSheet,
         closureState = importedClosure,
+        successorState = importedSuccessor,
     )
 }
 
 internal fun characterBackupValidationMessage(document: CharacterBackupDocument): String? {
     if (document.format != CHARACTER_BACKUP_FORMAT) return "El identificador de formato del respaldo no es válido."
-    if (document.version != CHARACTER_BACKUP_VERSION) return "La versión del respaldo no es compatible."
+    if (document.version !in CHARACTER_BACKUP_MIN_SUPPORTED_VERSION..CHARACTER_BACKUP_VERSION) return "La versión del respaldo no es compatible."
     if (document.exportedAtEpochSeconds < 0) return "La fecha del respaldo no es válida."
 
     val sheet = document.character
@@ -278,6 +321,7 @@ internal fun characterBackupValidationMessage(document: CharacterBackupDocument)
     val spellIds = sheet.spells.mapTo(mutableSetOf()) { it.id }
     val inventoryIds = sheet.inventoryItems.mapTo(mutableSetOf()) { it.id }
     val resourceIds = sheet.resources.mapTo(mutableSetOf()) { it.id }
+    val combatIds = sheet.combatEntries.mapTo(mutableSetOf()) { it.id }
 
     if (sheet.spellcastingSources.any { it.linkedClassId != null && it.linkedClassId !in classIds }) return "El respaldo contiene una fuente de conjuros vinculada a una clase inexistente."
     if (sheet.classOptions.any { it.linkedClassId != null && it.linkedClassId !in classIds }) return "El respaldo contiene una opción vinculada a una clase inexistente."
@@ -303,7 +347,7 @@ internal fun characterBackupValidationMessage(document: CharacterBackupDocument)
     if (state.concentration?.spellId != null && state.concentration.spellId !in spellIds) return "El respaldo contiene concentración vinculada a un conjuro inexistente."
 
     val quickTargets = mapOf(
-        CharacterQuickAccessKind.COMBAT_ENTRY to sheet.combatEntries.mapTo(mutableSetOf()) { it.id },
+        CharacterQuickAccessKind.COMBAT_ENTRY to combatIds,
         CharacterQuickAccessKind.TRAIT to sheet.traits.mapTo(mutableSetOf()) { it.id },
         CharacterQuickAccessKind.SPELL to spellIds,
         CharacterQuickAccessKind.RESOURCE to resourceIds,
@@ -316,6 +360,27 @@ internal fun characterBackupValidationMessage(document: CharacterBackupDocument)
     if (state.quickAccess.any { ref -> ref.kind != CharacterQuickAccessKind.OTHER && ref.targetId !in quickTargets.getValue(ref.kind) }) {
         return "El respaldo contiene un acceso rápido vinculado a un registro inexistente."
     }
+
+    val successor = document.successorState
+    duplicateMessage(successor.customAttributes.map { it.id }, "atributos personalizados")?.let { return it }
+    duplicateMessage(successor.customMarkers.map { it.id }, "marcadores personalizados")?.let { return it }
+    if (successor.customSkillAbilities.map { it.customSkillId }.distinct().size != successor.customSkillAbilities.size) return "El respaldo contiene configuraciones de habilidad personalizada duplicadas."
+    if (successor.spellcastingProfiles.map { it.sourceId }.distinct().size != successor.spellcastingProfiles.size) return "El respaldo contiene perfiles de lanzamiento duplicados."
+    if (successor.combatDamage.map { it.combatEntryId }.distinct().size != successor.combatDamage.size) return "El respaldo contiene perfiles de daño duplicados."
+    if (successor.resourceConfigurations.map { it.resourceId }.distinct().size != successor.resourceConfigurations.size) return "El respaldo contiene configuraciones de recurso duplicadas."
+
+    val customAttributeIds = successor.customAttributes.mapTo(mutableSetOf()) { it.id }
+    val customSkillIds = state.customSkills.mapTo(mutableSetOf()) { it.id }
+    fun abilityReferenceValid(reference: CharacterAbilityReference): Boolean {
+        if (reference.builtIn != null && reference.customAttributeId != null) return false
+        return reference.customAttributeId == null || reference.customAttributeId in customAttributeIds
+    }
+
+    if (successor.customSkillAbilities.any { it.customSkillId !in customSkillIds || !abilityReferenceValid(it.ability) }) return "El respaldo contiene una habilidad personalizada vinculada a un atributo inexistente."
+    if (successor.spellcastingProfiles.any { it.sourceId !in sourceIds || !abilityReferenceValid(it.ability) }) return "El respaldo contiene un perfil de lanzamiento vinculado a una fuente o atributo inexistente."
+    if (successor.combatDamage.any { it.combatEntryId !in combatIds }) return "El respaldo contiene daño estructurado vinculado a un ataque inexistente."
+    if (successor.combatDamage.any { profile -> profile.components.any { it.expression.isBlank() } }) return "El respaldo contiene componentes de daño vacíos."
+    if (successor.resourceConfigurations.any { it.resourceId !in resourceIds || it.placements.isEmpty() }) return "El respaldo contiene una configuración de recurso inválida."
 
     return null
 }
