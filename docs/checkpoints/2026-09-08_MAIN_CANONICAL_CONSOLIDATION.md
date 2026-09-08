@@ -1,10 +1,10 @@
-# D-0048 canonical `main` consolidation checkpoint
+# D-0066 canonical `main` consolidation checkpoint
 
 **Date:** 2026-09-08  
-**Status before ref move:** CONSOLIDATION SOURCE READY; owner explicitly approved promotion to `main`  
-**Source branch:** `implementation/phase4-preqa-ux-repair`  
+**Status:** COMPLETE  
+**Historical source branch:** `implementation/phase4-preqa-ux-repair`  
 **Old canonical `main` head:** `471c5570669a6007bea9796d8a2c25536b10be21`  
-**Checkpoint commit:** represented by the commit containing this file  
+**Prepared consolidation checkpoint commit:** `c733e71487b4f4a51c78edb2930c271aafda5a43`  
 **Latest technically verified product commit:** `43ca1f5662123ce4d355d9d618b0bfba66d17697`  
 **Latest technically verified build:** `0.4.0-preqa.7` / `40700` / `debug`
 
@@ -12,17 +12,39 @@
 
 The repository accumulated a very large number of implementation, safety, retry, QA and frozen-candidate branches during Phase 4. The owner explicitly requested that the current development reality be ordered and consolidated into canonical `main` now, even though it is still a debug/pre-QA state with known bugs.
 
-D-0048 records the key distinction:
+D-0066 records the key distinction:
 
 **canonical development baseline != release acceptance**.
 
+## Completed ref move
+
+`main` was advanced from old head:
+
+`471c5570669a6007bea9796d8a2c25536b10be21`
+
+to the prepared consolidation checkpoint:
+
+`c733e71487b4f4a51c78edb2930c271aafda5a43`
+
+using a normal **non-force fast-forward**.
+
+Post-move verification showed:
+
+- status relative to old `main`: `ahead`;
+- ahead by: **804 commits**;
+- behind by: **0 commits**;
+- merge base remained the old `main` head.
+
+No history rewrite or force update was used.
+
+Subsequent commits on `main` finalize documentation/status wording and correct the consolidation decision number from the accidentally reused D-0048 to unique **D-0066**. Those changes are documentation/governance-only.
+
 ## Graph audit
 
-Before the D-0048 documentation commits, GitHub compare established:
+Before the D-0066 documentation commits, GitHub compare established:
 
 - old `main` was the merge base of `implementation/phase4-preqa-ux-repair`;
 - the active line was **791 commits ahead and 0 behind** old `main`;
-- therefore the source line can be promoted by a normal non-force fast-forward;
 - `implementation/phase4-preqa-consolidation` is an ancestor of the active source line;
 - `implementation/phase4-character-closure` is an older ancestor;
 - `implementation/character-data-foundation` is an older ancestor;
@@ -36,9 +58,25 @@ GitHub compare from tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17
 
 No application source, shared/domain code, SQLDelight schema, Gradle/build configuration, backend product code or build workflow changed after the tested product commit in that interval.
 
-The subsequent D-0048 consolidation commits are also documentation/governance-only.
+The D-0066 consolidation/finalization commits are also documentation/governance-only.
 
-Therefore build `40700` remains the latest technically verified product identity while the repository governance state advances.
+Therefore build `40700` remains the latest technically verified product identity while repository governance advances.
+
+## Decision-number collision corrected
+
+During final consistency verification, the repository was found to already contain historical approved decision:
+
+`docs/decisions/D-0048_SETTINGS_QA_CANDIDATES.md`
+
+The initial consolidation record had accidentally reused number D-0048. To avoid creating a second ambiguous D-0048, the consolidation decision was renumbered to the next unused decision number:
+
+`D-0066 — Consolidate the current Phase 4 development baseline into main`
+
+Canonical file:
+
+`docs/decisions/D-0066_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md`
+
+The accidental duplicate consolidation file is removed as part of finalization; the original historical D-0048 Settings decision remains untouched.
 
 ## Unique/orphan branch evidence handled
 
@@ -77,12 +115,12 @@ A dedicated interpretation map now exists:
 It records:
 
 - `main` as the single canonical current baseline;
-- 45 current `tmp/*` refs as historical/safety/retry evidence unless explicitly frozen;
+- 45 observed `tmp/*` refs as historical/safety/retry evidence unless explicitly frozen;
 - the two frozen branches that must remain immutable;
 - durable Phase 4 ancestor branches;
 - the rule that old branch presence is not competing current truth.
 
-Physical deletion of obsolete non-frozen branch refs is repository-host tidiness and is not required for canonical correctness. Frozen evidence branches must not be deleted merely for tidiness.
+Physical deletion of obsolete non-frozen branch refs has **not** been performed. It is repository-host tidiness rather than a requirement for canonical correctness. Frozen evidence branches must not be deleted merely for tidiness.
 
 ## Current owner-audition state carried into canonical history
 
@@ -101,7 +139,7 @@ The owner explicitly promoted repeated findings to app-wide rules, including:
 
 No physical owner tablet acceptance has been completed.
 
-## Governance files reconciled for the promotion
+## Governance files reconciled
 
 This consolidation refreshed:
 
@@ -115,22 +153,21 @@ This consolidation refreshed:
 - `docs/ARCHITECTURE.md`;
 - `docs/TESTING.md`;
 - `docs/QA_CHECKLIST.md`;
-- detailed decision D-0048;
+- detailed decision D-0066;
 - historical M6 detour evidence.
 
 Product scope, foundational architecture and recurring conventions were not reopened merely for repository cleanup.
 
-## Ref-move instruction
+## Current resume rule
 
-Advance `main` from old head `471c5570669a6007bea9796d8a2c25536b10be21` to the commit containing this checkpoint using a normal **non-force fast-forward**.
+The consolidation is complete.
 
-After the ref move:
-
-1. verify `main` contains this checkpoint;
-2. verify `main` is ahead of the old head and not rewritten;
-3. refresh `LATEST.md` / `PROJECT_STATE.md` only if needed to replace "finish consolidation" wording with "consolidation complete";
+1. use `main` as the only canonical current baseline;
+2. use `docs/PROJECT_STATE.md` for current state;
+3. use `docs/checkpoints/LATEST.md` for exact continuation;
 4. treat `implementation/phase4-preqa-ux-repair` as historical source lineage, not the next development base;
-5. start the next product repair branch from `main` only after the owner finishes supplying the additional non-QA observations they are currently compiling.
+5. wait for the owner's remaining non-QA observations to be durably captured before creating the next repair branch;
+6. create that repair branch from `main`.
 
 ## Acceptance boundary
 
