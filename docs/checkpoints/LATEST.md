@@ -5,7 +5,7 @@
 **Current review identity:** version `0.4.0-preqa.7` / build `40700` / `debug`  
 **Current technical state:** focused pre-QA UX repair Pass 07 green/stable; no new product build started during owner audition  
 **Current governance state:** current-stage prose reconciled through D-0047/Pass 07  
-**Owner audition state:** IN PROGRESS — primary phone Stage A/B/C/D recorded; Stage E in progress through corrected E2  
+**Owner audition state:** IN PROGRESS — primary phone Stage A/B/C/D recorded; Stage E in progress through E4  
 **Detailed checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_E.md`  
 **Prior Stage D checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_D.md`  
 **Owner test devices:** `docs/TEST_DEVICES.md`  
@@ -24,12 +24,13 @@ Primary recorded phone test device: **Redmi Note 11 Pro 5G**. Build `0.4.0-preqa
 - Stage D reordering: cards in multi-column presentation can be moved vertically but not laterally; later UX/implementation audit required.
 - Stage D rotation: selected tab survives, but scroll/list position resets to the start.
 - Stage D Gestión: fixed `Estado operativo` occupies almost the entire phone-landscape viewport, leaving effectively no visible room for the rest of the tab.
-- Stage E1 general Notes editor: PASS on the phone. Owner corrected the earlier attribution; no E1-specific action or rotation defect is recorded.
-- Stage E2 titled-note editor: extremely long text remains reachable by scrolling with the IME visible.
-- Stage E2 action reachability: required editor buttons are unreachable while the software keyboard remains visible — major.
-- Stage E2 rotation: active titled-note editor disappears in landscape and reappears after returning to portrait — major; state appears to survive but the editing surface is not continuously available.
+- Stage E1 general Notes editor: PASS on the phone.
+- Stage E2 titled-note editor: extremely long text remains reachable by scrolling, but required action buttons are unreachable with the IME visible; editor disappears in landscape and returns in portrait — major.
+- Stage E3 Equipo editor: same major pattern, with stronger form-navigation evidence: higher-field focus leaves lower fields hidden by the keyboard; focusing a lower field can reveal it but leaves Save/Cancel covered. Keyboard dismissal is required to traverse the whole editor comfortably. Rotation reproduces E2.
+- Stage E4 Rasgos editor: same E3 behavior and rotation failure — major.
+- Historical B1a intended the shared `CharacterImeSafeEditorDialog` to keep editable content scrollable while `Guardar`/`Cancelar` remain reachable above the keyboard. Current E2/E3/E4 device evidence shows that runtime guarantee is not holding across multiple modal editor families; later repair analysis should treat this as a shared infrastructure/regression candidate rather than isolated surface fixes.
 
-The detailed checkpoints contain the accumulated next-build backlog, including 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, fixed-footprint issues and titled-note IME/editor-orientation failures.
+The detailed checkpoints contain the accumulated next-build backlog, including 40% spacing, dialog/window spacing consistency, PT Sans Narrow Bold verification, Settings UX/credits polish, phone-landscape responsive behavior, scroll-position preservation, fixed-footprint issues and shared modal-editor IME/orientation failures.
 
 ### Owner QA workflow rule
 
@@ -37,6 +38,6 @@ Continue the staged QA/audition and **record findings instead of implementing ea
 
 Build `40700` remains the active technically verified pre-QA owner-audition build, not a frozen formal M6 candidate.
 
-**Next action:** continue Stage E with the Equipo editor on the Redmi Note 11 Pro 5G. Test editing with the software keyboard visible, verify focused-field and cancel/save reachability, and rotate once with the editor open to determine whether the titled-note disappear/reappear behavior is shared.
+**Next action:** continue Stage E with **E5 — Conjuro editor** on the Redmi Note 11 Pro 5G. With the keyboard visible, move between upper and lower spell fields, verify full field plus Save/Cancel reachability, and rotate portrait -> landscape -> portrait to determine whether the shared E2/E3/E4 failure pattern repeats.
 
 Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
