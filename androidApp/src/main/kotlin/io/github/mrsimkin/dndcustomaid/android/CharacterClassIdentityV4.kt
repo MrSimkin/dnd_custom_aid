@@ -32,7 +32,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassCatalog
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassCatalogEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSubclassCatalogEntry
-import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedHitDieSidesForClassName
 import kotlin.uuid.Uuid
 
@@ -170,9 +169,9 @@ private fun ClassIdentityRowV4(
                 )
                 Text(hitDice, style = MaterialTheme.typography.labelSmall)
             }
-            TextButton(onClick = onDelete) { Text("Quitar") }</content>
-        </Row>
-    </Surface>
+            TextButton(onClick = onDelete) { Text("Quitar") }
+        }
+    }
 }
 
 @Composable
@@ -590,7 +589,7 @@ private fun NumericClassFieldV4(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = { onValueChange(normalizeCharacterUnsignedIntegerInput(it)) },
+        onValueChange = { onValueChange(it.filter(Char::isDigit)) },
         label = { Text(label) },
         modifier = modifier,
         singleLine = true,
