@@ -51,7 +51,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git diff --check
+          # Markdown in this repository deliberately uses two-space hard line breaks.
+          # Keep whitespace validation strict for non-Markdown files without treating
+          # valid Markdown hard breaks as an error.
+          git diff --check -- . ':(exclude)**/*.md' ':(exclude)*.md'
 
           grep -q 'versionCode = 40700' androidApp/build.gradle.kts
           grep -q 'versionName = "0.4.0-preqa.7"' androidApp/build.gradle.kts
@@ -83,8 +86,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --cached --check
+          git diff --cached --check -- . ':(exclude)**/*.md' ':(exclude)*.md'
           git commit -m "Reconcile post-Pass7 governance state"
           git push origin HEAD:implementation/phase4-preqa-ux-repair
 
-# Trigger commit for the fail-closed reconciliation gate; EOF sentinel mechanics repaired in-run.
+# Trigger commit for the fail-closed reconciliation gate; Markdown hard breaks are intentional.
