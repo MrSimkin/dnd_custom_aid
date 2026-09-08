@@ -217,6 +217,27 @@ fun CharacterCustomSkill.abilityReference(successorState: CharacterSuccessorStat
         ?.ability
         ?: CharacterAbilityReference.builtIn(ability)
 
+/** Successor-aware custom-skill total used by generalized Dice targets. */
+fun CharacterSheet.customSkillTotal(
+    skill: CharacterCustomSkill,
+    successorState: CharacterSuccessorState,
+): Int? {
+    val modifier = abilityModifier(skill.abilityReference(successorState), successorState) ?: return null
+    val proficiencyContribution = when (skill.training) {
+        SkillTraining.NONE -> 0
+        SkillTraining.PROFICIENT -> finalProficiencyBonus
+        SkillTraining.EXPERTISE -> finalProficiencyBonus * 2
+    }
+    return modifier + proficiencyContribution + skill.adjustment
+}
+
+/** Optional saving throw for a user-defined attribute. */
+fun CharacterSheet.customSavingThrowTotal(attribute: CharacterCustomAttribute): Int? {
+    if (!attribute.savingThrowEnabled) return null
+    val proficiencyContribution = if (attribute.savingThrowProficient) finalProficiencyBonus else 0
+    return attribute.modifier + proficiencyContribution + attribute.savingThrowAdjustment
+}
+
 internal fun SpellcastingAbility.toBuiltInCharacterAbilityOrNull(): CharacterAbility? = when (this) {
     SpellcastingAbility.STRENGTH -> CharacterAbility.STRENGTH
     SpellcastingAbility.DEXTERITY -> CharacterAbility.DEXTERITY
