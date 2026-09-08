@@ -7,7 +7,7 @@ import kotlin.uuid.Uuid
  * Additive persistence boundary for the Phase 4A successor data model.
  *
  * Existing CharacterRepository / CharacterClosureRepository remain authoritative for their current
- * domains while migration-9 data is introduced. This repository owns only new successor state and
+ * domains while successor data is introduced. This repository owns only new successor state and
  * projects compatibility state from old fields when no successor row exists yet.
  */
 class CharacterSuccessorRepository(
@@ -136,6 +136,25 @@ class CharacterSuccessorRepository(
             )
         }
 
+        val preferences = database.characterSuccessorQueries.selectSuccessorPreferences(id) {
+                _, valuablesText, tabOrder ->
+            CharacterSuccessorPreferences(
+                valuablesText = valuablesText,
+                tabOrder = parseTabOrder(tabOrder),
+            )
+        }.executeAsOneOrNull() ?: CharacterSuccessorPreferences()
+
+        val backgroundImages = database.characterSuccessorQueries.selectBackgroundImages(id) {
+                rowId, _, slot, mimeType, encodedData, originalName ->
+            CharacterBackgroundImage(
+                id = Uuid.parse(rowId),
+                slot = CharacterBackgroundImageSlot.valueOf(slot),
+                mimeType = mimeType,
+                encodedData = encodedData,
+                originalName = originalName,
+            )
+        }.executeAsList()
+
         return CharacterSuccessorState(
             customAttributes = customAttributes,
             customSkillAbilities = customSkillAbilities,
@@ -143,6 +162,8 @@ class CharacterSuccessorRepository(
             combatDamage = combatDamage,
             customMarkers = customMarkers,
             resourceConfigurations = resourceConfigurations,
+            preferences = preferences,
+            backgroundImages = backgroundImages,
         )
     }
 
@@ -155,6 +176,7 @@ class CharacterSuccessorRepository(
         val id = characterId.toString()
 
         database.transaction {
+            database.characterSuccessorQueries.deleteBackgroundImages(id)
             database.characterSuccessorQueries.deleteSpellSourceCasting(id)
             database.characterSuccessorQueries.deleteCombatDamageComponents(id)
             database.characterSuccessorQueries.deleteResourceSuccessorConfigs(id)
@@ -240,6 +262,23 @@ class CharacterSuccessorRepository(
                         .joinToString(",") { it.name },
                 )
             }
+
+            database.characterSuccessorQueries.upsertSuccessorPreferences(
+                character_id = id,
+                valuables_text = state.preferences.valuablesText,
+                tab_order = state.preferences.tabOrder.joinToString(",") { it.name },
+            )
+
+            state.backgroundImages.forEach { image ->
+                database.characterSuccessorQueries.insertBackgroundImage(
+                    id = image.id.toString(),
+                    character_id = id,
+                    slot = image.slot.name,
+                    mime_type = image.mimeType.trim(),
+                    encoded_data = image.encodedData,
+                    original_name = image.originalName?.trim()?.takeIf { it.isNotEmpty() },
+                )
+            }
         }
 
         return state(characterId)
@@ -311,6 +350,22 @@ class CharacterSuccessorRepository(
             require(item.resourceId in resourceIds) { "Resource configuration must reference an existing resource." }
             require(item.placements.isNotEmpty()) { "Resource must have at least one presentation placement." }
         }
+
+        require(state.preferences.tabOrder.distinct().size == state.preferences.tabOrder.size) {
+            "Character tab order must not contain duplicates."
+        }
+        require(state.preferences.tabOrder.toSet() == CharacterSheetTabKey.entries.toSet()) {
+            "Character tab order must contain every character-sheet tab exactly once."
+        }
+
+        requireDistinctIds(state.backgroundImages.map { it.id }, "Background images")
+        require(state.backgroundImages.map { it.slot }.distinct().size == state.backgroundImages.size) {
+            "Background images must use distinct slots."
+        }
+        state.backgroundImages.forEach { image ->
+            require(image.mimeType.trim().startsWith("image/")) { "Background image MIME type must be an image type." }
+            require(image.encodedData.isNotBlank()) { "Background image payload must not be blank." }
+        }
     }
 
     private fun legacySpellcastingProfile(sourceId: Uuid, sheet: CharacterSheet): CharacterSpellcastingProfile {
@@ -372,6 +427,13 @@ class CharacterSuccessorRepository(
             .mapNotNull { token -> runCatching { CharacterResourcePlacement.valueOf(token.trim()) }.getOrNull() }
             .toSet()
         return parsed.ifEmpty { setOf(CharacterResourcePlacement.MANAGEMENT) }
+    }
+
+    private fun parseTabOrder(raw: String): List<CharacterSheetTabKey> {
+        val parsed = raw.split(',')
+            .mapNotNull { token -> runCatching { CharacterSheetTabKey.valueOf(token.trim()) }.getOrNull() }
+            .distinct()
+        return parsed + CharacterSheetTabKey.entries.filterNot { it in parsed }
     }
 
     private fun parseUuidOrNull(value: String): Uuid? = runCatching { Uuid.parse(value) }.getOrNull()
