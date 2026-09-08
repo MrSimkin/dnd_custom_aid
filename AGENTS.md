@@ -10,7 +10,7 @@ Do not rely on chat memory, hidden context, previous conversations or assumption
 
 The canonical current branch is **`main`**.
 
-D-0048 explicitly allows the current in-progress/debug Phase 4 state to live on `main` for repository consolidation. Therefore **canonical does not imply release-ready, QA-accepted or Phase-closed**.
+D-0066 explicitly allows the current in-progress/debug Phase 4 state to live on `main` for repository consolidation. Therefore **canonical does not imply release-ready, QA-accepted or Phase-closed**.
 
 Any information needed for another chat, AI, agent or human to continue must be written to Git.
 
@@ -85,7 +85,7 @@ C-0009 is controlling: this is a personal, deliberately limited project. Prefer 
 
 Product/interaction design precedes consequential architecture choices. The foundational architecture under D-0034 through D-0043 is already approved; do not reopen it because historical documents describe earlier uncertainty.
 
-D-0047 controls the Phase 4 character-closure scope. D-0048 controls the repository/main consolidation boundary.
+D-0047 controls the Phase 4 character-closure scope. D-0066 controls the repository/main consolidation boundary.
 
 Routine reversible implementation details remain autonomous under D-0008. New consequential architecture still requires owner approval.
 
@@ -171,7 +171,7 @@ Historical checkpoints remain evidence even when their next-action instructions 
 
 **Phases 0–3 are complete. Phase 4A Character Foundation Closure is current and remains open.**
 
-D-0048 consolidates the current pre-QA/debug state into canonical `main`; it does not accept or close Phase 4A.
+D-0066 consolidates the current pre-QA/debug state into canonical `main`; it does not accept or close Phase 4A.
 
 Latest technically verified product identity:
 
