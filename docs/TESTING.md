@@ -2,22 +2,19 @@
 
 ## Current status
 
-Phases 0–3 are complete. Phase 4 Character Foundation Closure implementation is complete, historical M1–M5 audits/consolidation are complete, and the owner-reopened pre-QA UX repair line is technically green through Pass 07.
+Phases 0–3 are complete. Phase 4A implementation is broadly present, the focused pre-QA repair line is technically green through Pass 07, and D-0048 consolidates the current in-progress state into canonical `main`.
 
-Current position:
+Current testing position:
 
-- M1 scope traceability — COMPLETE;
-- M2 code-health/static architecture audit — COMPLETE;
-- M3 historical implementation-completeness audit — COMPLETE;
-- M4 six approved inter-batch scope holes — COMPLETE;
-- M5 bounded cleanup/full regression/historical replacement freeze — GREEN / historical frozen evidence;
-- pre-QA UX repair Pass 03–07 — GREEN; focused technical repair line stable;
-- owner staged phone/tablet visual audition — **NEXT**;
-- M6 owner formal real-device QA — **DEFERRED / NOT ACTIVE until an exact replacement candidate is explicitly frozen**.
+- latest technically verified product build: `0.4.0-preqa.7` / `40700` / `debug`;
+- owner phone visual audition Stages A–F: sufficiently covered for this build, with substantial findings recorded;
+- owner phone visual acceptance: **NOT PASSED**;
+- owner physical tablet acceptance: **NOT PERFORMED**;
+- successor repair build: **NOT YET IMPLEMENTED**;
+- formal replacement M6 candidate: **NOT FROZEN**;
+- Phase 4A owner acceptance/closure: **NOT COMPLETE**.
 
-Current owner-audition identity is build `40700`; it is **not** a formal frozen M6 candidate. The historical M5 and Batch L frozen branches remain immutable evidence only.
-
-Green CI is technical evidence, not owner acceptance.
+Green CI is technical evidence, not owner acceptance. Presence on `main` under D-0048 is canonical-development consolidation, not a test result.
 
 ## 1. Core rule
 
@@ -51,74 +48,63 @@ npm install --no-package-lock
 npm run check
 ```
 
-The established full gate runs both surfaces even when one area is unchanged, unless a smaller intermediate batch gate is explicitly documented.
+The established full gate runs both product surfaces even when one area is unchanged, unless a smaller intermediate gate is explicitly documented.
 
-## 3. Current pre-QA owner-audition identity
+## 3. Latest technically verified product identity
 
-Use the following build for the staged visual audition described in `docs/PREQA_OWNER_VISUAL_AUDITION.md`:
+Latest full-gate product code:
 
-- branch `implementation/phase4-preqa-ux-repair`;
-- review version `0.4.0-preqa.7` / build `40700`;
+- version `0.4.0-preqa.7`;
+- build `40700`;
+- type `debug`;
 - tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
-- tested tree `3b2f2ab471097d3b108c9a787fc2342c5aad683a`;
-- helper workflow `34171466714` — SUCCESS;
-- checkpoint/branch head `4c6da4577b57e472819e096ecff55bd6750e026d`;
-- artifact ID `10035895186`, name `DND-Custom-Aid-0.4.0-preqa.7-build-40700-debug`;
+- tested product tree `3b2f2ab471097d3b108c9a787fc2342c5aad683a`;
+- workflow `34171466714` — SUCCESS;
+- artifact ID `10035895186`;
+- artifact name `DND-Custom-Aid-0.4.0-preqa.7-build-40700-debug`;
 - APK size `36,161,616` bytes;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-This build is a **pre-QA visual-audition build**, not a frozen formal M6 target. Do not label it accepted merely because the automated gate is green.
+The D-0048 consolidation audit verified that the 39 commits after this tested product commit through pre-consolidation head `0ac2d3d190f989549ced4914d7ce98274118a0d3` were documentation/governance-only. D-0048 consolidation therefore does not introduce a newer untested product-code revision.
 
-### Historical M5 frozen candidate
+## 4. Owner phone audition evidence for build 40700
 
-The September 4 M5 candidate remains immutable historical evidence:
+Primary real device:
 
-- branch `tmp/phase4-m5-frozen-qa-candidate`;
-- exact commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
-- exact tree `fd1f7feffde082b34cce41248e951a25eed7a004`;
-- validator artifact `9951922423` / `phase4-m5-frozen-qa-apk`;
-- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+**Redmi Note 11 Pro 5G**
 
-It ceased to be the active QA target when the owner explicitly reopened implementation on 2026-09-07. Do not mutate it and do not resume QA against it unless the owner explicitly requests historical comparison.
+Use the recorded Stage A–F checkpoints for concrete evidence. Do not restart the full audition merely because the repository moved to `main`.
 
-## 4. Automated evidence already complete
+Major confirmed families include:
 
-Historical M5 automated evidence includes:
+- excessive app-wide padding/margins and row fragmentation;
+- insufficiently compact card actions and reorder UI;
+- shared editor/IME reachability/orientation problems;
+- phone landscape incorrectly entering an inadequate wide/tablet interaction model;
+- current tablet/wide UI itself requiring redesign/audit;
+- Conjuros fixed controls consuming the full usable phone-landscape viewport;
+- rotation scroll/context loss;
+- oversized Gestión/death-save presentation;
+- unclear Consumible/Munición UX;
+- generic `Fuente` provenance over-exposed across many editors;
+- terminology/localization corrections;
+- 40% spacing and typography follow-up needs.
 
-- D-0047 re-traceability for all six M4 repairs;
-- full shared/Kotlin tests;
-- `CharacterOwnerLineageMigrationTest` covering the prior owner schema lineage;
-- Android debug assemble;
-- Desktop build;
-- backend Worker type-check;
-- exact-SHA detached checkout verification;
-- exact APK hash and size capture.
+The owner explicitly generalized repeated findings across equivalent cards/elements/windows. Future QA should not force them to repeat the same observation for every surface.
 
-No schema or persistence migration was added by M4/M5 or by pre-QA UX repair Pass 03–07. The current closure schema remains the tested schema 9 line. Pass 07 additionally completed the full shared/Kotlin, Android, Desktop and backend gate before producing build `40700`.
+## 5. Current owner-audition conclusion
 
-The deprecated Kotlin Multiplatform `androidLibrary` target warning is known and intentionally deferred because migrating build target APIs is a structural maintenance change, not a demonstrated QA blocker.
+Build `40700` has yielded enough phone evidence to design the next repair cycle.
 
-## 5. Critical first formal-M6 rule — migration before clean install
+It should **not** be promoted to formal M6 merely because the phone audition is complete as an information-gathering exercise.
 
-**When a replacement formal M6 candidate is frozen, do not clear app data before its first owner QA test.**
+The owner is currently compiling additional observations outside the formal QA exercise. Those should be recorded and reconciled with the audition backlog before broad repair implementation begins.
 
-The first formal-M6 test must exercise the real owner upgrade path:
+## 6. Required device/layout acceptance boundary
 
-1. keep the existing prior owner-QA app installation and data;
-2. install the exact frozen replacement M6 candidate over it;
-3. open the app;
-4. verify existing campaigns and characters still exist;
-5. verify representative General, Combate, Equipo/Monedas, Conjuros and Notas data survive and reopen;
-6. record any migration/data-preservation defect before doing anything destructive;
-7. only after this pass may the owner clear data or perform a fresh-install QA pass.
+D-0047 still makes this closure explicitly a **phone + tablet acceptance package**.
 
-A clean install cannot substitute for this migration test.
-
-## 6. Required device/layout matrix
-
-D-0047 makes this closure explicitly a **phone + tablet acceptance package**.
-
-Owner acceptance therefore requires:
+Final owner acceptance requires, at minimum:
 
 1. phone portrait;
 2. phone landscape;
@@ -126,11 +112,50 @@ Owner acceptance therefore requires:
 4. tablet landscape;
 5. representative larger application text scale.
 
-Tablet is not secondary. The UI should exploit available width where the implementation provides adaptive/master-detail behavior instead of merely stretching phone components.
+No physical owner tablet device has yet been recorded, so tablet acceptance is not complete.
 
-## 7. M6 owner QA matrix
+The current wide/tablet design is already known to need work. Repair it before treating a tablet test as a final acceptance attempt.
 
-The QA pass is a focused closure acceptance matrix rather than a verbatim rerun of every historical implementation test.
+## 7. Historical frozen candidates
+
+Historical frozen candidates remain immutable evidence and are not active QA targets.
+
+### Batch L frozen candidate
+
+- branch `tmp/phase4-l-frozen-qa-candidate`;
+- commit `5cc034d3fdf4c25d935bd698aeaf2a3f9e427f27`.
+
+### Historical M5 frozen candidate
+
+- branch `tmp/phase4-m5-frozen-qa-candidate`;
+- commit `adc286b3e1305ed706c2ed04d478a43652f6b365`;
+- APK SHA-256 `e31ce44a84cd79260ea2c51c65cb6a63675b1f916998e44d583358d72893c8ee`.
+
+A brief 2026-09-08 M6 detour produced one real in-place-upgrade/data-preservation PASS against the historical M5 frozen candidate. That evidence is preserved at:
+
+`docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md`
+
+The file is explicitly historical/superseded and does not reactivate that candidate.
+
+## 8. Critical first rule when a replacement formal M6 candidate is eventually frozen
+
+**Do not clear app data before the first formal-M6 upgrade test.**
+
+The first formal-M6 test must exercise the real owner upgrade path:
+
+1. keep the existing prior QA installation/data;
+2. install the exact frozen replacement candidate over it;
+3. open the app;
+4. verify campaigns/characters survive;
+5. verify representative General, Combate, Equipo/Monedas, Conjuros and Notas data survive/reopen;
+6. record any migration/data-preservation defect before destructive steps;
+7. only after that may the owner clear data or perform a fresh-install comparison.
+
+A clean install cannot substitute for this migration test.
+
+## 9. Future formal M6 owner QA matrix
+
+Do not execute this matrix until an exact repaired build is explicitly frozen as the replacement candidate.
 
 ### Upgrade and persistence
 
@@ -152,45 +177,45 @@ The QA pass is a focused closure acceptance matrix rather than a verbatim rerun 
 
 ### Editing and IME
 
-- keyboard does not hide required action controls;
+- keyboard does not hide required actions;
 - Add/Edit/Delete grammar is consistent;
 - inline validation is understandable;
 - named destructive confirmation works;
-- unsaved leave offers Save / Discard / Keep editing where intended;
-- saved/unsaved state is visible and correct.
+- unsaved-leave behavior works where intended;
+- saved/unsaved state is visible/correct.
 
 ### General / Habilidades / Combate
 
-- class/subclass/level identity and rules/source badges;
+- class/subclass/level identity;
 - structured proficiencies/languages;
 - custom skills and passive values;
 - defenses/senses/movement;
-- quick HP and death saves;
+- quick HP/death saves;
 - combat/action metadata;
 - representative Favorite/Quick Access behavior.
 
 ### Gestión
 
 - conditions/exhaustion;
-- active concentration;
-- generic resources and one-tap changes;
-- rest assistant preview/apply;
+- concentration;
+- resources and quick changes;
+- rest preview/apply;
 - temporary effects;
 - reconciliation checkpoints;
 - Inspiration/death-save context.
 
 ### Equipo / Monedas
 
-- dense list remains usable;
+- dense list usable;
 - Manual/A–Z behavior;
 - search/filter;
 - drag/reorder in Manual mode;
 - carried/stored/location metadata;
-- equipped/attuned state badges;
+- equipped/attuned state;
 - containers/locations;
 - consumables/ammunition;
 - currencies;
-- phone and tablet editors.
+- phone/tablet editors.
 
 ### Rasgos / Conjuros / Notas / Trasfondo
 
@@ -202,7 +227,7 @@ The QA pass is a focused closure acceptance matrix rather than a verbatim rerun 
 
 ### Conditional modules
 
-Verify representative visibility, edit, save/reopen and hide-not-delete behavior for:
+Representative visibility/edit/save/reopen/hide-not-delete behavior for:
 
 - Artífice;
 - Formas;
@@ -211,94 +236,82 @@ Verify representative visibility, edit, save/reopen and hide-not-delete behavior
 - Pactos;
 - Compañeros.
 
-Multiclass union must not duplicate equivalent tabs and manual overrides must remain available for custom/homebrew use.
-
 ### Table mode
 
-- intended structural edits are blocked;
-- live/session controls remain usable where designed;
-- enabling Table mode over dirty structural state remains safely handled;
-- browsing/search/filter/presentation behavior remains useful.
+- intended structural edits blocked;
+- intended live/session controls remain usable;
+- enabling over dirty structural state handled safely;
+- browsing/search/filter/presentation remains useful.
 
 ### Supercompact / Quick Access
 
 - representative favorites/resources render usefully;
 - one-tap operational controls work;
-- exact editing remains reachable when needed;
+- exact editing remains reachable;
 - phone/tablet usefulness is acceptable.
 
 ### Backup/import
 
-- export own-format backup through system document picker;
-- import as a new independent copy;
-- source character remains unchanged;
+- own-format export works;
+- import creates independent copy;
+- source remains unchanged;
 - repeated import creates independent copies;
-- reconciliation marker is visible/useful;
-- malformed/wrong input fails safely when practical to exercise.
+- reconciliation marker works;
+- malformed/wrong input fails safely where practical.
 
 ### Larger text and responsiveness
 
 - no critical actions disappear;
 - scrolling remains possible;
 - dialogs/editors remain operable;
-- adaptive/master-detail layouts remain understandable;
-- state and source/rules badges remain readable and not color-only.
+- phone landscape remains phone-appropriate;
+- tablet/wide layouts are understandable/useful;
+- state/source/rules presentation remains readable and not color-only.
 
-## 8. Defect handling during M6
+## 10. Defect handling during future M6
 
 Classify findings before changing code:
 
 - visual/ergonomic observation that does not block acceptance;
-- minor defect suitable for post-Phase-4 maintenance;
-- blocking Phase 4 defect requiring repair before acceptance.
+- minor defect suitable for later maintenance;
+- blocking Phase 4A defect requiring repair before acceptance.
 
-If a blocking finding requires production code change:
+If a blocking finding changes product code:
 
 1. do not patch the frozen branch;
-2. create a focused repair from the appropriate durable line;
+2. branch from canonical `main` or the approved durable repair line;
 3. add focused regression coverage where practical;
 4. run the complete automated gate;
 5. freeze a **new** exact candidate with commit/tree/workflow/artifact/hash identity;
-6. repeat the affected owner QA evidence;
-7. preserve the prior frozen candidate as historical evidence.
+6. repeat affected owner QA evidence;
+7. preserve prior frozen evidence.
 
-## 9. Development APK signing
+## 11. Development APK signing
 
-Development CI APKs use a stable **debug-only** signing identity so successive QA APKs can update one another in place and exercise realistic SQLite migration/persistence behavior on owner devices.
+Development CI APKs use a stable **debug-only** signing identity so successive QA APKs can update one another in place and exercise realistic SQLite migration/persistence behavior.
 
-The development identity is not a production/release trust boundary and is never to be reused for a real release. A future real release signing identity must remain private and be designed/handled separately.
+The development identity is not a production/release trust boundary and must never be reused for a real release.
 
-CI reconstructs the development debug keystore from tracked development-only material before building. Do not expose/reproduce that material in chat or docs merely because it is non-production.
-
-## 10. CI proportionality
+## 12. CI proportionality
 
 Use the existing simple GitHub Actions workflow as a safety gate, not a deployment platform.
 
-Do not add coverage gates, emulator farms, SonarQube, staging, automated production deployment or giant screenshot suites without a concrete requirement.
+Do not add emulator farms, enterprise test management, coverage gates, staging/production deployment or giant screenshot suites without a concrete requirement.
 
-## 11. Current exact continuation
+## 13. Exact continuation
 
 Current resume pointer:
 
 `docs/checkpoints/LATEST.md`
 
-Current detailed checkpoint:
-
-`docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`
-
-Current owner action guide:
-
-`docs/PREQA_OWNER_VISUAL_AUDITION.md`
-
 Next sequence:
 
-1. use exact build `0.4.0-preqa.7` / `40700` for staged phone/tablet visual audition;
-2. record concrete visual/IME/layout findings using the guide;
-3. if a blocking finding exists, repair it on the durable pre-QA line and run the complete automated gate with a new identified build;
-4. when the owner explicitly says a build is ready, freeze that exact build as the replacement formal M6 candidate;
-5. only then begin formal M6, starting with the in-place upgrade/data-preservation test before any clean install;
-6. preserve historical M5/L branches as immutable evidence.
+1. finish D-0048 main consolidation;
+2. durably record the owner's additional non-QA observations;
+3. reconcile them with the existing owner-audition backlog;
+4. design one coherent successor repair batch from `main`;
+5. run the complete automated gate and identify the successor debug build;
+6. perform targeted real-device retesting;
+7. only when the baseline is acceptable, freeze a replacement formal M6 candidate and execute the matrix above.
 
-Further speculative UX polishing is not the next action.
-
-No DM-feature implementation begins before successful Phase 4 owner QA, final governance/merge-boundary housekeeping and explicit owner closure/merge approval.
+No DM-feature implementation begins before Phase 4A is later accepted and explicitly closed.
