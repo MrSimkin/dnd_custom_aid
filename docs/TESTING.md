@@ -2,7 +2,7 @@
 
 ## Current status
 
-Phases 0–3 are complete. Phase 4A implementation is broadly present, the focused pre-QA repair line is technically green through Pass 07, and D-0048 consolidates the current in-progress state into canonical `main`.
+Phases 0–3 are complete. Phase 4A implementation is broadly present, the focused pre-QA repair line is technically green through Pass 07, and D-0066 consolidated the current in-progress state into canonical `main`.
 
 Current testing position:
 
@@ -14,7 +14,7 @@ Current testing position:
 - formal replacement M6 candidate: **NOT FROZEN**;
 - Phase 4A owner acceptance/closure: **NOT COMPLETE**.
 
-Green CI is technical evidence, not owner acceptance. Presence on `main` under D-0048 is canonical-development consolidation, not a test result.
+Green CI is technical evidence, not owner acceptance. Presence on `main` under D-0066 is canonical-development consolidation, not a test result.
 
 ## 1. Core rule
 
@@ -65,7 +65,7 @@ Latest full-gate product code:
 - APK size `36,161,616` bytes;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-The D-0048 consolidation audit verified that the 39 commits after this tested product commit through pre-consolidation head `0ac2d3d190f989549ced4914d7ce98274118a0d3` were documentation/governance-only. D-0048 consolidation therefore does not introduce a newer untested product-code revision.
+The D-0066 consolidation audit verified that the 39 commits after this tested product commit through pre-consolidation head `0ac2d3d190f989549ced4914d7ce98274118a0d3` were documentation/governance-only. The D-0066 consolidation/finalization commits were also documentation/governance-only; they do not constitute a newer tested product revision.
 
 ## 4. Owner phone audition evidence for build 40700
 
@@ -94,11 +94,11 @@ The owner explicitly generalized repeated findings across equivalent cards/eleme
 
 ## 5. Current owner-audition conclusion
 
-Build `40700` has yielded enough phone evidence to design the next repair cycle.
+Build `40700` yielded enough phone evidence to design the next repair cycle.
 
-It should **not** be promoted to formal M6 merely because the phone audition is complete as an information-gathering exercise.
+It must **not** be promoted to formal M6 merely because the phone audition is complete as an information-gathering exercise.
 
-The owner is currently compiling additional observations outside the formal QA exercise. Those should be recorded and reconciled with the audition backlog before broad repair implementation begins.
+The owner is supplying additional observations outside the formal QA exercise. Those are to be recorded and reconciled with the audition backlog before broad repair implementation begins.
 
 ## 6. Required device/layout acceptance boundary
 
@@ -306,12 +306,11 @@ Current resume pointer:
 
 Next sequence:
 
-1. finish D-0048 main consolidation;
-2. durably record the owner's additional non-QA observations;
-3. reconcile them with the existing owner-audition backlog;
-4. design one coherent successor repair batch from `main`;
-5. run the complete automated gate and identify the successor debug build;
-6. perform targeted real-device retesting;
-7. only when the baseline is acceptable, freeze a replacement formal M6 candidate and execute the matrix above.
+1. durably record the owner's additional non-QA observations;
+2. reconcile them with the existing owner-audition backlog;
+3. design one coherent successor repair batch from `main`;
+4. run the complete automated gate and identify the successor debug build;
+5. perform targeted real-device retesting;
+6. only when the baseline is acceptable, freeze a replacement formal M6 candidate and execute the matrix above.
 
 No DM-feature implementation begins before Phase 4A is later accepted and explicitly closed.
