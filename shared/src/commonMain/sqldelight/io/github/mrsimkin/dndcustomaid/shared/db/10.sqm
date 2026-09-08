@@ -1,0 +1,15 @@
+CREATE TABLE character_successor_preferences (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    valuables_text TEXT NOT NULL DEFAULT '',
+    tab_order TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE character_background_image (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    slot TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    encoded_data TEXT NOT NULL,
+    original_name TEXT,
+    UNIQUE(character_id, slot)
+);
