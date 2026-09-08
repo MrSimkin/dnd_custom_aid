@@ -326,14 +326,16 @@ private fun abilityAbbreviationDiceV4(ability: CharacterAbility): String = when 
 private fun abilityAbbreviationDiceV4(
     reference: CharacterAbilityReference,
     successorState: CharacterSuccessorState,
-): String? = when {
-    reference.builtIn != null -> abilityAbbreviationDiceV4(reference.builtIn)
-    reference.customAttributeId != null -> successorState.customAttributes
-        .firstOrNull { it.id == reference.customAttributeId }
+): String? {
+    reference.builtIn?.let { ability ->
+        return abilityAbbreviationDiceV4(ability)
+    }
+    val customAttributeId = reference.customAttributeId ?: return null
+    return successorState.customAttributes
+        .firstOrNull { it.id == customAttributeId }
         ?.abbreviation
         ?.trim()
         ?.takeIf { it.isNotEmpty() }
-    else -> null
 }
 
 private fun skillLabelDiceV4(skill: SkillKey): String = when (skill) {
