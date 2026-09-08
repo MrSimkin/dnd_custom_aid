@@ -186,7 +186,7 @@ internal class UiPreferencesStore(context: Context) {
 }
 
 internal val FONT_SCALE_OPTIONS = listOf(70, 80, 90, 100, 110, 120, 130, 145, 160, 180, 200)
-internal val SPACING_SCALE_OPTIONS = listOf(100, 90, 80, 70, 60)
+internal val SPACING_SCALE_OPTIONS = listOf(100, 90, 80, 70, 60, 40)
 
 @Composable
 internal fun appSpacingV4(value: Dp): Dp =
