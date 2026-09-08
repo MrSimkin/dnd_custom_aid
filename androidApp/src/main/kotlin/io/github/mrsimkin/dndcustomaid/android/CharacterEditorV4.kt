@@ -599,8 +599,9 @@ internal fun CharacterEditorScreenV4(
                     .fillMaxSize()
                     .padding(scaffoldPadding),
             ) {
-                val navigationPresentation = characterNavigationPresentationForWidthV4(maxWidth.value)
-                val wide = maxWidth >= 700.dp
+                val layoutContext = characterLayoutContextV4()
+                val navigationPresentation = characterNavigationPresentationForLayoutV4(layoutContext)
+                val wide = layoutContext.isTablet
                 CharacterAdaptiveShellV4(
                     navigationPresentation = navigationPresentation,
                     selectedTab = selectedTab,
