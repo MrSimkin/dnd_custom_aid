@@ -12,6 +12,13 @@ CREATE TABLE character_custom_attribute (
     UNIQUE(character_id, sort_order)
 );
 
+CREATE TABLE character_custom_skill_ability (
+    custom_skill_id TEXT NOT NULL PRIMARY KEY REFERENCES character_custom_skill(id) ON DELETE CASCADE,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    ability_kind TEXT NOT NULL DEFAULT 'BUILT_IN',
+    ability_value TEXT
+);
+
 CREATE TABLE character_spell_source_casting (
     source_id TEXT NOT NULL PRIMARY KEY REFERENCES character_spell_source(id) ON DELETE CASCADE,
     character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
@@ -71,6 +78,21 @@ ORDER BY sort_order, id;
 
 deleteCustomAttributes:
 DELETE FROM character_custom_attribute WHERE character_id = ?;
+
+upsertCustomSkillAbility:
+INSERT OR REPLACE INTO character_custom_skill_ability(
+    custom_skill_id, character_id, ability_kind, ability_value
+)
+VALUES (?, ?, ?, ?);
+
+selectCustomSkillAbilities:
+SELECT custom_skill_id, character_id, ability_kind, ability_value
+FROM character_custom_skill_ability
+WHERE character_id = ?
+ORDER BY custom_skill_id;
+
+deleteCustomSkillAbilities:
+DELETE FROM character_custom_skill_ability WHERE character_id = ?;
 
 upsertSpellSourceCasting:
 INSERT OR REPLACE INTO character_spell_source_casting(
