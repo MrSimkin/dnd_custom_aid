@@ -62,6 +62,22 @@ CREATE TABLE character_resource_successor_config (
     placements TEXT NOT NULL DEFAULT 'MANAGEMENT'
 );
 
+CREATE TABLE character_successor_preferences (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    valuables_text TEXT NOT NULL DEFAULT '',
+    tab_order TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE character_background_image (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    slot TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    encoded_data TEXT NOT NULL,
+    original_name TEXT,
+    UNIQUE(character_id, slot)
+);
+
 insertCustomAttribute:
 INSERT INTO character_custom_attribute(
     id, character_id, name, abbreviation, score,
@@ -159,3 +175,29 @@ ORDER BY resource_id;
 
 deleteResourceSuccessorConfigs:
 DELETE FROM character_resource_successor_config WHERE character_id = ?;
+
+upsertSuccessorPreferences:
+INSERT OR REPLACE INTO character_successor_preferences(
+    character_id, valuables_text, tab_order
+)
+VALUES (?, ?, ?);
+
+selectSuccessorPreferences:
+SELECT character_id, valuables_text, tab_order
+FROM character_successor_preferences
+WHERE character_id = ?;
+
+insertBackgroundImage:
+INSERT INTO character_background_image(
+    id, character_id, slot, mime_type, encoded_data, original_name
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectBackgroundImages:
+SELECT id, character_id, slot, mime_type, encoded_data, original_name
+FROM character_background_image
+WHERE character_id = ?
+ORDER BY slot, id;
+
+deleteBackgroundImages:
+DELETE FROM character_background_image WHERE character_id = ?;
