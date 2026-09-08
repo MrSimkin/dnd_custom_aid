@@ -1,0 +1,74 @@
+ALTER TABLE character_custom_skill_ability RENAME TO character_custom_skill_ability_legacy_fk;
+
+CREATE TABLE character_custom_skill_ability (
+    custom_skill_id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    ability_kind TEXT NOT NULL DEFAULT 'BUILT_IN',
+    ability_value TEXT
+);
+
+INSERT INTO character_custom_skill_ability(custom_skill_id, character_id, ability_kind, ability_value)
+SELECT custom_skill_id, character_id, ability_kind, ability_value
+FROM character_custom_skill_ability_legacy_fk;
+
+DROP TABLE character_custom_skill_ability_legacy_fk;
+
+ALTER TABLE character_spell_source_casting RENAME TO character_spell_source_casting_legacy_fk;
+
+CREATE TABLE character_spell_source_casting (
+    source_id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    ability_kind TEXT NOT NULL DEFAULT 'NONE',
+    ability_value TEXT,
+    save_dc_adjustment INTEGER NOT NULL DEFAULT 0,
+    spell_attack_adjustment INTEGER NOT NULL DEFAULT 0,
+    legacy_save_dc_override INTEGER,
+    legacy_spell_attack_override INTEGER
+);
+
+INSERT INTO character_spell_source_casting(
+    source_id, character_id, ability_kind, ability_value,
+    save_dc_adjustment, spell_attack_adjustment,
+    legacy_save_dc_override, legacy_spell_attack_override
+)
+SELECT source_id, character_id, ability_kind, ability_value,
+       save_dc_adjustment, spell_attack_adjustment,
+       legacy_save_dc_override, legacy_spell_attack_override
+FROM character_spell_source_casting_legacy_fk;
+
+DROP TABLE character_spell_source_casting_legacy_fk;
+
+ALTER TABLE character_combat_damage_component RENAME TO character_combat_damage_component_legacy_fk;
+
+CREATE TABLE character_combat_damage_component (
+    combat_entry_id TEXT NOT NULL,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    component_order INTEGER NOT NULL,
+    component_kind TEXT NOT NULL,
+    expression TEXT NOT NULL,
+    type_text TEXT,
+    PRIMARY KEY(combat_entry_id, component_order)
+);
+
+INSERT INTO character_combat_damage_component(
+    combat_entry_id, character_id, component_order, component_kind, expression, type_text
+)
+SELECT combat_entry_id, character_id, component_order, component_kind, expression, type_text
+FROM character_combat_damage_component_legacy_fk;
+
+DROP TABLE character_combat_damage_component_legacy_fk;
+
+ALTER TABLE character_resource_successor_config RENAME TO character_resource_successor_config_legacy_fk;
+
+CREATE TABLE character_resource_successor_config (
+    resource_id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    value_kind TEXT NOT NULL DEFAULT 'CURRENT_MAX',
+    placements TEXT NOT NULL DEFAULT 'MANAGEMENT'
+);
+
+INSERT INTO character_resource_successor_config(resource_id, character_id, value_kind, placements)
+SELECT resource_id, character_id, value_kind, placements
+FROM character_resource_successor_config_legacy_fk;
+
+DROP TABLE character_resource_successor_config_legacy_fk;
