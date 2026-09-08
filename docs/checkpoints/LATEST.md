@@ -2,15 +2,18 @@
 
 **Updated:** 2026-09-07  
 **Active branch:** `implementation/phase4-preqa-ux-repair`  
-**Current review identity:** version `0.4.0-preqa.7` / build `40700`  
+**Current review identity:** version `0.4.0-preqa.7` / build `40700` / `debug`  
 **Current technical state:** focused pre-QA UX repair Pass 07 green/stable  
 **Current governance state:** current-stage prose reconciled through D-0047/Pass 07  
-**Detailed checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_GOVERNANCE_RECONCILIATION.md`  
-**Technical Pass 07 checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_UX_REPAIR_PASS_07.md`  
+**Owner audition state:** STARTED — phone preconditions passed; Stage A typography next  
+**Detailed checkpoint:** `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_STAGE_A_START.md`  
+**Owner test devices:** `docs/TEST_DEVICES.md`  
 **Owner audition guide:** `docs/PREQA_OWNER_VISUAL_AUDITION.md`
 
-The owner explicitly reopened implementation after the historical September 4 M5 freeze. Build `40700` is the current technically verified owner-audition build, not a frozen formal M6 candidate. The planned speculative technical repair audits are complete and current-stage governance prose is reconciled.
+Primary recorded phone test device: **Redmi Note 11 Pro 5G**. On this device, build `0.4.0-preqa.7` / `40700` installed and launched successfully, and `Ajustes -> Acerca de` confirmed the expected version/build/type. The owner has a representative populated character ready for the staged audition.
 
-**Next action:** owner staged phone/tablet visual audition. Record concrete findings. Repair only demonstrated blockers/regressions. Freeze a replacement formal M6 candidate only after explicit owner readiness; then begin formal M6 with the in-place upgrade/data-preservation test before any clean install.
+Build `40700` remains a technically verified pre-QA owner-audition build, not a frozen formal M6 candidate.
 
-Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
+**Next action:** Stage A typography on the recorded Redmi Note 11 Pro 5G, phone portrait, application text 100%, spacing 80%, default card columns. Compare Manrope, Source Sans 3, Roboto Condensed, IBM Plex Sans Condensed, Mona Sans Condensed, Geist, Inter and Sora across representative real character surfaces; return a shortlist of 2–3 finalists plus clear rejects/reasons.
+
+Do not resume speculative implementation while Stage A evidence is pending. Historical M5/L frozen branches remain immutable evidence. `main` remains untouched. DM work remains blocked until Phase 4 QA/closure/merge is accepted and explicitly approved.
