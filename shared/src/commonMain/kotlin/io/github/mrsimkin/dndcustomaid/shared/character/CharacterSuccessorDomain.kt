@@ -44,6 +44,12 @@ data class CharacterCustomAttribute(
 }
 
 @Serializable
+data class CharacterCustomSkillAbilityConfiguration(
+    val customSkillId: Uuid,
+    val ability: CharacterAbilityReference,
+)
+
+@Serializable
 data class CharacterSpellcastingProfile(
     val sourceId: Uuid,
     val ability: CharacterAbilityReference = CharacterAbilityReference.NONE,
@@ -119,6 +125,7 @@ data class CharacterResourceSuccessorConfiguration(
 @Serializable
 data class CharacterSuccessorState(
     val customAttributes: List<CharacterCustomAttribute> = emptyList(),
+    val customSkillAbilities: List<CharacterCustomSkillAbilityConfiguration> = emptyList(),
     val spellcastingProfiles: List<CharacterSpellcastingProfile> = emptyList(),
     val combatDamage: List<CharacterCombatDamageProfile> = emptyList(),
     val customMarkers: List<CharacterCustomMarker> = emptyList(),
@@ -154,6 +161,12 @@ fun CharacterSheet.spellAttackModifier(
 ): Int? = profile.legacySpellAttackOverride ?: abilityModifier(profile.ability, successorState)?.let { modifier ->
     modifier + finalProficiencyBonus + profile.spellAttackAdjustment
 }
+
+fun CharacterCustomSkill.abilityReference(successorState: CharacterSuccessorState): CharacterAbilityReference =
+    successorState.customSkillAbilities
+        .firstOrNull { it.customSkillId == id }
+        ?.ability
+        ?: CharacterAbilityReference.builtIn(ability)
 
 internal fun SpellcastingAbility.toBuiltInCharacterAbilityOrNull(): CharacterAbility? = when (this) {
     SpellcastingAbility.STRENGTH -> CharacterAbility.STRENGTH
