@@ -35,6 +35,11 @@ internal fun CharacterAdaptiveShellV4(
 ) {
     val layoutContext = characterLayoutContextV4()
     val effectiveNavigationPresentation = characterNavigationPresentationForLayoutV4(layoutContext)
+    val effectiveTabOrder = LocalCharacterPcSettingsContextV4.current
+        ?.successorState
+        ?.preferences
+        ?.tabOrder
+        ?: tabOrder
 
     Column(modifier = Modifier.fillMaxSize()) {
         // D01: the compact identity/save header remains outside all scrolling tab content.
@@ -46,7 +51,7 @@ internal fun CharacterAdaptiveShellV4(
                     selectedTab = selectedTab,
                     spellcasterEnabled = spellcasterEnabled,
                     visibleModules = visibleModules,
-                    tabOrder = tabOrder,
+                    tabOrder = effectiveTabOrder,
                     onSelect = onSelect,
                 )
                 Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
@@ -60,7 +65,7 @@ internal fun CharacterAdaptiveShellV4(
                         selectedTab = selectedTab,
                         spellcasterEnabled = spellcasterEnabled,
                         visibleModules = visibleModules,
-                        tabOrder = tabOrder,
+                        tabOrder = effectiveTabOrder,
                         onSelect = onSelect,
                     )
                     Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
