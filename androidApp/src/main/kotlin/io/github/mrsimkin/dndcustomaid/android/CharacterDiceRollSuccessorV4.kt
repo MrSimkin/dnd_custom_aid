@@ -176,7 +176,7 @@ internal fun CharacterDiceRollSuccessorTabV4(
                 if (selected?.category == CharacterDiceTargetCategory.CUSTOM) {
                     OutlinedTextField(
                         value = customModifierText,
-                        onValueChange = { customModifierText = sanitizeSignedIntV4(it) },
+                        onValueChange = { customModifierText = sanitizeSignedIntegerInputV4(it) },
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Modificador manual") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

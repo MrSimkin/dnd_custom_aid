@@ -256,7 +256,7 @@ internal fun CharacterCombatSuccessorTabV4(
                 )
                 OutlinedTextField(
                     value = editorAttackModifier,
-                    onValueChange = { editorAttackModifier = sanitizeSignedIntV4(it) },
+                    onValueChange = { editorAttackModifier = sanitizeSignedIntegerInputV4(it) },
                     modifier = Modifier.weight(1f),
                     label = { Text("Ataque") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
