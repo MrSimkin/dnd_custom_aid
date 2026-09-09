@@ -1,0 +1,79 @@
+name: Layout pair audit once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/layout-pair-audit-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Find likely stacked compact full-width fields
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android')
+
+          def field_calls(text):
+              out=[]
+              pos=0
+              while True:
+                  start=text.find('OutlinedTextField(', pos)
+                  if start<0: break
+                  depth=0; string=False; esc=False; end=None
+                  for i in range(start+len('OutlinedTextField'), len(text)):
+                      ch=text[i]
+                      if string:
+                          if esc: esc=False
+                          elif ch=='\\': esc=True
+                          elif ch=='"': string=False
+                          continue
+                      if ch=='"': string=True; continue
+                      if ch=='(': depth+=1
+                      elif ch==')':
+                          depth-=1
+                          if depth==0:
+                              end=i+1; break
+                  if end is None: break
+                  body=text[start:end]
+                  labels=re.findall(r'label\s*=\s*\{\s*Text\("([^"]+)"\)', body)
+                  label=labels[0] if labels else '?'
+                  line=text.count('\n',0,start)+1
+                  full='Modifier.fillMaxWidth()' in body
+                  out.append((start,end,line,label,full,body))
+                  pos=end
+              return out
+
+          for p in sorted(root.glob('*.kt')):
+              text=p.read_text(encoding='utf-8')
+              calls=field_calls(text)
+              candidates=[]
+              for a,b in zip(calls,calls[1:]):
+                  if b[2]-a[2] > 28 or not (a[4] and b[4]):
+                      continue
+                  between=text[a[1]:b[0]]
+                  # A Row between the calls usually means an intentional boundary, not two stacked peers.
+                  if re.search(r'\bRow\s*\(', between):
+                      continue
+                  candidates.append((a[2],a[3],b[2],b[3]))
+              if candidates:
+                  print(f'=== {p.name} ===')
+                  for la,aa,lb,bb in candidates:
+                      print(f'{la}: {aa}  ->  {lb}: {bb}')
+          PY
+      - name: Self-remove audit workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/layout-pair-audit-once.yml
+          git add .github/workflows/layout-pair-audit-once.yml
+          git commit -m 'chore: remove one-off layout pair audit workflow'
+          git push
