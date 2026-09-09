@@ -19,45 +19,57 @@ jobs:
           ref: implementation/phase4a-successor-cycle
           fetch-depth: 0
 
-      - name: Apply exact guarded wiring patch
+      - name: Apply exactly one guarded wiring patch
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt")
           text = path.read_text()
-          old = '''                        CharacterTabV4.MANAGEMENT -> CharacterManagementTabV4(
-                            sheet = stored,
-                            closureState = closureState,
-                            onSheetChange = ::persistOperationalSheet,
-                            onClosureStateChange = ::persistClosureState,
-                            structuralEditingEnabled = structuralEditingEnabled,
-                            wide = wide,
-                            hapticsEnabled = closureState.hapticsEnabled,
-                        )'''
-          new = '''                        CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(
-                            sheet = stored,
-                            generalDraftSheet = settingsSheet,
-                            closureState = closureState,
-                            onSheetChange = ::persistOperationalSheet,
-                            onClosureStateChange = ::persistClosureState,
-                            structuralEditingEnabled = structuralEditingEnabled,
-                            wide = wide,
-                            hapticsEnabled = closureState.hapticsEnabled,
-                        )'''
-          count = text.count(old)
+          pattern = re.compile(
+              r"(?P<indent>^[ \t]*)CharacterTabV4\.MANAGEMENT\s*->\s*CharacterManagementTabV4\(\s*"
+              r"sheet\s*=\s*stored,\s*"
+              r"closureState\s*=\s*closureState,\s*"
+              r"onSheetChange\s*=\s*::persistOperationalSheet,\s*"
+              r"onClosureStateChange\s*=\s*::persistClosureState,\s*"
+              r"structuralEditingEnabled\s*=\s*structuralEditingEnabled,\s*"
+              r"wide\s*=\s*wide,\s*"
+              r"hapticsEnabled\s*=\s*closureState\.hapticsEnabled,\s*"
+              r"\)",
+              re.MULTILINE,
+          )
+          matches = list(pattern.finditer(text))
+          if len(matches) != 1:
+              raise SystemExit(f"Expected exactly one Gestión wiring anchor, found {len(matches)}")
+          indent = matches[0].group("indent")
+          inner = indent + "    "
+          replacement = "\n".join([
+              f"{indent}CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(",
+              f"{inner}sheet = stored,",
+              f"{inner}generalDraftSheet = settingsSheet,",
+              f"{inner}closureState = closureState,",
+              f"{inner}onSheetChange = ::persistOperationalSheet,",
+              f"{inner}onClosureStateChange = ::persistClosureState,",
+              f"{inner}structuralEditingEnabled = structuralEditingEnabled,",
+              f"{inner}wide = wide,",
+              f"{inner}hapticsEnabled = closureState.hapticsEnabled,",
+              f"{indent})",
+          ])
+          updated, count = pattern.subn(replacement, text, count=1)
           if count != 1:
-              raise SystemExit(f"Expected exactly one Gestión wiring anchor, found {count}")
-          path.write_text(text.replace(old, new, 1))
+              raise SystemExit(f"Expected one replacement, got {count}")
+          path.write_text(updated)
           PY
 
       - name: Validate patch
         shell: bash
         run: |
           git diff --check
+          test "$(grep -c 'CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt)" -eq 1
+          test "$(grep -c 'CharacterTabV4.MANAGEMENT -> CharacterManagementTabV4(' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt)" -eq 0
           git diff -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
-          test -n "$(git status --short androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt)"
 
       - name: Commit wiring and remove temporary workflow
         shell: bash
