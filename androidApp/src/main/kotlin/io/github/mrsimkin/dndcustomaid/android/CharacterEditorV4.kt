@@ -211,6 +211,13 @@ internal fun CharacterEditorScreenV4(
     val h1ModuleDraft = remember(h1ModuleDraftJson) { characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson) }
     val proficiencyDraft = remember(proficiencyDraftJson) { characterProficienciesFromJsonV4(proficiencyDraftJson) }
     val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored
+    val overviewProjectionSheet = settingsSheet.copy(
+        background = backgroundDraft,
+        inventoryItems = equipmentDraft.items,
+        proficiencies = proficiencyDraft,
+        spellcastingSources = spellcastingDraft.sources,
+        spells = spellcastingDraft.spells,
+    )
     val suggestedModules = suggestedCharacterModules(settingsSheet.classes)
     val visibleModules = visibleCharacterModules(settingsSheet.classes, closureState.moduleOverrides)
     val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
@@ -626,9 +633,11 @@ internal fun CharacterEditorScreenV4(
                         CharacterTabV4.OVERVIEW -> OverviewTabV4(
                             draft = draft,
                             stored = stored,
+                            projectionSheet = overviewProjectionSheet,
                             closureState = closureState,
                             wide = wide,
                             onDraftChange = ::updateStructuralDraft,
+                            onOperationalSheetChange = ::persistOperationalSheet,
                             onClosureStateChange = ::persistStructuralClosureState,
                         )
                         CharacterTabV4.SKILLS -> SkillsTabV4(
@@ -942,9 +951,11 @@ private fun EditorHeaderV4(
 private fun OverviewTabV4(
     draft: CharacterEditorDraftV4,
     stored: CharacterSheet,
+    projectionSheet: CharacterSheet,
     closureState: CharacterClosureState,
     wide: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    onOperationalSheetChange: (CharacterSheet) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
 ) {
     LazyColumn(
@@ -975,10 +986,22 @@ private fun OverviewTabV4(
         item {
             CombatCardV4(draft, wide, onDraftChange)
         }
-        if (stored.spellcasterEnabled) {
-            item {
-                QuickMagicCardV4(draft, onDraftChange)
-            }
+        item {
+            CharacterGeneralSuccessorCardsV4(
+                projectionSheet = projectionSheet,
+                onInspirationChange = { enabled ->
+                    onOperationalSheetChange(stored.copy(inspiration = enabled))
+                },
+                onResourceValueChange = { resourceId, value ->
+                    onOperationalSheetChange(
+                        stored.copy(
+                            resources = stored.resources.map { resource ->
+                                if (resource.id == resourceId) resource.copy(currentValue = value) else resource
+                            },
+                        ),
+                    )
+                },
+            )
         }
         item {
             CharacterGeneralClosureCardsV4(
