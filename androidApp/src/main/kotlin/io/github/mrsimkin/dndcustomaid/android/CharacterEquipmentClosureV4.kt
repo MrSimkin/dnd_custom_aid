@@ -655,15 +655,18 @@ private fun EquipmentSectionF2(
                         phoneMax = if (special) 2 else 3,
                         wideMax = if (special) 3 else 5,
                     )
-                    items.chunked(columns).forEach { rowItems ->
+                    items.chunked(columns).forEachIndexed { rowIndex, rowItems ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                             verticalAlignment = Alignment.Top,
                         ) {
-                            rowItems.forEach { item ->
+                            rowItems.forEachIndexed { columnIndex, item ->
                                 EquipmentDenseItemF2(
                                     item = item,
+                                    gridIndex = rowIndex * columns + columnIndex,
+                                    gridItemCount = items.size,
+                                    gridColumns = columns,
                                     usage = usageFor(item),
                                     canReorder = canReorder,
                                     special = special,
@@ -699,6 +702,9 @@ private fun OrderButtonF2(label: String, selected: Boolean, onClick: () -> Unit)
 @Composable
 private fun EquipmentDenseItemF2(
     item: CharacterInventoryItem,
+    gridIndex: Int,
+    gridItemCount: Int,
+    gridColumns: Int,
     usage: CharacterInventoryUsage,
     canReorder: Boolean,
     special: Boolean,
@@ -712,14 +718,33 @@ private fun EquipmentDenseItemF2(
     onHaptic: (CharacterHapticEventV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(item.id) { mutableStateOf(0f) }
-    var dragging by remember(item.id) { mutableStateOf(false) }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    var dragState by remember(item.id) { mutableStateOf(CharacterDragVisualStateV4()) }
+    val reorderModifier = if (gridColumns > 1) {
+        Modifier.characterMeasuredGridReorderDragV4(
+            enabled = canReorder,
+            onHaptic = onHaptic,
+            onMove = { rowDelta, columnDelta ->
+                val currentRow = gridIndex / gridColumns
+                val currentColumn = gridIndex % gridColumns
+                val targetRow = currentRow + rowDelta
+                val targetColumn = currentColumn + columnDelta
+                val targetIndex = targetRow * gridColumns + targetColumn
+                val targetValid =
+                    targetRow >= 0 &&
+                        targetColumn in 0 until gridColumns &&
+                        targetIndex in 0 until gridItemCount
+                if (targetValid) onMove(targetIndex - gridIndex) else false
+            },
+            onVisualStateChange = { dragState = it },
+        )
+    } else {
+        Modifier.characterMeasuredReorderDragV4(
+            enabled = canReorder,
+            onHaptic = onHaptic,
+            onMove = onMove,
+            onVisualStateChange = { dragState = it },
+        )
+    }
     val carry = effectiveInventoryCarryState(item, usage)
     val stateLabels = buildList {
         add(if (carry == CharacterInventoryCarryState.CARRIED) "Transportado" else "Guardado")
@@ -740,15 +765,7 @@ private fun EquipmentDenseItemF2(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .characterMeasuredReorderDragV4(
-                    enabled = canReorder,
-                    onHaptic = onHaptic,
-                    onMove = onMove,
-                    onVisualStateChange = { state ->
-                        dragging = state.active
-                        accumulatedDrag = state.offsetY
-                    },
-                )
+                .then(reorderModifier)
                 .characterDragFeedbackV4(dragState)
                 .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,

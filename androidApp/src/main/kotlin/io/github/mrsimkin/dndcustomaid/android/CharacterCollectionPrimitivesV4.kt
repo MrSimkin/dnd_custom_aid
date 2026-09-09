@@ -52,6 +52,7 @@ internal data class CharacterFilterOptionV4(
 
 internal data class CharacterDragVisualStateV4(
     val active: Boolean = false,
+    val offsetX: Float = 0f,
     val offsetY: Float = 0f,
     val showDropBefore: Boolean = false,
     val showDropAfter: Boolean = false,
@@ -147,6 +148,21 @@ internal fun Modifier.characterDragFeedbackV4(
         ),
         label = "character-drag-alpha",
     ).value
+    val offsetX = animateFloatAsState(
+        targetValue = state.offsetX,
+        animationSpec = if (state.active) {
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessHigh,
+            )
+        } else {
+            spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            )
+        },
+        label = "character-drag-offset-x",
+    ).value
     val offsetY = animateFloatAsState(
         targetValue = state.offsetY,
         animationSpec = if (state.active) {
@@ -166,6 +182,7 @@ internal fun Modifier.characterDragFeedbackV4(
     return this
         .zIndex(if (state.active) 20f else 0f)
         .graphicsLayer {
+            translationX = offsetX
             translationY = offsetY
             scaleX = scale
             scaleY = scale

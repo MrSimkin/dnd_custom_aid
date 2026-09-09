@@ -925,7 +925,7 @@ private fun SpellEditorFieldsG2(
         value = name,
         onValueChange = onNameChange,
         label = { Text("Nombre") },
-        modifier = Modifier.fillMaxWidth().height(characterCompactSingleLineFieldHeightV4()),
+        modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()),
         singleLine = true,
     )
     CharacterCompactFieldRowV4(
@@ -936,7 +936,7 @@ private fun SpellEditorFieldsG2(
                 value = level,
                 onValueChange = onLevelChange,
                 label = { Text("Nivel (0-9)") },
-                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
+                modifier = fieldModifier.heightIn(min = characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
@@ -946,7 +946,7 @@ private fun SpellEditorFieldsG2(
                 value = castingTime,
                 onValueChange = onCastingTimeChange,
                 label = { Text("Tiempo de lanzamiento") },
-                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
+                modifier = fieldModifier.heightIn(min = characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
             )
         },
@@ -957,7 +957,7 @@ private fun SpellEditorFieldsG2(
                 value = rangeText,
                 onValueChange = onRangeTextChange,
                 label = { Text("Alcance") },
-                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
+                modifier = fieldModifier.heightIn(min = characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
             )
         },
@@ -966,7 +966,7 @@ private fun SpellEditorFieldsG2(
                 value = duration,
                 onValueChange = onDurationChange,
                 label = { Text("Duración") },
-                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
+                modifier = fieldModifier.heightIn(min = characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
             )
         },
@@ -1000,6 +1000,8 @@ private fun SpellEditorFieldsG2(
             onValueChange = onMaterialTextChange,
             label = { Text("Componente material (opcional)") },
             modifier = Modifier.fillMaxWidth(),
+            minLines = 2,
+            maxLines = 4,
         )
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1011,8 +1013,8 @@ private fun SpellEditorFieldsG2(
         onValueChange = onDescriptionChange,
         label = { Text("Descripción") },
         modifier = Modifier.fillMaxWidth(),
-        minLines = 4,
-        maxLines = 10,
+        minLines = 3,
+        maxLines = 5,
     )
     OutlinedTextField(
         value = notes,
@@ -1020,7 +1022,7 @@ private fun SpellEditorFieldsG2(
         label = { Text("Notas (opcional)") },
         modifier = Modifier.fillMaxWidth(),
         minLines = 2,
-        maxLines = 6,
+        maxLines = 4,
     )
     CharacterInlineValidationMessage(validationMessage)
 }
