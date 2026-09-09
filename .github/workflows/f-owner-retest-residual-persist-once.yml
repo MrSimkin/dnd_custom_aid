@@ -1,0 +1,71 @@
+name: F residual owner-test repair persist once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/f-owner-retest-residual-persist-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 3
+      - name: Guard persistence parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "implementation/phase4a-successor-cycle"
+          test "$(git rev-parse HEAD^)" = "85a21c558cca54605840c9c62616957c7a484812"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - name: Reproduce exact green residual repair
+        run: |
+          python3 .github/f-residual-retry-fix.py
+          python3 .github/f-owner-retest-residual-once.py
+      - name: Guard exact residual invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          ! grep -R '\.height(characterCompactSingleLineFieldHeightV4())' androidApp/src/main/kotlin
+          grep -q 'characterMeasuredGridReorderDragV4' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCardInteractionV4.kt
+          grep -q 'translationX = offsetX' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCollectionPrimitivesV4.kt
+          grep -q 'gridColumns > 1' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+      - name: Reconfirm focused green boundary
+        run: gradle :shared:desktopTest :androidApp:compileDebugKotlin --stacktrace
+      - name: Persist product and remove every residual helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCollectionPrimitivesV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCardInteractionV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellSourceEditorV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
+          git rm -f \
+            .github/f-owner-retest-residual-once.py \
+            .github/f-residual-retry-fix.py \
+            .github/workflows/f-owner-retest-residual-once.yml \
+            .github/workflows/f-owner-retest-residual-retry-once.yml \
+            .github/workflows/f-owner-retest-residual-persist-once.yml
+          git commit -m 'fix: close residual F editor and grid drag defects'
+          git push
