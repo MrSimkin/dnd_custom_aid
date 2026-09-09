@@ -30,18 +30,21 @@ jobs:
         with:
           gradle-version: '9.5.0'
       - name: Apply guarded G1 transformations
-        run: python3 .maintenance/g1_apply.py
+        run: |
+          python3 .maintenance/g1_apply.py
+          python3 .maintenance/g1_test_fix.py
       - name: Guard diff
         run: |
           git diff --check
           grep -q '"Electrum"' shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterRepository.kt
+          grep -q '"Electrum"' shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterFollowupFoundationTest.kt
           grep -q 'Gemas / arte' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
           grep -q 'CharacterResourcePlacement.EQUIPMENT' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
       - name: Focused compile and tests
         run: gradle :shared:desktopTest :androidApp:compileDebugKotlin --stacktrace
       - name: Commit G1 product and self-remove helper
         run: |
-          rm -f .github/workflows/g1-apply.yml .maintenance/g1_apply.py
+          rm -f .github/workflows/g1-apply.yml .maintenance/g1_apply.py .maintenance/g1_test_fix.py
           rmdir .maintenance 2>/dev/null || true
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
