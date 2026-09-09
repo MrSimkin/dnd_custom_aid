@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalContext
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPcConfiguration
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPcConfigurationRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
@@ -36,8 +37,10 @@ internal fun CharacterPcSettingsStateProviderV4(
     var pcConfiguration by remember(characterId) {
         mutableStateOf(pcConfigurationRepository.configuration(characterId))
     }
+    val androidContext = LocalContext.current.applicationContext
+    val hapticStore = remember(androidContext) { CharacterHapticPreferencesStore(androidContext) }
 
-    val context = CharacterPcSettingsContextV4(
+    val settingsContext = CharacterPcSettingsContextV4(
         successorState = successorState,
         pcConfiguration = pcConfiguration,
         onSuccessorStateChange = { updated ->
@@ -52,7 +55,9 @@ internal fun CharacterPcSettingsStateProviderV4(
         },
     )
 
-    CompositionLocalProvider(LocalCharacterPcSettingsContextV4 provides context) {
-        content()
+    CharacterHapticSettingsProviderV4(store = hapticStore) {
+        CompositionLocalProvider(LocalCharacterPcSettingsContextV4 provides settingsContext) {
+            content()
+        }
     }
 }
