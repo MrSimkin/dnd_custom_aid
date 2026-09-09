@@ -215,7 +215,11 @@ internal fun CharacterDiceRollSuccessorTabV4(
         }
 
         resolvedRoll?.let { roll ->
-            CharacterD20ResultCardV4(roll)
+            if (LocalUiPreferencesV4.current.diceResultMode == DiceResultModeChoice.VISIBLE_DICE) {
+                CharacterVisibleDiceResultCardV4(roll)
+            } else {
+                CharacterD20ResultCardV4(roll)
+            }
         }
 
         if (attackEntry != null && attackDamage.isNotEmpty()) {
@@ -268,6 +272,74 @@ internal fun CharacterDiceRollSuccessorTabV4(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun CharacterVisibleDiceResultCardV4(roll: CharacterResolvedD20Roll) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(
+                horizontal = appSpacingV4(8.dp),
+                vertical = appSpacingV4(7.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            Text("Dados", style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp), Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CharacterVisibleD20V4(
+                    value = roll.firstDie,
+                    chosen = roll.chosenDie == roll.firstDie && (roll.secondDie == null || roll.firstDie != roll.secondDie),
+                )
+                roll.secondDie?.let { second ->
+                    CharacterVisibleD20V4(
+                        value = second,
+                        chosen = roll.chosenDie == second && (roll.firstDie != second || roll.mode != CharacterD20Mode.NORMAL),
+                    )
+                }
+            }
+            Text("Resultado ${roll.total}", style = MaterialTheme.typography.titleLarge)
+            Text(
+                when (roll.mode) {
+                    CharacterD20Mode.NORMAL ->
+                        "d20 ${roll.firstDie} ${formatDiceOperationSuccessorV4(roll.modifier)} = ${roll.total}"
+                    CharacterD20Mode.ADVANTAGE,
+                    CharacterD20Mode.DISADVANTAGE,
+                    -> "d20 ${roll.firstDie} / d20 ${roll.secondDie} → ${roll.chosenDie} ${formatDiceOperationSuccessorV4(roll.modifier)} = ${roll.total}"
+                },
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            when (roll.chosenDie) {
+                20 -> Text("Resultado natural: 20", style = MaterialTheme.typography.labelSmall)
+                1 -> Text("Resultado natural: 1", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CharacterVisibleD20V4(value: Int, chosen: Boolean) {
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        border = BorderStroke(
+            if (chosen) 2.dp else 1.dp,
+            if (chosen) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
+        color = if (chosen) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = if (chosen) 3.dp else 0.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("d20", style = MaterialTheme.typography.labelSmall)
+            Text(value.toString(), style = MaterialTheme.typography.headlineMedium)
+            if (chosen) Text("elegido", style = MaterialTheme.typography.labelSmall)
+        }
     }
 }
 

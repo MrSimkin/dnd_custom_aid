@@ -101,6 +101,11 @@ internal enum class SkillLayoutChoice(val label: String) {
     BY_ATTRIBUTE("Por atributo"),
 }
 
+internal enum class DiceResultModeChoice(val label: String) {
+    COMPACT("Resultado compacto"),
+    VISIBLE_DICE("Dados visibles"),
+}
+
 internal data class UiPreferences(
     val fontScalePercent: Int = 100,
     val fontChoice: AppFontChoice = AppFontChoice.MANROPE,
@@ -112,6 +117,7 @@ internal data class UiPreferences(
     val tabletLandscapeColumns: Int = 3,
     val spacingScalePercent: Int = 100,
     val helpMode: CharacterHelpModeV4 = CharacterHelpModeV4.ALWAYS_VISIBLE,
+    val diceResultMode: DiceResultModeChoice = DiceResultModeChoice.COMPACT,
 )
 
 internal val LocalUiPreferencesV4 = staticCompositionLocalOf { UiPreferences() }
@@ -147,6 +153,9 @@ internal class UiPreferencesStore(context: Context) {
         val helpMode = preferences.getString(KEY_HELP_MODE, null)
             ?.let { runCatching { CharacterHelpModeV4.valueOf(it) }.getOrNull() }
             ?: CharacterHelpModeV4.ALWAYS_VISIBLE
+        val diceResultMode = preferences.getString(KEY_DICE_RESULT_MODE, null)
+            ?.let { runCatching { DiceResultModeChoice.valueOf(it) }.getOrNull() }
+            ?: DiceResultModeChoice.COMPACT
 
         return UiPreferences(
             fontScalePercent = scale,
@@ -159,6 +168,7 @@ internal class UiPreferencesStore(context: Context) {
             tabletLandscapeColumns = tabletLandscapeColumns,
             spacingScalePercent = spacingScalePercent,
             helpMode = helpMode,
+            diceResultMode = diceResultMode,
         )
     }
 
@@ -174,6 +184,7 @@ internal class UiPreferencesStore(context: Context) {
             .putInt(KEY_TABLET_LANDSCAPE_COLUMNS, value.tabletLandscapeColumns)
             .putInt(KEY_SPACING_SCALE, value.spacingScalePercent)
             .putString(KEY_HELP_MODE, value.helpMode.name)
+            .putString(KEY_DICE_RESULT_MODE, value.diceResultMode.name)
             .apply()
     }
 
@@ -189,6 +200,7 @@ internal class UiPreferencesStore(context: Context) {
         const val KEY_TABLET_LANDSCAPE_COLUMNS = "tablet_landscape_columns"
         const val KEY_SPACING_SCALE = "spacing_scale_percent"
         const val KEY_HELP_MODE = "help_mode"
+        const val KEY_DICE_RESULT_MODE = "dice_result_mode"
     }
 }
 
@@ -561,6 +573,22 @@ internal fun AppSettingsDialog(
                     }
                 }
                 item {
+                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
+                        SettingSelector(
+                            label = "Resultados de dados",
+                            value = preferences.diceResultMode.label,
+                            options = DiceResultModeChoice.entries,
+                            optionLabel = { it.label },
+                            onSelect = { onPreferencesChange(preferences.copy(diceResultMode = it)) },
+                        )
+                        Text(
+                            "El resultado compacto prioriza densidad. Dados visibles muestra los d20 obtenidos de forma prominente; ambos conservan la misma descomposición matemática.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                item {
                     FontChoicePicker(
                         selected = preferences.fontChoice,
                         onSelect = { onPreferencesChange(preferences.copy(fontChoice = it)) },
@@ -750,7 +778,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                 }
 
                 Text(
-                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · Ayuda ${preferences.helpMode.label}",
+                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · Ayuda ${preferences.helpMode.label} · Dados ${preferences.diceResultMode.label}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
