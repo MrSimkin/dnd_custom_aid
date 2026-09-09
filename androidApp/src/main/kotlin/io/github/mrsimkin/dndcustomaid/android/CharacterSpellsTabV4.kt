@@ -391,10 +391,12 @@ private fun SourceManagerDialogV4(
     onDismiss: () -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
+    val dialogEnvironment = characterDialogEnvironmentV4()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Orígenes de conjuros") },
+        title = { dialogEnvironment.Provide { Text("Orígenes de conjuros") } },
         text = {
+            dialogEnvironment.Provide {
             LazyColumn(
                 modifier = Modifier
                     .heightIn(max = 500.dp)
@@ -427,9 +429,10 @@ private fun SourceManagerDialogV4(
                     }
                 }
             }
+            }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
+            dialogEnvironment.Provide { TextButton(onClick = onDismiss) { Text("Cerrar") } }
         },
     )
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -202,7 +203,7 @@ internal fun CharacterSpellSourceEditorV4(
                 value = otherText,
                 onValueChange = { otherText = it },
                 label = { Text("Especificar origen") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
             )
         }
@@ -225,7 +226,7 @@ internal fun CharacterSpellSourceEditorV4(
                     value = saveAdjustmentText,
                     onValueChange = { saveAdjustmentText = normalizeCharacterSignedIntegerInput(it) },
                     label = { Text("Ajuste CD") },
-                    modifier = modifier,
+                    modifier = modifier.height(characterCompactSingleLineFieldHeightV4()),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
@@ -235,7 +236,7 @@ internal fun CharacterSpellSourceEditorV4(
                     value = attackAdjustmentText,
                     onValueChange = { attackAdjustmentText = normalizeCharacterSignedIntegerInput(it) },
                     label = { Text("Ajuste ataque") },
-                    modifier = modifier,
+                    modifier = modifier.height(characterCompactSingleLineFieldHeightV4()),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )

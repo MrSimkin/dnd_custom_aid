@@ -503,12 +503,14 @@ internal fun AppSettingsDialog(
     val configuration = LocalConfiguration.current
     val phoneLike = minOf(configuration.screenWidthDp, configuration.screenHeightDp) < 600
     val veryLargePhoneText = phoneLike && preferences.fontScalePercent >= 145
+    val dialogEnvironment = characterDialogEnvironmentV4()
 
     AlertDialog(
         modifier = Modifier.imePadding().navigationBarsPadding(),
         onDismissRequest = onDismiss,
-        title = { Text("Ajustes") },
+        title = { dialogEnvironment.Provide { Text("Ajustes") } },
         text = {
+            dialogEnvironment.Provide {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -614,11 +616,14 @@ internal fun AppSettingsDialog(
                     )
                 }
             }
+            }
         },
         confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
-                TextButton(onClick = { showAbout = true }) { Text("Acerca de") }
-                Button(onClick = onDismiss) { Text("Listo") }
+            dialogEnvironment.Provide {
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                    TextButton(onClick = { showAbout = true }) { Text("Acerca de") }
+                    Button(onClick = onDismiss) { Text("Listo") }
+                }
             }
         },
     )

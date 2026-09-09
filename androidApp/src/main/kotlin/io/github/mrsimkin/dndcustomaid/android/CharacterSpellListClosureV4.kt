@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -916,7 +917,7 @@ private fun SpellEditorFieldsG2(
         value = name,
         onValueChange = onNameChange,
         label = { Text("Nombre") },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(characterCompactSingleLineFieldHeightV4()),
         singleLine = true,
     )
     CharacterCompactFieldRowV4(
@@ -927,7 +928,7 @@ private fun SpellEditorFieldsG2(
                 value = level,
                 onValueChange = onLevelChange,
                 label = { Text("Nivel (0-9)") },
-                modifier = fieldModifier,
+                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
@@ -937,7 +938,7 @@ private fun SpellEditorFieldsG2(
                 value = castingTime,
                 onValueChange = onCastingTimeChange,
                 label = { Text("Tiempo de lanzamiento") },
-                modifier = fieldModifier,
+                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
             )
         },
@@ -948,7 +949,7 @@ private fun SpellEditorFieldsG2(
                 value = rangeText,
                 onValueChange = onRangeTextChange,
                 label = { Text("Alcance") },
-                modifier = fieldModifier,
+                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
             )
         },
@@ -957,7 +958,7 @@ private fun SpellEditorFieldsG2(
                 value = duration,
                 onValueChange = onDurationChange,
                 label = { Text("Duración") },
-                modifier = fieldModifier,
+                modifier = fieldModifier.height(characterCompactSingleLineFieldHeightV4()),
                 singleLine = true,
             )
         },

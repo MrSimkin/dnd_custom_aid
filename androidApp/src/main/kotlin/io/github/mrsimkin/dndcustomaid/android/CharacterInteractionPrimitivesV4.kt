@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -20,13 +21,47 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+
+internal data class CharacterDialogEnvironmentV4(
+    val density: Density,
+    val preferences: UiPreferences,
+    val helpMode: CharacterHelpModeV4,
+)
+
+@Composable
+internal fun characterDialogEnvironmentV4(): CharacterDialogEnvironmentV4 = CharacterDialogEnvironmentV4(
+    density = LocalDensity.current,
+    preferences = LocalUiPreferencesV4.current,
+    helpMode = LocalCharacterHelpModeV4.current,
+)
+
+@Composable
+internal fun CharacterDialogEnvironmentV4.Provide(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalDensity provides density,
+        LocalUiPreferencesV4 provides preferences,
+        LocalCharacterHelpModeV4 provides helpMode,
+        content = content,
+    )
+}
+
+@Composable
+internal fun characterCompactSingleLineFieldHeightV4(): Dp {
+    val fontScale = LocalDensity.current.fontScale
+    val height = 48f + ((fontScale - 1f).coerceAtLeast(0f) * 16f)
+    return height.coerceIn(48f, 64f).dp
+}
 
 @Composable
 internal fun CharacterImeSafeEditorDialog(
@@ -42,68 +77,64 @@ internal fun CharacterImeSafeEditorDialog(
 ) {
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
+    val dialogEnvironment = characterDialogEnvironmentV4()
 
     Dialog(
         onDismissRequest = { focusManager.clearFocus() },
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .imePadding()
-                .navigationBarsPadding()
-                .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
-            contentAlignment = Alignment.Center,
-        ) {
+        dialogEnvironment.Provide {
             Box(
-                modifier = Modifier.fillMaxSize().pointerInput(Unit) {
-                    detectTapGestures(onTap = { focusManager.clearFocus() })
-                },
-            )
-            Surface(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 640.dp)
-                    .fillMaxHeight(),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = 5.dp,
-                shadowElevation = 6.dp,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .imePadding()
+                    .navigationBarsPadding()
+                    .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
+                contentAlignment = Alignment.Center,
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            top = appSpacingV4(8.dp),
-                            start = appSpacingV4(8.dp),
-                            end = appSpacingV4(8.dp),
-                            bottom = appSpacingV4(6.dp),
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                Box(
+                    modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+                        detectTapGestures(onTap = { focusManager.clearFocus() })
+                    },
+                )
+                Surface(
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 640.dp)
+                        .fillMaxHeight(),
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = 5.dp,
+                    shadowElevation = 6.dp,
                 ) {
-                    Text(title, style = MaterialTheme.typography.titleMedium)
-                    supportingText?.takeIf { it.isNotBlank() }?.let {
-                        Text(
-                            it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
                     Column(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .verticalScroll(scrollState),
-                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                            .padding(
+                                top = appSpacingV4(6.dp),
+                                start = appSpacingV4(6.dp),
+                                end = appSpacingV4(6.dp),
+                                bottom = appSpacingV4(5.dp),
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     ) {
+                        Text(title, style = MaterialTheme.typography.titleMedium)
+                        supportingText?.takeIf { it.isNotBlank() }?.let {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                         content()
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp), Alignment.End),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        TextButton(onClick = onCancel) { Text(cancelLabel) }
-                        Button(onClick = onSave, enabled = saveEnabled) { Text(saveLabel) }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp), Alignment.End),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(onClick = onCancel) { Text(cancelLabel) }
+                            Button(onClick = onSave, enabled = saveEnabled) { Text(saveLabel) }
+                        }
                     }
                 }
             }
@@ -158,25 +189,28 @@ internal fun CharacterConfirmationDialog(
     destructive: Boolean = false,
     cancelLabel: String = "Cancelar",
 ) {
+    val dialogEnvironment = characterDialogEnvironmentV4()
     Dialog(onDismissRequest = onDismissRequest) {
-        Surface(
-            modifier = Modifier.fillMaxWidth().widthIn(max = 500.dp).navigationBarsPadding(),
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 5.dp,
-            shadowElevation = 6.dp,
-        ) {
-            Column(
-                modifier = Modifier.padding(appSpacingV4(8.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        dialogEnvironment.Provide {
+            Surface(
+                modifier = Modifier.fillMaxWidth().widthIn(max = 500.dp).navigationBarsPadding(),
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 5.dp,
+                shadowElevation = 6.dp,
             ) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(message, style = MaterialTheme.typography.bodyMedium)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp), Alignment.End),
+                Column(
+                    modifier = Modifier.padding(appSpacingV4(8.dp)),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
-                    TextButton(onClick = onDismissRequest) { Text(cancelLabel) }
-                    Button(onClick = onConfirm) { Text(confirmLabel) }
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    Text(message, style = MaterialTheme.typography.bodyMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp), Alignment.End),
+                    ) {
+                        TextButton(onClick = onDismissRequest) { Text(cancelLabel) }
+                        Button(onClick = onConfirm) { Text(confirmLabel) }
+                    }
                 }
             }
         }
