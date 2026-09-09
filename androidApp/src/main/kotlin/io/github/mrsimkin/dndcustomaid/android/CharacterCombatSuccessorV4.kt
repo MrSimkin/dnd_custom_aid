@@ -370,7 +370,6 @@ private fun CharacterCombatSuccessorCardV4(
 ) {
     var dragging by remember(entry.id) { mutableStateOf(false) }
     var accumulatedDrag by remember(entry.id) { mutableStateOf(0f) }
-    val stepPx = with(LocalDensity.current) { 56.dp.toPx() }
     val damage = characterDamageSummary(damageComponents).ifBlank { "Sin daño / efecto" }
 
     Surface(
@@ -392,33 +391,15 @@ private fun CharacterCombatSuccessorCardV4(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .characterLongPressDragV4(
-                        enabled = structuralEditingEnabled,
-                        onHaptic = onHaptic,
-                        onDragStart = {
-                            accumulatedDrag = 0f
-                            dragging = true
-                        },
-                        onDragDelta = { delta ->
-                            accumulatedDrag += delta
-                            var moved = false
-                            while (abs(accumulatedDrag) >= stepPx) {
-                                val direction = if (accumulatedDrag > 0f) 1 else -1
-                                if (onMove(direction)) {
-                                    accumulatedDrag -= direction * stepPx
-                                    moved = true
-                                } else {
-                                    accumulatedDrag = 0f
-                                    break
-                                }
-                            }
-                            moved
-                        },
-                        onDragEnd = {
-                            accumulatedDrag = 0f
-                            dragging = false
-                        },
-                    )
+                    .characterMeasuredReorderDragV4(
+                                enabled = structuralEditingEnabled,
+                                onHaptic = onHaptic,
+                                onMove = onMove,
+                                onVisualStateChange = { state ->
+                                    dragging = state.active
+                                    accumulatedDrag = state.offsetY
+                                },
+                            )
                     .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
             ) {

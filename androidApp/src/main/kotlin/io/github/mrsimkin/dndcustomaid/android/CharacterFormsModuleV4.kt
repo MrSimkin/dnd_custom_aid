@@ -534,7 +534,6 @@ private fun FormRowH1(
 ) {
     var accumulatedDrag by remember(form.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -547,6 +546,15 @@ private fun FormRowH1(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
+                .characterMeasuredReorderDragV4(
+                    enabled = reorderEnabled,
+                    onHaptic = onHaptic,
+                    onMove = onMove,
+                    onVisualStateChange = { state ->
+                        dragging = state.active
+                        accumulatedDrag = state.offsetY
+                    },
+                )
                 .characterDragFeedbackV4(dragState)
                 .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
@@ -561,45 +569,7 @@ private fun FormRowH1(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
-                if (reorderEnabled) {
-                    StableDragHandle(
-                        modifier = Modifier.pointerInput(form.id) {
-                            detectDragGesturesAfterLongPress(
-                                onDragStart = {
-                                    accumulatedDrag = 0f
-                                    dragging = true
-                                    onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
-                                },
-                                onDragEnd = {
-                                    if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
-                                onDragCancel = {
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    accumulatedDrag += dragAmount.y
-                                    while (abs(accumulatedDrag) >= reorderStepPx) {
-                                        val direction = if (accumulatedDrag > 0f) 1 else -1
-                                        if (onMove(direction)) {
-                                            onHaptic(CharacterHapticEventV4.DRAG_STEP)
-                                            accumulatedDrag -= direction * reorderStepPx
-                                        } else {
-                                            accumulatedDrag = 0f
-                                            break
-                                        }
-                                    }
-                                },
-                            )
-                        },
-                        active = dragging,
-                        contentDescription = "Mantén pulsado y arrastra para reordenar ${form.name}",
-                    )
-                }
-                Column(
+Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                 ) {

@@ -714,7 +714,6 @@ private fun EquipmentDenseItemF2(
 ) {
     var accumulatedDrag by remember(item.id) { mutableStateOf(0f) }
     var dragging by remember(item.id) { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { (if (special) 72.dp else 62.dp).toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -741,6 +740,15 @@ private fun EquipmentDenseItemF2(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
+                .characterMeasuredReorderDragV4(
+                    enabled = canReorder,
+                    onHaptic = onHaptic,
+                    onMove = onMove,
+                    onVisualStateChange = { state ->
+                        dragging = state.active
+                        accumulatedDrag = state.offsetY
+                    },
+                )
                 .characterDragFeedbackV4(dragState)
                 .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
@@ -759,45 +767,7 @@ private fun EquipmentDenseItemF2(
                     horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (canReorder) {
-                        StableDragHandle(
-                            modifier = Modifier.pointerInput(item.id) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = {
-                                        accumulatedDrag = 0f
-                                        dragging = true
-                                        onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
-                                    },
-                                    onDragEnd = {
-                                        if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
-                                        accumulatedDrag = 0f
-                                        dragging = false
-                                    },
-                                    onDragCancel = {
-                                        accumulatedDrag = 0f
-                                        dragging = false
-                                    },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        accumulatedDrag += dragAmount.y
-                                        while (abs(accumulatedDrag) >= reorderStepPx) {
-                                            val direction = if (accumulatedDrag > 0f) 1 else -1
-                                            if (onMove(direction)) {
-                                                onHaptic(CharacterHapticEventV4.DRAG_STEP)
-                                                accumulatedDrag -= direction * reorderStepPx
-                                            } else {
-                                                accumulatedDrag = 0f
-                                                break
-                                            }
-                                        }
-                                    },
-                                )
-                            },
-                            active = dragging,
-                            contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
+Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
                         Text(item.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (special) {
                             Row(

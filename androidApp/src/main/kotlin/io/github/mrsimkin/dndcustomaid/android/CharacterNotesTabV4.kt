@@ -267,7 +267,6 @@ private fun CharacterNoteCardV4(
 ) {
     var accumulatedDrag by remember(note.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 68.dp.toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -303,30 +302,14 @@ private fun CharacterNoteCardV4(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .characterLongPressDragV4(
+                            .characterMeasuredReorderDragV4(
                                 enabled = structuralEditingEnabled,
                                 onHaptic = onHaptic,
-                                onDragStart = {
-                                    accumulatedDrag = 0f
-                                    dragging = true
+                                onMove = onMove,
+                                onVisualStateChange = { state ->
+                                    dragging = state.active
+                                    accumulatedDrag = state.offsetY
                                 },
-                                onDragDelta = { deltaY ->
-                                    accumulatedDrag += deltaY
-                                    var moved = false
-                                    while (abs(accumulatedDrag) >= reorderStepPx) {
-                                        val direction = if (accumulatedDrag > 0f) 1 else -1
-                                        if (onMove(direction)) {
-                                            accumulatedDrag -= direction * reorderStepPx
-                                            moved = true
-                                        } else {
-                                            accumulatedDrag = 0f
-                                            break
-                                        }
-                                    }
-                                    moved
-                                },
-                                onDragEnd = ::finishDrag,
-                                onDragCancel = ::finishDrag,
                             )
                             .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
                         verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),

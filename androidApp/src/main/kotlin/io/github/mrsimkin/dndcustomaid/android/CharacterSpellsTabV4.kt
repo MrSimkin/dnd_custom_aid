@@ -79,6 +79,8 @@ internal fun CharacterSpellsTabV4(
     var editorLinkedClassId by rememberSaveable("spell-source-edit-class") { mutableStateOf<String?>(null) }
     var deleteSourceId by rememberSaveable("spell-source-delete-id") { mutableStateOf<String?>(null) }
 
+    val sourceManagerHaptic = rememberCharacterHapticHookV4(hapticsEnabled)
+
     val selectedSource = selectedSourceId?.let { selectedId ->
         draft.sources.firstOrNull { it.id.toString() == selectedId }
     }
@@ -169,6 +171,7 @@ internal fun CharacterSpellsTabV4(
             onEdit = ::beginEditSource,
             onDelete = ::requestDeleteSource,
             onDismiss = { managerOpen = false },
+            onHaptic = sourceManagerHaptic,
         )
     }
 
@@ -378,6 +381,7 @@ private fun SourceManagerDialogV4(
     onEdit: (CharacterSpellcastingSource) -> Unit,
     onDelete: (CharacterSpellcastingSource) -> Unit,
     onDismiss: () -> Unit,
+    onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -411,6 +415,7 @@ private fun SourceManagerDialogV4(
                             onMove = { offset -> onMove(index, offset) },
                             onEdit = { onEdit(source) },
                             onDelete = { onDelete(source) },
+                            onHaptic = onHaptic,
                         )
                     }
                 }
@@ -429,10 +434,10 @@ private fun SourceManagerRowV4(
     onMove: (Int) -> Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
     var accumulatedDrag by remember(source.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
     val linkedClassName = source.linkedClassId?.let { linkedId ->
         classOptions.firstOrNull { it.id == linkedId }?.name?.ifBlank { "Clase sin nombre" }
     }
@@ -440,6 +445,23 @@ private fun SourceManagerRowV4(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .characterMeasuredReorderDragV4(
+                enabled = true,
+                onHaptic = onHaptic,
+                onMove = onMove,
+                onVisualStateChange = { state ->
+                    dragging = state.active
+                    accumulatedDrag = state.offsetY
+                },
+            )
+            .characterDragFeedbackV4(
+                CharacterDragVisualStateV4(
+                    active = dragging,
+                    offsetY = accumulatedDrag,
+                    showDropBefore = dragging && accumulatedDrag < 0f,
+                    showDropAfter = dragging && accumulatedDrag > 0f,
+                ),
+            )
             .clickable(onClick = onEdit),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -448,30 +470,6 @@ private fun SourceManagerRowV4(
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            StableDragHandle(
-                modifier = Modifier.pointerInput(source.id) {
-                    detectDragGesturesAfterLongPress(
-                        onDragStart = { accumulatedDrag = 0f; dragging = true },
-                        onDragEnd = { accumulatedDrag = 0f; dragging = false },
-                        onDragCancel = { accumulatedDrag = 0f; dragging = false },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            accumulatedDrag += dragAmount.y
-                            while (abs(accumulatedDrag) >= reorderStepPx) {
-                                val direction = if (accumulatedDrag > 0f) 1 else -1
-                                if (onMove(direction)) {
-                                    accumulatedDrag -= direction * reorderStepPx
-                                } else {
-                                    accumulatedDrag = 0f
-                                    break
-                                }
-                            }
-                        },
-                    )
-                },
-                active = dragging,
-                contentDescription = "Mantén pulsado y arrastra para reordenar ${source.name}",
-            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(source.name, style = MaterialTheme.typography.labelLarge)
                 Text(
