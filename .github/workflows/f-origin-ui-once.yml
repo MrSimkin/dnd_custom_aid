@@ -27,7 +27,9 @@ jobs:
         with:
           gradle-version: '9.5.0'
       - name: Apply guarded source-origin editor and profile wiring
-        run: python3 .github/f-origin-ui-once.py
+        run: |
+          python3 .github/f-origin-ui-once.py
+          python3 .github/f-origin-ui-compiler-fix.py
       - name: Check patch hygiene
         run: git diff --check
       - name: Prepare stable CI debug keystore
@@ -39,7 +41,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          rm .github/workflows/f-origin-ui-once.yml .github/f-origin-ui-once.py
+          rm .github/workflows/f-origin-ui-once.yml .github/f-origin-ui-once.py .github/f-origin-ui-compiler-fix.py
           git add -A
           git commit -m 'feat: wire typed spellcasting source editor'
           git push
