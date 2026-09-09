@@ -5,15 +5,13 @@ import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 
 /**
- * Per-character presentation/interaction configuration introduced by the Phase 4A C2 settings
- * redesign. Existing domain owners remain authoritative for character values themselves:
- * Inspiration value stays on CharacterSheet and haptics-enabled stays on CharacterClosureState.
+ * Per-character presentation configuration introduced by the Phase 4A C2 settings redesign.
+ * Inspiration value itself stays authoritative on CharacterSheet; this row only controls whether
+ * that canonical value is surfaced in the character UI.
  */
 @Serializable
 data class CharacterPcConfiguration(
     val inspirationVisible: Boolean = true,
-    val hapticStrength: CharacterHapticStrength = CharacterHapticStrength.MEDIUM,
-    val hapticDuration: CharacterHapticDuration = CharacterHapticDuration.SHORT,
 )
 
 class CharacterPcConfigurationRepository(
@@ -22,11 +20,9 @@ class CharacterPcConfigurationRepository(
     fun configuration(characterId: Uuid): CharacterPcConfiguration {
         requireCharacterExists(characterId)
         return database.characterPcConfigurationQueries.selectCharacterPcConfiguration(characterId.toString()) {
-                _, inspirationVisible, hapticStrength, hapticDuration ->
+                _, inspirationVisible ->
             CharacterPcConfiguration(
                 inspirationVisible = inspirationVisible != 0L,
-                hapticStrength = enumOrDefault(hapticStrength, CharacterHapticStrength.MEDIUM),
-                hapticDuration = enumOrDefault(hapticDuration, CharacterHapticDuration.SHORT),
             )
         }.executeAsOneOrNull() ?: CharacterPcConfiguration()
     }
@@ -39,8 +35,6 @@ class CharacterPcConfigurationRepository(
         database.characterPcConfigurationQueries.upsertCharacterPcConfiguration(
             character_id = characterId.toString(),
             inspiration_visible = if (configuration.inspirationVisible) 1 else 0,
-            haptic_strength = configuration.hapticStrength.name,
-            haptic_duration = configuration.hapticDuration.name,
         )
         return configuration(characterId)
     }
@@ -49,7 +43,4 @@ class CharacterPcConfigurationRepository(
         val exists = database.characterQueries.selectCharacterById(characterId.toString()).executeAsOneOrNull()
         require(exists != null) { "Character must already exist locally." }
     }
-
-    private inline fun <reified T : Enum<T>> enumOrDefault(value: String, default: T): T =
-        runCatching { enumValueOf<T>(value) }.getOrDefault(default)
 }
