@@ -12,10 +12,29 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorReposi
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import kotlin.uuid.Uuid
 
+/** UI-only compatibility view; persistence remains owned by CharacterSuccessorPreferences. */
+internal data class CharacterPcPresentationV4(
+    val inspirationVisible: Boolean,
+)
+
 internal data class CharacterPcSettingsContextV4(
     val successorState: CharacterSuccessorState,
     val onSuccessorStateChange: (CharacterSuccessorState) -> Unit,
-)
+) {
+    val pcConfiguration: CharacterPcPresentationV4
+        get() = CharacterPcPresentationV4(successorState.preferences.inspirationVisible)
+
+    val onPcConfigurationChange: (CharacterPcPresentationV4) -> Unit
+        get() = { updated ->
+            onSuccessorStateChange(
+                successorState.copy(
+                    preferences = successorState.preferences.copy(
+                        inspirationVisible = updated.inspirationVisible,
+                    ),
+                ),
+            )
+        }
+}
 
 internal val LocalCharacterPcSettingsContextV4 =
     staticCompositionLocalOf<CharacterPcSettingsContextV4?> { null }
