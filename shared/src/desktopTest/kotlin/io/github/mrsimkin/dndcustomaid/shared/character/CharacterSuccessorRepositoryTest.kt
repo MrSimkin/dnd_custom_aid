@@ -195,6 +195,28 @@ class CharacterSuccessorRepositoryTest {
         }
 
     @Test
+    fun backgroundImagesRoundTripAsAppOwnedPayloads() = withRepositories { campaigns, characters, successor ->
+        val campaign = campaigns.createCampaign("Imágenes")
+        val character = characters.createCharacter(campaign.id, "Retrato")
+        val image = CharacterBackgroundImage(
+            id = Uuid.random(),
+            slot = CharacterBackgroundImageSlot.PRIMARY,
+            mimeType = "image/png",
+            encodedData = "cG5nLXBheWxvYWQ=",
+            originalName = "retrato.png",
+        )
+
+        val saved = successor.saveState(
+            character.id,
+            successor.state(character.id).copy(backgroundImages = listOf(image)),
+        )
+        val reopened = successor.state(character.id)
+
+        assertEquals(listOf(image), saved.backgroundImages)
+        assertEquals(listOf(image), reopened.backgroundImages)
+    }
+
+    @Test
     fun successorSaveRejectsDanglingReferences() = withRepositories { campaigns, characters, successor ->
         val campaign = campaigns.createCampaign("Validación")
         val character = characters.createCharacter(campaign.id, "Manual")
