@@ -20,7 +20,7 @@ jobs:
         run: |
           set -euo pipefail
           test "${GITHUB_REF_NAME}" = "implementation/phase4a-successor-cycle"
-          test "$(git rev-parse HEAD^)" = "fe9126ce98a8d8b76b89264e6bbed0c79ec30e75"
+          test "$(git rev-parse HEAD^)" = "45a7d80a398f1b3f0d9b44abec5bd9632378cb13"
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
