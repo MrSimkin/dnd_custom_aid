@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheetTabKey
 
 @Composable
 internal fun CharacterAdaptiveShellV4(
@@ -27,6 +28,7 @@ internal fun CharacterAdaptiveShellV4(
     selectedTab: CharacterTabV4,
     spellcasterEnabled: Boolean,
     visibleModules: Set<CharacterModuleKind>,
+    tabOrder: List<CharacterSheetTabKey> = CharacterSheetTabKey.entries,
     onSelect: (CharacterTabV4) -> Unit,
     header: @Composable () -> Unit,
     content: @Composable () -> Unit,
@@ -44,6 +46,7 @@ internal fun CharacterAdaptiveShellV4(
                     selectedTab = selectedTab,
                     spellcasterEnabled = spellcasterEnabled,
                     visibleModules = visibleModules,
+                    tabOrder = tabOrder,
                     onSelect = onSelect,
                 )
                 Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
@@ -57,6 +60,7 @@ internal fun CharacterAdaptiveShellV4(
                         selectedTab = selectedTab,
                         spellcasterEnabled = spellcasterEnabled,
                         visibleModules = visibleModules,
+                        tabOrder = tabOrder,
                         onSelect = onSelect,
                     )
                     Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
@@ -73,9 +77,10 @@ private fun CharacterNavigationRailV4(
     selectedTab: CharacterTabV4,
     spellcasterEnabled: Boolean,
     visibleModules: Set<CharacterModuleKind>,
+    tabOrder: List<CharacterSheetTabKey>,
     onSelect: (CharacterTabV4) -> Unit,
 ) {
-    val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules)
+    val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules, tabOrder)
 
     NavigationRail(
         modifier = Modifier.fillMaxHeight().width(112.dp),
