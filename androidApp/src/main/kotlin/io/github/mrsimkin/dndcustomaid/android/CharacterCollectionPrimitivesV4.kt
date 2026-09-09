@@ -1,5 +1,10 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -29,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,22 +67,55 @@ internal enum class CharacterHapticEventV4 {
 internal fun rememberCharacterHapticHookV4(
     enabled: Boolean,
 ): (CharacterHapticEventV4) -> Unit {
+    val context = LocalContext.current
     val view = LocalView.current
-    return remember(enabled, view) {
+    val hapticPreferences = LocalCharacterHapticSettingsV4.current.preferences
+    return remember(enabled, context, view, hapticPreferences) {
         { event ->
             if (enabled) {
-                val feedback = when (event) {
-                    CharacterHapticEventV4.DRAG_PICKUP -> HapticFeedbackConstants.GESTURE_START
-                    CharacterHapticEventV4.DRAG_STEP -> HapticFeedbackConstants.CLOCK_TICK
-                    CharacterHapticEventV4.DRAG_DROP -> HapticFeedbackConstants.GESTURE_END
-                    CharacterHapticEventV4.RESOURCE -> HapticFeedbackConstants.CONFIRM
-                    CharacterHapticEventV4.DESTRUCTIVE -> HapticFeedbackConstants.LONG_PRESS
+                val vibrator = characterVibratorV4(context)
+                if (vibrator != null && vibrator.hasVibrator()) {
+                    val eventScale = when (event) {
+                        CharacterHapticEventV4.DRAG_STEP -> 0.65f
+                        CharacterHapticEventV4.DRAG_DROP -> 0.8f
+                        CharacterHapticEventV4.RESOURCE -> 0.9f
+                        CharacterHapticEventV4.DESTRUCTIVE -> 1.2f
+                        CharacterHapticEventV4.DRAG_PICKUP -> 1f
+                    }
+                    val duration = (hapticPreferences.duration.milliseconds * eventScale)
+                        .toLong()
+                        .coerceAtLeast(8L)
+                    val requestedAmplitude = (hapticPreferences.strength.amplitude * eventScale)
+                        .toInt()
+                        .coerceIn(1, 255)
+                    val amplitude = if (vibrator.hasAmplitudeControl()) {
+                        requestedAmplitude
+                    } else {
+                        VibrationEffect.DEFAULT_AMPLITUDE
+                    }
+                    vibrator.vibrate(VibrationEffect.createOneShot(duration, amplitude))
+                } else {
+                    val feedback = when (event) {
+                        CharacterHapticEventV4.DRAG_PICKUP -> HapticFeedbackConstants.GESTURE_START
+                        CharacterHapticEventV4.DRAG_STEP -> HapticFeedbackConstants.CLOCK_TICK
+                        CharacterHapticEventV4.DRAG_DROP -> HapticFeedbackConstants.GESTURE_END
+                        CharacterHapticEventV4.RESOURCE -> HapticFeedbackConstants.CONFIRM
+                        CharacterHapticEventV4.DESTRUCTIVE -> HapticFeedbackConstants.LONG_PRESS
+                    }
+                    view.performHapticFeedback(feedback)
                 }
-                view.performHapticFeedback(feedback)
             }
         }
     }
 }
+
+private fun characterVibratorV4(context: Context): Vibrator? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        context.getSystemService(VibratorManager::class.java)?.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    }
 
 @Composable
 internal fun Modifier.characterDragFeedbackV4(
