@@ -7,10 +7,8 @@
 **Current reconciliation state:** SUCCESSOR IMPLEMENTATION ACTIVE  
 **Increment A:** COMPLETE / automated foundation gate GREEN  
 **Increment B:** COMPLETE / shared UX primitive gate GREEN; drag feel pending owner device acceptance  
-**Increment C1:** COMPLETE / character-first entry automated gate GREEN  
-**Increment C2:** COMPLETE / PC Settings information architecture automated gate GREEN  
-**Increment C3/C4:** COMPLETE / General compact identity + canonical projections automated gate GREEN  
-**Current increment:** C5 — Habilidades inline successor integration  
+**Increment C:** COMPLETE / navigation + PC Settings + General + Habilidades automated gate GREEN  
+**Current increment:** D — Combate + Dados structured interaction family  
 **Current product status:** successor implementation in progress; owner visual acceptance not yet run  
 **Latest owner-auditioned practical identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary owner test phone:** Redmi Note 11 Pro 5G  
@@ -20,14 +18,14 @@
 
 ## Read next
 
-1. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_C3_C4_GENERAL.md` — **latest completed implementation checkpoint; compact class identity, canonical General projections and per-source casting reference**;
-2. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C2_PC_SETTINGS_INFORMATION_ARCHITECTURE.md` — completed Settings IA, real tab order, custom attributes/skills/markers, Inspiration visibility and bounded haptics;
-3. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C1_CHARACTER_FIRST_ENTRY.md` — completed character-first root, canonical character summaries, create/import campaign routing and Back hierarchy;
-4. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_B_SHARED_UX_PRIMITIVES.md` — completed shared responsive/density/toolbar/drag/IME/help foundation and owner drag-feel qualifier;
-5. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling successor implementation order and build/retest boundaries;
-6. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_A_DATA_FOUNDATION.md` — completed schema/domain/storage foundation and verified migration/compatibility evidence;
-7. `docs/checkpoints/2026-09-08_D0067_RECONCILIATION_PENDING_DECISIONS.md` — despite the historical filename, records the resolved owner decisions and compact Conjuros source-context design;
-8. `docs/decisions/D-0067_OWNER_NEXT_CYCLE_CHARACTER_UX_AND_FEATURE_REFINEMENTS.md` — full owner non-QA package;
+1. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_C5_HABILIDADES.md` — **latest completed implementation checkpoint; inline standard/custom skills, generalized ability mapping, custom-attribute grouping and compact passive references**;
+2. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_C3_C4_GENERAL.md` — completed compact class identity, canonical General projections and per-source casting reference;
+3. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C2_PC_SETTINGS_INFORMATION_ARCHITECTURE.md` — completed Settings IA, real tab order, custom attributes/skills/markers, Inspiration visibility and bounded haptics;
+4. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C1_CHARACTER_FIRST_ENTRY.md` — completed character-first root, canonical character summaries, create/import campaign routing and Back hierarchy;
+5. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_B_SHARED_UX_PRIMITIVES.md` — completed shared responsive/density/toolbar/drag/IME/help foundation and owner drag-feel qualifier;
+6. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling successor implementation order and build/retest boundaries;
+7. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_A_DATA_FOUNDATION.md` — completed schema/domain/storage foundation and verified migration/compatibility evidence;
+8. `docs/checkpoints/2026-09-08_D0067_RECONCILIATION_PENDING_DECISIONS.md` — despite the historical filename, records the resolved owner decisions and compact Conjuros source-context design;
 9. `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md` — provenance/source IA follow-up;
 10. `docs/PROJECT_STATE.md` — broader state snapshot.
 
@@ -47,17 +45,17 @@ Old implementation/tmp branches are historical evidence. Frozen QA branches rema
 
 ## Latest automated successor product head
 
-C3/C4's full automated gate passed on validation descendant:
+Increment C's final full automated gate passed on C5 validation descendant:
 
-`a7f784989419376e182f7fb1f0de4701c4b5b7dd`
+`cf372a26c260e65a3b01ef3634e310c74fd99fe3`
 
-Final General editor wiring source commit:
+Final C5 product correction source commit:
 
-`03fa63246499ee3cda408cfcea6d70b8b0eefb96`
+`acda3c0f67ec063d8fbf495054a951bc55b9c516`
 
 Workflow:
 
-`34300302617` — SUCCESS
+`34302249483` — SUCCESS
 
 Verified together:
 
@@ -69,9 +67,9 @@ Verified together:
 
 CI artifact:
 
-- artifact ID `10084726462`;
+- artifact ID `10085382195`;
 - artifact name `dnd-custom-aid-debug-apk`;
-- ZIP digest `sha256:f0bb5ea7b86b0880067e049ff71fb47d97fac8ba27df334ce441ea13729814d0`.
+- ZIP digest `sha256:a8b3d94a2f93418d81d38179e03b6ce22889bd2966676abacfd99966bf975573`.
 
 This is an **automated successor implementation checkpoint**, not an owner-auditioned replacement build.
 
@@ -135,70 +133,46 @@ The owner's prior finding that card movement felt stiff/mechanical remains **ope
 
 The implementation now fixes a concrete stale-callback/index problem and improves visual motion, but this is not considered solved merely because it compiles. If device audition still feels stiff, prioritize geometry/midpoint-based reorder and sibling displacement animation rather than blindly reducing the drag threshold.
 
-## Increment C1 completed character-first entry
+## Increment C completed navigation, configuration, General and Habilidades
 
-The successor navigation root now:
+### C1 — character-first entry
 
 - opens on a global `Personajes` directory instead of campaign-first selection;
-- lists characters across campaigns through a read-only global ID query and canonical hydration;
-- projects name, `Raza`, classes + levels and campaign from canonical character/campaign data rather than persisting a duplicate summary model;
-- requires explicit destination campaign when creating or importing a character from the global directory;
-- retains campaign administration as a secondary route;
-- uses Android Back hierarchy `editor → character directory → exit` and `campaign admin → character directory → exit`;
-- leaves the root character directory unhandled by app Back so the system may exit normally.
+- lists canonical character summaries across campaigns;
+- requires explicit destination campaign for create/import from the global directory;
+- keeps campaign administration secondary;
+- preserves the intended Android Back hierarchy.
 
-C1 is technically green but not owner visually accepted yet.
+### C2 — PC Settings information architecture
 
-## Increment C2 completed PC Settings information architecture
+- keeps lifecycle and backup controls near the top;
+- separates Application Settings as its own destination;
+- removes `Progreso` from Settings;
+- persists real per-character tab order;
+- manages custom attributes, custom skills and Custom Markers;
+- controls Inspiration visibility and conditional modules without hide-delete regression;
+- uses bounded device-wide haptic strength/duration with per-character enablement;
+- avoids exposing the legacy generic custom-skill `Fuente` field.
 
-C2 now:
+### C3/C4 — General identity and projections
 
-- keeps lifecycle status and safe local backup near the top;
-- requires explicit confirmation when marking a character `Retirado` or `Muerto`;
-- moves `Configuración de la aplicación` near the upper portion while keeping it a separate destination;
-- removes `Progreso` editing from PC Settings because it is character state, not a Settings preference;
-- configures spellcasting visibility and per-character Inspiration visibility without deleting canonical state;
-- persists real character-tab order and applies it to both top tabs and wide rail;
-- preserves hidden conditional-module tab positions because ordering precedes visibility filtering;
-- adds PC Settings management for custom attributes, generalized custom-skill ability references and Custom Markers;
-- avoids exposing the legacy generic custom-skill `Fuente` field in the successor Settings editor;
-- blocks deleting custom attributes while durable skill/spellcasting references still depend on them;
-- keeps Custom Marker live values out of Settings and edits only structure/recovery configuration there;
-- retains existing conditional-module hide/show/automatic behavior without hide-delete regression;
-- keeps haptic enablement per character while adding device-wide bounded strength/duration controls;
-- applies those haptic preferences to shared drag/resource/destructive feedback with hardware-capability fallback;
-- uses the shared form-factor context instead of a width-only Settings breakpoint, preserving phone-landscape phone composition;
-- adds schema migration 12 → 13 for `CharacterSuccessorPreferences.inspirationVisible`;
-- proves default, per-character persistence, migration and own-format backup/import survival with focused tests.
+- uses compact Spanish-facing class/subclass identity with explicit level and derived maximum hit-dice count;
+- projects canonical `Raza`, visible `Idiomas`, current CA/equipped references, custom attributes, Inspiration, Custom Markers and Resources;
+- replaces the ambiguous global casting block with per-source `Lanzamiento de Conjuros` rows;
+- composes projections from current drafts where those domains are being edited;
+- keeps quick operational writes on canonical save paths.
 
-The temporary redundant PC-configuration table/repository explored during implementation was removed before C2 was closed. Inspiration visibility belongs to `CharacterSuccessorPreferences`, alongside tab order, and therefore travels with successor backup state.
+### C5 — Habilidades
 
-C2 is technically green but not owner visually accepted yet.
+- removes the separate `Habilidades personalizadas` card/editor from the active Habilidades composition;
+- interleaves custom skills with built-in skills in `Por habilidades` using Spanish alphabetical display order;
+- presents custom-skill labels in italics rather than segregating them in a separate box;
+- maps custom skills through the successor generalized ability reference, including custom attributes;
+- groups custom skills beneath their mapped built-in/custom attribute in `Por característica`;
+- uses `Conocimiento Arcano` and `Trato con animales`;
+- compacts passive Percepción/Perspicacia/Investigación into one explicit horizontal passive-reference strip.
 
-## Increment C3/C4 completed General identity and projections
-
-C3/C4 now:
-
-- replaces the old class identity surface with a compact version-neutral Spanish-facing class/subclass presentation;
-- keeps class level explicit and derives maximum hit-dice count from level rather than presenting a second editable maximum;
-- preserves legacy catalog/source/rules-family metadata internally without ordinary UI clutter;
-- surfaces canonical `Raza` and visible `Idiomas`;
-- surfaces current CA plus equipped-item references without guessing armor categories from names;
-- surfaces configured custom attributes;
-- shows Inspiration only when enabled in the C2 per-character visibility preference;
-- projects enabled Custom Markers and Resources configured for General placement from canonical successor state;
-- replaces the ambiguous global General spellcasting block with compact per-source `Lanzamiento de Conjuros` rows;
-- assembles General from current editor drafts for Background, Equipo, proficiencies and spellcasting so one datum is not split into stale duplicate surface state;
-- routes Inspiration and Resource quick changes through the existing canonical operational `CharacterSheet` save path;
-- preserves the existing closure references for resistance/immunity/vulnerability, senses, special movement, portrait and token rather than silently deleting unrelated persisted functionality.
-
-The inventory domain still lacks a structured armor/shield category. Typed armor/shield narrowing remains a later Equipment/domain task; C3/C4 deliberately does not infer it from item names.
-
-C3/C4 is technically green but not owner visually accepted yet.
-
-### C5 transition
-
-The old special `Habilidades personalizadas` card/editor still exists in the current Habilidades surface. This is **not accepted as final**. C5 must remove that duplicate legacy editing path and render custom skills inline with ordinary skills using the successor mapping already configured from PC Settings.
+Increment C is technically green but not owner visually accepted yet.
 
 ## Resolved model directions remain controlling
 
@@ -219,12 +193,8 @@ The old special `Habilidades personalizadas` card/editor still exists in the cur
 
 1. **A — schema/domain/storage foundation:** COMPLETE / GREEN;
 2. **B — shared UX/responsive primitives:** COMPLETE / GREEN; drag feel pending owner audition;
-3. **C — navigation + PC Settings + General/Habilidades:** **CURRENT**;
-   - C1 character-first entry: COMPLETE / GREEN;
-   - C2 PC Settings information architecture: COMPLETE / GREEN;
-   - C3/C4 General: COMPLETE / GREEN;
-   - C5 Habilidades: **CURRENT**;
-4. **D — Combat + Dados** using structured attacks and one target engine;
+3. **C — navigation + PC Settings + General/Habilidades:** COMPLETE / GREEN;
+4. **D — Combat + Dados:** **CURRENT**;
 5. **E — Gestión + Markers + Resources + cross-domain rests/conditions**;
 6. **F — Conjuros compact source-context redesign**, followed by early phone portrait/landscape owner retest;
 7. **G — Equipo/Rasgos/conditional modules/Notas/Trasfondo**;
@@ -241,29 +211,44 @@ Do not rerun build `40700` screen-by-screen. Global findings already cover app-w
 
 - focused automated tests accompany migrations/domain work;
 - full gate after coherent product boundaries using the established Kotlin/Android/Desktop and backend checks;
-- Increment B has demonstrated representative responsive/density/toolbar/drag/IME/help primitives and is technically green;
-- C1 character-first navigation is automated-gate green;
-- C2 PC Settings information architecture is automated-gate green;
-- C3/C4 General identity/projections is automated-gate green;
-- Increment C still requires C5 Habilidades before its configuration/identity/skills family is coherent;
-- early targeted owner phone retest remains after the Conjuros/interaction foundation rather than immediately after data/shared foundations;
+- Increment B shared primitives are automated-gate green;
+- Increment C navigation/settings/identity/skills family is automated-gate green;
+- Increment D must make Combat display/editing, d20 target selection and damage rolling agree on the same canonical structured data;
+- early targeted owner phone retest remains after the Conjuros/interaction foundation rather than immediately after C;
 - consolidated successor audition remains after collection/settings/responsive integration;
 - physical tablet acceptance remains required before Phase 4A closure;
 - formal replacement M6 remains deferred until the repaired phone/tablet baseline is acceptable.
 
 ## Exact next action
 
-Proceed on `implementation/phase4a-successor-cycle` with **C5 — Habilidades**.
+Proceed on `implementation/phase4a-successor-cycle` with **Increment D — Combate + Dados as one structured interaction family**.
 
-1. render custom skills inline with ordinary skills instead of in a separate `Habilidades personalizadas` card;
-2. remove the transitional special custom-skill editor from Habilidades while retaining structural management in PC Settings;
-3. consume the successor generalized `CharacterAbilityReference` mapping so custom skills may use built-in or custom attributes;
-4. in `Por habilidades`, sort built-in and custom skills together by Spanish display label;
-5. present Arcana as `Conocimiento Arcano`;
-6. in `Por característica`, place custom skills beneath the appropriate built-in or custom attribute group;
-7. retain the owner-approved compact sticky passive-reference area;
-8. do not expose the legacy generic custom-skill `Fuente` field in the Habilidades surface.
+### D1 — shared structured attack/damage operations + compact Combat cards
 
-After C5 is coherent, run the full automated gate for Increment C and checkpoint the navigation/settings/identity/skills family before proceeding to D — Combat + Dados.
+1. add focused shared presentation/operation helpers over existing `CharacterCombatEntry` + successor `CharacterCombatDamageProfile` rather than creating a new attack model;
+2. preserve legacy `damageEffect` through the existing safe TEXT fallback and do not parse arbitrary old strings heuristically;
+3. make structured ordered DICE / FLAT / TEXT components authoritative for new damage editing, Combat summaries and later damage rolls;
+4. use compact card hierarchy `Nombre (+bono)` → damage summary → action type → short notes preview → compact grouped actions;
+5. align reorder behavior with the shared whole-card long-press/drag foundation rather than a large dedicated move control.
+
+### D2 — character-aware Dice selector
+
+Replace the browse-heavy grouped target list with one compact flow:
+
+1. normal / ventaja / desventaja;
+2. category;
+3. concrete canonical target;
+4. roll action.
+
+Targets must cover built-in/custom attributes, standard/enabled custom saves, standard/custom skills, attacks, source-specific spell attacks when configured, and a custom-roll path. Reuse `Conocimiento Arcano` and the generalized custom-ability mapping rather than rebuilding labels/calculations locally.
+
+### D3 — result modes + damage rolling
+
+- add the application preference for animated/visible dice versus compact result box;
+- both result modes show the roll decomposition;
+- damage rolling consumes the same structured damage components edited/displayed by Combat;
+- no second damage model or speculative parsing of legacy free text.
+
+Checkpoint D only after attack editing/display, d20 selection and damage rolling agree on those canonical structures and the full automated gate is green.
 
 Keep `main` untouched and do not begin DM features.
