@@ -208,8 +208,6 @@ data class CharacterClosureState(
     val milestoneProgress: String = "",
     val tableModeEnabled: Boolean = false,
     val hapticsEnabled: Boolean = true,
-    val hapticStrength: CharacterHapticStrength = CharacterHapticStrength.MEDIUM,
-    val hapticDuration: CharacterHapticDuration = CharacterHapticDuration.SHORT,
     val conditions: List<CharacterCondition> = emptyList(),
     val defenses: List<CharacterDefense> = emptyList(),
     val movements: List<CharacterMovement> = emptyList(),
