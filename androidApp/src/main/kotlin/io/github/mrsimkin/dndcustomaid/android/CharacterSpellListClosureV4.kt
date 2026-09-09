@@ -66,6 +66,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterSpellManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterSpellSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterSpellOrders
+import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSpellLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.spellPreparedForView
 import io.github.mrsimkin.dndcustomaid.shared.character.spellVisibleForSource
@@ -88,6 +89,7 @@ internal fun CharacterSpellListClosureV4(
     onClosureStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
     hapticsEnabled: Boolean,
+    sourceContextContent: @Composable () -> Unit,
 ) {
     var searchText by rememberSaveable("spell-g2-search") { mutableStateOf("") }
     var activeFiltersText by rememberSaveable("spell-g2-filters") { mutableStateOf("") }
@@ -293,6 +295,7 @@ internal fun CharacterSpellListClosureV4(
             canReorder = canReorder,
             structuralEditingEnabled = structuralEditingEnabled,
             selectedEditingId = editingSpellId?.takeIf { editorOpen },
+            sourceContextContent = sourceContextContent,
             onQueryChange = ::updateQuery,
             onOrderChange = { orderName = it.name },
             onCollapsedLevelsChange = { collapsedLevelsText = encodeSpellLevelSetG2(it) },
@@ -393,7 +396,7 @@ internal fun CharacterSpellListClosureV4(
                             preparedSourceIds = editorPrepared,
                             validationMessage = spellEditorValidationG2(editorName, parsedEditorLevel, editorAssociated),
                             onNameChange = { editorName = it },
-                            onLevelChange = { editorLevel = spellLevelInputG2(it) },
+                            onLevelChange = { editorLevel = normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1) },
                             onCastingTimeChange = { editorCastingTime = it },
                             onRangeTextChange = { editorRangeText = it },
                             onVerbalChange = { editorVerbal = it },
@@ -477,7 +480,7 @@ internal fun CharacterSpellListClosureV4(
                     preparedSourceIds = editorPrepared,
                     validationMessage = spellEditorValidationG2(editorName, parsedEditorLevel, editorAssociated),
                     onNameChange = { editorName = it },
-                    onLevelChange = { editorLevel = spellLevelInputG2(it) },
+                    onLevelChange = { editorLevel = normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1) },
                     onCastingTimeChange = { editorCastingTime = it },
                     onRangeTextChange = { editorRangeText = it },
                     onVerbalChange = { editorVerbal = it },
@@ -549,6 +552,7 @@ private fun SpellCollectionG2(
     canReorder: Boolean,
     structuralEditingEnabled: Boolean,
     selectedEditingId: String?,
+    sourceContextContent: @Composable () -> Unit,
     onQueryChange: (CharacterCollectionQuery) -> Unit,
     onOrderChange: (CharacterPresentationOrder) -> Unit,
     onCollapsedLevelsChange: (Set<Int>) -> Unit,
@@ -566,43 +570,25 @@ private fun SpellCollectionG2(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        Card(
+        CharacterCollectionToolbarV4(
+            itemCount = visibleCount,
+            query = query,
+            onQueryChange = onQueryChange,
+            order = order,
+            onOrderChange = onOrderChange,
+            filters = spellFiltersG2(selectedSourceId),
+            searchLabel = "Buscar",
+            collapsibleSearch = true,
+            showItemCount = false,
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(
                     start = appSpacingV4(6.dp),
                     end = appSpacingV4(6.dp),
                     top = appSpacingV4(5.dp),
                 ),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Conjuros", style = MaterialTheme.typography.titleSmall)
-                    TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                }
-                CharacterCollectionToolbarV4(
-                    itemCount = visibleCount,
-                    query = query,
-                    onQueryChange = onQueryChange,
-                    order = order,
-                    onOrderChange = onOrderChange,
-                    filters = spellFiltersG2(selectedSourceId),
-                    searchLabel = "Buscar conjuros",
-                )
-            }
-        }
+            contextContent = sourceContextContent,
+            onAdd = if (structuralEditingEnabled) onAdd else null,
+        )
 
         LazyColumn(
             modifier = Modifier
@@ -1080,8 +1066,6 @@ private fun spellEditorValidationG2(
     associatedSourceIds.isEmpty() -> "Selecciona al menos una fuente."
     else -> null
 }
-
-private fun spellLevelInputG2(raw: String): String = raw.filter(Char::isDigit).take(1)
 
 private fun spellLevelLabelG2(level: Int): String = if (level == 0) "Trucos" else "Nivel $level"
 

@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -270,12 +271,15 @@ internal fun CharacterCollectionToolbarV4(
     onOrderChange: ((CharacterPresentationOrder) -> Unit)? = null,
     filters: List<CharacterFilterOptionV4> = emptyList(),
     searchLabel: String = "Buscar",
+    collapsibleSearch: Boolean = false,
+    showItemCount: Boolean = true,
     modifier: Modifier = Modifier,
     contextContent: (@Composable () -> Unit)? = null,
     onAdd: (() -> Unit)? = null,
 ) {
     var orderMenuOpen by remember { mutableStateOf(false) }
     var filterMenuOpen by remember { mutableStateOf(false) }
+    var searchExpanded by rememberSaveable { mutableStateOf(false) }
     val activeFilterCount = query.activeFilterKeys.size
 
     Surface(
@@ -288,16 +292,48 @@ internal fun CharacterCollectionToolbarV4(
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            contextContent?.invoke()
+            if (contextContent != null && (!collapsibleSearch || !searchExpanded)) {
+                if (collapsibleSearch) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        contextContent()
+                    }
+                } else {
+                    contextContent()
+                }
+            }
 
-            CharacterCompactSearchV4(
-                value = query.searchText,
-                onValueChange = { onQueryChange(query.copy(searchText = it)) },
-                label = searchLabel,
-                modifier = Modifier.weight(1f),
-            )
+            if (collapsibleSearch) {
+                if (searchExpanded) {
+                    CharacterCompactSearchV4(
+                        value = query.searchText,
+                        onValueChange = { onQueryChange(query.copy(searchText = it)) },
+                        label = searchLabel,
+                        modifier = Modifier.weight(1f),
+                    )
+                    CharacterToolbarChipV4(
+                        text = "Cerrar",
+                        selected = false,
+                        onClick = { searchExpanded = false },
+                    )
+                } else {
+                    CharacterToolbarChipV4(
+                        text = if (query.searchText.isBlank()) "Buscar" else "Buscar •",
+                        selected = query.searchText.isNotBlank(),
+                        onClick = { searchExpanded = true },
+                    )
+                }
+            } else {
+                CharacterCompactSearchV4(
+                    value = query.searchText,
+                    onValueChange = { onQueryChange(query.copy(searchText = it)) },
+                    label = searchLabel,
+                    modifier = Modifier.weight(1f),
+                )
+            }
 
-            Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+            if (showItemCount) {
+                Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+            }
 
             if (order != null && onOrderChange != null) {
                 Box {

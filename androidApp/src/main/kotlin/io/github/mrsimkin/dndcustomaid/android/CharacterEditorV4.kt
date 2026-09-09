@@ -86,6 +86,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
 import io.github.mrsimkin.dndcustomaid.shared.character.characterAbilityReferenceAbbreviation
 import io.github.mrsimkin.dndcustomaid.shared.character.customSavingThrowTotal
 import io.github.mrsimkin.dndcustomaid.shared.character.customSkillTotal
+import io.github.mrsimkin.dndcustomaid.shared.character.generalSpellcastingRows
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSkills
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
@@ -749,6 +750,8 @@ internal fun CharacterEditorScreenV4(
                         )
                         CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
                             draft = spellcastingDraft,
+                            spellcastingRows = overviewProjectionSheet.generalSpellcastingRows(successorState),
+                            successorState = successorState,
                             slotStates = draft.spellSlots.map { slot ->
                                 val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
                                 CharacterSpellSlotUiV4(

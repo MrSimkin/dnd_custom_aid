@@ -31,7 +31,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +43,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterGeneralSpellcastingRow
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
+import io.github.mrsimkin.dndcustomaid.shared.character.characterAbilityReferenceAbbreviation
 import kotlin.math.abs
 import kotlin.uuid.Uuid
 
@@ -56,6 +58,8 @@ internal data class SpellSourceClassOptionV4(
 @Composable
 internal fun CharacterSpellsTabV4(
     draft: CharacterSpellcastingDraftV4,
+    spellcastingRows: List<CharacterGeneralSpellcastingRow>,
+    successorState: CharacterSuccessorState,
     slotStates: List<CharacterSpellSlotUiV4>,
     classOptions: List<SpellSourceClassOptionV4>,
     closureState: CharacterClosureState,
@@ -77,13 +81,6 @@ internal fun CharacterSpellsTabV4(
 
     val selectedSource = selectedSourceId?.let { selectedId ->
         draft.sources.firstOrNull { it.id.toString() == selectedId }
-    }
-    val sourceListState = rememberLazyListState()
-    val selectedSourceIndex = selectedSource?.let { source ->
-        draft.sources.indexOfFirst { it.id == source.id }.takeIf { it >= 0 }?.plus(1)
-    } ?: 0
-    LaunchedEffect(selectedSource?.id, draft.sources.map { it.id }) {
-        sourceListState.animateScrollToItem(selectedSourceIndex)
     }
 
     fun updateSources(updated: List<CharacterSpellcastingSource>) {
@@ -121,64 +118,6 @@ internal fun CharacterSpellsTabV4(
             .imePadding()
             .navigationBarsPadding(),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = appSpacingV4(if (wide) 10.dp else 5.dp),
-                    vertical = appSpacingV4(5.dp),
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-        ) {
-            LazyRow(
-                modifier = Modifier.weight(1f),
-                state = sourceListState,
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                item(key = "all-sources") {
-                    if (selectedSource == null) {
-                        Button(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
-                    } else {
-                        OutlinedButton(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
-                    }
-                }
-                items(
-                    count = draft.sources.size,
-                    key = { index -> draft.sources[index].id.toString() },
-                ) { index ->
-                    val source = draft.sources[index]
-                    val sourceLabel: @Composable () -> Unit = {
-                        Text(
-                            source.name,
-                            modifier = Modifier.widthIn(max = 180.dp),
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    if (selectedSource?.id == source.id) {
-                        Button(onClick = { selectedSourceId = source.id.toString() }) {
-                            sourceLabel()
-                        }
-                    } else {
-                        OutlinedButton(onClick = { selectedSourceId = source.id.toString() }) {
-                            sourceLabel()
-                        }
-                    }
-                }
-            }
-            if (structuralEditingEnabled) {
-                StableSettingsIconButton(
-                    onClick = { managerOpen = true },
-                    contentDescription = "Gestionar fuentes de conjuros",
-                )
-            }
-        }
-
-        HorizontalDivider()
-
         CharacterSpellListClosureV4(
             draft = draft,
             slotStates = slotStates,
@@ -191,6 +130,22 @@ internal fun CharacterSpellsTabV4(
             onClosureStateChange = onClosureStateChange,
             wide = wide,
             hapticsEnabled = hapticsEnabled,
+            sourceContextContent = {
+                SpellSourceContextSelectorV4(
+                    sources = draft.sources,
+                    spellcastingRows = spellcastingRows,
+                    successorState = successorState,
+                    selectedSourceId = selectedSource?.id,
+                    onSelectedSourceChange = { sourceId ->
+                        selectedSourceId = sourceId?.toString()
+                    },
+                    onManageSources = if (structuralEditingEnabled) {
+                        { managerOpen = true }
+                    } else {
+                        null
+                    },
+                )
+            },
         )
     }
 
@@ -305,6 +260,116 @@ internal fun CharacterSpellsTabV4(
 }
 
 @Composable
+private fun SpellSourceContextSelectorV4(
+    sources: List<CharacterSpellcastingSource>,
+    spellcastingRows: List<CharacterGeneralSpellcastingRow>,
+    successorState: CharacterSuccessorState,
+    selectedSourceId: Uuid?,
+    onSelectedSourceChange: (Uuid?) -> Unit,
+    onManageSources: (() -> Unit)?,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    val rowBySource = remember(spellcastingRows) {
+        spellcastingRows.associateBy { it.source.id }
+    }
+    val selectedSource = selectedSourceId?.let { sourceId ->
+        sources.firstOrNull { it.id == sourceId }
+    }
+    val selectedRow = selectedSource?.let { rowBySource[it.id] }
+    val selectedAbility = selectedRow?.profile?.ability
+        ?.let { characterAbilityReferenceAbbreviation(it, successorState) }
+        ?: "—"
+    val selectedSaveDc = selectedRow?.saveDc?.toString() ?: "—"
+    val selectedAttack = selectedRow?.spellAttackModifier?.spellSourceSignedV4() ?: "—"
+
+    Box {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 34.dp)
+                .clickable { menuOpen = true },
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(4.dp)),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    selectedSource?.name ?: "Todos",
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (selectedSource != null) {
+                    Text(
+                        "($selectedAbility) · CD $selectedSaveDc · Ataque $selectedAttack",
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                    )
+                }
+                Text("▾", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+        DropdownMenu(
+            expanded = menuOpen,
+            onDismissRequest = { menuOpen = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("Todos los conjuros") },
+                onClick = {
+                    onSelectedSourceChange(null)
+                    menuOpen = false
+                },
+            )
+            sources.sortedBy { it.sortOrder }.forEach { source ->
+                val row = rowBySource[source.id]
+                val ability = row?.profile?.ability
+                    ?.let { characterAbilityReferenceAbbreviation(it, successorState) }
+                    ?: "—"
+                val saveDc = row?.saveDc?.toString() ?: "—"
+                val attack = row?.spellAttackModifier?.spellSourceSignedV4() ?: "—"
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(source.name.ifBlank { "Fuente sin nombre" })
+                            Text(
+                                "$ability · CD $saveDc · Ataque $attack",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                    },
+                    onClick = {
+                        onSelectedSourceChange(source.id)
+                        menuOpen = false
+                    },
+                )
+            }
+            if (onManageSources != null) {
+                HorizontalDivider()
+                DropdownMenuItem(
+                    text = { Text("Gestionar fuentes…") },
+                    onClick = {
+                        menuOpen = false
+                        onManageSources()
+                    },
+                )
+            }
+            HorizontalDivider()
+            CharacterHelpV4(
+                "La aptitud, la CD de salvación y el ataque de conjuro pertenecen a cada fuente de conjuros.",
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            )
+        }
+    }
+}
+
+private fun Int.spellSourceSignedV4(): String = if (this >= 0) "+$this" else toString()
+
+@Composable
 private fun SourceManagerDialogV4(
     sources: List<CharacterSpellcastingSource>,
     classOptions: List<SpellSourceClassOptionV4>,
@@ -326,9 +391,8 @@ private fun SourceManagerDialogV4(
                 contentPadding = PaddingValues(bottom = 32.dp),
             ) {
                 item {
-                    Text(
+                    CharacterHelpV4(
                         "Las fuentes organizan una sola colección de conjuros. Pueden vincularse opcionalmente a una clase o ser completamente personalizadas.",
-                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
                 item {
@@ -483,9 +547,8 @@ private fun SourceEditorDialogV4(
                     }
                 }
             }
-            Text(
+            CharacterHelpV4(
                 "El vínculo es solo una referencia. No crea ni elimina automáticamente fuentes o conjuros.",
-                style = MaterialTheme.typography.labelSmall,
             )
         }
         CharacterInlineValidationMessage(
