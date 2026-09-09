@@ -2,6 +2,33 @@ package io.github.mrsimkin.dndcustomaid.shared.character
 
 import kotlin.uuid.Uuid
 
+const val CHARACTER_NOTE_WITH_CONTENT_FILTER_KEY = "note-content:present"
+const val CHARACTER_NOTE_EMPTY_FILTER_KEY = "note-content:empty"
+private val CHARACTER_NOTE_CONTENT_FILTER_KEYS = setOf(
+    CHARACTER_NOTE_WITH_CONTENT_FILTER_KEY,
+    CHARACTER_NOTE_EMPTY_FILTER_KEY,
+)
+
+fun presentCharacterNotes(
+    notes: List<CharacterNote>,
+    order: CharacterPresentationOrder = CharacterPresentationOrder.MANUAL,
+    query: CharacterCollectionQuery = CharacterCollectionQuery(),
+): List<CharacterNote> = presentCharacterCollection(
+    items = notes,
+    order = order,
+    manualOrder = CharacterNote::sortOrder,
+    label = CharacterNote::title,
+    stableKey = { it.id.toString() },
+    query = query,
+    searchableText = { note -> listOf(note.title, note.content) },
+    filterMatches = { note, activeFilters ->
+        val contentFilters = activeFilters.intersect(CHARACTER_NOTE_CONTENT_FILTER_KEYS)
+        contentFilters.isEmpty() ||
+            (CHARACTER_NOTE_WITH_CONTENT_FILTER_KEY in contentFilters && note.content.isNotBlank()) ||
+            (CHARACTER_NOTE_EMPTY_FILTER_KEY in contentFilters && note.content.isBlank())
+    },
+)
+
 fun normalizeCharacterNotes(notes: List<CharacterNote>): List<CharacterNote> =
     notes.mapIndexed { index, note -> note.copy(sortOrder = index) }
 
