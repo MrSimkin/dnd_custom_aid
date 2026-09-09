@@ -11,5 +11,11 @@ end = text.find(end_marker, start)
 if end < 0:
     raise SystemExit('could not locate end of spell multiline helper block')
 replacement = '''replace_once(\n    spell,\n    '            label = { Text("Componente material (opcional)") },\\n            modifier = Modifier.fillMaxWidth(),',\n    '            label = { Text("Componente material (opcional)") },\\n            modifier = Modifier.fillMaxWidth(),\\n            minLines = 2,\\n            maxLines = 4,',\n)\nreplace_once(\n    spell,\n    '        label = { Text("Descripción") },\\n        modifier = Modifier.fillMaxWidth(),\\n        minLines = 4,\\n        maxLines = 10,',\n    '        label = { Text("Descripción") },\\n        modifier = Modifier.fillMaxWidth(),\\n        minLines = 3,\\n        maxLines = 5,',\n)\nreplace_once(\n    spell,\n    '        label = { Text("Notas (opcional)") },\\n        modifier = Modifier.fillMaxWidth(),\\n        minLines = 2,\\n        maxLines = 6,',\n    '        label = { Text("Notas (opcional)") },\\n        modifier = Modifier.fillMaxWidth(),\\n        minLines = 2,\\n        maxLines = 4,',\n)'''
-p.write_text(text[:start] + replacement + text[end:], encoding='utf-8')
+text = text[:start] + replacement + text[end:]
+old_write = 'p.write_text(text.rstrip() + append + "\\n", encoding="utf-8")'
+new_write = 'p.write_text(text.rstrip() + append.rstrip() + "\\n", encoding="utf-8")'
+if old_write not in text:
+    raise SystemExit('could not locate CharacterCardInteraction write expression')
+text = text.replace(old_write, new_write, 1)
+p.write_text(text, encoding='utf-8')
 print('retry helper corrected')
