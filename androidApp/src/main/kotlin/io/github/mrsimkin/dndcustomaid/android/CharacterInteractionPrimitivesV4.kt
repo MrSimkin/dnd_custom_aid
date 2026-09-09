@@ -3,12 +3,11 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -42,12 +41,13 @@ internal fun CharacterImeSafeEditorDialog(
     content: @Composable () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
 
     Dialog(
         onDismissRequest = { focusManager.clearFocus() },
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
@@ -61,26 +61,36 @@ internal fun CharacterImeSafeEditorDialog(
                 },
             )
             Surface(
-                modifier = modifier.fillMaxWidth().widthIn(max = 640.dp).heightIn(max = maxHeight),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 640.dp)
+                    .fillMaxHeight(),
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = 5.dp,
                 shadowElevation = 6.dp,
             ) {
                 Column(
-                    modifier = Modifier.padding(top = 12.dp, start = 12.dp, end = 12.dp, bottom = 8.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 12.dp, start = 12.dp, end = 12.dp, bottom = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                 ) {
                     Text(title, style = MaterialTheme.typography.titleMedium)
                     supportingText?.takeIf { it.isNotBlank() }?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                    Box(
-                        modifier = Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()),
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .verticalScroll(scrollState),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
-                        ) { content() }
+                        content()
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -93,6 +103,28 @@ internal fun CharacterImeSafeEditorDialog(
                 }
             }
         }
+    }
+}
+
+/**
+ * Shared two-field row for naturally short editor controls. It is intentionally opt-in: callers
+ * should use it only when both controls remain legible and useful side by side on a phone.
+ */
+@Composable
+internal fun CharacterCompactFieldRowV4(
+    first: @Composable (Modifier) -> Unit,
+    second: @Composable (Modifier) -> Unit,
+    modifier: Modifier = Modifier,
+    firstWeight: Float = 1f,
+    secondWeight: Float = 1f,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        verticalAlignment = Alignment.Top,
+    ) {
+        first(Modifier.weight(firstWeight))
+        second(Modifier.weight(secondWeight))
     }
 }
 
