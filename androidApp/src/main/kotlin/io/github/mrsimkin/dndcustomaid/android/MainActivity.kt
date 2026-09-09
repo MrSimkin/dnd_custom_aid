@@ -41,7 +41,9 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterDirectoryRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPcConfigurationRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
 import kotlin.uuid.Uuid
 
@@ -55,6 +57,8 @@ class MainActivity : ComponentActivity() {
     private val characterDirectoryRepository by lazy { CharacterDirectoryRepository(database, characterRepository) }
     private val characterBackupRepository by lazy { CharacterBackupRepository(database) }
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
+    private val characterSuccessorRepository by lazy { CharacterSuccessorRepository(database) }
+    private val characterPcConfigurationRepository by lazy { CharacterPcConfigurationRepository(database) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
     private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
 
@@ -75,6 +79,8 @@ class MainActivity : ComponentActivity() {
                     characterDirectoryRepository = characterDirectoryRepository,
                     characterBackupRepository = characterBackupRepository,
                     characterClosureRepository = characterClosureRepository,
+                    characterSuccessorRepository = characterSuccessorRepository,
+                    characterPcConfigurationRepository = characterPcConfigurationRepository,
                     characterNavigationPreferenceStore = characterNavigationPreferenceStore,
                     preferences = preferences,
                     onPreferencesChange = ::updatePreferences,
@@ -97,6 +103,8 @@ private fun DndCustomAidApp(
     characterDirectoryRepository: CharacterDirectoryRepository,
     characterBackupRepository: CharacterBackupRepository,
     characterClosureRepository: CharacterClosureRepository,
+    characterSuccessorRepository: CharacterSuccessorRepository,
+    characterPcConfigurationRepository: CharacterPcConfigurationRepository,
     characterNavigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
@@ -154,20 +162,26 @@ private fun DndCustomAidApp(
             if (characterId == null) {
                 directory()
             } else {
-                CharacterEditorScreenV4(
+                CharacterPcSettingsStateProviderV4(
                     characterId = characterId,
-                    repository = characterRepository,
-                    backupRepository = characterBackupRepository,
-                    closureRepository = characterClosureRepository,
-                    navigationPreferenceStore = characterNavigationPreferenceStore,
-                    preferences = preferences,
-                    onPreferencesChange = onPreferencesChange,
-                    onOpenApplicationSettings = { showSettings = true },
-                    onBack = {
-                        selectedCharacterId = null
-                        screenName = AppScreen.CHARACTERS.name
-                    },
-                )
+                    successorRepository = characterSuccessorRepository,
+                    pcConfigurationRepository = characterPcConfigurationRepository,
+                ) {
+                    CharacterEditorScreenV4(
+                        characterId = characterId,
+                        repository = characterRepository,
+                        backupRepository = characterBackupRepository,
+                        closureRepository = characterClosureRepository,
+                        navigationPreferenceStore = characterNavigationPreferenceStore,
+                        preferences = preferences,
+                        onPreferencesChange = onPreferencesChange,
+                        onOpenApplicationSettings = { showSettings = true },
+                        onBack = {
+                            selectedCharacterId = null
+                            screenName = AppScreen.CHARACTERS.name
+                        },
+                    )
+                }
             }
         }
     }
