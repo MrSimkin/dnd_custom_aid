@@ -137,10 +137,11 @@ class CharacterSuccessorRepository(
         }
 
         val preferences = database.characterSuccessorQueries.selectSuccessorPreferences(id) {
-                _, valuablesText, tabOrder ->
+                _, valuablesText, tabOrder, inspirationVisible ->
             CharacterSuccessorPreferences(
                 valuablesText = valuablesText,
                 tabOrder = parseTabOrder(tabOrder),
+                inspirationVisible = inspirationVisible != 0L,
             )
         }.executeAsOneOrNull() ?: CharacterSuccessorPreferences()
 
@@ -267,6 +268,7 @@ class CharacterSuccessorRepository(
                 character_id = id,
                 valuables_text = state.preferences.valuablesText,
                 tab_order = state.preferences.tabOrder.joinToString(",") { it.name },
+                inspiration_visible = if (state.preferences.inspirationVisible) 1 else 0,
             )
 
             state.backgroundImages.forEach { image ->
