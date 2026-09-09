@@ -73,6 +73,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingProfile
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomAttribute
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
@@ -130,6 +131,9 @@ internal fun CharacterEditorScreenV4(
     }
     var combatDamageDraftJson by rememberSaveable(characterId.toString(), "combat-damage") {
         mutableStateOf(characterCombatDamageProfilesToJsonV4(successorState.combatDamage))
+    }
+    var spellcastingProfilesDraftJson by rememberSaveable(characterId.toString(), "spellcasting-profiles") {
+        mutableStateOf(characterSpellcastingProfilesToJsonV4(successorState.spellcastingProfiles))
     }
     var equipmentDraftJson by rememberSaveable(characterId.toString()) {
         mutableStateOf(
@@ -222,6 +226,12 @@ internal fun CharacterEditorScreenV4(
     val combatDamageProfiles = remember(combatDamageDraftJson) {
         characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson)
     }
+    val spellcastingProfiles = remember(spellcastingProfilesDraftJson) {
+        characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
+    }
+    val projectedSuccessorState = remember(successorState, spellcastingProfiles) {
+        successorState.copy(spellcastingProfiles = spellcastingProfiles)
+    }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
     val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
@@ -256,6 +266,9 @@ internal fun CharacterEditorScreenV4(
     val storedCombatDraftJson = remember(stored) { combatEntriesToJsonV4(stored.combatEntries) }
     val storedCombatDamageDraftJson = remember(successorState.combatDamage) {
         characterCombatDamageProfilesToJsonV4(successorState.combatDamage)
+    }
+    val storedSpellcastingProfilesDraftJson = remember(successorState.spellcastingProfiles) {
+        characterSpellcastingProfilesToJsonV4(successorState.spellcastingProfiles)
     }
     val storedEquipmentDraftJson = remember(stored, closureState.inventoryUsage) {
         equipmentDraftToJsonV4(
@@ -300,6 +313,7 @@ internal fun CharacterEditorScreenV4(
         draft.toJson() != storedDraftJson ||
             combatDraftJson != storedCombatDraftJson ||
             combatDamageDraftJson != storedCombatDamageDraftJson ||
+            spellcastingProfilesDraftJson != storedSpellcastingProfilesDraftJson ||
             equipmentDraftJson != storedEquipmentDraftJson ||
             backgroundDraftJson != storedBackgroundDraftJson ||
             traitsDraftJson != storedTraitsDraftJson ||
@@ -352,6 +366,12 @@ internal fun CharacterEditorScreenV4(
     fun updateCombatDamageProfiles(updated: List<CharacterCombatDamageProfile>) {
         if (!structuralEditingEnabled) return
         combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(updated)
+        savedMessage = null
+    }
+
+    fun updateSpellcastingProfiles(updated: List<CharacterSpellcastingProfile>) {
+        if (!structuralEditingEnabled) return
+        spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(updated)
         savedMessage = null
     }
 
@@ -431,10 +451,17 @@ internal fun CharacterEditorScreenV4(
         val liveCombatEntryIds = stored.combatEntries.mapTo(mutableSetOf()) { it.id }
         val savedDamageProfiles = characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson)
             .filter { it.combatEntryId in liveCombatEntryIds }
+        val liveSpellSourceIds = stored.spellcastingSources.mapTo(mutableSetOf()) { it.id }
+        val savedSpellcastingProfiles = characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
+            .filter { it.sourceId in liveSpellSourceIds }
         pcSettingsContext?.onSuccessorStateChange?.invoke(
-            successorState.copy(combatDamage = savedDamageProfiles),
+            successorState.copy(
+                combatDamage = savedDamageProfiles,
+                spellcastingProfiles = savedSpellcastingProfiles,
+            ),
         )
         combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(savedDamageProfiles)
+        spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(savedSpellcastingProfiles)
         val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
         val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
         val liveClassOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id }
@@ -477,6 +504,7 @@ internal fun CharacterEditorScreenV4(
                 spells = stored.spells,
             ),
         )
+        spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(savedSpellcastingProfiles)
         notesDraftJson = characterNotesDraftToJsonV4(
             CharacterNotesDraftV4(
                 generalNotes = stored.generalNotes,
@@ -750,8 +778,10 @@ internal fun CharacterEditorScreenV4(
                         )
                         CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
                             draft = spellcastingDraft,
-                            spellcastingRows = overviewProjectionSheet.generalSpellcastingRows(successorState),
-                            successorState = successorState,
+                            spellcastingRows = overviewProjectionSheet.generalSpellcastingRows(projectedSuccessorState),
+                            successorState = projectedSuccessorState,
+                            projectionSheet = overviewProjectionSheet,
+                            spellcastingProfiles = spellcastingProfiles,
                             slotStates = draft.spellSlots.map { slot ->
                                 val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
                                 CharacterSpellSlotUiV4(
@@ -761,9 +791,13 @@ internal fun CharacterEditorScreenV4(
                                 )
                             },
                             classOptions = draft.classes.map { SpellSourceClassOptionV4(it.id, it.name) },
+                            traits = traitsDraft,
+                            inventoryItems = equipmentDraft.items,
+                            background = backgroundDraft,
                             closureState = closureState,
                             persistedSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id },
                             onDraftChange = ::updateSpellcasting,
+                            onSpellcastingProfilesChange = ::updateSpellcastingProfiles,
                             structuralEditingEnabled = structuralEditingEnabled,
                             onSlotSpentChange = { level, spent ->
                                 val slot = draft.spellSlotFor(level)

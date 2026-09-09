@@ -1,7 +1,11 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingProfile
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource
 import kotlin.uuid.Uuid
 import org.json.JSONArray
@@ -20,6 +24,8 @@ internal fun characterSpellcastingDraftToJsonV4(draft: CharacterSpellcastingDraf
                 .put("id", source.id.toString())
                 .put("name", source.name)
                 .put("linkedClassId", source.linkedClassId?.toString() ?: JSONObject.NULL)
+                .put("originKind", source.originKind.name)
+                .put("originReferenceId", source.originReferenceId?.toString() ?: JSONObject.NULL)
                 .put("sortOrder", index),
         )
     }
@@ -67,16 +73,28 @@ internal fun characterSpellcastingDraftFromJsonV4(raw: String): CharacterSpellca
     val sources = buildList {
         for (index in 0 until sourceArray.length()) {
             val item = sourceArray.getJSONObject(index)
+            val linkedClassId = if (item.isNull("linkedClassId")) {
+                null
+            } else {
+                runCatching { Uuid.parse(item.getString("linkedClassId")) }.getOrNull()
+            }
+            val originKind = item.optString("originKind", "")
+                .takeIf { it.isNotBlank() }
+                ?.let { runCatching { CharacterSpellcastingOriginKind.valueOf(it) }.getOrNull() }
+                ?: if (linkedClassId != null) CharacterSpellcastingOriginKind.CLASS else CharacterSpellcastingOriginKind.OTHER
+            val originReferenceId = if (item.isNull("originReferenceId")) {
+                null
+            } else {
+                runCatching { Uuid.parse(item.getString("originReferenceId")) }.getOrNull()
+            }
             add(
                 CharacterSpellcastingSource(
                     id = runCatching { Uuid.parse(item.getString("id")) }.getOrElse { Uuid.random() },
                     name = item.optString("name", ""),
-                    linkedClassId = if (item.isNull("linkedClassId")) {
-                        null
-                    } else {
-                        runCatching { Uuid.parse(item.getString("linkedClassId")) }.getOrNull()
-                    },
+                    linkedClassId = linkedClassId,
                     sortOrder = index,
+                    originKind = originKind,
+                    originReferenceId = originReferenceId,
                 ),
             )
         }
@@ -126,3 +144,47 @@ internal fun characterSpellcastingDraftFromJsonV4(raw: String): CharacterSpellca
 
     CharacterSpellcastingDraftV4(sources = sources, spells = spells)
 }.getOrDefault(CharacterSpellcastingDraftV4(emptyList(), emptyList()))
+
+
+internal fun characterSpellcastingProfilesToJsonV4(profiles: List<CharacterSpellcastingProfile>): String {
+    val array = JSONArray()
+    profiles.forEach { profile ->
+        array.put(
+            JSONObject()
+                .put("sourceId", profile.sourceId.toString())
+                .put("abilityBuiltIn", profile.ability.builtIn?.name ?: JSONObject.NULL)
+                .put("abilityCustomAttributeId", profile.ability.customAttributeId?.toString() ?: JSONObject.NULL)
+                .put("saveDcAdjustment", profile.saveDcAdjustment)
+                .put("spellAttackAdjustment", profile.spellAttackAdjustment)
+                .put("legacySaveDcOverride", profile.legacySaveDcOverride ?: JSONObject.NULL)
+                .put("legacySpellAttackOverride", profile.legacySpellAttackOverride ?: JSONObject.NULL),
+        )
+    }
+    return array.toString()
+}
+
+internal fun characterSpellcastingProfilesFromJsonV4(raw: String): List<CharacterSpellcastingProfile> = runCatching {
+    val array = JSONArray(raw)
+    buildList {
+        for (index in 0 until array.length()) {
+            val item = array.getJSONObject(index)
+            val sourceId = runCatching { Uuid.parse(item.getString("sourceId")) }.getOrNull() ?: continue
+            val builtIn = if (item.isNull("abilityBuiltIn")) null else {
+                runCatching { CharacterAbility.valueOf(item.getString("abilityBuiltIn")) }.getOrNull()
+            }
+            val customAttributeId = if (item.isNull("abilityCustomAttributeId")) null else {
+                runCatching { Uuid.parse(item.getString("abilityCustomAttributeId")) }.getOrNull()
+            }
+            add(
+                CharacterSpellcastingProfile(
+                    sourceId = sourceId,
+                    ability = CharacterAbilityReference(builtIn = builtIn, customAttributeId = customAttributeId),
+                    saveDcAdjustment = item.optInt("saveDcAdjustment", 0),
+                    spellAttackAdjustment = item.optInt("spellAttackAdjustment", 0),
+                    legacySaveDcOverride = if (item.isNull("legacySaveDcOverride")) null else item.optInt("legacySaveDcOverride"),
+                    legacySpellAttackOverride = if (item.isNull("legacySpellAttackOverride")) null else item.optInt("legacySpellAttackOverride"),
+                ),
+            )
+        }
+    }
+}.getOrDefault(emptyList())

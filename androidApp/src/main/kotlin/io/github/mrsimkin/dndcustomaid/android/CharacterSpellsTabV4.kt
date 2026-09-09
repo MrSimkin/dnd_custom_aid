@@ -42,10 +42,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterGeneralSpellcastingRow
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingProfile
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait
 import io.github.mrsimkin.dndcustomaid.shared.character.characterAbilityReferenceAbbreviation
 import kotlin.math.abs
 import kotlin.uuid.Uuid
@@ -60,11 +65,17 @@ internal fun CharacterSpellsTabV4(
     draft: CharacterSpellcastingDraftV4,
     spellcastingRows: List<CharacterGeneralSpellcastingRow>,
     successorState: CharacterSuccessorState,
+    projectionSheet: CharacterSheet,
+    spellcastingProfiles: List<CharacterSpellcastingProfile>,
     slotStates: List<CharacterSpellSlotUiV4>,
     classOptions: List<SpellSourceClassOptionV4>,
+    traits: List<CharacterTrait>,
+    inventoryItems: List<CharacterInventoryItem>,
+    background: CharacterBackground,
     closureState: CharacterClosureState,
     persistedSpellIds: Set<Uuid>,
     onDraftChange: (CharacterSpellcastingDraftV4) -> Unit,
+    onSpellcastingProfilesChange: (List<CharacterSpellcastingProfile>) -> Unit,
     structuralEditingEnabled: Boolean,
     onSlotSpentChange: (Int, Int) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
@@ -75,8 +86,6 @@ internal fun CharacterSpellsTabV4(
     var managerOpen by rememberSaveable("spell-source-manager") { mutableStateOf(false) }
     var editorOpen by rememberSaveable("spell-source-editor") { mutableStateOf(false) }
     var editingSourceId by rememberSaveable("spell-source-edit-id") { mutableStateOf<String?>(null) }
-    var editorName by rememberSaveable("spell-source-edit-name") { mutableStateOf("") }
-    var editorLinkedClassId by rememberSaveable("spell-source-edit-class") { mutableStateOf<String?>(null) }
     var deleteSourceId by rememberSaveable("spell-source-delete-id") { mutableStateOf<String?>(null) }
 
     val sourceManagerHaptic = rememberCharacterHapticHookV4(hapticsEnabled)
@@ -95,16 +104,12 @@ internal fun CharacterSpellsTabV4(
 
     fun beginAddSource() {
         editingSourceId = null
-        editorName = ""
-        editorLinkedClassId = null
         managerOpen = false
         editorOpen = true
     }
 
     fun beginEditSource(source: CharacterSpellcastingSource) {
         editingSourceId = source.id.toString()
-        editorName = source.name
-        editorLinkedClassId = source.linkedClassId?.toString()
         managerOpen = false
         editorOpen = true
     }
@@ -154,7 +159,6 @@ internal fun CharacterSpellsTabV4(
     if (managerOpen && structuralEditingEnabled) {
         SourceManagerDialogV4(
             sources = draft.sources,
-            classOptions = classOptions,
             onMove = { index, offset ->
                 val target = index + offset
                 if (target !in draft.sources.indices) {
@@ -176,36 +180,38 @@ internal fun CharacterSpellsTabV4(
     }
 
     if (editorOpen && structuralEditingEnabled) {
-        SourceEditorDialogV4(
-            title = if (editingSourceId == null) "Añadir fuente" else "Editar fuente",
-            name = editorName,
-            linkedClassId = editorLinkedClassId,
+        val existing = editingSourceId?.let { id ->
+            draft.sources.firstOrNull { it.id.toString() == id }
+        }
+        val existingProfile = existing?.let { source ->
+            spellcastingProfiles.firstOrNull { it.sourceId == source.id }
+        }
+        CharacterSpellSourceEditorV4(
+            title = if (existing == null) "Añadir origen de conjuros" else "Editar origen de conjuros",
+            existing = existing,
+            existingProfile = existingProfile,
             classOptions = classOptions,
-            onNameChange = { editorName = it },
-            onLinkedClassChange = { editorLinkedClassId = it },
+            traits = traits,
+            inventoryItems = inventoryItems,
+            background = background,
+            customAttributes = successorState.customAttributes,
+            projectionSheet = projectionSheet,
+            successorState = successorState,
+            nextSortOrder = draft.sources.size,
             onCancel = {
                 editorOpen = false
                 managerOpen = true
             },
-            onApply = {
-                val existing = editingSourceId?.let { id ->
-                    draft.sources.firstOrNull { it.id.toString() == id }
-                }
-                val linkedClass = editorLinkedClassId?.let { id ->
-                    classOptions.firstOrNull { it.id.toString() == id }?.id
-                }
-                val source = CharacterSpellcastingSource(
-                    id = existing?.id ?: Uuid.random(),
-                    name = editorName.trim(),
-                    linkedClassId = linkedClass,
-                    sortOrder = existing?.sortOrder ?: draft.sources.size,
-                )
+            onApply = { source, profile ->
                 val updated = if (existing == null) {
                     draft.sources + source
                 } else {
                     draft.sources.map { if (it.id == existing.id) source else it }
                 }
                 updateSources(updated)
+                onSpellcastingProfilesChange(
+                    spellcastingProfiles.filterNot { it.sourceId == source.id } + profile,
+                )
                 editorOpen = false
                 managerOpen = true
             },
@@ -248,6 +254,9 @@ internal fun CharacterSpellsTabV4(
                             sources = remainingSources,
                             spells = remainingSpells,
                         ),
+                    )
+                    onSpellcastingProfilesChange(
+                        spellcastingProfiles.filterNot { it.sourceId == target.id },
                     )
                     if (selectedSourceId == target.id.toString()) {
                         selectedSourceId = null
@@ -354,7 +363,7 @@ private fun SpellSourceContextSelectorV4(
             if (onManageSources != null) {
                 HorizontalDivider()
                 DropdownMenuItem(
-                    text = { Text("Gestionar fuentes…") },
+                    text = { Text("Gestionar orígenes…") },
                     onClick = {
                         menuOpen = false
                         onManageSources()
@@ -375,7 +384,6 @@ private fun Int.spellSourceSignedV4(): String = if (this >= 0) "+$this" else toS
 @Composable
 private fun SourceManagerDialogV4(
     sources: List<CharacterSpellcastingSource>,
-    classOptions: List<SpellSourceClassOptionV4>,
     onMove: (Int, Int) -> Boolean,
     onAdd: () -> Unit,
     onEdit: (CharacterSpellcastingSource) -> Unit,
@@ -385,7 +393,7 @@ private fun SourceManagerDialogV4(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Fuentes de conjuros") },
+        title = { Text("Orígenes de conjuros") },
         text = {
             LazyColumn(
                 modifier = Modifier
@@ -396,11 +404,11 @@ private fun SourceManagerDialogV4(
             ) {
                 item {
                     CharacterHelpV4(
-                        "Las fuentes organizan una sola colección de conjuros. Pueden vincularse opcionalmente a una clase o ser completamente personalizadas.",
+                        "Cada origen organiza una sola colección de conjuros y conserva su propia aptitud, CD y ataque de lanzamiento.",
                     )
                 }
                 item {
-                    TextButton(onClick = onAdd) { Text("Añadir fuente") }
+                    TextButton(onClick = onAdd) { Text("Añadir origen") }
                 }
                 if (sources.isEmpty()) {
                     item {
@@ -411,7 +419,6 @@ private fun SourceManagerDialogV4(
                         val source = sources[index]
                         SourceManagerRowV4(
                             source = source,
-                            classOptions = classOptions,
                             onMove = { offset -> onMove(index, offset) },
                             onEdit = { onEdit(source) },
                             onDelete = { onDelete(source) },
@@ -430,7 +437,6 @@ private fun SourceManagerDialogV4(
 @Composable
 private fun SourceManagerRowV4(
     source: CharacterSpellcastingSource,
-    classOptions: List<SpellSourceClassOptionV4>,
     onMove: (Int) -> Boolean,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -438,9 +444,6 @@ private fun SourceManagerRowV4(
 ) {
     var accumulatedDrag by remember(source.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val linkedClassName = source.linkedClassId?.let { linkedId ->
-        classOptions.firstOrNull { it.id == linkedId }?.name?.ifBlank { "Clase sin nombre" }
-    }
 
     Surface(
         modifier = Modifier
@@ -473,7 +476,7 @@ private fun SourceManagerRowV4(
             Column(modifier = Modifier.weight(1f)) {
                 Text(source.name, style = MaterialTheme.typography.labelLarge)
                 Text(
-                    linkedClassName?.let { "Clase vinculada: $it" } ?: "Fuente personalizada / sin clase vinculada",
+                    "Origen: ${spellSourceOriginLabelV4(source.originKind)}",
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -482,75 +485,5 @@ private fun SourceManagerRowV4(
                 contentDescription = "Eliminar fuente ${source.name}",
             )
         }
-    }
-}
-
-@Composable
-private fun SourceEditorDialogV4(
-    title: String,
-    name: String,
-    linkedClassId: String?,
-    classOptions: List<SpellSourceClassOptionV4>,
-    onNameChange: (String) -> Unit,
-    onLinkedClassChange: (String?) -> Unit,
-    onCancel: () -> Unit,
-    onApply: () -> Unit,
-) {
-    var classMenuOpen by rememberSaveable { mutableStateOf(false) }
-    val linkedClassLabel = linkedClassId?.let { id ->
-        classOptions.firstOrNull { it.id.toString() == id }?.name?.ifBlank { "Clase sin nombre" }
-    } ?: "Sin clase vinculada"
-
-    CharacterImeSafeEditorDialog(
-        title = title,
-        onCancel = onCancel,
-        onSave = onApply,
-        saveEnabled = name.trim().isNotEmpty(),
-    ) {
-        OutlinedTextField(
-            value = name,
-            onValueChange = onNameChange,
-            label = { Text("Nombre") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
-            Text("Clase vinculada (opcional)", style = MaterialTheme.typography.labelSmall)
-            Box {
-                OutlinedButton(
-                    onClick = { classMenuOpen = true },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(linkedClassLabel, maxLines = 1)
-                }
-                DropdownMenu(
-                    expanded = classMenuOpen,
-                    onDismissRequest = { classMenuOpen = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Sin clase vinculada") },
-                        onClick = {
-                            onLinkedClassChange(null)
-                            classMenuOpen = false
-                        },
-                    )
-                    classOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option.name.ifBlank { "Clase sin nombre" }) },
-                            onClick = {
-                                onLinkedClassChange(option.id.toString())
-                                classMenuOpen = false
-                            },
-                        )
-                    }
-                }
-            }
-            CharacterHelpV4(
-                "El vínculo es solo una referencia. No crea ni elimina automáticamente fuentes o conjuros.",
-            )
-        }
-        CharacterInlineValidationMessage(
-            if (name.trim().isEmpty()) "El nombre no puede quedar vacío." else null,
-        )
     }
 }
