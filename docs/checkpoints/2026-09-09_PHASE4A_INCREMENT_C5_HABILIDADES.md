@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** IMPLEMENTED; FINAL AUTOMATED GATE PENDING
+**Status:** COMPLETE / AUTOMATED GATE GREEN
 
 ## Scope
 
@@ -81,25 +81,44 @@ Focused tests cover:
 - alphabetical interleaving of a custom skill among built-in Spanish labels;
 - successor custom-attribute mapping and abbreviation resolution.
 
-## Source evidence before final gate
+## Source evidence
 
 - shared projection commit: `286bfb20521134fff9f658e7e0df1a5a6665b9ae`;
 - focused-test commit: `a8640882361fb9fb4ffb84b80b04f933351e5f7a`;
 - compact passive strip commit: `b243ab48b2b81e806568fe413dcb0988971c9805`;
 - guarded editor integration source commit: `3c55a0cb3e37a4847087bbfa347737e900a6264c`;
 - editor integration workflow `34301658611`: SUCCESS;
-- final italic-plan correction source commit: `acda3c0` (full SHA to be recorded from repository evidence if needed);
+- final italic-plan correction source commit: `acda3c0f67ec063d8fbf495054a951bc55b9c516`;
 - italic correction workflow `34302186976`: SUCCESS;
 - exact guards and `git diff --check`: PASS;
 - all temporary patch files/workflows removed by their source commits.
 
-## Exit condition
+## Final automated gate
 
-C5 becomes technically complete only after the normal full scaffold gate passes on a descendant containing the final italic correction.
+Validation descendant:
 
-After that:
+`cf372a26c260e65a3b01ef3634e310c74fd99fe3`
 
-1. update this checkpoint to `COMPLETE / GREEN`;
-2. update `docs/checkpoints/LATEST.md`;
-3. mark Increment C complete;
-4. advance the exact next implementation action to **Increment D — Combate + Dados**, using structured attacks/damage and one generalized target engine.
+Workflow:
+
+`34302249483` — SUCCESS
+
+Verified together:
+
+- backend check: PASS;
+- shared/Kotlin tests: PASS;
+- Android debug compilation/assembly: PASS;
+- desktop compilation/build: PASS;
+- Android debug APK artifact upload: PASS.
+
+CI artifact:
+
+- artifact ID `10085382195`;
+- artifact name `dnd-custom-aid-debug-apk`;
+- ZIP digest `sha256:a8b3d94a2f93418d81d38179e03b6ce22889bd2966676abacfd99966bf975573`.
+
+## Outcome
+
+C5 is technically complete and Increment C's navigation/settings/General/Habilidades family is automated-gate green.
+
+The successor cycle now advances to **Increment D — Combate + Dados**, using the already-persisted structured attack-damage profiles and one generalized character-aware roll target engine.
