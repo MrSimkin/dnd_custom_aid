@@ -768,21 +768,19 @@ Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedB
                         Text(option.effectSummary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        StableFavoriteIconButton(
-                            selected = favorite,
-                            onClick = { onFavoriteChange(!favorite) },
-                            enabled = structuralEditingEnabled && favoriteEnabled,
-                        )
-                        if (structuralEditingEnabled) {
-                            StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${option.name}")
-                        }
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StableFavoriteIconButton(
+                        selected = favorite,
+                        onClick = { onFavoriteChange(!favorite) },
+                        enabled = structuralEditingEnabled && favoriteEnabled,
+                        contentDescription = if (favorite) "Quitar ${option.name} de Favoritos" else "Añadir ${option.name} a Favoritos",
+                    )
                     if (structuralEditingEnabled) {
-                        TextButton(onClick = onDuplicate, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                            Text("Duplicar")
-                        }
+                        StableDuplicateIconButton(
+                            onClick = onDuplicate,
+                            contentDescription = "Duplicar ${option.name}",
+                        )
+                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${option.name}")
                     }
                 }
             }
@@ -847,20 +845,25 @@ private fun ClassOptionEditorFieldsH2(
         onSelectedClassIdChange = onLinkedClassIdChange,
     )
 
-    OutlinedTextField(
-        value = source,
-        onValueChange = onSourceChange,
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        label = { Text("Fuente / procedencia") },
-        singleLine = true,
-    )
-    OutlinedTextField(
-        value = cost,
-        onValueChange = onCostChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("Coste / referencia") },
-        singleLine = true,
-    )
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+    ) {
+        OutlinedTextField(
+            value = source,
+            onValueChange = onSourceChange,
+            modifier = Modifier.weight(1f),
+            label = { Text("Fuente / procedencia") },
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = cost,
+            onValueChange = onCostChange,
+            modifier = Modifier.weight(1f),
+            label = { Text("Coste / referencia") },
+            singleLine = true,
+        )
+    }
     OutlinedTextField(
         value = effect,
         onValueChange = onEffectChange,

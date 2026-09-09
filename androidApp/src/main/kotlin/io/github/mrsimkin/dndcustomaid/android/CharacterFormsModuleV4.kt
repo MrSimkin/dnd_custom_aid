@@ -606,25 +606,22 @@ Column(
                         )
                     }
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        StableFavoriteIconButton(
-                            selected = favorite,
-                            onClick = { onFavoriteChange(!favorite) },
-                            enabled = favoriteEnabled,
-                        )
-                        if (structuralEditingEnabled) {
-                            StableRemoveIconButton(
-                                onClick = onDelete,
-                                contentDescription = "Eliminar ${form.name}",
-                            )
-                        }
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StableFavoriteIconButton(
+                        selected = favorite,
+                        onClick = { onFavoriteChange(!favorite) },
+                        enabled = favoriteEnabled,
+                        contentDescription = if (favorite) "Quitar ${form.name} de Favoritos" else "Añadir ${form.name} a Favoritos",
+                    )
                     if (structuralEditingEnabled) {
-                        TextButton(
+                        StableDuplicateIconButton(
                             onClick = onDuplicate,
-                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                        ) { Text("Duplicar") }
+                            contentDescription = "Duplicar ${form.name}",
+                        )
+                        StableRemoveIconButton(
+                            onClick = onDelete,
+                            contentDescription = "Eliminar ${form.name}",
+                        )
                     }
                 }
             }
@@ -663,20 +660,25 @@ private fun FormEditorFieldsH1(
         singleLine = true,
     )
     CharacterInlineValidationMessage(validationMessage)
-    OutlinedTextField(
-        value = source,
-        onValueChange = onSourceChange,
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        label = { Text("Fuente / procedencia") },
-        singleLine = true,
-    )
-    OutlinedTextField(
-        value = cr,
-        onValueChange = onCrChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("CR / referencia") },
-        singleLine = true,
-    )
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+    ) {
+        OutlinedTextField(
+            value = source,
+            onValueChange = onSourceChange,
+            modifier = Modifier.weight(1.6f),
+            label = { Text("Fuente / procedencia") },
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = cr,
+            onValueChange = onCrChange,
+            modifier = Modifier.weight(1f),
+            label = { Text("CR / referencia") },
+            singleLine = true,
+        )
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),

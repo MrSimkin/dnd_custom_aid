@@ -687,21 +687,19 @@ Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedB
                         Text(companion.traitsActions, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        StableFavoriteIconButton(
-                            selected = favorite,
-                            onClick = { onFavoriteChange(!favorite) },
-                            enabled = structuralEditingEnabled && favoriteEnabled,
-                        )
-                        if (structuralEditingEnabled) {
-                            StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${companion.name}")
-                        }
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StableFavoriteIconButton(
+                        selected = favorite,
+                        onClick = { onFavoriteChange(!favorite) },
+                        enabled = structuralEditingEnabled && favoriteEnabled,
+                        contentDescription = if (favorite) "Quitar ${companion.name} de Favoritos" else "Añadir ${companion.name} a Favoritos",
+                    )
                     if (structuralEditingEnabled) {
-                        TextButton(onClick = onDuplicate, contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp)) {
-                            Text("Duplicar")
-                        }
+                        StableDuplicateIconButton(
+                            onClick = onDuplicate,
+                            contentDescription = "Duplicar ${companion.name}",
+                        )
+                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${companion.name}")
                     }
                 }
             }
