@@ -1,0 +1,166 @@
+name: Temporary night-close consolidation after Increment E
+
+on:
+  push:
+    branches:
+      - implementation/phase4a-successor-cycle
+    paths:
+      - .github/workflows/tmp-night-close-consolidate-e.yml
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4a-successor-cycle
+          fetch-depth: 0
+
+      - name: Fetch and verify consolidation preconditions
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin --prune
+          git merge-base --is-ancestor origin/main HEAD
+          test "$(git rev-list --count HEAD..origin/main)" -eq 0
+          test "$(git rev-list --count origin/main..HEAD)" -gt 0
+          test "$(git for-each-ref --format='%(refname:short)' refs/remotes/origin/tmp/phase4-l-frozen-qa-candidate)" = "origin/tmp/phase4-l-frozen-qa-candidate"
+          test "$(git for-each-ref --format='%(refname:short)' refs/remotes/origin/tmp/phase4-m5-frozen-qa-candidate)" = "origin/tmp/phase4-m5-frozen-qa-candidate"
+
+      - name: Generate durable branch-ref archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p docs/archive
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          keep_frozen = {
+              "tmp/phase4-l-frozen-qa-candidate",
+              "tmp/phase4-m5-frozen-qa-candidate",
+          }
+          invalid = "implementation/phase4a-successor-cycle-temp-invalid"
+
+          raw = subprocess.check_output([
+              "git", "for-each-ref",
+              "--format=%(refname:short)|%(objectname)",
+              "refs/remotes/origin",
+          ], text=True)
+          rows = []
+          for line in raw.splitlines():
+              if not line.strip():
+                  continue
+              ref, sha = line.split("|", 1)
+              if ref == "origin/HEAD":
+                  continue
+              name = ref.removeprefix("origin/")
+              if name in keep_frozen:
+                  disposition = "KEEP / FROZEN IMMUTABLE"
+              elif name.startswith("tmp/"):
+                  disposition = "DELETE REF / ARCHIVED HERE"
+              elif name == invalid:
+                  disposition = "DELETE REF / INVALID-SUPERSEDED / ARCHIVED HERE"
+              elif name in {"main", "implementation/phase4a-successor-cycle"}:
+                  disposition = "KEEP / CURRENT AUTHORITY"
+              else:
+                  disposition = "KEEP / HISTORICAL MILESTONE LABEL"
+              rows.append((name, sha, disposition))
+
+          rows.sort(key=lambda row: row[0])
+          delete_count = sum("DELETE REF" in row[2] for row in rows)
+          frozen_count = sum("FROZEN" in row[2] for row in rows)
+
+          out = [
+              "# Branch-ref archive before 2026-09-09 night-close cleanup",
+              "",
+              "This file records the final visible branch name → SHA mapping immediately before the owner-approved cleanup after Phase 4A Increment E.",
+              "",
+              "Deleting a branch ref does not rewrite canonical history. This archive exists so an old deleted branch name can still be mapped back to its final commit SHA for historical investigation.",
+              "",
+              f"- refs recorded: **{len(rows)}**",
+              f"- refs scheduled for deletion: **{delete_count}**",
+              f"- frozen tmp refs explicitly preserved: **{frozen_count}**",
+              "- canonical/current refs preserved: `main`, `implementation/phase4a-successor-cycle`",
+              "",
+              "## Protected frozen refs",
+              "",
+              "- `tmp/phase4-l-frozen-qa-candidate` — KEEP / FROZEN IMMUTABLE",
+              "- `tmp/phase4-m5-frozen-qa-candidate` — KEEP / FROZEN IMMUTABLE",
+              "",
+              "## Complete pre-cleanup mapping",
+              "",
+              "| Branch ref | Final SHA before cleanup | Disposition |",
+              "|---|---|---|",
+          ]
+          for name, sha, disposition in rows:
+              out.append(f"| `{name}` | `{sha}` | {disposition} |")
+
+          out += [
+              "",
+              "## Cleanup rule used",
+              "",
+              "The cleanup removes all non-frozen `tmp/*` refs and `implementation/phase4a-successor-cycle-temp-invalid`. Historical milestone branches remain visible. The two frozen QA branches remain immutable.",
+              "",
+              "The night-close consolidation then keeps `main` and `implementation/phase4a-successor-cycle` aligned at the completed-E development baseline. Repository ordering does not imply owner visual acceptance or release readiness.",
+          ]
+          Path("docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md").write_text("\n".join(out) + "\n")
+          PY
+          git diff --check
+
+      - name: Commit archive and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/tmp-night-close-consolidate-e.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md .github/workflows/tmp-night-close-consolidate-e.yml
+          git commit -m "chore: archive branch refs for Increment E night close"
+
+      - name: Align active branch and main by fast-forward
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main implementation/phase4a-successor-cycle
+          git merge-base --is-ancestor origin/main HEAD
+          git push origin HEAD:implementation/phase4a-successor-cycle
+          git push origin HEAD:main
+
+      - name: Delete obsolete non-frozen refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin --prune
+          mapfile -t targets < <(
+            git for-each-ref --format='%(refname:short)' refs/remotes/origin/tmp/ \
+              | sed 's#^origin/##' \
+              | grep -v '^tmp/phase4-l-frozen-qa-candidate$' \
+              | grep -v '^tmp/phase4-m5-frozen-qa-candidate$' \
+              || true
+          )
+          if git show-ref --verify --quiet refs/remotes/origin/implementation/phase4a-successor-cycle-temp-invalid; then
+            targets+=("implementation/phase4a-successor-cycle-temp-invalid")
+          fi
+          for branch in "${targets[@]}"; do
+            echo "Deleting archived obsolete ref: $branch"
+            git push origin --delete "$branch"
+          done
+
+      - name: Verify final repository ordering
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin --prune
+          main_sha="$(git rev-parse origin/main)"
+          active_sha="$(git rev-parse origin/implementation/phase4a-successor-cycle)"
+          test "$main_sha" = "$active_sha"
+          test -z "$(git for-each-ref --format='%(refname:short)' refs/remotes/origin/tmp/ | grep -v '^origin/tmp/phase4-l-frozen-qa-candidate$' | grep -v '^origin/tmp/phase4-m5-frozen-qa-candidate$' || true)"
+          test -z "$(git for-each-ref --format='%(refname:short)' refs/remotes/origin/implementation/phase4a-successor-cycle-temp-invalid)"
+          test "$(git for-each-ref --format='%(refname:short)' refs/remotes/origin/tmp/phase4-l-frozen-qa-candidate)" = "origin/tmp/phase4-l-frozen-qa-candidate"
+          test "$(git for-each-ref --format='%(refname:short)' refs/remotes/origin/tmp/phase4-m5-frozen-qa-candidate)" = "origin/tmp/phase4-m5-frozen-qa-candidate"
+          echo "FINAL_MAIN=$main_sha"
+          echo "FINAL_ACTIVE=$active_sha"
