@@ -33,7 +33,7 @@ jobs:
           grep -q 'Gemas / arte' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
           grep -q 'CharacterResourcePlacement.EQUIPMENT' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
       - name: Focused compile and tests
-        run: ./gradlew :shared:desktopTest :androidApp:compileDebugKotlin
+        run: cd kotlin && ./gradlew :shared:desktopTest :androidApp:compileDebugKotlin
       - name: Commit G1 product and self-remove helper
         run: |
           rm -f .github/workflows/g1-apply.yml .maintenance/g1_apply.py
