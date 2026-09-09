@@ -3,17 +3,15 @@
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Canonical branch:** `main` (unchanged by Increment G)  
-**Status:** COMPLETE IMPLEMENTATION / G1–G4 FOCUSED GREEN / INTEGRATED GATE PENDING / OWNER ACCEPTANCE PENDING
+**Status:** COMPLETE / AUTOMATED INTEGRATED GATE GREEN / OWNER ACCEPTANCE PENDING
 
 ## 1. Boundary
 
-Increment G implements the planned repairs for Equipo, Rasgos, conditional character modules, Notas and Trasfondo. It reuses the successor domain/storage work from Increment A and the shared interaction primitives from Increment B rather than creating parallel state or one-off UI authorities.
+Increment G repairs Equipo, Rasgos, conditional character modules, Notas and Trasfondo while reusing the successor domain/storage foundations and the shared interaction primitives. It does not create parallel state authorities.
 
-The owner explicitly asked implementation to continue into G. The repaired Increment F automated boundary remains valid, but the targeted repaired-F owner phone retest recorded in `LATEST.md` has **not** been reclassified as passed by this implementation work. Automated validation and owner/device acceptance remain separate.
+The owner explicitly asked implementation to continue into G. The repaired Increment F automated boundary remains valid, but its targeted repaired-F owner phone retest has **not** been reclassified as passed. Automated validation and owner/device acceptance remain separate.
 
 ## 2. Product commits
-
-Focused product commits in this Increment G sequence:
 
 - G1 Equipo: `f2f669175e0250d449b0b8ac227de3455cc38966` — `feat: wire Increment G1 equipment canonical state`;
 - G2 Rasgos core: `d1ee49df02019071b9de48f522f6e8857b63e293` — `feat: repair Increment G2 traits projections`;
@@ -21,138 +19,141 @@ Focused product commits in this Increment G sequence:
 - G3 Notas: `ec9997ed0ba8099570bb24fa661831e6bd7c9e0b` — `feat: add Increment G3 notes search and filtering`;
 - G4 Trasfondo images: `3b6118e490edc8d57a0097c60d196d4de112722a` — `feat: add Increment G4 persistent background images`.
 
-Temporary one-off helper workflows/scripts self-removed after their successful product commits. At the G4 product boundary `.github/workflows` again contains only the normal `scaffold-check.yml` workflow.
+All successful one-off helpers self-removed. At the completed G product boundary, `.github/workflows` contains only the normal `scaffold-check.yml` workflow.
 
 ## 3. G1 — Equipo
 
-Implemented and focused-green:
+Implemented:
 
-- canonical Armor Class projection instead of a second AC authority;
+- canonical Armor Class projection rather than a second AC authority;
 - current equipped-item projection consistent with the character sheet / General-Defensas state;
-- Resources configured with `CharacterResourcePlacement.EQUIPMENT` appear in Equipo and update the same canonical Resource values;
+- Resources with `CharacterResourcePlacement.EQUIPMENT` shown and edited from the same canonical Resource state;
 - compact `Gemas / arte` free-text storage through successor preferences;
-- consumable semantics clarified to `Tipo de consumo`, `Descuento por uso`, and `No consume cantidad` where appropriate;
-- canonical terminology changed to `Electrum`, including compatibility display normalization for the old default `ep` row;
+- clearer `Tipo de consumo`, `Descuento por uso`, and `No consume cantidad` semantics;
+- canonical `Electrum` terminology, including compatibility display normalization for the old default `ep` row;
 - existing shared card/reorder behavior preserved.
 
-Focused workflow: `34411179956` — SUCCESS.
+Focused workflow `34411179956` — SUCCESS.
 
-One earlier G1 focused attempt exposed a stale regression expectation for `Electro`; the product terminology was already protected as `Electrum`, so the obsolete test expectation was updated rather than weakening the implementation.
+An earlier G1 attempt exposed a stale regression expectation for `Electro`. The protected product term is `Electrum`, so the obsolete test was updated rather than weakening the implementation.
 
 ## 4. G2 — Rasgos and conditional modules
 
 ### Rasgos core
 
-Implemented and focused-green:
+Implemented:
 
-- Resources configured with `CharacterResourcePlacement.TRAITS` are projected into Rasgos from the same canonical Resource state;
-- multi-column Rasgos use the shared measured 2-D whole-card reorder primitive;
-- user terminology uses `Raza`;
-- the former separate generic free-text `Fuente` plus `Tipo` editor ambiguity was consolidated through the existing structured provenance primitive instead of adding another source model;
-- search/filter/group/manual-order behavior remains presentation logic rather than a second stored order authority.
+- Resources with `CharacterResourcePlacement.TRAITS` projected from the same Resource state;
+- shared measured 2-D whole-card reorder for multi-column Rasgos;
+- `Raza` terminology;
+- previous generic free-text `Fuente` + `Tipo` ambiguity consolidated through the existing structured provenance primitive;
+- search/filter/group/manual-order remain presentation logic rather than a second stored-order authority.
 
-Focused workflow: `34411590496` — SUCCESS.
+Focused workflow `34411590496` — SUCCESS.
 
-### Conditional module collection grammar
+### Conditional modules
 
-Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros were audited before modification. Their domain behavior already used the correct class-option/form/companion state and the module-visibility layer already implements AUTO / FORCE_SHOW / FORCE_HIDE without deleting module-owned data.
+Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros already used the correct module-owned domain data. Module visibility already implements AUTO / FORCE_SHOW / FORCE_HIDE without deleting data, so G2 did not rewrite that domain behavior.
 
-The repair therefore stayed UI-focused:
+Their collection UI now uses:
 
-- one shared compact sticky `CharacterCollectionToolbarV4` per collection;
+- one shared compact sticky `CharacterCollectionToolbarV4`;
 - collapsible search;
 - compact Manual/A–Z control;
 - compact add action;
-- existing filters preserved;
-- module explanation moved to `CharacterHelpV4` outside the permanent sticky footprint;
-- reorder guidance moved out of the permanent sticky area;
-- existing editors, favorites, duplicate/remove actions and whole-card reorder semantics preserved.
+- existing filters;
+- `CharacterHelpV4` for explanatory content outside the permanent sticky footprint;
+- existing editors, favorites, duplicate/remove actions and whole-card reorder semantics.
 
-Focused workflow: `34412312723` — SUCCESS.  
-Product commit: `d8ff2c32e7fac65096d62382728d94da2c0b5a61`.
+Focused workflow `34412312723` — SUCCESS.
 
 ## 5. G3 — Notas
 
-The approved Notes model remains deliberately minimal: freeform general notes plus optional cards with only title/content and manual order. Increment G does **not** add tags, categories, dates or synthetic metadata merely to support filtering.
+The approved Notes model remains deliberately minimal: freeform general notes plus optional title/content cards and manual order. No tags, categories, dates or synthetic metadata were added.
 
-Implemented and focused-green:
+Implemented:
 
-- shared `presentCharacterNotes(...)` presentation projection;
-- accent-insensitive search over title and content;
+- shared `presentCharacterNotes(...)` projection;
+- accent-insensitive search across title and content;
 - presentation-only `Con contenido` / `Sin contenido` filters;
-- Manual and A–Z views, where A–Z does not rewrite stored manual order;
-- manual drag available only when Manual view has no active search/filter;
-- titled-note collection migrated to the shared compact sticky toolbar;
-- multi-column note cards use measured 2-D whole-card reorder, with the existing measured 1-D primitive when one column is shown;
-- duplicate/remove actions remain compact;
-- destructive delete haptic is preserved;
-- added shared regression coverage for search, filters and A–Z/manual-order independence.
+- Manual and A–Z views, with A–Z never rewriting stored manual order;
+- reorder only in Manual with no active search/filter;
+- shared compact sticky toolbar for titled notes;
+- measured 2-D whole-card reorder for multi-column notes and measured 1-D reorder for one column;
+- compact duplicate/remove actions and destructive delete haptic;
+- regression coverage for search, filters and stored-order independence.
 
-Focused workflow: `34412667797` — SUCCESS.  
-Product commit: `ec9997ed0ba8099570bb24fa661831e6bd7c9e0b`.
+Focused workflow `34412667797` — SUCCESS.
 
 ## 6. G4 — Trasfondo persistent images
 
-The successor domain already defined app-owned `CharacterBackgroundImage` values with PRIMARY/SECONDARY slots and encoded payload persistence. G4 wires the Android surface to that existing authority instead of persisting external URIs or introducing a second media store.
+The successor domain already defined app-owned `CharacterBackgroundImage` values with PRIMARY/SECONDARY slots and encoded payload persistence. G4 wires Android to that authority instead of storing external URIs.
 
-Implemented and focused-green:
+Implemented:
 
-- the two Trasfondo placeholders are replaced by working primary/secondary image cards;
-- Android picker accepts `image/*`;
-- selected content is decoded into app memory, sampled for large inputs, reduced to a maximum 1600-pixel edge, then encoded into the existing app-owned payload;
-- alpha-bearing images are stored as PNG; other images are stored as JPEG at bounded quality;
-- the stored image therefore no longer depends on access to the original picker URI after import;
-- actual persistent image is rendered with crop behavior;
-- add/change/remove are available when structural editing is enabled;
-- original filename is retained as metadata when available;
-- import failures produce a local user-visible error instead of corrupting state;
-- explanatory ownership text uses the global `CharacterHelpV4` system;
-- successor repository regression verifies payload survives save/reopen;
-- backup regression verifies encode/decode/import preserves slot/MIME/payload/name while assigning a fresh imported image identity.
+- working primary and secondary image cards replacing placeholders;
+- Android `image/*` picker;
+- sampled decode for large inputs;
+- resize to a maximum 1600-pixel edge;
+- PNG storage for alpha-bearing images, otherwise JPEG at bounded quality;
+- Base64 payload stored inside the existing successor aggregate, so reopen does not depend on the original picker URI;
+- persistent rendering with crop behavior;
+- add/change/remove controls in structural-edit mode;
+- original filename retained when available;
+- local user-visible import failure message;
+- ownership explanation through `CharacterHelpV4`;
+- repository regression proving image payload save/reopen;
+- backup regression proving encode/decode/import preserves slot/MIME/payload/name while assigning a fresh imported image identity.
 
-First focused G4 attempt `34413043981` failed safely at Android compilation on one nullable content-description reference after shared tests had passed. No product commit occurred. The retry changed only that expression to null-safe access.
+First focused G4 attempt `34413043981` failed safely on one nullable Android content-description expression after shared tests had passed. No product commit occurred. Retry `34413311747` changed only that expression to null-safe access and was SUCCESS.
 
-Focused G4 retry workflow: `34413311747` — SUCCESS.  
-Product commit: `3b6118e490edc8d57a0097c60d196d4de112722a`.
+## 7. Integrated Increment G gate
 
-## 7. Focused validation status
+Validation head:
 
-Across G1–G4, each successful product boundary ran at least:
+`aa7e57647e4a1b467de028f9d0a0d13e4a1ef0bd`
 
-- `:shared:desktopTest` — PASS;
-- `:androidApp:compileDebugKotlin` — PASS;
-- guarded diff checks for the intended product properties.
+Normal `Scaffold checks` workflow:
 
-These focused checks are not the final Increment G integration gate.
+`34413644371` — **SUCCESS**
 
-## 8. Integrated gate — pending
+Verified together:
 
-This checkpoint commit intentionally triggers the repository's normal `Scaffold checks` workflow against the complete G1–G4 product tree.
+- backend dependency install: PASS;
+- backend Worker type-check: PASS;
+- `:shared:desktopTest`: PASS;
+- Android debug assembly: PASS;
+- desktop application build: PASS;
+- Android debug APK upload: PASS.
 
-The required authoritative gate is:
+Artifact:
 
-- shared/Kotlin desktop tests;
-- Android debug assembly;
-- desktop application build;
-- backend dependency install/type-check;
-- Android debug APK artifact upload.
+- ID `10128271891`;
+- name `dnd-custom-aid-debug-apk`;
+- ZIP size `13,294,132` bytes;
+- ZIP digest `sha256:1a3aab50c9c5122f94ddaa2b7de173cddd046b74b80f8be58b0ed4ec564bca2f`;
+- generated from head `aa7e57647e4a1b467de028f9d0a0d13e4a1ef0bd`.
 
-Workflow ID, validation head and artifact evidence will be written here after the normal workflow finishes successfully. Until then, do not describe Increment G as integrated-green.
+This is the authoritative automated Increment G boundary.
 
-## 9. Acceptance boundary
+## 8. Acceptance boundary
 
-Even after the automated integrated gate becomes green:
+The green gate is **not owner acceptance**.
 
-- Increment G is not owner/device accepted merely because CI passes;
-- repaired Increment F targeted phone acceptance remains a separate outstanding owner boundary unless explicit owner evidence later closes it;
-- G4 image picking/rendering/reopen should be physically auditioned in the later consolidated successor owner test, including closing/reopening the character and backup/import independence where practical;
+Outstanding physical/owner items include:
+
+- repaired Increment F targeted phone retest remains unresolved unless later explicit owner evidence closes it;
+- G4 image picker/render/reopen behavior should be exercised on a physical phone during consolidated successor audition;
+- image backup/import independence should be sampled practically when appropriate;
 - card drag feel remains an owner-audition item;
 - tablet/wide acceptance remains deferred to Increment I.
 
-## 10. Next implementation position
+## 9. Next implementation position
 
-After a successful integrated G gate and documentation finalization:
+Engineering sequence after this checkpoint:
 
-- Increment H — full-screen Application Settings, live previews, density/text controls and audition themes — is the next implementation increment;
-- Increment I — independent tablet portrait/landscape redesign — remains after H;
-- no DM implementation begins before explicit Phase 4A closure.
+- H — full-screen Application Settings, live previews, density/text controls and audition themes;
+- I — independent tablet portrait/landscape redesign;
+- then targeted repairs/acceptance and later formal Phase 4A closure.
+
+Do not merge this branch to `main` merely because Increment G is automated-green. No DM implementation begins before explicit Phase 4A closure.
