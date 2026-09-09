@@ -21,9 +21,14 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
       - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
       - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
       - name: Apply guarded G1 transformations
         run: python3 .maintenance/g1_apply.py
       - name: Guard diff
@@ -33,7 +38,7 @@ jobs:
           grep -q 'Gemas / arte' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
           grep -q 'CharacterResourcePlacement.EQUIPMENT' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
       - name: Focused compile and tests
-        run: cd kotlin && ./gradlew :shared:desktopTest :androidApp:compileDebugKotlin
+        run: gradle :shared:desktopTest :androidApp:compileDebugKotlin --stacktrace
       - name: Commit G1 product and self-remove helper
         run: |
           rm -f .github/workflows/g1-apply.yml .maintenance/g1_apply.py
