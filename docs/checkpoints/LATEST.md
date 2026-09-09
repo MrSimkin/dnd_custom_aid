@@ -1,6 +1,6 @@
 # Latest project checkpoint
 
-**Updated:** 2026-09-08  
+**Updated:** 2026-09-09  
 **Canonical branch:** `main`  
 **Repository consolidation:** COMPLETE under D-0066  
 **Current implementation branch:** `implementation/phase4a-successor-cycle`  
@@ -9,7 +9,8 @@
 **Increment B:** COMPLETE / shared UX primitive gate GREEN; drag feel pending owner device acceptance  
 **Increment C1:** COMPLETE / character-first entry automated gate GREEN  
 **Increment C2:** COMPLETE / PC Settings information architecture automated gate GREEN  
-**Current increment:** C3/C4 — General compact identity + canonical projections  
+**Increment C3/C4:** COMPLETE / General compact identity + canonical projections automated gate GREEN  
+**Current increment:** C5 — Habilidades inline successor integration  
 **Current product status:** successor implementation in progress; owner visual acceptance not yet run  
 **Latest owner-auditioned practical identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
 **Primary owner test phone:** Redmi Note 11 Pro 5G  
@@ -19,14 +20,14 @@
 
 ## Read next
 
-1. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C2_PC_SETTINGS_INFORMATION_ARCHITECTURE.md` — **latest completed implementation checkpoint; Settings IA, real tab order, custom attributes/skills/markers, Inspiration visibility and bounded haptics**;
-2. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C1_CHARACTER_FIRST_ENTRY.md` — completed character-first root, canonical character summaries, create/import campaign routing and Back hierarchy;
-3. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_B_SHARED_UX_PRIMITIVES.md` — completed shared responsive/density/toolbar/drag/IME/help foundation and owner drag-feel qualifier;
-4. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling successor implementation order and build/retest boundaries;
-5. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_A_DATA_FOUNDATION.md` — completed schema/domain/storage foundation and verified migration/compatibility evidence;
-6. `docs/checkpoints/2026-09-08_D0067_RECONCILIATION_PENDING_DECISIONS.md` — despite the historical filename, records the resolved owner decisions and compact Conjuros source-context design;
-7. `docs/decisions/D-0067_OWNER_NEXT_CYCLE_CHARACTER_UX_AND_FEATURE_REFINEMENTS.md` — full owner non-QA package;
-8. `docs/checkpoints/2026-09-07_PHASE4_PREQA_OWNER_AUDITION_PHONE_STAGE_F.md` — detailed prior-build phone fixed-footprint evidence;
+1. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_C3_C4_GENERAL.md` — **latest completed implementation checkpoint; compact class identity, canonical General projections and per-source casting reference**;
+2. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C2_PC_SETTINGS_INFORMATION_ARCHITECTURE.md` — completed Settings IA, real tab order, custom attributes/skills/markers, Inspiration visibility and bounded haptics;
+3. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_C1_CHARACTER_FIRST_ENTRY.md` — completed character-first root, canonical character summaries, create/import campaign routing and Back hierarchy;
+4. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_B_SHARED_UX_PRIMITIVES.md` — completed shared responsive/density/toolbar/drag/IME/help foundation and owner drag-feel qualifier;
+5. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling successor implementation order and build/retest boundaries;
+6. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_A_DATA_FOUNDATION.md` — completed schema/domain/storage foundation and verified migration/compatibility evidence;
+7. `docs/checkpoints/2026-09-08_D0067_RECONCILIATION_PENDING_DECISIONS.md` — despite the historical filename, records the resolved owner decisions and compact Conjuros source-context design;
+8. `docs/decisions/D-0067_OWNER_NEXT_CYCLE_CHARACTER_UX_AND_FEATURE_REFINEMENTS.md` — full owner non-QA package;
 9. `docs/checkpoints/2026-09-08_PHASE4_PREQA_FUENTE_REDUNDANCY_AUDIT.md` — provenance/source IA follow-up;
 10. `docs/PROJECT_STATE.md` — broader state snapshot.
 
@@ -46,13 +47,17 @@ Old implementation/tmp branches are historical evidence. Frozen QA branches rema
 
 ## Latest automated successor product head
 
-C2's full automated gate passed for product commit:
+C3/C4's full automated gate passed on validation descendant:
 
-`99696ea4ce5c6e212fd0beaa351ec180727c0deb`
+`a7f784989419376e182f7fb1f0de4701c4b5b7dd`
+
+Final General editor wiring source commit:
+
+`03fa63246499ee3cda408cfcea6d70b8b0eefb96`
 
 Workflow:
 
-`34296859639` — SUCCESS
+`34300302617` — SUCCESS
 
 Verified together:
 
@@ -64,9 +69,9 @@ Verified together:
 
 CI artifact:
 
-- artifact ID `10083511887`;
+- artifact ID `10084726462`;
 - artifact name `dnd-custom-aid-debug-apk`;
-- ZIP digest `sha256:47ae1a07e1995fd83efef8bd7875fd002d0492019c78c79c92f78ee5aaea5ce1`.
+- ZIP digest `sha256:f0bb5ea7b86b0880067e049ff71fb47d97fac8ba27df334ce441ea13729814d0`.
 
 This is an **automated successor implementation checkpoint**, not an owner-auditioned replacement build.
 
@@ -168,11 +173,32 @@ C2 now:
 
 The temporary redundant PC-configuration table/repository explored during implementation was removed before C2 was closed. Inspiration visibility belongs to `CharacterSuccessorPreferences`, alongside tab order, and therefore travels with successor backup state.
 
-### C2/C5 transition
+C2 is technically green but not owner visually accepted yet.
+
+## Increment C3/C4 completed General identity and projections
+
+C3/C4 now:
+
+- replaces the old class identity surface with a compact version-neutral Spanish-facing class/subclass presentation;
+- keeps class level explicit and derives maximum hit-dice count from level rather than presenting a second editable maximum;
+- preserves legacy catalog/source/rules-family metadata internally without ordinary UI clutter;
+- surfaces canonical `Raza` and visible `Idiomas`;
+- surfaces current CA plus equipped-item references without guessing armor categories from names;
+- surfaces configured custom attributes;
+- shows Inspiration only when enabled in the C2 per-character visibility preference;
+- projects enabled Custom Markers and Resources configured for General placement from canonical successor state;
+- replaces the ambiguous global General spellcasting block with compact per-source `Lanzamiento de Conjuros` rows;
+- assembles General from current editor drafts for Background, Equipo, proficiencies and spellcasting so one datum is not split into stale duplicate surface state;
+- routes Inspiration and Resource quick changes through the existing canonical operational `CharacterSheet` save path;
+- preserves the existing closure references for resistance/immunity/vulnerability, senses, special movement, portrait and token rather than silently deleting unrelated persisted functionality.
+
+The inventory domain still lacks a structured armor/shield category. Typed armor/shield narrowing remains a later Equipment/domain task; C3/C4 deliberately does not infer it from item names.
+
+C3/C4 is technically green but not owner visually accepted yet.
+
+### C5 transition
 
 The old special `Habilidades personalizadas` card/editor still exists in the current Habilidades surface. This is **not accepted as final**. C5 must remove that duplicate legacy editing path and render custom skills inline with ordinary skills using the successor mapping already configured from PC Settings.
-
-C2 is technically green but not owner visually accepted yet.
 
 ## Resolved model directions remain controlling
 
@@ -196,8 +222,8 @@ C2 is technically green but not owner visually accepted yet.
 3. **C — navigation + PC Settings + General/Habilidades:** **CURRENT**;
    - C1 character-first entry: COMPLETE / GREEN;
    - C2 PC Settings information architecture: COMPLETE / GREEN;
-   - C3/C4 General: **CURRENT**;
-   - C5 Habilidades: pending;
+   - C3/C4 General: COMPLETE / GREEN;
+   - C5 Habilidades: **CURRENT**;
 4. **D — Combat + Dados** using structured attacks and one target engine;
 5. **E — Gestión + Markers + Resources + cross-domain rests/conditions**;
 6. **F — Conjuros compact source-context redesign**, followed by early phone portrait/landscape owner retest;
@@ -218,7 +244,8 @@ Do not rerun build `40700` screen-by-screen. Global findings already cover app-w
 - Increment B has demonstrated representative responsive/density/toolbar/drag/IME/help primitives and is technically green;
 - C1 character-first navigation is automated-gate green;
 - C2 PC Settings information architecture is automated-gate green;
-- Increment C still requires C3/C4 General and C5 Habilidades before its configuration/identity/skills family is coherent;
+- C3/C4 General identity/projections is automated-gate green;
+- Increment C still requires C5 Habilidades before its configuration/identity/skills family is coherent;
 - early targeted owner phone retest remains after the Conjuros/interaction foundation rather than immediately after data/shared foundations;
 - consolidated successor audition remains after collection/settings/responsive integration;
 - physical tablet acceptance remains required before Phase 4A closure;
@@ -226,24 +253,17 @@ Do not rerun build `40700` screen-by-screen. Global findings already cover app-w
 
 ## Exact next action
 
-Proceed on `implementation/phase4a-successor-cycle` with **C3/C4 — General compact identity and canonical reference/state projections**.
+Proceed on `implementation/phase4a-successor-cycle` with **C5 — Habilidades**.
 
-1. rebuild class identity compactly, with class level clear and maximum hit dice derived from class level rather than redundantly presented as separate state;
-2. use Spanish class/subclass presentation and avoid surfacing edition/source metadata without functional purpose;
-3. surface canonical `Raza` and visible `Idiomas`;
-4. rebuild Defensas around current AC plus equipped armor/shield references, not duplicate armor proficiency state;
-5. show Inspiration only when its C2 visibility preference is enabled;
-6. project enabled Custom Markers and Resources configured for General placement from their canonical successor state;
-7. surface custom attributes;
-8. replace ambiguous global spellcasting reference with compact per-source `Lanzamiento de Conjuros` rows using the successor casting profiles.
+1. render custom skills inline with ordinary skills instead of in a separate `Habilidades personalizadas` card;
+2. remove the transitional special custom-skill editor from Habilidades while retaining structural management in PC Settings;
+3. consume the successor generalized `CharacterAbilityReference` mapping so custom skills may use built-in or custom attributes;
+4. in `Por habilidades`, sort built-in and custom skills together by Spanish display label;
+5. present Arcana as `Conocimiento Arcano`;
+6. in `Por característica`, place custom skills beneath the appropriate built-in or custom attribute group;
+7. retain the owner-approved compact sticky passive-reference area;
+8. do not expose the legacy generic custom-skill `Fuente` field in the Habilidades surface.
 
-Then complete **C5 — Habilidades**:
-
-- render custom skills inline with ordinary skills;
-- remove the transitional special custom-skill card/editor from Habilidades;
-- honor generalized custom-attribute references;
-- apply alphabetical Spanish `Por habilidades` order;
-- use `Conocimiento Arcano`;
-- retain the owner-approved compact passive-reference sticky area.
+After C5 is coherent, run the full automated gate for Increment C and checkpoint the navigation/settings/identity/skills family before proceeding to D — Combat + Dados.
 
 Keep `main` untouched and do not begin DM features.
