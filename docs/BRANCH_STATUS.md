@@ -1,121 +1,38 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-08  
-**Controlling decision:** D-0066  
+**Updated:** 2026-09-09  
+**Controlling consolidation decision:** D-0066  
 **Canonical branch:** `main`  
-**Consolidation status:** COMPLETE
+**Focused continuation branch:** `implementation/phase4a-successor-cycle`  
+**Night-close boundary:** completed successor Increment E
 
-This file exists because the repository accumulated many implementation, safety, retry and QA branches during Phase 4. Branch existence does **not** imply current authority.
+This file exists because the repository accumulated many implementation, safety, retry and QA branch refs during Phase 4. Branch existence does **not** imply current authority.
 
 ## 1. Current authority
 
-After the completed D-0066 consolidation:
+At the 2026-09-09 night-close boundary:
 
-- `main` is the only canonical current development baseline;
+- `main` is the canonical current development baseline;
+- `implementation/phase4a-successor-cycle` is the focused continuation branch for the remaining F–I work;
+- the two are deliberately aligned at the completed-E night-close baseline;
 - `docs/PROJECT_STATE.md` is the authoritative current-state snapshot;
 - `docs/checkpoints/LATEST.md` is the exact resume pointer;
-- future substantial work starts from `main` on a new focused branch;
-- old implementation/tmp branches must not be used to reconstruct current state unless a historical investigation specifically requires them.
+- `docs/checkpoints/2026-09-09_NIGHT_CLOSE_AFTER_INCREMENT_E.md` is the session continuity package.
 
-Canonical does not mean release-ready. The current baseline remains pre-QA/debug with known defects and an open repair backlog.
+Canonical does not mean release-ready or owner-accepted. Increment E is technically green, while owner/device acceptance and increments F–I remain open.
 
-## 2. Verified durable lineage represented by `main`
+## 2. Frozen immutable QA evidence — KEEP
 
-The following durable Phase 4 lines were verified as ancestors of the pre-consolidation source line and are now represented by canonical `main`:
-
-- `implementation/character-data-foundation`;
-- `implementation/phase4-character-closure`;
-- `implementation/phase4-preqa-consolidation`;
-- `implementation/phase4-preqa-ux-repair`.
-
-Before the D-0066 documentation commits, `implementation/phase4-preqa-ux-repair` was 791 commits ahead of old `main` and 0 commits behind it. The prepared consolidation checkpoint was then 804 commits ahead and 0 behind old `main`. `main` was advanced by a normal non-force fast-forward; no history rewrite was required.
-
-The old implementation branches are now historical lineage labels, not current development bases.
-
-## 3. Frozen immutable QA evidence — KEEP
-
-These branches remain intentionally immutable historical evidence:
+These two refs remain intentionally immutable historical evidence:
 
 - `tmp/phase4-l-frozen-qa-candidate`;
 - `tmp/phase4-m5-frozen-qa-candidate`.
 
-Do not force-move, repurpose or treat them as current development branches.
+Never delete, force-move, repurpose or treat them as current development branches merely for tidiness.
 
-## 4. Historical M6 detour
+## 3. Historical milestone branches
 
-`tmp/phase4-m6-qa-pause-docs` diverged from the current line by exactly one unique file:
-
-`docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md`
-
-That record has been copied into canonical history with an explicit **HISTORICAL / SUPERSEDED** notice. The branch itself is no longer needed for current reconstruction.
-
-## 5. Temporary validator/helper content deliberately excluded from product `main`
-
-`tmp/phase4-m5-candidate-validator` contains one unique temporary workflow:
-
-`.github/workflows/tmp-m5-candidate-validator.yml`
-
-That workflow existed only to validate an exact historical candidate. It has no continuing product/build purpose and is intentionally **not** promoted into canonical `main` merely to make every temporary commit reachable from the mainline.
-
-The same rule applies generally to disposable exact-retry, safety and helper scaffolding: current product behavior, durable verification evidence and meaningful checkpoints belong in `main`; obsolete one-off helper machinery does not.
-
-## 6. Temporary/historical branches — NON-CANONICAL
-
-The repository currently contains 45 `tmp/*` branch refs. Except for the frozen branches named above, they are historical implementation/safety/retry evidence and are not valid current resume points.
-
-Current known `tmp/*` refs:
-
-- `tmp/gate-c-association-cleanup`
-- `tmp/gate-j1-exact-retry`
-- `tmp/gate-j2-exact-retry`
-- `tmp/gate-j-final-exact`
-- `tmp/gate-k-exact`
-- `tmp/general-b1-safe-edit`
-- `tmp/increment-d1-navigation-wiring`
-- `tmp/increment-d2-pc-settings-wiring`
-- `tmp/increment-e-trasfondo-wiring`
-- `tmp/increment-f-rasgos-wiring`
-- `tmp/increment-g-source-ui-fix`
-- `tmp/increment-g-source-wiring`
-- `tmp/increment-h-spell-list`
-- `tmp/increment-i-shared-slot-integration`
-- `tmp/increment-j-notes-tab`
-- `tmp/increment-k-responsive-accessibility`
-- `tmp/increment-l-final-regression-qa-target`
-- `tmp/phase4-h3-companions-ui`
-- `tmp/phase4-i1-adaptive-shell`
-- `tmp/phase4-i1-adaptive-shell-wire`
-- `tmp/phase4-i1-adaptive-shell-wire2`
-- `tmp/phase4-i1-adaptive-shell-wire3`
-- `tmp/phase4-i1-adaptive-shell-wire-final`
-- `tmp/phase4-i1-adaptive-shell-wire-final2`
-- `tmp/phase4-i1-adaptive-shell-wire-final3`
-- `tmp/phase4-i1-adaptive-shell-wire-final4`
-- `tmp/phase4-i2a-supercompact`
-- `tmp/phase4-i2b-table-mode`
-- `tmp/phase4-j-backup-import`
-- `tmp/phase4-k-stabilization`
-- `tmp/phase4-l-frozen-qa-candidate` — **KEEP / FROZEN**
-- `tmp/phase4-m4-implementation`
-- `tmp/phase4-m4-scope-holes`
-- `tmp/phase4-m4b-resource-favorites`
-- `tmp/phase4-m4c-character-list`
-- `tmp/phase4-m4d-settings-preview`
-- `tmp/phase4-m4e-rules-source-badges`
-- `tmp/phase4-m4f-state-badges`
-- `tmp/phase4-m5-candidate-validator`
-- `tmp/phase4-m5-consolidation`
-- `tmp/phase4-m5-frozen-qa-candidate` — **KEEP / FROZEN**
-- `tmp/phase4-m6-qa-pause-docs`
-- `tmp/phase4-m-audit-safety`
-- `tmp/phase4-post-l-state`
-- `tmp/skills-b3-safe-edit`
-
-Some safety branches diverge by commit identity because work was later re-integrated/reworked on durable lines. A divergent old commit is not automatically missing current functionality. Use the durable batch checkpoints and current code, not branch ancestry alone, to determine implementation truth.
-
-## 7. Older milestone branches
-
-Older discovery/foundation/architecture/implementation milestone branches may remain as historical labels, but they are not current authority once their accepted content is represented by `main`.
+Older discovery/foundation/architecture/implementation milestone branches may remain as historical labels. They are not current authority once their accepted content is represented by `main`.
 
 Examples include:
 
@@ -124,14 +41,59 @@ Examples include:
 - `architecture/phase2-topology`;
 - `architecture/approved-backend-and-android`;
 - `implementation/initial-scaffold`;
-- `implementation/local-campaign-selection`.
+- `implementation/local-campaign-selection`;
+- `implementation/character-data-foundation`;
+- `implementation/phase4-character-closure`;
+- `implementation/phase4-preqa-consolidation`;
+- `implementation/phase4-preqa-ux-repair`.
 
 Do not start new work from them.
 
-## 8. Branch-ref cleanup policy
+## 4. Obsolete temporary refs
 
-Obsolete non-frozen branch refs are safe candidates for repository-host cleanup if the owner wants the visible branch list reduced. Deleting a merged/superseded branch ref is branch-list housekeeping, not deletion of canonical history already present in `main`.
+The many non-frozen `tmp/*` refs were implementation safety/retry/helper labels accumulated during Phase 4. D-0066 already established that they are not valid resume points.
 
-Never delete the explicitly frozen evidence branches above merely for tidiness.
+At this night-close boundary they are handled as follows:
 
-Until branch refs are physically cleaned up, this file is the controlling interpretation: **old branch presence is historical evidence, not competing project truth.**
+1. write a durable archive index containing each branch name and its final SHA before deletion;
+2. keep the two frozen refs above;
+3. remove the remaining obsolete `tmp/*` refs from the visible branch list;
+4. also remove the clearly invalid/superseded `implementation/phase4a-successor-cycle-temp-invalid` ref after recording its SHA;
+5. leave meaningful historical milestone branches in place.
+
+Deleting those obsolete refs is branch-list housekeeping. It does not rewrite `main`, mutate frozen candidates or change current product state.
+
+Durable archive index:
+
+`docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md`
+
+Use that file when an old deleted branch name/SHA needs historical reconstruction.
+
+## 5. Current successor branch relation to main
+
+Before the night-close fast-forward, `implementation/phase4a-successor-cycle` was a clean descendant of `main` with zero commits behind. The owner explicitly requested consolidation after finishing Increment E.
+
+The night-close operation therefore uses a **normal fast-forward**, not a force push or history rewrite, and aligns both refs at the same completed-E development baseline.
+
+Tomorrow's Increment F work continues on:
+
+`implementation/phase4a-successor-cycle`
+
+A later coherent boundary may again be consolidated into `main` when explicitly desired. Acceptance remains separate from repository ordering.
+
+## 6. Historical M6 and helper evidence
+
+The 2026-09-08 M6 detour record has already been copied into canonical history with a HISTORICAL / SUPERSEDED status. Temporary validator/workflow code that existed only to manipulate or verify old branch refs is intentionally not a product feature and does not need a live branch ref once its relevant evidence is archived.
+
+## 7. Interpretation rule
+
+When branch history is confusing:
+
+1. read `docs/checkpoints/LATEST.md`;
+2. read `docs/PROJECT_STATE.md`;
+3. use `main` for canonical project truth;
+4. use the focused successor branch only for the documented active continuation;
+5. consult the branch-ref archive for deleted historical refs;
+6. consult frozen branches only for exact historical QA evidence.
+
+Do not reconstruct current product truth from an arbitrary old branch merely because the ref still exists.
