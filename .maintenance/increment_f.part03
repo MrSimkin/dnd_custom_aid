@@ -1,0 +1,84 @@
+nterVertically,
+-            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+-        ) {
+-            LazyRow(
+-                modifier = Modifier.weight(1f),
+-                state = sourceListState,
+-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+-                verticalAlignment = Alignment.CenterVertically,
+-            ) {
+-                item(key = "all-sources") {
+-                    if (selectedSource == null) {
+-                        Button(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
+-                    } else {
+-                        OutlinedButton(onClick = { selectedSourceId = null }) { Text("Todos", maxLines = 1) }
+-                    }
+-                }
+-                items(
+-                    count = draft.sources.size,
+-                    key = { index -> draft.sources[index].id.toString() },
+-                ) { index ->
+-                    val source = draft.sources[index]
+-                    val sourceLabel: @Composable () -> Unit = {
+-                        Text(
+-                            source.name,
+-                            modifier = Modifier.widthIn(max = 180.dp),
+-                            maxLines = 1,
+-                            softWrap = false,
+-                            overflow = TextOverflow.Ellipsis,
+-                        )
+-                    }
+-                    if (selectedSource?.id == source.id) {
+-                        Button(onClick = { selectedSourceId = source.id.toString() }) {
+-                            sourceLabel()
+-                        }
+-                    } else {
+-                        OutlinedButton(onClick = { selectedSourceId = source.id.toString() }) {
+-                            sourceLabel()
+-                        }
+-                    }
+-                }
+-            }
+-            if (structuralEditingEnabled) {
+-                StableSettingsIconButton(
+-                    onClick = { managerOpen = true },
+-                    contentDescription = "Gestionar fuentes de conjuros",
+-                )
+-            }
+-        }
+-
+-        HorizontalDivider()
+-
+         CharacterSpellListClosureV4(
+             draft = draft,
+             slotStates = slotStates,
+@@ -193,9 +153,21 @@ internal fun CharacterSpellsTabV4(
+             onClosureStateChange = onClosureStateChange,
+             wide = wide,
+             hapticsEnabled = hapticsEnabled,
++            sourceContextContent = {
++                SpellSourceContextSelectorV4(
++                    sources = draft.sources,
++                    spellcastingRows = spellcastingRows,
++                    successorState = successorState,
++                    selectedSourceId = selectedSource?.id,
++                    onSelectedSourceChange = { sourceId ->
++                        selectedSourceId = sourceId?.toString()
++                    },
++                    onManageSources = if (structuralEditingEnabled) {
++                        { managerOpen = true }
++                    } else {
++                        null
++                    },
++                )
++            },
+         )
+     }
+@@ -302,6 +273,116 @@ internal fun CharacterSpellsTabV4(
+     }
+ }
+
++@Composable
++private fun SpellSourceContextSelectorV4(
++    sources: List<CharacterSpellcastingSource>,
++    spellcastingRows: List<CharacterGeneralS

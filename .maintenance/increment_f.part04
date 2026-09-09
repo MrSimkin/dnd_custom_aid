@@ -1,0 +1,77 @@
+pellcastingRow>,
++    successorState: CharacterSuccessorState,
++    selectedSourceId: Uuid?,
++    onSelectedSourceChange: (Uuid?) -> Unit,
++    onManageSources: (() -> Unit)?,
++) {
++    var menuOpen by remember { mutableStateOf(false) }
++    val rowBySource = remember(spellcastingRows) {
++        spellcastingRows.associateBy { it.source.id }
++    }
++    val selectedSource = selectedSourceId?.let { sourceId ->
++        sources.firstOrNull { it.id == sourceId }
++    }
++    val selectedRow = selectedSource?.let { rowBySource[it.id] }
++    val selectedAbility = selectedRow?.profile?.ability
++        ?.let { characterAbilityReferenceAbbreviation(it, successorState) }
++        ?: "—"
++    val selectedSaveDc = selectedRow?.saveDc?.toString() ?: "—"
++    val selectedAttack = selectedRow?.spellAttackModifier?.spellSourceSignedV4() ?: "—"
++
++    Box {
++        Surface(
++            modifier = Modifier
++                .fillMaxWidth()
++                .heightIn(min = 34.dp)
++                .clickable { menuOpen = true },
++            shape = MaterialTheme.shapes.small,
++            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
++            color = MaterialTheme.colorScheme.surface,
++        ) {
++            Row(
++                modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(4.dp)),
++                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
++                verticalAlignment = Alignment.CenterVertically,
++            ) {
++                Text(
++                    selectedSource?.name ?: "Todos",
++                    modifier = Modifier.weight(1f),
++                    style = MaterialTheme.typography.labelMedium,
++                    maxLines = 1,
++                    overflow = TextOverflow.Ellipsis,
++                )
++                if (selectedSource != null) {
++                    Text(
++                        "($selectedAbility) · CD $selectedSaveDc · Ataque $selectedAttack",
++                        style = MaterialTheme.typography.labelSmall,
++                        maxLines = 1,
++                    )
++                }
++                Text("▾", style = MaterialTheme.typography.labelSmall)
++            }
++        }
++        DropdownMenu(
++            expanded = menuOpen,
++            onDismissRequest = { menuOpen = false },
++        ) {
++            DropdownMenuItem(
++                text = { Text("Todos los conjuros") },
++                onClick = {
++                    onSelectedSourceChange(null)
++                    menuOpen = false
++                },
++            )
++            sources.sortedBy { it.sortOrder }.forEach { source ->
++                val row = rowBySource[source.id]
++                val ability = row?.profile?.ability
++                    ?.let { characterAbilityReferenceAbbreviation(it, successorState) }
++                    ?: "—"
++                val saveDc = row?.saveDc?.toString() ?: "—"
++                val attack = row?.spellAttackModifier?.spellSourceSignedV4() ?: "—"
++                DropdownMenuItem(
++                    text = {
++                        Column {
++                            Text(source.name.ifBlank { "Fuente sin nombre" })
++                            Text(
++                                "$ability · CD $saveDc · Ataque $attack",
++                                style = MaterialTheme.typography.labelS

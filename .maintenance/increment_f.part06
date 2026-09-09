@@ -1,0 +1,66 @@
+        selectedEditingId = editingSpellId?.takeIf { editorOpen },
++            sourceContextContent = sourceContextContent,
+             onQueryChange = ::updateQuery,
+             onOrderChange = { orderName = it.name },
+             onCollapsedLevelsChange = { collapsedLevelsText = encodeSpellLevelSetG2(it) },
+@@ -378,7 +381,7 @@ internal fun CharacterSpellListClosureV4(
+                             preparedSourceIds = editorPrepared,
+                             validationMessage = spellEditorValidationG2(editorName, parsedEditorLevel, editorAssociated),
+                             onNameChange = { editorName = it },
+-                            onLevelChange = { editorLevel = spellLevelInputG2(it) },
++                            onLevelChange = { editorLevel = normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1) },
+                             onCastingTimeChange = { editorCastingTime = it },
+                             onRangeTextChange = { editorRangeText = it },
+                             onVerbalChange = { editorVerbal = it },
+@@ -470,7 +473,7 @@ internal fun CharacterSpellListClosureV4(
+                     preparedSourceIds = editorPrepared,
+                     validationMessage = spellEditorValidationG2(editorName, parsedEditorLevel, editorAssociated),
+                     onNameChange = { editorName = it },
+-                    onLevelChange = { editorLevel = spellLevelInputG2(it) },
++                    onLevelChange = { editorLevel = normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1) },
+                     onCastingTimeChange = { editorCastingTime = it },
+                     onRangeTextChange = { editorRangeText = it },
+                     onVerbalChange = { editorVerbal = it },
+@@ -550,6 +553,7 @@ private fun SpellCollectionG2(
+     canReorder: Boolean,
+     structuralEditingEnabled: Boolean,
+     selectedEditingId: String?,
++    sourceContextContent: @Composable () -> Unit,
+     onQueryChange: (CharacterCollectionQuery) -> Unit,
+     onOrderChange: (CharacterPresentationOrder) -> Unit,
+     onCollapsedLevelsChange: (Set<Int>) -> Unit,
+@@ -569,43 +573,25 @@ private fun SpellCollectionG2(
+         modifier = modifier,
+         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+     ) {
+-        Card(
++        CharacterCollectionToolbarV4(
++            itemCount = visibleCount,
++            query = query,
++            onQueryChange = onQueryChange,
++            order = order,
++            onOrderChange = onOrderChange,
++            filters = spellFiltersG2(selectedSourceId),
++            searchLabel = "Buscar",
++            collapsibleSearch = true,
++            showItemCount = false,
+             modifier = Modifier
+-                .fillMaxWidth()
+                 .padding(
+                     start = appSpacingV4(6.dp),
+                     end = appSpacingV4(6.dp),
+                     top = appSpacingV4(5.dp),
+                 ),
+-        ) {
+-            Column(
+-                modifier = Modifier
+-                    .fillMaxWidth()
+-                    .padding(
+-                        horizontal = appSpacingV4(7.dp),
+-                        vertical = appSpacingV4(6.dp),
+-                    ),
+-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+-            ) {
+-                Row(
+-                    modifier = Modifier.fillMaxWidth(),
+-           

@@ -1,0 +1,51 @@
+          horizontalArrangement = Arrangement.SpaceBetween,
+-                    verticalAlignment = Alignment.CenterVertically,
+-                ) {
+-                    Text("Conjuros", style = MaterialTheme.typography.titleSmall)
+-                    TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
+-                }
+-                CharacterCollectionToolbarV4(
+-                    itemCount = visibleCount,
+-                    query = query,
+-                    onQueryChange = onQueryChange,
+-                    order = order,
+-                    onOrderChange = onOrderChange,
+-                    filters = spellFiltersG2(selectedSourceId),
+-                    searchLabel = "Buscar conjuros",
+-                )
+-            }
+-        }
++            contextContent = sourceContextContent,
++            onAdd = if (structuralEditingEnabled) onAdd else null,
++        )
+
+         LazyColumn(
+             modifier = Modifier
+@@ -1054,8 +1033,6 @@ private fun spellEditorValidationG2(
+     else -> null
+ }
+
+-private fun spellLevelInputG2(raw: String): String = raw.filter(Char::isDigit).take(1)
+-
+ private fun spellLevelLabelG2(level: Int): String = if (level == 0) "Trucos" else "Nivel $level"
+
+ private fun parseSpellLevelSetG2(raw: String): Set<Int> = raw
+diff --git a/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt b/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+--- a/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
++++ b/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+@@ -82,5 +82,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterAbilityReferenceAbbreviation
+ import io.github.mrsimkin.dndcustomaid.shared.character.customSavingThrowTotal
+ import io.github.mrsimkin.dndcustomaid.shared.character.customSkillTotal
++import io.github.mrsimkin.dndcustomaid.shared.character.generalSpellcastingRows
+ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSkills
+ import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
+ import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
+@@ -729,6 +730,8 @@ internal fun CharacterEditorScreenV4(
+                         )
+                         CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
+                             draft = spellcastingDraft,
++                            spellcastingRows = overviewProjectionSheet.generalSpellcastingRows(successorState),
++                            successorState = successorState,
+                             slotStates = draft.spellSlots.map { slot ->
+                                 val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                                 CharacterSpellSlotUiV4(

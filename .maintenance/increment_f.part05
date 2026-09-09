@@ -1,0 +1,75 @@
+mall,
++                            )
++                        }
++                    },
++                    onClick = {
++                        onSelectedSourceChange(source.id)
++                        menuOpen = false
++                    },
++                )
++            }
++            if (onManageSources != null) {
++                HorizontalDivider()
++                DropdownMenuItem(
++                    text = { Text("Gestionar fuentes…") },
++                    onClick = {
++                        menuOpen = false
++                        onManageSources()
++                    },
++                )
++            }
++            HorizontalDivider()
++            CharacterHelpV4(
++                "La aptitud, la CD de salvación y el ataque de conjuro pertenecen a cada fuente de conjuros.",
++                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
++            )
++        }
++    }
++}
++
++private fun Int.spellSourceSignedV4(): String = if (this >= 0) "+$this" else toString()
++
+ @Composable
+ private fun SourceManagerDialogV4(
+     sources: List<CharacterSpellcastingSource>,
+@@ -324,8 +393,7 @@ private fun SourceManagerDialogV4(
+             ) {
+                 item {
+-                    Text(
++                    CharacterHelpV4(
+                         "Las fuentes organizan una sola colección de conjuros. Pueden vincularse opcionalmente a una clase o ser completamente personalizadas.",
+-                        style = MaterialTheme.typography.bodySmall,
+                     )
+                 }
+                 item {
+@@ -493,9 +560,8 @@ private fun SourceEditorDialogV4(
+                     }
+                 }
+             }
+-            Text(
++            CharacterHelpV4(
+                 "El vínculo es solo una referencia. No crea ni elimina automáticamente fuentes o conjuros.",
+-                style = MaterialTheme.typography.labelSmall,
+             )
+         }
+         CharacterInlineValidationMessage(
+diff --git a/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt b/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt
+--- a/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt
++++ b/androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt
+@@ -68,5 +68,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterSpellManual
+ import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterSpellSortOrder
+ import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterSpellOrders
++import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
+ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSpellLevel
+ import io.github.mrsimkin.dndcustomaid.shared.character.spellPreparedForView
+ import io.github.mrsimkin.dndcustomaid.shared.character.spellVisibleForSource
+@@ -91,4 +92,5 @@ internal fun CharacterSpellListClosureV4(
+     onClosureStateChange: (CharacterClosureState) -> Unit,
+     wide: Boolean,
+     hapticsEnabled: Boolean,
++    sourceContextContent: @Composable () -> Unit,
+ ) {
+@@ -287,6 +289,7 @@ internal fun CharacterSpellListClosureV4(
+             canReorder = canReorder,
+             structuralEditingEnabled = structuralEditingEnabled,
+     
