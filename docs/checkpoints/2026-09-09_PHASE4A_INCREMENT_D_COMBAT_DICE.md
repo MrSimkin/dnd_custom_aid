@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** IMPLEMENTED; FINAL AUTOMATED GATE PENDING
+**Status:** IMPLEMENTED; FINAL AUTOMATED GATE RETRY PENDING
 
 ## Scope
 
@@ -45,6 +45,8 @@ Save order is explicit:
 3. persist `CharacterSuccessorState.combatDamage` through the existing successor repository context.
 
 This preserves current draft semantics and avoids hidden persistence side effects.
+
+Structured-damage draft state also participates in the editor's unsaved-change detection, so damage-only edits use the same leave/Back protection as ordinary character edits.
 
 ## D2 — compact character-aware Dice flow
 
@@ -112,7 +114,7 @@ It owns:
 
 Focused common tests cover mode selection, custom targets, source-specific spell attacks, damage parsing/rolling and legacy fallback.
 
-## Source evidence before final gate
+## Source evidence
 
 - shared engine: `650152cf953a662d86ab3c29f0d82be5f6cee94a`;
 - focused tests: `6695a905170aed17cd04ad1615c2c2759cf2d8d1`;
@@ -124,9 +126,34 @@ Focused common tests cover mode selection, custom targets, source-specific spell
 - D3 persisted result mode: `e4b3e58bd60fb1ceb76ea0bfde6f849a5c85645c`;
 - all guarded integration patches matched their expected anchors and passed `git diff --check` before commit.
 
+## First integrated gate and correction
+
+Normal full scaffold workflow `34303994398` ran on checkpoint descendant `6bec814345d8a5b342a795ee3b71a05ebef91d0b`.
+
+Results before Android compilation:
+
+- backend/type-check: PASS;
+- shared common tests: reached/passed their compile/test path;
+- desktop application build: PASS.
+
+Android compilation then failed on exactly two access errors:
+
+- `CharacterCombatSuccessorV4.kt`: attempted to call `sanitizeSignedIntV4`, which is private to `CharacterEditorV4.kt`;
+- `CharacterDiceRollSuccessorV4.kt`: same private-helper access error.
+
+No domain/schema/interaction-model defect was indicated by this failure.
+
+Correction:
+
+- shared Android signed-integer draft helper added in `005189df77614ff9f07ae55380f8203823b58049`;
+- both new D surfaces switched to that helper through an exact-guarded patch;
+- patch workflow `34304259045` — SUCCESS;
+- corrected integrated source head: `96c285edbed3b957edff4ba9b52345e786f285a6`;
+- temporary patch files removed in the same correction commit.
+
 ## Exit condition
 
-Increment D becomes technically complete only when the normal full scaffold gate succeeds on a descendant containing `e4b3e58bd60fb1ceb76ea0bfde6f849a5c85645c`.
+Increment D becomes technically complete only when the normal full scaffold gate succeeds on a descendant containing correction commit `96c285edbed3b957edff4ba9b52345e786f285a6`.
 
 After that:
 
