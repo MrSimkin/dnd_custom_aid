@@ -1,0 +1,44 @@
+   onVerbalChange = { editorVerbal = it },
+@@ -550,6 +553,7 @@ private fun SpellCollectionG2(
+     canReorder: Boolean,
+     structuralEditingEnabled: Boolean,
+     selectedEditingId: String?,
++    sourceContextContent: @Composable () -> Unit,
+     onQueryChange: (CharacterCollectionQuery) -> Unit,
+     onOrderChange: (CharacterPresentationOrder) -> Unit,
+     onCollapsedLevelsChange: (Set<Int>) -> Unit,
+@@ -569,43 +573,25 @@ private fun SpellCollectionG2(
+         modifier = modifier,
+         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+     ) {
+-        Card(
++        CharacterCollectionToolbarV4(
++            itemCount = visibleCount,
++            query = query,
++            onQueryChange = onQueryChange,
++            order = order,
++            onOrderChange = onOrderChange,
++            filters = spellFiltersG2(selectedSourceId),
++            searchLabel = "Buscar",
++            collapsibleSearch = true,
++            showItemCount = false,
+             modifier = Modifier
+-                .fillMaxWidth()
+                 .padding(
+                     start = appSpacingV4(6.dp),
+                     end = appSpacingV4(6.dp),
+                     top = appSpacingV4(5.dp),
+                 ),
+-        ) {
+-            Column(
+-                modifier = Modifier
+-                    .fillMaxWidth()
+-                    .padding(
+-                        horizontal = appSpacingV4(7.dp),
+-                        vertical = appSpacingV4(6.dp),
+-                    ),
+-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+-            ) {
+-                Row(
+-                    modifier = Modifier.fillMaxWidth(),
+-          

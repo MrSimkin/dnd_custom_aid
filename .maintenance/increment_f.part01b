@@ -1,0 +1,42 @@
+rtically,
+         ) {
+-            contextContent?.invoke()
++            if (contextContent != null && (!collapsibleSearch || !searchExpanded)) {
++                if (collapsibleSearch) {
++                    Box(modifier = Modifier.weight(1f)) {
++                        contextContent()
++                    }
++                } else {
++                    contextContent()
++                }
++            }
+
+-            CharacterCompactSearchV4(
+-                value = query.searchText,
+-                onValueChange = { onQueryChange(query.copy(searchText = it)) },
+-                label = searchLabel,
+-                modifier = Modifier.weight(1f),
+-            )
++            if (collapsibleSearch) {
++                if (searchExpanded) {
++                    CharacterCompactSearchV4(
++                        value = query.searchText,
++                        onValueChange = { onQueryChange(query.copy(searchText = it)) },
++                        label = searchLabel,
++                        modifier = Modifier.weight(1f),
++                    )
++                    CharacterToolbarChipV4(
++                        text = "Cerrar",
++                        selected = false,
++                        onClick = { searchExpanded = false },
++                    )
++                } else {
++                    CharacterToolbarChipV4(
++                        text = if (query.searchText.isBlank()) "Buscar" else "Buscar •",
++                        selected = query.searchText.isNotBlank(),
++                        onClick = { searchExpanded = true },
++                    )
++                }
++            } else {
++                CharacterCompactSearchV4(
++                   
