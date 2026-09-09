@@ -10,7 +10,9 @@ CREATE TABLE character_closure_settings (
     experience_points INTEGER NOT NULL DEFAULT 0,
     milestone_progress TEXT NOT NULL DEFAULT '',
     table_mode_enabled INTEGER NOT NULL DEFAULT 0,
-    haptics_enabled INTEGER NOT NULL DEFAULT 1
+    haptics_enabled INTEGER NOT NULL DEFAULT 1,
+    haptic_strength TEXT NOT NULL DEFAULT 'MEDIUM',
+    haptic_duration TEXT NOT NULL DEFAULT 'SHORT'
 );
 
 CREATE TABLE character_condition (
@@ -129,14 +131,14 @@ upsertClosureSettings:
 INSERT OR REPLACE INTO character_closure_settings(
     character_id, exhaustion_level, concentration_spell_id, concentration_name, concentration_notes,
     portrait_ref, token_ref, progress_mode, experience_points, milestone_progress,
-    table_mode_enabled, haptics_enabled
+    table_mode_enabled, haptics_enabled, haptic_strength, haptic_duration
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectClosureSettings:
 SELECT character_id, exhaustion_level, concentration_spell_id, concentration_name, concentration_notes,
        portrait_ref, token_ref, progress_mode, experience_points, milestone_progress,
-       table_mode_enabled, haptics_enabled
+       table_mode_enabled, haptics_enabled, haptic_strength, haptic_duration
 FROM character_closure_settings
 WHERE character_id = ?;
 
@@ -167,11 +169,11 @@ deleteDefenses:
 DELETE FROM character_defense WHERE character_id = ?;
 
 insertMovement:
-INSERT INTO character_movement(id, character_id, movement_type, name, speed_feet, notes, sort_order)
+INSERT INTO character_movement(id, character_id, name, movement_type, speed_feet, notes, sort_order)
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
 selectMovements:
-SELECT id, character_id, movement_type, name, speed_feet, notes, sort_order
+SELECT id, character_id, name, movement_type, speed_feet, notes, sort_order
 FROM character_movement
 WHERE character_id = ?
 ORDER BY sort_order, id;
@@ -279,7 +281,7 @@ deleteModuleOverrides:
 DELETE FROM character_module_override WHERE character_id = ?;
 
 insertQuickAccess:
-INSERT INTO character_quick_access(character_id, target_kind, target_id, sort_order)
+INSERT OR REPLACE INTO character_quick_access(character_id, target_kind, target_id, sort_order)
 VALUES (?, ?, ?, ?);
 
 selectQuickAccess:
