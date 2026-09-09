@@ -8,6 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import kotlin.uuid.Uuid
@@ -18,8 +20,11 @@ internal data class CharacterPcPresentationV4(
 )
 
 internal data class CharacterPcSettingsContextV4(
+    val characterId: Uuid,
     val successorState: CharacterSuccessorState,
     val onSuccessorStateChange: (CharacterSuccessorState) -> Unit,
+    /** Fresh read of the authoritative core sheet; this callback never owns or persists a copy. */
+    val loadCanonicalSheet: () -> CharacterSheet?,
 ) {
     val pcConfiguration: CharacterPcPresentationV4
         get() = CharacterPcPresentationV4(successorState.preferences.inspirationVisible)
@@ -42,6 +47,7 @@ internal val LocalCharacterPcSettingsContextV4 =
 @Composable
 internal fun CharacterPcSettingsStateProviderV4(
     characterId: Uuid,
+    characterRepository: CharacterRepository,
     successorRepository: CharacterSuccessorRepository,
     content: @Composable () -> Unit,
 ) {
@@ -52,12 +58,14 @@ internal fun CharacterPcSettingsStateProviderV4(
     val hapticStore = remember(androidContext) { CharacterHapticPreferencesStore(androidContext) }
 
     val settingsContext = CharacterPcSettingsContextV4(
+        characterId = characterId,
         successorState = successorState,
         onSuccessorStateChange = { updated ->
             if (updated != successorState) {
                 successorState = successorRepository.saveState(characterId, updated)
             }
         },
+        loadCanonicalSheet = { characterRepository.character(characterId) },
     )
 
     CharacterHapticSettingsProviderV4(store = hapticStore) {
