@@ -1,0 +1,45 @@
+name: F owner retest dialog repair once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/f-dialog-owner-retest-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - name: Apply guarded dialog and IME repair
+        run: python3 .github/f-dialog-owner-retest-once.py
+      - name: Check patch hygiene
+        run: git diff --check
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+      - name: Verify owner retest dialog checkpoint
+        run: gradle :shared:desktopTest :androidApp:compileDebugKotlin --stacktrace
+      - name: Commit dialog repair and self-remove
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/f-dialog-owner-retest-once.yml .github/f-dialog-owner-retest-once.py
+          git add -A
+          git commit -m 'fix: make character editors scroll with IME'
+          git push
