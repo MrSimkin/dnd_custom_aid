@@ -2,11 +2,13 @@
 
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** AUTOMATED GATE GREEN / OWNER DEVICE RETEST FAILED / REPAIR REQUIRED  
+**Status:** REPAIR AUTOMATED-GREEN / TARGETED OWNER DEVICE RETEST PENDING  
 **Pre-F baseline:** `f7f0389fde4fd3a72ca8f8a547dae38255825266`  
-**Active Increment F source commit:** `0e25fb0a84c2be63a16fee709bd7e96d7469373b`  
-**Authoritative integrated validation commit:** `4ba248f7749a062ac40e1e0c46c0687f4caccbbf`  
-**Authoritative workflow:** `34376169597` — SUCCESS
+**Original Increment F source commit:** `0e25fb0a84c2be63a16fee709bd7e96d7469373b`  
+**Original authoritative workflow:** `34376169597` — SUCCESS, followed by owner-device retest failure  
+**Repaired product source commit:** `8bb328153bb0f73ef220afdbf0f53407efe9b2e6`  
+**Repair residual-audit cleanup commit:** `bf0ae2c`  
+**Repair integrated workflow:** `34392690411` — SUCCESS
 
 ## Scope implemented
 
@@ -23,19 +25,20 @@ Increment F replaced the vertically expensive Conjuros source-selector/header st
 
 ### F2 — compact search/filter/add behavior
 
-`CharacterCollectionToolbarV4` received backward-compatible opt-in controls:
+`CharacterCollectionToolbarV4` uses compact opt-in controls:
 
 - `collapsibleSearch = true` opens Conjuros search in the same fixed toolbar row;
-- while search is expanded, source context is temporarily replaced by the search field plus `Cerrar`;
+- while search is expanded, source context and ancillary controls are temporarily replaced by the search field plus `Cerrar`;
 - non-empty collapsed search remains indicated by `Buscar •`;
 - `showItemCount = false` preserves horizontal room;
-- Manual/A–Z, filters and add remain functionally available;
+- sort uses a compact shared icon control while preserving Manual/A–Z functionality;
+- filters and add remain functionally available;
 - other toolbar consumers retain previous behavior by default.
 
 ### F3 — source authority preserved
 
 - no new shared/domain state was introduced;
-- no generic free-text `Fuente` field was added;
+- no generic free-text `Fuente` field was added to the spell-source model;
 - spell sources remain `CharacterSpellcastingSource` identities that may link to a class or remain custom/unlinked;
 - source add/edit/delete/reorder semantics remain intact;
 - source-specific spellcasting values continue to project from the canonical successor spellcasting profiles through `generalSpellcastingRows(successorState)`;
@@ -52,89 +55,161 @@ Increment F replaced the vertically expensive Conjuros source-selector/header st
 - source-system explanatory copy uses the existing `CharacterHelpV4` authority;
 - the source dropdown explains that casting ability, save DC and spell attack belong to each source.
 
-## Automated evidence
+## Original automated boundary and failed owner retest
 
-A self-removing one-off maintenance helper was used because the connected GitHub API could write the repository while the execution container had no direct GitHub checkout/network path.
+The original F implementation passed workflow `34376169597` on validation commit `4ba248f7749a062ac40e1e0c46c0687f4caccbbf` and produced artifact `10114037181`.
 
-- staging commit: `888f4d22aef22041e9ff50c934fced2fe3c54c46`;
-- first helper workflow `34375078206` failed safely during `git apply --check`; no source delta was committed;
-- transport repair commit: `52bee78bbef00ec107c06e195ce93377cb34e475`;
-- successful helper workflow: `34375529779` — SUCCESS;
-- patch `git apply --check`: PASS;
-- `:shared:desktopTest`: PASS;
-- `:androidApp:compileDebugKotlin`: PASS;
-- resulting source commit: `0e25fb0a84c2be63a16fee709bd7e96d7469373b`;
-- helper workflow and `.maintenance` files self-removed;
-- net product-code diff from pre-F baseline contains exactly four Android source files.
+The first Redmi Note 11 Pro 5G physical retest then **failed owner acceptance**. Blocking findings were:
 
-### Final integrated gate
+- spell drag/reorder could skip two cards;
+- reorder incorrectly depended on a visible drag handle rather than whole-card long-press/drag;
+- raw Unicode favorite-star presentation was visually unacceptable;
+- portrait toolbar controls were awkwardly compressed;
+- spell-card actions consumed unnecessary vertical tiers;
+- spell editor left naturally compatible short controls on separate rows;
+- keyboard still obscured editor content despite the prior shared IME wrapper.
 
-Workflow `34376169597` — **SUCCESS** on validation commit `4ba248f7749a062ac40e1e0c46c0687f4caccbbf`.
+Technical diagnosis confirmed a private spell-row `detectDragGesturesAfterLongPress` path, fixed `66.dp` threshold, multi-step `while` behavior, stale callback risk, raw star text, stacked action tiers, and a non-filling weighted IME body.
 
-Verified together:
+## F repair pass completed
+
+The reopened repair pass addresses the diagnosed blockers without changing canonical spell/source authority.
+
+### R1 — whole-card measured stale-safe drag
+
+- `SpellRowG2` uses shared `characterMeasuredReorderDragV4` on the card surface;
+- no spell-card drag handle is required;
+- the shared low-level detector keeps callbacks current through `rememberUpdatedState`;
+- reorder threshold is derived from rendered card height;
+- one pointer update can cause at most one logical move;
+- accumulated distance resets after a successful/blocked step;
+- the old spell-row fixed `66.dp`, private detector and multi-step `while` path are gone.
+
+Physical drag feel remains an owner-device audition item; automated evidence cannot establish tactile acceptance.
+
+### R2 — compact stable card actions
+
+- raw favorite `★/☆` button controls were replaced app-wide with `StableFavoriteIconButton`;
+- duplicate and remove actions use shared icon controls;
+- spell favorite/duplicate/remove controls share the primary card row instead of forming a vertical action tower;
+- equivalent obvious secondary-card action towers were flattened in Forms, Companions, Artifice and class-option surfaces;
+- the residual audit found zero raw Unicode favorite controls and zero remaining `Text("Duplicar")` controls in Android character UI.
+
+### R3 — responsive collection toolbar
+
+- expanded Conjuros search receives the toolbar row except for its close control;
+- source context and ancillary order/filter/add controls are suppressed while search is expanded rather than compressed into the same width;
+- compact sort control preserves Manual/A–Z behavior;
+- collapsed active search remains visible as state without adding a permanent row.
+
+### R4 — editor row efficiency
+
+Conjuros now pairs naturally short fields:
+
+- `Nivel + Tiempo de lanzamiento`;
+- `Alcance + Duración`;
+- V/S/M remain a compact boolean row;
+- Concentración/Ritual remain a compact boolean row.
+
+The same app-wide compactness rule was applied conservatively to existing short editor metadata where readability remains sensible on phone width, including:
+
+- `Raza + Religión / Fe`;
+- combat `Ataque + Alcance`;
+- sense `Sentido + Alcance`;
+- movement `Nombre + Velocidad`;
+- custom characteristic `Abreviatura + Puntuación`;
+- Forms `Fuente + CR`;
+- Artifice/class-option `Fuente + Coste`.
+
+Long descriptive fields remain full-width.
+
+### R5 — shared IME/window geometry and compactness
+
+`CharacterImeSafeEditorDialog` now:
+
+- uses full available dialog height after IME/navigation insets;
+- keeps the editor body as a real `weight(1f)` scroll region;
+- keeps save/cancel actions fixed outside the scrolling body;
+- uses compact spacing through the shared `appSpacingV4` authority.
+
+Shared confirmation/editor/settings window interiors were also tightened. Some raw container/control paddings intentionally remain because the residual audit separates visual-density opportunities from required interaction hit geometry; they were not mass-scaled blindly.
+
+### R6 — text-size observation audit
+
+The owner's observation that text size appeared not to affect window text was explicitly audited:
+
+- Android UI has zero explicit `fontSize = ...` overrides;
+- application text scaling is applied through `LocalDensity.fontScale` above `MaterialTheme` in `DndCustomAidTheme`;
+- dialogs are therefore structurally expected to inherit the same font scale as ordinary screen content.
+
+This remains a **physical verification item**, not a closed visual finding. The Redmi retest must compare actual glyph size inside an editor at a clearly small setting (70%) and large setting (160%). If glyphs do not visibly change, investigate the Compose dialog/window boundary. If glyphs change but fields remain visually tall, treat that separately as Material text-field internal-frame/padding geometry rather than inventing a second text-size authority.
+
+## Residual audit
+
+One self-removing repository audit scanned 60 Android Kotlin files and passed all critical F invariants:
+
+- whole-card measured spell drag: PASS;
+- legacy private/fixed-step spell drag in `SpellRowG2`: absent;
+- compact Conjuros search/sort/source wiring: PASS;
+- shared numeric normalization: present;
+- IME-safe full-height/weighted-scroll geometry: PASS;
+- raw Unicode favorite controls: `0`;
+- explicit Android `fontSize` overrides: `0`;
+- text `Duplicar` controls: `0`;
+- IME-safe editor caller files: `23`.
+
+The audit reported 42 raw horizontal+vertical `dp` padding pairs elsewhere. They are recorded as non-blocking density findings, not automatically rewritten, because some belong to interactive custom surfaces where blind spacing reduction could violate required touch geometry.
+
+Audit workflow `34392690399` — SUCCESS. The helper self-removed in commit `bf0ae2c`; no temporary audit workflow remains.
+
+## Repaired integrated gate
+
+Workflow `34392690411` — **SUCCESS** on head `6f0d09b2bf00b3f9ace8c10af0dd56dd87ed97a6`.
+
+That validation head contains the repaired product code from source commit `8bb328153bb0f73ef220afdbf0f53407efe9b2e6` plus only the transient residual-audit helper files; the helper was then removed without changing product code.
+
+Verified together by the repository's normal `Scaffold checks` workflow:
 
 - backend/type-check: PASS;
-- shared/Kotlin tests: PASS;
-- Android debug compilation/assembly: PASS;
-- desktop compilation/build: PASS;
+- `:shared:desktopTest`: PASS;
+- Android debug assembly: PASS;
+- desktop build: PASS;
 - Android debug APK upload: PASS.
 
 Artifact:
 
-- ID `10114037181`;
+- ID `10120351510`;
 - name `dnd-custom-aid-debug-apk`;
-- size `13235995` bytes;
-- ZIP digest `sha256:a0aa9ddfeeaa74bffa17ecb15dd1d3e0880c7238159c9058bfc80beaeec5041d`;
-- generated `2026-09-09T16:23:40Z`.
+- uploaded ZIP size `13,230,630` bytes;
+- ZIP digest `sha256:6461c90cde69ffa0b3e255721f040553da3acec7041dbeb5216e3e801c49d83d`;
+- generated `2026-09-09T19:05:15Z`;
+- extracted APK size `37,718,132` bytes;
+- extracted APK SHA-256 `5ec1e17298aa6d31fbdb84be0c7bbdd2a8c2ebf7c1fb47994e572207cb998d72`.
 
-## Owner physical retest — Redmi Note 11 Pro 5G
+## Exact next action — targeted owner repair retest
 
-The first Increment F owner-device retest was performed on 2026-09-09 and **did not accept Increment F**.
+Do **not** begin Increment G yet.
 
-Confirmed observations:
+Install the repaired APK on the Redmi Note 11 Pro 5G and test, at minimum:
 
-- filters behave acceptably;
-- spell drag/reorder is severely incorrect and can skip two cards;
-- the visible three-line drag handle is contrary to the owner interaction model: reorder must start by long-pressing and dragging the card itself, not by requiring a handle;
-- the current star/favorite presentation is visually unacceptable;
-- portrait toolbar controls are visually awkward/over-compressed;
-- spell cards still waste vertical space and split controls across unnecessary rows;
-- the spell editor still fails the app-wide row-efficiency requirement: several short controls that naturally fit together remain on separate full-width rows;
-- the keyboard still hides part of editor content, so the shared IME-safe editor is not yet physically safe on the owner phone.
+1. Conjuros portrait: source context, search, sort, filters and add remain understandable without awkward compression;
+2. Conjuros landscape: ordinary spell-list content is visible; controls do not consume the usable viewport;
+3. search opens in the same toolbar footprint and does not stack a new permanent row;
+4. collapsed non-empty search remains visibly indicated;
+5. source selector shows per-source aptitud/CD/ataque correctly; `Todos` does not invent global values;
+6. custom/unlinked source and linked-class source behavior still work;
+7. prepared/list/source filtering behaves correctly;
+8. whole-card long-press drag no longer skips cards and does not require a visible handle;
+9. card drag feel is physically acceptable or produces a precise remaining tactile finding;
+10. favorite/duplicate/remove actions are visually acceptable and not vertically wasteful;
+11. spell editor short-field rows remain usable in portrait;
+12. keyboard does not hide the focused usable editor area or save/cancel actions;
+13. changing a spell level from default `0` by entering `5` behaves correctly through shared normalization;
+14. window/editor interiors feel materially more compact without making taps impractical;
+15. compare editor/window glyphs at text size 70% versus 160% and report whether the glyph size itself changes.
 
-### Technical diagnosis after retest
-
-The drag failure has concrete implementation causes in `SpellRowG2`:
-
-- it still uses its own direct `detectDragGesturesAfterLongPress` path instead of shared `characterLongPressDragV4`;
-- its reorder threshold is hard-coded to `66.dp`, unrelated to actual rendered card height;
-- a `while` loop can execute multiple logical moves from one pointer update;
-- the pointer coroutine can retain stale reorder callbacks after a live move/recomposition, which the shared drag primitive was explicitly designed to prevent.
-
-The drag modifier is currently attached only to `StableDragHandle`, explaining why the rest of the card does not initiate reorder.
-
-The star is currently rendered as raw Unicode `★` / `☆` text inside a `TextButton`, explaining the inconsistent visual style.
-
-The spell card's right-side action column stacks Prepared, favorite/delete, and duplicate across multiple vertical tiers, which drives unnecessary card height.
-
-The editor currently renders `Nivel`, `Tiempo de lanzamiento`, `Alcance`, and `Duración` as separate full-width text-field rows. The next repair must explicitly consolidate naturally compatible short fields rather than waiting for the owner to enumerate obvious pairs. The V/S/M and Concentración/Ritual boolean controls also require a compact row-efficiency audit.
-
-`CharacterImeSafeEditorDialog` currently applies outer `imePadding()` but combines it with a content-sized surface and a scroll body using `weight(..., fill = false)`; physical testing shows that this does not reliably keep the focused editor area above the keyboard.
-
-## Required F repair pass before G
-
-Do **not** begin Increment G. Repair Increment F first:
-
-1. replace the private spell-row drag path with the shared stale-safe drag primitive;
-2. make the card itself the long-press drag surface and remove the three-line drag handle from spell cards;
-3. use measured rendered card geometry for reorder stepping and prevent one pointer event from producing accidental multi-step skips;
-4. compact spell-card action layout into the minimum sensible number of rows while preserving touch targets;
-5. replace raw Unicode favorite star text with a proper stable app icon/state control;
-6. make the Conjuros portrait toolbar responsive without adding another permanent row;
-7. redesign spell-editor short-field layout so naturally compatible fields share rows at phone width;
-8. repair the shared IME-safe dialog so focused fields and fixed save/cancel controls remain usable with the keyboard visible;
-9. run focused tests/compile, then the full integrated gate and produce a new Redmi retest APK.
+This is an **early targeted F-repair retest**, not final Phase 4A acceptance and not tablet acceptance.
 
 ## Acceptance boundary
 
-Increment F remains **automated-green only for the previous implementation**. Owner-device acceptance has failed and the increment is reopened for repair. No Phase 4A closure, no Increment G start, and no tablet acceptance should be inferred from the green workflow.
+Increment F repair is now **automated-green**, but owner-device repair acceptance is pending. Do not start Increment G, do not infer tablet acceptance, and do not infer Phase 4A closure until the owner performs the targeted Redmi retest and the remaining F blockers, if any, are reconciled.
