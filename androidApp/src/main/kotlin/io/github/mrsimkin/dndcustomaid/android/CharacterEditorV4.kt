@@ -72,11 +72,19 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomAttribute
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkillPresentation
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import io.github.mrsimkin.dndcustomaid.shared.character.characterProperNameInput
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
+import io.github.mrsimkin.dndcustomaid.shared.character.characterAbilityReferenceAbbreviation
+import io.github.mrsimkin.dndcustomaid.shared.character.customSavingThrowTotal
+import io.github.mrsimkin.dndcustomaid.shared.character.customSkillTotal
+import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSkills
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
@@ -1564,6 +1572,7 @@ private fun SkillsTabV4(
     onClosureStateChange: (CharacterClosureState) -> Unit,
     onProficienciesChange: (List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>) -> Unit,
 ) {
+    val successorState = LocalCharacterPcSettingsContextV4.current?.successorState ?: CharacterSuccessorState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1601,24 +1610,26 @@ private fun SkillsTabV4(
                 SkillLayoutChoice.BY_SKILLS -> {
                     item { AbilitiesCardV4(draft, onDraftChange) }
                     item { SavesCardV4(draft, wide, onDraftChange) }
-                    item { SkillsListCardV4(draft, wide, onDraftChange) }
                     item {
-                        CharacterCustomSkillsCardV4(
-                            skills = closureState.customSkills,
+                        SkillsListCardV4(
+                            draft = draft,
+                            wide = wide,
+                            onDraftChange = onDraftChange,
+                            customSkills = closureState.customSkills,
                             calculationSheet = calculationSheet,
-                            layoutChoice = skillLayoutChoice,
-                            onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
+                            successorState = successorState,
                         )
                     }
                 }
                 SkillLayoutChoice.BY_ATTRIBUTE -> {
-                    item { AbilityGroupsCardV4(draft, wide, onDraftChange) }
                     item {
-                        CharacterCustomSkillsCardV4(
-                            skills = closureState.customSkills,
+                        AbilityGroupsCardV4(
+                            draft = draft,
+                            wide = wide,
+                            onDraftChange = onDraftChange,
+                            customSkills = closureState.customSkills,
                             calculationSheet = calculationSheet,
-                            layoutChoice = skillLayoutChoice,
-                            onSkillsChange = { onClosureStateChange(closureState.copy(customSkills = it)) },
+                            successorState = successorState,
                         )
                     }
                 }
@@ -1785,39 +1796,117 @@ private fun SkillsListCardV4(
     draft: CharacterEditorDraftV4,
     wide: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    customSkills: List<CharacterCustomSkill>,
+    calculationSheet: CharacterSheet,
+    successorState: CharacterSuccessorState,
 ) {
+    val rows = presentCharacterSkills(
+        builtInSkills = calculationSheet.skills,
+        customSkills = customSkills,
+        successorState = successorState,
+    )
     SectionCardV4("Habilidades") {
         Text(
-            "El control cuadrado indica sin competencia, competencia o pericia. Toca el total para ver el cálculo y editar Ajuste adicional.",
+            "Las habilidades estándar se editan aquí. Las personalizadas se configuran en Ajustes del PJ y aparecen integradas en la misma lista.",
             style = MaterialTheme.typography.labelSmall,
         )
         if (wide) {
-            val midpoint = (draft.skills.size + 1) / 2
+            val midpoint = (rows.size + 1) / 2
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
                 verticalAlignment = Alignment.Top,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    draft.skills.take(midpoint).forEachIndexed { index, skill ->
-                        SkillRowV4(skill, draft, onDraftChange)
+                    rows.take(midpoint).forEachIndexed { index, row ->
+                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
                         if (index < midpoint - 1) HorizontalDivider()
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    val second = draft.skills.drop(midpoint)
-                    second.forEachIndexed { index, skill ->
-                        SkillRowV4(skill, draft, onDraftChange)
+                    val second = rows.drop(midpoint)
+                    second.forEachIndexed { index, row ->
+                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
                         if (index < second.lastIndex) HorizontalDivider()
                     }
                 }
             }
         } else {
-            draft.skills.forEachIndexed { index, skill ->
-                SkillRowV4(skill, draft, onDraftChange)
-                if (index < draft.skills.lastIndex) HorizontalDivider()
+            rows.forEachIndexed { index, row ->
+                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                if (index < rows.lastIndex) HorizontalDivider()
             }
         }
+    }
+}
+
+@Composable
+private fun UnifiedSkillRowV4(
+    row: CharacterSkillPresentation,
+    draft: CharacterEditorDraftV4,
+    customSkills: List<CharacterCustomSkill>,
+    calculationSheet: CharacterSheet,
+    successorState: CharacterSuccessorState,
+    onDraftChange: (CharacterEditorDraftV4) -> Unit,
+) {
+    val builtInKey = row.builtInKey
+    if (builtInKey != null) {
+        val skill = draft.skills.firstOrNull { it.key == builtInKey } ?: return
+        SkillRowV4(skill, draft, onDraftChange)
+        return
+    }
+    val customSkill = row.customSkillId?.let { id -> customSkills.firstOrNull { it.id == id } } ?: return
+    CustomSkillProjectionRowV4(row, customSkill, calculationSheet, successorState)
+}
+
+@Composable
+private fun CustomSkillProjectionRowV4(
+    row: CharacterSkillPresentation,
+    skill: CharacterCustomSkill,
+    calculationSheet: CharacterSheet,
+    successorState: CharacterSuccessorState,
+) {
+    val total = calculationSheet.customSkillTotal(skill, successorState)
+    val abbreviation = characterAbilityReferenceAbbreviation(row.ability, successorState)
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "${row.label} ($abbreviation)",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 3,
+        )
+        ReadOnlySkillTotalV4(total)
+        ReadOnlyTrainingV4(skill.training)
+    }
+}
+
+@Composable
+private fun ReadOnlySkillTotalV4(total: Int?) {
+    Surface(
+        modifier = Modifier.width(58.dp).heightIn(min = 34.dp),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
+            Text(total?.let(::formatSignedV4) ?: "—", style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+private fun ReadOnlyTrainingV4(training: SkillTraining) {
+    Surface(
+        modifier = Modifier.width(44.dp).heightIn(min = 34.dp),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Box(contentAlignment = Alignment.Center) { TrainingGlyphV4(training) }
     }
 }
 
@@ -1938,7 +2027,15 @@ private fun AbilityGroupsCardV4(
     draft: CharacterEditorDraftV4,
     wide: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    customSkills: List<CharacterCustomSkill>,
+    calculationSheet: CharacterSheet,
+    successorState: CharacterSuccessorState,
 ) {
+    val rows = presentCharacterSkills(
+        builtInSkills = calculationSheet.skills,
+        customSkills = customSkills,
+        successorState = successorState,
+    )
     SectionCardV4("Características, salvaciones y habilidades") {
         val columns = if (wide) 3 else 2
         CharacterAbility.entries.chunked(columns).forEach { rowAbilities ->
@@ -1951,11 +2048,41 @@ private fun AbilityGroupsCardV4(
                     AbilityGroupV4(
                         ability = ability,
                         draft = draft,
+                        relatedSkills = rows.filter { it.ability.builtIn == ability },
+                        customSkills = customSkills,
+                        calculationSheet = calculationSheet,
+                        successorState = successorState,
                         onDraftChange = onDraftChange,
                         modifier = Modifier.weight(1f),
                     )
                 }
                 repeat(columns - rowAbilities.size) { Spacer(modifier = Modifier.weight(1f)) }
+            }
+        }
+
+        val customGroups = successorState.customAttributes
+            .sortedBy { it.sortOrder }
+            .mapNotNull { attribute ->
+                val related = rows.filter { it.ability.customAttributeId == attribute.id }
+                if (related.isEmpty()) null else attribute to related
+            }
+        customGroups.chunked(columns).forEach { groups ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                verticalAlignment = Alignment.Top,
+            ) {
+                groups.forEach { (attribute, related) ->
+                    CustomAttributeAbilityGroupV4(
+                        attribute = attribute,
+                        relatedSkills = related,
+                        customSkills = customSkills,
+                        calculationSheet = calculationSheet,
+                        successorState = successorState,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                repeat(columns - groups.size) { Spacer(modifier = Modifier.weight(1f)) }
             }
         }
     }
@@ -1965,6 +2092,10 @@ private fun AbilityGroupsCardV4(
 private fun AbilityGroupV4(
     ability: CharacterAbility,
     draft: CharacterEditorDraftV4,
+    relatedSkills: List<CharacterSkillPresentation>,
+    customSkills: List<CharacterCustomSkill>,
+    calculationSheet: CharacterSheet,
+    successorState: CharacterSuccessorState,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -2028,12 +2159,47 @@ private fun AbilityGroupV4(
                     },
                 )
             }
-            val relatedSkills = draft.skills.filter { it.key.ability == ability }
-            if (relatedSkills.isEmpty()) {
-                Text("Sin habilidades asociadas", style = MaterialTheme.typography.labelSmall)
-            } else {
-                relatedSkills.forEach { skill ->
-                    SkillRowV4(skill, draft, onDraftChange)
+            relatedSkills.forEach { row ->
+                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomAttributeAbilityGroupV4(
+    attribute: CharacterCustomAttribute,
+    relatedSkills: List<CharacterSkillPresentation>,
+    customSkills: List<CharacterCustomSkill>,
+    calculationSheet: CharacterSheet,
+    successorState: CharacterSuccessorState,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        tonalElevation = 1.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(4.dp),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+        ) {
+            Text("${attribute.name} (${attribute.abbreviation})", style = MaterialTheme.typography.labelLarge)
+            Text(
+                "Puntuación ${attribute.score} · Mod ${formatSignedV4(attribute.modifier)}",
+                style = MaterialTheme.typography.labelMedium,
+            )
+            if (attribute.savingThrowEnabled) {
+                Text(
+                    "Salv. ${calculationSheet.customSavingThrowTotal(attribute)?.let(::formatSignedV4) ?: "—"}",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+            relatedSkills.forEach { row ->
+                val customSkill = row.customSkillId?.let { id -> customSkills.firstOrNull { it.id == id } }
+                if (customSkill != null) {
+                    CustomSkillProjectionRowV4(row, customSkill, calculationSheet, successorState)
                 }
             }
         }
@@ -2714,8 +2880,8 @@ private fun spellcastingAbilityLabelV4(ability: SpellcastingAbility): String = w
 
 private fun skillLabelV4(key: SkillKey): String = when (key) {
     SkillKey.ACROBATICS -> "Acrobacias"
-    SkillKey.ANIMAL_HANDLING -> "Trato con Animales"
-    SkillKey.ARCANA -> "Arcanos"
+    SkillKey.ANIMAL_HANDLING -> "Trato con animales"
+    SkillKey.ARCANA -> "Conocimiento Arcano"
     SkillKey.ATHLETICS -> "Atletismo"
     SkillKey.DECEPTION -> "Engaño"
     SkillKey.HISTORY -> "Historia"
