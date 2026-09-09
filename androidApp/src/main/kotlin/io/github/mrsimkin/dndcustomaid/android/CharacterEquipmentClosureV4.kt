@@ -57,6 +57,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryFilter
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPresentationOrder
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourcePlacement
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourceSuccessorConfiguration
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.carriedInventoryWeightLb
 import io.github.mrsimkin.dndcustomaid.shared.character.consumeInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateInventoryItem
@@ -74,6 +78,9 @@ import kotlin.uuid.Uuid
 internal fun CharacterEquipmentClosureTabV4(
     draft: CharacterEquipmentDraftV4,
     onDraftChange: (CharacterEquipmentDraftV4) -> Unit,
+    armorClass: Int,
+    resources: List<CharacterResource>,
+    onResourceValueChange: (Uuid, Int) -> Unit,
     structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean,
@@ -135,6 +142,13 @@ internal fun CharacterEquipmentClosureTabV4(
     val canReorderOrdinary = structuralEditingEnabled && ordinaryOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
     val canReorderSpecial = structuralEditingEnabled && specialOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val settingsContext = LocalCharacterPcSettingsContextV4.current
+    val successorState = settingsContext?.successorState
+    val resourceConfigurations = successorState?.resourceConfigurations.orEmpty().associateBy { it.resourceId }
+    val equipmentResources = resources
+        .filter { resource -> CharacterResourcePlacement.EQUIPMENT in (resourceConfigurations[resource.id]?.placements ?: emptySet()) }
+        .sortedBy { it.sortOrder }
+    val equippedItems = draft.items.filter { it.equipped }.sortedBy { it.sortOrder }
 
     fun updateQuery(updated: CharacterCollectionQuery) {
         searchText = updated.searchText
@@ -367,6 +381,19 @@ internal fun CharacterEquipmentClosureTabV4(
         }
 
         item {
+            EquipmentDefensesAndResourcesG1(
+                armorClass = armorClass,
+                equippedItems = equippedItems,
+                resources = equipmentResources,
+                configurations = resourceConfigurations,
+                onResourceValueChange = { resourceId, value ->
+                    onResourceValueChange(resourceId, value)
+                    haptic(CharacterHapticEventV4.RESOURCE)
+                },
+            )
+        }
+
+        item {
             CompactCurrenciesF2(
                 currencies = draft.currencies,
                 wide = wide,
@@ -376,6 +403,21 @@ internal fun CharacterEquipmentClosureTabV4(
                     customCurrencyName = ""
                     customCurrencyAmount = "0"
                     addCurrencyOpen = true
+                },
+            )
+        }
+
+        item {
+            EquipmentValuablesG1(
+                value = successorState?.preferences?.valuablesText.orEmpty(),
+                editingEnabled = structuralEditingEnabled && settingsContext != null,
+                onValueChange = { updated ->
+                    settingsContext?.let { context ->
+                        val current = context.successorState
+                        context.onSuccessorStateChange(
+                            current.copy(preferences = current.preferences.copy(valuablesText = updated)),
+                        )
+                    }
                 },
             )
         }
@@ -965,7 +1007,7 @@ private fun EquipmentEditorPanelF3(
                     onSelect = { onCarryStateChange(CharacterInventoryCarryState.valueOf(it)) },
                 )
                 EnumDropdownF2(
-                    label = "Uso de cantidad",
+                    label = "Tipo de consumo",
                     current = consumableLabelF2(kind),
                     options = CharacterConsumableKind.entries.map { it.name to consumableLabelF2(it) },
                     onSelect = { onKindChange(CharacterConsumableKind.valueOf(it)) },
@@ -974,7 +1016,7 @@ private fun EquipmentEditorPanelF3(
                     OutlinedTextField(
                         value = quickUse,
                         onValueChange = onQuickUseChange,
-                        label = { Text("Cantidad por uso rápido") },
+                        label = { Text("Descuento por uso") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -1101,7 +1143,7 @@ private fun EquipmentEditorF2(
             onSelect = { onCarryStateChange(CharacterInventoryCarryState.valueOf(it)) },
         )
         EnumDropdownF2(
-            label = "Uso de cantidad",
+            label = "Tipo de consumo",
             current = consumableLabelF2(kind),
             options = CharacterConsumableKind.entries.map { it.name to consumableLabelF2(it) },
             onSelect = { onKindChange(CharacterConsumableKind.valueOf(it)) },
@@ -1110,7 +1152,7 @@ private fun EquipmentEditorF2(
             OutlinedTextField(
                 value = quickUse,
                 onValueChange = onQuickUseChange,
-                label = { Text("Cantidad por uso rápido") },
+                label = { Text("Descuento por uso") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -1178,6 +1220,157 @@ private fun EnumDropdownF2(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EquipmentDefensesAndResourcesG1(
+    armorClass: Int,
+    equippedItems: List<CharacterInventoryItem>,
+    resources: List<CharacterResource>,
+    configurations: Map<Uuid, CharacterResourceSuccessorConfiguration>,
+    onResourceValueChange: (Uuid, Int) -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        ) {
+            Text("Defensas y recursos", style = MaterialTheme.typography.titleSmall)
+            val equippedText = equippedItems.joinToString(", ") { item ->
+                if (item.quantity > 1) "${item.name} ×${item.quantity}" else item.name
+            }.ifBlank { "—" }
+            Text(
+                "CA $armorClass · Equipado: $equippedText",
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            CharacterHelpV4(
+                "Equipo proyecta la misma CA y los mismos objetos marcados como Equipado que General/Defensas. La ficha aún no clasifica armadura y escudo como categorías estructuradas separadas.",
+            )
+            if (resources.isNotEmpty()) {
+                Text("Recursos de Equipo", style = MaterialTheme.typography.labelMedium)
+                resources.forEach { resource ->
+                    val configuration = configurations[resource.id] ?: return@forEach
+                    EquipmentResourceRowG1(
+                        resource = resource,
+                        configuration = configuration,
+                        onValueChange = { value -> onResourceValueChange(resource.id, value) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EquipmentResourceRowG1(
+    resource: CharacterResource,
+    configuration: CharacterResourceSuccessorConfiguration,
+    onValueChange: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            resource.name,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        when (configuration.valueKind) {
+            CharacterTrackableValueKind.BINARY -> {
+                val active = resource.currentValue > 0
+                EquipmentToggleG1(
+                    label = if (active) "Activo" else "Inactivo",
+                    selected = active,
+                    onClick = { onValueChange(if (active) 0 else 1) },
+                )
+            }
+            CharacterTrackableValueKind.COUNTER,
+            CharacterTrackableValueKind.CURRENT_MAX,
+            -> {
+                val maximum = if (configuration.valueKind == CharacterTrackableValueKind.CURRENT_MAX) resource.maxValue else null
+                EquipmentStepG1("−", enabled = resource.currentValue > 0) {
+                    onValueChange((resource.currentValue - 1).coerceAtLeast(0))
+                }
+                Text(
+                    maximum?.let { "${resource.currentValue}/$it" } ?: resource.currentValue.toString(),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                EquipmentStepG1("+", enabled = maximum?.let { resource.currentValue < it } ?: true) {
+                    val next = resource.currentValue + 1
+                    onValueChange(maximum?.let { next.coerceAtMost(it) } ?: next)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EquipmentToggleG1(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelSmall) }
+    }
+}
+
+@Composable
+private fun EquipmentStepG1(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(enabled = enabled, onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelLarge) }
+    }
+}
+
+@Composable
+private fun EquipmentValuablesG1(
+    value: String,
+    editingEnabled: Boolean,
+    onValueChange: (String) -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+        ) {
+            Text("Gemas / arte", style = MaterialTheme.typography.titleSmall)
+            OutlinedTextField(
+                value = value,
+                onValueChange = { if (editingEnabled) onValueChange(it) },
+                readOnly = !editingEnabled,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Gemas, obras de arte, joyas u otros valores") },
+                minLines = 1,
+                maxLines = 4,
+            )
         }
     }
 }
@@ -1280,7 +1473,7 @@ private fun carryLabelF2(state: CharacterInventoryCarryState): String = when (st
 }
 
 private fun consumableLabelF2(kind: CharacterConsumableKind): String = when (kind) {
-    CharacterConsumableKind.NONE -> "Normal"
+    CharacterConsumableKind.NONE -> "No consume cantidad"
     CharacterConsumableKind.CONSUMABLE -> "Consumible"
     CharacterConsumableKind.AMMUNITION -> "Munición"
 }

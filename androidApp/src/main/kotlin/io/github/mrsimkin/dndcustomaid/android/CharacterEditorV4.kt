@@ -756,6 +756,22 @@ internal fun CharacterEditorScreenV4(
                         CharacterTabV4.EQUIPMENT -> CharacterEquipmentClosureTabV4(
                             draft = equipmentDraft,
                             onDraftChange = ::updateEquipmentDraft,
+                            armorClass = stored.armorClass,
+                            resources = stored.resources,
+                            onResourceValueChange = { resourceId, value ->
+                                stored.resources.firstOrNull { it.id == resourceId }?.let { resource ->
+                                    val normalized = resource.maxValue?.let { value.coerceIn(0, it) } ?: value.coerceAtLeast(0)
+                                    if (normalized != resource.currentValue) {
+                                        persistOperationalSheet(
+                                            stored.copy(
+                                                resources = stored.resources.map { item ->
+                                                    if (item.id == resourceId) item.copy(currentValue = normalized) else item
+                                                },
+                                            ),
+                                        )
+                                    }
+                                }
+                            },
                             structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,

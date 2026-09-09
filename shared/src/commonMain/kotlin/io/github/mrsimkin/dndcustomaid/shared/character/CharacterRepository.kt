@@ -421,7 +421,7 @@ class CharacterRepository(
         }.executeAsList()
 
         val currencies = database.characterQueries.selectCharacterCurrencies(core.id.toString()) { _, key, name, amount, sortOrder, isDefault ->
-            CharacterCurrency(key, name, amount.toInt(), sortOrder.toInt(), isDefault != 0L)
+            CharacterCurrency(key, if (isDefault != 0L && key == "ep") "Electrum" else name, amount.toInt(), sortOrder.toInt(), isDefault != 0L)
         }.executeAsList()
 
         val background = database.characterQueries.selectCharacterBackground(core.id.toString()) {
@@ -578,7 +578,7 @@ class CharacterRepository(
     private companion object {
         val defaultCurrencies = listOf(
             CharacterCurrency("cp", "Cobre", 0, 0, true), CharacterCurrency("sp", "Plata", 0, 1, true),
-            CharacterCurrency("ep", "Electro", 0, 2, true), CharacterCurrency("gp", "Oro", 0, 3, true),
+            CharacterCurrency("ep", "Electrum", 0, 2, true), CharacterCurrency("gp", "Oro", 0, 3, true),
             CharacterCurrency("pp", "Platino", 0, 4, true),
         )
     }
