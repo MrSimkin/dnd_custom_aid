@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -203,9 +204,10 @@ private fun CharacterToolbarChipV4(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .heightIn(min = 34.dp)
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
@@ -394,7 +396,12 @@ internal fun CharacterCollectionToolbarV4(
                 }
 
                 if (onAdd != null) {
-                    CharacterToolbarChipV4(text = "+", selected = false, onClick = onAdd)
+                    CharacterToolbarChipV4(
+                        text = "+",
+                        selected = false,
+                        onClick = onAdd,
+                        modifier = Modifier.widthIn(min = 38.dp),
+                    )
                 }
             }
         }

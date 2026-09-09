@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -674,6 +675,11 @@ private fun SpellCollectionG2(
                     val spell = levelSpells[index]
                     SpellRowG2(
                         spell = spell,
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = null,
+                            placementSpec = tween(durationMillis = 75),
+                            fadeOutSpec = null,
+                        ),
                         sourceById = sourceById,
                         selectedSourceId = selectedSourceId,
                         favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.SPELL, spell.id),
@@ -742,6 +748,7 @@ private fun SpellLevelStickyHeaderG2(
 @Composable
 private fun SpellRowG2(
     spell: CharacterSpell,
+    modifier: Modifier = Modifier,
     sourceById: Map<Uuid, CharacterSpellcastingSource>,
     selectedSourceId: Uuid?,
     favorite: Boolean,
@@ -769,7 +776,7 @@ private fun SpellRowG2(
         spell.sourceAssociations.firstOrNull { it.sourceId == sourceId }
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth()) {
         CharacterDropIndicatorV4(visible = dragState.showDropBefore)
         Surface(
             modifier = Modifier
@@ -782,6 +789,7 @@ private fun SpellRowG2(
                         dragging = state.active
                         accumulatedDrag = state.offsetY
                     },
+                    thresholdFraction = 0.65f,
                 )
                 .characterDragFeedbackV4(dragState)
                 .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
