@@ -198,7 +198,7 @@ private fun characterTraitTypeSearchText(type: CharacterTraitType): String =
 
 fun characterTraitTypeDisplayLabel(type: CharacterTraitType): String = when (type) {
     CharacterTraitType.CLASS -> "Clase"
-    CharacterTraitType.SPECIES_RACE -> "Especie / raza"
+    CharacterTraitType.SPECIES_RACE -> "Raza"
     CharacterTraitType.BACKGROUND -> "Trasfondo"
     CharacterTraitType.FEAT -> "Dote"
     CharacterTraitType.GIFT_BLESSING -> "Don / bendición"

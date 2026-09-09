@@ -101,6 +101,7 @@ internal enum class CharacterOriginTypeV4(val label: String) {
     ITEM("Objeto"),
     RACE("Raza"),
     BACKGROUND("Trasfondo"),
+    GIFT("Don / bendición"),
     OTHER("Otro"),
 }
 
@@ -119,6 +120,7 @@ internal fun CharacterProvenanceRowV4(
     onOriginKeyChange: (String?) -> Unit,
     onCustomOriginChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    allowedTypes: List<CharacterOriginTypeV4> = CharacterOriginTypeV4.entries,
 ) {
     var typeMenuOpen by remember { mutableStateOf(false) }
     var originMenuOpen by remember { mutableStateOf(false) }
@@ -142,14 +144,13 @@ internal fun CharacterProvenanceRowV4(
                     expanded = typeMenuOpen,
                     onDismissRequest = { typeMenuOpen = false },
                 ) {
-                    CharacterOriginTypeV4.entries.forEach { option ->
+                    allowedTypes.forEach { option ->
                         DropdownMenuItem(
                             text = { Text(option.label) },
                             onClick = {
                                 if (option != originType) {
                                     onOriginTypeChange(option)
                                     onOriginKeyChange(null)
-                                    if (option != CharacterOriginTypeV4.OTHER) onCustomOriginChange("")
                                 }
                                 typeMenuOpen = false
                             },
@@ -161,7 +162,7 @@ internal fun CharacterProvenanceRowV4(
 
         Column(modifier = Modifier.weight(0.58f)) {
             Text("Origen específico", style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            if (originType == CharacterOriginTypeV4.OTHER) {
+            if (originType == CharacterOriginTypeV4.OTHER || options.isEmpty()) {
                 Surface(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp),
                     shape = MaterialTheme.shapes.small,
@@ -174,7 +175,7 @@ internal fun CharacterProvenanceRowV4(
                     ) {
                         if (customOrigin.isBlank()) {
                             Text(
-                                "Origen personalizado",
+                                if (originType == CharacterOriginTypeV4.OTHER) "Origen personalizado" else "Origen específico",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,

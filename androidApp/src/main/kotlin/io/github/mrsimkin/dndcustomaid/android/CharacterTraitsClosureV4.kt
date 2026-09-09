@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -45,6 +46,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourcePlacement
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourceSuccessorConfiguration
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitGrouping
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
@@ -69,8 +74,10 @@ internal fun CharacterTraitsClosureTabV4(
     traits: List<CharacterTrait>,
     closureState: CharacterClosureState,
     persistedTraitIds: Set<Uuid>,
+    resources: List<CharacterResource>,
     onTraitsChange: (List<CharacterTrait>) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
+    onResourceValueChange: (Uuid, Int) -> Unit,
     structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean,
@@ -93,6 +100,11 @@ internal fun CharacterTraitsClosureTabV4(
     var deleteId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val settingsContext = LocalCharacterPcSettingsContextV4.current
+    val resourceConfigurations = settingsContext?.successorState?.resourceConfigurations.orEmpty().associateBy { it.resourceId }
+    val traitResources = resources
+        .filter { resource -> CharacterResourcePlacement.TRAITS in (resourceConfigurations[resource.id]?.placements ?: emptySet()) }
+        .sortedBy { it.sortOrder }
     val grouping = runCatching { CharacterTraitGrouping.valueOf(groupingName) }
         .getOrDefault(CharacterTraitGrouping.TYPE)
     val activeFilters = activeFiltersText.split(TRAIT_FILTER_SEPARATOR_G1).filter { it.isNotBlank() }.toSet()
@@ -194,7 +206,7 @@ internal fun CharacterTraitsClosureTabV4(
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Rasgos", style = MaterialTheme.typography.titleSmall)
                             Text(
-                                "Clase, especie/raza, trasfondo, dotes, dones y contenido personalizado.",
+                                "Clase, raza, trasfondo, dotes, dones / bendiciones y contenido personalizado.",
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
@@ -218,6 +230,19 @@ internal fun CharacterTraitsClosureTabV4(
                         )
                     }
                 }
+            }
+        }
+
+        if (traitResources.isNotEmpty()) {
+            item(key = "traits-resources") {
+                TraitsResourcesCardG2(
+                    resources = traitResources,
+                    configurations = resourceConfigurations,
+                    onResourceValueChange = { resourceId, value ->
+                        onResourceValueChange(resourceId, value)
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+                )
             }
         }
 
@@ -256,15 +281,18 @@ internal fun CharacterTraitsClosureTabV4(
                                 )
                             }
                             val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
-                            group.traits.chunked(columns).forEach { rowTraits ->
+                            group.traits.chunked(columns).forEachIndexed { rowIndex, rowTraits ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                                     verticalAlignment = Alignment.Top,
                                 ) {
-                                    rowTraits.forEach { trait ->
+                                    rowTraits.forEachIndexed { columnIndex, trait ->
                                         TraitCardG1(
                                             trait = trait,
+                                            gridIndex = rowIndex * columns + columnIndex,
+                                            gridItemCount = group.traits.size,
+                                            gridColumns = columns,
                                             favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
                                             favoriteEnabled = structuralEditingEnabled && trait.id in persistedTraitIds,
                                             canReorder = canReorder,
@@ -470,6 +498,9 @@ private fun TraitGroupingControlsG1(
 @Composable
 private fun TraitCardG1(
     trait: CharacterTrait,
+    gridIndex: Int,
+    gridItemCount: Int,
+    gridColumns: Int,
     favorite: Boolean,
     favoriteEnabled: Boolean,
     canReorder: Boolean,
@@ -484,14 +515,33 @@ private fun TraitCardG1(
     onHaptic: (CharacterHapticEventV4) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(trait.id) { mutableStateOf(0f) }
-    var dragging by remember(trait.id) { mutableStateOf(false) }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    var dragState by remember(trait.id) { mutableStateOf(CharacterDragVisualStateV4()) }
+    val reorderModifier = if (gridColumns > 1) {
+        Modifier.characterMeasuredGridReorderDragV4(
+            enabled = canReorder,
+            onHaptic = onHaptic,
+            onMove = { rowDelta, columnDelta ->
+                val currentRow = gridIndex / gridColumns
+                val currentColumn = gridIndex % gridColumns
+                val targetRow = currentRow + rowDelta
+                val targetColumn = currentColumn + columnDelta
+                val targetIndex = targetRow * gridColumns + targetColumn
+                val targetValid =
+                    targetRow >= 0 &&
+                        targetColumn in 0 until gridColumns &&
+                        targetIndex in 0 until gridItemCount
+                if (targetValid) onMove(targetIndex - gridIndex) else false
+            },
+            onVisualStateChange = { dragState = it },
+        )
+    } else {
+        Modifier.characterMeasuredReorderDragV4(
+            enabled = canReorder,
+            onHaptic = onHaptic,
+            onMove = onMove,
+            onVisualStateChange = { dragState = it },
+        )
+    }
     val metadata = buildList {
         trait.source.takeIf { it.isNotBlank() }?.let(::add)
         add(characterTraitTypeDisplayLabel(trait.type))
@@ -504,15 +554,7 @@ private fun TraitCardG1(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .characterMeasuredReorderDragV4(
-                    enabled = canReorder,
-                    onHaptic = onHaptic,
-                    onMove = onMove,
-                    onVisualStateChange = { state ->
-                        dragging = state.active
-                        accumulatedDrag = state.offsetY
-                    },
-                )
+                .then(reorderModifier)
                 .characterDragFeedbackV4(dragState)
                 .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
@@ -631,7 +673,6 @@ private fun TraitEditorDialogG1(
     onDismiss: () -> Unit,
     onApply: () -> Unit,
 ) {
-    var typeMenuOpen by rememberSaveable { mutableStateOf(false) }
     var activationMenuOpen by rememberSaveable { mutableStateOf(false) }
 
     CharacterImeSafeEditorDialog(
@@ -647,32 +688,26 @@ private fun TraitEditorDialogG1(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        OutlinedTextField(
-            value = source,
-            onValueChange = onSourceChange,
-            label = { Text("Fuente") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
+        CharacterProvenanceRowV4(
+            originType = traitOriginTypeG2(type),
+            originKey = null,
+            customOrigin = source,
+            optionsForType = { emptyList() },
+            onOriginTypeChange = { onTypeChange(traitTypeForOriginG2(it)) },
+            onOriginKeyChange = {},
+            onCustomOriginChange = onSourceChange,
+            allowedTypes = listOf(
+                CharacterOriginTypeV4.CLASS,
+                CharacterOriginTypeV4.RACE,
+                CharacterOriginTypeV4.BACKGROUND,
+                CharacterOriginTypeV4.FEAT,
+                CharacterOriginTypeV4.GIFT,
+                CharacterOriginTypeV4.OTHER,
+            ),
         )
-        Column {
-            Text("Tipo", style = MaterialTheme.typography.labelSmall)
-            androidx.compose.foundation.layout.Box {
-                OutlinedButton(onClick = { typeMenuOpen = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(characterTraitTypeDisplayLabel(type))
-                }
-                DropdownMenu(expanded = typeMenuOpen, onDismissRequest = { typeMenuOpen = false }) {
-                    CharacterTraitType.entries.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(characterTraitTypeDisplayLabel(option)) },
-                            onClick = {
-                                onTypeChange(option)
-                                typeMenuOpen = false
-                            },
-                        )
-                    }
-                }
-            }
-        }
+        CharacterHelpV4(
+            "Tipo de origen describe de dónde nace el rasgo; Origen específico identifica la clase, raza, trasfondo, dote, don/bendición o creación concreta. Ambos se guardan en el mismo rasgo, no como fuentes paralelas.",
+        )
         Column {
             Text("Activación", style = MaterialTheme.typography.labelSmall)
             androidx.compose.foundation.layout.Box {
@@ -753,6 +788,114 @@ private fun TraitEditorDialogG1(
             },
         )
     }
+}
+
+@Composable
+private fun TraitsResourcesCardG2(
+    resources: List<CharacterResource>,
+    configurations: Map<Uuid, CharacterResourceSuccessorConfiguration>,
+    onResourceValueChange: (Uuid, Int) -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        ) {
+            Text("Recursos de Rasgos", style = MaterialTheme.typography.titleSmall)
+            resources.forEach { resource ->
+                val configuration = configurations[resource.id] ?: return@forEach
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        resource.name,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    when (configuration.valueKind) {
+                        CharacterTrackableValueKind.BINARY -> {
+                            val active = resource.currentValue > 0
+                            TraitResourceChipG2(if (active) "Activo" else "Inactivo", active) {
+                                onResourceValueChange(resource.id, if (active) 0 else 1)
+                            }
+                        }
+                        CharacterTrackableValueKind.COUNTER,
+                        CharacterTrackableValueKind.CURRENT_MAX,
+                        -> {
+                            val maximum = if (configuration.valueKind == CharacterTrackableValueKind.CURRENT_MAX) resource.maxValue else null
+                            TraitResourceStepG2("−", resource.currentValue > 0) {
+                                onResourceValueChange(resource.id, (resource.currentValue - 1).coerceAtLeast(0))
+                            }
+                            Text(
+                                maximum?.let { "${resource.currentValue}/$it" } ?: resource.currentValue.toString(),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                            TraitResourceStepG2("+", maximum?.let { resource.currentValue < it } ?: true) {
+                                val next = resource.currentValue + 1
+                                onResourceValueChange(resource.id, maximum?.let { next.coerceAtMost(it) } ?: next)
+                            }
+                        }
+                    }
+                }
+            }
+            CharacterHelpV4("Estos controles operan el mismo recurso canónico que Gestión, General o Equipo; la pestaña solo cambia dónde se proyecta.")
+        }
+    }
+}
+
+@Composable
+private fun TraitResourceChipG2(label: String, selected: Boolean, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelSmall) }
+    }
+}
+
+@Composable
+private fun TraitResourceStepG2(label: String, enabled: Boolean, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(enabled = enabled, onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelLarge) }
+    }
+}
+
+private fun traitOriginTypeG2(type: CharacterTraitType): CharacterOriginTypeV4 = when (type) {
+    CharacterTraitType.CLASS -> CharacterOriginTypeV4.CLASS
+    CharacterTraitType.SPECIES_RACE -> CharacterOriginTypeV4.RACE
+    CharacterTraitType.BACKGROUND -> CharacterOriginTypeV4.BACKGROUND
+    CharacterTraitType.FEAT -> CharacterOriginTypeV4.FEAT
+    CharacterTraitType.GIFT_BLESSING -> CharacterOriginTypeV4.GIFT
+    CharacterTraitType.OTHER -> CharacterOriginTypeV4.OTHER
+}
+
+private fun traitTypeForOriginG2(origin: CharacterOriginTypeV4): CharacterTraitType = when (origin) {
+    CharacterOriginTypeV4.CLASS -> CharacterTraitType.CLASS
+    CharacterOriginTypeV4.RACE -> CharacterTraitType.SPECIES_RACE
+    CharacterOriginTypeV4.BACKGROUND -> CharacterTraitType.BACKGROUND
+    CharacterOriginTypeV4.FEAT -> CharacterTraitType.FEAT
+    CharacterOriginTypeV4.GIFT -> CharacterTraitType.GIFT_BLESSING
+    CharacterOriginTypeV4.PACT,
+    CharacterOriginTypeV4.ITEM,
+    CharacterOriginTypeV4.OTHER,
+    -> CharacterTraitType.OTHER
 }
 
 private fun traitUnsignedIntegerG1(raw: String): String = raw.filter(Char::isDigit)
