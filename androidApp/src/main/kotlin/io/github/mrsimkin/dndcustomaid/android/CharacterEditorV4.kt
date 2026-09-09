@@ -64,6 +64,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepositor
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatDamageProfile
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
@@ -115,6 +116,8 @@ internal fun CharacterEditorScreenV4(
     var closureState by remember(characterId) {
         mutableStateOf(closureRepository.state(characterId))
     }
+    val pcSettingsContext = LocalCharacterPcSettingsContextV4.current
+    val successorState = pcSettingsContext?.successorState ?: CharacterSuccessorState()
     var draft by rememberSaveable(
         characterId.toString(),
         stateSaver = CharacterEditorDraftV4.Saver,
@@ -123,6 +126,9 @@ internal fun CharacterEditorScreenV4(
     }
     var combatDraftJson by rememberSaveable(characterId.toString()) {
         mutableStateOf(combatEntriesToJsonV4(stored.combatEntries))
+    }
+    var combatDamageDraftJson by rememberSaveable(characterId.toString(), "combat-damage") {
+        mutableStateOf(characterCombatDamageProfilesToJsonV4(successorState.combatDamage))
     }
     var equipmentDraftJson by rememberSaveable(characterId.toString()) {
         mutableStateOf(
@@ -212,6 +218,9 @@ internal fun CharacterEditorScreenV4(
     }
 
     val combatEntries = remember(combatDraftJson) { combatEntriesFromJsonV4(combatDraftJson) }
+    val combatDamageProfiles = remember(combatDamageDraftJson) {
+        characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson)
+    }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
     val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
@@ -244,6 +253,9 @@ internal fun CharacterEditorScreenV4(
     val savable = draft.toSheetOrNull(stored, blankRequiredAsZero = true) != null
     val storedDraftJson = remember(stored) { CharacterEditorDraftV4.from(stored).toJson() }
     val storedCombatDraftJson = remember(stored) { combatEntriesToJsonV4(stored.combatEntries) }
+    val storedCombatDamageDraftJson = remember(successorState.combatDamage) {
+        characterCombatDamageProfilesToJsonV4(successorState.combatDamage)
+    }
     val storedEquipmentDraftJson = remember(stored, closureState.inventoryUsage) {
         equipmentDraftToJsonV4(
             CharacterEquipmentDraftV4(
@@ -286,6 +298,7 @@ internal fun CharacterEditorScreenV4(
     val hasUnsavedChanges =
         draft.toJson() != storedDraftJson ||
             combatDraftJson != storedCombatDraftJson ||
+            combatDamageDraftJson != storedCombatDamageDraftJson ||
             equipmentDraftJson != storedEquipmentDraftJson ||
             backgroundDraftJson != storedBackgroundDraftJson ||
             traitsDraftJson != storedTraitsDraftJson ||
@@ -332,6 +345,12 @@ internal fun CharacterEditorScreenV4(
     fun updateCombatEntries(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry>) {
         if (!structuralEditingEnabled) return
         combatDraftJson = combatEntriesToJsonV4(updated)
+        savedMessage = null
+    }
+
+    fun updateCombatDamageProfiles(updated: List<CharacterCombatDamageProfile>) {
+        if (!structuralEditingEnabled) return
+        combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(updated)
         savedMessage = null
     }
 
@@ -408,6 +427,13 @@ internal fun CharacterEditorScreenV4(
             companions = h1Modules.companions,
         )
         stored = repository.saveCharacter(integrated)
+        val liveCombatEntryIds = stored.combatEntries.mapTo(mutableSetOf()) { it.id }
+        val savedDamageProfiles = characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson)
+            .filter { it.combatEntryId in liveCombatEntryIds }
+        pcSettingsContext?.onSuccessorStateChange?.invoke(
+            successorState.copy(combatDamage = savedDamageProfiles),
+        )
+        combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(savedDamageProfiles)
         val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
         val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
         val liveClassOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id }
@@ -434,6 +460,7 @@ internal fun CharacterEditorScreenV4(
         )
         draft = CharacterEditorDraftV4.from(stored)
         combatDraftJson = combatEntriesToJsonV4(stored.combatEntries)
+        combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(savedDamageProfiles)
         equipmentDraftJson = equipmentDraftToJsonV4(
             CharacterEquipmentDraftV4(
                 items = stored.inventoryItems,
@@ -664,7 +691,7 @@ internal fun CharacterEditorScreenV4(
                             onClosureStateChange = ::persistStructuralClosureState,
                             onProficienciesChange = ::updateProficiencies,
                         )
-                        CharacterTabV4.COMBAT -> CharacterCombatTabV4(
+                        CharacterTabV4.COMBAT -> CharacterCombatSuccessorTabV4(
                             armorClass = draft.armorClass,
                             initiative = draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(),
                             speed = draft.speed,
@@ -672,17 +699,20 @@ internal fun CharacterEditorScreenV4(
                             closureState = closureState,
                             persistedEntryIds = stored.combatEntries.mapTo(mutableSetOf()) { it.id },
                             entries = combatEntries,
+                            damageProfiles = combatDamageProfiles,
                             onEntriesChange = ::updateCombatEntries,
+                            onDamageProfilesChange = ::updateCombatDamageProfiles,
                             onOperationalSheetChange = ::persistCombatOperationalSheet,
                             onClosureStateChange = ::persistStructuralClosureState,
                             structuralEditingEnabled = structuralEditingEnabled,
                             hapticsEnabled = closureState.hapticsEnabled,
                             wide = wide,
                         )
-                        CharacterTabV4.DICE -> CharacterDiceRollTabV4(
-                            sheet = settingsSheet,
+                        CharacterTabV4.DICE -> CharacterDiceRollSuccessorTabV4(
+                            sheet = overviewProjectionSheet,
                             closureState = closureState,
                             combatEntries = combatEntries,
+                            successorState = successorState.copy(combatDamage = combatDamageProfiles),
                         )
                         CharacterTabV4.MANAGEMENT -> CharacterManagementTabV4(
                             sheet = stored,
