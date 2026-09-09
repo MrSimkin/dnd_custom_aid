@@ -2,11 +2,13 @@
 
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** IMPLEMENTED / FOCUSED GATE GREEN / FULL INTEGRATED GATE PENDING  
+**Status:** COMPLETE / AUTOMATED GATE GREEN / OWNER DEVICE ACCEPTANCE PENDING  
 **Pre-F baseline:** `f7f0389fde4fd3a72ca8f8a547dae38255825266`  
-**Active Increment F source commit:** `0e25fb0a84c2be63a16fee709bd7e96d7469373b`
+**Active Increment F source commit:** `0e25fb0a84c2be63a16fee709bd7e96d7469373b`  
+**Authoritative integrated validation commit:** `4ba248f7749a062ac40e1e0c46c0687f4caccbbf`  
+**Authoritative workflow:** `34376169597` — SUCCESS
 
-## Scope implemented
+## Scope completed
 
 Increment F replaces the vertically expensive Conjuros source-selector/header stack with one compact collection context while preserving the existing source model and per-source spellcasting authority.
 
@@ -68,20 +70,32 @@ A self-removing one-off maintenance helper was used only because the connected G
 - helper workflow and `.maintenance` transport files self-removed in the source commit;
 - net diff from the pre-F baseline contains exactly four Android source files.
 
-## Full integrated gate
+## Final integrated gate
 
-Pending on this checkpoint-triggered `Scaffold checks` run. The authoritative gate must verify together:
+Workflow `34376169597` — **SUCCESS** on validation commit `4ba248f7749a062ac40e1e0c46c0687f4caccbbf`.
 
-- backend/type-check;
-- shared/Kotlin tests;
-- Android debug assembly;
-- desktop build;
-- Android debug APK upload.
+Verified together:
 
-This checkpoint must be updated with the exact workflow run and Android artifact evidence before Increment F is called automated-green.
+- backend/type-check: PASS;
+- shared/Kotlin tests: PASS;
+- Android debug compilation/assembly: PASS;
+- desktop compilation/build: PASS;
+- Android debug APK upload: PASS.
+
+Artifact:
+
+- ID `10114037181`;
+- name `dnd-custom-aid-debug-apk`;
+- size `13235995` bytes;
+- ZIP digest `sha256:a0aa9ddfeeaa74bffa17ecb15dd1d3e0880c7238159c9058bfc80beaeec5041d`;
+- generated `2026-09-09T16:23:40Z`.
 
 ## Acceptance boundary
 
-Increment F is implemented but is **not yet owner-device accepted** and is not a release boundary. After the integrated gate is green, stop before Increment G and prepare the early targeted Redmi Note 11 Pro 5G portrait/landscape Conjuros audition.
+Increment F is technically complete and automated-green, but it is **not yet owner-device accepted** and is not a release boundary. Stop before Increment G and perform the planned early targeted Redmi Note 11 Pro 5G portrait/landscape Conjuros audition.
 
 The owner retest must focus on permanent viewport footprint, ordinary spell-card visibility in landscape, source statistics/selection, transient search/filter behavior, editor/keyboard behavior, numeric level normalization and card drag feel. Tablet/wide redesign remains Increment I.
+
+## Next action
+
+Install the Increment F debug APK on the Redmi Note 11 Pro 5G and execute the targeted Conjuros portrait/landscape owner retest. Do not begin Increment G until that early F audition has been reviewed.
