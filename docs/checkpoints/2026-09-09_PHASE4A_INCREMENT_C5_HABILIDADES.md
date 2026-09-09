@@ -34,7 +34,8 @@ The transitional separate `Habilidades personalizadas` card/editor is removed fr
 Custom skills now appear inline with ordinary skills:
 
 - in `Por habilidades`, interleaved alphabetically with built-in skills;
-- in `Por característica`, inside the built-in or custom attribute to which the successor mapping points.
+- in `Por característica`, inside the built-in or custom attribute to which the successor mapping points;
+- with italic label styling so custom/homebrew entries remain visually distinguishable without a separate box.
 
 Their structural configuration remains owned by **Ajustes del PJ**, where name, training, adjustment and generalized built-in/custom-attribute assignment are already managed. Habilidades projects the resulting live total and training state without exposing a second editor or the old generic `Fuente` field.
 
@@ -85,15 +86,16 @@ Focused tests cover:
 - shared projection commit: `286bfb20521134fff9f658e7e0df1a5a6665b9ae`;
 - focused-test commit: `a8640882361fb9fb4ffb84b80b04f933351e5f7a`;
 - compact passive strip commit: `b243ab48b2b81e806568fe413dcb0988971c9805`;
-- guarded editor integration source commit: `3c55a0c` (full SHA to be recorded after final gate if needed);
-- temporary patch workflow `34301658611`: SUCCESS;
-- every guarded editor replacement matched exactly once;
-- `git diff --check`: PASS;
-- temporary workflow removed itself in the same source commit.
+- guarded editor integration source commit: `3c55a0cb3e37a4847087bbfa347737e900a6264c`;
+- editor integration workflow `34301658611`: SUCCESS;
+- final italic-plan correction source commit: `acda3c0` (full SHA to be recorded from repository evidence if needed);
+- italic correction workflow `34302186976`: SUCCESS;
+- exact guards and `git diff --check`: PASS;
+- all temporary patch files/workflows removed by their source commits.
 
 ## Exit condition
 
-C5 becomes technically complete only after the normal full scaffold gate passes on a descendant containing the integrated source commit.
+C5 becomes technically complete only after the normal full scaffold gate passes on a descendant containing the final italic correction.
 
 After that:
 
