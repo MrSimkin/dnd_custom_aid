@@ -42,7 +42,7 @@ class CharacterSuccessorPreferencesC2Test {
     }
 
     @Test
-    fun migrationFromSchema11AddsVisibleByDefault() {
+    fun migrationFromSchema12AddsVisibleByDefault() {
         val file = File.createTempFile("dnd-custom-aid-c2-successor-prefs", ".db")
         file.delete()
         val jdbcUrl = "jdbc:sqlite:${file.absolutePath}"
@@ -69,7 +69,7 @@ class CharacterSuccessorPreferencesC2Test {
             val driver = JdbcSqliteDriver(jdbcUrl)
             AppDatabase.Schema.migrate(
                 driver = driver,
-                oldVersion = 11,
+                oldVersion = 12,
                 newVersion = AppDatabase.Schema.version,
             )
             val visible = AppDatabase(driver).characterSuccessorQueries
