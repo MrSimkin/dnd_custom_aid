@@ -580,6 +580,7 @@ private fun SpellCollectionG2(
             searchLabel = "Buscar",
             collapsibleSearch = true,
             showItemCount = false,
+            compactOrderControl = true,
             modifier = Modifier
                 .padding(
                     start = appSpacingV4(6.dp),
@@ -790,51 +791,25 @@ private fun SpellRowG2(
             ),
             color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(
+                    horizontal = appSpacingV4(5.dp),
+                    vertical = appSpacingV4(4.dp),
+                ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
             ) {
-Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
-                    Text(spell.name.ifBlank { "Conjuro sin nombre" }, style = MaterialTheme.typography.labelLarge)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        if (spell.verbal) SpellBadgeG2("V")
-                        if (spell.somatic) SpellBadgeG2("S")
-                        if (spell.material) SpellBadgeG2("M")
-                        if (spell.concentration) SpellBadgeG2("Concentración", state = true)
-                        if (spell.ritual) SpellBadgeG2("Ritual", state = true)
-                        if (selectedSourceId != null && selectedAssociation?.prepared == true) {
-                            SpellBadgeG2("Preparado", state = true)
-                        }
-                        if (selectedSourceId == null && spell.sourceAssociations.isNotEmpty()) {
-                            val preparedCount = spell.sourceAssociations.count { it.prepared }
-                            SpellBadgeG2("Preparado $preparedCount/${spell.sourceAssociations.size}", state = true)
-                        }
-                    }
-                    val summary = listOf(spell.castingTime, spell.rangeText, spell.duration)
-                        .filter { it.isNotBlank() }
-                        .joinToString(" · ")
-                    if (summary.isNotBlank()) {
-                        Text(summary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (selectedSourceId == null) {
-                        val sourceState = spell.sourceAssociations.mapNotNull { association ->
-                            sourceById[association.sourceId]?.name?.let { name ->
-                                "$name ${if (association.prepared) "✓" else "○"}"
-                            }
-                        }.joinToString(" · ")
-                        if (sourceState.isNotBlank()) {
-                            Text(sourceState, style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
-                }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp)),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
                 ) {
+                    Text(
+                        spell.name.ifBlank { "Conjuro sin nombre" },
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     if (selectedAssociation != null) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
@@ -845,22 +820,47 @@ Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedB
                             Text("Prep.", style = MaterialTheme.typography.labelSmall)
                         }
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        StableFavoriteIconButton(
-                            selected = favorite,
-                            onClick = { onFavoriteChange(!favorite) },
-                            enabled = structuralEditingEnabled && favoriteEnabled,
-                            contentDescription = if (favorite) "Quitar ${spell.name} de Favoritos" else "Añadir ${spell.name} a Favoritos",
-                        )
-                        if (structuralEditingEnabled) {
-                            StableRemoveIconButton(
-                                onClick = onDelete,
-                                contentDescription = "Eliminar ${spell.name}",
-                            )
-                        }
-                    }
+                    StableFavoriteIconButton(
+                        selected = favorite,
+                        onClick = { onFavoriteChange(!favorite) },
+                        enabled = structuralEditingEnabled && favoriteEnabled,
+                        contentDescription = if (favorite) "Quitar ${spell.name} de Favoritos" else "Añadir ${spell.name} a Favoritos",
+                    )
                     if (structuralEditingEnabled) {
                         StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${spell.name}")
+                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${spell.name}")
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (spell.verbal) SpellBadgeG2("V")
+                    if (spell.somatic) SpellBadgeG2("S")
+                    if (spell.material) SpellBadgeG2("M")
+                    if (spell.concentration) SpellBadgeG2("Concentración", state = true)
+                    if (spell.ritual) SpellBadgeG2("Ritual", state = true)
+                    if (selectedSourceId != null && selectedAssociation?.prepared == true) SpellBadgeG2("Preparado", state = true)
+                    if (selectedSourceId == null && spell.sourceAssociations.isNotEmpty()) {
+                        val preparedCount = spell.sourceAssociations.count { it.prepared }
+                        SpellBadgeG2("Preparado $preparedCount/${spell.sourceAssociations.size}", state = true)
+                    }
+                }
+                val summary = listOf(spell.castingTime, spell.rangeText, spell.duration)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · ")
+                if (summary.isNotBlank()) {
+                    Text(summary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                if (selectedSourceId == null) {
+                    val sourceState = spell.sourceAssociations.mapNotNull { association ->
+                        sourceById[association.sourceId]?.name?.let { sourceName ->
+                            "$sourceName ${if (association.prepared) "✓" else "○"}"
+                        }
+                    }.joinToString(" · ")
+                    if (sourceState.isNotBlank()) {
+                        Text(sourceState, style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
@@ -919,13 +919,48 @@ private fun SpellEditorFieldsG2(
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
     )
-    OutlinedTextField(
-        value = level,
-        onValueChange = onLevelChange,
-        label = { Text("Nivel (0-9)") },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+    CharacterCompactFieldRowV4(
+        firstWeight = 0.65f,
+        secondWeight = 1.35f,
+        first = { fieldModifier ->
+            OutlinedTextField(
+                value = level,
+                onValueChange = onLevelChange,
+                label = { Text("Nivel (0-9)") },
+                modifier = fieldModifier,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+        },
+        second = { fieldModifier ->
+            OutlinedTextField(
+                value = castingTime,
+                onValueChange = onCastingTimeChange,
+                label = { Text("Tiempo de lanzamiento") },
+                modifier = fieldModifier,
+                singleLine = true,
+            )
+        },
+    )
+    CharacterCompactFieldRowV4(
+        first = { fieldModifier ->
+            OutlinedTextField(
+                value = rangeText,
+                onValueChange = onRangeTextChange,
+                label = { Text("Alcance") },
+                modifier = fieldModifier,
+                singleLine = true,
+            )
+        },
+        second = { fieldModifier ->
+            OutlinedTextField(
+                value = duration,
+                onValueChange = onDurationChange,
+                label = { Text("Duración") },
+                modifier = fieldModifier,
+                singleLine = true,
+            )
+        },
     )
     Text("Fuentes", style = MaterialTheme.typography.titleSmall)
     if (sources.isEmpty()) {
@@ -934,14 +969,8 @@ private fun SpellEditorFieldsG2(
     sources.forEach { source ->
         val key = source.id.toString()
         val included = key in associatedSourceIds
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
-                checked = included,
-                onCheckedChange = { onAssociationChange(source.id, it) },
-            )
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = included, onCheckedChange = { onAssociationChange(source.id, it) })
             Text(source.name, modifier = Modifier.weight(1f))
             Checkbox(
                 checked = key in preparedSourceIds,
@@ -951,18 +980,6 @@ private fun SpellEditorFieldsG2(
             Text("Preparado", style = MaterialTheme.typography.labelSmall)
         }
     }
-    OutlinedTextField(
-        value = castingTime,
-        onValueChange = onCastingTimeChange,
-        label = { Text("Tiempo de lanzamiento") },
-        modifier = Modifier.fillMaxWidth(),
-    )
-    OutlinedTextField(
-        value = rangeText,
-        onValueChange = onRangeTextChange,
-        label = { Text("Alcance") },
-        modifier = Modifier.fillMaxWidth(),
-    )
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(verbal, onVerbalChange); Text("V")
         Checkbox(somatic, onSomaticChange); Text("S")
@@ -976,12 +993,6 @@ private fun SpellEditorFieldsG2(
             modifier = Modifier.fillMaxWidth(),
         )
     }
-    OutlinedTextField(
-        value = duration,
-        onValueChange = onDurationChange,
-        label = { Text("Duración") },
-        modifier = Modifier.fillMaxWidth(),
-    )
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(concentration, onConcentrationChange); Text("Concentración")
         Checkbox(ritual, onRitualChange); Text("Ritual")

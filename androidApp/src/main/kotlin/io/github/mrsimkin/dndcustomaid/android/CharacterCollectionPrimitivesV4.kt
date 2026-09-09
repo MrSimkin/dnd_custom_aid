@@ -273,6 +273,7 @@ internal fun CharacterCollectionToolbarV4(
     searchLabel: String = "Buscar",
     collapsibleSearch: Boolean = false,
     showItemCount: Boolean = true,
+    compactOrderControl: Boolean = false,
     modifier: Modifier = Modifier,
     contextContent: (@Composable () -> Unit)? = null,
     onAdd: (() -> Unit)? = null,
@@ -294,9 +295,7 @@ internal fun CharacterCollectionToolbarV4(
         ) {
             if (contextContent != null && (!collapsibleSearch || !searchExpanded)) {
                 if (collapsibleSearch) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        contextContent()
-                    }
+                    Box(modifier = Modifier.weight(1f)) { contextContent() }
                 } else {
                     contextContent()
                 }
@@ -331,69 +330,72 @@ internal fun CharacterCollectionToolbarV4(
                 )
             }
 
-            if (showItemCount) {
-                Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
-            }
+            if (!collapsibleSearch || !searchExpanded) {
+                if (showItemCount) {
+                    Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                }
 
-            if (order != null && onOrderChange != null) {
-                Box {
-                    CharacterToolbarChipV4(
-                        text = if (order == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z",
-                        selected = order != CharacterPresentationOrder.MANUAL,
-                        onClick = { orderMenuOpen = true },
-                    )
-                    DropdownMenu(
-                        expanded = orderMenuOpen,
-                        onDismissRequest = { orderMenuOpen = false },
-                    ) {
-                        CharacterPresentationOrder.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        if (option == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z",
-                                    )
-                                },
-                                onClick = {
-                                    onOrderChange(option)
-                                    orderMenuOpen = false
+                if (order != null && onOrderChange != null) {
+                    Box {
+                        if (compactOrderControl) {
+                            StableSortIconButton(
+                                onClick = { orderMenuOpen = true },
+                                contentDescription = if (order == CharacterPresentationOrder.MANUAL) {
+                                    "Orden actual: Manual"
+                                } else {
+                                    "Orden actual: A–Z"
                                 },
                             )
+                        } else {
+                            CharacterToolbarChipV4(
+                                text = if (order == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z",
+                                selected = order != CharacterPresentationOrder.MANUAL,
+                                onClick = { orderMenuOpen = true },
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = orderMenuOpen,
+                            onDismissRequest = { orderMenuOpen = false },
+                        ) {
+                            CharacterPresentationOrder.entries.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(if (option == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z") },
+                                    onClick = {
+                                        onOrderChange(option)
+                                        orderMenuOpen = false
+                                    },
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            if (filters.isNotEmpty()) {
-                Box {
-                    CharacterToolbarChipV4(
-                        text = if (activeFilterCount == 0) "Filtros" else "Filtros $activeFilterCount",
-                        selected = activeFilterCount > 0,
-                        onClick = { filterMenuOpen = true },
-                    )
-                    DropdownMenu(
-                        expanded = filterMenuOpen,
-                        onDismissRequest = { filterMenuOpen = false },
-                    ) {
-                        filters.forEach { filter ->
-                            val active = filter.key in query.activeFilterKeys
-                            val countSuffix = filter.count?.let { " ($it)" }.orEmpty()
-                            DropdownMenuItem(
-                                text = {
-                                    Text("${if (active) "✓ " else ""}${filter.label}$countSuffix")
-                                },
-                                onClick = { onQueryChange(query.toggleFilter(filter.key)) },
-                            )
+                if (filters.isNotEmpty()) {
+                    Box {
+                        CharacterToolbarChipV4(
+                            text = if (activeFilterCount == 0) "Filtros" else "Filtros $activeFilterCount",
+                            selected = activeFilterCount > 0,
+                            onClick = { filterMenuOpen = true },
+                        )
+                        DropdownMenu(
+                            expanded = filterMenuOpen,
+                            onDismissRequest = { filterMenuOpen = false },
+                        ) {
+                            filters.forEach { filter ->
+                                val active = filter.key in query.activeFilterKeys
+                                val countSuffix = filter.count?.let { " ($it)" }.orEmpty()
+                                DropdownMenuItem(
+                                    text = { Text("${if (active) "✓ " else ""}${filter.label}$countSuffix") },
+                                    onClick = { onQueryChange(query.toggleFilter(filter.key)) },
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            if (onAdd != null) {
-                CharacterToolbarChipV4(
-                    text = "+",
-                    selected = false,
-                    onClick = onAdd,
-                )
+                if (onAdd != null) {
+                    CharacterToolbarChipV4(text = "+", selected = false, onClick = onAdd)
+                }
             }
         }
     }

@@ -277,6 +277,29 @@ internal fun StableDropdownIconButton(
 }
 
 @Composable
+internal fun StableSortIconButton(
+    onClick: () -> Unit,
+    contentDescription: String = "Ordenar",
+) {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+        Canvas(
+            modifier = Modifier
+                .size(22.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val stroke = 1.9.dp.toPx()
+            drawLine(color, Offset(size.width * 0.12f, size.height * 0.28f), Offset(size.width * 0.58f, size.height * 0.28f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.12f, size.height * 0.50f), Offset(size.width * 0.46f, size.height * 0.50f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.12f, size.height * 0.72f), Offset(size.width * 0.34f, size.height * 0.72f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.76f, size.height * 0.22f), Offset(size.width * 0.76f, size.height * 0.76f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.63f, size.height * 0.64f), Offset(size.width * 0.76f, size.height * 0.78f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.89f, size.height * 0.64f), Offset(size.width * 0.76f, size.height * 0.78f), stroke, StrokeCap.Round)
+        }
+    }
+}
+
+@Composable
 internal fun StableAddIcon(
     contentDescription: String = "Añadir",
 ) {
