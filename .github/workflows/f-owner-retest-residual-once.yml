@@ -1,0 +1,59 @@
+name: F residual owner-test repair once
+
+on:
+  push:
+    paths:
+      - '.github/f-owner-retest-residual-once.py'
+      - '.github/workflows/f-owner-retest-residual-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - name: Guard expected branch parent
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF_NAME}" = "implementation/phase4a-successor-cycle"
+          test "$(git rev-parse HEAD^)" = "65fdb33328e1a083c73df8798bece9789a668a0d"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - name: Apply guarded residual repair
+        run: python3 .github/f-owner-retest-residual-once.py
+      - name: Check patch hygiene
+        run: git diff --check
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+      - name: Verify F residual checkpoint
+        run: gradle :shared:desktopTest :androidApp:compileDebugKotlin --stacktrace
+      - name: Commit repair and self-remove
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCollectionPrimitivesV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCardInteractionV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterInteractionPrimitivesV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellSourceEditorV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt
+          git rm .github/f-owner-retest-residual-once.py .github/workflows/f-owner-retest-residual-once.yml
+          git commit -m 'fix: close residual F editor and grid drag defects'
+          git push
