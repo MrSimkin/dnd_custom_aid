@@ -807,19 +807,25 @@ private fun abilitySettingsLabelV4(ability: CharacterAbility): String = when (ab
 private fun abilityReferenceLabelV4(
     reference: CharacterAbilityReference,
     customAttributes: List<CharacterCustomAttribute>,
-): String = when {
-    reference.builtIn != null -> abilitySettingsLabelV4(reference.builtIn)
-    reference.customAttributeId != null -> customAttributes
-        .firstOrNull { it.id == reference.customAttributeId }
-        ?.let { "${it.name} (${it.abbreviation})" }
-        ?: "Característica no disponible"
-    else -> "Sin configurar"
+): String {
+    val builtIn = reference.builtIn
+    if (builtIn != null) return abilitySettingsLabelV4(builtIn)
+    val customAttributeId = reference.customAttributeId
+    return if (customAttributeId != null) {
+        customAttributes
+            .firstOrNull { it.id == customAttributeId }
+            ?.let { "${it.name} (${it.abbreviation})" }
+            ?: "Característica no disponible"
+    } else {
+        "Sin configurar"
+    }
 }
 
-private fun abilityReferenceKeyV4(reference: CharacterAbilityReference): String = when {
-    reference.builtIn != null -> "BUILTIN:${reference.builtIn.name}"
-    reference.customAttributeId != null -> "CUSTOM:${reference.customAttributeId}"
-    else -> "NONE"
+private fun abilityReferenceKeyV4(reference: CharacterAbilityReference): String {
+    val builtIn = reference.builtIn
+    if (builtIn != null) return "BUILTIN:${builtIn.name}"
+    val customAttributeId = reference.customAttributeId
+    return if (customAttributeId != null) "CUSTOM:$customAttributeId" else "NONE"
 }
 
 private fun abilityReferenceFromKeyV4(key: String): CharacterAbilityReference = when {
