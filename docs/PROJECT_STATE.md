@@ -3,24 +3,24 @@
 **Last verified:** 2026-09-09  
 **Canonical branch:** `main`  
 **Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Current implementation boundary:** successor Increment G integrated automated-green on continuation branch  
+**Current implementation boundary:** successor Increment H integrated automated-green on continuation branch  
 **Current phase:** Phase 4A — Character Foundation Closure successor repair/refinement cycle  
 **Release status:** debug / development; owner/device acceptance remains open; not release-ready  
 **DM work:** blocked until Phase 4A is repaired, accepted and explicitly closed
 
 ## 1. Canonical repository reality
 
-`main` remains the canonical baseline and was **not** advanced by Increment G. The active continuation branch contains the post-main successor work through Increment G. Canonical does not mean released, QA-accepted or owner-accepted.
+`main` remains the canonical baseline and has not been advanced by successor Increments F–H. The continuation branch contains the current post-main implementation through Increment H. Canonical does not mean released, QA-accepted or owner-accepted.
 
 Use:
 
-- `docs/checkpoints/LATEST.md` for the exact current position;
-- `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_G_COLLECTION_CONTENT_REPAIRS.md` for the latest completed implementation boundary;
+- `docs/checkpoints/LATEST.md` for the exact next action;
+- `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_H_APPLICATION_SETTINGS.md` for the latest completed implementation boundary;
+- `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_G_COLLECTION_CONTENT_REPAIRS.md` for the previous collection/content boundary;
 - `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_F_CONJUROS_COMPACT_SOURCE_CONTEXT.md` for repaired-F evidence and remaining targeted phone retest;
-- `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` for the controlling A–I sequence;
-- `docs/BRANCH_STATUS.md` for branch history/interpretation.
+- `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` for the controlling A–I sequence.
 
-Frozen QA candidate branches remain immutable historical evidence.
+Frozen QA candidate branches remain historical evidence.
 
 ## 2. Successor implementation progress
 
@@ -31,20 +31,20 @@ Frozen QA candidate branches remain immutable historical evidence.
 - E — Gestión + Markers + Resources + recovery/conditions: **COMPLETE / GREEN**;
 - F — compact Conjuros source-context redesign + repair: **AUTOMATED GREEN / TARGETED OWNER REPAIR RETEST PENDING**;
 - G — Equipo/Rasgos/conditional modules/Notas/Trasfondo: **COMPLETE / INTEGRATED AUTOMATED GREEN / OWNER ACCEPTANCE PENDING**;
-- H — full-screen Application Settings/live previews/themes: **NEXT ENGINEERING INCREMENT**;
-- I — separate tablet portrait/landscape redesign: pending.
+- H — full-screen Application Settings/live previews/themes: **COMPLETE / INTEGRATED AUTOMATED GREEN / OWNER ACCEPTANCE PENDING**;
+- I — separate tablet portrait/landscape redesign: **NEXT**.
 
-Two engineering increments remain in the planned successor sequence: **H and I**. Owner/device acceptance work also remains open.
+One engineering increment remains in the planned A–I successor implementation sequence: **I**. Owner/device acceptance and formal Phase 4A closure work remain after implementation.
 
 ## 3. Latest technically verified boundary
 
-Increment G integrated validation:
+Increment H integrated validation:
 
-- latest G product commit `3b6118e490edc8d57a0097c60d196d4de112722a`;
-- validation head `aa7e57647e4a1b467de028f9d0a0d13e4a1ef0bd`;
-- workflow `34413644371` — **SUCCESS**;
-- artifact ID `10128271891` / `dnd-custom-aid-debug-apk`;
-- artifact ZIP digest `sha256:1a3aab50c9c5122f94ddaa2b7de173cddd046b74b80f8be58b0ed4ec564bca2f`.
+- latest H product commit `a64ed207d906ae9aea695da34d01ded0e2ccf32a`;
+- validation head `5d287cc42331c46c8df39224348fa7380b4c1aeb`;
+- workflow `34416419033` — **SUCCESS**;
+- artifact ID `10129307655` / `dnd-custom-aid-debug-apk`;
+- artifact ZIP digest `sha256:f103f614141b8cf8ca57280bd75243c79a5f7dc63dbed84b9b2b48a7578c9f83`.
 
 Verified in one normal gate:
 
@@ -54,110 +54,77 @@ Verified in one normal gate:
 - desktop application build;
 - Android debug APK upload.
 
-This artifact is a development validation artifact. It has **not** received owner visual/device acceptance and is not a formal M6 candidate.
+This artifact is a development validation artifact. It is not owner/device acceptance and is not a formal M6 candidate.
 
-## 4. Implemented successor foundations A–G
+## 4. Implemented successor foundations A–H
 
 ### A–E foundations
 
-The continuation line retains:
-
-- generalized built-in/custom ability references;
-- custom attributes and optional custom saving throws;
-- custom-skill ability mapping;
-- per-source spellcasting ability/DC/attack configuration;
-- structured combat damage with legacy TEXT fallback;
-- Custom Markers separate from Resources;
-- binary/counter/current-max Resources with structured recovery and cross-tab placements;
-- durable tab order;
-- app-owned background-image domain/storage model;
-- own-format backup/import carrying successor state;
-- explicit phone/tablet layout context, spacing scale, compact toolbar, whole-card drag, IME-safe editors, numeric normalization and global contextual help;
-- character-first navigation, PC Settings, General/Habilidades, Combat/Dice and Gestión recovery/live-state work.
+The continuation line retains generalized abilities/custom attributes, per-source spellcasting, structured combat damage, Custom Markers and Resources with structured recovery/placements, durable tab order, app-owned background-image storage/backup, explicit phone/tablet layout context, compact collection/drag/editor/help primitives, character-first navigation, PC Settings, General/Habilidades, Combat/Dice and Gestión recovery/live-state work.
 
 ### F — Conjuros
 
-Repaired automated implementation provides compact source-context behavior, per-source casting projections, compact search/sort/filter/add behavior, shared measured whole-card spell reorder and IME-safe editor/numeric behavior. Its repaired targeted owner phone retest is still pending; automated green is not owner acceptance.
+Compact source context, canonical per-source casting projections, compact search/sort/filter/add behavior, shared measured whole-card reorder and IME/numeric repair are automated-green. Its targeted owner phone repair retest remains open.
 
 ### G — collection/content domains
 
-Equipo:
+- Equipo projects canonical CA/equipped state, Equipment Resources, clearer consumables, `Electrum` and `Gemas / arte`;
+- Rasgos projects Trait Resources, structured provenance and measured multi-column drag;
+- Artífice/Formas/Técnicas/Metamagia/Pactos/Compañeros use the compact shared collection grammar while retaining hide-not-delete module state;
+- Notas supports title/content search, presentation-only content filtering, Manual/A–Z and measured multi-column drag without expanding its intentionally minimal data model;
+- Trasfondo primary/secondary images are selectable, sampled/resized, persisted as app-owned payloads, rendered, removable and carried safely through backup/import.
 
-- canonical CA/equipped projection;
-- Equipo-placed Resources;
-- clearer consumable semantics;
-- `Electrum`;
-- `Gemas / arte`.
+### H — Application Settings
 
-Rasgos/conditional modules:
-
-- Rasgos-placed Resources;
-- structured provenance;
-- measured 2-D drag in multi-column Rasgos;
-- compact shared collection grammar across Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros;
-- existing hide-not-delete module visibility retained.
-
-Notas:
-
-- title/content search;
-- presentation-only content filters;
-- Manual/A–Z without mutating stored order;
-- measured multi-column whole-card reorder;
-- intentionally minimal title/content data model retained.
-
-Trasfondo:
-
-- functional primary/secondary image pickers;
-- sampled resize/transcode into existing app-owned encoded payload;
-- persistent render/add/change/remove;
-- save/reopen regression;
-- backup/import payload independence regression.
+- global settings is a true full-screen surface while the previous app surface remains composed underneath;
+- text size and spacing are discrete stepped sliders with live previews; text retains 70–200%, spacing includes 40%;
+- one global/device haptic strength-duration authority lives in Application Settings while per-character activation remains in PC Settings;
+- font UI presents useful immediate samples without normal-screen provider/audition clutter;
+- column preferences have live mini-grid previews;
+- requested theme renames are applied;
+- six additional theme families exist for audition: Carmesí, Ámbar, Glaciar, Lavanda, Pizarra and Terracota;
+- theme cards use representative multi-element previews.
 
 ## 5. Protected owner directions
 
-These remain controlling:
-
 - one datum / one canonical state;
-- compact compatible controls into clear rows rather than unnecessary vertical stacks;
+- compact compatible controls into clear rows instead of unnecessary vertical stacks;
 - reduce unnecessary margins/padding without degrading required touch targets;
 - whole-card drag where safe; physical feel remains auditionable;
 - phone landscape is a phone interaction model, not tablet UI;
-- tablet/wide UX needs independent redesign;
+- tablet portrait and tablet landscape require independent first-class redesign;
 - use `Raza`, never `Especie/raza`;
 - use `Electrum`, never `Electro`;
 - Spanish class/subclass presentation;
-- contextual explanation remains useful content through `Siempre visible` / `ⓘ / tooltip` / `Oculto`;
+- contextual explanations remain through `Siempre visible` / `ⓘ / tooltip` / `Oculto`;
 - generic `Fuente` schema leakage must not be reintroduced;
-- structured provenance uses `Tipo de origen | Origen específico` when that semantic distinction is real;
 - Conjuros source association remains a real behavioral concept and may be custom/non-class.
 
 ## 6. Owner/device acceptance state
 
-No automated gate through Increment G is owner visual/device acceptance.
+No automated gate through Increment H is owner visual/device acceptance.
 
-The owner directed work to continue into G without recording a passing repaired-F physical retest. Therefore repaired F's targeted Redmi Note 11 Pro 5G check remains outstanding rather than being silently inferred as accepted.
+Repaired F's targeted Redmi Note 11 Pro 5G check remains outstanding because no passing physical evidence has been recorded. A later consolidated phone audition should also cover representative G/H behavior: persistent background image reopen, Notes search/reorder, cross-tab Resources, full-screen settings, slider extremes/new themes and real-device haptic differences.
 
-The later consolidated successor audition should also cover representative G behavior, especially persistent Trasfondo image reopen, Notes search, Resource projection across tabs and representative multi-column drag.
-
-No physical owner tablet acceptance has been completed. Increment I remains a redesign task rather than validation of the old wide layout.
+No physical owner tablet acceptance has been completed. Increment I is therefore a redesign task, not validation of the old wide layout.
 
 ## 7. Conditional/deferred boundaries
 
-- SRD-backed `Buscar existente` selectors are only appropriate where an approved corpus actually exists; this cycle does not silently become full SRD ingestion.
-- Exact proprietary Sandy Petersen Cthulhu Mythos condition text remains deferred unless project-appropriate/owner-provided text is available.
-- Do not invent an automatic AC rules engine until inventory has sufficient structured armor/shield semantics.
+- SRD-backed `Buscar existente` selectors require an approved corpus; this cycle does not silently become full SRD ingestion.
+- Exact proprietary Sandy Petersen Cthulhu Mythos condition text remains deferred without an appropriate content source.
+- Do not invent an automatic AC rules engine before inventory has sufficient armor/shield semantics.
 - Do not begin broad DM implementation.
 
 ## 8. Exact next engineering position
 
-Resume with **Increment H — full-screen Application Settings redesign** according to the reconciled successor plan.
+Resume with **Increment I — separate tablet portrait/landscape redesign** according to the reconciled successor plan.
 
-H must preserve one app-wide authority for text size, spacing, column preferences, help mode, dice-result presentation, haptic preferences, font choice and theme. It must provide practical live previews rather than duplicate per-screen settings.
+I must reuse the canonical A–H state and shared controls while designing tablet portrait and landscape as first-class interaction surfaces. It must not simply stretch the phone layout or use width alone to classify a landscape phone as tablet.
 
-After H, Increment I redesigns tablet portrait/landscape using the same canonical domain state and shared controls without merely stretching the phone/wide UI.
+After I, produce the tablet-targeted owner audition boundary and move into acceptance/closure planning rather than DM feature implementation.
 
 ## 9. Phase 4A closure remains open
 
-Phase 4A still requires H/I integration, outstanding targeted phone acceptance, redesigned tablet acceptance, blocking repair resolution, a new formal M6 freeze when appropriate, formal regression/upgrade QA and explicit owner closure.
+Phase 4A still requires Increment I integration, outstanding phone acceptance, redesigned tablet acceptance, blocking repair resolution if found, a formal M6 freeze when appropriate, regression/upgrade QA and explicit owner closure.
 
 **No DM feature implementation begins before that explicit closure.**
