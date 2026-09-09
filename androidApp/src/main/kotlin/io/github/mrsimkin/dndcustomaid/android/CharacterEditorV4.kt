@@ -714,8 +714,9 @@ internal fun CharacterEditorScreenV4(
                             combatEntries = combatEntries,
                             successorState = successorState.copy(combatDamage = combatDamageProfiles),
                         )
-                        CharacterTabV4.MANAGEMENT -> CharacterManagementTabV4(
+                        CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(
                             sheet = stored,
+                            generalDraftSheet = settingsSheet,
                             closureState = closureState,
                             onSheetChange = ::persistOperationalSheet,
                             onClosureStateChange = ::persistClosureState,
