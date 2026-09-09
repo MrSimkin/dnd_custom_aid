@@ -608,11 +608,11 @@ Column(
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(
+                        StableFavoriteIconButton(
+                            selected = favorite,
                             onClick = { onFavoriteChange(!favorite) },
                             enabled = favoriteEnabled,
-                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                        ) { Text(if (favorite) "★" else "☆") }
+                        )
                         if (structuralEditingEnabled) {
                             StableRemoveIconButton(
                                 onClick = onDelete,

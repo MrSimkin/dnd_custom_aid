@@ -411,13 +411,11 @@ private fun CombatEntryCardV4(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    TextButton(
+                    StableFavoriteIconButton(
+                        selected = favorite,
                         onClick = { onFavoriteChange(!favorite) },
                         enabled = favoriteEnabled,
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                    ) {
-                        Text(if (favorite) "★" else "☆")
-                    }
+                    )
                     if (structuralEditingEnabled) {
                         StableRemoveIconButton(
                             onClick = onDelete,

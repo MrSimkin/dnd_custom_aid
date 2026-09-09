@@ -448,10 +448,11 @@ private fun CharacterCombatSuccessorCardV4(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(
+                StableFavoriteIconButton(
+                    selected = favorite,
                     onClick = { onFavoriteChange(!favorite) },
                     enabled = favoriteEnabled,
-                ) { Text(if (favorite) "★" else "☆") }
+                )
                 TextButton(onClick = onEdit, enabled = structuralEditingEnabled) { Text("Editar") }
                 TextButton(onClick = onDelete, enabled = structuralEditingEnabled) { Text("Eliminar") }
             }

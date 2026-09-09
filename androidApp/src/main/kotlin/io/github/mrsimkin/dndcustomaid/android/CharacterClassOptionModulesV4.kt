@@ -770,11 +770,11 @@ Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedB
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(
+                        StableFavoriteIconButton(
+                            selected = favorite,
                             onClick = { onFavoriteChange(!favorite) },
                             enabled = structuralEditingEnabled && favoriteEnabled,
-                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                        ) { Text(if (favorite) "★" else "☆") }
+                        )
                         if (structuralEditingEnabled) {
                             StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${option.name}")
                         }

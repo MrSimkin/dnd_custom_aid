@@ -663,12 +663,11 @@ private fun ResourcesCardV4(
                         enabled = resource.maxValue?.let { max -> resource.currentValue < max } ?: true,
                     ) { Text("+") }
                     val favorite = resource.id in favoriteResourceIds
-                    TextButton(
+                    StableFavoriteIconButton(
+                        selected = favorite,
                         onClick = { onFavoriteChange(resource, !favorite) },
                         enabled = structuralEditingEnabled,
-                    ) {
-                        Text(if (favorite) "★" else "☆")
-                    }
+                    )
                     TextButton(onClick = { onDelete(resource) }, enabled = structuralEditingEnabled) { Text("Eliminar") }
                 }
             }

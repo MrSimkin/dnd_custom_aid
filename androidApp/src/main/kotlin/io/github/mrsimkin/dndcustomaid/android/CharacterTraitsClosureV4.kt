@@ -541,11 +541,11 @@ Column(modifier = Modifier.weight(1f)) {
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    TextButton(
+                    StableFavoriteIconButton(
+                        selected = favorite,
                         onClick = { onFavoriteChange(!favorite) },
                         enabled = favoriteEnabled,
-                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                    ) { Text(if (favorite) "★" else "☆") }
+                    )
                 }
 
                 Text(

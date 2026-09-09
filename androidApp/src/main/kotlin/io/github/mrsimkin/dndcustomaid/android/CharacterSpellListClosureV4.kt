@@ -846,20 +846,12 @@ Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedB
                         }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(
+                        StableFavoriteIconButton(
+                            selected = favorite,
                             onClick = { onFavoriteChange(!favorite) },
                             enabled = structuralEditingEnabled && favoriteEnabled,
-                            modifier = Modifier.semantics {
-                                contentDescription = if (favorite) {
-                                    "Quitar ${spell.name} de Favoritos"
-                                } else {
-                                    "Añadir ${spell.name} a Favoritos"
-                                }
-                            },
-                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                        ) {
-                            Text(if (favorite) "★" else "☆")
-                        }
+                            contentDescription = if (favorite) "Quitar ${spell.name} de Favoritos" else "Añadir ${spell.name} a Favoritos",
+                        )
                         if (structuralEditingEnabled) {
                             StableRemoveIconButton(
                                 onClick = onDelete,
