@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -26,6 +28,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Typography
@@ -51,6 +54,7 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.characterRulesFamilyBadgeLabel
 
@@ -205,7 +209,7 @@ internal class UiPreferencesStore(context: Context) {
 }
 
 internal val FONT_SCALE_OPTIONS = listOf(70, 80, 90, 100, 110, 120, 130, 145, 160, 180, 200)
-internal val SPACING_SCALE_OPTIONS = listOf(100, 90, 80, 70, 60, 40)
+internal val SPACING_SCALE_OPTIONS = listOf(40, 60, 70, 80, 90, 100)
 
 @Composable
 internal fun appSpacingV4(value: Dp): Dp =
@@ -494,7 +498,7 @@ private fun typographyWithFamily(family: FontFamily): Typography {
 }
 
 @Composable
-internal fun AppSettingsDialog(
+internal fun AppSettingsScreen(
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
     onDismiss: () -> Unit,
@@ -503,60 +507,90 @@ internal fun AppSettingsDialog(
     val configuration = LocalConfiguration.current
     val phoneLike = minOf(configuration.screenWidthDp, configuration.screenHeightDp) < 600
     val veryLargePhoneText = phoneLike && preferences.fontScalePercent >= 145
-    val dialogEnvironment = characterDialogEnvironmentV4()
 
-    AlertDialog(
-        modifier = Modifier.imePadding().navigationBarsPadding(),
-        onDismissRequest = onDismiss,
-        title = { dialogEnvironment.Provide { Text("Ajustes") } },
-        text = {
-            dialogEnvironment.Provide {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            ) {
+                StableBackIconButton(
+                    onClick = onDismiss,
+                    contentDescription = "Volver desde Configuración de la aplicación",
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Configuración de la aplicación", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        "Cambios inmediatos · preferencias de este dispositivo",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                TextButton(onClick = { showAbout = true }) { Text("Acerca de") }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 620.dp),
-                contentPadding = PaddingValues(bottom = appSpacingV4(6.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
+                    .weight(1f),
+                contentPadding = PaddingValues(
+                    start = appSpacingV4(8.dp),
+                    end = appSpacingV4(8.dp),
+                    top = appSpacingV4(4.dp),
+                    bottom = appSpacingV4(18.dp),
+                ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(9.dp)),
             ) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
-                        SettingSelector(
-                            label = "Tamaño de texto",
-                            value = "${preferences.fontScalePercent}%",
-                            options = FONT_SCALE_OPTIONS,
-                            optionLabel = { "$it%" },
-                            onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
-                        )
-                        if (veryLargePhoneText) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.tertiaryContainer,
-                                shape = MaterialTheme.shapes.small,
-                            ) {
-                                Text(
-                                    "Advertencia para teléfono: ${preferences.fontScalePercent}% reduce mucho el área útil. La app conservará el valor y recurrirá a scroll cuando sea necesario.",
-                                    modifier = Modifier.padding(appSpacingV4(7.dp)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                )
-                            }
+                    SteppedPercentSettingV4(
+                        label = "Tamaño de texto",
+                        value = preferences.fontScalePercent,
+                        options = FONT_SCALE_OPTIONS,
+                        onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
+                        previewTitle = "Ejemplo de texto",
+                        previewPrimary = "Alyra Voss · Maga 7",
+                        previewSecondary = "CD 15 · CA 17 · 1d20 + 7",
+                    )
+                    if (veryLargePhoneText) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = MaterialTheme.shapes.small,
+                        ) {
+                            Text(
+                                "Advertencia para teléfono: ${preferences.fontScalePercent}% reduce mucho el área útil. La app conserva el valor y recurre a scroll cuando sea necesario.",
+                                modifier = Modifier.padding(appSpacingV4(7.dp)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            )
                         }
                     }
                 }
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
-                        SettingSelector(
-                            label = "Compactación adicional de espacios",
-                            value = "${preferences.spacingScalePercent}%",
-                            options = SPACING_SCALE_OPTIONS,
-                            optionLabel = { "$it%" },
-                            onSelect = { onPreferencesChange(preferences.copy(spacingScalePercent = it)) },
-                        )
-                        Text(
-                            "No reemplaza la vista Supercompacta. Reduce todavía más los márgenes, paddings y separaciones que controla la app; iconos y touch targets conservan su tamaño.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    SteppedPercentSettingV4(
+                        label = "Compactación de espacios",
+                        value = preferences.spacingScalePercent,
+                        options = SPACING_SCALE_OPTIONS,
+                        onSelect = { onPreferencesChange(preferences.copy(spacingScalePercent = it)) },
+                        previewTitle = "Ejemplo de espaciado",
+                        previewPrimary = "Tarjeta compacta",
+                        previewSecondary = "Margen · separación · contenido",
+                    )
+                    Text(
+                        "No reemplaza la vista Supercompacta. Reduce márgenes, paddings y separaciones controlados por la app; iconos y touch targets conservan su tamaño.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
@@ -574,6 +608,7 @@ internal fun AppSettingsDialog(
                         )
                     }
                 }
+                item { HapticDeviceSettingsV4() }
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
                         SettingSelector(
@@ -584,7 +619,7 @@ internal fun AppSettingsDialog(
                             onSelect = { onPreferencesChange(preferences.copy(diceResultMode = it)) },
                         )
                         Text(
-                            "El resultado compacto prioriza densidad. Dados visibles muestra los d20 obtenidos de forma prominente; ambos conservan la misma descomposición matemática.",
+                            "El resultado compacto prioriza densidad. Dados visibles muestra los d20 de forma prominente; ambos conservan la misma descomposición matemática.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -609,27 +644,112 @@ internal fun AppSettingsDialog(
                     )
                 }
                 item { SettingsSheetPreview(preferences) }
-                item {
-                    Text(
-                        "La audición tipográfica mezcla candidatos de distintos orígenes; el distribuidor no decide la selección final.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
             }
-            }
-        },
-        confirmButton = {
-            dialogEnvironment.Provide {
-                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
-                    TextButton(onClick = { showAbout = true }) { Text("Acerca de") }
-                    Button(onClick = onDismiss) { Text("Listo") }
-                }
-            }
-        },
-    )
+        }
+    }
 
     if (showAbout) {
         AboutBuildDialogV4(onDismiss = { showAbout = false })
+    }
+}
+
+@Composable
+private fun SteppedPercentSettingV4(
+    label: String,
+    value: Int,
+    options: List<Int>,
+    onSelect: (Int) -> Unit,
+    previewTitle: String,
+    previewPrimary: String,
+    previewSecondary: String,
+) {
+    val currentIndex = options.indexOf(value).coerceAtLeast(0)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = MaterialTheme.typography.labelLarge)
+            Text("$value%", style = MaterialTheme.typography.titleSmall)
+        }
+        Slider(
+            value = currentIndex.toFloat(),
+            onValueChange = { rawIndex ->
+                val index = rawIndex.roundToInt().coerceIn(options.indices)
+                val selected = options[index]
+                if (selected != value) onSelect(selected)
+            },
+            valueRange = 0f..options.lastIndex.toFloat(),
+            steps = (options.size - 2).coerceAtLeast(0),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("${options.first()}%", style = MaterialTheme.typography.labelSmall)
+            Text("${options.last()}%", style = MaterialTheme.typography.labelSmall)
+        }
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+        ) {
+            Column(
+                modifier = Modifier.padding(appSpacingV4(7.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+            ) {
+                Text(previewTitle, style = MaterialTheme.typography.labelSmall)
+                Text(previewPrimary, style = MaterialTheme.typography.titleSmall)
+                Text(previewSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HapticDeviceSettingsV4() {
+    val hapticContext = LocalCharacterHapticSettingsV4.current
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+    ) {
+        Text("Respuesta háptica · dispositivo", style = MaterialTheme.typography.labelLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                SettingSelector(
+                    label = "Intensidad",
+                    value = hapticContext.preferences.strength.label,
+                    options = CharacterHapticStrengthV4.entries,
+                    optionLabel = { it.label },
+                    onSelect = { option ->
+                        hapticContext.onChange(hapticContext.preferences.copy(strength = option))
+                    },
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                SettingSelector(
+                    label = "Duración",
+                    value = hapticContext.preferences.duration.label,
+                    options = CharacterHapticDurationV4.entries,
+                    optionLabel = { it.label },
+                    onSelect = { option ->
+                        hapticContext.onChange(hapticContext.preferences.copy(duration = option))
+                    },
+                )
+            }
+        }
+        CharacterHelpV4(
+            "Intensidad y duración son preferencias globales de este dispositivo. Activar o desactivar la respuesta háptica sigue perteneciendo a cada ficha de personaje.",
+        )
     }
 }
 

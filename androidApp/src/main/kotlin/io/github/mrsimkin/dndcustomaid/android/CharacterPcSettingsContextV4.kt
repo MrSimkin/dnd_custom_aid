@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.platform.LocalContext
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
@@ -54,9 +53,6 @@ internal fun CharacterPcSettingsStateProviderV4(
     var successorState by remember(characterId) {
         mutableStateOf(successorRepository.state(characterId))
     }
-    val androidContext = LocalContext.current.applicationContext
-    val hapticStore = remember(androidContext) { CharacterHapticPreferencesStore(androidContext) }
-
     val settingsContext = CharacterPcSettingsContextV4(
         characterId = characterId,
         successorState = successorState,
@@ -68,9 +64,7 @@ internal fun CharacterPcSettingsStateProviderV4(
         loadCanonicalSheet = { characterRepository.character(characterId) },
     )
 
-    CharacterHapticSettingsProviderV4(store = hapticStore) {
-        CompositionLocalProvider(LocalCharacterPcSettingsContextV4 provides settingsContext) {
-            content()
-        }
+    CompositionLocalProvider(LocalCharacterPcSettingsContextV4 provides settingsContext) {
+        content()
     }
 }

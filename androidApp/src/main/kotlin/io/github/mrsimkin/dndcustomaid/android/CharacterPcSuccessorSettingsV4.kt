@@ -392,12 +392,10 @@ internal fun CharacterHapticProfileSettingsV4(
     onClosureStateChange: (CharacterClosureState) -> Unit,
 ) {
     val hapticContext = LocalCharacterHapticSettingsV4.current
-    var strengthMenuOpen by remember { mutableStateOf(false) }
-    var durationMenuOpen by remember { mutableStateOf(false) }
 
     SuccessorSettingCardV4(
         title = "Respuesta háptica",
-        description = "La activación pertenece a esta ficha; intensidad y duración son preferencias de este dispositivo. El hardware puede limitar la diferencia entre niveles.",
+        description = "La activación pertenece a esta ficha. La intensidad y la duración son preferencias del dispositivo y se cambian en Configuración de la aplicación.",
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -412,53 +410,11 @@ internal fun CharacterHapticProfileSettingsV4(
                 },
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Intensidad", style = MaterialTheme.typography.labelSmall)
-                Box {
-                    OutlinedButton(
-                        onClick = { strengthMenuOpen = true },
-                        enabled = closureState.hapticsEnabled,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(hapticContext.preferences.strength.label) }
-                    DropdownMenu(expanded = strengthMenuOpen, onDismissRequest = { strengthMenuOpen = false }) {
-                        CharacterHapticStrengthV4.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option.label) },
-                                onClick = {
-                                    hapticContext.onChange(hapticContext.preferences.copy(strength = option))
-                                    strengthMenuOpen = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Duración", style = MaterialTheme.typography.labelSmall)
-                Box {
-                    OutlinedButton(
-                        onClick = { durationMenuOpen = true },
-                        enabled = closureState.hapticsEnabled,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(hapticContext.preferences.duration.label) }
-                    DropdownMenu(expanded = durationMenuOpen, onDismissRequest = { durationMenuOpen = false }) {
-                        CharacterHapticDurationV4.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option.label) },
-                                onClick = {
-                                    hapticContext.onChange(hapticContext.preferences.copy(duration = option))
-                                    durationMenuOpen = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        Text(
+            "Perfil del dispositivo · Intensidad ${hapticContext.preferences.strength.label} · Duración ${hapticContext.preferences.duration.label}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

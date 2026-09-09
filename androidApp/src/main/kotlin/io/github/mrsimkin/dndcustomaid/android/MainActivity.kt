@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val characterSuccessorRepository by lazy { CharacterSuccessorRepository(database) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
+    private val hapticPreferencesStore by lazy { CharacterHapticPreferencesStore(applicationContext) }
     private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,7 +72,8 @@ class MainActivity : ComponentActivity() {
             }
 
             DndCustomAidTheme(preferences = preferences) {
-                DndCustomAidApp(
+                CharacterHapticSettingsProviderV4(store = hapticPreferencesStore) {
+                    DndCustomAidApp(
                     campaignRepository = campaignRepository,
                     characterRepository = characterRepository,
                     characterDirectoryRepository = characterDirectoryRepository,
@@ -80,8 +82,9 @@ class MainActivity : ComponentActivity() {
                     characterSuccessorRepository = characterSuccessorRepository,
                     characterNavigationPreferenceStore = characterNavigationPreferenceStore,
                     preferences = preferences,
-                    onPreferencesChange = ::updatePreferences,
-                )
+                        onPreferencesChange = ::updatePreferences,
+                    )
+                }
             }
         }
     }
@@ -141,7 +144,8 @@ private fun DndCustomAidApp(
         )
     }
 
-    when (screen) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (screen) {
         AppScreen.CAMPAIGNS -> CampaignScreen(
             repository = campaignRepository,
             onBack = {
@@ -180,14 +184,15 @@ private fun DndCustomAidApp(
                 }
             }
         }
-    }
+        }
 
-    if (showSettings) {
-        AppSettingsDialog(
-            preferences = preferences,
-            onPreferencesChange = onPreferencesChange,
-            onDismiss = { showSettings = false },
-        )
+        if (showSettings) {
+            AppSettingsScreen(
+                preferences = preferences,
+                onPreferencesChange = onPreferencesChange,
+                onDismiss = { showSettings = false },
+            )
+        }
     }
 }
 
