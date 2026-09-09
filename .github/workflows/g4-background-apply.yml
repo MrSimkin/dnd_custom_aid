@@ -30,13 +30,16 @@ jobs:
         with:
           gradle-version: '9.5.0'
       - name: Apply guarded G4 background transformations
-        run: python3 .maintenance/g4_background_apply.py
+        run: |
+          sed -i 's/contentDescription = image\.originalName?/contentDescription = image?.originalName?/' .maintenance/g4_background_apply.py
+          python3 .maintenance/g4_background_apply.py
       - name: Guard diff
         run: |
           git diff --check
           grep -q 'CharacterBackgroundImageCardV4' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt
           grep -q 'ActivityResultContracts.GetContent' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt
           grep -q 'Base64.encodeToString' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt
+          grep -q 'contentDescription = image?.originalName' androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterBackgroundTabV4.kt
           grep -q 'backgroundImagesRoundTripAsAppOwnedPayloads' shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterSuccessorRepositoryTest.kt
           grep -q 'backgroundImagePayloadSurvivesBackupCodecAndImportWithFreshIdentity' shared/src/desktopTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterBackupV2Test.kt
       - name: Focused compile and tests
