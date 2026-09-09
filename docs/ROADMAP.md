@@ -36,48 +36,45 @@ The slice proved Android Material 3 UI, shared Kotlin behavior, SQLDelight persi
 
 **Status:** Current.
 
-Phase 4 began with the Android character data foundation and expanded into a deliberate **Character Foundation Closure** cycle before DM-focused implementation.
+Phase 4 expanded into a deliberate **Character Foundation Closure** cycle before DM-focused implementation.
 
 ### Phase 4A — Character Foundation Closure
 
-**Status:** implementation broadly complete; current debug baseline consolidated into `main`; owner-driven UX/repair cycle remains open; formal acceptance deferred.
+**Status:** successor repair/refinement implementation in progress; increments A–E complete/green; formal owner acceptance deferred.
 
-D-0047 remains the controlling character-closure scope. It includes retained QA fixes, F01–F18, D01–D18, I01–I22, official/custom class/subclass identity, all six approved conditional modules, Gestión, PC Settings, Supercompact/Table mode, backup/import and first-class phone/tablet intent.
+D-0047 remains the controlling broad character-closure scope. D-0066 controls repository consolidation. D-0067 plus the September 2026 owner audition/refinement package controls the current repair/refinement direction.
 
-Implemented general character surfaces include:
+The repository may consolidate technically verified development boundaries into `main` before acceptance when the owner explicitly requests repository ordering. **Presence on `main` is not a Phase 4A acceptance criterion.**
 
-- General;
-- Habilidades;
-- Combate;
-- Gestión;
-- Equipo / Monedas;
-- Trasfondo;
-- Rasgos;
-- conditional Conjuros;
-- Notas.
+#### Successor implementation sequence
 
-Implemented conditional reusable modules:
+The current reconciled plan contains nine increments:
 
-- Artífice;
-- Formas;
-- Técnicas;
-- Metamagia;
-- Pactos;
-- Compañeros.
+1. **A — schema/domain/storage foundation:** COMPLETE / GREEN;
+2. **B — shared UX/responsive primitives:** COMPLETE / GREEN; drag feel pending owner-device judgment;
+3. **C — character-first navigation + PC Settings + General/Habilidades:** COMPLETE / GREEN;
+4. **D — Combat + Dice:** COMPLETE / GREEN;
+5. **E — Gestión + Markers + Resources + recovery/conditions:** COMPLETE / GREEN;
+6. **F — Conjuros compact source-context redesign:** NEXT;
+7. **G — Equipo/Rasgos/conditional modules/Notas/Trasfondo:** pending;
+8. **H — full-screen Application Settings/live previews/themes:** pending;
+9. **I — separate tablet portrait/landscape redesign:** pending.
 
-Historical implementation/audit lines A1–L and M1–M5 plus the focused pre-QA repair Pass 03–07 remain durable evidence.
+Four increments remain: **F, G, H and I**.
 
-D-0066 changed the **repository merge boundary**, not the acceptance boundary: the owner explicitly approved promoting the current in-progress Phase 4 state into canonical `main` to eliminate branch sprawl and make one coherent development baseline.
+#### Latest automated successor boundary
 
-Therefore:
+Increment E final integrated validation:
 
-- `main` now contains the canonical current Phase 4 development reality;
-- the current baseline is still debug/pre-QA and known to have defects;
-- old implementation/tmp branches are historical, not alternate current baselines;
-- future repair work starts from `main` on a focused branch;
-- presence on `main` does not satisfy the Phase 4A exit criterion.
+- active Gestión wiring source commit `4b3ab53faada5af7b50f73ce951fe767c13ff63a`;
+- validation commit `0587db5e65d89e809f138e83d053903659216886`;
+- workflow `34307068166` — SUCCESS;
+- artifact `10087074946` / `dnd-custom-aid-debug-apk`;
+- ZIP digest `55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
 
-Current latest technically verified product identity:
+This is a development verification boundary, not an owner-auditioned build and not a formal M6 candidate.
+
+#### Latest owner-auditioned practical build
 
 - version `0.4.0-preqa.7` / build `40700` / `debug`;
 - tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
@@ -85,27 +82,36 @@ Current latest technically verified product identity:
 - artifact `10035895186`;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-The owner phone audition has sufficiently covered Stages A–F for this build and produced a substantial repair backlog rather than acceptance. No physical owner tablet acceptance has been completed.
+The owner phone audition sufficiently covered Stages A–F for that build and produced a repair backlog rather than acceptance. No physical owner tablet acceptance has been completed.
 
-Current next step is **not** more speculative testing of build `40700`. The owner is compiling additional non-QA observations to combine with the existing audition backlog. After those are recorded, one coherent successor repair batch should be designed and implemented from canonical `main`.
+#### Next build/audition boundary
+
+After Increment F, produce the planned **interaction build** for targeted Redmi Note 11 Pro 5G portrait + landscape retest of the highest-risk repaired flows, especially:
+
+- one-row Conjuros source-context bar and usable spell viewport;
+- phone-landscape spell visibility;
+- representative editor/keyboard behavior;
+- representative whole-card drag feel;
+- Gestión operational/death-save footprint;
+- Habilidades passive row;
+- 40% spacing option.
+
+Do not repeat the full build-40700 audition screen by screen.
 
 ### Phase 4A exit criterion
 
 Phase 4A is complete only when:
 
-- D-0047 implementation is present — **done**;
-- migrations/persistence and automated gates are green at the relevant tested build — **done for build 40700**;
-- current owner phone-audition findings are durably recorded — **done for the current build**;
-- additional owner observations intended for the same repair cycle are captured/reconciled — **pending**;
-- the known cross-cutting repair families are implemented and automatically verified in a successor build — **pending**;
-- phone retesting demonstrates the repaired baseline is acceptable — **pending**;
-- tablet portrait/landscape acceptance is completed on an owner device or another explicitly approved acceptance method — **pending**;
+- D-0047 implementation exists — **done**;
+- successor schema/domain/storage and current automated gates are green — **done through Increment E**;
+- owner observations and cross-cutting directions are durably captured — **done for the current package**;
+- remaining successor increments F–I are implemented and verified — **pending**;
+- targeted owner phone retesting demonstrates the repaired baseline is acceptable — **pending**;
+- tablet portrait/landscape acceptance is completed on a redesigned tablet surface — **pending**;
 - one exact replacement formal M6 candidate is explicitly frozen when ready — **pending**;
-- formal owner QA passes, including upgrade/persistence and relevant regression coverage — **pending**;
+- upgrade/persistence and relevant formal regression QA pass — **pending**;
 - blocking findings are resolved — **pending**;
 - the owner explicitly accepts/closes Phase 4A — **pending**.
-
-The repository is already consolidated into `main` under D-0066, so "merge to main" is no longer itself an exit criterion. **Acceptance and closure remain separate.**
 
 **No DM-feature implementation begins before Phase 4A acceptance/closure.**
 
