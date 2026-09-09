@@ -169,11 +169,11 @@ deleteDefenses:
 DELETE FROM character_defense WHERE character_id = ?;
 
 insertMovement:
-INSERT INTO character_movement(id, character_id, name, movement_type, speed_feet, notes, sort_order)
+INSERT INTO character_movement(id, character_id, movement_type, name, speed_feet, notes, sort_order)
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
 selectMovements:
-SELECT id, character_id, name, movement_type, speed_feet, notes, sort_order
+SELECT id, character_id, movement_type, name, speed_feet, notes, sort_order
 FROM character_movement
 WHERE character_id = ?
 ORDER BY sort_order, id;
