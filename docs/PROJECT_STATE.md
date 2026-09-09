@@ -1,223 +1,209 @@
 # Project State
 
-**Last verified:** 2026-09-08  
+**Last verified:** 2026-09-09  
 **Canonical branch:** `main`  
-**Repository consolidation:** COMPLETE under D-0066  
-**Current owner refinement package:** D-0067 RECORDED  
-**Current phase:** Phase 4A — Character Foundation Closure / owner-driven repair and refinement cycle  
-**Release status:** debug / pre-QA; known defects remain; not release-ready  
-**DM work:** blocked until the separate Phase 4A closure/acceptance gate is later satisfied and explicitly approved
+**Active continuation branch:** `implementation/phase4a-successor-cycle`  
+**Repository consolidation:** D-0066 baseline + 2026-09-09 successor night-close through Increment E  
+**Current phase:** Phase 4A — Character Foundation Closure successor repair/refinement cycle  
+**Release status:** debug / development; known owner-acceptance work remains; not release-ready  
+**DM work:** blocked until Phase 4A is repaired, accepted and explicitly closed
 
-## 1. Canonical repository state
+## 1. Canonical repository reality
 
-D-0066 consolidated the current Phase 4 development baseline into `main` by normal non-force fast-forward. `main` is now the single current development baseline even though Phase 4A is not accepted or release-ready.
+`main` is the canonical current development baseline. Canonical does **not** mean released, QA-accepted or owner-accepted.
 
-Old implementation/safety/tmp branches are historical evidence, not competing current state. Frozen QA candidate branches remain immutable historical evidence.
+The 2026-09-09 night-close consolidation advances `main` by normal fast-forward to the same completed-E baseline as `implementation/phase4a-successor-cycle`. The active branch remains the focused continuation line for Increment F tomorrow; it is not a competing source of truth.
 
 Use:
 
-- `docs/checkpoints/LATEST.md` for the exact resume point;
-- `docs/BRANCH_STATUS.md` only when branch-history interpretation matters;
-- `docs/decisions/D-0066_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md` for the consolidation rationale.
+- `docs/checkpoints/LATEST.md` for the exact next action;
+- `docs/checkpoints/2026-09-09_NIGHT_CLOSE_AFTER_INCREMENT_E.md` for session continuity;
+- `docs/BRANCH_STATUS.md` for branch interpretation/cleanup;
+- `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` for the controlling A–I implementation sequence.
 
-## 2. Latest technically verified product build
+Frozen QA candidate branches remain immutable historical evidence.
 
-The latest product code that completed the full automated gate remains:
+## 2. Current implementation progress
+
+The successor cycle has nine planned increments.
+
+- A — schema/domain/storage foundation: **COMPLETE / GREEN**;
+- B — shared UX/responsive primitives: **COMPLETE / GREEN**;
+- C — character-first navigation + PC Settings + General/Habilidades: **COMPLETE / GREEN**;
+- D — Combat + Dice: **COMPLETE / GREEN**;
+- E — Gestión + Markers + Resources + recovery/conditions: **COMPLETE / GREEN**;
+- F — compact Conjuros source-context redesign: **NEXT**;
+- G — Equipo/Rasgos/conditional modules/Notas/Trasfondo: pending;
+- H — full-screen Application Settings/live previews/themes: pending;
+- I — separate tablet portrait/landscape redesign: pending.
+
+Four increments remain: **F, G, H and I**.
+
+## 3. Latest technically verified successor boundary
+
+Increment E final integrated validation:
+
+- active successor Gestión wiring source commit `4b3ab53faada5af7b50f73ce951fe767c13ff63a`;
+- validation commit `0587db5e65d89e809f138e83d053903659216886`;
+- workflow `34307068166` — **SUCCESS**;
+- artifact ID `10087074946` / `dnd-custom-aid-debug-apk`;
+- artifact ZIP digest `sha256:55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
+
+Verified in that gate:
+
+- backend/type-check;
+- shared/Kotlin tests;
+- Android debug compilation/assembly;
+- desktop compilation/build;
+- Android debug APK upload.
+
+This artifact is a development validation artifact. It has **not** received owner visual/device acceptance and is **not** a formal M6 candidate.
+
+## 4. Latest owner-auditioned practical build
+
+The last owner-auditioned build remains:
 
 - version `0.4.0-preqa.7`;
 - build `40700`;
 - type `debug`;
-- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
-- tested product tree `3b2f2ab471097d3b108c9a787fc2342c5aad683a`;
+- product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
 - workflow `34171466714` — SUCCESS;
-- artifact `10035895186` / `DND-Custom-Aid-0.4.0-preqa.7-build-40700-debug`;
-- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`;
-- APK size `36,161,616` bytes.
+- artifact `10035895186`;
+- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-All canonical-repository changes after that product revision through D-0066/D-0067 are documentation/governance-only unless a later checkpoint explicitly records product code changes. Build `40700` therefore remains the latest technically verified product identity.
+Primary owner phone: **Redmi Note 11 Pro 5G**.
 
-## 3. Owner phone audition status
+Stages A–F of that prior build produced the canonical repair backlog; they were not a visual acceptance pass. Do not ask the owner to rediscover already-globalized findings screen by screen.
 
-Primary real device:
+## 5. Implemented successor foundations A–E
 
-**Redmi Note 11 Pro 5G**
+### A — data/storage
 
-Stages A–F were covered sufficiently to expose the major visual/interaction problems of build `40700`. The build did **not** pass owner visual acceptance.
+- generalized built-in/custom ability references;
+- custom attributes and optional custom saving throws;
+- custom-skill ability mapping;
+- per-source spellcasting ability/DC/attack configuration;
+- structured combat damage with safe legacy TEXT fallback;
+- Custom Markers distinct from Resources;
+- reusable binary/counter/current-max + structured recovery mechanics;
+- Resource placements across General/Gestión/Equipo/Rasgos;
+- durable tab order;
+- persistent app-owned background-image model;
+- own-format backup/import carrying successor state;
+- additive SQLDelight migrations and migration regression tests.
 
-Do not force the owner to repeat findings already generalized across equivalent screens.
+### B — shared UX
 
-Detailed evidence remains in the September 7–8 Stage A–F checkpoints and the `Fuente` redundancy audit.
+- explicit phone portrait / phone landscape / tablet portrait / tablet landscape context;
+- spacing scale including 40%;
+- compact collection toolbar primitive;
+- whole-card long-press drag foundation with haptic/visual feedback;
+- IME-safe editor family;
+- numeric normalization;
+- global contextual help modes `Siempre visible` / `ⓘ / tooltip` / `Oculto`;
+- compact provenance `Tipo de origen | Origen específico`.
 
-## 4. Existing repair families from QA/audition
+Card movement feel is technically improved but remains pending owner real-device acceptance.
 
-### Density / layout
+### C — navigation/settings/general/skills
 
-- excessive margins/padding across cards, buttons, boxes, dialogs/windows and fixed regions;
-- controls/information that fit clearly in one row should not be spread across multiple rows unless width/text scale requires it;
-- add/audition 40% spacing;
-- fixed/sticky areas must justify their permanent footprint.
-
-### Card interaction
-
-- direct press-and-hold/drag from reorderable cards where safe;
-- stronger movement feedback;
-- compact grouped action controls;
-- avoid large dedicated move controls.
-
-### Phone landscape / tablet-wide UX
-
-- physical phone landscape must retain a phone-appropriate interaction model;
-- phone landscape is not equivalent to tablet UX;
-- current tablet/wide UX itself requires complete redesign/optimization;
-- Conjuros fixed controls can consume the entire usable phone-landscape viewport;
-- rotation scroll/context preservation needs repair.
-
-### Editors / IME
-
-- shared editor family still has major keyboard/action reachability problems;
-- active editors are disrupted by orientation change;
-- numeric fields must support natural replacement/editing without leading-zero obstruction.
-
-### Information architecture / terminology
-
-- generic `Fuente` provenance is over-exposed;
-- preferred compact provenance model is origin type + specific origin on one row where useful, default origin type `Clase`;
-- preserve actual Conjuros source associations because they drive behavior and may themselves be custom/non-class;
-- clarify/consolidate Rasgos `Fuente`/`Tipo`;
-- use `Raza` only;
-- use `Electrum`;
-- class/subclass names should be Spanish;
-- do not foreground 5e/5.5e provenance where it has no current operational purpose;
-- Consumible/Munición UX is unclear and oversized.
-
-### Other QA directions
-
-- Habilidades fixed passive band earns its place but should explicitly label passive values and use horizontal space efficiently;
-- Gestión operational/death-save area is too tall;
-- help text should support `Siempre visible`, circled-`i`/tooltip, or `Oculto`;
-- user-configurable character-tab order is desired;
-- PT Sans Narrow remains provisional pending satisfactory Bold presentation.
-
-## 5. D-0067 owner non-QA development package
-
-The owner deliberately supplied additional requirements outside the formal QA exercise so they can be considered in the same development cycle.
-
-Detailed authority:
-
-`docs/decisions/D-0067_OWNER_NEXT_CYCLE_CHARACTER_UX_AND_FEATURE_REFINEMENTS.md`
-
-Recording checkpoint:
-
-`docs/checkpoints/2026-09-08_OWNER_NEXT_CYCLE_INPUT_RECORDED.md`
-
-Major additions:
-
-### General / navigation / identity
-
-- compact `Clases`; maximum hit-die count derived from class level, while remaining hit dice remain operational state;
-- real persistent images in Trasfondo;
-- character-first startup PC list showing Raza, classes/levels and campaign;
-- one datum/one canonical state across tabs;
-- configurable tab order and proportional tab widths;
-- structured multi-component attack damage;
-- spellcasting labels/formula help and multiclass spellcasting abilities;
-- armor/language reference visibility;
-- custom attributes configurable from PC Settings.
-
-### Habilidades / Combate / Dados
-
-- custom skills managed from PC Settings but rendered as ordinary italic skills;
-- alphabetical `Por habilidades`;
+- character-first root list with canonical Raza, classes/levels and campaign;
+- PC Settings information architecture;
+- tab order;
+- custom attributes/skills/Markers configuration;
+- bounded haptic strength/duration choices;
+- compact General projections;
+- per-source spellcasting reference rows;
+- standard/custom skills integrated in Habilidades;
 - `Conocimiento Arcano` terminology;
+- compact passive-skill reference row.
+
+### D — Combat + Dice
+
+- ordered structured damage components;
 - compact attack-card hierarchy;
-- character-aware compact roll flow;
-- selectable animated-dice vs compact-result presentation, both with decomposition;
-- damage roll and custom roll;
-- structured attack damage should be the shared source for damage rolling.
+- shared attack/damage draft transaction;
+- compact `modo → categoría → objetivo → tirar` flow;
+- custom attributes/saves/skills as roll targets;
+- attacks and source-specific spell attacks;
+- structured damage rolls from the same attack components;
+- roll decomposition;
+- device-wide result presentation setting.
 
-### Gestión / Equipo / Notas
+### E — Gestión/live state/recovery
 
-- Inspiration enable/disable plus shared visibility in General/Gestión;
-- configurable custom binary/integer markers shared across General/Gestión;
-- predefined condition catalog/help;
-- concentration DC helper;
-- shared short/long-rest recovery metadata across all charge/resource domains;
-- `Gemas / arte` valuables section;
-- Notes search/filter.
+- compact fixed operational state;
+- one-row death saves;
+- canonical Inspiration and explicit unsaved-General-vs-persisted-state signaling;
+- compact Custom Marker and Resource controls;
+- placement-aware Gestión Resource projection;
+- mixed typed Resource/Marker rest preview/apply;
+- explicit structured recovery only for automatic proposals;
+- manual/free text remains review-only;
+- condition catalog infrastructure with stable source/help identity and no unapproved corpus text;
+- concentration check/DC explanation routed through contextual-help mode.
 
-### PC Settings / Application Settings
+## 6. Protected owner directions
 
-- haptic strength and duration controls;
-- Application Settings entry moved upward in PC Settings;
-- Application Settings becomes a full screen/page, not a dialog;
-- stepped sliders with live preview for text size and spacing;
-- visual mini-grid preview for column settings;
-- remove font provider/origin and special audition framing from normal font selector;
-- owner-requested theme renames;
-- six delegated theme families for next audition: Carmesí, Ámbar, Glaciar, Lavanda, Pizarra and Terracota.
+These remain controlling across all later increments:
 
-## 6. Conditional/dependency boundaries
+- one datum / one canonical state;
+- do not spread information across several rows when one clear row suffices at the current width/text scale;
+- reduce unnecessary margins/padding app-wide without shrinking required touch targets;
+- whole-card drag where safe; stronger movement feel/feedback;
+- phone landscape is a phone interaction model, not tablet UI;
+- tablet/wide UX needs independent redesign;
+- use `Raza`, never `Especie/raza`;
+- use `Electrum`, never `Electro`;
+- Spanish class/subclass presentation; do not foreground edition metadata without functional purpose;
+- contextual explanations remain useful content and use the three-mode help system rather than being deleted for compactness;
+- generic `Fuente` schema leakage should not be reintroduced;
+- when provenance matters, use `Tipo de origen | Origen específico`, default `Clase`;
+- Conjuros functional source association remains a real behavioral concept and may be custom/non-class.
 
-### SRD-backed existing-content add flows
+## 7. Conditional/deferred content boundaries
 
-The owner wants `Buscar existente` vs custom-create flows for spells, traits and equivalent domains **when official corpus data is actually available**.
+### SRD-backed existing-content selectors
 
-Current repository/product state does not load an official SRD spell/trait corpus into the character app. The architecture for future SRD retrieval exists, but the data pipeline/corpus is not active.
+`Buscar existente` vs custom-create remains approved **only when an approved official corpus is actually loaded**. This cycle does not silently expand into full SRD ingestion.
 
-Therefore this is an approved conditional design direction, not silent authorization to expand the immediate repair batch into implementing SRD ingestion.
+### Sandy Petersen Cthulhu Mythos conditions
 
-### `Mitos de Cthulhu` condition content
+Architecture supports the owner's source family, but exact proprietary Spanish descriptions remain deferred until project-appropriate/owner-provided text is available.
 
-Requested as predefined condition/help content, but bundled explanatory text requires an appropriate source/license or owner-provided content before implementation.
+### Armor/AC
 
-### Custom attributes
+General can project canonical AC and equipped-item references. Do not invent an automatic AC rules engine until inventory has sufficient structured armor/shield semantics.
 
-Approved capability, but modifier/formula/data shape must receive a small design/model audit before schema/UI implementation.
+## 8. Tablet and owner acceptance
 
-### Images
+No physical owner tablet acceptance has been completed. Tablet/wide UI is already known to need redesign, so Increment I is a redesign task rather than validation of the old wide layout.
 
-Background images must survive restart and own-format backup/import; storage must not rely on fragile transient external URIs.
+No successor implementation artifact through Increment E should be described as owner visual acceptance.
 
-### Haptics
+The early targeted phone retest remains scheduled after Increment F, focusing especially on Conjuros portrait/landscape, representative editor/keyboard behavior, card drag feel, Gestión operational/death-save footprint, Habilidades passive row and 40% spacing.
 
-Strength/duration UI must reflect real Android/device capability rather than pretending to offer precision unsupported by hardware.
+## 9. Exact next execution position
 
-## 7. Tablet acceptance status
+Resume with **Increment F — Conjuros compact source-context redesign**.
 
-No physical owner tablet device has yet been recorded. Tablet acceptance is not complete.
+Do not restart A–E and do not rerun build 40700 screen-by-screen.
 
-The current tablet/wide design is already known to require redesign, so repair/redesign should precede treating tablet testing as the final acceptance attempt.
+Protected F direction:
 
-## 8. Historical QA evidence
+- one compact sticky source-context bar;
+- selected source clearly owns casting ability / `CD salv. conjuro` / `Mod. ataque mágico`;
+- `Todos los conjuros` does not permanently show all source statistics;
+- source detail/filter/search expansion is transient/collapsible;
+- sticky level/slot context remains useful but must not erase the spell list;
+- phone landscape must show practical spell content without switching to the old tablet interaction model.
 
-Historical frozen candidates remain immutable evidence and are not active targets, especially:
+After F, produce the planned early targeted Redmi portrait + landscape interaction build/audition.
 
-- `tmp/phase4-l-frozen-qa-candidate`;
-- `tmp/phase4-m5-frozen-qa-candidate`.
+## 10. Phase 4A closure remains open
 
-The brief 2026-09-08 historical M6 detour is preserved at `docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md` and is explicitly superseded as a current path.
+Repository/main consolidation is development housekeeping, not the Phase 4A exit gate.
 
-## 9. Current execution position
+Phase 4A still requires later successor integration through F–I, targeted owner phone acceptance, redesigned tablet acceptance, blocking repair resolution, a new formal M6 freeze when appropriate, formal regression/upgrade QA and explicit owner closure.
 
-Repository consolidation and D-0067 input capture are complete.
-
-**Do not implement the backlog piecemeal yet.**
-
-Exact next sequence:
-
-1. reconcile D-0067 with all Stage A–F owner-audition findings and the `Fuente` audit;
-2. identify shared primitives/cross-cutting fixes so equivalent defects are repaired once;
-3. separate schema/domain/storage work from UI-only work;
-4. map dependencies, especially structured attack damage -> damage dice, custom attributes -> skills/saves/dice, recovery metadata -> Gestión rest, and images -> backup/import;
-5. keep SRD-backed existing-content flows conditional unless official corpus ingestion is separately approved for this cycle;
-6. produce one coherent implementation order/build plan;
-7. only then create a focused product branch from canonical `main`;
-8. run the full automated gate after coherent product increments;
-9. use targeted owner retesting of repaired families;
-10. later freeze a replacement formal M6 candidate only when phone/tablet baseline is acceptable.
-
-## 10. Phase 4 closure boundary remains open
-
-D-0066 made the development baseline canonical; D-0067 expands/refines next-cycle scope. Neither is Phase 4A acceptance.
-
-No DM feature implementation begins before the separate Phase 4A closure/acceptance gate is later satisfied and explicitly approved.
+**No DM feature implementation begins before that explicit closure.**
