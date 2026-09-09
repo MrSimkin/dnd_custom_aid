@@ -124,8 +124,26 @@ class CharacterRepository(
         val sourceIds = sheet.spellcastingSources.map { it.id }
         require(sourceIds.distinct().size == sourceIds.size) { "Spellcasting sources must have distinct identity." }
         sheet.spellcastingSources.forEach { require(it.name.trim().isNotEmpty()) { "Spellcasting source name must not be blank." } }
+        val traitIds = sheet.traits.mapTo(mutableSetOf()) { it.id }
+        val featIds = sheet.traits.filter { it.type == CharacterTraitType.FEAT }.mapTo(mutableSetOf()) { it.id }
+        val giftIds = sheet.traits.filter { it.type == CharacterTraitType.GIFT_BLESSING }.mapTo(mutableSetOf()) { it.id }
+        val inventoryIds = sheet.inventoryItems.mapTo(mutableSetOf()) { it.id }
         val normalizedSources = sheet.spellcastingSources.map { source ->
-            source.copy(linkedClassId = source.linkedClassId?.takeIf { it in classIdSet })
+            val linkedClassId = if (source.originKind == CharacterSpellcastingOriginKind.CLASS) {
+                source.linkedClassId?.takeIf { it in classIdSet }
+            } else {
+                null
+            }
+            val referenceId = when (source.originKind) {
+                CharacterSpellcastingOriginKind.TRAIT -> source.originReferenceId?.takeIf { it in traitIds }
+                CharacterSpellcastingOriginKind.FEAT -> source.originReferenceId?.takeIf { it in featIds }
+                CharacterSpellcastingOriginKind.GIFT -> source.originReferenceId?.takeIf { it in giftIds }
+                CharacterSpellcastingOriginKind.ITEM,
+                CharacterSpellcastingOriginKind.MAGIC_ITEM,
+                -> source.originReferenceId?.takeIf { it in inventoryIds }
+                else -> null
+            }
+            source.copy(linkedClassId = linkedClassId, originReferenceId = referenceId)
         }
         val normalizedSourceIds = normalizedSources.map { it.id }.toSet()
 
@@ -295,7 +313,15 @@ class CharacterRepository(
             database.characterQueries.deleteCharacterSpells(sheet.id.toString())
             database.characterQueries.deleteCharacterSpellSources(sheet.id.toString())
             normalizedSources.forEachIndexed { index, source ->
-                database.characterQueries.insertCharacterSpellSource(source.id.toString(), sheet.id.toString(), source.name.trim(), source.linkedClassId?.toString(), index.toLong())
+                database.characterQueries.insertCharacterSpellSource(
+                    id = source.id.toString(),
+                    character_id = sheet.id.toString(),
+                    name = source.name.trim(),
+                    linked_class_id = source.linkedClassId?.toString(),
+                    sort_order = index.toLong(),
+                    origin_kind = source.originKind.name,
+                    origin_reference_id = source.originReferenceId?.toString(),
+                )
             }
             val spellOrderByLevel = mutableMapOf<Int, Int>()
             normalizedSpells.forEach { spell ->
@@ -417,9 +443,21 @@ class CharacterRepository(
             CharacterNote(Uuid.parse(id), title, content, sortOrder.toInt())
         }.executeAsList()
 
-        val spellcastingSources = database.characterQueries.selectCharacterSpellSources(core.id.toString()) { id, _, name, linkedClassId, sortOrder ->
-            val parsed = linkedClassId?.let { runCatching { Uuid.parse(it) }.getOrNull() }?.takeIf { it in classIdSet }
-            CharacterSpellcastingSource(Uuid.parse(id), name, parsed, sortOrder.toInt())
+        val spellcastingSources = database.characterQueries.selectCharacterSpellSources(core.id.toString()) {
+                id, _, name, linkedClassId, sortOrder, originKind, originReferenceId ->
+            val parsedClass = linkedClassId?.let { runCatching { Uuid.parse(it) }.getOrNull() }?.takeIf { it in classIdSet }
+            val parsedKind = runCatching { CharacterSpellcastingOriginKind.valueOf(originKind) }.getOrElse {
+                if (parsedClass != null) CharacterSpellcastingOriginKind.CLASS else CharacterSpellcastingOriginKind.OTHER
+            }
+            val parsedReference = originReferenceId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+            CharacterSpellcastingSource(
+                id = Uuid.parse(id),
+                name = name,
+                linkedClassId = parsedClass,
+                sortOrder = sortOrder.toInt(),
+                originKind = parsedKind,
+                originReferenceId = parsedReference,
+            )
         }.executeAsList()
 
         val spellAssociations = database.characterQueries.selectCharacterSpellSourceAssociations(core.id.toString()) { spellId, sourceId, prepared ->

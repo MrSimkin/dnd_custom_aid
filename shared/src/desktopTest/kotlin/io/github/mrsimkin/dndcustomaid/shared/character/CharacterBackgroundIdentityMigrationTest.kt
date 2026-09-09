@@ -54,7 +54,7 @@ class CharacterBackgroundIdentityMigrationTest {
             AppDatabase.Schema.migrate(
                 driver = driver,
                 oldVersion = 5,
-                newVersion = AppDatabase.Schema.version,
+                newVersion = 13,
             )
             val values = AppDatabase(driver).characterQueries.selectCharacterBackground(characterId) {
                     _, name, summary, race, religionFaith, personalityTraits, ideals, bonds, flaws, story ->

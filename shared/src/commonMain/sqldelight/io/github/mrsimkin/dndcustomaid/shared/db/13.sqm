@@ -1,0 +1,9 @@
+ALTER TABLE character_spell_source
+ADD COLUMN origin_kind TEXT NOT NULL DEFAULT 'OTHER';
+
+ALTER TABLE character_spell_source
+ADD COLUMN origin_reference_id TEXT;
+
+UPDATE character_spell_source
+SET origin_kind = 'CLASS'
+WHERE linked_class_id IS NOT NULL;

@@ -232,7 +232,7 @@ class CharacterSuccessorRepositoryTest {
             AppDatabase.Schema.migrate(
                 driver = driver,
                 oldVersion = 9,
-                newVersion = AppDatabase.Schema.version,
+                newVersion = 13,
             )
             driver.close()
 

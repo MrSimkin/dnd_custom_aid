@@ -282,7 +282,7 @@ class CharacterClosureRepositoryTest {
             AppDatabase.Schema.migrate(
                 driver = driver,
                 oldVersion = 8,
-                newVersion = AppDatabase.Schema.version,
+                newVersion = 13,
             )
             driver.close()
 
