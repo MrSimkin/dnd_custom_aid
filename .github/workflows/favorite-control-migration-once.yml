@@ -1,0 +1,209 @@
+name: Favorite control migration once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/favorite-control-migration-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - name: Replace raw favorite TextButtons
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          ROOT = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android')
+
+          def matching(text: str, start: int, opener: str, closer: str) -> int:
+              depth = 0
+              in_string = False
+              escaped = False
+              for i in range(start, len(text)):
+                  ch = text[i]
+                  if in_string:
+                      if escaped:
+                          escaped = False
+                      elif ch == '\\':
+                          escaped = True
+                      elif ch == '"':
+                          in_string = False
+                      continue
+                  if ch == '"':
+                      in_string = True
+                      continue
+                  if ch == opener:
+                      depth += 1
+                  elif ch == closer:
+                      depth -= 1
+                      if depth == 0:
+                          return i
+              raise RuntimeError(f'Unbalanced {opener}{closer}')
+
+          def textbutton_span(text: str, start: int):
+              paren = text.index('(', start)
+              close_paren = matching(text, paren, '(', ')')
+              i = close_paren + 1
+              while i < len(text) and text[i].isspace():
+                  i += 1
+              if i >= len(text) or text[i] != '{':
+                  return start, close_paren + 1
+              close_brace = matching(text, i, '{', '}')
+              return start, close_brace + 1
+
+          def named_argument(block: str, name: str):
+              marker = name + ' ='
+              start = block.find(marker)
+              if start < 0:
+                  return None
+              i = start + len(marker)
+              while i < len(block) and block[i].isspace():
+                  i += 1
+              expr_start = i
+              p = b = s = 0
+              in_string = False
+              escaped = False
+              while i < len(block):
+                  ch = block[i]
+                  if in_string:
+                      if escaped:
+                          escaped = False
+                      elif ch == '\\':
+                          escaped = True
+                      elif ch == '"':
+                          in_string = False
+                      i += 1
+                      continue
+                  if ch == '"':
+                      in_string = True
+                  elif ch == '(':
+                      p += 1
+                  elif ch == ')':
+                      if p == 0 and b == 0 and s == 0:
+                          break
+                      p -= 1
+                  elif ch == '{':
+                      b += 1
+                  elif ch == '}':
+                      b -= 1
+                  elif ch == '[':
+                      s += 1
+                  elif ch == ']':
+                      s -= 1
+                  elif ch == ',' and p == 0 and b == 0 and s == 0:
+                      break
+                  i += 1
+              return block[expr_start:i].strip()
+
+          changed_files = []
+          replaced_total = 0
+          for path in sorted(ROOT.glob('*.kt')):
+              text = path.read_text(encoding='utf-8')
+              cursor = 0
+              replacements = []
+              while True:
+                  star = text.find('"★"', cursor)
+                  if star < 0:
+                      break
+                  # Raw favorite controls use a TextButton. Semantic/filter labels are intentionally ignored.
+                  candidates = []
+                  seek = 0
+                  while True:
+                      idx = text.find('TextButton(', seek, star)
+                      if idx < 0:
+                          break
+                      candidates.append(idx)
+                      seek = idx + 1
+                  owner = None
+                  for idx in reversed(candidates):
+                      try:
+                          a, z = textbutton_span(text, idx)
+                      except RuntimeError:
+                          continue
+                      if a <= star < z:
+                          owner = (a, z)
+                          break
+                  if owner is None:
+                      cursor = star + 3
+                      continue
+                  a, z = owner
+                  block = text[a:z]
+                  m = re.search(r'Text\(if \(([^)]+)\) "★" else "☆"\)', block)
+                  if not m:
+                      cursor = z
+                      continue
+                  selected_expr = m.group(1).strip()
+                  on_click = named_argument(block, 'onClick')
+                  if on_click is None:
+                      raise RuntimeError(f'{path.name}: favorite TextButton has no onClick')
+                  enabled = named_argument(block, 'enabled') or 'true'
+                  line_start = text.rfind('\n', 0, a) + 1
+                  indent = text[line_start:a]
+                  detail = ''
+                  if path.name == 'CharacterSpellListClosureV4.kt' and selected_expr == 'favorite':
+                      detail = '\n' + indent + '    contentDescription = if (favorite) "Quitar ${spell.name} de Favoritos" else "Añadir ${spell.name} a Favoritos",'
+                  replacement = (
+                      'StableFavoriteIconButton(\n'
+                      f'{indent}    selected = {selected_expr},\n'
+                      f'{indent}    onClick = {on_click},\n'
+                      f'{indent}    enabled = {enabled},'
+                      f'{detail}\n'
+                      f'{indent})'
+                  )
+                  replacements.append((a, z, replacement))
+                  replaced_total += 1
+                  cursor = z
+              if replacements:
+                  for a, z, replacement in reversed(replacements):
+                      text = text[:a] + replacement + text[z:]
+                  path.write_text(text, encoding='utf-8')
+                  changed_files.append(path.name)
+
+          if replaced_total < 6:
+              raise RuntimeError(f'Expected app-wide favorite migration, only replaced {replaced_total} controls')
+
+          # Active controls must no longer render raw star glyphs. Filter labels may still contain ★.
+          offenders = []
+          for path in sorted(ROOT.glob('*.kt')):
+              text = path.read_text(encoding='utf-8')
+              for m in re.finditer(r'Text\(if \([^\n]+\) "★" else "☆"\)', text):
+                  offenders.append(f'{path.name}:{text.count(chr(10), 0, m.start()) + 1}')
+          if offenders:
+              raise RuntimeError('Raw favorite controls remain: ' + ', '.join(offenders))
+
+          print(f'Replaced {replaced_total} raw favorite controls')
+          print('Changed files: ' + ', '.join(changed_files))
+          PY
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+      - name: Compile favorite migration
+        run: gradle :androidApp:compileDebugKotlin --stacktrace
+      - name: Commit migration and self-remove
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/favorite-control-migration-once.yml
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android .github/workflows/favorite-control-migration-once.yml
+          git commit -m 'fix: standardize favorite controls across character surfaces'
+          git push
