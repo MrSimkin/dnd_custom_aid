@@ -512,47 +512,41 @@ private fun CompanionCollectionH3(
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         stickyHeader(key = "h3-companions-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Compañeros", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "Entidades persistentes del personaje. El combate del DM mantiene su propio estado de encuentro.",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-                    CharacterCollectionToolbarV4(
-                        itemCount = visible.size,
-                        query = query,
-                        onQueryChange = onQueryChange,
-                        order = order,
-                        onOrderChange = onOrderChange,
-                        filters = filters,
-                        searchLabel = "Buscar en Compañeros",
+            CharacterCollectionToolbarV4(
+                itemCount = visible.size,
+                query = query,
+                onQueryChange = onQueryChange,
+                order = order,
+                onOrderChange = onOrderChange,
+                filters = filters,
+                searchLabel = "Buscar en Compañeros",
+                collapsibleSearch = true,
+                showItemCount = false,
+                compactOrderControl = true,
+                contextContent = {
+                    Text(
+                        "Compañeros",
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                    if (!canReorder && visible.isNotEmpty()) {
-                        Text(
-                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                            } else {
-                                "Limpia búsqueda y filtros para reordenar manualmente."
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
+                },
+                onAdd = if (structuralEditingEnabled) onAdd else null,
+            )
+        }
+
+        item(key = "h3-companions-help") {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                CharacterHelpV4("Entidades persistentes del personaje. El combate del DM mantiene su propio estado de encuentro.")
+                if (!canReorder && visible.isNotEmpty()) {
+                    Text(
+                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                        } else {
+                            "Limpia búsqueda y filtros para reordenar manualmente."
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                    )
                 }
             }
         }

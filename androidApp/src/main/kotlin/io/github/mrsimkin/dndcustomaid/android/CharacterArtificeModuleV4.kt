@@ -459,47 +459,41 @@ private fun ArtificeCollectionH1(
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         stickyHeader(key = "h1-artifice-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Artífice", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "Planes y dispositivos persistentes. Recursos, conjuros, equipo y compañeros mantienen sus propios datos.",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-                    CharacterCollectionToolbarV4(
-                        itemCount = visible.size,
-                        query = query,
-                        onQueryChange = onQueryChange,
-                        order = order,
-                        onOrderChange = onOrderChange,
-                        filters = filters,
-                        searchLabel = "Buscar en Artífice",
+            CharacterCollectionToolbarV4(
+                itemCount = visible.size,
+                query = query,
+                onQueryChange = onQueryChange,
+                order = order,
+                onOrderChange = onOrderChange,
+                filters = filters,
+                searchLabel = "Buscar en Artífice",
+                collapsibleSearch = true,
+                showItemCount = false,
+                compactOrderControl = true,
+                contextContent = {
+                    Text(
+                        "Artífice",
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                    if (!canReorder && visible.isNotEmpty()) {
-                        Text(
-                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                            } else {
-                                "Limpia búsqueda y filtros para reordenar manualmente."
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
+                },
+                onAdd = if (structuralEditingEnabled) onAdd else null,
+            )
+        }
+
+        item(key = "h1-artifice-help") {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                CharacterHelpV4("Planes y dispositivos persistentes. Recursos, conjuros, equipo y compañeros mantienen sus propios datos.")
+                if (!canReorder && visible.isNotEmpty()) {
+                    Text(
+                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                        } else {
+                            "Limpia búsqueda y filtros para reordenar manualmente."
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                    )
                 }
             }
         }

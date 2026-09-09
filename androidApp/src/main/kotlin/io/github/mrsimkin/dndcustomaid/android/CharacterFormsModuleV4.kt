@@ -428,47 +428,41 @@ private fun FormsCollectionH1(
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         stickyHeader(key = "h1-forms-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Formas", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "Biblioteca de transformaciones y formas alternativas. Consultarlas no cambia automáticamente la ficha base.",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-                    CharacterCollectionToolbarV4(
-                        itemCount = visible.size,
-                        query = query,
-                        onQueryChange = onQueryChange,
-                        order = order,
-                        onOrderChange = onOrderChange,
-                        filters = filters,
-                        searchLabel = "Buscar formas",
+            CharacterCollectionToolbarV4(
+                itemCount = visible.size,
+                query = query,
+                onQueryChange = onQueryChange,
+                order = order,
+                onOrderChange = onOrderChange,
+                filters = filters,
+                searchLabel = "Buscar formas",
+                collapsibleSearch = true,
+                showItemCount = false,
+                compactOrderControl = true,
+                contextContent = {
+                    Text(
+                        "Formas",
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                    if (!canReorder && visible.isNotEmpty()) {
-                        Text(
-                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                            } else {
-                                "Limpia búsqueda y filtros para reordenar manualmente."
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
+                },
+                onAdd = if (structuralEditingEnabled) onAdd else null,
+            )
+        }
+
+        item(key = "h1-forms-help") {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                CharacterHelpV4("Biblioteca de transformaciones y formas alternativas. Consultarlas no cambia automáticamente la ficha base.")
+                if (!canReorder && visible.isNotEmpty()) {
+                    Text(
+                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                        } else {
+                            "Limpia búsqueda y filtros para reordenar manualmente."
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                    )
                 }
             }
         }
