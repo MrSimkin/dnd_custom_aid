@@ -182,7 +182,7 @@ class CharacterSuccessorLegacyRewriteTest {
             AppDatabase.Schema.migrate(
                 driver = migrationDriver,
                 oldVersion = 11,
-                newVersion = AppDatabase.Schema.version,
+                newVersion = 12,
             )
             migrationDriver.close()
 
