@@ -42,20 +42,6 @@ enum class CharacterRecoveryAmountMode {
 }
 
 @Serializable
-enum class CharacterHapticStrength {
-    SOFT,
-    MEDIUM,
-    STRONG,
-}
-
-@Serializable
-enum class CharacterHapticDuration {
-    SHORT,
-    MEDIUM,
-    LONG,
-}
-
-@Serializable
 enum class CharacterConsumableKind {
     NONE,
     CONSUMABLE,
