@@ -147,7 +147,6 @@ enum class CharacterSheetTabKey {
 data class CharacterSuccessorPreferences(
     val valuablesText: String = "",
     val tabOrder: List<CharacterSheetTabKey> = CharacterSheetTabKey.entries,
-    val inspirationVisible: Boolean = true,
 )
 
 @Serializable
