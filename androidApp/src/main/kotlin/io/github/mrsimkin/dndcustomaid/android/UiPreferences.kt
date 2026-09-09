@@ -513,8 +513,8 @@ internal fun AppSettingsDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = 620.dp),
-                contentPadding = PaddingValues(bottom = appSpacingV4(12.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(12.dp)),
+                contentPadding = PaddingValues(bottom = appSpacingV4(6.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
             ) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
@@ -635,14 +635,14 @@ private fun AboutBuildDialogV4(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("Acerca de D&D Custom Aid") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp))) {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     shape = MaterialTheme.shapes.medium,
                 ) {
                     Column(
-                        modifier = Modifier.padding(appSpacingV4(12.dp)),
+                        modifier = Modifier.padding(appSpacingV4(8.dp)),
                         verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     ) {
                         Text("VERSIÓN", style = MaterialTheme.typography.labelMedium)
@@ -724,7 +724,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
             color = MaterialTheme.colorScheme.surface,
         ) {
             Column(
-                modifier = Modifier.padding(10.dp),
+                modifier = Modifier.padding(appSpacingV4(6.dp)),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             ) {
                 Surface(
@@ -733,7 +733,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                     color = MaterialTheme.colorScheme.primaryContainer,
                 ) {
                     Column(
-                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
+                        modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(4.dp)),
                         verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     ) {
                         Text(
@@ -800,7 +800,7 @@ private fun SettingsPreviewStatCell(
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(3.dp)),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(label, style = MaterialTheme.typography.labelSmall)
@@ -833,7 +833,7 @@ private fun FontChoicePicker(
                 tonalElevation = if (isSelected) 2.dp else 0.dp,
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
+                    modifier = Modifier.padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -901,7 +901,7 @@ private fun ThemePreviewCard(
         ),
     ) {
         Column(
-            modifier = Modifier.padding(6.dp),
+            modifier = Modifier.padding(appSpacingV4(4.dp)),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Text(choice.label, style = MaterialTheme.typography.labelMedium, maxLines = 2)
@@ -937,7 +937,7 @@ private fun <T> SettingSelector(
     var expanded by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge)
         OutlinedButton(

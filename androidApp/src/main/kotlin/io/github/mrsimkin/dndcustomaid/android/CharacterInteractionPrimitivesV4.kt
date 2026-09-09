@@ -52,7 +52,7 @@ internal fun CharacterImeSafeEditorDialog(
                 .fillMaxSize()
                 .imePadding()
                 .navigationBarsPadding()
-                .padding(horizontal = appSpacingV4(10.dp), vertical = appSpacingV4(8.dp)),
+                .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
             contentAlignment = Alignment.Center,
         ) {
             Box(
@@ -72,8 +72,13 @@ internal fun CharacterImeSafeEditorDialog(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 12.dp, start = 12.dp, end = 12.dp, bottom = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                        .padding(
+                            top = appSpacingV4(8.dp),
+                            start = appSpacingV4(8.dp),
+                            end = appSpacingV4(8.dp),
+                            bottom = appSpacingV4(6.dp),
+                        ),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                 ) {
                     Text(title, style = MaterialTheme.typography.titleMedium)
                     supportingText?.takeIf { it.isNotBlank() }?.let {
@@ -88,13 +93,13 @@ internal fun CharacterImeSafeEditorDialog(
                             .weight(1f)
                             .fillMaxWidth()
                             .verticalScroll(scrollState),
-                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                     ) {
                         content()
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp), Alignment.End),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         TextButton(onClick = onCancel) { Text(cancelLabel) }
@@ -120,7 +125,7 @@ internal fun CharacterCompactFieldRowV4(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.Top,
     ) {
         first(Modifier.weight(firstWeight))
@@ -161,14 +166,14 @@ internal fun CharacterConfirmationDialog(
             shadowElevation = 6.dp,
         ) {
             Column(
-                modifier = Modifier.padding(appSpacingV4(12.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
+                modifier = Modifier.padding(appSpacingV4(8.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             ) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(message, style = MaterialTheme.typography.bodyMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp), Alignment.End),
                 ) {
                     TextButton(onClick = onDismissRequest) { Text(cancelLabel) }
                     Button(onClick = onConfirm) { Text(confirmLabel) }
@@ -209,8 +214,8 @@ internal fun CharacterUsefulEmptyState(
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(
-            modifier = Modifier.padding(appSpacingV4(10.dp)),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+            modifier = Modifier.padding(appSpacingV4(8.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
