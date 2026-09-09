@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** IMPLEMENTED; FINAL AUTOMATED GATE RETRY PENDING
+**Status:** COMPLETE / GREEN
 
 ## Scope
 
@@ -151,13 +151,39 @@ Correction:
 - corrected integrated source head: `96c285edbed3b957edff4ba9b52345e786f285a6`;
 - temporary patch files removed in the same correction commit.
 
-## Exit condition
+## Final automated gate
 
-Increment D becomes technically complete only when the normal full scaffold gate succeeds on a descendant containing correction commit `96c285edbed3b957edff4ba9b52345e786f285a6`.
+Normal full scaffold workflow `34304392913` ran on descendant:
 
-After that:
+`7ef476d0248609d0e1caf291d48afc5c5cc5f77d`
 
-1. update this checkpoint to `COMPLETE / GREEN` with workflow/artifact evidence;
-2. update `docs/checkpoints/LATEST.md`;
-3. advance exact next implementation action to Increment E — Gestión + Markers + Resources + recovery/conditions;
-4. retain owner-device acceptance as a later explicit QA boundary.
+Result: **SUCCESS**.
+
+Verified together:
+
+- backend/type-check: PASS;
+- shared/Kotlin tests: PASS;
+- Android debug compilation/assembly: PASS;
+- desktop compilation/build: PASS;
+- Android debug APK artifact upload: PASS.
+
+Artifact:
+
+- artifact ID `10086158879`;
+- artifact name `dnd-custom-aid-debug-apk`;
+- ZIP digest `sha256:70891bc5de59f5391c60bc9823facaaacc81c91319013b88e5950e62f0fccc84`;
+- artifact source head `7ef476d0248609d0e1caf291d48afc5c5cc5f77d`.
+
+This closes Increment D technically. It does **not** constitute owner-device visual acceptance.
+
+## Exact continuation
+
+Proceed with Increment **E — Gestión + Markers + Resources + recovery/conditions**.
+
+The first E boundary is the shared trackable/recovery operation layer:
+
+1. reuse one tracker/recovery mechanic for Resources and Custom Markers while preserving their distinct identities;
+2. unify rest preview/apply across participating domains;
+3. automatic recovery only from explicit structured rules;
+4. legacy/free recovery text remains review-only;
+5. then wire the compact Gestión operational surface against those canonical operations.
