@@ -2,8 +2,10 @@
 
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** IMPLEMENTATION COMPLETE; FINAL INTEGRATED GATE PENDING  
-**Active Gestión wiring source commit:** `4b3ab53faada5af7b50f73ce951fe767c13ff63a`
+**Status:** COMPLETE / AUTOMATED GATE GREEN  
+**Active Gestión wiring source commit:** `4b3ab53faada5af7b50f73ce951fe767c13ff63a`  
+**Authoritative integrated validation commit:** `0587db5e65d89e809f138e83d053903659216886`  
+**Authoritative workflow:** `34307068166` — SUCCESS
 
 ## Scope completed
 
@@ -53,26 +55,53 @@ Focused tests cover mixed previews, collision safety, clamping, selected-only ap
 - this architecture can later host supported official/SRD entries and the owner's Sandy Petersen Cthulhu Mythos family without copying proprietary Spanish text now;
 - concentration surfaces explain the standard check reference through the shared contextual-help mode: Constitution save, DC 10 or half damage received, whichever is higher, while keeping table variants non-automated.
 
-## Automated evidence already green before final wiring
+## Automated evidence
 
-Shared trackable/recovery foundation:
+### Shared trackable/recovery foundation
 
 - source/tests through commit `87e4a213da42f19ba45ca001270e7a1006241fe2`;
 - workflow `34305427239` — SUCCESS.
 
-Standalone successor Gestión compile/build:
+### Standalone successor Gestión compile/build
 
 - source commit `3c5be8d499d176c37496df59ed5ae1219e4a572b`;
 - workflow `34306095086` — SUCCESS;
 - artifact ID `10086746569`;
 - artifact digest `sha256:8210319be7a508d2eef8192dc68c5ff89041530a502bc3cc1ded13a96b831559`.
 
-A first exact-string activation guard failed harmlessly because whitespace differed; it made no source change. The corrected exactly-one-match guard succeeded, ran `git diff --check`, verified legacy call count zero / successor call count one, committed active wiring as `4b3ab53faada5af7b50f73ce951fe767c13ff63a`, and removed its temporary workflow.
+### Active wiring
 
-## Final gate
+The first exact-string activation guard failed harmlessly because whitespace differed; it made no source change. The corrected exactly-one-match guard:
 
-This checkpoint commit exists to trigger the ordinary repository scaffold gate against the fully wired successor Gestión implementation. Do not mark Increment E green until that workflow passes backend, shared/Kotlin tests, Android debug assembly, desktop build and APK upload.
+- matched exactly one legacy Gestión call;
+- replaced it with `CharacterManagementSuccessorTabV4`;
+- passed `git diff --check`;
+- verified successor call count one and legacy call count zero;
+- committed active wiring as `4b3ab53faada5af7b50f73ce951fe767c13ff63a`;
+- removed its temporary workflow in the same commit.
+
+### Final integrated gate
+
+Workflow `34307068166` — **SUCCESS** on validation commit `0587db5e65d89e809f138e83d053903659216886`.
+
+Verified together:
+
+- backend/type-check: PASS;
+- shared/Kotlin tests: PASS;
+- Android debug compilation/assembly: PASS;
+- desktop compilation/build: PASS;
+- Android debug APK upload: PASS.
+
+Artifact:
+
+- ID `10087074946`;
+- name `dnd-custom-aid-debug-apk`;
+- ZIP digest `sha256:55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
 
 ## Acceptance boundary
 
-Automated completion is not owner-device visual acceptance. The compact operational footprint, death-save row, mixed rest flow and card density remain owner-audition targets in the later successor interaction build.
+Increment E is technically complete. This remains a development/debug boundary, **not owner-device visual acceptance**. The compact operational footprint, death-save row, mixed rest flow and card density remain targeted owner-audition items in the successor interaction build.
+
+## Next increment
+
+Increment F — compact Conjuros source-context redesign and the early targeted phone portrait/landscape owner retest.
