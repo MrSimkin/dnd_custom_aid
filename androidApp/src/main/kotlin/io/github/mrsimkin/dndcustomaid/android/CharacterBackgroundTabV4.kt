@@ -85,9 +85,9 @@ internal fun CharacterBackgroundTabV4(
             .imePadding()
             .navigationBarsPadding(),
         contentPadding = PaddingValues(
-            start = if (wide) 10.dp else 5.dp,
-            end = if (wide) 10.dp else 5.dp,
-            top = 5.dp,
+            start = appSpacingV4(if (wide) 10.dp else 5.dp),
+            end = appSpacingV4(if (wide) 10.dp else 5.dp),
+            top = appSpacingV4(5.dp),
             bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
@@ -97,7 +97,7 @@ internal fun CharacterBackgroundTabV4(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 7.dp),
+                        .padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(5.dp)),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                 ) {
                     Text("Trasfondo", style = MaterialTheme.typography.titleSmall)
@@ -109,34 +109,15 @@ internal fun CharacterBackgroundTabV4(
                         label = { Text("Nombre del trasfondo") },
                         singleLine = true,
                     )
-                    if (wide) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
-                        ) {
-                            OutlinedTextField(
-                                value = background.race,
-                                onValueChange = { onBackgroundChange(background.copy(race = it)) },
-                                enabled = structuralEditingEnabled,
-                                modifier = Modifier.weight(1f),
-                                label = { Text("Raza") },
-                                singleLine = true,
-                            )
-                            OutlinedTextField(
-                                value = background.religionFaith,
-                                onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
-                                enabled = structuralEditingEnabled,
-                                modifier = Modifier.weight(1f),
-                                label = { Text("Religión / Fe") },
-                                singleLine = true,
-                            )
-                        }
-                    } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                    ) {
                         OutlinedTextField(
                             value = background.race,
                             onValueChange = { onBackgroundChange(background.copy(race = it)) },
                             enabled = structuralEditingEnabled,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.weight(1f),
                             label = { Text("Raza") },
                             singleLine = true,
                         )
@@ -144,7 +125,7 @@ internal fun CharacterBackgroundTabV4(
                             value = background.religionFaith,
                             onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
                             enabled = structuralEditingEnabled,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.weight(1f),
                             label = { Text("Religión / Fe") },
                             singleLine = true,
                         )
@@ -185,7 +166,7 @@ internal fun CharacterBackgroundTabV4(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 7.dp, vertical = 6.dp),
+                        .padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Text("Perfil narrativo", style = MaterialTheme.typography.titleSmall)
@@ -230,7 +211,7 @@ internal fun CharacterBackgroundTabV4(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 7.dp),
+                        .padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(5.dp)),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Row(
@@ -287,7 +268,7 @@ internal fun CharacterBackgroundTabV4(
                             color = MaterialTheme.colorScheme.surfaceVariant,
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
                                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                             ) {
                                 Text(
@@ -452,7 +433,7 @@ private fun BackgroundNarrativePreviewCardV4(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 7.dp, vertical = 6.dp),
+                .padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.labelLarge)

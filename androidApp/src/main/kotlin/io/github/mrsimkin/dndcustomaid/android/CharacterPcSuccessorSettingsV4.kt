@@ -500,15 +500,26 @@ private fun CustomAttributeEditorDialogV4(
         saveEnabled = valid,
     ) {
         OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(abbreviation, { abbreviation = it.take(8) }, label = { Text("Abreviatura") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(
-            scoreText,
-            { raw -> scoreText = raw.filter(Char::isDigit) },
-            label = { Text("Puntuación") },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            OutlinedTextField(
+                abbreviation,
+                { abbreviation = it.take(8) },
+                label = { Text("Abreviatura") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                scoreText,
+                { raw -> scoreText = raw.filter(Char::isDigit) },
+                label = { Text("Puntuación") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+        }
         SettingsSwitchRowV4("Tirada de salvación", saveEnabled) { saveEnabled = it }
         if (saveEnabled) {
             SettingsSwitchRowV4("Competencia en salvación", saveProficient) { saveProficient = it }
@@ -758,7 +769,7 @@ private fun SuccessorSettingCardV4(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(5.dp)),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall)

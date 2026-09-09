@@ -434,8 +434,25 @@ private fun SenseEditorDialogV4(existing: CharacterSense?, onDismiss: () -> Unit
         onSave = { onSave(CharacterSense(existing?.id ?: Uuid.random(), name.trim(), parsedRange, notes.trim().takeIf { it.isNotEmpty() }, existing?.sortOrder ?: 0)) },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Sentido") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = range, onValueChange = { range = it.filter(Char::isDigit) }, label = { Text("Alcance en pies (opcional)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Sentido") },
+                modifier = Modifier.weight(1.25f),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = range,
+                onValueChange = { range = it.filter(Char::isDigit) },
+                label = { Text("Alcance (pies)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
         OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
     }
 }
@@ -456,8 +473,25 @@ private fun MovementEditorDialogV4(existing: CharacterMovement?, onDismiss: () -
         saveEnabled = valid,
     ) {
         EnumDropdownV4("Tipo", movementTypeLabelV4(type), CharacterMovementType.entries.map { it.name to movementTypeLabelV4(it) }) { typeName = it }
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = speed, onValueChange = { speed = it.filter(Char::isDigit) }, label = { Text("Velocidad en pies (opcional)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.weight(1.25f),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = speed,
+                onValueChange = { speed = it.filter(Char::isDigit) },
+                label = { Text("Velocidad (pies)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
         OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
     }
 }

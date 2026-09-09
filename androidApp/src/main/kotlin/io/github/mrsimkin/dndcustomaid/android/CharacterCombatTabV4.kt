@@ -491,14 +491,26 @@ private fun CombatEntryEditorDialogV4(
                 }
             }
         }
-        OutlinedTextField(
-            value = attackModifier,
-            onValueChange = onAttackModifierChange,
-            label = { Text("Modificador de ataque (opcional)") },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            OutlinedTextField(
+                value = attackModifier,
+                onValueChange = onAttackModifierChange,
+                label = { Text("Ataque (opcional)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            OutlinedTextField(
+                value = range,
+                onValueChange = onRangeChange,
+                label = { Text("Alcance (opcional)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
         OutlinedTextField(
             value = damageEffect,
             onValueChange = onDamageEffectChange,
@@ -506,13 +518,6 @@ private fun CombatEntryEditorDialogV4(
             modifier = Modifier.fillMaxWidth(),
             minLines = 2,
             maxLines = 4,
-        )
-        OutlinedTextField(
-            value = range,
-            onValueChange = onRangeChange,
-            label = { Text("Alcance (opcional)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
         )
         OutlinedTextField(
             value = notes,
