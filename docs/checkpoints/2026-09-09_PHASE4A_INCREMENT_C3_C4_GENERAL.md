@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** IMPLEMENTED; FINAL AUTOMATED GATE PENDING
+**Status:** COMPLETE / AUTOMATED GATE GREEN
 
 ## Scope
 
@@ -70,17 +70,38 @@ The legacy private helper remains in the source file for now but is no longer pa
 
 The existing closure card for damage defenses (resistance/immunity/vulnerability), senses, movement, portrait, and token is retained for this increment so C3/C4 does not silently delete unrelated persisted functionality. Its information architecture can be refined in a later coherent surface pass.
 
-## Validation evidence before final gate
+## Validation evidence
 
-- Successor General component previously compiled successfully in isolation.
-- Shared projection regression tests previously passed.
+- Successor General component compiled successfully in isolation before final wiring.
+- Shared projection regression tests passed.
 - Compact class component compile regression (`findClass` lookup mismatch) was corrected by a small Android-layer catalog lookup adapter.
 - Head `8ee4784166492166c90d269eaec79bd9f6a67a25` passed full scaffold workflow `34299449158` before the final editor wiring.
 - Final editor wiring commit: `03fa63246499ee3cda408cfcea6d70b8b0eefb96`.
 - Exact source substitutions and `git diff --check` passed in the temporary maintenance workflow; that workflow removed itself in the same source commit.
+- Validation descendant: `a7f784989419376e182f7fb1f0de4701c4b5b7dd`.
+- Full scaffold workflow: `34300302617` — **SUCCESS**.
+- Backend type-check: PASS.
+- Shared/Kotlin tests and compilation: PASS.
+- Android debug compilation/assembly: PASS.
+- Desktop compilation/build: PASS.
+- Android debug APK artifact upload: PASS.
+- CI artifact ID: `10084726462`.
+- Artifact name: `dnd-custom-aid-debug-apk`.
+- Artifact ZIP digest: `sha256:f0bb5ea7b86b0880067e049ff71fb47d97fac8ba27df334ce441ea13729814d0`.
 
-## Exit condition
+## Outcome
 
-C3/C4 becomes technically complete only after the normal full scaffold gate passes on a descendant containing the final editor wiring.
+**C3/C4 is technically complete and automated-gate green.**
 
-After that, update this checkpoint to `COMPLETE / GREEN`, update `docs/checkpoints/LATEST.md`, and advance the exact next implementation action to **C5 — Habilidades**.
+This remains an implementation checkpoint, not owner visual/device acceptance.
+
+## Exact next action
+
+Proceed with **C5 — Habilidades**:
+
+- render custom skills inline with ordinary skills;
+- remove the transitional special custom-skill card/editor from Habilidades;
+- honor generalized custom-attribute references;
+- apply alphabetical Spanish ordering in `Por habilidades`;
+- use `Conocimiento Arcano`;
+- retain the owner-approved compact passive-reference sticky area.
