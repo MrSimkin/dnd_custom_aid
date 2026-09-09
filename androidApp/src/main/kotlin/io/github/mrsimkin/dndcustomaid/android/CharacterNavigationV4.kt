@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheetTabKey
 
 internal enum class CharacterTabV4(val label: String) {
     OVERVIEW("General"),
@@ -31,27 +32,31 @@ internal enum class CharacterTabV4(val label: String) {
 internal fun visibleCharacterTabsV4(
     spellcasterEnabled: Boolean,
     visibleModules: Set<CharacterModuleKind> = emptySet(),
-): List<CharacterTabV4> = CharacterTabV4.entries.filter { tab ->
-    when (tab) {
-        CharacterTabV4.SPELLS -> spellcasterEnabled
-        CharacterTabV4.ARTIFICER -> CharacterModuleKind.ARTIFICER in visibleModules
-        CharacterTabV4.FORMS -> CharacterModuleKind.FORMS in visibleModules
-        CharacterTabV4.TECHNIQUES -> CharacterModuleKind.TECHNIQUES in visibleModules
-        CharacterTabV4.METAMAGIC -> CharacterModuleKind.METAMAGIC in visibleModules
-        CharacterTabV4.PACTS -> CharacterModuleKind.PACTS in visibleModules
-        CharacterTabV4.COMPANIONS -> CharacterModuleKind.COMPANIONS in visibleModules
-        else -> true
+    tabOrder: List<CharacterSheetTabKey> = CharacterSheetTabKey.entries,
+): List<CharacterTabV4> = tabOrder
+    .map { key -> CharacterTabV4.valueOf(key.name) }
+    .filter { tab ->
+        when (tab) {
+            CharacterTabV4.SPELLS -> spellcasterEnabled
+            CharacterTabV4.ARTIFICER -> CharacterModuleKind.ARTIFICER in visibleModules
+            CharacterTabV4.FORMS -> CharacterModuleKind.FORMS in visibleModules
+            CharacterTabV4.TECHNIQUES -> CharacterModuleKind.TECHNIQUES in visibleModules
+            CharacterTabV4.METAMAGIC -> CharacterModuleKind.METAMAGIC in visibleModules
+            CharacterTabV4.PACTS -> CharacterModuleKind.PACTS in visibleModules
+            CharacterTabV4.COMPANIONS -> CharacterModuleKind.COMPANIONS in visibleModules
+            else -> true
+        }
     }
-}
 
 internal fun resolvedCharacterTabV4(
     savedTabName: String,
     spellcasterEnabled: Boolean,
     visibleModules: Set<CharacterModuleKind> = emptySet(),
+    tabOrder: List<CharacterSheetTabKey> = CharacterSheetTabKey.entries,
 ): CharacterTabV4 {
     val candidate = runCatching { CharacterTabV4.valueOf(savedTabName) }
         .getOrDefault(CharacterTabV4.OVERVIEW)
-    return candidate.takeIf { it in visibleCharacterTabsV4(spellcasterEnabled, visibleModules) }
+    return candidate.takeIf { it in visibleCharacterTabsV4(spellcasterEnabled, visibleModules, tabOrder) }
         ?: CharacterTabV4.OVERVIEW
 }
 
@@ -60,9 +65,10 @@ internal fun CharacterTopTabStripV4(
     selectedTab: CharacterTabV4,
     spellcasterEnabled: Boolean,
     visibleModules: Set<CharacterModuleKind> = emptySet(),
+    tabOrder: List<CharacterSheetTabKey> = CharacterSheetTabKey.entries,
     onSelect: (CharacterTabV4) -> Unit,
 ) {
-    val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules)
+    val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules, tabOrder)
     val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
 
     PrimaryScrollableTabRow(
