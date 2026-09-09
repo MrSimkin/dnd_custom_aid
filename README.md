@@ -12,7 +12,7 @@ Read in this order:
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented areas;
 3. `docs/PROJECT_STATE.md` — authoritative current state and next action;
 4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/BRANCH_STATUS.md` — how to interpret the many historical branch refs;
+5. `docs/BRANCH_STATUS.md` — branch interpretation/cleanup status;
 6. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
 7. `docs/CONVENTIONS.md`;
 8. `docs/PRODUCT.md`;
@@ -29,16 +29,17 @@ Read in this order:
 - Repository files, not chat memory, determine durable project truth.
 - `docs/PROJECT_STATE.md` is the authoritative current-state snapshot.
 - `docs/checkpoints/LATEST.md` is the exact resume pointer.
-- Old implementation/tmp branches are historical evidence and must not be treated as competing current state; see `docs/BRANCH_STATUS.md`.
-- Frozen QA-evidence branches remain immutable historical evidence.
+- `implementation/phase4a-successor-cycle` is the focused continuation branch for the active Phase 4A successor cycle and is aligned with `main` at night-close boundaries.
+- Historical implementation branches are not competing current state.
+- Obsolete non-frozen `tmp/*` refs may be archived/removed from the visible branch list; explicitly frozen QA-evidence branches remain immutable.
 
-D-0066 explicitly consolidated the current in-progress Phase 4 development state into `main` before formal QA/closure. **Canonical does not mean release-ready.** The current product is still a debug/pre-QA build with known defects.
+D-0066 established that **canonical does not mean release-ready**. Development work may be consolidated into `main` before owner acceptance when the owner explicitly approves that repository-ordering boundary.
 
 ## Working relationship
 
 AI/coding agents perform the heavy technical execution. The owner remains the decision owner for consequential product/UX/game-semantic/data/privacy/service/compatibility choices.
 
-Meaningful work must be explained and persisted in Git. C-0009 is controlling: this is a personal/small-scale project, so use the simplest safe implementation that satisfies real requirements and do not import enterprise machinery without a concrete reason.
+Meaningful work must be explained and persisted in Git. C-0009 remains controlling: this is a personal/small-scale project, so use the simplest safe implementation that satisfies real requirements and do not import enterprise machinery without a concrete reason.
 
 ## Approved architecture snapshot
 
@@ -58,42 +59,65 @@ See `docs/ARCHITECTURE.md` for the full record.
 
 ## Current implementation reality
 
-Phases 0–3 are complete. Phase 4A Character Foundation Closure contains the broad character foundation described by D-0047, including:
+Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open, but the successor repair/refinement cycle has now completed **increments A–E of nine**.
 
-- persistent campaign-scoped characters and multiclass identity;
-- General, Habilidades, Combate, Gestión, Equipo/Monedas, Trasfondo, Rasgos, conditional Conjuros and Notas;
-- structured proficiencies/languages, defenses/senses/movement, conditions/exhaustion, concentration, resources, rest support, temporary effects and death saves;
-- richer equipment, traits and spell workflows plus Favorites/Quick Access;
-- conditional Artífice, Formas, Técnicas, Metamagia, Pactos and Compañeros modules;
-- PC Settings, Application Settings, Supercompact and Table mode;
-- local backup/export and import-as-copy;
-- schema/migration coverage through the current character closure line.
+Completed successor areas include:
 
-The implementation is **not accepted as finished UX**. The September 2026 owner phone audition found substantial cross-cutting issues in density, editor/IME behavior, card interaction, landscape/wide behavior, tablet/wide design, and several information-architecture/terminology areas. Those findings are canonical input for the next repair cycle.
+- additive schema/domain/storage foundation and migration/backup compatibility;
+- custom attributes and optional saves;
+- per-source spellcasting configuration;
+- Custom Markers + Resource placement/recovery foundations;
+- explicit phone/tablet/orientation layout context;
+- shared compact toolbar, drag, IME, numeric and contextual-help primitives;
+- character-first startup and Back hierarchy;
+- PC Settings administration, tab order, custom skills/attributes/Markers and haptics;
+- compact General projections and inline standard/custom Habilidades;
+- structured Combat damage and character-aware Dice flow;
+- compact Gestión with canonical Inspiration/Markers/Resources, mixed rest recovery, conditions infrastructure and concentration help.
 
-## Latest technically verified product build
+Increment E's fully wired automated gate is green:
 
-Latest full automated-gate product identity:
+- validation commit `0587db5e65d89e809f138e83d053903659216886`;
+- workflow `34307068166` — SUCCESS;
+- artifact `10087074946` / `dnd-custom-aid-debug-apk`;
+- ZIP digest `55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
 
-- version `0.4.0-preqa.7`;
-- build `40700`;
-- type `debug`;
-- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
+This is **development verification, not owner visual acceptance**.
+
+## Owner-audition status
+
+The last owner-auditioned practical build remains:
+
+- `0.4.0-preqa.7` / build `40700` / `debug`;
+- product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
 - workflow `34171466714` — SUCCESS;
 - artifact `10035895186`;
 - APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
 
-Later commits through the D-0066 consolidation are documentation/governance changes only unless a newer checkpoint explicitly says otherwise.
+Its owner phone audition did not pass visual acceptance; it generated the repair backlog now driving the successor cycle.
 
-Build `40700` is **not** a frozen formal M6 candidate and is not release-ready.
+Primary owner test device: **Redmi Note 11 Pro 5G**.
+
+Physical tablet acceptance remains pending and the old tablet/wide presentation is itself a redesign target.
 
 ## Current next action
 
-The owner is compiling additional observations outside the formal QA exercise so they can be included in the same upcoming development cycle.
+Resume at **Increment F — Conjuros compact source-context redesign**.
 
-Do not start a broad repair from partial remembered observations. First read `docs/checkpoints/LATEST.md`, collect the remaining owner input, reconcile it with the existing audition backlog, then create a new focused repair branch from canonical `main`.
+Protected direction:
 
-**DM feature implementation remains blocked until Phase 4A is later repaired, accepted through the required owner gates, and explicitly closed.**
+- one compact sticky source-context bar rather than stacked permanent source/filter blocks;
+- selected source visibly owns ability, `CD salv. conjuro` and `Mod. ataque mágico`;
+- `Todos los conjuros` remains compact;
+- expanded filters/source details are transient;
+- useful level/slot context remains without erasing the spell list;
+- phone landscape remains a phone interaction model and must keep practical spell content visible.
+
+After F, produce the planned early targeted Redmi portrait/landscape interaction build and audition before continuing blindly.
+
+Four planned increments remain after the completed A–E boundary: **F, G, H and I**.
+
+**DM feature implementation remains blocked until Phase 4A is later repaired through the remaining successor increments, accepted through the required owner gates, and explicitly closed.**
 
 ## Build and verification commands
 
