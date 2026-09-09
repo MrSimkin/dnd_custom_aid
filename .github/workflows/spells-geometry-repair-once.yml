@@ -1,0 +1,442 @@
+name: Spells geometry repair once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/spells-geometry-repair-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - name: Repair Conjuros compact geometry
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android')
+
+          def replace_once(text: str, old: str, new: str, label: str):
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f'{label}: expected 1 occurrence, found {count}')
+              return text.replace(old, new, 1)
+
+          # Proper compact sort icon for collection toolbars.
+          p = root / 'IconControls.kt'
+          text = p.read_text(encoding='utf-8')
+          anchor = '''@Composable
+          internal fun StableAddIcon(
+'''
+          if 'internal fun StableSortIconButton(' not in text:
+              sort_icon = '''@Composable
+          internal fun StableSortIconButton(
+              onClick: () -> Unit,
+              contentDescription: String = "Ordenar",
+          ) {
+              val color = MaterialTheme.colorScheme.onSurfaceVariant
+              IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+                  Canvas(
+                      modifier = Modifier
+                          .size(22.dp)
+                          .semantics { this.contentDescription = contentDescription },
+                  ) {
+                      val stroke = 1.9.dp.toPx()
+                      drawLine(color, Offset(size.width * 0.12f, size.height * 0.28f), Offset(size.width * 0.58f, size.height * 0.28f), stroke, StrokeCap.Round)
+                      drawLine(color, Offset(size.width * 0.12f, size.height * 0.50f), Offset(size.width * 0.46f, size.height * 0.50f), stroke, StrokeCap.Round)
+                      drawLine(color, Offset(size.width * 0.12f, size.height * 0.72f), Offset(size.width * 0.34f, size.height * 0.72f), stroke, StrokeCap.Round)
+                      drawLine(color, Offset(size.width * 0.76f, size.height * 0.22f), Offset(size.width * 0.76f, size.height * 0.76f), stroke, StrokeCap.Round)
+                      drawLine(color, Offset(size.width * 0.63f, size.height * 0.64f), Offset(size.width * 0.76f, size.height * 0.78f), stroke, StrokeCap.Round)
+                      drawLine(color, Offset(size.width * 0.89f, size.height * 0.64f), Offset(size.width * 0.76f, size.height * 0.78f), stroke, StrokeCap.Round)
+                  }
+              }
+          }
+
+          '''
+              text = replace_once(text, anchor, sort_icon + anchor, 'sort icon anchor')
+          p.write_text(text, encoding='utf-8')
+
+          # Shared toolbar: expanded search owns the row; optional icon sort stays compact when collapsed.
+          p = root / 'CharacterCollectionPrimitivesV4.kt'
+          text = p.read_text(encoding='utf-8')
+          text = replace_once(
+              text,
+              '''    collapsibleSearch: Boolean = false,
+              showItemCount: Boolean = true,
+              modifier: Modifier = Modifier,
+''',
+              '''    collapsibleSearch: Boolean = false,
+              showItemCount: Boolean = true,
+              compactOrderControl: Boolean = false,
+              modifier: Modifier = Modifier,
+''',
+              'toolbar compact order parameter',
+          )
+          text = replace_once(
+              text,
+              '''            if (showItemCount) {
+                  Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+              }
+
+              if (order != null && onOrderChange != null) {
+''',
+              '''            if (!collapsibleSearch || !searchExpanded) {
+                  if (showItemCount) {
+                      Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                  }
+
+                  if (order != null && onOrderChange != null) {
+''',
+              'toolbar ancillary guard start',
+          )
+          old_order = '''                Box {
+                      CharacterToolbarChipV4(
+                          text = if (order == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z",
+                          selected = order != CharacterPresentationOrder.MANUAL,
+                          onClick = { orderMenuOpen = true },
+                      )
+                      DropdownMenu(
+'''
+          new_order = '''                Box {
+                      if (compactOrderControl) {
+                          StableSortIconButton(
+                              onClick = { orderMenuOpen = true },
+                              contentDescription = if (order == CharacterPresentationOrder.MANUAL) {
+                                  "Orden actual: Manual"
+                              } else {
+                                  "Orden actual: A–Z"
+                              },
+                          )
+                      } else {
+                          CharacterToolbarChipV4(
+                              text = if (order == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z",
+                              selected = order != CharacterPresentationOrder.MANUAL,
+                              onClick = { orderMenuOpen = true },
+                          )
+                      }
+                      DropdownMenu(
+'''
+          text = replace_once(text, old_order, new_order, 'toolbar compact sort rendering')
+          tail = '''            if (onAdd != null) {
+                  CharacterToolbarChipV4(
+                      text = "+",
+                      selected = false,
+                      onClick = onAdd,
+                  )
+              }
+          }
+      }
+  }
+'''
+          tail_new = '''                if (onAdd != null) {
+                      CharacterToolbarChipV4(
+                          text = "+",
+                          selected = false,
+                          onClick = onAdd,
+                      )
+                  }
+              }
+          }
+      }
+  }
+'''
+          text = replace_once(text, tail, tail_new, 'toolbar ancillary guard end')
+          p.write_text(text, encoding='utf-8')
+
+          p = root / 'CharacterSpellListClosureV4.kt'
+          text = p.read_text(encoding='utf-8')
+          text = replace_once(
+              text,
+              '''            collapsibleSearch = true,
+              showItemCount = false,
+              modifier = Modifier
+''',
+              '''            collapsibleSearch = true,
+              showItemCount = false,
+              compactOrderControl = true,
+              modifier = Modifier
+''',
+              'spell toolbar compact sort opt-in',
+          )
+
+          # Rebuild only SpellRowG2: actions live in one title row instead of a three-level side tower.
+          start = text.index('@Composable\nprivate fun SpellRowG2(')
+          end = text.index('\n@Composable\nprivate fun SpellBadgeG2', start)
+          old_fn = text[start:end]
+          signature_end = old_fn.index(') {') + 3
+          signature = old_fn[:signature_end]
+          body = r'''
+              var accumulatedDrag by remember(spell.id) { mutableStateOf(0f) }
+              var dragging by remember { mutableStateOf(false) }
+              val dragState = CharacterDragVisualStateV4(
+                  active = dragging,
+                  offsetY = accumulatedDrag,
+                  showDropBefore = dragging && accumulatedDrag < 0f,
+                  showDropAfter = dragging && accumulatedDrag > 0f,
+              )
+              val selectedAssociation = selectedSourceId?.let { sourceId ->
+                  spell.sourceAssociations.firstOrNull { it.sourceId == sourceId }
+              }
+
+              Column(modifier = Modifier.fillMaxWidth()) {
+                  CharacterDropIndicatorV4(visible = dragState.showDropBefore)
+                  Surface(
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .characterMeasuredReorderDragV4(
+                              enabled = reorderEnabled,
+                              onHaptic = onHaptic,
+                              onMove = onMove,
+                              onVisualStateChange = { state ->
+                                  dragging = state.active
+                                  accumulatedDrag = state.offsetY
+                              },
+                          )
+                          .characterDragFeedbackV4(dragState)
+                          .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
+                      shape = MaterialTheme.shapes.small,
+                      border = BorderStroke(
+                          width = if (selected) 2.dp else 1.dp,
+                          color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                      ),
+                      color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                  ) {
+                      Column(
+                          modifier = Modifier.fillMaxWidth().padding(
+                              horizontal = appSpacingV4(5.dp),
+                              vertical = appSpacingV4(4.dp),
+                          ),
+                          verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+                      ) {
+                          Row(
+                              modifier = Modifier.fillMaxWidth(),
+                              verticalAlignment = Alignment.CenterVertically,
+                              horizontalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+                          ) {
+                              Text(
+                                  spell.name.ifBlank { "Conjuro sin nombre" },
+                                  modifier = Modifier.weight(1f),
+                                  style = MaterialTheme.typography.labelLarge,
+                                  maxLines = 1,
+                                  overflow = TextOverflow.Ellipsis,
+                              )
+                              if (selectedAssociation != null) {
+                                  Row(verticalAlignment = Alignment.CenterVertically) {
+                                      Checkbox(
+                                          checked = selectedAssociation.prepared,
+                                          enabled = structuralEditingEnabled,
+                                          onCheckedChange = onPreparedChange,
+                                      )
+                                      Text("Prep.", style = MaterialTheme.typography.labelSmall)
+                                  }
+                              }
+                              StableFavoriteIconButton(
+                                  selected = favorite,
+                                  onClick = { onFavoriteChange(!favorite) },
+                                  enabled = structuralEditingEnabled && favoriteEnabled,
+                                  contentDescription = if (favorite) "Quitar ${spell.name} de Favoritos" else "Añadir ${spell.name} a Favoritos",
+                              )
+                              if (structuralEditingEnabled) {
+                                  StableDuplicateIconButton(
+                                      onClick = onDuplicate,
+                                      contentDescription = "Duplicar ${spell.name}",
+                                  )
+                                  StableRemoveIconButton(
+                                      onClick = onDelete,
+                                      contentDescription = "Eliminar ${spell.name}",
+                                  )
+                              }
+                          }
+                          Row(
+                              modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                              horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                              verticalAlignment = Alignment.CenterVertically,
+                          ) {
+                              if (spell.verbal) SpellBadgeG2("V")
+                              if (spell.somatic) SpellBadgeG2("S")
+                              if (spell.material) SpellBadgeG2("M")
+                              if (spell.concentration) SpellBadgeG2("Concentración", state = true)
+                              if (spell.ritual) SpellBadgeG2("Ritual", state = true)
+                              if (selectedSourceId != null && selectedAssociation?.prepared == true) {
+                                  SpellBadgeG2("Preparado", state = true)
+                              }
+                              if (selectedSourceId == null && spell.sourceAssociations.isNotEmpty()) {
+                                  val preparedCount = spell.sourceAssociations.count { it.prepared }
+                                  SpellBadgeG2("Preparado $preparedCount/${spell.sourceAssociations.size}", state = true)
+                              }
+                          }
+                          val summary = listOf(spell.castingTime, spell.rangeText, spell.duration)
+                              .filter { it.isNotBlank() }
+                              .joinToString(" · ")
+                          if (summary.isNotBlank()) {
+                              Text(summary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                          }
+                          if (selectedSourceId == null) {
+                              val sourceState = spell.sourceAssociations.mapNotNull { association ->
+                                  sourceById[association.sourceId]?.name?.let { name ->
+                                      "$name ${if (association.prepared) "✓" else "○"}"
+                                  }
+                              }.joinToString(" · ")
+                              if (sourceState.isNotBlank()) {
+                                  Text(sourceState, style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                              }
+                          }
+                      }
+                  }
+                  CharacterDropIndicatorV4(visible = dragState.showDropAfter)
+              }
+          }
+          '''
+          text = text[:start] + signature + body + text[end:]
+
+          # Rebuild only the spell editor fields, pairing short/reference controls while leaving prose full width.
+          start = text.index('@Composable\nprivate fun SpellEditorFieldsG2(')
+          end = text.index('\nprivate fun spellFiltersG2', start)
+          old_editor = text[start:end]
+          signature_end = old_editor.index(') {') + 3
+          signature = old_editor[:signature_end]
+          editor_body = r'''
+              OutlinedTextField(
+                  value = name,
+                  onValueChange = onNameChange,
+                  label = { Text("Nombre") },
+                  modifier = Modifier.fillMaxWidth(),
+                  singleLine = true,
+              )
+              CharacterCompactFieldRowV4(
+                  firstWeight = 0.65f,
+                  secondWeight = 1.35f,
+                  first = { fieldModifier ->
+                      OutlinedTextField(
+                          value = level,
+                          onValueChange = onLevelChange,
+                          label = { Text("Nivel (0-9)") },
+                          modifier = fieldModifier,
+                          singleLine = true,
+                          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                      )
+                  },
+                  second = { fieldModifier ->
+                      OutlinedTextField(
+                          value = castingTime,
+                          onValueChange = onCastingTimeChange,
+                          label = { Text("Tiempo de lanzamiento") },
+                          modifier = fieldModifier,
+                          singleLine = true,
+                      )
+                  },
+              )
+              CharacterCompactFieldRowV4(
+                  first = { fieldModifier ->
+                      OutlinedTextField(
+                          value = rangeText,
+                          onValueChange = onRangeTextChange,
+                          label = { Text("Alcance") },
+                          modifier = fieldModifier,
+                          singleLine = true,
+                      )
+                  },
+                  second = { fieldModifier ->
+                      OutlinedTextField(
+                          value = duration,
+                          onValueChange = onDurationChange,
+                          label = { Text("Duración") },
+                          modifier = fieldModifier,
+                          singleLine = true,
+                      )
+                  },
+              )
+              Text("Fuentes", style = MaterialTheme.typography.titleSmall)
+              if (sources.isEmpty()) {
+                  Text("Crea al menos una fuente antes de guardar un conjuro.", style = MaterialTheme.typography.bodySmall)
+              }
+              sources.forEach { source ->
+                  val key = source.id.toString()
+                  val included = key in associatedSourceIds
+                  Row(
+                      modifier = Modifier.fillMaxWidth(),
+                      verticalAlignment = Alignment.CenterVertically,
+                  ) {
+                      Checkbox(
+                          checked = included,
+                          onCheckedChange = { onAssociationChange(source.id, it) },
+                      )
+                      Text(source.name, modifier = Modifier.weight(1f))
+                      Checkbox(
+                          checked = key in preparedSourceIds,
+                          enabled = included,
+                          onCheckedChange = { onPreparedChange(source.id, it) },
+                      )
+                      Text("Preparado", style = MaterialTheme.typography.labelSmall)
+                  }
+              }
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                  Checkbox(verbal, onVerbalChange); Text("V")
+                  Checkbox(somatic, onSomaticChange); Text("S")
+                  Checkbox(material, onMaterialChange); Text("M")
+              }
+              if (material) {
+                  OutlinedTextField(
+                      value = materialText,
+                      onValueChange = onMaterialTextChange,
+                      label = { Text("Componente material (opcional)") },
+                      modifier = Modifier.fillMaxWidth(),
+                  )
+              }
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                  Checkbox(concentration, onConcentrationChange); Text("Concentración")
+                  Checkbox(ritual, onRitualChange); Text("Ritual")
+              }
+              OutlinedTextField(
+                  value = description,
+                  onValueChange = onDescriptionChange,
+                  label = { Text("Descripción") },
+                  modifier = Modifier.fillMaxWidth(),
+                  minLines = 4,
+                  maxLines = 10,
+              )
+              OutlinedTextField(
+                  value = notes,
+                  onValueChange = onNotesChange,
+                  label = { Text("Notas (opcional)") },
+                  modifier = Modifier.fillMaxWidth(),
+                  minLines = 2,
+                  maxLines = 6,
+              )
+              CharacterInlineValidationMessage(validationMessage)
+          }
+          '''
+          text = text[:start] + signature + editor_body + text[end:]
+          p.write_text(text, encoding='utf-8')
+          PY
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+      - name: Compile Conjuros geometry repair
+        run: gradle :androidApp:compileDebugKotlin --stacktrace
+      - name: Commit repair and self-remove
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/spells-geometry-repair-once.yml
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/IconControls.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCollectionPrimitivesV4.kt androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt .github/workflows/spells-geometry-repair-once.yml
+          git commit -m 'fix: compact Conjuros toolbar cards and editor'
+          git push
