@@ -160,6 +160,7 @@ private fun DndCustomAidApp(
             } else {
                 CharacterPcSettingsStateProviderV4(
                     characterId = characterId,
+                    characterRepository = characterRepository,
                     successorRepository = characterSuccessorRepository,
                 ) {
                     CharacterEditorScreenV4(
