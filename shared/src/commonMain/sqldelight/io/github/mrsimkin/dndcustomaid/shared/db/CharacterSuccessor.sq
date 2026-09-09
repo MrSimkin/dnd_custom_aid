@@ -70,7 +70,8 @@ CREATE TABLE character_resource_successor_config (
 CREATE TABLE character_successor_preferences (
     character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
     valuables_text TEXT NOT NULL DEFAULT '',
-    tab_order TEXT NOT NULL DEFAULT ''
+    tab_order TEXT NOT NULL DEFAULT '',
+    inspiration_visible INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE character_background_image (
@@ -183,12 +184,12 @@ DELETE FROM character_resource_successor_config WHERE character_id = ?;
 
 upsertSuccessorPreferences:
 INSERT OR REPLACE INTO character_successor_preferences(
-    character_id, valuables_text, tab_order
+    character_id, valuables_text, tab_order, inspiration_visible
 )
-VALUES (?, ?, ?);
+VALUES (?, ?, ?, ?);
 
 selectSuccessorPreferences:
-SELECT character_id, valuables_text, tab_order
+SELECT character_id, valuables_text, tab_order, inspiration_visible
 FROM character_successor_preferences
 WHERE character_id = ?;
 
