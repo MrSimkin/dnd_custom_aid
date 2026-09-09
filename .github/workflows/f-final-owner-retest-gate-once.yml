@@ -1,0 +1,62 @@
+name: F final owner retest gate once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/f-final-owner-retest-gate-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - name: Guard product parent
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD^)" = "f727f3c5a3294c46e96d7d01becf1fb62c9dfbfa"
+          test "$(git diff-tree --no-commit-id --name-only -r HEAD)" = ".github/workflows/f-final-owner-retest-gate-once.yml"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36'
+          log-accepted-android-sdk-licenses: 'false'
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '9.5.0'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Backend type-check
+        working-directory: backend
+        run: |
+          npm install
+          npm run check
+      - name: Prepare stable CI debug keystore
+        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
+      - name: Shared tests Android debug and desktop build
+        run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+      - name: APK checksum
+        run: sha256sum androidApp/build/outputs/apk/debug/androidApp-debug.apk
+      - name: Upload Android debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: dnd-custom-aid-f-owner-retest-apk
+          path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          if-no-files-found: error
+      - name: Self-remove validation workflow after green gate
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm .github/workflows/f-final-owner-retest-gate-once.yml
+          git add -A
+          git commit -m 'chore: close final F owner retest gate helper'
+          git push
