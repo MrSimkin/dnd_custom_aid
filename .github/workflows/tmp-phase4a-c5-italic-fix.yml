@@ -38,18 +38,18 @@ jobs:
               'import androidx.compose.ui.text.font.FontStyle\nimport androidx.compose.ui.text.input.KeyboardType\n',
               'font-style-import',
           )
-          old = '''Text(
-              "${row.label} ($abbreviation)",
-              modifier = Modifier.weight(1f),
-              style = MaterialTheme.typography.bodySmall,
-              maxLines = 3,
-          )'''
-          new = '''Text(
-              "${row.label} ($abbreviation)",
-              modifier = Modifier.weight(1f),
-              style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-              maxLines = 3,
-          )'''
+          old = '''        Text(
+            "${row.label} ($abbreviation)",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 3,
+        )'''
+          new = '''        Text(
+            "${row.label} ($abbreviation)",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+            maxLines = 3,
+        )'''
           replace_once(old, new, 'custom-skill-label')
           path.write_text(text)
           PY
