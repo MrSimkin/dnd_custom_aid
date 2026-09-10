@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 4
+          fetch-depth: 5
       - name: Guard clean product boundary
         shell: bash
         run: |
@@ -78,7 +78,8 @@ jobs:
           require(spell_list, 'collapsibleSearch = true', 'spells-compact-search')
           require(spell_list, 'normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1)', 'spell-level-normalization')
           forbid(spell_list, 'spellLevelInputG2', 'private-spell-level-workaround')
-          require(editor, '.generalSpellcastingRows(successorState)', 'canonical-spellcasting-projection')
+          require(editor, 'overviewProjectionSheet.generalSpellcastingRows(projectedSuccessorState)', 'canonical-projected-spellcasting')
+          require(editor, 'successorState.copy(spellcastingProfiles = spellcastingProfiles)', 'draft-spellcasting-profile-overlay')
           require(editor, 'val wide = layoutContext.isTablet', 'phone-landscape-phone-model')
 
           # Shared help system remains the only contextual-help mode authority.
