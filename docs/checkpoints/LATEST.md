@@ -3,7 +3,7 @@
 **Updated:** 2026-09-10  
 **Canonical branch:** `main`  
 **Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Repository state:** night-close consolidation through Increment E + parallel DM product-discovery continuity through Desk-family consolidation  
+**Repository state:** night-close consolidation through Increment E + parallel DM product-discovery continuity through Desk-family and shared rules-question clarification  
 **Phase:** Phase 4A successor repair/refinement cycle  
 **Release status:** debug / development; NOT owner-accepted and NOT release-ready  
 **Latest owner-auditioned practical identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
@@ -38,8 +38,9 @@ Four planned increments remain: **F, G, H and I**.
 9. `docs/PROJECT_STATE.md` — compact current-state snapshot;
 10. `docs/BRANCH_STATUS.md` — branch interpretation and cleanup status;
 11. `docs/decisions/D-0068_DM_LIVE_WORKSPACE_DESKS_AND_DUNGEON_DIRECTION.md` — Workspace/Dungeon/DM Attention Budget discovery;
-12. `docs/decisions/D-0069_DM_DESK_FAMILY_STAGE_DESK_AND_DM_SCREEN.md` — approved DM Desk family, Stage Desk, DM Screen, Party Lens and Quick Rules Question direction;
-13. `docs/checkpoints/2026-09-10_DM_DESK_FAMILY_CONSOLIDATION.md` — compact close-of-pass continuity checkpoint.
+12. `docs/decisions/D-0069_DM_DESK_FAMILY_STAGE_DESK_AND_DM_SCREEN.md` — approved DM Desk family, Stage Desk, DM Screen, Party Lens and rules-question direction;
+13. `docs/decisions/D-0070_RULES_QUESTION_SHARED_PLAYER_DM_CAPABILITY.md` — explicit shared Player/DM rules-question capability and provisional-name clarification;
+14. `docs/checkpoints/2026-09-10_DM_DESK_FAMILY_CONSOLIDATION.md` — compact close-of-pass continuity checkpoint.
 
 ## Parallel DM product discovery — 2026-09-10
 
@@ -53,9 +54,9 @@ D-0068 preserves the controlling foundations for:
 - Dungeon Desk, topological/flowchart structure, rich prepared Zone Briefs, contextual Notes, Dungeon Turns, clocks, triggers and Encounter Readiness;
 - dirty live creature patches/packages and the save-for-later → Desktop Manager cleanup lifecycle.
 
-D-0069 now closes the broad Desk-family question with four approved live DM Desks:
+D-0069 closes the broad Desk-family question with four approved live DM Desks:
 
-1. **DM Screen** — neutral table surface with PC Group/Quick/Full reference, derived **Party Lens**, general DM reference and **Quick Rules Question**;
+1. **DM Screen** — neutral table surface with PC Group/Quick/Full reference, derived **Party Lens**, general DM reference and the shared rules-question capability;
 2. **Stage Desk** — retrieval-first companion for the current broad adventure environment, using search, area, function, narrative context and recent/open/pinned routes to Places, Shops, NPCs and the adventure/plot-hook Scene Spine;
 3. **Dungeon Desk** — dangerous structured exploration and dungeon operation;
 4. **Combat Desk** — active combat operation plus tactical encounter/creature guidance.
@@ -64,11 +65,15 @@ D-0069 now closes the broad Desk-family question with four approved live DM Desk
 
 Dungeon refinements now durably include the current Zone Brief alpha direction `Presentar / Interactuar / Encuentro`, open areas behaving like papers on the DM table, no forced identity between prepared areas and Dungeon Turn movement zones, many-to-many-capable area/encounter relationships, and encounter-wide `How to run` guidance projected into Combat Desk alongside creature-specific tactical cues.
 
-### Quick Rules Question — explicitly preserved
+### Shared rules-question capability — explicitly preserved
 
-Quick Rules Question must not be lost again from future DM design.
+The AI-assisted natural-language rules-question capability must not be lost again from future product design.
 
-It is an AI-chatbox-like natural-language clarification capability intended to let the DM remember/check rules without opening books. The existing MVP boundary remains **official SRD 5.1 + SRD 5.2.1 only** under D-0041. The broader post-MVP direction is to answer against the supported SRDs plus DM-authored house rules, custom rules, homebrew and adopted variant rules/overrides, while clearly distinguishing official baseline from campaign-specific rules. Non-SRD rule material is maintained through the Desktop DM Manager, not through live tablet bookkeeping.
+D-0070 explicitly confirms that it belongs to **both the Player-facing application and the DM experience**. DM Screen is the natural neutral DM entry point, but it is not a DM-only feature. The Player side must also expose the same conceptual fast rules clarification/remembrance capability.
+
+`Quick Rules Question` is **only a working/discovery label**, not an approved definitive user-facing name. Final Spanish product naming and exact placement remain pending until UX implementation approaches.
+
+The existing MVP boundary remains **official SRD 5.1 + SRD 5.2.1 only** under D-0041, with grounded retrieval and source/version identity. The broader post-MVP direction is to answer against the supported SRDs plus DM-authored house rules, custom rules, homebrew and adopted variant rules/overrides, while clearly distinguishing official baseline from campaign-specific rules. Non-SRD rule material is maintained through the Desktop DM Manager, not through live tablet/player bookkeeping.
 
 A future Journey Desk remains only a candidate. Because the owner's current travel workflow resembles fast travel or a roughly linear dungeon with possible/random encounters, future travel support should first be tested as a special Dungeon Desk mode/profile before a fifth Desk is created.
 
@@ -93,7 +98,7 @@ Final integrated workflow:
 Verified together:
 
 - backend/type-check: PASS;
-- shared/Kotlin tests: PASS;
+- shared/Kotlin tests;
 - Android debug compilation/assembly: PASS;
 - desktop compilation/build: PASS;
 - Android debug APK upload: PASS.
