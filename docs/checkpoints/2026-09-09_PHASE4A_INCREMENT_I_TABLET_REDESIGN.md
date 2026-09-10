@@ -3,7 +3,7 @@
 **Date:** 2026-09-09  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Canonical branch:** `main` (unchanged by Increment I)  
-**Status:** IMPLEMENTATION COMPLETE / I1–I2 FOCUSED GREEN / LAYOUT INSPECTION COMPLETE / INTEGRATED GATE PENDING / PHYSICAL OWNER TABLET ACCEPTANCE PENDING
+**Status:** IMPLEMENTATION COMPLETE / I1–I2 FOCUSED GREEN / LAYOUT INSPECTION COMPLETE / INTEGRATED GATE GREEN / PHYSICAL OWNER TABLET ACCEPTANCE PENDING
 
 ## 1. Boundary
 
@@ -114,7 +114,7 @@ Verified representative categories:
 - editor-bearing long collections: the stale persistent wide editor pattern was found and corrected by I2;
 - shell/navigation: portrait and landscape now make independent navigation/canvas decisions while keeping one tab subtree.
 
-The repository does not currently carry a dedicated tablet screenshot/emulator regression harness, so this checkpoint does not claim screenshot-based or physical-device acceptance. The next acceptance phase must inspect the generated build on representative tablet dimensions/device when available.
+The repository does not currently carry a dedicated tablet screenshot/emulator regression harness, so this checkpoint does not claim screenshot-based or physical-device acceptance. The acceptance phase must inspect the generated build on representative tablet dimensions/device when available.
 
 ## 6. Focused validation
 
@@ -124,27 +124,46 @@ Both successful product boundaries ran:
 - `:androidApp:compileDebugKotlin` — PASS;
 - guarded product-diff checks — PASS.
 
-These focused checks do not substitute for the final full A–I integration gate.
+Focused workflows:
 
-## 7. Integrated gate — pending
+- I1 corrected apply: `34420029306` — SUCCESS;
+- I2 apply: `34420564422` — SUCCESS.
 
-This checkpoint commit intentionally triggers the repository's normal `Scaffold checks` workflow against the complete A–I successor product tree.
+These focused checks were followed by the full integrated A–I gate below.
 
-Required final I/A–I automated gate:
+## 7. Integrated A–I gate — GREEN
 
-- shared/Kotlin desktop tests;
-- Android debug assembly;
-- desktop application build;
-- backend dependency install/type-check;
-- Android debug APK artifact upload.
+Validation head:
 
-Workflow ID, validation head and artifact evidence will be recorded here after the normal gate finishes successfully. Until then, do not describe Increment I or the A–I successor line as integrated-green.
+`7fd61ee281404e4f62f41e2b1fb126ca45a2a199`
 
-## 8. Acceptance boundary after a green gate
+Normal `Scaffold checks` workflow:
 
-A green final automated gate will mean the planned A–I engineering implementation is integrated, **not** that Phase 4A is owner-accepted or closed.
+`34420873078` — **SUCCESS**
 
-Still outstanding after automated I completion:
+Verified together:
+
+- backend dependency install/type-check — PASS;
+- shared/Kotlin desktop tests — PASS;
+- Android debug assembly — PASS;
+- desktop application build — PASS;
+- Android debug APK upload — PASS.
+
+Artifact:
+
+- ID `10130893215`;
+- name `dnd-custom-aid-debug-apk`;
+- ZIP size `13,308,575` bytes;
+- digest `sha256:9d65bb1e78b5a875ef5d381d56fa5a8038ce1c0ca9b6f87130d80b21d6660194`;
+- workflow head `7fd61ee281404e4f62f41e2b1fb126ca45a2a199`.
+
+This completes the planned A–I engineering sequence at an integrated automated-green boundary. It is a development/audition artifact, not owner acceptance and not a formal M6 candidate.
+
+## 8. Acceptance boundary
+
+A green final automated gate means the planned A–I engineering implementation is integrated, **not** that Phase 4A is owner-accepted or closed.
+
+Still outstanding:
 
 - repaired-F targeted Redmi Note 11 Pro 5G phone acceptance unless separately recorded;
 - consolidated successor owner audition on phone, including G/H behavior and representative larger text;
@@ -158,4 +177,13 @@ No DM feature implementation begins before that explicit closure.
 
 ## 9. Exact next position
 
-If the integrated gate below becomes green, there is no Increment J in the reconciled successor plan. Engineering should stop adding planned scope and move to the successor audition/acceptance and closure sequence instead of inventing another feature increment.
+There is no Increment J in the reconciled successor plan. Planned successor engineering scope is complete through I.
+
+Next work is the **successor audition / acceptance / closure sequence**:
+
+1. expose/install the integrated successor APK for owner testing;
+2. perform the outstanding targeted/consolidated phone checks;
+3. inspect tablet portrait/landscape on a representative tablet when available;
+4. repair only owner-blocking defects found by acceptance;
+5. when the repaired baseline is acceptable, freeze a new formal M6 candidate and run the required regression/upgrade QA;
+6. explicitly close Phase 4A before any DM implementation.
