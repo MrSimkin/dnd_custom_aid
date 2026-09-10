@@ -40,74 +40,55 @@ Phase 4 expanded into a deliberate **Character Foundation Closure** cycle before
 
 ### Phase 4A — Character Foundation Closure
 
-**Status:** successor repair/refinement implementation in progress; increments A–E complete/green; formal owner acceptance deferred.
+**Status:** A–I successor engineering plus post-audition Player stabilization complete/automated-green; consolidated physical owner QA pending and currently pinned until the owner can test.
 
-D-0047 remains the controlling broad character-closure scope. D-0066 controls repository consolidation. D-0067 plus the September 2026 owner audition/refinement package controls the current repair/refinement direction.
+D-0047 remains the controlling broad character-closure scope. D-0066 controls repository consolidation. D-0067 plus the September 2026 owner audition/refinement package controls the repair/refinement direction.
 
 The repository may consolidate technically verified development boundaries into `main` before acceptance when the owner explicitly requests repository ordering. **Presence on `main` is not a Phase 4A acceptance criterion.**
 
 #### Successor implementation sequence
 
-The current reconciled plan contains nine increments:
+The reconciled implementation plan contained nine increments:
 
 1. **A — schema/domain/storage foundation:** COMPLETE / GREEN;
-2. **B — shared UX/responsive primitives:** COMPLETE / GREEN; drag feel pending owner-device judgment;
+2. **B — shared UX/responsive primitives:** COMPLETE / GREEN;
 3. **C — character-first navigation + PC Settings + General/Habilidades:** COMPLETE / GREEN;
 4. **D — Combat + Dice:** COMPLETE / GREEN;
 5. **E — Gestión + Markers + Resources + recovery/conditions:** COMPLETE / GREEN;
-6. **F — Conjuros compact source-context redesign:** NEXT;
-7. **G — Equipo/Rasgos/conditional modules/Notas/Trasfondo:** pending;
-8. **H — full-screen Application Settings/live previews/themes:** pending;
-9. **I — separate tablet portrait/landscape redesign:** pending.
+6. **F — Conjuros compact source-context redesign:** COMPLETE / GREEN;
+7. **G — Equipo/Rasgos/conditional modules/Notas/Trasfondo:** COMPLETE / GREEN;
+8. **H — full-screen Application Settings/live previews/themes:** COMPLETE / GREEN;
+9. **I — separate tablet portrait/landscape redesign:** COMPLETE / GREEN.
 
-Four increments remain: **F, G, H and I**.
+There is **no planned Increment J**. After A–I, owner-audition findings drove a focused stabilization pass covering Rasgos provenance, multi-column reorder behavior, settings/font/theme refinement, app-wide multiline density and residual Player acceptance auditing.
 
-#### Latest automated successor boundary
+#### Current consolidated owner-QA build
 
-Increment E final integrated validation:
+- version `0.4.0-preqa.8` / build `40800` / `debug`;
+- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
+- product tree `c612c07345ecdfc91d972118314ee649fe2048c4`;
+- authoritative validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
+- workflow `34430548061` — SUCCESS;
+- artifact `10134364621` / `dnd-custom-aid-debug-apk`;
+- ZIP digest `b7ead12a7501bbef96fef861321b5bebfd64c631647423b8eab9faec9580699a`;
+- APK SHA-256 `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
 
-- active Gestión wiring source commit `4b3ab53faada5af7b50f73ce951fe767c13ff63a`;
-- validation commit `0587db5e65d89e809f138e83d053903659216886`;
-- workflow `34307068166` — SUCCESS;
-- artifact `10087074946` / `dnd-custom-aid-debug-apk`;
-- ZIP digest `55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
+This is the **consolidated Player owner-QA build**, not yet a frozen formal M6 candidate and not an accepted Phase 4A baseline.
 
-This is a development verification boundary, not an owner-auditioned build and not a formal M6 candidate.
+Physical owner testing is currently pinned because the owner cannot test at this time. This is only a scheduling pause; it does not lower or waive the acceptance boundary.
 
-#### Latest owner-auditioned practical build
-
-- version `0.4.0-preqa.7` / build `40700` / `debug`;
-- tested product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
-- workflow `34171466714` — SUCCESS;
-- artifact `10035895186`;
-- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
-
-The owner phone audition sufficiently covered Stages A–F for that build and produced a repair backlog rather than acceptance. No physical owner tablet acceptance has been completed.
-
-#### Next build/audition boundary
-
-After Increment F, produce the planned **interaction build** for targeted Redmi Note 11 Pro 5G portrait + landscape retest of the highest-risk repaired flows, especially:
-
-- one-row Conjuros source-context bar and usable spell viewport;
-- phone-landscape spell visibility;
-- representative editor/keyboard behavior;
-- representative whole-card drag feel;
-- Gestión operational/death-save footprint;
-- Habilidades passive row;
-- 40% spacing option.
-
-Do not repeat the full build-40700 audition screen by screen.
+The first resumed physical test must install `preqa.8 / 40800` **over the existing QA app/data without uninstalling or clearing data first**, then continue as one consolidated Player QA rather than repeated micro-auditions.
 
 ### Phase 4A exit criterion
 
 Phase 4A is complete only when:
 
 - D-0047 implementation exists — **done**;
-- successor schema/domain/storage and current automated gates are green — **done through Increment E**;
+- successor A–I engineering exists and automated gates are green — **done**;
+- post-audition Player stabilization is implemented and full-gate green — **done**;
 - owner observations and cross-cutting directions are durably captured — **done for the current package**;
-- remaining successor increments F–I are implemented and verified — **pending**;
-- targeted owner phone retesting demonstrates the repaired baseline is acceptable — **pending**;
-- tablet portrait/landscape acceptance is completed on a redesigned tablet surface — **pending**;
+- consolidated physical owner phone QA demonstrates the repaired baseline is acceptable — **pending / currently pinned**;
+- tablet portrait/landscape acceptance is completed on the redesigned Player tablet surface — **pending**;
 - one exact replacement formal M6 candidate is explicitly frozen when ready — **pending**;
 - upgrade/persistence and relevant formal regression QA pass — **pending**;
 - blocking findings are resolved — **pending**;
@@ -115,13 +96,29 @@ Phase 4A is complete only when:
 
 **No DM-feature implementation begins before Phase 4A acceptance/closure.**
 
+DM-side discovery/design may be discussed and documented while physical QA is waiting, but documentation is not implementation permission.
+
 ### Phase 4B — DM combat / live-session work
 
-**Status:** Blocked by Phase 4A owner acceptance and closure.
+**Status:** Product/UX discovery baseline captured; implementation still blocked by Phase 4A owner acceptance and closure.
 
-This stage will consume the stable reusable character data foundation only after Phase 4A is explicitly closed. Its detailed implementation must not begin merely because architecture/product ideas already exist.
+The detailed owner-approved discovery baseline is `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md`.
 
-The durable character sheet and future live combat state remain separate under D-0025/D-0026.
+The current Phase 4B direction is a **private tablet-landscape DM Combat Desk**, not a VTT. Core confirmed requirements include:
+
+- initiative remains always visible and independent from which stat block/reference is open;
+- modular hide/show Reference Desk, Combat State, Encounter Notes/Rules of Engagement, Clocks, Markers and Quick Rules;
+- individual PC/NPC/monster references plus first-class Party Overview and Creature Overview (tree vs forest);
+- reusable creature definitions separated from live encounter instances;
+- deliberate DM encounter overrides/improvisation for HP, AC, participants and actions without silently rewriting reusable definitions;
+- quick official-rules checking as a memory aid, never forced rules validation;
+- DM-private state by default; any future player-visible combat projection must be explicit/sanitized and its exact initiative model remains unresolved;
+- explicit non-goals: grids, maps, tokens, automatic targeting/range, encounter balancing and VTT-style combat execution;
+- live Combat Desk target is tablet landscape only; phone/portrait live-combat layouts are not required.
+
+D-0068 also preserves wireframe candidates, reversibility/history ideas and the explicit open-question list that must be resolved before coding.
+
+This stage will consume the stable reusable character data foundation only after Phase 4A is explicitly closed. The durable character sheet and future live combat state remain separate under D-0025/D-0026 and the later refinements captured in D-0068.
 
 ---
 
