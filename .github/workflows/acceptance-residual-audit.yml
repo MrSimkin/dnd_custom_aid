@@ -16,13 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 2
+          fetch-depth: 4
       - name: Guard clean product boundary
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "4c90fcd4f3892b0d9eac799f4acffb537b0f9e47"
-          test "$(git diff --name-only HEAD^ HEAD)" = ".github/workflows/acceptance-residual-audit.yml"
+          base='4c90fcd4f3892b0d9eac799f4acffb537b0f9e47'
+          git merge-base --is-ancestor "$base" HEAD
+          test "$(git diff --name-only "$base" HEAD | sort -u)" = ".github/workflows/acceptance-residual-audit.yml"
           test ! -e .maintenance
           test ! -e .github/workflows/acceptance-text-density.yml
       - name: Audit repaired Player invariants
@@ -77,7 +78,7 @@ jobs:
           require(spell_list, 'collapsibleSearch = true', 'spells-compact-search')
           require(spell_list, 'normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1)', 'spell-level-normalization')
           forbid(spell_list, 'spellLevelInputG2', 'private-spell-level-workaround')
-          require(editor, 'generalSpellcastingRows(successorState)', 'canonical-spellcasting-projection')
+          require(editor, '.generalSpellcastingRows(successorState)', 'canonical-spellcasting-projection')
           require(editor, 'val wide = layoutContext.isTablet', 'phone-landscape-phone-model')
 
           # Shared help system remains the only contextual-help mode authority.
