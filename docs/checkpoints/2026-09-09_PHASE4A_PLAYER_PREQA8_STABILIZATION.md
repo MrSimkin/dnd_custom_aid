@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-09 (owner local date)  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** STABILIZATION COMPLETE / RESIDUAL AUDIT GREEN / FULL NORMAL GATE PENDING  
+**Status:** STABILIZATION COMPLETE / RESIDUAL AUDIT GREEN / FULL NORMAL GATE GREEN / CONSOLIDATED OWNER QA PENDING  
 **Owner acceptance:** NOT YET PERFORMED for this consolidated build  
 **Release status:** debug / development; not release-ready  
 **DM implementation:** blocked until Phase 4A is accepted and explicitly closed
@@ -11,14 +11,15 @@
 
 This checkpoint closes the post-A–I stabilization pass that followed owner phone audition findings. It deliberately replaces repeated micro-retests with one consolidated Player QA build after the known blocking/structural findings were repaired and audited together.
 
-This is not owner acceptance and is not yet a formal frozen M6 candidate. The next boundary is one normal full repository gate followed by consolidated owner QA.
+This is not owner acceptance and is not yet a formal frozen M6 candidate. The next boundary is consolidated owner QA against the exact automated-green APK recorded below.
 
-## Exact product identity entering the full gate
+## Exact product identity
 
 - version name: `0.4.0-preqa.8`;
 - version code: `40800`;
 - product commit: `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
 - product tree: `c612c07345ecdfc91d972118314ee649fe2048c4`;
+- validation/checkpoint head: `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
 - previous product behavior tree before the version-only commit: `18c47f131a6a0442175e79a32850becf9da77133`.
 
 The version-only commit exists so this repaired QA APK is distinguishable from historical `0.4.0-preqa.7 / 40700` and can be installed as a monotonic in-place update for persistence/migration testing.
@@ -91,21 +92,70 @@ Measured static coverage from that audit:
 
 The residual audit self-removed. Cleanup head `5bd48ed501a04deaff213af3e88023f5550e8606` had the same product tree as the density product commit.
 
+## Full normal gate evidence
+
+Normal `Scaffold checks` workflow:
+
+`34430548061` — **SUCCESS**
+
+Validation head:
+
+`2a9b682f6aca2e95facecf1f6256039fd96cfefd`
+
+### Backend
+
+- dependency install: PASS;
+- `npm run check`: PASS.
+
+The successful backend job emitted non-blocking dependency/tooling warnings: npm reported three high-severity dependency findings, Wrangler suggested `@types/node` for Node compatibility, and the setup-node action reported its runtime migration/deprecation notice. These did not fail the backend check and are tracked as tooling/dependency technical debt rather than Player acceptance failures.
+
+### Kotlin / Android / Desktop
+
+Executed together:
+
+`gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace`
+
+Result:
+
+- shared/Kotlin desktop tests: PASS;
+- Android debug compilation/assembly: PASS;
+- desktop build: PASS;
+- stable CI debug signing step: PASS;
+- APK artifact upload: PASS;
+- Gradle result: `BUILD SUCCESSFUL in 2m 7s`.
+
+### Artifact
+
+GitHub Actions artifact:
+
+- artifact ID: `10134364621`;
+- artifact name: `dnd-custom-aid-debug-apk`;
+- ZIP size: `13,321,947` bytes;
+- ZIP SHA-256: `b7ead12a7501bbef96fef861321b5bebfd64c631647423b8eab9faec9580699a`;
+- generated from workflow head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
+- ZIP contains exactly one file: `androidApp-debug.apk`.
+
+Downloaded artifact verification:
+
+- downloaded ZIP SHA-256 matched the GitHub Actions digest exactly;
+- extracted APK size: `37,996,660` bytes;
+- extracted APK SHA-256: `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`;
+- extracted file was identified as an Android package (APK).
+
 ## Acceptance boundary
 
 Automated green is not owner/device acceptance. This checkpoint does not claim that tablet, phone landscape, drag feel, theme appearance, keyboard behavior or migration persistence look/feel correct on physical hardware.
 
 For the consolidated owner QA build, the first installation must be **over the existing prior QA installation/data**. Do not clear app data first. The initial check must exercise the real upgrade/persistence path.
 
-## Full normal gate now required
+At minimum, first verify that campaigns/characters and representative General, Combate, Equipo/Monedas, Conjuros and Notas data survive and reopen correctly before any destructive/fresh-install step.
 
-The checkpoint commit that adds this file must run the repository's normal `Scaffold checks` gate. Required evidence before exposing the consolidated APK:
+## Exact next action
 
-- backend dependency install/check: PASS;
-- shared/Kotlin desktop tests: PASS;
-- Android debug assembly: PASS;
-- desktop build: PASS;
-- Android debug APK upload: PASS;
-- exact workflow/artifact identity recorded.
-
-After that, expose one consolidated QA APK to the owner. Do not resume repeated micro-retests and do not begin DM implementation.
+1. expose/install the exact `0.4.0-preqa.8 / 40800` APK recorded above over the current QA installation;
+2. verify upgrade/data preservation first;
+3. execute the consolidated Player owner QA rather than isolated micro-retests;
+4. classify any observations as non-blocking visual/ergonomic, later maintenance, or Phase 4A blocking;
+5. repair only acceptance-blocking defects if found, with a new exact automated boundary;
+6. when the owner-audited baseline is acceptable, freeze the replacement formal M6 candidate and complete the required regression matrix;
+7. explicitly close Phase 4A before beginning DM implementation.
