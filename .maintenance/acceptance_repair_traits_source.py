@@ -1,0 +1,320 @@
+from pathlib import Path
+
+
+def replace_once(path: str, old: str, new: str) -> None:
+    p = Path(path)
+    text = p.read_text()
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"{path}: expected one match, found {count}: {old[:120]!r}")
+    p.write_text(text.replace(old, new, 1))
+
+
+# Keep the shared provenance control backward compatible, but allow callers such as
+# Rasgos to offer canonical structured choices plus an explicit custom fallback.
+provenance = Path(
+    "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHelpProvenanceV4.kt"
+)
+text = provenance.read_text()
+marker = "@Composable\ninternal fun CharacterProvenanceRowV4("
+if text.count(marker) != 1:
+    raise SystemExit("provenance function marker mismatch")
+prefix = text.split(marker, 1)[0]
+function = r'''@Composable
+internal fun CharacterProvenanceRowV4(
+    originType: CharacterOriginTypeV4 = CharacterOriginTypeV4.CLASS,
+    originKey: String?,
+    customOrigin: String,
+    optionsForType: (CharacterOriginTypeV4) -> List<CharacterOriginOptionV4>,
+    onOriginTypeChange: (CharacterOriginTypeV4) -> Unit,
+    onOriginKeyChange: (String?) -> Unit,
+    onCustomOriginChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    allowedTypes: List<CharacterOriginTypeV4> = CharacterOriginTypeV4.entries,
+    allowCustomOriginOption: Boolean = false,
+    customOriginSelected: Boolean = false,
+    onCustomOriginSelectedChange: (Boolean) -> Unit = {},
+) {
+    var typeMenuOpen by remember { mutableStateOf(false) }
+    var originMenuOpen by remember { mutableStateOf(false) }
+    val options = optionsForType(originType)
+    val selectedOrigin = originKey?.let { key -> options.firstOrNull { it.key == key } }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(0.42f)) {
+            Text("Tipo de origen", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+            Box {
+                CompactMenuSurfaceV4(
+                    text = originType.label,
+                    onClick = { typeMenuOpen = true },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                DropdownMenu(
+                    expanded = typeMenuOpen,
+                    onDismissRequest = { typeMenuOpen = false },
+                ) {
+                    allowedTypes.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option.label) },
+                            onClick = {
+                                if (option != originType) {
+                                    onOriginTypeChange(option)
+                                    onOriginKeyChange(null)
+                                    onCustomOriginSelectedChange(false)
+                                }
+                                typeMenuOpen = false
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        Column(modifier = Modifier.weight(0.58f)) {
+            Text("Origen específico", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+            val freeText =
+                originType == CharacterOriginTypeV4.OTHER ||
+                    options.isEmpty() ||
+                    (allowCustomOriginOption && customOriginSelected)
+            if (freeText) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp),
+                    shape = MaterialTheme.shapes.small,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    color = MaterialTheme.colorScheme.surface,
+                ) {
+                    Box(
+                        modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        if (customOrigin.isBlank()) {
+                            Text(
+                                if (originType == CharacterOriginTypeV4.OTHER) "Origen personalizado" else "Origen específico",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        BasicTextField(
+                            value = customOrigin,
+                            onValueChange = onCustomOriginChange,
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        )
+                    }
+                }
+            } else {
+                Box {
+                    CompactMenuSurfaceV4(
+                        text = selectedOrigin?.label ?: "Seleccionar",
+                        onClick = { originMenuOpen = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    DropdownMenu(
+                        expanded = originMenuOpen,
+                        onDismissRequest = { originMenuOpen = false },
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.label) },
+                                onClick = {
+                                    onCustomOriginSelectedChange(false)
+                                    onOriginKeyChange(option.key)
+                                    originMenuOpen = false
+                                },
+                            )
+                        }
+                        if (allowCustomOriginOption) {
+                            DropdownMenuItem(
+                                text = { Text("Personalizado…") },
+                                onClick = {
+                                    onOriginKeyChange(null)
+                                    onCustomOriginChange("")
+                                    onCustomOriginSelectedChange(true)
+                                    originMenuOpen = false
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+'''
+provenance.write_text(prefix + function)
+
+traits = "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsClosureV4.kt"
+replace_once(
+    traits,
+    "import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState\n"
+    "import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery",
+    "import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground\n"
+    "import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel\n"
+    "import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState\n"
+    "import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery",
+)
+replace_once(
+    traits,
+    "internal fun CharacterTraitsClosureTabV4(\n"
+    "    traits: List<CharacterTrait>,\n"
+    "    closureState: CharacterClosureState,",
+    "internal fun CharacterTraitsClosureTabV4(\n"
+    "    traits: List<CharacterTrait>,\n"
+    "    classes: List<CharacterClassLevel>,\n"
+    "    background: CharacterBackground,\n"
+    "    closureState: CharacterClosureState,",
+)
+replace_once(
+    traits,
+    '    var editorSource by rememberSaveable { mutableStateOf("") }\n    var editorTypeName',
+    '    var editorSource by rememberSaveable { mutableStateOf("") }\n'
+    '    var editorCustomOrigin by rememberSaveable("trait-custom-origin") { mutableStateOf(false) }\n'
+    '    var editorTypeName',
+)
+replace_once(
+    traits,
+    '        editorSource = ""\n        editorTypeName = CharacterTraitType.OTHER.name',
+    '        editorSource = ""\n        editorCustomOrigin = false\n'
+    '        editorTypeName = CharacterTraitType.OTHER.name',
+)
+replace_once(
+    traits,
+    "        editorSource = trait.source\n        editorTypeName = trait.type.name",
+    "        editorSource = trait.source\n"
+    "        val originOptions = traitOriginOptionsG5(trait.type, classes, background)\n"
+    "        editorCustomOrigin = originOptions.isNotEmpty() && trait.source.isNotBlank() &&\n"
+    "            originOptions.none { it.label.equals(trait.source.trim(), ignoreCase = true) }\n"
+    "        editorTypeName = trait.type.name",
+)
+replace_once(
+    traits,
+    '''            source = editorSource,
+            type = selectedType,
+            description = editorDescription,''',
+    '''            source = editorSource,
+            type = selectedType,
+            originOptionsForType = { originType ->
+                traitOriginOptionsG5(traitTypeForOriginG2(originType), classes, background)
+            },
+            customOriginSelected = editorCustomOrigin,
+            description = editorDescription,''',
+)
+replace_once(
+    traits,
+    '''            onNameChange = { editorName = it },
+            onSourceChange = { editorSource = it },
+            onTypeChange = { editorTypeName = it.name },''',
+    '''            onNameChange = { editorName = it },
+            onSourceChange = { editorSource = it },
+            onCustomOriginSelectedChange = { editorCustomOrigin = it },
+            onTypeChange = {
+                editorTypeName = it.name
+                editorSource = ""
+                editorCustomOrigin = false
+            },''',
+)
+replace_once(
+    traits,
+    '''    source: String,
+    type: CharacterTraitType,
+    description: String,''',
+    '''    source: String,
+    type: CharacterTraitType,
+    originOptionsForType: (CharacterOriginTypeV4) -> List<CharacterOriginOptionV4>,
+    customOriginSelected: Boolean,
+    description: String,''',
+)
+replace_once(
+    traits,
+    '''    onNameChange: (String) -> Unit,
+    onSourceChange: (String) -> Unit,
+    onTypeChange: (CharacterTraitType) -> Unit,''',
+    '''    onNameChange: (String) -> Unit,
+    onSourceChange: (String) -> Unit,
+    onCustomOriginSelectedChange: (Boolean) -> Unit,
+    onTypeChange: (CharacterTraitType) -> Unit,''',
+)
+replace_once(
+    traits,
+    '''        CharacterProvenanceRowV4(
+            originType = traitOriginTypeG2(type),
+            originKey = null,
+            customOrigin = source,
+            optionsForType = { emptyList() },
+            onOriginTypeChange = { onTypeChange(traitTypeForOriginG2(it)) },
+            onOriginKeyChange = {},
+            onCustomOriginChange = onSourceChange,
+            allowedTypes = listOf(''',
+    '''        val originType = traitOriginTypeG2(type)
+        val originOptions = originOptionsForType(originType)
+        val originKey = originOptions.firstOrNull { option ->
+            option.label.equals(source.trim(), ignoreCase = true)
+        }?.key
+        CharacterProvenanceRowV4(
+            originType = originType,
+            originKey = originKey,
+            customOrigin = source,
+            optionsForType = originOptionsForType,
+            onOriginTypeChange = { onTypeChange(traitTypeForOriginG2(it)) },
+            onOriginKeyChange = { key ->
+                originOptionsForType(originType)
+                    .firstOrNull { it.key == key }
+                    ?.let { onSourceChange(it.label) }
+            },
+            onCustomOriginChange = onSourceChange,
+            allowCustomOriginOption = true,
+            customOriginSelected = customOriginSelected || (source.isNotBlank() && originKey == null),
+            onCustomOriginSelectedChange = onCustomOriginSelectedChange,
+            allowedTypes = listOf(''',
+)
+replace_once(
+    traits,
+    "private fun traitFiltersG1(",
+    '''private fun traitOriginOptionsG5(
+    type: CharacterTraitType,
+    classes: List<CharacterClassLevel>,
+    background: CharacterBackground,
+): List<CharacterOriginOptionV4> = when (type) {
+    CharacterTraitType.CLASS -> classes
+        .sortedBy { it.sortOrder }
+        .mapNotNull { classLevel ->
+            classLevel.name.trim().takeIf(String::isNotEmpty)?.let { name ->
+                CharacterOriginOptionV4("class:${classLevel.id}", name)
+            }
+        }
+        .distinctBy { it.label.lowercase() }
+    CharacterTraitType.SPECIES_RACE -> background.race.trim().takeIf(String::isNotEmpty)
+        ?.let { listOf(CharacterOriginOptionV4("race", it)) }
+        .orEmpty()
+    CharacterTraitType.BACKGROUND -> background.name.trim().takeIf(String::isNotEmpty)
+        ?.let { listOf(CharacterOriginOptionV4("background", it)) }
+        .orEmpty()
+    CharacterTraitType.FEAT,
+    CharacterTraitType.GIFT_BLESSING,
+    CharacterTraitType.OTHER,
+    -> emptyList()
+}
+
+private fun traitFiltersG1(''',
+)
+
+editor = "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt"
+replace_once(
+    editor,
+    '''                        CharacterTabV4.TRAITS -> CharacterTraitsClosureTabV4(
+                            traits = traitsDraft,
+                            closureState = closureState,''',
+    '''                        CharacterTabV4.TRAITS -> CharacterTraitsClosureTabV4(
+                            traits = traitsDraft,
+                            classes = draft.classes,
+                            background = backgroundDraft,
+                            closureState = closureState,''',
+)
