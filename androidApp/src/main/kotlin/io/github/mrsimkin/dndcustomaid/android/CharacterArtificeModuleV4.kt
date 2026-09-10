@@ -253,8 +253,11 @@ internal fun CharacterArtificeModuleV4(
         )
     }
 
-    if (wide) {
-        Row(
+    val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
+    characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+
+if (sideEditorVisible) {
+    Row(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()

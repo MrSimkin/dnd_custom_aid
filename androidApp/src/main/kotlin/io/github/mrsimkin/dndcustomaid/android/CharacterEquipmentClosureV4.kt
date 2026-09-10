@@ -149,6 +149,8 @@ internal fun CharacterEquipmentClosureTabV4(
         .filter { resource -> CharacterResourcePlacement.EQUIPMENT in (resourceConfigurations[resource.id]?.placements ?: emptySet()) }
         .sortedBy { it.sortOrder }
     val equippedItems = draft.items.filter { it.equipped }.sortedBy { it.sortOrder }
+    val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
+        characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
     fun updateQuery(updated: CharacterCollectionQuery) {
         searchText = updated.searchText
@@ -280,10 +282,10 @@ internal fun CharacterEquipmentClosureTabV4(
 
     Row(
         modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
-        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(if (wide) 8.dp else 0.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(if (sideEditorVisible) 8.dp else 0.dp)),
     ) {
         LazyColumn(
-            modifier = if (wide) Modifier.weight(1f).fillMaxHeight() else Modifier.fillMaxSize(),
+            modifier = if (sideEditorVisible) Modifier.weight(1f).fillMaxHeight() else Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = appSpacingV4(if (wide) 10.dp else 5.dp),
             end = appSpacingV4(if (wide) 10.dp else 5.dp),
@@ -423,7 +425,7 @@ internal fun CharacterEquipmentClosureTabV4(
         }
     }
 
-        if (wide && structuralEditingEnabled) {
+        if (sideEditorVisible) {
             EquipmentEditorPanelF3(
                 editorOpen = editorOpen,
                 title = if (editingId == null) "Añadir objeto" else "Editar objeto",
@@ -471,7 +473,7 @@ internal fun CharacterEquipmentClosureTabV4(
         }
     }
 
-    if (editorOpen && !wide && structuralEditingEnabled) {
+    if (editorOpen && !sideEditorVisible && structuralEditingEnabled) {
         EquipmentEditorF2(
             title = if (editingId == null) "Añadir objeto" else "Editar objeto",
             name = editorName,

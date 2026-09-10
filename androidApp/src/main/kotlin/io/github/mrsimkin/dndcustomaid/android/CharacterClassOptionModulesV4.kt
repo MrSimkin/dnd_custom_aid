@@ -388,8 +388,11 @@ private fun CharacterClassOptionModuleH2(
         )
     }
 
-    if (wide) {
-        Row(
+    val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
+    characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+
+if (sideEditorVisible) {
+    Row(
             modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
