@@ -4,22 +4,21 @@
 **Controlling consolidation decision:** D-0066  
 **Canonical branch:** `main`  
 **Focused continuation branch:** `implementation/phase4a-successor-cycle`  
-**Night-close boundary:** completed successor Increment E
+**Current continuation boundary:** planned successor Increments A–I integrated automated-green; acceptance/closure pending
 
 This file exists because the repository accumulated many implementation, safety, retry and QA branch refs during Phase 4. Branch existence does **not** imply current authority.
 
 ## 1. Current authority
 
-At the 2026-09-09 night-close boundary:
+At the completed A–I successor engineering boundary:
 
-- `main` is the canonical current development baseline;
-- `implementation/phase4a-successor-cycle` is the focused continuation branch for the remaining F–I work;
-- the two are deliberately aligned at the completed-E night-close baseline;
-- `docs/PROJECT_STATE.md` is the authoritative current-state snapshot;
+- `main` remains the canonical baseline and is intentionally not being advanced merely because successor CI is green;
+- `implementation/phase4a-successor-cycle` contains the current successor implementation through Increment I and is the authoritative branch for acceptance work against that implementation;
+- `docs/PROJECT_STATE.md` is the broader current-state snapshot;
 - `docs/checkpoints/LATEST.md` is the exact resume pointer;
-- `docs/checkpoints/2026-09-09_NIGHT_CLOSE_AFTER_INCREMENT_E.md` is the session continuity package.
+- `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_I_TABLET_REDESIGN.md` is the latest planned engineering checkpoint and records the final A–I integrated gate.
 
-Canonical does not mean release-ready or owner-accepted. Increment E is technically green, while owner/device acceptance and increments F–I remain open.
+Canonical does not mean release-ready or owner-accepted. A–I is technically integrated-green on the continuation branch, while owner/device acceptance, blocking repair resolution if needed, formal candidate/regression work and explicit Phase 4A closure remain open.
 
 ## 2. Frozen immutable QA evidence — KEEP
 
@@ -32,7 +31,7 @@ Never delete, force-move, repurpose or treat them as current development branche
 
 ## 3. Historical milestone branches
 
-Older discovery/foundation/architecture/implementation milestone branches may remain as historical labels. They are not current authority once their accepted content is represented by `main`.
+Older discovery/foundation/architecture/implementation milestone branches may remain as historical labels. They are not current authority once their accepted content is represented by the documented canonical/current implementation line.
 
 Examples include:
 
@@ -51,39 +50,31 @@ Do not start new work from them.
 
 ## 4. Obsolete temporary refs
 
-The many non-frozen `tmp/*` refs were implementation safety/retry/helper labels accumulated during Phase 4. D-0066 already established that they are not valid resume points.
+The many non-frozen `tmp/*` refs were implementation safety/retry/helper labels accumulated during Phase 4. D-0066 established that they are not valid resume points.
 
-At this night-close boundary they are handled as follows:
-
-1. write a durable archive index containing each branch name and its final SHA before deletion;
-2. keep the two frozen refs above;
-3. remove the remaining obsolete `tmp/*` refs from the visible branch list;
-4. also remove the clearly invalid/superseded `implementation/phase4a-successor-cycle-temp-invalid` ref after recording its SHA;
-5. leave meaningful historical milestone branches in place.
-
-Deleting those obsolete refs is branch-list housekeeping. It does not rewrite `main`, mutate frozen candidates or change current product state.
-
-Durable archive index:
+Their pre-cleanup branch names/final SHAs were archived before deletion in:
 
 `docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md`
 
-Use that file when an old deleted branch name/SHA needs historical reconstruction.
+Use that archive when an old deleted branch name/SHA needs historical reconstruction. The clearly invalid/superseded `implementation/phase4a-successor-cycle-temp-invalid` ref is likewise historical, not a resume point.
+
+Deleting obsolete refs was branch-list housekeeping; it did not rewrite `main`, mutate frozen candidates or change accepted product data.
 
 ## 5. Current successor branch relation to main
 
-Before the night-close fast-forward, `implementation/phase4a-successor-cycle` was a clean descendant of `main` with zero commits behind. The owner explicitly requested consolidation after finishing Increment E.
-
-The night-close operation therefore uses a **normal fast-forward**, not a force push or history rewrite, and aligns both refs at the same completed-E development baseline.
-
-Tomorrow's Increment F work continues on:
+At the completed-E night-close, `main` and the continuation branch were aligned by normal fast-forward. Successor work F–I then continued on:
 
 `implementation/phase4a-successor-cycle`
 
-A later coherent boundary may again be consolidated into `main` when explicitly desired. Acceptance remains separate from repository ordering.
+The continuation branch now contains the automated-green A–I successor implementation while `main` remains the deliberately older canonical baseline. Do not silently fast-forward or merge this successor line to `main` merely because the automated gate is green.
+
+A later consolidation into `main` must follow the project's explicit owner/review/acceptance decision. Owner/device acceptance remains separate from repository ordering.
 
 ## 6. Historical M6 and helper evidence
 
-The 2026-09-08 M6 detour record has already been copied into canonical history with a HISTORICAL / SUPERSEDED status. Temporary validator/workflow code that existed only to manipulate or verify old branch refs is intentionally not a product feature and does not need a live branch ref once its relevant evidence is archived.
+The 2026-09-08 M6 detour record remains historical/superseded evidence. Temporary one-off implementation helper workflows used during successor work self-removed after their successful product commits and are not part of the current product tree; `.github/workflows` returns to the normal scaffold workflow after each successful helper boundary.
+
+The current integrated successor build is still a development/audition artifact, not a formal M6 candidate. A new M6 candidate should be frozen only after the owner-audited baseline is acceptable.
 
 ## 7. Interpretation rule
 
@@ -91,9 +82,15 @@ When branch history is confusing:
 
 1. read `docs/checkpoints/LATEST.md`;
 2. read `docs/PROJECT_STATE.md`;
-3. use `main` for canonical project truth;
-4. use the focused successor branch only for the documented active continuation;
+3. use `main` as the canonical baseline;
+4. use `implementation/phase4a-successor-cycle` for the documented current successor implementation/acceptance line;
 5. consult the branch-ref archive for deleted historical refs;
 6. consult frozen branches only for exact historical QA evidence.
 
 Do not reconstruct current product truth from an arbitrary old branch merely because the ref still exists.
+
+## 8. Next branch action
+
+Do not create an Increment J or begin DM implementation.
+
+Remain on `implementation/phase4a-successor-cycle` for successor owner/device acceptance and any narrowly scoped acceptance-blocking repairs. Only after the owner-audited baseline is ready should the project freeze a new formal M6 candidate, run the required regression/upgrade QA and make an explicit Phase 4A closure/consolidation decision.
