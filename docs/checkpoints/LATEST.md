@@ -1,9 +1,9 @@
 # Latest project checkpoint
 
-**Updated:** 2026-09-09  
+**Updated:** 2026-09-10  
 **Canonical branch:** `main`  
 **Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Repository state:** night-close consolidation through Increment E  
+**Repository state:** night-close consolidation through Increment E + parallel DM product-discovery continuity  
 **Phase:** Phase 4A successor repair/refinement cycle  
 **Release status:** debug / development; NOT owner-accepted and NOT release-ready  
 **Latest owner-auditioned practical identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
@@ -27,7 +27,7 @@ Four planned increments remain: **F, G, H and I**.
 
 ## Read next
 
-1. `docs/checkpoints/2026-09-09_NIGHT_CLOSE_AFTER_INCREMENT_E.md` — continuity package for the next session;
+1. `docs/checkpoints/2026-09-09_NIGHT_CLOSE_AFTER_INCREMENT_E.md` — continuity package for the next technical implementation session;
 2. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_E_MANAGEMENT_RECOVERY.md` — completed E scope and final green gate;
 3. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_D_COMBAT_DICE.md`;
 4. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_C5_HABILIDADES.md`;
@@ -36,7 +36,36 @@ Four planned increments remain: **F, G, H and I**.
 7. `docs/checkpoints/2026-09-08_PHASE4A_INCREMENT_B_SHARED_UX_PRIMITIVES.md`;
 8. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling A–I plan;
 9. `docs/PROJECT_STATE.md` — compact current-state snapshot;
-10. `docs/BRANCH_STATUS.md` — branch interpretation and cleanup status.
+10. `docs/BRANCH_STATUS.md` — branch interpretation and cleanup status;
+11. `docs/decisions/D-0068_DM_LIVE_WORKSPACE_DESKS_AND_DUNGEON_DIRECTION.md` — parallel DM product/design discovery recorded on 2026-09-10; **design only, no DM implementation authorization**.
+
+## Parallel DM product discovery — 2026-09-10
+
+While owner QA is temporarily unavailable, DM product/design discovery resumed without changing the Phase 4A implementation gate.
+
+D-0068 now preserves the current approved/pending direction for:
+
+- the **DM Attention Budget**: live interaction must be minimal and immediately useful; the app is an assistant, not bookkeeping;
+- current **Campaign → one Workspace → flat Desks** model, with the 1:1 campaign/workspace rule kept incrementally evolvable rather than structurally locked;
+- Desk definition as a purpose-specific operational working environment rather than a screen/entity;
+- Combat Desk conceptual boundary, including allowance for multiple concurrent/suspended combats;
+- Dungeon Desk operational purpose and topological/flowchart dungeon structure;
+- rich prepared zone/room `ficha` / Zone Brief direction, DM-vs-player-safe material and fast live navigation requirement;
+- contextual notes/live annotations and the rejection of a giant general action log;
+- a bounded **Dungeon Turn log** that records Activities/relevant consequences and is derived from turn operation rather than separately authored;
+- Dungeon Turns beta integration, including redeclaration every turn while remembering the previous Activity, intentional search-pressure behavior, surprise-round bridge, and retention of beta `Recuperar aliento` / `Tratar heridas` for actual playtesting;
+- clocks as an independent reusable concept, including Dungeon-Turn-linked and independent clocks;
+- rapid PC-group/full-PC access from Dungeon Desk;
+- Encounter Readiness as pre-combat staging/cheating rather than a full encounter builder;
+- dirty live creature patches, reskinning, quick HP/AC/attack edits, reusable action/trait/save/spell inventory and simple packages;
+- dirty-improvisation save-for-later lifecycle, with cleanup/promotion belonging to the future desktop DM Manager;
+- alpha/advisory trigger direction and temporary live trigger-authoring as a testing/debug compromise if required.
+
+The detailed record explicitly marks remaining hypotheses/proposals instead of silently promoting them, including final names, Zone Brief navigation UI, state marks, deeper clock/trigger semantics, exact Encounter Readiness UX, proposed `(*) Exploración normal` / `(*) Ocultarse`, and detailed Combat Desk UX.
+
+If DM discovery is resumed before QA becomes available, the recommended next topic is **Zone Brief live readability/navigation**, not a restart of generic DM requirements.
+
+This discovery work does **not** change the technical execution entry point and does **not** authorize DM feature implementation.
 
 ## Latest automated product boundary — Increment E
 
@@ -112,4 +141,4 @@ Start from the reconciled plan's Increment F:
 
 The night-close consolidation aligns canonical `main` and `implementation/phase4a-successor-cycle` at the same completed-E development baseline by normal fast-forward. Non-frozen obsolete `tmp/*` refs are archived by name/SHA and removed from the visible branch list; the explicitly frozen QA branches remain immutable.
 
-On resume, verify branch heads if needed, then continue F on `implementation/phase4a-successor-cycle`. Do not begin DM work.
+On technical implementation resume, verify branch heads if needed, then continue F on `implementation/phase4a-successor-cycle`. Do not begin DM implementation.
