@@ -34,6 +34,13 @@ jobs:
           test "$(git rev-parse HEAD:androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHelpProvenanceV4.kt)" = "182ca6f6975ec79bc12d283e97ee779345f3a576"
           test "$(git rev-parse HEAD:androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsClosureV4.kt)" = "5c849a57ab7b860eef63223d3b279673382e6d4a"
           test "$(git rev-parse HEAD:androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt)" = "c9802af364ae7c50c59a53f431907903e370fb8a"
+      - name: Correct canonical class authority in repair script
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(grep -c 'classes = draft.classes' .maintenance/acceptance_repair_traits_source.py)" = "1"
+          sed -i 's/classes = draft\.classes/classes = settingsSheet.classes/' .maintenance/acceptance_repair_traits_source.py
+          test "$(grep -c 'classes = settingsSheet.classes' .maintenance/acceptance_repair_traits_source.py)" = "1"
       - name: Apply Rasgos single-authority source UI
         run: python3 .maintenance/acceptance_repair_traits_source.py
       - name: Guard source repair product diff
@@ -44,7 +51,8 @@ jobs:
           expected="$(printf '%s\n' \
             androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt \
             androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHelpProvenanceV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsClosureV4.kt | sort)"
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsClosureV4.kt \
+            .maintenance/acceptance_repair_traits_source.py | sort)"
           test "$changed" = "$expected"
       - name: Focused compile and shared tests
         run: gradle :shared:desktopTest :androidApp:compileDebugKotlin --stacktrace
