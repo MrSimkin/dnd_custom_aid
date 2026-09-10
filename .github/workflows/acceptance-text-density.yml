@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 3
+          fetch-depth: 8
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -29,7 +29,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^^)" = "d214d6e1c611cf3960ad2ea048edcd8823add703"
+          base='d214d6e1c611cf3960ad2ea048edcd8823add703'
+          git merge-base --is-ancestor "$base" HEAD
+          actual="$(git diff --name-only "$base" HEAD | sort -u)"
+          expected="$(printf '%s\n' '.github/workflows/acceptance-text-density.yml' '.maintenance/acceptance_text_density.py')"
+          test "$actual" = "$expected"
           test -f .maintenance/acceptance_text_density.py
       - name: Apply text-area density repair
         run: python3 .maintenance/acceptance_text_density.py
