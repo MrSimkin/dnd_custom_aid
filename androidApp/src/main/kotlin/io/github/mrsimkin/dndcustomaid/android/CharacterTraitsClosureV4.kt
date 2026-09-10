@@ -43,6 +43,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_TRAIT_FAVORITE_FILTER_KEY
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
@@ -72,6 +74,8 @@ private const val TRAIT_FILTER_SEPARATOR_G1 = "\u001E"
 @Composable
 internal fun CharacterTraitsClosureTabV4(
     traits: List<CharacterTrait>,
+    classes: List<CharacterClassLevel>,
+    background: CharacterBackground,
     closureState: CharacterClosureState,
     persistedTraitIds: Set<Uuid>,
     resources: List<CharacterResource>,
@@ -90,6 +94,7 @@ internal fun CharacterTraitsClosureTabV4(
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     var editorName by rememberSaveable { mutableStateOf("") }
     var editorSource by rememberSaveable { mutableStateOf("") }
+    var editorCustomOrigin by rememberSaveable("trait-custom-origin") { mutableStateOf(false) }
     var editorTypeName by rememberSaveable { mutableStateOf(CharacterTraitType.OTHER.name) }
     var editorDescription by rememberSaveable { mutableStateOf("") }
     var editorNotes by rememberSaveable { mutableStateOf("") }
@@ -131,6 +136,7 @@ internal fun CharacterTraitsClosureTabV4(
         editingId = null
         editorName = ""
         editorSource = ""
+        editorCustomOrigin = false
         editorTypeName = CharacterTraitType.OTHER.name
         editorDescription = ""
         editorNotes = ""
@@ -146,6 +152,9 @@ internal fun CharacterTraitsClosureTabV4(
         editingId = trait.id.toString()
         editorName = trait.name
         editorSource = trait.source
+        val originOptions = traitOriginOptionsG5(trait.type, classes, background)
+        editorCustomOrigin = originOptions.isNotEmpty() && trait.source.isNotBlank() &&
+            originOptions.none { it.label.equals(trait.source.trim(), ignoreCase = true) }
         editorTypeName = trait.type.name
         editorDescription = trait.description
         editorNotes = trait.notes.orEmpty()
@@ -362,6 +371,10 @@ internal fun CharacterTraitsClosureTabV4(
             name = editorName,
             source = editorSource,
             type = selectedType,
+            originOptionsForType = { originType ->
+                traitOriginOptionsG5(traitTypeForOriginG2(originType), classes, background)
+            },
+            customOriginSelected = editorCustomOrigin,
             description = editorDescription,
             notes = editorNotes,
             maxUses = editorMaxUses,
@@ -371,7 +384,12 @@ internal fun CharacterTraitsClosureTabV4(
             valid = valid,
             onNameChange = { editorName = it },
             onSourceChange = { editorSource = it },
-            onTypeChange = { editorTypeName = it.name },
+            onCustomOriginSelectedChange = { editorCustomOrigin = it },
+            onTypeChange = {
+                editorTypeName = it.name
+                editorSource = ""
+                editorCustomOrigin = false
+            },
             onDescriptionChange = { editorDescription = it },
             onNotesChange = { editorNotes = it },
             onMaxUsesChange = { editorMaxUses = traitUnsignedIntegerG1(it) },
@@ -425,6 +443,31 @@ internal fun CharacterTraitsClosureTabV4(
             )
         }
     }
+}
+
+private fun traitOriginOptionsG5(
+    type: CharacterTraitType,
+    classes: List<CharacterClassLevel>,
+    background: CharacterBackground,
+): List<CharacterOriginOptionV4> = when (type) {
+    CharacterTraitType.CLASS -> classes
+        .sortedBy { it.sortOrder }
+        .mapNotNull { classLevel ->
+            classLevel.name.trim().takeIf(String::isNotEmpty)?.let { name ->
+                CharacterOriginOptionV4("class:${classLevel.id}", name)
+            }
+        }
+        .distinctBy { it.label.lowercase() }
+    CharacterTraitType.SPECIES_RACE -> background.race.trim().takeIf(String::isNotEmpty)
+        ?.let { listOf(CharacterOriginOptionV4("race", it)) }
+        .orEmpty()
+    CharacterTraitType.BACKGROUND -> background.name.trim().takeIf(String::isNotEmpty)
+        ?.let { listOf(CharacterOriginOptionV4("background", it)) }
+        .orEmpty()
+    CharacterTraitType.FEAT,
+    CharacterTraitType.GIFT_BLESSING,
+    CharacterTraitType.OTHER,
+    -> emptyList()
 }
 
 private fun traitFiltersG1(
@@ -654,6 +697,8 @@ private fun TraitEditorDialogG1(
     name: String,
     source: String,
     type: CharacterTraitType,
+    originOptionsForType: (CharacterOriginTypeV4) -> List<CharacterOriginOptionV4>,
+    customOriginSelected: Boolean,
     description: String,
     notes: String,
     maxUses: String,
@@ -663,6 +708,7 @@ private fun TraitEditorDialogG1(
     valid: Boolean,
     onNameChange: (String) -> Unit,
     onSourceChange: (String) -> Unit,
+    onCustomOriginSelectedChange: (Boolean) -> Unit,
     onTypeChange: (CharacterTraitType) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
@@ -688,14 +734,26 @@ private fun TraitEditorDialogG1(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
+        val originType = traitOriginTypeG2(type)
+        val originOptions = originOptionsForType(originType)
+        val originKey = originOptions.firstOrNull { option ->
+            option.label.equals(source.trim(), ignoreCase = true)
+        }?.key
         CharacterProvenanceRowV4(
-            originType = traitOriginTypeG2(type),
-            originKey = null,
+            originType = originType,
+            originKey = originKey,
             customOrigin = source,
-            optionsForType = { emptyList() },
+            optionsForType = originOptionsForType,
             onOriginTypeChange = { onTypeChange(traitTypeForOriginG2(it)) },
-            onOriginKeyChange = {},
+            onOriginKeyChange = { key ->
+                originOptionsForType(originType)
+                    .firstOrNull { it.key == key }
+                    ?.let { onSourceChange(it.label) }
+            },
             onCustomOriginChange = onSourceChange,
+            allowCustomOriginOption = true,
+            customOriginSelected = customOriginSelected || (source.isNotBlank() && originKey == null),
+            onCustomOriginSelectedChange = onCustomOriginSelectedChange,
             allowedTypes = listOf(
                 CharacterOriginTypeV4.CLASS,
                 CharacterOriginTypeV4.RACE,

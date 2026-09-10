@@ -121,6 +121,9 @@ internal fun CharacterProvenanceRowV4(
     onCustomOriginChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     allowedTypes: List<CharacterOriginTypeV4> = CharacterOriginTypeV4.entries,
+    allowCustomOriginOption: Boolean = false,
+    customOriginSelected: Boolean = false,
+    onCustomOriginSelectedChange: (Boolean) -> Unit = {},
 ) {
     var typeMenuOpen by remember { mutableStateOf(false) }
     var originMenuOpen by remember { mutableStateOf(false) }
@@ -151,6 +154,7 @@ internal fun CharacterProvenanceRowV4(
                                 if (option != originType) {
                                     onOriginTypeChange(option)
                                     onOriginKeyChange(null)
+                                    onCustomOriginSelectedChange(false)
                                 }
                                 typeMenuOpen = false
                             },
@@ -162,7 +166,11 @@ internal fun CharacterProvenanceRowV4(
 
         Column(modifier = Modifier.weight(0.58f)) {
             Text("Origen específico", style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            if (originType == CharacterOriginTypeV4.OTHER || options.isEmpty()) {
+            val freeText =
+                originType == CharacterOriginTypeV4.OTHER ||
+                    options.isEmpty() ||
+                    (allowCustomOriginOption && customOriginSelected)
+            if (freeText) {
                 Surface(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp),
                     shape = MaterialTheme.shapes.small,
@@ -203,21 +211,26 @@ internal fun CharacterProvenanceRowV4(
                         expanded = originMenuOpen,
                         onDismissRequest = { originMenuOpen = false },
                     ) {
-                        if (options.isEmpty()) {
+                        options.forEach { option ->
                             DropdownMenuItem(
-                                text = { Text("Sin opciones disponibles") },
-                                onClick = { originMenuOpen = false },
+                                text = { Text(option.label) },
+                                onClick = {
+                                    onCustomOriginSelectedChange(false)
+                                    onOriginKeyChange(option.key)
+                                    originMenuOpen = false
+                                },
                             )
-                        } else {
-                            options.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.label) },
-                                    onClick = {
-                                        onOriginKeyChange(option.key)
-                                        originMenuOpen = false
-                                    },
-                                )
-                            }
+                        }
+                        if (allowCustomOriginOption) {
+                            DropdownMenuItem(
+                                text = { Text("Personalizado…") },
+                                onClick = {
+                                    onOriginKeyChange(null)
+                                    onCustomOriginChange("")
+                                    onCustomOriginSelectedChange(true)
+                                    originMenuOpen = false
+                                },
+                            )
                         }
                     }
                 }

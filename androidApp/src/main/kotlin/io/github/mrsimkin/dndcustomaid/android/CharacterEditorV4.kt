@@ -784,6 +784,8 @@ internal fun CharacterEditorScreenV4(
                         )
                         CharacterTabV4.TRAITS -> CharacterTraitsClosureTabV4(
                             traits = traitsDraft,
+                            classes = settingsSheet.classes,
+                            background = backgroundDraft,
                             closureState = closureState,
                             persistedTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id },
                             resources = stored.resources,
