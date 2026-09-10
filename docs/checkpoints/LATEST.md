@@ -3,7 +3,7 @@
 **Updated:** 2026-09-10  
 **Canonical branch:** `main`  
 **Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Repository state:** night-close consolidation through Increment E + parallel DM product-discovery continuity  
+**Repository state:** night-close consolidation through Increment E + parallel DM product-discovery continuity through Desk-family consolidation  
 **Phase:** Phase 4A successor repair/refinement cycle  
 **Release status:** debug / development; NOT owner-accepted and NOT release-ready  
 **Latest owner-auditioned practical identity:** `0.4.0-preqa.7` / build `40700` / `debug`  
@@ -37,33 +37,42 @@ Four planned increments remain: **F, G, H and I**.
 8. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling A–I plan;
 9. `docs/PROJECT_STATE.md` — compact current-state snapshot;
 10. `docs/BRANCH_STATUS.md` — branch interpretation and cleanup status;
-11. `docs/decisions/D-0068_DM_LIVE_WORKSPACE_DESKS_AND_DUNGEON_DIRECTION.md` — parallel DM product/design discovery recorded on 2026-09-10; **design only, no DM implementation authorization**.
+11. `docs/decisions/D-0068_DM_LIVE_WORKSPACE_DESKS_AND_DUNGEON_DIRECTION.md` — Workspace/Dungeon/DM Attention Budget discovery;
+12. `docs/decisions/D-0069_DM_DESK_FAMILY_STAGE_DESK_AND_DM_SCREEN.md` — approved DM Desk family, Stage Desk, DM Screen, Party Lens and Quick Rules Question direction;
+13. `docs/checkpoints/2026-09-10_DM_DESK_FAMILY_CONSOLIDATION.md` — compact close-of-pass continuity checkpoint.
 
 ## Parallel DM product discovery — 2026-09-10
 
 While owner QA is temporarily unavailable, DM product/design discovery resumed without changing the Phase 4A implementation gate.
 
-D-0068 now preserves the current approved/pending direction for:
+D-0068 preserves the controlling foundations for:
 
 - the **DM Attention Budget**: live interaction must be minimal and immediately useful; the app is an assistant, not bookkeeping;
 - current **Campaign → one Workspace → flat Desks** model, with the 1:1 campaign/workspace rule kept incrementally evolvable rather than structurally locked;
 - Desk definition as a purpose-specific operational working environment rather than a screen/entity;
-- Combat Desk conceptual boundary, including allowance for multiple concurrent/suspended combats;
-- Dungeon Desk operational purpose and topological/flowchart dungeon structure;
-- rich prepared zone/room `ficha` / Zone Brief direction, DM-vs-player-safe material and fast live navigation requirement;
-- contextual notes/live annotations and the rejection of a giant general action log;
-- a bounded **Dungeon Turn log** that records Activities/relevant consequences and is derived from turn operation rather than separately authored;
-- Dungeon Turns beta integration, including redeclaration every turn while remembering the previous Activity, intentional search-pressure behavior, surprise-round bridge, and retention of beta `Recuperar aliento` / `Tratar heridas` for actual playtesting;
-- clocks as an independent reusable concept, including Dungeon-Turn-linked and independent clocks;
-- rapid PC-group/full-PC access from Dungeon Desk;
-- Encounter Readiness as pre-combat staging/cheating rather than a full encounter builder;
-- dirty live creature patches, reskinning, quick HP/AC/attack edits, reusable action/trait/save/spell inventory and simple packages;
-- dirty-improvisation save-for-later lifecycle, with cleanup/promotion belonging to the future desktop DM Manager;
-- alpha/advisory trigger direction and temporary live trigger-authoring as a testing/debug compromise if required.
+- Dungeon Desk, topological/flowchart structure, rich prepared Zone Briefs, contextual Notes, Dungeon Turns, clocks, triggers and Encounter Readiness;
+- dirty live creature patches/packages and the save-for-later → Desktop Manager cleanup lifecycle.
 
-The detailed record explicitly marks remaining hypotheses/proposals instead of silently promoting them, including final names, Zone Brief navigation UI, state marks, deeper clock/trigger semantics, exact Encounter Readiness UX, proposed `(*) Exploración normal` / `(*) Ocultarse`, and detailed Combat Desk UX.
+D-0069 now closes the broad Desk-family question with four approved live DM Desks:
 
-If DM discovery is resumed before QA becomes available, the recommended next topic is **Zone Brief live readability/navigation**, not a restart of generic DM requirements.
+1. **DM Screen** — neutral table surface with PC Group/Quick/Full reference, derived **Party Lens**, general DM reference and **Quick Rules Question**;
+2. **Stage Desk** — retrieval-first companion for the current broad adventure environment, using search, area, function, narrative context and recent/open/pinned routes to Places, Shops, NPCs and the adventure/plot-hook Scene Spine;
+3. **Dungeon Desk** — dangerous structured exploration and dungeon operation;
+4. **Combat Desk** — active combat operation plus tactical encounter/creature guidance.
+
+`Stage Desk` replaces the weaker Town/Hub working terminology. It is intentionally **not a campaign wiki** and does not require migration of the owner's paper adventure. Its contract is fast retrieval: find the needed material now by whatever path the DM remembers. Shops are specialized Places; Places link to NPCs rather than owning them; the Developed NPC ficha remains the rich source; a lightweight Scene Spine remembers adventure/plot-hook order/schema without becoming a quest manager.
+
+Dungeon refinements now durably include the current Zone Brief alpha direction `Presentar / Interactuar / Encuentro`, open areas behaving like papers on the DM table, no forced identity between prepared areas and Dungeon Turn movement zones, many-to-many-capable area/encounter relationships, and encounter-wide `How to run` guidance projected into Combat Desk alongside creature-specific tactical cues.
+
+### Quick Rules Question — explicitly preserved
+
+Quick Rules Question must not be lost again from future DM design.
+
+It is an AI-chatbox-like natural-language clarification capability intended to let the DM remember/check rules without opening books. The existing MVP boundary remains **official SRD 5.1 + SRD 5.2.1 only** under D-0041. The broader post-MVP direction is to answer against the supported SRDs plus DM-authored house rules, custom rules, homebrew and adopted variant rules/overrides, while clearly distinguishing official baseline from campaign-specific rules. Non-SRD rule material is maintained through the Desktop DM Manager, not through live tablet bookkeeping.
+
+A future Journey Desk remains only a candidate. Because the owner's current travel workflow resembles fast travel or a roughly linear dungeon with possible/random encounters, future travel support should first be tested as a special Dungeon Desk mode/profile before a fifth Desk is created.
+
+The broad Desk-taxonomy question is now parked. If DM discovery resumes before QA becomes available, continue from a concrete second-layer slice rather than asking again what Desks exist.
 
 This discovery work does **not** change the technical execution entry point and does **not** authorize DM feature implementation.
 
