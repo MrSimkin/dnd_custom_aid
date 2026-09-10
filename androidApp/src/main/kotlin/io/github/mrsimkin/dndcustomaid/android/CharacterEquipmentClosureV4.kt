@@ -91,6 +91,8 @@ internal fun CharacterEquipmentClosureTabV4(
     var activeFiltersText by rememberSaveable { mutableStateOf("") }
     var ordinaryCollapsed by rememberSaveable { mutableStateOf(false) }
     var specialCollapsed by rememberSaveable { mutableStateOf(false) }
+    var ordinaryReorderMode by rememberSaveable("equipment-ordinary-linear-reorder") { mutableStateOf(false) }
+    var specialReorderMode by rememberSaveable("equipment-special-linear-reorder") { mutableStateOf(false) }
 
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -139,8 +141,10 @@ internal fun CharacterEquipmentClosureTabV4(
     )
     val carriedWeight = carriedInventoryWeightLb(draft.items, ::usageFor)
     val attunedCount = draft.items.count { it.special && it.attuned }
-    val canReorderOrdinary = structuralEditingEnabled && ordinaryOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
-    val canReorderSpecial = structuralEditingEnabled && specialOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
+    val reorderAvailableOrdinary =
+        structuralEditingEnabled && ordinaryOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
+    val reorderAvailableSpecial =
+        structuralEditingEnabled && specialOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
     val settingsContext = LocalCharacterPcSettingsContextV4.current
     val successorState = settingsContext?.successorState
@@ -153,6 +157,8 @@ internal fun CharacterEquipmentClosureTabV4(
         characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
     fun updateQuery(updated: CharacterCollectionQuery) {
+        ordinaryReorderMode = false
+        specialReorderMode = false
         searchText = updated.searchText
         activeFiltersText = updated.activeFilterKeys.sorted().joinToString("|")
     }
@@ -333,10 +339,18 @@ internal fun CharacterEquipmentClosureTabV4(
                 title = "Objetos",
                 items = ordinaryVisible,
                 order = ordinaryOrder,
-                onOrderChange = { ordinaryOrderName = it.name },
+                onOrderChange = {
+                    ordinaryReorderMode = false
+                    ordinaryOrderName = it.name
+                },
                 collapsed = ordinaryCollapsed,
                 onCollapsedChange = { ordinaryCollapsed = it },
-                canReorder = canReorderOrdinary,
+                reorderAvailable = reorderAvailableOrdinary,
+                reorderMode = ordinaryReorderMode,
+                onReorderModeChange = { active ->
+                    ordinaryReorderMode = active
+                    if (active) specialReorderMode = false
+                },
                 queryActive = !query.isEmptyF2(),
                 wide = wide,
                 special = false,
@@ -360,10 +374,18 @@ internal fun CharacterEquipmentClosureTabV4(
                 title = "Equipo especial",
                 items = specialVisible,
                 order = specialOrder,
-                onOrderChange = { specialOrderName = it.name },
+                onOrderChange = {
+                    specialReorderMode = false
+                    specialOrderName = it.name
+                },
                 collapsed = specialCollapsed,
                 onCollapsedChange = { specialCollapsed = it },
-                canReorder = canReorderSpecial,
+                reorderAvailable = reorderAvailableSpecial,
+                reorderMode = specialReorderMode,
+                onReorderModeChange = { active ->
+                    specialReorderMode = active
+                    if (active) ordinaryReorderMode = false
+                },
                 queryActive = !query.isEmptyF2(),
                 wide = wide,
                 special = true,
@@ -649,7 +671,9 @@ private fun EquipmentSectionF2(
     onOrderChange: (CharacterPresentationOrder) -> Unit,
     collapsed: Boolean,
     onCollapsedChange: (Boolean) -> Unit,
-    canReorder: Boolean,
+    reorderAvailable: Boolean,
+    reorderMode: Boolean,
+    onReorderModeChange: (Boolean) -> Unit,
     queryActive: Boolean,
     wide: Boolean,
     special: Boolean,
@@ -680,13 +704,23 @@ private fun EquipmentSectionF2(
                 OrderButtonF2("A–Z", order == CharacterPresentationOrder.ALPHABETICAL) {
                     onOrderChange(CharacterPresentationOrder.ALPHABETICAL)
                 }
+                if (reorderAvailable && items.size > 1) {
+                    CharacterLinearReorderModeControlV4(
+                        active = reorderMode,
+                        onToggle = { onReorderModeChange(!reorderMode) },
+                    )
+                }
                 TextButton(onClick = { onCollapsedChange(!collapsed) }) {
                     Text(if (collapsed) "Mostrar" else "Ocultar")
                 }
             }
-            if (order == CharacterPresentationOrder.MANUAL && queryActive) {
+            if (reorderMode) {
+                CharacterHelpV4(
+                    "Reordenación lineal: esta sección pasa temporalmente a una columna para usar el arrastre vertical estable. Pulsa Listo para volver a tus columnas.",
+                )
+            } else if (order == CharacterPresentationOrder.MANUAL && queryActive) {
                 Text(
-                    "Limpia búsqueda y filtros para reordenar manualmente.",
+                    "Limpia búsqueda y filtros para activar Reordenar.",
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -694,11 +728,15 @@ private fun EquipmentSectionF2(
                 if (items.isEmpty()) {
                     Text("Sin elementos visibles.", style = MaterialTheme.typography.bodySmall)
                 } else {
-                    val columns = constrainedCardColumnsV4(
-                        wide = wide,
-                        phoneMax = if (special) 2 else 3,
-                        wideMax = if (special) 3 else 5,
-                    )
+                    val columns = if (reorderMode) {
+                        1
+                    } else {
+                        constrainedCardColumnsV4(
+                            wide = wide,
+                            phoneMax = if (special) 2 else 3,
+                            wideMax = if (special) 3 else 5,
+                        )
+                    }
                     items.chunked(columns).forEachIndexed { rowIndex, rowItems ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -712,7 +750,7 @@ private fun EquipmentSectionF2(
                                     gridItemCount = items.size,
                                     gridColumns = columns,
                                     usage = usageFor(item),
-                                    canReorder = canReorder,
+                                    canReorder = reorderAvailable && reorderMode,
                                     special = special,
                                     selected = selectedId == item.id.toString(),
                                     onEdit = { onEdit(item) },

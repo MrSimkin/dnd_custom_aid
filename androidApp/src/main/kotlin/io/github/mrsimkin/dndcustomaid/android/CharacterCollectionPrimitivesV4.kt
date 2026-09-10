@@ -244,6 +244,20 @@ private fun CharacterToolbarChipV4(
 }
 
 @Composable
+internal fun CharacterLinearReorderModeControlV4(
+    active: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CharacterToolbarChipV4(
+        text = if (active) "Listo" else "Reordenar",
+        selected = active,
+        onClick = onToggle,
+        modifier = modifier,
+    )
+}
+
+@Composable
 private fun CharacterCompactSearchV4(
     value: String,
     onValueChange: (String) -> Unit,

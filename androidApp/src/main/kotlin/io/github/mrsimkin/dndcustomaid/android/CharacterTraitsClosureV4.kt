@@ -89,6 +89,7 @@ internal fun CharacterTraitsClosureTabV4(
     var searchText by rememberSaveable { mutableStateOf("") }
     var activeFiltersText by rememberSaveable { mutableStateOf("") }
     var groupingName by rememberSaveable { mutableStateOf(CharacterTraitGrouping.TYPE.name) }
+    var reorderMode by rememberSaveable("trait-linear-reorder") { mutableStateOf(false) }
 
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -120,9 +121,11 @@ internal fun CharacterTraitsClosureTabV4(
         isFavorite = { trait -> closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id) },
     )
     val groups = groupCharacterTraits(visibleTraits, grouping)
-    val canReorder = structuralEditingEnabled && query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
+    val reorderAvailable = structuralEditingEnabled && query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
+    val canReorder = reorderAvailable && reorderMode
 
     fun updateQuery(updated: CharacterCollectionQuery) {
+        reorderMode = false
         searchText = updated.searchText
         activeFiltersText = updated.activeFilterKeys.sorted().joinToString(TRAIT_FILTER_SEPARATOR_G1)
     }
@@ -230,11 +233,26 @@ internal fun CharacterTraitsClosureTabV4(
                     )
                     TraitGroupingControlsG1(
                         grouping = grouping,
-                        onGroupingChange = { groupingName = it.name },
+                        onGroupingChange = {
+                            reorderMode = false
+                            groupingName = it.name
+                        },
                     )
-                    if (!canReorder && visibleTraits.isNotEmpty()) {
+                    if (reorderAvailable && visibleTraits.size > 1) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            CharacterLinearReorderModeControlV4(
+                                active = reorderMode,
+                                onToggle = { reorderMode = !reorderMode },
+                            )
+                        }
+                        if (reorderMode) {
+                            CharacterHelpV4(
+                                "Reordenación lineal: los rasgos pasan temporalmente a una columna para usar el arrastre vertical estable. Pulsa Listo para volver a tus columnas.",
+                            )
+                        }
+                    } else if (visibleTraits.isNotEmpty()) {
                         Text(
-                            "Limpia búsqueda y filtros para reordenar manualmente.",
+                            "Limpia búsqueda y filtros para activar Reordenar.",
                             style = MaterialTheme.typography.labelSmall,
                         )
                     }
@@ -289,7 +307,11 @@ internal fun CharacterTraitsClosureTabV4(
                                     style = MaterialTheme.typography.titleSmall,
                                 )
                             }
-                            val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
+                            val columns = if (reorderMode) {
+                                1
+                            } else {
+                                constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
+                            }
                             group.traits.chunked(columns).forEachIndexed { rowIndex, rowTraits ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),

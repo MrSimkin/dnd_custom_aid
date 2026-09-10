@@ -57,6 +57,7 @@ internal fun CharacterNotesTabV4(
     var searchText by rememberSaveable("note-search") { mutableStateOf("") }
     var activeFiltersText by rememberSaveable("note-filters") { mutableStateOf("") }
     var orderName by rememberSaveable("note-order") { mutableStateOf(CharacterPresentationOrder.MANUAL.name) }
+    var reorderMode by rememberSaveable("note-linear-reorder") { mutableStateOf(false) }
     var editorOpen by rememberSaveable("note-editor-open") { mutableStateOf(false) }
     var editingId by rememberSaveable("note-editor-id") { mutableStateOf<String?>(null) }
     var editorTitle by rememberSaveable("note-editor-title") { mutableStateOf("") }
@@ -69,9 +70,10 @@ internal fun CharacterNotesTabV4(
     val activeFilters = activeFiltersText.split(NOTE_FILTER_SEPARATOR_G3).filter { it.isNotBlank() }.toSet()
     val query = CharacterCollectionQuery(searchText = searchText, activeFilterKeys = activeFilters)
     val visibleCards = presentCharacterNotes(draft.cards, order, query)
-    val canReorder = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
+    val reorderAvailable = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
         query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
-    val noteColumns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
+    val canReorder = reorderAvailable && reorderMode
+    val noteColumns = if (reorderMode) 1 else constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
     val filters = listOf(
         CharacterFilterOptionV4(
             key = CHARACTER_NOTE_WITH_CONTENT_FILTER_KEY,
@@ -86,6 +88,7 @@ internal fun CharacterNotesTabV4(
     )
 
     fun updateQuery(updated: CharacterCollectionQuery) {
+        reorderMode = false
         searchText = updated.searchText
         activeFiltersText = updated.activeFilterKeys.sorted().joinToString(NOTE_FILTER_SEPARATOR_G3)
     }
@@ -181,7 +184,10 @@ internal fun CharacterNotesTabV4(
                 query = query,
                 onQueryChange = ::updateQuery,
                 order = order,
-                onOrderChange = { orderName = it.name },
+                onOrderChange = {
+                    reorderMode = false
+                    orderName = it.name
+                },
                 filters = filters,
                 searchLabel = "Buscar notas",
                 collapsibleSearch = true,
@@ -202,12 +208,24 @@ internal fun CharacterNotesTabV4(
         item(key = "titled-notes-help") {
             Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
                 CharacterHelpV4("Tarjetas opcionales para separar referencias concretas. La búsqueda revisa título y contenido.")
-                if (!canReorder && visibleCards.isNotEmpty()) {
+                if (reorderAvailable && visibleCards.size > 1) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        CharacterLinearReorderModeControlV4(
+                            active = reorderMode,
+                            onToggle = { reorderMode = !reorderMode },
+                        )
+                    }
+                    if (reorderMode) {
+                        CharacterHelpV4(
+                            "Reordenación lineal: las notas pasan temporalmente a una columna para usar el arrastre vertical estable. Pulsa Listo para volver a tus columnas.",
+                        )
+                    }
+                } else if (visibleCards.isNotEmpty()) {
                     Text(
                         if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                            "A–Z es solo una vista. Vuelve a Manual para reordenar sin perder el orden guardado."
                         } else {
-                            "Limpia búsqueda y filtros para reordenar manualmente."
+                            "Limpia búsqueda y filtros para activar Reordenar."
                         },
                         style = MaterialTheme.typography.labelSmall,
                     )
