@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 8
+          fetch-depth: 10
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
