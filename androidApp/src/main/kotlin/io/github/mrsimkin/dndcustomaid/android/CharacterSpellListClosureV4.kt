@@ -1003,7 +1003,7 @@ private fun SpellEditorFieldsG2(
             onValueChange = onMaterialTextChange,
             label = { Text("Componente material (opcional)") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 4,
         )
     }
@@ -1016,7 +1016,7 @@ private fun SpellEditorFieldsG2(
         onValueChange = onDescriptionChange,
         label = { Text("Descripción") },
         modifier = Modifier.fillMaxWidth(),
-        minLines = 3,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 5,
     )
     OutlinedTextField(
@@ -1024,7 +1024,7 @@ private fun SpellEditorFieldsG2(
         onValueChange = onNotesChange,
         label = { Text("Notas (opcional)") },
         modifier = Modifier.fillMaxWidth(),
-        minLines = 2,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 4,
     )
     CharacterInlineValidationMessage(validationMessage)

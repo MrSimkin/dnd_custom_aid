@@ -268,7 +268,7 @@ private fun CharacterProficiencyEditorDialogV4(
             onValueChange = { notes = it },
             label = { Text("Notas opcionales") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
         )
     }
 }

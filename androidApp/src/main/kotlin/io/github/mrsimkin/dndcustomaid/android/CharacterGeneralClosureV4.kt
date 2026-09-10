@@ -417,7 +417,7 @@ private fun DefenseEditorDialogV4(
         EnumDropdownV4("Tipo", defenseTypeLabelV4(type), CharacterDefenseType.entries.map { it.name to defenseTypeLabelV4(it) }) { typeName = it }
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Daño / efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -453,7 +453,7 @@ private fun SenseEditorDialogV4(existing: CharacterSense?, onDismiss: () -> Unit
                 singleLine = true,
             )
         }
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -492,7 +492,7 @@ private fun MovementEditorDialogV4(existing: CharacterMovement?, onDismiss: () -
                 singleLine = true,
             )
         }
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

@@ -1064,7 +1064,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Texto libre") },
-                    minLines = 2,
+                    minLines = characterCompactTextAreaMinLinesV4(2),
                     maxLines = 3,
                 )
 

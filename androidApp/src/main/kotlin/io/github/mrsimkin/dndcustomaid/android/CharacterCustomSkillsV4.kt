@@ -228,7 +228,7 @@ private fun CustomSkillEditorDialogV4(
         )
         CharacterInlineValidationMessage(if (adjustment.isNotBlank() && parsedAdjustment == null) "Escribe un ajuste numérico válido." else null)
         OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

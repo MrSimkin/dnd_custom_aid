@@ -1072,7 +1072,7 @@ private fun EquipmentEditorPanelF3(
                         onValueChange = onDescriptionChange,
                         label = { Text("Descripción especial") },
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 2,
+                        minLines = characterCompactTextAreaMinLinesV4(2),
                         maxLines = 5,
                     )
                 }
@@ -1081,7 +1081,7 @@ private fun EquipmentEditorPanelF3(
                     onValueChange = onNotesChange,
                     label = { Text("Notas") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
+                    minLines = characterCompactTextAreaMinLinesV4(2),
                     maxLines = 4,
                 )
                 CharacterInlineValidationMessage(
@@ -1208,7 +1208,7 @@ private fun EquipmentEditorF2(
                 onValueChange = onDescriptionChange,
                 label = { Text("Descripción especial") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
+                minLines = characterCompactTextAreaMinLinesV4(2),
                 maxLines = 5,
             )
         }
@@ -1217,7 +1217,7 @@ private fun EquipmentEditorF2(
             onValueChange = onNotesChange,
             label = { Text("Notas") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 4,
         )
         CharacterInlineValidationMessage(

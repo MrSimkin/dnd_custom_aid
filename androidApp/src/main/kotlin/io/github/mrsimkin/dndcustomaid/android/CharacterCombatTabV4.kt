@@ -516,7 +516,7 @@ private fun CombatEntryEditorDialogV4(
             onValueChange = onDamageEffectChange,
             label = { Text("Daño / efecto") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 4,
         )
         OutlinedTextField(
@@ -524,7 +524,7 @@ private fun CombatEntryEditorDialogV4(
             onValueChange = onNotesChange,
             label = { Text("Notas (opcional)") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 5,
         )
         CharacterInlineValidationMessage(

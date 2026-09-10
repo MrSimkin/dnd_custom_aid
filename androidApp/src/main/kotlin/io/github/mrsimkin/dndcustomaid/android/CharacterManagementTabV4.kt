@@ -785,7 +785,7 @@ private fun ConditionEditorDialogV4(
     ) {
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Condición") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -804,7 +804,7 @@ private fun ConcentrationEditorDialogV4(
         saveEnabled = name.trim().isNotEmpty(),
     ) {
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Conjuro o efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -893,8 +893,8 @@ private fun ResourceEditorDialogV4(
                 OutlinedTextField(value = fixedAmount, onValueChange = { fixedAmount = it.filter(Char::isDigit) }, label = { Text("Cantidad a recuperar") }, modifier = Modifier.fillMaxWidth(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
             }
         }
-        OutlinedTextField(value = recoveryNotes, onValueChange = { recoveryNotes = it }, label = { Text("Nota del descanso") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas del recurso") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+        OutlinedTextField(value = recoveryNotes, onValueChange = { recoveryNotes = it }, label = { Text("Nota del descanso") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas del recurso") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1034,7 +1034,7 @@ private fun TemporaryEffectEditorDialogV4(
             Text("Activo")
             Switch(checked = active, onCheckedChange = { active = it })
         }
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1053,7 +1053,7 @@ private fun ReconciliationEditorDialogV4(
         supportingText = "Registra que la ficha digital quedó reconciliada intencionalmente con tu referencia física en este momento.",
     ) {
         OutlinedTextField(value = label, onValueChange = { label = it }, label = { Text("Etiqueta opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas opcionales") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas opcionales") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

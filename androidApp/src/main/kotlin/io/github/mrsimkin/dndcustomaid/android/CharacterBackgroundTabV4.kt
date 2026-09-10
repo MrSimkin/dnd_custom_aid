@@ -189,7 +189,7 @@ internal fun CharacterBackgroundTabV4(
                         enabled = structuralEditingEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Descripción / resumen") },
-                        minLines = 2,
+                        minLines = characterCompactTextAreaMinLinesV4(2),
                     )
                 }
             }
@@ -310,15 +310,10 @@ internal fun CharacterBackgroundTabV4(
                             value = background.story,
                             onValueChange = { onBackgroundChange(background.copy(story = it)) },
                             enabled = structuralEditingEnabled,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(
-                                    min = if (wide) 260.dp else 220.dp,
-                                    max = if (wide) 420.dp else 360.dp,
-                                ),
+                            modifier = Modifier.fillMaxWidth(),
                             label = { Text("Historia") },
-                            minLines = if (wide) 10 else 8,
-                            maxLines = if (wide) 20 else 16,
+                            minLines = characterCompactTextAreaMinLinesV4(3),
+                            maxLines = 10,
                             supportingText = {
                                 if (background.story.length > 500) {
                                     Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
@@ -380,8 +375,8 @@ internal fun CharacterBackgroundTabV4(
                 onValueChange = { editorText = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(editingField.label) },
-                minLines = 7,
-                maxLines = 14,
+                minLines = characterCompactTextAreaMinLinesV4(3),
+                maxLines = 8,
             )
         }
     }

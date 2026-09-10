@@ -709,23 +709,23 @@ private fun FormEditorFieldsH1(
         onValueChange = onSensesChange,
         modifier = Modifier.fillMaxWidth(),
         label = { Text("Sentidos / percepción") },
-        minLines = 2,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 4,
     )
     OutlinedTextField(
         value = actions,
         onValueChange = onActionsChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 130.dp, max = 280.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Acciones / referencia rápida") },
-        minLines = 4,
+        minLines = characterCompactTextAreaMinLinesV4(3),
         maxLines = 10,
     )
     OutlinedTextField(
         value = notes,
         onValueChange = onNotesChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp, max = 220.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Notas") },
-        minLines = 2,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 8,
     )
 }

@@ -327,7 +327,7 @@ internal fun CharacterCombatSuccessorTabV4(
                 onValueChange = { editorNotes = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Notas") },
-                minLines = 2,
+                minLines = characterCompactTextAreaMinLinesV4(2),
                 maxLines = 5,
             )
         }

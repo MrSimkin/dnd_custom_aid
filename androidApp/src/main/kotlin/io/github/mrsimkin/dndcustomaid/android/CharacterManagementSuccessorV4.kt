@@ -949,7 +949,7 @@ private fun SuccessorConditionEditorDialogV4(
             onValueChange = { notes = it },
             label = { Text("Notas") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
         )
     }
 }
@@ -977,7 +977,7 @@ private fun SuccessorConcentrationEditorDialogV4(
         saveEnabled = name.trim().isNotEmpty(),
     ) {
         OutlinedTextField(name, { name = it }, label = { Text("Conjuro o efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1191,10 +1191,10 @@ private fun SuccessorResourceEditorDialogV4(
                 { recoveryNotes = it },
                 label = { Text("Nota del descanso") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
+                minLines = characterCompactTextAreaMinLinesV4(2),
             )
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1264,7 +1264,7 @@ private fun SuccessorTemporaryEffectEditorDialogV4(
             Text("Activo")
             Switch(checked = active, onCheckedChange = { active = it })
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1299,7 +1299,7 @@ private fun SuccessorReconciliationEditorDialogV4(
         saveLabel = "Crear",
     ) {
         OutlinedTextField(label, { label = it }, label = { Text("Etiqueta") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

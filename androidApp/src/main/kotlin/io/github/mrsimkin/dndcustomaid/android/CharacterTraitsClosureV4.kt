@@ -819,7 +819,7 @@ private fun TraitEditorDialogG1(
             onValueChange = onDescriptionChange,
             label = { Text("Descripción") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 7,
         )
         OutlinedTextField(
@@ -827,7 +827,7 @@ private fun TraitEditorDialogG1(
             onValueChange = onNotesChange,
             label = { Text("Notas") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 5,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {

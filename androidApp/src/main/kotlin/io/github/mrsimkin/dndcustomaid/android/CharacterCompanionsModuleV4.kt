@@ -817,33 +817,33 @@ private fun CompanionEditorFieldsH3(
     OutlinedTextField(
         value = abilitySummary,
         onValueChange = onAbilitySummaryChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp, max = 180.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Características / estadísticas") },
-        minLines = 2,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 6,
     )
     OutlinedTextField(
         value = sensesProficiencies,
         onValueChange = onSensesProficienciesChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp, max = 180.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Sentidos / competencias") },
-        minLines = 2,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 6,
     )
     OutlinedTextField(
         value = traitsActions,
         onValueChange = onTraitsActionsChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp, max = 240.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Rasgos / acciones") },
-        minLines = 3,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 9,
     )
     OutlinedTextField(
         value = notes,
         onValueChange = onNotesChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp, max = 200.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Notas") },
-        minLines = 2,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 7,
     )
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

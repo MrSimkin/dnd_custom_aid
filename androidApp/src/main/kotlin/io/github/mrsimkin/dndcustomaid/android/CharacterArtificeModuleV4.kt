@@ -741,17 +741,17 @@ private fun ArtificeEditorFieldsH1(
     OutlinedTextField(
         value = effect,
         onValueChange = onEffectChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp, max = 220.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Resumen de efecto") },
-        minLines = 3,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 8,
     )
     OutlinedTextField(
         value = notes,
         onValueChange = onNotesChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp, max = 200.dp),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text("Notas") },
-        minLines = 2,
+        minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 7,
     )
     Row(

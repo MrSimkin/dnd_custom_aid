@@ -159,15 +159,10 @@ internal fun CharacterNotesTabV4(
                         value = draft.generalNotes,
                         onValueChange = { onDraftChange(draft.copy(generalNotes = it)) },
                         enabled = structuralEditingEnabled,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(
-                                min = if (wide) 220.dp else 180.dp,
-                                max = if (wide) 380.dp else 300.dp,
-                            ),
+                        modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Escribe aquí…") },
-                        minLines = if (wide) 9 else 7,
-                        maxLines = if (wide) 18 else 14,
+                        minLines = characterCompactTextAreaMinLinesV4(3),
+                        maxLines = 10,
                         supportingText = {
                             if (draft.generalNotes.length > 400) {
                                 Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
@@ -452,11 +447,9 @@ private fun CharacterNoteEditorDialogV4(
             value = content,
             onValueChange = onContentChange,
             label = { Text("Contenido") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 220.dp, max = 340.dp),
-            minLines = 8,
-            maxLines = 16,
+            modifier = Modifier.fillMaxWidth(),
+            minLines = characterCompactTextAreaMinLinesV4(3),
+            maxLines = 8,
             supportingText = {
                 if (content.length > 400) {
                     Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
