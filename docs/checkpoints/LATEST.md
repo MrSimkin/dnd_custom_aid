@@ -3,100 +3,129 @@
 **Updated:** 2026-09-09  
 **Canonical branch:** `main`  
 **Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Repository state:** planned successor engineering A–I implemented and integrated automated-green; owner/device acceptance remains pending  
+**Repository state:** planned successor engineering A–I plus post-audition Player stabilization complete and automated full-gate green; consolidated owner/device QA remains pending  
 **Phase:** Phase 4A successor acceptance / closure preparation  
-**Release status:** debug / development; NOT owner-accepted and NOT release-ready  
+**Current QA build:** `0.4.0-preqa.8` / `40800` / debug  
+**Release status:** NOT owner-accepted and NOT release-ready  
 **Primary owner phone:** Redmi Note 11 Pro 5G  
 **Tablet acceptance:** pending; redesigned tablet portrait/landscape implementation is automated-green  
 **DM implementation:** blocked until Phase 4A is later accepted and explicitly closed
 
-## Increment status
+## Current boundary
 
-1. A — schema/domain/storage foundation: **COMPLETE / GREEN**;
-2. B — shared UX/responsive primitives: **COMPLETE / GREEN**; drag feel remains owner-auditionable;
-3. C — character-first navigation + PC Settings + General/Habilidades: **COMPLETE / GREEN**;
-4. D — Combat + Dice: **COMPLETE / GREEN**;
-5. E — Gestión + Markers + Resources + cross-domain rest/conditions: **COMPLETE / GREEN**;
-6. F — Conjuros compact source-context redesign + repair: **AUTOMATED GREEN / TARGETED OWNER REPAIR RETEST STILL PENDING**;
-7. G — Equipo/Rasgos/conditional modules/Notas/Trasfondo: **COMPLETE / INTEGRATED AUTOMATED GREEN / OWNER ACCEPTANCE PENDING**;
-8. H — full-screen Application Settings/live previews/themes: **COMPLETE / INTEGRATED AUTOMATED GREEN / OWNER ACCEPTANCE PENDING**;
-9. **I — separate tablet portrait/landscape redesign: COMPLETE / INTEGRATED AUTOMATED GREEN / PHYSICAL TABLET ACCEPTANCE PENDING**.
+The planned A–I engineering sequence is complete. Post-audition stabilization is also complete through the current consolidated Player build.
 
 There is no planned Increment J. Do not invent additional feature scope before owner acceptance/closure.
 
-## Read next
+Latest checkpoint:
 
-1. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_I_TABLET_REDESIGN.md` — final planned A–I engineering increment, layout inspection and integrated gate;
-2. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_H_APPLICATION_SETTINGS.md` — full-screen Application Settings implementation;
-3. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_G_COLLECTION_CONTENT_REPAIRS.md` — collection/content implementation boundary;
-4. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_F_CONJUROS_COMPACT_SOURCE_CONTEXT.md` — repaired F and outstanding targeted phone retest;
-5. `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` — controlling A–I plan;
-6. `docs/PROJECT_STATE.md` — broader current snapshot.
+`docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md`
 
-## Latest automated product boundary — Increment I / A–I integration
+That checkpoint records the complete repair/audit/full-gate evidence and is the controlling continuation document for the current QA build.
 
-Latest I product commit:
+## Increment and stabilization status
 
-`c11ed70260f054a99c7ab5e38f2f772a697db886`
+1. A — schema/domain/storage foundation: **COMPLETE / GREEN**;
+2. B — shared UX/responsive primitives: **COMPLETE / GREEN**;
+3. C — character-first navigation + PC Settings + General/Habilidades: **COMPLETE / GREEN**;
+4. D — Combat + Dice: **COMPLETE / GREEN**;
+5. E — Gestión + Markers + Resources + cross-domain rest/conditions: **COMPLETE / GREEN**;
+6. F — Conjuros compact source-context redesign + repair: **AUTOMATED GREEN / INCLUDED IN CONSOLIDATED QA**;
+7. G — Equipo/Rasgos/conditional modules/Notas/Trasfondo: **COMPLETE / AUTOMATED GREEN / INCLUDED IN CONSOLIDATED QA**;
+8. H — full-screen Application Settings/live previews/themes: **COMPLETE / AUTOMATED GREEN / INCLUDED IN CONSOLIDATED QA**;
+9. I — separate tablet portrait/landscape redesign: **COMPLETE / AUTOMATED GREEN / PHYSICAL TABLET ACCEPTANCE PENDING**;
+10. post-A–I stabilization — Rasgos provenance, linear reorder fallback, Settings/font/theme refinements, app-wide free-text density and residual acceptance audit: **COMPLETE / AUTOMATED GREEN / OWNER QA PENDING**.
 
-Integrated validation head:
+## Latest automated product boundary — consolidated Player preqa.8
 
-`7fd61ee281404e4f62f41e2b1fb126ca45a2a199`
+Product identity:
+
+- version `0.4.0-preqa.8`;
+- build `40800`;
+- type `debug`;
+- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
+- product tree `c612c07345ecdfc91d972118314ee649fe2048c4`;
+- validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`.
 
 Normal `Scaffold checks` workflow:
 
-`34420873078` — **SUCCESS**
+`34430548061` — **SUCCESS**
 
 Verified together:
 
-- backend dependency install/type-check: PASS;
+- backend dependency install/check: PASS;
 - shared/Kotlin desktop tests: PASS;
 - Android debug assembly: PASS;
 - desktop build: PASS;
+- stable CI debug signing: PASS;
 - Android debug APK upload: PASS.
 
 Artifact:
 
-- ID `10130893215`;
+- ID `10134364621`;
 - name `dnd-custom-aid-debug-apk`;
-- ZIP size `13,308,575` bytes;
-- digest `sha256:9d65bb1e78b5a875ef5d381d56fa5a8038ce1c0ca9b6f87130d80b21d6660194`.
+- ZIP size `13,321,947` bytes;
+- ZIP digest `sha256:b7ead12a7501bbef96fef861321b5bebfd64c631647423b8eab9faec9580699a`;
+- extracted APK size `37,996,660` bytes;
+- extracted APK digest `sha256:bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
 
-This is the integrated automated-green successor audition boundary. It is **not owner acceptance** and is not a formal M6 candidate.
+The downloaded ZIP digest was independently rechecked and matched CI exactly. The ZIP contains exactly one APK.
 
-## Increment I summary
+This is an **automated-green consolidated owner-QA build**, not owner acceptance and not yet a formal frozen M6 candidate.
 
-- the existing 600dp short-side classifier still distinguishes phone/tablet and portrait/landscape; no width-only phone-landscape regression was introduced;
-- tablet portrait now uses scrollable top tabs and a centered portrait canvas rather than spending portrait width on the old generic side rail;
-- tablet landscape uses an adaptive-width side rail and a wider centered canvas;
-- the same saveable tab subtree is reused across tablet compositions so the redesign does not create duplicate editor/domain state;
-- high text scales reduce effective tablet card columns without changing the saved per-orientation preference;
-- browsing no longer reserves idle editor panes in Conjuros, Equipo, Artífice, Formas, Técnicas/Metamagia/Pactos or Compañeros;
-- tablet landscape exposes master/detail only while those editors are actually open;
-- tablet portrait uses the modal/IME-safe editor path for those collections;
-- existing useful wide layouts such as multi-column Notas/Rasgos and Trasfondo's simultaneous content remain intact.
+## Stabilization summary
 
-## Outstanding owner/device boundaries
+The current build includes the earlier A–I implementation plus the post-audition stabilization line:
 
-No automated successor gate through I is owner visual/device acceptance.
+- Rasgos provenance now reuses canonical class/race/background identity choices while retaining explicit custom origin and one persisted source authority;
+- Equipo/Rasgos/Notas retain configured grid browsing but temporarily switch to one-column vertical whole-card drag while `Reordenar` is active;
+- rejected fonts are hidden from normal selection with safe Manrope fallback for previously saved hidden values;
+- Settings theme/font audition uses a realistic free-text preview instead of misleading miniature swatches;
+- Ámbar/Pizarra/Terracota were retuned;
+- old large permanent multiline text-area slabs were removed across Trasfondo, Notas and equivalent module editors;
+- one shared spacing-aware text-area policy is used broadly;
+- the residual acceptance audit measured 50 spacing-aware multiline references and 42 shared IME-safe editor references;
+- Conjuros remains per-source, compact and phone-landscape-safe, with shared numeric normalization.
 
-Repaired F's targeted Redmi Note 11 Pro 5G test is still open because no passing physical evidence has been recorded. The consolidated phone audition should now cover representative G/H/I-adjacent behavior as applicable: Conjuros footprint/editor/drag, persistent Trasfondo images, Notes search/reorder, cross-tab Resources, full-screen Application Settings, slider extremes, themes and haptic differences.
+## Owner/device acceptance boundary
 
-Tablet portrait/landscape implementation is now redesigned and automated-green, but physical owner tablet acceptance remains pending. Repository-level layout inspection was completed; no dedicated tablet screenshot/emulator regression harness currently exists in the repo.
+No automated gate is owner visual/device acceptance.
 
-## Exact next engineering position
+The next activity is one **consolidated Player QA**, not another round of isolated micro-retests.
 
-Planned A–I implementation is complete. The next work is **acceptance and closure**, not another feature increment:
+The first installation of `preqa.8 / 40800` must be performed **over the existing prior QA installation/data**. Do not clear app data first. Before any fresh-install comparison, verify that campaigns/characters and representative General, Combate, Equipo/Monedas, Conjuros and Notas data survive and reopen correctly.
 
-1. expose/install the integrated successor APK for owner audition;
-2. complete the outstanding targeted/consolidated phone checks;
-3. inspect redesigned tablet portrait/landscape on a representative physical tablet when available;
-4. repair only acceptance-blocking defects that are actually observed;
-5. freeze a new formal M6 candidate when the owner-audited baseline is ready;
-6. perform required regression/upgrade QA;
-7. explicitly close Phase 4A.
+Physical acceptance still needs representative evidence for:
+
+- phone portrait;
+- phone landscape;
+- tablet portrait;
+- tablet landscape;
+- representative larger application text scale;
+- practical editor/IME, drag, theme and responsive behavior.
+
+## Exact next position
+
+1. install the exact `0.4.0-preqa.8 / 40800` consolidated APK over the current QA app/data;
+2. verify upgrade/data preservation first;
+3. run consolidated Player owner QA across the repaired surfaces and remaining acceptance matrix;
+4. classify findings before changing product code;
+5. repair only acceptance-blocking defects actually observed;
+6. freeze a replacement formal M6 candidate when the owner-audited baseline is acceptable;
+7. complete required regression/upgrade QA;
+8. explicitly close Phase 4A.
 
 Only after explicit Phase 4A closure may DM implementation begin.
+
+## Read next
+
+1. `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md` — current product/audit/full-gate evidence and exact QA handoff;
+2. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_I_TABLET_REDESIGN.md` — final planned A–I engineering increment;
+3. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_H_APPLICATION_SETTINGS.md` — Application Settings implementation;
+4. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_G_COLLECTION_CONTENT_REPAIRS.md` — collection/content implementation;
+5. `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_F_CONJUROS_COMPACT_SOURCE_CONTEXT.md` — Conjuros repair boundary;
+6. `docs/PROJECT_STATE.md` — broader current snapshot;
+7. `docs/TESTING.md` — automated and physical acceptance contract.
 
 ## Protected owner directions
 
