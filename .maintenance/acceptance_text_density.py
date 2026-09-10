@@ -101,11 +101,11 @@ for p in sorted(root.glob("*.kt")):
     current = current.replace("maxLines = 14,", "maxLines = 8,")
     p.write_text(current)
 
-# Make every explicit multiline minimum respond to Espacios. High historical
-# reservations are capped at three preferred lines; ordinary 2-line fields
-# remain 2 lines at 100% and collapse to one at compact spacing.
+# Make every explicit multiline minimum respond to Espacios. Kotlin call sites
+# use both `minLines = 2,` and inline `minLines = 2)` forms, so match the
+# numeric value without consuming either delimiter. A one-line field stays one.
 converted = 0
-numeric_min = re.compile(r"minLines = (\d+),")
+numeric_min = re.compile(r"minLines = (\d+)(?=,|\))")
 for p in sorted(root.glob("*.kt")):
     current = p.read_text()
 
@@ -114,7 +114,7 @@ for p in sorted(root.glob("*.kt")):
         if value < 2:
             return match.group(0)
         preferred = 2 if value <= 3 else 3
-        return f"minLines = characterCompactTextAreaMinLinesV4({preferred}),"
+        return f"minLines = characterCompactTextAreaMinLinesV4({preferred})"
 
     updated, count = numeric_min.subn(repl, current)
     converted += count
