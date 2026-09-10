@@ -1,22 +1,24 @@
 # Project State
 
-**Last verified:** 2026-09-09  
+**Last verified:** 2026-09-10  
 **Canonical branch:** `main`  
 **Active continuation branch:** `implementation/phase4a-successor-cycle`  
 **Current implementation boundary:** planned successor A–I plus post-audition Player stabilization complete and automated full-gate green on continuation branch  
 **Current phase:** Phase 4A — consolidated successor owner QA / closure preparation  
 **Current QA build:** `0.4.0-preqa.8` / `40800` / debug  
 **Release status:** owner/device acceptance remains open; not release-ready  
-**DM work:** blocked until Phase 4A is accepted and explicitly closed
+**Player QA scheduling:** consolidated physical QA is currently pinned until the owner can test; acceptance requirements remain unchanged  
+**DM work:** product/UX discovery may be documented; DM implementation remains blocked until Phase 4A is accepted and explicitly closed
 
 ## 1. Canonical repository reality
 
-`main` remains the canonical baseline and has not been advanced by the later successor implementation/stabilization sequence. The active continuation branch contains the current A–I successor implementation plus the post-audition Player stabilization repairs. Canonical or automated-green does not mean released, QA-accepted or owner-accepted.
+`main` remains the canonical baseline and has not been advanced by the later successor implementation/stabilization sequence. The active continuation branch contains the current A–I successor implementation plus the post-audition Player stabilization repairs. It also now contains design-only DM discovery under D-0068. Canonical, documented or automated-green does not mean released, QA-accepted or owner-accepted.
 
 Use:
 
-- `docs/checkpoints/LATEST.md` for the exact current position and next action;
+- `docs/checkpoints/LATEST.md` for the exact current Player implementation/QA position and next action;
 - `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md` for the current consolidated product/audit/full-gate evidence;
+- `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md` for the owner-approved future DM Combat Desk design baseline; this is design truth only, not implementation permission;
 - `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_I_TABLET_REDESIGN.md` for the final planned A–I engineering increment;
 - `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_H_APPLICATION_SETTINGS.md` for Application Settings;
 - `docs/checkpoints/2026-09-09_PHASE4A_INCREMENT_G_COLLECTION_CONTENT_REPAIRS.md` for collection/content work;
@@ -38,7 +40,9 @@ Frozen QA candidate branches remain historical evidence.
 - I — tablet portrait/landscape redesign: **COMPLETE / AUTOMATED GREEN / PHYSICAL TABLET ACCEPTANCE PENDING**;
 - post-A–I Player stabilization — Rasgos provenance, linear reorder fallback, Settings/font/theme refinements, app-wide multiline density and residual audit: **COMPLETE / AUTOMATED FULL-GATE GREEN / OWNER QA PENDING**.
 
-The planned A–I engineering sequence is complete. There is no planned Increment J. Remaining work is consolidated owner/device acceptance, blocking repairs if observed, formal candidate/regression work and explicit Phase 4A closure.
+The planned A–I engineering sequence is complete. There is no planned Increment J. Remaining Player work is consolidated owner/device acceptance, blocking repairs if observed, formal candidate/regression work and explicit Phase 4A closure.
+
+The owner cannot perform physical QA at the current moment, so the consolidated Player QA is **pinned rather than decomposed into more micro-tests or replaced by further speculative Player engineering**.
 
 ## 3. Latest technically verified boundary
 
@@ -130,7 +134,29 @@ A static audit found 58 multiline/fixed editor-field surfaces. The repair remove
 
 Residual audit workflow `34430378823` completed successfully and self-removed.
 
-## 6. Protected owner directions
+## 6. Future DM Combat Desk discovery captured while QA is pinned
+
+D-0068 now preserves the owner-approved product/UX baseline for the future Phase 4B live DM combat surface. **No DM product code was implemented.**
+
+Confirmed core directions include:
+
+- live DM Combat Desk is **tablet landscape only**;
+- initiative is always visible but independent from the selected/open reference;
+- legendary actions/reactions/other interruptions do not become fake initiative turns;
+- Reference Desk, Combat State, Encounter Notes/Rules of Engagement, Clocks, Markers and Quick Rules are modular hide/show surfaces whose data survives hiding;
+- the owner strongly prefers the current D&D 5.5e monster-stat-block reading model;
+- PCs, NPCs and monsters should share a coherent DM reference grammar; from the DM's reading perspective a PC is another stat block, without creating a second PC data authority;
+- Party Overview and Creature Overview are first-class requirements so the DM can move between individual "tree" and aggregate "forest" views;
+- one reusable creature definition may back many live encounter instances with separate HP/status/notes/overrides;
+- live encounter state must support deliberate DM rule-of-cool/fudging: HP/AC overrides, ad-hoc reinforcements, improvised attacks/actions and partial custom combatants without silently rewriting reusable definitions;
+- Quick Rules is a memory aid grounded in official rules, not forced legality validation;
+- DM state is private by default and must never be mirrored wholesale to players;
+- any future player-facing initiative/current-turn projection remains an explicit open choice, including the alternative of a separate player-managed PC tracker;
+- explicit non-goals include grids, maps, tokens, automatic movement/range/targeting, encounter balancing and VTT-style combat execution.
+
+The leading wireframe direction is a permanent initiative region plus a modular, reference-dominant tablet-landscape workspace. D-0068 deliberately leaves exact tracker orientation/layout and several interaction details open for owner review before Phase 4B coding.
+
+## 7. Protected owner directions
 
 These remain controlling:
 
@@ -139,20 +165,21 @@ These remain controlling:
 - reduce unnecessary margins/padding without degrading required touch targets;
 - whole-card drag where safe;
 - phone landscape is a phone interaction model, not tablet UI;
-- tablet portrait and tablet landscape are first-class compositions rather than stretched phone layouts;
+- Player tablet portrait and Player tablet landscape are first-class compositions rather than stretched phone layouts;
 - extra tablet width must increase useful context, not create permanent empty panes;
 - use `Raza`, never `Especie/raza`;
 - use `Electrum`, never `Electro`;
 - Spanish class/subclass presentation;
 - contextual explanations remain through `Siempre visible` / `ⓘ / tooltip` / `Oculto`;
 - generic `Fuente` schema leakage must not be reintroduced;
-- Conjuros source association remains a real behavioral concept and may be custom/non-class.
+- Conjuros source association remains a real behavioral concept and may be custom/non-class;
+- future DM Combat Desk work must honor D-0068: DM authority over automation, reference over enforcement, private-by-default state, independent always-visible initiative, tree/forest reference views and no-VTT boundaries.
 
-## 7. Owner/device acceptance state
+## 8. Owner/device acceptance state
 
 No automated gate through `preqa.8 / 40800` is owner visual/device acceptance.
 
-The next owner work is one consolidated Player QA pass, not isolated micro-retests. The first installation must preserve the current app/data and install `preqa.8` over it so migration/data preservation is actually exercised.
+The next owner Player work remains one consolidated QA pass, not isolated micro-retests. It is currently pinned until the owner can physically test. The first installation must preserve the current app/data and install `preqa.8` over it so migration/data preservation is actually exercised.
 
 Before clearing data or doing a fresh-install comparison, verify that campaigns/characters and representative General, Combate, Equipo/Monedas, Conjuros and Notas data survive and reopen correctly.
 
@@ -160,23 +187,25 @@ Physical acceptance still requires representative evidence for:
 
 - phone portrait;
 - phone landscape;
-- tablet portrait;
-- tablet landscape;
+- Player tablet portrait;
+- Player tablet landscape;
 - representative larger application text scale;
 - practical editor/IME, drag, theme and responsive behavior.
 
 The repository does not currently include a dedicated tablet screenshot/emulator regression harness; do not report screenshot/device acceptance from CI.
 
-## 8. Conditional/deferred boundaries
+## 9. Conditional/deferred boundaries
 
 - SRD-backed `Buscar existente` selectors require an approved corpus; this cycle does not silently become full SRD ingestion.
 - Exact proprietary Sandy Petersen Cthulhu Mythos condition text remains deferred without an appropriate content source.
 - Do not invent an automatic AC rules engine before inventory has sufficient armor/shield semantics.
-- Do not begin broad DM implementation.
+- Do not begin DM implementation before Phase 4A closure, even though D-0068 now contains detailed DM product/design direction.
 
-## 9. Exact next position
+## 10. Exact next position
 
-Do **not** start another planned engineering increment. Move through the consolidated successor acceptance / closure sequence:
+There is no new planned Player engineering increment and no authorized DM implementation increment.
+
+When physical testing becomes possible, resume the consolidated successor acceptance / closure sequence:
 
 1. install the exact `0.4.0-preqa.8 / 40800` APK over the existing prior QA installation/data;
 2. verify upgrade/data preservation first;
@@ -186,6 +215,10 @@ Do **not** start another planned engineering increment. Move through the consoli
 6. freeze the replacement formal M6 candidate when the owner-audited baseline is acceptable;
 7. complete required regression/upgrade QA;
 8. explicitly close Phase 4A.
+
+While that QA is pinned, additional DM discovery/design documentation is allowed if the owner wishes, but it must remain clearly separated from implementation.
+
+After explicit Phase 4A closure, Phase 4B should begin by reading D-0068, resolving its open tablet-landscape interaction questions with the owner, freezing a DM implementation plan, and only then coding.
 
 Phase 4A is **not** closed merely because the consolidated build is automated-green.
 
