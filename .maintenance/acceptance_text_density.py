@@ -43,8 +43,23 @@ for name in fixed_files:
     current, count = inline_pattern.subn("modifier = Modifier.fillMaxWidth(),", current)
     removed_inline += count
     p.write_text(current)
-if removed_inline != 11:
-    raise SystemExit(f"expected 11 inline multiline height caps, removed {removed_inline}")
+if removed_inline != 10:
+    raise SystemExit(f"expected 10 same-line multiline height caps, removed {removed_inline}")
+
+# Notes has one additional large editor whose modifier chain is split across lines.
+notes_path = root / "CharacterNotesTabV4.kt"
+notes_text = notes_path.read_text()
+notes_split_pattern = re.compile(
+    r"modifier = Modifier\n\s*\.fillMaxWidth\(\)\n\s*\.heightIn\(min = 220\.dp, max = 340\.dp\),"
+)
+notes_text, notes_split_count = notes_split_pattern.subn(
+    "modifier = Modifier.fillMaxWidth(),",
+    notes_text,
+    count=1,
+)
+if notes_split_count != 1:
+    raise SystemExit(f"expected one split Notes content height cap, removed {notes_split_count}")
+notes_path.write_text(notes_text)
 
 # Two large freeform surfaces used a multiline modifier-level heightIn block.
 for name, expected_min_fragment in [
@@ -93,13 +108,14 @@ converted = 0
 numeric_min = re.compile(r"minLines = (\d+),")
 for p in sorted(root.glob("*.kt")):
     current = p.read_text()
+
     def repl(match):
-        nonlocal_placeholder = None
         value = int(match.group(1))
         if value < 2:
             return match.group(0)
         preferred = 2 if value <= 3 else 3
         return f"minLines = characterCompactTextAreaMinLinesV4({preferred}),"
+
     updated, count = numeric_min.subn(repl, current)
     converted += count
     p.write_text(updated)
