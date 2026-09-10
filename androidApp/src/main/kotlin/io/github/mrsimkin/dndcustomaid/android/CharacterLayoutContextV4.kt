@@ -56,9 +56,10 @@ internal fun characterLayoutContextV4(): CharacterLayoutContextV4 {
 
 internal fun characterNavigationPresentationForLayoutV4(
     context: CharacterLayoutContextV4,
-): CharacterNavigationPresentationV4 =
-    if (context.isTablet) {
-        CharacterNavigationPresentationV4.SIDE_RAIL
-    } else {
-        CharacterNavigationPresentationV4.TOP_TABS
-    }
+): CharacterNavigationPresentationV4 = when (context.formFactor) {
+    CharacterFormFactorV4.TABLET_LANDSCAPE -> CharacterNavigationPresentationV4.SIDE_RAIL
+    CharacterFormFactorV4.PHONE_PORTRAIT,
+    CharacterFormFactorV4.PHONE_LANDSCAPE,
+    CharacterFormFactorV4.TABLET_PORTRAIT,
+    -> CharacterNavigationPresentationV4.TOP_TABS
+}

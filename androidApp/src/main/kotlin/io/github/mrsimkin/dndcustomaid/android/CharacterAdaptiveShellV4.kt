@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -16,8 +17,12 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheetTabKey
@@ -34,19 +39,52 @@ internal fun CharacterAdaptiveShellV4(
     content: @Composable () -> Unit,
 ) {
     val layoutContext = characterLayoutContextV4()
-    val effectiveNavigationPresentation = characterNavigationPresentationForLayoutV4(layoutContext)
     val effectiveTabOrder = LocalCharacterPcSettingsContextV4.current
         ?.successorState
         ?.preferences
         ?.tabOrder
         ?: tabOrder
+    val tabletStateHolder = rememberSaveableStateHolder()
 
     Column(modifier = Modifier.fillMaxSize()) {
         // D01: the compact identity/save header remains outside all scrolling tab content.
         header()
 
-        when (effectiveNavigationPresentation) {
-            CharacterNavigationPresentationV4.TOP_TABS -> {
+        when (layoutContext.formFactor) {
+            CharacterFormFactorV4.PHONE_PORTRAIT,
+            CharacterFormFactorV4.PHONE_LANDSCAPE,
+            -> when (navigationPresentation) {
+                CharacterNavigationPresentationV4.TOP_TABS -> {
+                    CharacterTopTabStripV4(
+                        selectedTab = selectedTab,
+                        spellcasterEnabled = spellcasterEnabled,
+                        visibleModules = visibleModules,
+                        tabOrder = effectiveTabOrder,
+                        onSelect = onSelect,
+                    )
+                    Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                        content()
+                    }
+                }
+
+                CharacterNavigationPresentationV4.SIDE_RAIL -> {
+                    Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                        CharacterNavigationRailV4(
+                            selectedTab = selectedTab,
+                            spellcasterEnabled = spellcasterEnabled,
+                            visibleModules = visibleModules,
+                            tabOrder = effectiveTabOrder,
+                            onSelect = onSelect,
+                            railWidth = 112.dp,
+                        )
+                        Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
+                            content()
+                        }
+                    }
+                }
+            }
+
+            CharacterFormFactorV4.TABLET_PORTRAIT -> {
                 CharacterTopTabStripV4(
                     selectedTab = selectedTab,
                     spellcasterEnabled = spellcasterEnabled,
@@ -54,12 +92,30 @@ internal fun CharacterAdaptiveShellV4(
                     tabOrder = effectiveTabOrder,
                     onSelect = onSelect,
                 )
-                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    content()
+                Box(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentAlignment = Alignment.TopCenter,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .widthIn(max = 1040.dp)
+                            .fillMaxSize()
+                            .padding(horizontal = appSpacingV4(8.dp)),
+                    ) {
+                        tabletStateHolder.SaveableStateProvider("tablet-tab-${selectedTab.name}") {
+                            content()
+                        }
+                    }
                 }
             }
 
-            CharacterNavigationPresentationV4.SIDE_RAIL -> {
+            CharacterFormFactorV4.TABLET_LANDSCAPE -> {
+                val fontScale = LocalDensity.current.fontScale
+                val railWidth = when {
+                    fontScale >= 1.60f -> 148.dp
+                    fontScale >= 1.30f -> 132.dp
+                    else -> 116.dp
+                }
                 Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
                     CharacterNavigationRailV4(
                         selectedTab = selectedTab,
@@ -67,9 +123,22 @@ internal fun CharacterAdaptiveShellV4(
                         visibleModules = visibleModules,
                         tabOrder = effectiveTabOrder,
                         onSelect = onSelect,
+                        railWidth = railWidth,
                     )
-                    Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
-                        content()
+                    Box(
+                        modifier = Modifier.fillMaxHeight().weight(1f),
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .widthIn(max = 1480.dp)
+                                .fillMaxSize()
+                                .padding(horizontal = appSpacingV4(10.dp)),
+                        ) {
+                            tabletStateHolder.SaveableStateProvider("tablet-tab-${selectedTab.name}") {
+                                content()
+                            }
+                        }
                     }
                 }
             }
@@ -84,11 +153,12 @@ private fun CharacterNavigationRailV4(
     visibleModules: Set<CharacterModuleKind>,
     tabOrder: List<CharacterSheetTabKey>,
     onSelect: (CharacterTabV4) -> Unit,
+    railWidth: Dp,
 ) {
     val tabs = visibleCharacterTabsV4(spellcasterEnabled, visibleModules, tabOrder)
 
     NavigationRail(
-        modifier = Modifier.fillMaxHeight().width(112.dp),
+        modifier = Modifier.fillMaxHeight().width(railWidth),
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -109,7 +179,7 @@ private fun CharacterNavigationRailV4(
                         Text(
                             text = tab.label,
                             style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                     },
