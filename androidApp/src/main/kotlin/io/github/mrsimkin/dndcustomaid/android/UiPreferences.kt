@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
@@ -37,11 +38,11 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.characterRulesFamilyBadgeLabel
@@ -170,8 +172,8 @@ internal class UiPreferencesStore(context: Context) {
         val phoneLandscapeColumns = preferences.getInt(KEY_PHONE_LANDSCAPE_COLUMNS, 2).coerceIn(1, 5)
         val tabletPortraitColumns = preferences.getInt(KEY_TABLET_PORTRAIT_COLUMNS, 2).coerceIn(1, 5)
         val tabletLandscapeColumns = preferences.getInt(KEY_TABLET_LANDSCAPE_COLUMNS, 3).coerceIn(1, 6)
-        val spacingScalePercent = preferences.getInt(KEY_SPACING_SCALE, 100)
-            .takeIf { it in SPACING_SCALE_OPTIONS } ?: 100
+        val storedSpacing = preferences.getInt(KEY_SPACING_SCALE, 100)
+        val spacingScalePercent = SPACING_SCALE_OPTIONS.minByOrNull { abs(it - storedSpacing.coerceIn(50, 150)) } ?: 100
         val helpMode = preferences.getString(KEY_HELP_MODE, null)
             ?.let { runCatching { CharacterHelpModeV4.valueOf(it) }.getOrNull() }
             ?: CharacterHelpModeV4.ALWAYS_VISIBLE
@@ -227,11 +229,39 @@ internal class UiPreferencesStore(context: Context) {
 }
 
 internal val FONT_SCALE_OPTIONS = listOf(70, 80, 90, 100, 110, 120, 130, 145, 160, 180, 200)
-internal val SPACING_SCALE_OPTIONS = listOf(40, 60, 70, 80, 90, 100)
+internal val SPACING_SCALE_OPTIONS = (50..150 step 10).toList()
+
+private enum class AppSpacingRoleV4 {
+    DEFAULT,
+    OUTER,
+    INTERNAL,
+}
+
+/**
+ * Perceptual density scaling: 100 is the balanced baseline; 50/150 are deliberately less
+ * extreme than a blind 0.5x/1.5x multiplication. Fixed icon/font/touch-target sizes are not
+ * routed through this helper, so density changes whitespace without shrinking controls.
+ */
+@Composable
+internal fun appSpacingV4(value: Dp): Dp = appSpacingV4(value, AppSpacingRoleV4.DEFAULT)
 
 @Composable
-internal fun appSpacingV4(value: Dp): Dp =
-    value * (LocalUiPreferencesV4.current.spacingScalePercent / 100f)
+private fun appSpacingV4(value: Dp, role: AppSpacingRoleV4): Dp {
+    val percent = LocalUiPreferencesV4.current.spacingScalePercent.coerceIn(50, 150)
+    val signed = (percent - 100) / 100f
+    val response = when (role) {
+        AppSpacingRoleV4.DEFAULT -> 0.70f
+        AppSpacingRoleV4.OUTER -> 0.78f
+        AppSpacingRoleV4.INTERNAL -> 0.62f
+    }
+    val scaled = value * (1f + signed * response)
+    val floor = when (role) {
+        AppSpacingRoleV4.DEFAULT -> minOf(value, 1.5.dp)
+        AppSpacingRoleV4.OUTER -> minOf(value, 2.dp)
+        AppSpacingRoleV4.INTERNAL -> minOf(value, 2.dp)
+    }
+    return maxOf(scaled, floor)
+}
 
 private val googleFontProvider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
@@ -643,7 +673,7 @@ internal fun AppSettingsScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Configuración de la aplicación", style = MaterialTheme.typography.titleLarge)
                     Text(
-                        "Cambios inmediatos · preferencias de este dispositivo",
+                        "Preferencias de este dispositivo",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -679,7 +709,7 @@ internal fun AppSettingsScreen(
                             shape = MaterialTheme.shapes.small,
                         ) {
                             Text(
-                                "Advertencia para teléfono: ${preferences.fontScalePercent}% reduce mucho el área útil. La app conserva el valor y recurre a scroll cuando sea necesario.",
+                                "En teléfono, ${preferences.fontScalePercent}% deja menos área útil; la app mantiene el valor y usa scroll cuando hace falta.",
                                 modifier = Modifier.padding(appSpacingV4(7.dp)),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -689,16 +719,20 @@ internal fun AppSettingsScreen(
                 }
                 item {
                     SteppedPercentSettingV4(
-                        label = "Compactación de espacios",
+                        label = "Densidad de espacios",
                         value = preferences.spacingScalePercent,
                         options = SPACING_SCALE_OPTIONS,
                         onSelect = { onPreferencesChange(preferences.copy(spacingScalePercent = it)) },
-                        previewTitle = "Ejemplo de espaciado",
-                        previewPrimary = "Tarjeta compacta",
-                        previewSecondary = "Margen · separación · contenido",
+                        previewTitle = when {
+                            preferences.spacingScalePercent < 100 -> "Más denso"
+                            preferences.spacingScalePercent > 100 -> "Más espacioso"
+                            else -> "Equilibrado"
+                        },
+                        previewPrimary = "Tarjeta y contenido",
+                        previewSecondary = "Margen · separación · padding interno",
                     )
                     Text(
-                        "No reemplaza la vista Supercompacta. Reduce márgenes, paddings y separaciones controlados por la app; iconos y touch targets conservan su tamaño.",
+                        "50–90% = más denso · 100% = equilibrado · 110–150% = más espacioso. Texto, iconos y áreas táctiles conservan su tamaño.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -713,7 +747,7 @@ internal fun AppSettingsScreen(
                             onSelect = { onPreferencesChange(preferences.copy(helpMode = it)) },
                         )
                         Text(
-                            "Controla si las explicaciones aparecen siempre, desde ⓘ, o se ocultan.",
+                            "Muestra explicaciones siempre, desde el icono de información, o las oculta.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -730,7 +764,7 @@ internal fun AppSettingsScreen(
                             onSelect = { onPreferencesChange(preferences.copy(diceResultMode = it)) },
                         )
                         Text(
-                            "El resultado compacto prioriza densidad. Dados visibles muestra los d20 de forma prominente; ambos conservan la misma descomposición matemática.",
+                            "Compacto prioriza densidad. Dados visibles destaca los d20; ambos conservan la misma matemática.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -911,7 +945,7 @@ private fun LayoutColumnSettingsV4(
     ) {
         Text("Columnas de tarjetas", style = MaterialTheme.typography.labelLarge)
         Text(
-            "Cada orientación conserva su propia preferencia. La miniatura muestra la distribución solicitada con el espaciado actual.",
+            "Cada orientación conserva su propia preferencia. La miniatura muestra la distribución con el espaciado actual.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -1059,7 +1093,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                 }
 
                 OutlinedTextField(
-                    value = "Texto libre para historia, notas o descripciones largas. Este ejemplo muestra un área abierta real, no una tarjeta.",
+                    value = "Texto libre para historia, notas o descripciones largas.",
                     onValueChange = {},
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -1157,12 +1191,19 @@ private fun ThemeChoicePicker(
     selected: AppThemeChoice,
     onSelect: (AppThemeChoice) -> Unit,
 ) {
+    val width = LocalConfiguration.current.screenWidthDp
+    val columns = when {
+        width >= 900 -> 4
+        width >= 600 -> 3
+        else -> 2
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         Text("Tema", style = MaterialTheme.typography.labelLarge)
-        AppThemeChoice.entries.chunked(2).forEach { rowThemes ->
+        AppThemeChoice.entries.chunked(columns).forEach { rowThemes ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
@@ -1176,7 +1217,7 @@ private fun ThemeChoicePicker(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                repeat(2 - rowThemes.size) {
+                repeat(columns - rowThemes.size) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -1191,6 +1232,7 @@ private fun ThemePreviewCard(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val palette = resolveColorScheme(choice)
     Surface(
         modifier = modifier.clickable(onClick = onSelect),
         shape = MaterialTheme.shapes.small,
@@ -1198,18 +1240,43 @@ private fun ThemePreviewCard(
             width = if (selected) 2.dp else 1.dp,
             color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
         ),
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
-            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Text(choice.label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, maxLines = 2)
-            if (selected) Text("✓", style = MaterialTheme.typography.labelMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(choice.label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, maxLines = 2)
+                Surface(
+                    modifier = Modifier.size(16.dp),
+                    shape = CircleShape,
+                    color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    border = BorderStroke(1.5.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+                ) {}
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                ThemePaletteSwatchV4(palette.background)
+                ThemePaletteSwatchV4(palette.surface)
+                ThemePaletteSwatchV4(palette.primary)
+            }
         }
     }
+}
+
+@Composable
+private fun ThemePaletteSwatchV4(color: Color) {
+    Surface(
+        modifier = Modifier.size(18.dp),
+        shape = MaterialTheme.shapes.extraSmall,
+        color = color,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {}
 }
 
 @Composable
