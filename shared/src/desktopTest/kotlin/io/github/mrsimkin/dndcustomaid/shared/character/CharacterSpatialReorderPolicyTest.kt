@@ -39,6 +39,29 @@ class CharacterSpatialReorderPolicyTest {
     }
 
     @Test
+    fun subset_merge_preserves_non_subset_positions() {
+        val all = listOf("ordinary-a", "special-x", "ordinary-b", "special-y", "ordinary-c")
+
+        assertEquals(
+            listOf("ordinary-c", "special-x", "ordinary-a", "special-y", "ordinary-b"),
+            mergeCharacterReorderedSubset(
+                allIds = all,
+                reorderedSubsetIds = listOf("ordinary-c", "ordinary-a", "ordinary-b"),
+            ),
+        )
+        assertEquals(all, all)
+    }
+
+    @Test
+    fun invalid_or_incomplete_subset_merge_is_a_no_op() {
+        val all = listOf("a", "x", "b", "y")
+
+        assertEquals(all, mergeCharacterReorderedSubset(all, emptyList()))
+        assertEquals(all, mergeCharacterReorderedSubset(all, listOf("a", "missing")))
+        assertEquals(all, mergeCharacterReorderedSubset(all, listOf("a", "a")))
+    }
+
+    @Test
     fun invalid_drag_or_target_is_a_no_op() {
         val order = listOf("a", "b", "c")
 
