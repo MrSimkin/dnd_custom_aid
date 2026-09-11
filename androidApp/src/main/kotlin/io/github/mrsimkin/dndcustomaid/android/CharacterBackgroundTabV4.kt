@@ -12,6 +12,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -44,10 +44,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackgroundImage
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackgroundImageSlot
-
 import java.io.ByteArrayOutputStream
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -203,7 +204,7 @@ internal fun CharacterBackgroundTabV4(
                     verticalAlignment = Alignment.Top,
                 ) {
                     CharacterBackgroundImageCardV4(
-                        title = "Imagen principal",
+                        title = "Principal",
                         image = primaryImage,
                         editingEnabled = imageEditingEnabled,
                         onPick = { primaryImageLauncher.launch("image/*") },
@@ -211,7 +212,7 @@ internal fun CharacterBackgroundTabV4(
                         modifier = Modifier.weight(1f),
                     )
                     CharacterBackgroundImageCardV4(
-                        title = "Imagen secundaria",
+                        title = "Secundaria",
                         image = secondaryImage,
                         editingEnabled = imageEditingEnabled,
                         onPick = { secondaryImageLauncher.launch("image/*") },
@@ -219,9 +220,6 @@ internal fun CharacterBackgroundTabV4(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                CharacterHelpV4(
-                    "La app copia, reduce y guarda cada imagen dentro del personaje; después no depende del archivo o enlace externo original.",
-                )
                 imageErrorMessage?.let { message ->
                     Text(message, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
                 }
@@ -254,9 +252,7 @@ internal fun CharacterBackgroundTabV4(
                                         modifier = Modifier.weight(1f),
                                     )
                                 }
-                                repeat(2 - rowFields.size) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                                repeat(2 - rowFields.size) { Spacer(modifier = Modifier.weight(1f)) }
                             }
                         }
                     } else {
@@ -286,22 +282,12 @@ internal fun CharacterBackgroundTabV4(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Historia del personaje", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "Historia larga, disponible completa al expandir.",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
+                        Text("Historia del personaje", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
                         TextButton(onClick = { storyExpanded = !storyExpanded }) {
                             Text(
-                                if (storyExpanded) {
-                                    "Ocultar"
-                                } else if (background.story.isBlank() && structuralEditingEnabled) {
-                                    "Añadir"
-                                } else {
-                                    "Mostrar"
-                                },
+                                if (storyExpanded) "Ocultar"
+                                else if (background.story.isBlank() && structuralEditingEnabled) "Añadir"
+                                else "Mostrar",
                             )
                         }
                     }
@@ -314,43 +300,24 @@ internal fun CharacterBackgroundTabV4(
                             label = { Text("Historia") },
                             minLines = characterCompactTextAreaMinLinesV4(3),
                             maxLines = 10,
-                            supportingText = {
-                                if (background.story.length > 500) {
-                                    Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
-                                }
-                            },
                         )
                     } else {
                         Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { storyExpanded = true },
+                            modifier = Modifier.fillMaxWidth().clickable { storyExpanded = true },
                             shape = MaterialTheme.shapes.small,
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                             color = MaterialTheme.colorScheme.surfaceVariant,
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
-                                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                            ) {
-                                Text(
-                                    background.story.ifBlank { "Sin historia registrada" },
-                                    style = if (background.story.isBlank()) {
-                                        MaterialTheme.typography.labelSmall
-                                    } else {
-                                        MaterialTheme.typography.bodySmall
-                                    },
-                                    maxLines = 3,
-                                )
-                                Text(
-                                    when {
-                                        !structuralEditingEnabled -> "Toca para expandir · Modo Mesa solo lectura"
-                                        background.story.isBlank() -> "Toca para añadir"
-                                        else -> "Toca para expandir y editar"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
+                            Text(
+                                background.story.ifBlank { "Sin historia registrada" },
+                                modifier = Modifier.fillMaxWidth().padding(
+                                    horizontal = appSpacingV4(7.dp),
+                                    vertical = appSpacingV4(5.dp),
+                                ),
+                                style = if (background.story.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
@@ -391,77 +358,120 @@ private fun CharacterBackgroundImageCardV4(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val bitmap = remember(image?.id, image?.encodedData) {
-        image?.let(::decodeCharacterBackgroundImageV4)
-    }
-    Surface(
+    var viewerOpen by rememberSaveable(image?.id?.toString(), "viewer") { mutableStateOf(false) }
+    val bitmap = remember(image?.id, image?.encodedData) { image?.let(::decodeCharacterBackgroundImageV4) }
+
+    Column(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(appSpacingV4(6.dp)),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        Text(title, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(4f / 5f)
+                .clickable(
+                    enabled = image != null || editingEnabled,
+                    onClick = {
+                        if (image != null) viewerOpen = true else if (editingEnabled) onPick()
+                    },
+                ),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            color = MaterialTheme.colorScheme.surfaceVariant,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-            ) {
-                Text(
-                    title,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
                 )
-                if (editingEnabled) {
-                    TextButton(onClick = onPick) { Text(if (image == null) "Añadir" else "Cambiar") }
-                    if (image != null) {
-                        StableRemoveIconButton(onClick = onRemove, contentDescription = "Eliminar $title")
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(appSpacingV4(8.dp)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(if (image == null) "Sin imagen" else "Imagen no disponible", style = MaterialTheme.typography.bodySmall)
+                    if (editingEnabled && image == null) {
+                        Text("Toca para seleccionar", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(4f / 5f)
-                    .clickable(enabled = editingEnabled, onClick = onPick),
-                shape = MaterialTheme.shapes.small,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                color = MaterialTheme.colorScheme.surface,
+        }
+    }
+
+    if (viewerOpen && image != null && bitmap != null) {
+        CharacterBackgroundImageViewerV4(
+            title = title,
+            bitmap = bitmap,
+            editingEnabled = editingEnabled,
+            onDismiss = { viewerOpen = false },
+            onChange = {
+                viewerOpen = false
+                onPick()
+            },
+            onRemove = {
+                viewerOpen = false
+                onRemove()
+            },
+        )
+    }
+}
+
+@Composable
+private fun CharacterBackgroundImageViewerV4(
+    title: String,
+    bitmap: ImageBitmap,
+    editingEnabled: Boolean,
+    onDismiss: () -> Unit,
+    onChange: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .padding(appSpacingV4(8.dp)),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(appSpacingV4(8.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             ) {
-                if (bitmap != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                    TextButton(onClick = onDismiss) { Text("Cerrar") }
+                }
+                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                     Image(
                         bitmap = bitmap,
-                        contentDescription = image?.originalName?.let { "$title: $it" } ?: title,
+                        contentDescription = title,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
+                        contentScale = ContentScale.Fit,
                     )
-                } else {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(appSpacingV4(8.dp)),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
+                }
+                if (editingEnabled) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            if (image == null) "Sin imagen" else "Imagen no disponible",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        if (editingEnabled) {
-                            Text("Toca para seleccionar", style = MaterialTheme.typography.labelSmall)
-                        }
+                        TextButton(onClick = onChange) { Text("Cambiar") }
+                        TextButton(onClick = onRemove) { Text("Eliminar") }
                     }
                 }
-            }
-            image?.originalName?.takeIf(String::isNotBlank)?.let { originalName ->
-                Text(
-                    originalName,
-                    style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
             }
         }
     }
@@ -564,16 +574,8 @@ private fun BackgroundNarrativePreviewCardV4(
             Text(title, style = MaterialTheme.typography.labelLarge)
             Text(
                 value.ifBlank { "Sin contenido" },
-                style = if (value.isBlank()) {
-                    MaterialTheme.typography.labelSmall
-                } else {
-                    MaterialTheme.typography.bodySmall
-                },
+                style = if (value.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
                 maxLines = 2,
-            )
-            Text(
-                if (editingEnabled) "Toca para editar" else "Modo Mesa · solo lectura",
-                style = MaterialTheme.typography.labelSmall,
             )
         }
     }
