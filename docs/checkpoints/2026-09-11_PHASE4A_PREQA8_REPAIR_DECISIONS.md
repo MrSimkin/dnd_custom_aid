@@ -283,7 +283,7 @@ The exact responsive arrangement may adapt, but this compact information grammar
 
 ## Open decision under discussion
 
-### P7 — Canonical provenance / character-owned origin references — ROUND 1 CONSOLIDATED
+### P7 — Canonical provenance / character-owned origin references — ROUNDS 1–2 CONSOLIDATED
 
 **Original QA problem:** `preqa.8 / 40800` still allows Rasgos to request redundant/free-text provenance even when the character already owns canonical class/race/background identity data. Current shared provenance behavior can also fall back to free text when canonical options are absent, which can create a second conflicting copy of structured identity.
 
@@ -297,20 +297,37 @@ The exact responsive arrangement may adapt, but this compact information grammar
 6. If a referenced canonical entity is deleted, dependent data survives with a soft/unresolved reference state. It is not silently remapped, deleted, or converted to unrelated arbitrary free text.
 7. Legacy text provenance is migrated conservatively: an exact/unambiguous match to an eligible entity on this character may be linked automatically; ambiguous/unmatched provenance remains preserved for owner correction, and the old source text must not be discarded.
 8. `Dote`, `Don / bendición` and `Otro` remain free-text capable **for the current repair**, but `Dote` in particular must be architecturally ready to become SRD/custom-catalog-backed soon. The same future-readiness principle should apply to other domains that are natural canonical entities.
-9. A Rasgo has one provenance origin. This cardinality applies to Rasgos specifically and must not be generalized blindly to domains whose approved model permits multiple associations.
+9. A Rasgo has one provenance origin. This cardinality applies to a **single Rasgo record/instance**; Round 2 explicitly reopens how repeated acquisition of the same conceptual Rasgo from different sources should be represented so this statement is not misread as “a conceptual trait can only ever have one possible acquisition source.”
 
 **Species/race hierarchy clarification raised by owner:**
 
 - The model must support canonical identity below the base species/race level. Older D&D material can use formal subraces (for example Drow as an Elf subrace or elemental Genasi variants), while 5.5e/SRD 5.2.1 uses several more specific nested-choice concepts such as lineage, ancestry, or similar species traits.
-- Therefore the underlying identity model must not assume that every child of a species is literally named `Subraza`. It needs an edition/source-aware child/variant relationship capable of representing subrace, lineage, ancestry, legacy or a custom equivalent while still preserving the parent species/race.
-- This is an architecture/readiness requirement; final user-facing terminology for the child/variant selector remains to be settled in the next P7 round.
+- Therefore the underlying identity model must not assume that every child of a species is literally a subrace in source-rule terminology. It needs a generic child/variant relationship capable of representing subrace, lineage, ancestry, legacy or a custom equivalent while still preserving the parent species/race.
+- **Owner-facing sheet terminology is nevertheless fixed to `Subraza` / subrace.** The owner intends to use the term subrace consistently on the sheet even when the underlying rules source calls the nested concept lineage, ancestry or something else. The flexible terminology belongs to the internal/source-aware model, not to the normal sheet label.
 
 **Transversal scope requested by owner:**
 
 - The owner explicitly expanded P7 beyond the visible Rasgos defect: the same canonical/reference discipline should be applied to analogous structured domains such as backgrounds, classes/subclasses, species/race variants, feats, spells, items and other provenance-bearing character data where the concept is genuinely canonical.
-- This does **not** mean every domain receives identical fields or identical relationship cardinality. Existing approved domain semantics remain authoritative. In particular, spell records may have multiple spellcasting-source associations while Rasgos have one provenance origin.
+- This does **not** mean every domain receives identical fields or identical relationship cardinality. Existing approved domain semantics remain authoritative.
 - The repair/spec must distinguish a reusable **reference/identity rule** from each domain's own ownership/cardinality rules.
 - No global static catalog should replace the requirement that provenance selection refers to entities actually registered/acquired on **this character**. A future SRD/custom catalog may help create or identify those entities, but dependent provenance selectors must not pretend the PC owns something merely because it exists in a catalog.
+
+**Round-2 owner-approved transversal model:**
+
+1. **Separate definition, character ownership/acquisition, and relationship/provenance.** The app must distinguish the reusable definition of a game object (for example what Fireball is), the fact that this specific PC actually has/selected that object, and the relationship explaining why/through what character element the PC has it. A catalog definition existing globally must never imply that the PC owns it.
+2. **Official/SRD and custom/homebrew normally share the same domain schema.** A custom spell is still a Spell; a custom feat is still a Feat; a custom background is still a Background; a custom species is still a Species; a custom magic item is still a Magic Item. Custom/homebrew is primarily definition origin, not a parallel generic `custom thing` object system. Truly schema-breaking content is considered an extreme edge case and must not distort the normal architecture.
+3. The owner notes two known extreme/legacy-content families outside ordinary current schemas: adapted 3.5e `Weapons of Legacy`, and legacy 2e-style spell levels 10–13. Of those, only the high-level-spell case is presently intended for near-term implementation. This is a readiness note, **not** authorization to implement Weapons of Legacy during this QA repair.
+4. **Species/race hierarchy is stored structurally.** A PC can have a base species/race and a more specific child/variant (for example Elf -> Drow or Genasi -> Air). Effects/provenance may point to the base or the more specific child as appropriate. Normal sheet language still calls the child `Subraza`.
+5. **Most-specific direct provenance is preferred; parent chains are derived rather than duplicated.** If an effect comes specifically from Drow, reference the Drow/subrace character entity and derive its Elf parent when needed. If a feature comes from a subclass, reference that subclass and derive its parent class rather than storing redundant independent copies.
+6. **Gameplay provenance and book/publication reference are separate.** Gameplay provenance answers `why does this PC have this?` with answers such as Elf, Wizard/Mago, Battle Master, Background, Feat, etc. This may matter to the character sheet/model. Book, page and original-publication information (for example `Tasha p. 12` or `Manual de Gustavo p. 127`) should normally stay hidden from the sheet and live only as optional detail/Notes/reference metadata when useful. Internal catalog metadata may still know whether a definition came from SRD, another source or custom content without adding source badges/noise across the sheet.
+7. **Future catalog readiness begins at the identity layer now.** Natural canonical domains such as Class, Subclass, Species/Race, subrace/variant, Background, Feat, Spell, Item and analogous future entities must be capable of stable definition identity plus stable character-owned identity even if the complete SRD/custom catalog UI arrives later. This does not expand the current QA repair into implementing the full catalog.
+8. **Legacy automatic matching is limited to what this PC actually owns.** A global catalog match alone is insufficient to create provenance/acquisition. Automatic migration may bind only when the current character has one unambiguous eligible owned/registered entity.
+9. **Rename/deletion/catalog-loss behavior is conservative.** Renaming a linked definition/character entity updates projections; removing a character-owned source leaves dependent data unresolved rather than deleting/remapping it; unavailable catalog definitions must not erase understandable character-owned data.
+
+**Round-2 point still requiring owner clarification — repeated acquisition of the same conceptual Rasgo:**
+
+- The owner clarified that the same conceptual Rasgo can legitimately be obtainable through more than one means (for example because of Elf **and** because of Class), while mechanically `one Rasgo one source` should remain true on the sheet.
+- The remaining ambiguity is representational: when this PC actually acquires the same Rasgo from two different sources, does the sheet hold/show two separate Rasgo instances referencing the same underlying definition (each with its own one source), or does it collapse them into one displayed Rasgo and retain only one visible source/another hidden acquisition relationship? This must be explicitly decided before P7 closes.
 
 **Compatibility with prior project decisions:**
 
@@ -319,18 +336,20 @@ The exact responsive arrangement may adapt, but this compact information grammar
 - The earlier Fuente redundancy audit already identified this as a cross-cutting information-architecture issue and preferred structured origin type + specific origin where provenance has real user-facing purpose.
 - D-0059's older `Rasgos.Fuente = free text` decision is therefore superseded for structured provenance by the later owner QA clarification in this checkpoint; compatibility/migration must preserve old stored text without keeping the ambiguous normal-editing model.
 
-**SRD investigation requirement before P7 closure:**
+**SRD review notes relevant to P7:**
 
-- Before P7 is closed, the discussion must use official SRD/current Basic Rules structure to verify which concepts are canonical definitions, which are character-owned selections/instances, which have parent-child hierarchy, and which can legitimately have multiple acquisition/source associations.
-- The intent is not to implement the full future SRD/custom catalog during this repair. The intent is to avoid a repair that hard-codes text fields or IDs in a way that immediately blocks the coming SRD/custom implementation.
+- Current Basic Rules structurally separate character class, background, species, feats, spells and equipment as distinct game-object categories.
+- A background can grant a feat; species grant traits; nested species choices can grant further benefits/spells; spells may be granted/accessed through class features, other features or magic items. This supports a reusable identity/provenance architecture while preserving domain-specific relationship counts.
+- Current Elf rules use `Elven Lineage` for Drow/High Elf/Wood Elf, confirming that the internal model must not hard-code every species child as a source-rule `Subrace`, even though the owner-facing sheet will consistently use `Subraza`.
+- The rules explicitly allow character options from different/older sources and DM-provided additional options. This supports treating custom/homebrew content as the same domain type wherever its schema is materially the same rather than creating a second parallel object universe.
 
-**Status:** `OPEN — ROUND 1 CONSOLIDATED; SRD/TRANSVERSAL MODEL REVIEW IN PROGRESS`.
+**Status:** `OPEN — ROUNDS 1–2 CONSOLIDATED; ONE RASGO MULTI-ACQUISITION REPRESENTATION QUESTION REMAINS`.
 
 ## Current discussion point
 
-**P7 — Round 2: transversal canonical-entity / provenance model.**
+**P7 — final clarification: same conceptual Rasgo acquired from multiple sources.**
 
-Complete the official SRD and existing-project-model review, then ask only the remaining owner decisions needed to make shared canonical identity, character-owned references, hierarchy, unresolved-reference behavior and catalog-readiness explicit. Do not close P7 until those remaining questions are answered and consolidated.
+Ask only the concrete representation question necessary to reconcile `same Rasgo may be obtained through multiple means` with the approved sheet rule `one Rasgo instance / one source`. Consolidate that answer before closing P7 or asking any unrelated QA point.
 
 ## Remaining boundary
 
