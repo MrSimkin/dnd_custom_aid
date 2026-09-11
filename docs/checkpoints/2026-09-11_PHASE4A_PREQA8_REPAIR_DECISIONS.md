@@ -124,11 +124,55 @@ This clarification is part of the acceptance boundary even though it was surface
 
 **Status:** `CLOSED / READY FOR REPAIR SPEC`.
 
+### P4 — Attack structured-damage editor UX
+
+**QA problem:** `preqa.8 / 40800` supports structured attack damage and rolling, but the interaction requires manually typing expressions such as `1d8` and presents fields such as `1d8` / `+3` in a way that reads like examples rather than direct semantic controls. The owner rejected that interaction even though the underlying model works.
+
+**Owner-approved target behavior:**
+
+- Attack damage is edited as a list of structured damage components rather than as one opaque raw formula.
+- The ordinary direct component grammar is compact and selector-oriented, conceptually: `[cantidad] d [caras] [modificador plano] [tipo de daño]`, with appropriate omission of parts that are not used.
+- Dice quantity and die size are separate direct controls. Normal attacks must not require typing `2d6` or similar expressions.
+- Standard die sizes are directly selectable, and the die-size control also includes `Otro`, allowing unusual positive die sizes such as `d3`, `d5` or other homebrew dice.
+- Dice quantity is not artificially limited to a small preset ceiling; it is a positive integer when dice are present.
+- A component may also contain only flat damage, with no die at all. Flat-only components are valid first-class components rather than a workaround.
+- Flat modifiers may be positive, zero or negative.
+- Multiple components may use the same damage type and remain separate. Example: `1d8+3 Cortante +3 Fuego +1d4 Fuego` is represented as three structured components, not collapsed into one typed expression.
+- Damage type uses a direct selector for standard damage types and includes `Otro` for custom/homebrew types.
+- Multiple structured components remain independently represented but the saved attack provides a convenient roll-all-damage action.
+- The attack card displays saved damage compactly and can roll configured damage without reopening the editor; editing and rolling are separate interactions.
+
+**Signed component rule / unusual arithmetic:**
+
+- Dice components themselves may be positive **or negative** in the overall damage expression. This supports cases such as a cursed weapon with `1d8 - 1d4`.
+- The sign belongs to the component arithmetic; the quantity of dice and number of faces remain positive values.
+- Negative dice therefore do not require a raw-expression escape hatch. A component can explicitly contribute `-1d4` just as another contributes `+1d8`.
+- Flat contributions likewise support positive or negative values.
+- The structured list must therefore be capable of expressing combinations such as `1d8 - 1d4`, `2d6 - 3`, `-1d4`, `+3 Fuego`, or `-2 Radiante` without falling back to free-form formula text.
+
+**Roll-result semantics:**
+
+- The roller reports the arithmetic damage result exactly as produced by the configured signed components.
+- A negative total is **not** automatically reinterpreted as healing or relabelled by the application.
+- Example: if `1d8 - 1d4` evaluates to `-2`, the result is presented simply as `Daño: -2`.
+- The app remains mechanically neutral at this layer; any narrative or game-rule interpretation of a negative damage result is left to the user/table.
+
+**Explicit non-goal / rejected alternative:**
+
+- No general raw `Expresión personalizada` text mode is required merely to support unusual dice arithmetic. The accepted structured-component model is intended to cover those cases directly.
+- Do not reduce support back to only `NdX + flat` with positive dice components; signed dice components are part of the accepted grammar.
+
+**Phone/tablet scope:** the same structured model and editing capabilities apply on phone and tablet. Layout may adapt, but the interaction must remain direct and compact rather than reverting to manual expression typing on narrower surfaces.
+
+**Regression boundary:** automated/integration coverage must prove direct quantity/die selection, `Otro` die sizes such as `d3`/`d5`, flat-only components, positive and negative flat values, positive and negative dice components, repeated damage types across separate components, custom damage type through `Otro`, compact saved rendering, roll-all behavior, and exact arithmetic reporting including negative totals such as `Daño: -2`.
+
+**Status:** `CLOSED / READY FOR REPAIR SPEC`.
+
 ## Current discussion point
 
-**P4 — Attack structured-damage editor UX.**
+**P5 — Combate fixed quick-reference footprint.**
 
-The underlying structured-damage functionality works in `40800`, including typed dice expressions and rolling, but the owner rejected the interaction: fields read like examples (`1d8`, `+3`) rather than semantic controls and dice combinations require manual typing instead of a direct compact dice-oriented interaction. P4 must define the desired editing grammar without sacrificing valid structured damage expressions or multiple damage components.
+At normal `Compactación de espacios = 100%`, the fixed Combate reference region consumed roughly 60% of the phone portrait viewport in `40800`, with an even more severe effect in landscape. The owner explicitly rejected treating a lower compactness setting such as 40% as the solution. P5 must determine what should remain persistently visible, what can collapse/scroll/adapt, and how the fixed region should react to available vertical space without yet broadening into the separate global phone-landscape/sticky-policy finding.
 
 ## Remaining boundary
 
