@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.SideEffect
@@ -92,6 +93,10 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         if (active) retargetFromGeometry()
     }
 
+    fun unregisterBounds(id: String) {
+        itemBounds.remove(id)
+    }
+
     fun setViewport(bounds: Rect) {
         viewportBounds = bounds
     }
@@ -133,8 +138,8 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         if (changed) {
             canonicalOrderSnapshot = finalOrder
             onCommitOrder(finalOrder)
+            onHaptic(CharacterHapticEventV4.DRAG_DROP)
         }
-        onHaptic(CharacterHapticEventV4.DRAG_DROP)
     }
 
     fun cancelDrag() {
@@ -254,12 +259,20 @@ internal fun Modifier.characterSpatialReorderViewportV4(
 /**
  * Attach to the reorderable card/row body. Short taps are left to existing click handlers; the
  * reorder session starts only after Compose resolves a long-press drag gesture.
+ *
+ * This modifier is composable so lazy items can unregister geometry when disposed. Without that
+ * lifecycle cleanup, an off-screen item's stale rectangle could become a false destination during
+ * edge auto-scroll.
  */
+@Composable
 internal fun Modifier.characterSpatialReorderItemV4(
     state: CharacterSpatialReorderStateV4,
     id: String,
     enabled: Boolean,
 ): Modifier {
+    DisposableEffect(state, id) {
+        onDispose { state.unregisterBounds(id) }
+    }
     val geometry = onGloballyPositioned { state.registerBounds(id, it.boundsInRoot()) }
     return if (!enabled) {
         geometry
