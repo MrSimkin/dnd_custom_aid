@@ -222,11 +222,70 @@ The exact responsive arrangement may adapt, but this compact information grammar
 
 **Status:** `CLOSED / READY FOR REPAIR SPEC`.
 
+### P6 — Direct drag-and-drop reorder in normal collection layout
+
+**QA problem:** `preqa.8 / 40800` uses a special `Reordenar -> transformed one-column layout -> Listo` workflow for shared collections. The owner rejected this because reordering should happen directly in the same layout in which the collection is normally used, including multicolumn presentation.
+
+**Owner-approved interaction:**
+
+- Reordering starts with **long-press + drag on the non-interactive body of the card itself**.
+- A normal tap retains the card's ordinary action such as opening/editing; ordinary scrolling must remain available.
+- No separate `Reordenar` mode, transformed reorder-only layout, or final `Listo` step is used.
+- Interactive child controls inside a card—buttons, checkboxes, menus, favorite controls and similar elements—keep their own actions and do **not** initiate card dragging.
+- A permanent drag handle is not required for the normal case. The whole non-interactive card body is the drag target.
+
+**Behavioral reference:**
+
+- The owner explicitly points to the Vivaldi mobile browser Tab Switcher card interaction as the desired feel/reference: long-press a card/tab, drag it directly through the visible collection, and release it at the new location.
+- Official Vivaldi Android documentation confirms that the Tab Switcher reorder interaction is long-press followed by drag-and-drop to the new location. This is a behavioral reference, not a requirement to reproduce Vivaldi's visual styling literally.
+
+**Multicolumn ordering:**
+
+- Reordering remains in the collection's actual active one-, two- or multicolumn layout; the collection must never collapse to one column merely to support drag-and-drop.
+- Multicolumn manual order is row-major/reading order: `1 -> 2 -> 3`, then `4 -> 5 -> 6`, and so on.
+- The dragged card moves through those actual positions and neighboring cards reflow live to communicate the insertion destination.
+- The user must be able to move a card across both rows and columns, not merely vertically within its current column.
+
+**Persistence and ordering mode:**
+
+- On drop, the new manual order is committed/persisted immediately. There is no separate Done/Save step for the reorder itself.
+- Direct drag reorder is available only while presentation order is `Manual`.
+- If `A–Z` or another deterministic non-manual ordering is active, dragging must not silently switch the collection into Manual mode or mutate hidden manual order behind the owner's back.
+- If the user attempts to reorder while a non-manual order is active, the UI should provide a small/non-intrusive indication that manual ordering requires `Manual` rather than changing the setting automatically.
+
+**Search/filter boundary:**
+
+- Direct reorder is disabled while a search or filter is active because the visible subset no longer represents the full manual sequence and hidden-item insertion would be ambiguous.
+- Clearing the search/filter restores direct reorder availability.
+- Do not infer or rewrite hidden-item order from a filtered subset.
+
+**Visual/haptic feedback:**
+
+- Pickup produces a subtle visual lift/scale and one pickup haptic.
+- Movement provides live insertion/reflow feedback in the real collection layout.
+- Crossing into a new candidate position produces a light haptic step; it must be subtle enough not to become intrusive during a long drag.
+- Drop produces one final haptic and commits the new order.
+- All reorder haptics respect the existing global haptic preference.
+
+**Shared scope:** this is a transversal shared-collection interaction. It applies to Equipo, Rasgos, Notas and any other Player collection that exposes manual ordering through the same collection/reorder primitive. Phone and tablet must use the same direct-manipulation semantics, adapted to their actual column count and available space.
+
+**Explicit non-goals / rejected alternatives:**
+
+- no `Reordenar -> special mode -> Listo` workflow;
+- no forced one-column fallback for multicolumn collections;
+- no automatic switch from `A–Z` to `Manual` merely because a long-press occurred;
+- no reorder while search/filter hides part of the sequence;
+- no requirement to copy Vivaldi's exact artwork or chrome—only the direct long-press/drag/drop behavioral grammar is the reference.
+
+**Regression boundary:** automated/UI coverage must prove long-press direct pickup in the normal layout, normal tap/edit behavior remains intact, child controls do not start dragging, row-major multicolumn movement including cross-column moves, live reflow/insertion feedback, immediate persistence on drop, no separate reorder mode/Done step, `Manual`-only reorder semantics, no silent sort-mode switching, disabled reorder under active search/filter, and pickup/step/drop haptics respecting the global haptic setting.
+
+**Status:** `CLOSED / READY FOR REPAIR SPEC`.
+
 ## Current discussion point
 
-**P6 — Direct drag-and-drop reorder in normal collection layout.**
+**P7 — Rasgos provenance from canonical character identity.**
 
-The owner rejected the current special `Reordenar -> transformed one-column layout -> Listo` workflow. P6 must define direct reordering behavior in the collection's actual normal presentation, including multicolumn layouts, while preserving safe editing/tapping behavior and useful movement feedback across shared collection surfaces.
+The QA finding says Rasgos still requests redundant free-text provenance even when the character already has canonical class/subclass/race/background identity data. P7 must make the actual selection interaction and edge-case behavior explicit while preserving the already-fixed rule that structured origins come from **this character**, not from a global static D&D catalog.
 
 ## Remaining boundary
 
