@@ -1,19 +1,20 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,12 +31,18 @@ import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsign
 import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterTemporaryHp
 import kotlin.math.abs
 
-private enum class CharacterHpOperationV4 {
-    DAMAGE,
-    HEAL,
+private enum class CharacterHpExactEditorV4 {
+    HIT_POINTS,
     TEMP_HP,
 }
 
+/**
+ * Compact persistent combat HUD (P2/P5/P16).
+ *
+ * Damage/healing is a high-frequency inline operation: one shared amount field, immediate apply,
+ * then clear. Exact administrative HP edits remain secondary and are reached by tapping the HP
+ * or temporary-HP metric.
+ */
 @Composable
 internal fun CharacterCombatOperationalCardV4(
     armorClass: String,
@@ -45,121 +52,282 @@ internal fun CharacterCombatOperationalCardV4(
     onSheetChange: (CharacterSheet) -> Unit,
     hapticsEnabled: Boolean,
 ) {
-    var operationName by rememberSaveable { mutableStateOf<String?>(null) }
+    var amountText by rememberSaveable { mutableStateOf("") }
+    var exactEditor by rememberSaveable { mutableStateOf<String?>(null) }
+    val amount = amountText.toIntOrNull()
+    val validAmount = amount != null && amount > 0
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val layoutContext = characterLayoutContextV4()
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-        ) {
-            Text("Referencia rápida", style = MaterialTheme.typography.titleSmall)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OperationalReferenceV4("CA", armorClass, Modifier.weight(1f))
-                OperationalReferenceV4("Iniciativa", initiative.ifBlank { "—" }, Modifier.weight(1f))
-                OperationalReferenceV4("Velocidad", formatSpeedOperationalV4(speed), Modifier.weight(1f))
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OperationalReferenceV4("PG actuales", sheet.currentHp.toString(), Modifier.weight(1f))
-                OperationalReferenceV4("PG máximos", sheet.maxHp.toString(), Modifier.weight(1f))
-                OperationalReferenceV4("PG temporales", sheet.tempHp.toString(), Modifier.weight(1f))
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-            ) {
-                OutlinedButton(
-                    onClick = { operationName = CharacterHpOperationV4.DAMAGE.name },
-                    modifier = Modifier.weight(1f),
-                ) { Text("Daño") }
-                OutlinedButton(
-                    onClick = { operationName = CharacterHpOperationV4.HEAL.name },
-                    modifier = Modifier.weight(1f),
-                ) { Text("Curar") }
-                OutlinedButton(
-                    onClick = { operationName = CharacterHpOperationV4.TEMP_HP.name },
-                    modifier = Modifier.weight(1f),
-                ) { Text("PG temp.") }
-            }
+    fun applyOperational(updated: CharacterSheet) {
+        if (updated != sheet) {
+            haptic(CharacterHapticEventV4.RESOURCE)
+            onSheetChange(updated)
+        }
+        amountText = ""
+    }
 
-            if (sheet.currentHp <= 0) {
-                Text("Salvaciones de muerte", style = MaterialTheme.typography.labelLarge)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val singleMetricRow = maxWidth >= 620.dp &&
+                layoutContext.verticalSpace != CharacterVerticalSpaceV4.COMFORTABLE
+
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+            ) {
+                if (singleMetricRow) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OperationalInlineMetricV4("CA", armorClass)
+                        OperationalInlineMetricV4("Inic.", initiative.ifBlank { "—" })
+                        OperationalInlineMetricV4("Vel.", formatSpeedOperationalV4(speed))
+                        OperationalInlineMetricV4(
+                            "PV",
+                            "${sheet.currentHp}/${sheet.maxHp}",
+                            modifier = Modifier.clickable { exactEditor = CharacterHpExactEditorV4.HIT_POINTS.name },
+                        )
+                        OperationalInlineMetricV4(
+                            "Temp.",
+                            sheet.tempHp.toString(),
+                            modifier = Modifier.clickable { exactEditor = CharacterHpExactEditorV4.TEMP_HP.name },
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OperationalInlineMetricV4("CA", armorClass, Modifier.weight(1f))
+                        OperationalInlineMetricV4("Inic.", initiative.ifBlank { "—" }, Modifier.weight(1f))
+                        OperationalInlineMetricV4("Vel.", formatSpeedOperationalV4(speed), Modifier.weight(1.45f))
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OperationalInlineMetricV4(
+                            "PV",
+                            "${sheet.currentHp}/${sheet.maxHp}",
+                            modifier = Modifier.weight(1f).clickable {
+                                exactEditor = CharacterHpExactEditorV4.HIT_POINTS.name
+                            },
+                        )
+                        OperationalInlineMetricV4(
+                            "Temp.",
+                            sheet.tempHp.toString(),
+                            modifier = Modifier.weight(1f).clickable {
+                                exactEditor = CharacterHpExactEditorV4.TEMP_HP.name
+                            },
+                        )
+                    }
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    DeathSaveCounterV4(
-                        label = "Éxitos",
-                        value = sheet.deathSaveSuccesses,
-                        onChange = { value ->
-                            haptic(CharacterHapticEventV4.RESOURCE)
-                            onSheetChange(sheet.copy(deathSaveSuccesses = value.coerceIn(0, 3)))
-                        },
-                        modifier = Modifier.weight(1f),
+                    TextButton(
+                        onClick = { amount?.let { applyOperational(applyCharacterDamage(sheet, it)) } },
+                        enabled = validAmount && (sheet.currentHp > 0 || sheet.tempHp > 0),
+                    ) { Text("Daño") }
+                    OutlinedTextField(
+                        value = amountText,
+                        onValueChange = { amountText = normalizeCharacterUnsignedIntegerInput(it) },
+                        modifier = Modifier.weight(1f).heightIn(min = characterCompactSingleLineFieldHeightV4()),
+                        label = { Text("Cantidad") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
-                    DeathSaveCounterV4(
-                        label = "Fallos",
-                        value = sheet.deathSaveFailures,
-                        onChange = { value ->
-                            haptic(CharacterHapticEventV4.RESOURCE)
-                            onSheetChange(sheet.copy(deathSaveFailures = value.coerceIn(0, 3)))
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
+                    TextButton(
+                        onClick = { amount?.let { applyOperational(applyCharacterHealing(sheet, it)) } },
+                        enabled = validAmount && sheet.currentHp < sheet.maxHp,
+                    ) { Text("Curar") }
                 }
-                Text(
-                    "La app solo registra el estado. No decide estabilización, muerte, reinicios ni otras consecuencias de reglas.",
-                    style = MaterialTheme.typography.labelSmall,
-                )
             }
         }
     }
 
-    operationName?.let { raw ->
-        val operation = runCatching { CharacterHpOperationV4.valueOf(raw) }.getOrDefault(CharacterHpOperationV4.DAMAGE)
-        HpOperationDialogV4(
-            operation = operation,
-            onDismiss = { operationName = null },
-            onApply = { amount ->
-                val updated = when (operation) {
-                    CharacterHpOperationV4.DAMAGE -> applyCharacterDamage(sheet, amount)
-                    CharacterHpOperationV4.HEAL -> applyCharacterHealing(sheet, amount)
-                    CharacterHpOperationV4.TEMP_HP -> setCharacterTemporaryHp(sheet, amount)
-                }
+    when (exactEditor?.let { runCatching { CharacterHpExactEditorV4.valueOf(it) }.getOrNull() }) {
+        CharacterHpExactEditorV4.HIT_POINTS -> CharacterExactHitPointsEditorV4(
+            sheet = sheet,
+            onDismiss = { exactEditor = null },
+            onApply = { currentHp, maxHp ->
+                val normalizedMax = maxHp.coerceAtLeast(0)
+                val normalizedCurrent = currentHp.coerceIn(0, normalizedMax)
+                val updated = sheet.copy(currentHp = normalizedCurrent, maxHp = normalizedMax)
                 if (updated != sheet) {
                     haptic(CharacterHapticEventV4.RESOURCE)
                     onSheetChange(updated)
                 }
-                operationName = null
+                exactEditor = null
             },
+        )
+        CharacterHpExactEditorV4.TEMP_HP -> CharacterExactTemporaryHpEditorV4(
+            sheet = sheet,
+            onDismiss = { exactEditor = null },
+            onApply = { value ->
+                val updated = setCharacterTemporaryHp(sheet, value.coerceAtLeast(0))
+                if (updated != sheet) {
+                    haptic(CharacterHapticEventV4.RESOURCE)
+                    onSheetChange(updated)
+                }
+                exactEditor = null
+            },
+        )
+        null -> Unit
+    }
+}
+
+@Composable
+private fun OperationalInlineMetricV4(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.padding(horizontal = 2.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+    }
+}
+
+@Composable
+private fun CharacterExactHitPointsEditorV4(
+    sheet: CharacterSheet,
+    onDismiss: () -> Unit,
+    onApply: (currentHp: Int, maxHp: Int) -> Unit,
+) {
+    var currentText by rememberSaveable(sheet.currentHp) { mutableStateOf(sheet.currentHp.toString()) }
+    var maxText by rememberSaveable(sheet.maxHp) { mutableStateOf(sheet.maxHp.toString()) }
+    val current = currentText.toIntOrNull()
+    val max = maxText.toIntOrNull()
+    val valid = current != null && current >= 0 && max != null && max >= 0
+
+    CharacterImeSafeEditorDialog(
+        title = "Establecer puntos de vida",
+        onCancel = onDismiss,
+        onSave = { if (valid) onApply(requireNotNull(current), requireNotNull(max)) },
+        saveEnabled = valid,
+    ) {
+        CharacterCompactFieldRowV4(
+            first = { modifier ->
+                OutlinedTextField(
+                    value = currentText,
+                    onValueChange = { currentText = normalizeCharacterUnsignedIntegerInput(it) },
+                    modifier = modifier,
+                    label = { Text("PV actuales") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                )
+            },
+            second = { modifier ->
+                OutlinedTextField(
+                    value = maxText,
+                    onValueChange = { maxText = normalizeCharacterUnsignedIntegerInput(it) },
+                    modifier = modifier,
+                    label = { Text("PV máximos") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                )
+            },
+        )
+        CharacterInlineValidationMessage(
+            if (currentText.isNotBlank() && maxText.isNotBlank() && !valid) {
+                "Usa valores enteros iguales o mayores que 0."
+            } else null,
         )
     }
 }
 
 @Composable
-private fun OperationalReferenceV4(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        CompactFieldLabelV4(label)
-        Surface(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 38.dp),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            color = MaterialTheme.colorScheme.surfaceVariant,
+private fun CharacterExactTemporaryHpEditorV4(
+    sheet: CharacterSheet,
+    onDismiss: () -> Unit,
+    onApply: (Int) -> Unit,
+) {
+    var valueText by rememberSaveable(sheet.tempHp) { mutableStateOf(sheet.tempHp.toString()) }
+    val value = valueText.toIntOrNull()
+    val valid = value != null && value >= 0
+
+    CharacterImeSafeEditorDialog(
+        title = "Establecer PV temporales",
+        onCancel = onDismiss,
+        onSave = { if (valid) onApply(requireNotNull(value)) },
+        saveEnabled = valid,
+    ) {
+        OutlinedTextField(
+            value = valueText,
+            onValueChange = { valueText = normalizeCharacterUnsignedIntegerInput(it) },
+            label = { Text("PV temporales") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        CharacterInlineValidationMessage(
+            if (valueText.isNotBlank() && !valid) "Usa un entero igual o mayor que 0." else null,
+        )
+    }
+}
+
+/** Death saves are deliberately scrollable content, not part of the persistent Combat HUD (P5). */
+@Composable
+internal fun CharacterCombatDeathSavesSectionV4(
+    sheet: CharacterSheet,
+    onSheetChange: (CharacterSheet) -> Unit,
+    hapticsEnabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    if (sheet.currentHp > 0) return
+    val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(appSpacingV4(7.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Text("Salvaciones de muerte", style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(value.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                DeathSaveCounterV4(
+                    label = "Éxitos",
+                    value = sheet.deathSaveSuccesses,
+                    onChange = { value ->
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                        onSheetChange(sheet.copy(deathSaveSuccesses = value.coerceIn(0, 3)))
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+                DeathSaveCounterV4(
+                    label = "Fallos",
+                    value = sheet.deathSaveFailures,
+                    onChange = { value ->
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                        onSheetChange(sheet.copy(deathSaveFailures = value.coerceIn(0, 3)))
+                    },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
@@ -178,52 +346,10 @@ private fun DeathSaveCounterV4(
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OutlinedButton(onClick = { onChange(value - 1) }, enabled = value > 0) { Text("−") }
+            TextButton(onClick = { onChange(value - 1) }, enabled = value > 0) { Text("−") }
             Text("${value.coerceIn(0, 3)}/3", style = MaterialTheme.typography.titleSmall)
-            OutlinedButton(onClick = { onChange(value + 1) }, enabled = value < 3) { Text("+") }
+            TextButton(onClick = { onChange(value + 1) }, enabled = value < 3) { Text("+") }
         }
-    }
-}
-
-@Composable
-private fun HpOperationDialogV4(
-    operation: CharacterHpOperationV4,
-    onDismiss: () -> Unit,
-    onApply: (Int) -> Unit,
-) {
-    var amountText by rememberSaveable(operation.name) { mutableStateOf(if (operation == CharacterHpOperationV4.TEMP_HP) "0" else "") }
-    val amount = amountText.toIntOrNull()
-    val valid = amount != null && amount >= 0 && (operation == CharacterHpOperationV4.TEMP_HP || amount > 0)
-    val title = when (operation) {
-        CharacterHpOperationV4.DAMAGE -> "Recibir daño"
-        CharacterHpOperationV4.HEAL -> "Recibir curación"
-        CharacterHpOperationV4.TEMP_HP -> "Establecer PG temporales"
-    }
-
-    CharacterImeSafeEditorDialog(
-        title = title,
-        onCancel = onDismiss,
-        onSave = { amount?.let(onApply) },
-        saveEnabled = valid,
-        supportingText = when (operation) {
-            CharacterHpOperationV4.DAMAGE -> "El daño consume primero los PG temporales y luego reduce los PG actuales, sin bajar de 0."
-            CharacterHpOperationV4.HEAL -> "La curación no supera los PG máximos guardados."
-            CharacterHpOperationV4.TEMP_HP -> "Escribe el valor exacto que deseas registrar; 0 los elimina."
-        },
-    ) {
-        OutlinedTextField(
-            value = amountText,
-            onValueChange = { amountText = normalizeCharacterUnsignedIntegerInput(it) },
-            label = { Text(if (operation == CharacterHpOperationV4.TEMP_HP) "PG temporales" else "Cantidad") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
-        CharacterInlineValidationMessage(
-            if (amountText.isNotBlank() && !valid) {
-                if (operation == CharacterHpOperationV4.TEMP_HP) "Escribe un número igual o mayor que 0." else "Escribe una cantidad mayor que 0."
-            } else null,
-        )
     }
 }
 
