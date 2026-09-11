@@ -375,11 +375,60 @@ A definition existing in an SRD/custom catalog never implies that the PC owns it
 
 **Status:** `CLOSED / READY FOR REPAIR SPEC`.
 
+### P8 — Trasfondo photo UX: restore simple image tiles while preserving durable storage
+
+**QA problem:** `preqa.8 / 40800` replaced an already-preferred Trasfondo photo presentation with a more elaborate persistence-era card containing permanent title/action chrome, filename and storage explanation. The owner rejected that redesign. Persistence correctness was required; the presentation redesign was not.
+
+**Historical/reference boundary:**
+
+- The original approved Trasfondo visual grammar used two simple side-by-side portrait-oriented image tiles with a `4:5` aspect ratio.
+- The repository history does not contain a fully recoverable earlier functioning photo-picker interaction before the durable G4 implementation; older committed V4 states were still placeholders.
+- Therefore the repair restores the owner-approved simple tile grammar and the interaction decisions made during this reconciliation, rather than claiming to reproduce an unrecoverable historical implementation byte-for-byte.
+
+**Owner-approved target behavior:**
+
+- Trasfondo presents exactly two simple side-by-side photo tiles labelled `Imagen principal` and `Imagen secundaria`.
+- Each tile has a fixed `4:5` presentation footprint. Loading, changing or displaying a photo must **not increase or otherwise change the tile's size**.
+- Do not keep the persistence-era outer card/header/control row, filename underneath, or permanent storage/persistence explanation in the normal sheet presentation.
+- When a slot is empty, the **entire tile** is the add/select target. A normal tap opens the image picker; no separate permanent `Añadir` button is required.
+- When a slot contains an image, a normal tap opens a larger image viewer. It does **not** immediately replace the picture.
+- The normal filled tile remains visually clean; `Cambiar` and `Eliminar` controls are not permanently displayed around or above it.
+- In the enlarged viewer, image-management controls such as change/replace and remove/delete appear **overlaid inside the image/viewer**, rather than consuming a separate permanent control row in the Trasfondo sheet.
+- Structural-editing restrictions still apply: when structural editing is unavailable (for example the relevant Table Mode/read-only state), change/remove controls are not exposed as active structural actions.
+
+**Crop / viewer behavior:**
+
+- The fixed `4:5` sheet tile uses crop-to-fill / center-crop behavior so its geometry remains stable regardless of the source image's aspect ratio.
+- A wide or tall source image may therefore be cropped at its edges in the sheet thumbnail.
+- Tapping the filled tile opens the larger viewer showing the **complete uncropped image**, preserving the source image's aspect ratio within the available viewing area.
+- The larger viewer is the place for inspection plus overlaid change/remove controls; the thumbnail is the compact sheet projection.
+
+**Persistence/storage boundary that must be retained:**
+
+- Keep the newer app-owned durable image persistence/storage semantics underneath the restored presentation.
+- Images must survive save/reopen, full app restart and normal character persistence.
+- Backup/export/import must continue carrying the images safely rather than reverting to fragile external URI/file references.
+- The app may continue resizing/compressing/copying images internally as required for durable ownership; those implementation details must not force permanent explanatory UI into the character sheet.
+
+**Explicit non-goals / rejected alternatives:**
+
+- do not let the image's original dimensions/aspect ratio expand the sheet tile;
+- do not restore external-file-dependent persistence merely to simplify the UI;
+- do not keep permanent `Añadir/Cambiar/Eliminar` chrome outside the image tile;
+- do not display the original filename as permanent sheet content;
+- do not use `Personaje / Grupo` or `Imagen de personaje / Imagen de grupo` as the slot labels; the accepted labels are `Imagen principal / Imagen secundaria`.
+
+**Phone/tablet scope:** the same two-slot semantics, fixed-aspect tile grammar, viewer behavior and durable storage apply on phone and tablet. Responsive width may alter the physical tile size, but an image must not change the layout footprint after loading and the two slots must remain visually coherent.
+
+**Regression boundary:** automated/UI coverage must prove fixed `4:5` tile geometry before and after image selection; whole-empty-tile add interaction; filled-tile tap opening the viewer rather than picker; center-cropped thumbnail versus full uncropped viewer; viewer-contained replace/delete controls; absence of permanent filename/storage/control chrome on the normal sheet; correct `Imagen principal / Imagen secundaria` labels; structural-editing restrictions; image persistence across reopen/restart; and backup/export/import survival using app-owned image data.
+
+**Status:** `CLOSED / READY FOR REPAIR SPEC`.
+
 ## Current discussion point
 
-**P8 — Trasfondo photo UX / preserve durable image storage while restoring preferred interaction.**
+**P9 — Shared editor sizing / adaptive `CharacterImeSafeEditorDialog`.**
 
-Discuss only the `40800` Trasfondo photo regression: restore the older preferred photo interaction/presentation while keeping the newer durable image persistence, reopen and backup/import safety underneath. Inspect the current implementation and relevant historical implementation before asking the owner for any remaining decisions.
+Discuss only the `40800` shared-editor sizing defect: short/simple editors currently consume essentially the full available screen even when their content does not require it. Preserve IME safety and button reachability while defining an adaptive/natural sizing rule shared across phone/tablet callers; do not mix this point with unrelated PC Settings or landscape/sticky redesigns.
 
 ## Remaining boundary
 
