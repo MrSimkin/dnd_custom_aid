@@ -424,11 +424,68 @@ A definition existing in an SRD/custom catalog never implies that the PC owns it
 
 **Status:** `CLOSED / READY FOR REPAIR SPEC`.
 
+### P9 — Shared editor sizing / adaptive editor layout
+
+**QA problem:** `preqa.8 / 40800` makes short/simple editors consume essentially the full available screen. Inspection confirms the shared `CharacterImeSafeEditorDialog` itself forces full height for both the modal surface and its internal content, and the Save/Cancel action row currently lives inside the same scrolling column. The defect is therefore shared rather than a collection of unrelated per-tab problems.
+
+**Owner-approved default sizing behavior:**
+
+- Short/simple editors are **content-sized** by default: the modal should be only as tall as its actual content reasonably requires.
+- As content grows, the editor grows naturally until it reaches a sensible maximum based on the currently usable screen area; beyond that point, the content region scrolls rather than the modal continuing to grow without restraint.
+- `large content` must remain sensibly bounded, especially in portrait. A complex editor must not become nearly full-screen merely because the maximum technically allows it when a more compact usable presentation is possible.
+- The default progression is therefore `small content -> small dialog`, `medium content -> medium dialog`, `large content -> bounded dialog + internal scrolling`.
+- Genuinely complex workflows may explicitly request a larger/expanded editor surface when useful, but this is an opt-in exception rather than the shared default and does not mean forcing literal fullscreen.
+
+**Keyboard / IME behavior and action-row priority:**
+
+- When the keyboard opens, sizing adapts to the smaller currently usable area instead of switching to a separate editor design.
+- The preferred behavior is for `Cancelar / Guardar` to remain visible/reachable outside the scrolling content region while editable content scrolls independently.
+- However, this is a **preference with practical flexibility**, not an authorization to reopen the previously unsuccessful keyboard-layout rabbit hole. The owner explicitly does not want implementation effort consumed indefinitely trying to force permanently visible buttons under every keyboard/device combination if the platform/layout proves unreliable.
+- If a particular constrained/IME state cannot robustly preserve a fixed action row, the implementation may use a safe fallback that keeps the actions reachable through scrolling or another stable interaction rather than introducing clipping, broken focus/IME behavior, or fragile device-specific hacks.
+- The acceptance criterion is reliable edit/save/cancel usability with the keyboard, not ideological adherence to a fixed footer at all costs.
+
+**Responsive dimension rule:**
+
+- Editor sizing responds to actual available width/height rather than simple labels such as `phone`, `tablet`, `portrait` or `landscape` alone.
+- A short editor on a large tablet remains compact instead of stretching merely because space exists.
+- A complex editor on a vertically constrained phone may consume a larger proportion of the usable area and scroll internally where necessary.
+- This P9 rule concerns modal/editor adaptation; the broader fixed/sticky landscape policy remains a separate later QA point.
+
+**Wide-screen form layout:**
+
+- On sufficiently wide screens such as tablets, editors should not merely place a narrow phone form in the center with unused space. They may use **multiple columns when fields form sensible semantic pairs/groups**.
+- Example pairs might include short related controls such as Name/Type or Range/Duration where that improves scanning and editing.
+- Long-content fields—descriptions, Notes, long text areas, complex lists and similar controls—may span the full editor width even when surrounding short fields use columns.
+- Column use must be semantic and deliberate, not a mechanical rule such as placing every second field in another column.
+- Phone portrait normally remains one-column unless a particular compact pair is already demonstrably appropriate.
+- P9 therefore establishes a shared responsive editor-layout principle in addition to repairing the outer dialog height.
+
+**Width / visual boundary:**
+
+- Modal width remains bounded to a comfortable readable/workable size rather than stretching edge-to-edge across a wide tablet simply because the display permits it.
+- A wide-screen editor may itself be wider than the current narrow phone-like form when that width is productively used for sensible columns.
+- Touch targets, text readability and field usability must not be reduced merely to make the modal visually smaller.
+
+**Explicit non-goals / rejected alternatives:**
+
+- no shared `fillMaxHeight()` behavior for every editor regardless of content;
+- no universal phone=fullscreen / tablet=dialog rule;
+- no requirement that every editor use multiple columns on tablet;
+- no mechanical alternating-field column layout;
+- no mandatory permanent keyboard-visible action footer if achieving it is unstable on a real device;
+- no broad redesign of each editor's domain semantics under P9; responsive grouping is allowed, but changing what fields mean/order/workflow is a separate design concern.
+
+**Phone/tablet scope:** one adaptive editor primitive/policy serves phone and tablet. Phone favors natural compact height and normally one-column forms; wide tablet/editor contexts may exploit width with semantically grouped columns while preserving bounded readable geometry. IME safety and reliable Save/Cancel reachability remain required on both.
+
+**Regression boundary:** UI/integration coverage must prove a representative one-field editor no longer fills the available height; medium and large editors grow then scroll at a bounded height; portrait does not allow unreasonably tall large editors; representative complex editors can opt into an expanded surface without forcing true fullscreen; keyboard-open states keep fields and Save/Cancel reliably reachable without clipping or broken focus; tablet/wide layouts do not stretch simple editors pointlessly; and at least one representative wide complex form demonstrates semantic multi-column grouping with long-text content spanning full width.
+
+**Status:** `CLOSED / READY FOR REPAIR SPEC`.
+
 ## Current discussion point
 
-**P9 — Shared editor sizing / adaptive `CharacterImeSafeEditorDialog`.**
+**P10 — Application Settings compactness slider proportionality.**
 
-Discuss only the `40800` shared-editor sizing defect: short/simple editors currently consume essentially the full available screen even when their content does not require it. Preserve IME safety and button reachability while defining an adaptive/natural sizing rule shared across phone/tablet callers; do not mix this point with unrelated PC Settings or landscape/sticky redesigns.
+Discuss only the `40800` Application Settings `Compactación de espacios` behavior: the control is functional, but its visual effect is disproportionately concentrated in inter-card gaps instead of coherently affecting the spacing system. Define the intended proportional compactness behavior without mixing it with the separate PC Settings redesign or fixed/sticky landscape policy.
 
 ## Remaining boundary
 
