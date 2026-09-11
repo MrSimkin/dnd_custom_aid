@@ -3,7 +3,7 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,13 +31,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,16 +44,15 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterForm
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPresentationOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderResult
 import io.github.mrsimkin.dndcustomaid.shared.character.characterFormSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterForm
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterFormManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterFormSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterFormOrders
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterForms
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 private const val FORM_FILTER_SEPARATOR_H1 = "\u001E"
@@ -190,6 +187,18 @@ internal fun CharacterFormsModuleV4(
         editorOpen = false
     }
 
+    fun commitFormReorder(proposedIds: List<String>) {
+        if (!canReorder) return
+        val normalized = normalizeCharacterFormOrders(forms)
+        val canonicalIds = normalized.map { it.id.toString() }
+        val finalIds = applyCharacterReorderResult(canonicalIds, proposedIds)
+        if (finalIds == canonicalIds) return
+        val byId = normalized.associateBy { it.id.toString() }
+        val reordered = finalIds.mapNotNull(byId::get)
+        if (reordered.size != normalized.size) return
+        onFormsChange(reordered.mapIndexed { index, form -> form.copy(sortOrder = index) })
+    }
+
     val collection: @Composable (Modifier) -> Unit = { modifier ->
         FormsCollectionH1(
             modifier = modifier,
@@ -208,20 +217,7 @@ internal fun CharacterFormsModuleV4(
             onEdit = ::beginEdit,
             onDuplicate = ::duplicate,
             onDelete = { deleteId = it.id.toString() },
-            onMove = { form, offset ->
-                if (!canReorder) {
-                    false
-                } else {
-                    val before = normalizeCharacterFormOrders(forms)
-                    val moved = moveCharacterFormManual(forms, form.id, offset)
-                    if (moved == before) {
-                        false
-                    } else {
-                        onFormsChange(moved)
-                        true
-                    }
-                }
-            },
+            onCommitReorder = ::commitFormReorder,
             onFavoriteChange = { form, enabled ->
                 onClosureStateChange(
                     closureState.withQuickAccess(CharacterQuickAccessKind.FORM, form.id, enabled),
@@ -232,10 +228,10 @@ internal fun CharacterFormsModuleV4(
     }
 
     val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
-    characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+        characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
-if (sideEditorVisible) {
-    Row(
+    if (sideEditorVisible) {
+        Row(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
@@ -398,7 +394,7 @@ private fun FormsCollectionH1(
     onEdit: (CharacterForm) -> Unit,
     onDuplicate: (CharacterForm) -> Unit,
     onDelete: (CharacterForm) -> Unit,
-    onMove: (CharacterForm, Int) -> Boolean,
+    onCommitReorder: (List<String>) -> Unit,
     onFavoriteChange: (CharacterForm, Boolean) -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
@@ -420,96 +416,146 @@ private fun FormsCollectionH1(
         ),
     ) + sourceFilters
 
-    LazyColumn(
+    val listState = rememberLazyListState()
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+    val normalizedForms = normalizeCharacterFormOrders(forms)
+    val canonicalIds = normalizedForms.map { it.id.toString() }
+    val formById = forms.associateBy { it.id.toString() }
+    val sessionEnabled = canReorder && canonicalIds.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "forms",
+        canonicalOrder = canonicalIds,
+        enabled = sessionEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = onCommitReorder,
+        onHaptic = onHaptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+
+    val layoutForms = if (canReorder) {
+        reorderSession.previewOrder.mapNotNull(formById::get)
+    } else {
+        visible
+    }
+
+    CharacterReorderOverlayHostV4(
+        session = reorderSession,
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = appSpacingV4(6.dp),
-            end = appSpacingV4(6.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-    ) {
-        stickyHeader(key = "h1-forms-tools") {
-            CharacterCollectionToolbarV4(
-                itemCount = visible.size,
-                query = query,
-                onQueryChange = onQueryChange,
-                order = order,
-                onOrderChange = onOrderChange,
-                filters = filters,
-                searchLabel = "Buscar formas",
-                collapsibleSearch = true,
-                showItemCount = false,
-                compactOrderControl = true,
-                contextContent = {
-                    Text(
-                        "Formas",
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                onAdd = if (structuralEditingEnabled) onAdd else null,
-            )
-        }
-
-        item(key = "h1-forms-help") {
-            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
-                CharacterHelpV4("Biblioteca de transformaciones y formas alternativas. Consultarlas no cambia automáticamente la ficha base.")
-                if (!canReorder && visible.isNotEmpty()) {
-                    Text(
-                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                        } else {
-                            "Limpia búsqueda y filtros para reordenar manualmente."
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-            }
-        }
-
-        if (forms.isEmpty()) {
-            item {
-                CharacterUsefulEmptyState(
-                    title = "Sin formas registradas",
-                    message = "Añade una forma o transformación que quieras consultar rápidamente. No necesitas copiar un bloque completo de criatura.",
-                    onAdd = if (structuralEditingEnabled) onAdd else null,
-                    addLabel = "Añadir forma",
+        liftedContent = { draggedId ->
+            formById[draggedId]?.let { form ->
+                FormRowH1(
+                    form = form,
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.FORM, form.id),
+                    favoriteEnabled = false,
+                    reorderSession = null,
+                    structuralEditingEnabled = false,
+                    selected = selectedEditingId == form.id.toString(),
+                    onFavoriteChange = {},
+                    onEdit = {},
+                    onDuplicate = {},
+                    onDelete = {},
+                    lifted = true,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
-        } else if (visible.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No hay formas que coincidan con esta búsqueda y filtros.",
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+        },
+    ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .characterReorderSessionViewportV4(reorderSession),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(6.dp),
+                end = appSpacingV4(6.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            stickyHeader(key = "h1-forms-tools") {
+                CharacterCollectionToolbarV4(
+                    itemCount = visible.size,
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    order = order,
+                    onOrderChange = onOrderChange,
+                    filters = filters,
+                    searchLabel = "Buscar formas",
+                    collapsibleSearch = true,
+                    showItemCount = false,
+                    compactOrderControl = true,
+                    contextContent = {
+                        Text(
+                            "Formas",
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
+                )
+            }
+
+            item(key = "h1-forms-help") {
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                    CharacterHelpV4("Biblioteca de transformaciones y formas alternativas. Consultarlas no cambia automáticamente la ficha base.")
+                    if (!canReorder && visible.isNotEmpty()) {
+                        Text(
+                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                            } else {
+                                "Limpia búsqueda y filtros para reordenar manualmente."
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                 }
             }
-        }
 
-        items(
-            count = visible.size,
-            key = { index -> "h1-form-${visible[index].id}" },
-        ) { index ->
-            val form = visible[index]
-            FormRowH1(
-                form = form,
-                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.FORM, form.id),
-                favoriteEnabled = structuralEditingEnabled && form.id in persistedFormIds,
-                reorderEnabled = canReorder && forms.size > 1,
-                structuralEditingEnabled = structuralEditingEnabled,
-                selected = selectedEditingId == form.id.toString(),
-                onFavoriteChange = { onFavoriteChange(form, it) },
-                onMove = { offset -> onMove(form, offset) },
-                onEdit = { onEdit(form) },
-                onDuplicate = { onDuplicate(form) },
-                onDelete = { onDelete(form) },
-                onHaptic = onHaptic,
-            )
+            if (forms.isEmpty()) {
+                item {
+                    CharacterUsefulEmptyState(
+                        title = "Sin formas registradas",
+                        message = "Añade una forma o transformación que quieras consultar rápidamente. No necesitas copiar un bloque completo de criatura.",
+                        onAdd = if (structuralEditingEnabled) onAdd else null,
+                        addLabel = "Añadir forma",
+                    )
+                }
+            } else if (visible.isEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "No hay formas que coincidan con esta búsqueda y filtros.",
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+
+            items(
+                count = layoutForms.size,
+                key = { index -> "h1-form-${layoutForms[index].id}" },
+            ) { index ->
+                val form = layoutForms[index]
+                FormRowH1(
+                    form = form,
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.FORM, form.id),
+                    favoriteEnabled = structuralEditingEnabled && form.id in persistedFormIds,
+                    reorderSession = reorderSession.takeIf { sessionEnabled },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    selected = selectedEditingId == form.id.toString(),
+                    onFavoriteChange = { onFavoriteChange(form, it) },
+                    onEdit = { onEdit(form) },
+                    onDuplicate = { onDuplicate(form) },
+                    onDelete = { onDelete(form) },
+                    modifier = Modifier
+                        .animateItem()
+                        .fillMaxWidth(),
+                )
+            }
         }
     }
 }
@@ -519,111 +565,112 @@ private fun FormRowH1(
     form: CharacterForm,
     favorite: Boolean,
     favoriteEnabled: Boolean,
-    reorderEnabled: Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
-    onMove: (Int) -> Boolean,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(form.id) { mutableStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    val id = form.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .characterMeasuredReorderDragV4(
-                    enabled = reorderEnabled,
-                    onHaptic = onHaptic,
-                    onMove = onMove,
-                    onVisualStateChange = { state ->
-                        dragging = state.active
-                        accumulatedDrag = state.offsetY
-                    },
-                )
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(
-                width = if (selected) 2.dp else 1.dp,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            ),
-            color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    Surface(
+        modifier = modifier.then(geometryModifier),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(pickupModifier)
+                    .clickable(
+                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        onClick = onEdit,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
             ) {
-Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                ) {
+                Text(
+                    form.name.ifBlank { "Forma sin nombre" },
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                    form.challengeRatingText?.takeIf(String::isNotBlank)?.let { ModuleBadgeH1("CR $it") }
+                    form.armorClass?.let { ModuleBadgeH1("CA $it") }
+                    form.hitPoints?.let { ModuleBadgeH1("PG $it") }
+                }
+                val reference = listOfNotNull(
+                    form.source?.takeIf(String::isNotBlank),
+                    form.movement?.takeIf(String::isNotBlank),
+                    form.senses?.takeIf(String::isNotBlank),
+                ).joinToString(" · ")
+                if (reference.isNotBlank()) {
                     Text(
-                        form.name.ifBlank { "Forma sin nombre" },
-                        style = MaterialTheme.typography.labelLarge,
+                        reference,
+                        style = MaterialTheme.typography.labelSmall,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
-                        form.challengeRatingText?.takeIf(String::isNotBlank)?.let { ModuleBadgeH1("CR $it") }
-                        form.armorClass?.let { ModuleBadgeH1("CA $it") }
-                        form.hitPoints?.let { ModuleBadgeH1("PG $it") }
-                    }
-                    val reference = listOfNotNull(
-                        form.source?.takeIf(String::isNotBlank),
-                        form.movement?.takeIf(String::isNotBlank),
-                        form.senses?.takeIf(String::isNotBlank),
-                    ).joinToString(" · ")
-                    if (reference.isNotBlank()) {
-                        Text(
-                            reference,
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    if (form.actionSummary.isNotBlank()) {
-                        Text(
-                            form.actionSummary,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    StableFavoriteIconButton(
-                        selected = favorite,
-                        onClick = { onFavoriteChange(!favorite) },
-                        enabled = favoriteEnabled,
-                        contentDescription = if (favorite) "Quitar ${form.name} de Favoritos" else "Añadir ${form.name} a Favoritos",
+                if (form.actionSummary.isNotBlank()) {
+                    Text(
+                        form.actionSummary,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(
-                            onClick = onDuplicate,
-                            contentDescription = "Duplicar ${form.name}",
-                        )
-                        StableRemoveIconButton(
-                            onClick = onDelete,
-                            contentDescription = "Eliminar ${form.name}",
-                        )
-                    }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                StableFavoriteIconButton(
+                    selected = favorite,
+                    onClick = { onFavoriteChange(!favorite) },
+                    enabled = !lifted && structuralEditingEnabled && favoriteEnabled,
+                    contentDescription = if (favorite) {
+                        "Quitar ${form.name} de Favoritos"
+                    } else {
+                        "Añadir ${form.name} a Favoritos"
+                    },
+                )
+                if (structuralEditingEnabled && !lifted) {
+                    StableDuplicateIconButton(
+                        onClick = onDuplicate,
+                        contentDescription = "Duplicar ${form.name}",
+                    )
+                    StableRemoveIconButton(
+                        onClick = onDelete,
+                        contentDescription = "Eliminar ${form.name}",
+                    )
                 }
             }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
