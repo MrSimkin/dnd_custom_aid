@@ -1,5 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,9 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -27,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
@@ -34,6 +37,15 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleOverrideM
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.moduleOverrideMode
 import io.github.mrsimkin.dndcustomaid.shared.character.withModuleOverride
+
+private enum class PcSettingsPageClosureV4 {
+    MAIN,
+    TAB_ORDER,
+    CUSTOM_ATTRIBUTES,
+    CUSTOM_SKILLS,
+    CUSTOM_MARKERS,
+    MODULES,
+}
 
 @Composable
 internal fun CharacterPcSettingsClosureV4(
@@ -53,163 +65,84 @@ internal fun CharacterPcSettingsClosureV4(
     onOpenApplicationSettings: () -> Unit,
 ) {
     var pendingLifecycleStatusName by rememberSaveable { mutableStateOf<String?>(null) }
+    var pageName by rememberSaveable { mutableStateOf(PcSettingsPageClosureV4.MAIN.name) }
+    val page = runCatching { PcSettingsPageClosureV4.valueOf(pageName) }.getOrDefault(PcSettingsPageClosureV4.MAIN)
     val layoutContext = characterLayoutContextV4()
-    val wide = layoutContext.isTablet
+    val wide = layoutContext.availableWidthDp >= 720
+    val pcContext = LocalCharacterPcSettingsContextV4.current
+
+    fun requestStatus(requested: CharacterStatus) {
+        when (requested) {
+            CharacterStatus.RETIRED,
+            CharacterStatus.DEAD,
+            -> pendingLifecycleStatusName = requested.name
+            else -> onStatusChange(requested)
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .navigationBarsPadding(),
-            contentPadding = PaddingValues(
-                start = appSpacingV4(if (wide) 14.dp else 6.dp),
-                end = appSpacingV4(if (wide) 14.dp else 6.dp),
-                top = appSpacingV4(6.dp),
-                bottom = appSpacingV4(28.dp),
-            ),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
-        ) {
-            item(key = "pc-settings-header") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                ) {
-                    StableBackIconButton(
-                        onClick = onBack,
-                        contentDescription = "Volver a la ficha",
+        when (page) {
+            PcSettingsPageClosureV4.MAIN -> PcSettingsMainClosureV4(
+                characterName = characterName,
+                status = status,
+                spellcasterEnabled = spellcasterEnabled,
+                closureState = closureState,
+                suggestedModules = suggestedModules,
+                tableModeCanEnable = tableModeCanEnable,
+                wide = wide,
+                customAttributeCount = pcContext?.successorState?.customAttributes?.size ?: 0,
+                customMarkerCount = pcContext?.successorState?.customMarkers?.size ?: 0,
+                tabCount = pcContext?.successorState?.preferences?.tabOrder?.size ?: 0,
+                inspirationVisible = pcContext?.pcConfiguration?.inspirationVisible ?: true,
+                onInspirationVisibleChange = { visible ->
+                    pcContext?.onPcConfigurationChange?.invoke(
+                        pcContext.pcConfiguration.copy(inspirationVisible = visible),
                     )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Ajustes de personaje", style = MaterialTheme.typography.titleLarge)
-                        Text(
-                            characterName.ifBlank { "Ficha de personaje" },
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                        Text(
-                            "Los cambios de esta pantalla se guardan al aplicarlos.",
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
-                }
-            }
+                },
+                onBack = onBack,
+                onStatusChange = ::requestStatus,
+                onSpellcasterEnabledChange = onSpellcasterEnabledChange,
+                onClosureStateChange = onClosureStateChange,
+                onNavigate = { pageName = it.name },
+                onOpenSupercompact = onOpenSupercompact,
+                backupExportEnabled = backupExportEnabled,
+                onExportBackup = onExportBackup,
+                onOpenApplicationSettings = onOpenApplicationSettings,
+            )
 
-            // Identity/lifecycle and safe character-level actions stay first.
-            item(key = "pc-settings-identity-actions") {
-                PcSettingsPairClosureV4(
-                    wide = wide,
-                    first = {
-                        LifecycleStatusCardClosureV4(
-                            status = status,
-                            onStatusChange = { requested ->
-                                when (requested) {
-                                    CharacterStatus.RETIRED,
-                                    CharacterStatus.DEAD,
-                                    -> pendingLifecycleStatusName = requested.name
+            PcSettingsPageClosureV4.TAB_ORDER -> PcSettingsSubpageClosureV4(
+                title = "Orden de pestañas",
+                onBack = { pageName = PcSettingsPageClosureV4.MAIN.name },
+            ) { CharacterTabOrderSettingsV4() }
 
-                                    else -> onStatusChange(requested)
-                                }
-                            },
-                        )
-                    },
-                    second = {
-                        NavigationSettingCardClosureV4(
-                            title = "Respaldo local",
-                            description = if (backupExportEnabled) {
-                                "Exporta la última versión guardada de este personaje a un archivo propio de la aplicación."
-                            } else {
-                                "Guarda o descarta los cambios pendientes antes de exportar un respaldo."
-                            },
-                            actionLabel = "Exportar respaldo",
-                            enabled = backupExportEnabled,
-                            onClick = onExportBackup,
-                        )
-                    },
-                )
-            }
+            PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES -> PcSettingsSubpageClosureV4(
+                title = "Características personalizadas",
+                onBack = { pageName = PcSettingsPageClosureV4.MAIN.name },
+            ) { CharacterCustomAttributesSettingsV4() }
 
-            // Global application configuration is intentionally easy to find but remains separate.
-            item(key = "pc-settings-application") {
-                NavigationSettingCardClosureV4(
-                    title = "Configuración de la aplicación",
-                    description = "Abre las preferencias globales de tema, tipografía, escala, densidad y otras opciones de la aplicación.",
-                    actionLabel = "Abrir configuración",
-                    onClick = onOpenApplicationSettings,
-                )
-            }
-
-            item(key = "pc-settings-visibility") {
-                PcSettingsPairClosureV4(
-                    wide = wide,
-                    first = {
-                        SpellcastingSettingsCardClosureV4(
-                            enabled = spellcasterEnabled,
-                            onEnabledChange = onSpellcasterEnabledChange,
-                        )
-                    },
-                    second = { CharacterInspirationVisibilitySettingsV4() },
-                )
-            }
-
-            item(key = "pc-settings-tab-order") {
-                CharacterTabOrderSettingsV4()
-            }
-
-            item(key = "pc-settings-custom-attributes") {
-                CharacterCustomAttributesSettingsV4()
-            }
-
-            item(key = "pc-settings-custom-skills") {
+            PcSettingsPageClosureV4.CUSTOM_SKILLS -> PcSettingsSubpageClosureV4(
+                title = "Habilidades personalizadas",
+                onBack = { pageName = PcSettingsPageClosureV4.MAIN.name },
+            ) {
                 CharacterCustomSkillsSettingsV4(
                     closureState = closureState,
                     onClosureStateChange = onClosureStateChange,
                 )
             }
 
-            item(key = "pc-settings-custom-markers") {
-                CharacterCustomMarkersSettingsV4()
-            }
+            PcSettingsPageClosureV4.CUSTOM_MARKERS -> PcSettingsSubpageClosureV4(
+                title = "Marcadores personalizados",
+                onBack = { pageName = PcSettingsPageClosureV4.MAIN.name },
+            ) { CharacterCustomMarkersSettingsV4() }
 
-            item(key = "pc-settings-modules") {
+            PcSettingsPageClosureV4.MODULES -> PcSettingsSubpageClosureV4(
+                title = "Módulos especiales",
+                onBack = { pageName = PcSettingsPageClosureV4.MAIN.name },
+            ) {
                 ModuleSettingsCardClosureV4(
                     state = closureState,
                     suggestedModules = suggestedModules,
                     onStateChange = onClosureStateChange,
-                )
-            }
-
-            item(key = "pc-settings-behavior") {
-                PcSettingsPairClosureV4(
-                    wide = wide,
-                    first = {
-                        CharacterHapticProfileSettingsV4(
-                            closureState = closureState,
-                            onClosureStateChange = onClosureStateChange,
-                        )
-                    },
-                    second = {
-                        BooleanSettingCardClosureV4(
-                            title = "Modo mesa / solo lectura",
-                            description = if (!tableModeCanEnable && !closureState.tableModeEnabled) {
-                                "Guarda o descarta los cambios estructurales pendientes antes de activar Modo Mesa."
-                            } else {
-                                "Bloquea la edición estructural durante el uso en mesa y conserva los controles operativos intencionales."
-                            },
-                            checked = closureState.tableModeEnabled,
-                            enabled = closureState.tableModeEnabled || tableModeCanEnable,
-                            onCheckedChange = { enabled ->
-                                onClosureStateChange(closureState.copy(tableModeEnabled = enabled))
-                            },
-                        )
-                    },
-                )
-            }
-
-            item(key = "pc-settings-supercompact") {
-                NavigationSettingCardClosureV4(
-                    title = "Vista supercompacta",
-                    description = "Abre la vista experimental de consulta rápida. Su utilidad y densidad todavía requieren aceptación del propietario en dispositivo.",
-                    actionLabel = "Abrir vista",
-                    onClick = onOpenSupercompact,
                 )
             }
         }
@@ -225,9 +158,9 @@ internal fun CharacterPcSettingsClosureV4(
                     else -> "Cambiar estado del personaje"
                 },
                 message = when (pending) {
-                    CharacterStatus.RETIRED -> "El personaje quedará marcado como Retirado. Sus datos se conservarán y el estado podrá cambiarse después."
-                    CharacterStatus.DEAD -> "El personaje quedará marcado como Muerto. Sus datos se conservarán y el estado podrá cambiarse después."
-                    else -> "Se cambiará el estado de ciclo de vida del personaje."
+                    CharacterStatus.RETIRED -> "El personaje quedará Retirado. Sus datos se conservarán y podrás cambiar el estado después."
+                    CharacterStatus.DEAD -> "El personaje quedará Muerto. Sus datos se conservarán y podrás cambiar el estado después."
+                    else -> "Se cambiará el estado del personaje."
                 },
                 onDismissRequest = { pendingLifecycleStatusName = null },
                 onConfirm = {
@@ -237,10 +170,372 @@ internal fun CharacterPcSettingsClosureV4(
                 confirmLabel = when (pending) {
                     CharacterStatus.RETIRED -> "Retirar"
                     CharacterStatus.DEAD -> "Marcar como muerto"
-                    else -> "Cambiar estado"
+                    else -> "Cambiar"
                 },
             )
         }
+}
+
+@Composable
+private fun PcSettingsMainClosureV4(
+    characterName: String,
+    status: CharacterStatus,
+    spellcasterEnabled: Boolean,
+    closureState: CharacterClosureState,
+    suggestedModules: Set<CharacterModuleKind>,
+    tableModeCanEnable: Boolean,
+    wide: Boolean,
+    customAttributeCount: Int,
+    customMarkerCount: Int,
+    tabCount: Int,
+    inspirationVisible: Boolean,
+    onInspirationVisibleChange: (Boolean) -> Unit,
+    onBack: () -> Unit,
+    onStatusChange: (CharacterStatus) -> Unit,
+    onSpellcasterEnabledChange: (Boolean) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
+    onNavigate: (PcSettingsPageClosureV4) -> Unit,
+    onOpenSupercompact: () -> Unit,
+    backupExportEnabled: Boolean,
+    onExportBackup: () -> Unit,
+    onOpenApplicationSettings: () -> Unit,
+) {
+    val visibleModules = CharacterModuleKind.entries.count { module ->
+        when (closureState.moduleOverrideMode(module)) {
+            CharacterModuleOverrideMode.AUTO -> module in suggestedModules
+            CharacterModuleOverrideMode.FORCE_SHOW -> true
+            CharacterModuleOverrideMode.FORCE_HIDE -> false
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+        contentPadding = PaddingValues(
+            start = appSpacingV4(if (wide) 14.dp else 7.dp),
+            end = appSpacingV4(if (wide) 14.dp else 7.dp),
+            top = appSpacingV4(5.dp),
+            bottom = appSpacingV4(28.dp),
+        ),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+    ) {
+        item(key = "pc-settings-header") {
+            PcSettingsHeaderClosureV4(characterName = characterName, onBack = onBack)
+        }
+
+        if (wide) {
+            item(key = "pc-settings-wide-primary") {
+                PcSettingsPairClosureV4(
+                    wide = true,
+                    first = {
+                        PcSettingsSectionClosureV4("Ficha y navegación") {
+                            PcToggleRowClosureV4(
+                                title = "Lanzamiento de conjuros",
+                                checked = spellcasterEnabled,
+                                onCheckedChange = onSpellcasterEnabledChange,
+                            )
+                            PcSettingsDividerClosureV4()
+                            PcToggleRowClosureV4(
+                                title = "Inspiración",
+                                checked = inspirationVisible,
+                                onCheckedChange = onInspirationVisibleChange,
+                            )
+                            PcSettingsDividerClosureV4()
+                            PcNavigationRowClosureV4(
+                                title = "Orden de pestañas",
+                                summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                                onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
+                            )
+                        }
+                    },
+                    second = {
+                        PcSettingsSectionClosureV4("Contenido personalizado") {
+                            PcNavigationRowClosureV4(
+                                title = "Características personalizadas",
+                                summary = customAttributeCount.toString(),
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
+                            )
+                            PcSettingsDividerClosureV4()
+                            PcNavigationRowClosureV4(
+                                title = "Habilidades personalizadas",
+                                summary = closureState.customSkills.size.toString(),
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
+                            )
+                            PcSettingsDividerClosureV4()
+                            PcNavigationRowClosureV4(
+                                title = "Marcadores personalizados",
+                                summary = customMarkerCount.toString(),
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
+                            )
+                            PcSettingsDividerClosureV4()
+                            PcNavigationRowClosureV4(
+                                title = "Módulos especiales",
+                                summary = "$visibleModules visibles",
+                                onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
+                            )
+                        }
+                    },
+                )
+            }
+        } else {
+            item(key = "pc-settings-sheet-nav") {
+                PcSettingsSectionClosureV4("Ficha y navegación") {
+                    PcToggleRowClosureV4("Lanzamiento de conjuros", spellcasterEnabled, onSpellcasterEnabledChange)
+                    PcSettingsDividerClosureV4()
+                    PcToggleRowClosureV4("Inspiración", inspirationVisible, onInspirationVisibleChange)
+                    PcSettingsDividerClosureV4()
+                    PcNavigationRowClosureV4(
+                        title = "Orden de pestañas",
+                        summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                        onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
+                    )
+                }
+            }
+            item(key = "pc-settings-custom") {
+                PcSettingsSectionClosureV4("Contenido personalizado") {
+                    PcNavigationRowClosureV4(
+                        title = "Características personalizadas",
+                        summary = customAttributeCount.toString(),
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
+                    )
+                    PcSettingsDividerClosureV4()
+                    PcNavigationRowClosureV4(
+                        title = "Habilidades personalizadas",
+                        summary = closureState.customSkills.size.toString(),
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
+                    )
+                    PcSettingsDividerClosureV4()
+                    PcNavigationRowClosureV4(
+                        title = "Marcadores personalizados",
+                        summary = customMarkerCount.toString(),
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
+                    )
+                    PcSettingsDividerClosureV4()
+                    PcNavigationRowClosureV4(
+                        title = "Módulos especiales",
+                        summary = "$visibleModules visibles",
+                        onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
+                    )
+                }
+            }
+        }
+
+        item(key = "pc-settings-table-use") {
+            PcSettingsSectionClosureV4("Uso en mesa") {
+                PcToggleRowClosureV4(
+                    title = "Modo Mesa",
+                    checked = closureState.tableModeEnabled,
+                    enabled = closureState.tableModeEnabled || tableModeCanEnable,
+                    secondary = if (!tableModeCanEnable && !closureState.tableModeEnabled) "Cambios de edición pendientes" else null,
+                    onCheckedChange = { enabled ->
+                        onClosureStateChange(closureState.copy(tableModeEnabled = enabled))
+                    },
+                )
+                PcSettingsDividerClosureV4()
+                CharacterHapticInlineSettingsClosureV4(
+                    closureState = closureState,
+                    onClosureStateChange = onClosureStateChange,
+                )
+                PcSettingsDividerClosureV4()
+                PcNavigationRowClosureV4(
+                    title = "Vista supercompacta",
+                    onClick = onOpenSupercompact,
+                )
+            }
+        }
+
+        item(key = "pc-settings-character-data") {
+            PcSettingsSectionClosureV4("Personaje y datos") {
+                LifecycleStatusRowClosureV4(status = status, onStatusChange = onStatusChange)
+                PcSettingsDividerClosureV4()
+                PcActionRowClosureV4(
+                    title = "Respaldo local",
+                    action = "Exportar",
+                    enabled = backupExportEnabled,
+                    secondary = if (backupExportEnabled) null else "Guarda o descarta los cambios pendientes",
+                    onClick = onExportBackup,
+                )
+            }
+        }
+
+        item(key = "pc-settings-application") {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                Text(
+                    "APLICACIÓN",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                HorizontalDivider()
+                PcNavigationRowClosureV4(
+                    title = "Configuración de la aplicación",
+                    onClick = onOpenApplicationSettings,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PcSettingsHeaderClosureV4(characterName: String, onBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+    ) {
+        StableBackIconButton(onClick = onBack, contentDescription = "Volver a la ficha")
+        Column(modifier = Modifier.weight(1f)) {
+            Text("Ajustes de personaje", style = MaterialTheme.typography.titleLarge)
+            Text(
+                characterName.ifBlank { "Ficha de personaje" },
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PcSettingsSubpageClosureV4(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+        contentPadding = PaddingValues(
+            start = appSpacingV4(7.dp),
+            end = appSpacingV4(7.dp),
+            top = appSpacingV4(5.dp),
+            bottom = appSpacingV4(28.dp),
+        ),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
+    ) {
+        item(key = "subpage-header-$title") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            ) {
+                StableBackIconButton(onClick = onBack, contentDescription = "Volver a Ajustes de personaje")
+                Text(title, style = MaterialTheme.typography.titleLarge)
+            }
+        }
+        item(key = "subpage-content-$title") { content() }
+    }
+}
+
+@Composable
+private fun PcSettingsSectionClosureV4(
+    title: String,
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(6.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+        ) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            content()
+        }
+    }
+}
+
+@Composable
+private fun PcSettingsDividerClosureV4() {
+    HorizontalDivider(modifier = Modifier.padding(vertical = appSpacingV4(1.dp)))
+}
+
+@Composable
+private fun PcNavigationRowClosureV4(
+    title: String,
+    summary: String? = null,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = appSpacingV4(7.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+        summary?.takeIf { it.isNotBlank() }?.let {
+            Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text("›", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun PcToggleRowClosureV4(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+    secondary: String? = null,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = appSpacingV4(3.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            secondary?.takeIf { it.isNotBlank() }?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+private fun PcActionRowClosureV4(
+    title: String,
+    action: String,
+    enabled: Boolean,
+    secondary: String? = null,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = appSpacingV4(4.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            secondary?.let {
+                Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        TextButton(onClick = onClick, enabled = enabled) { Text(action) }
+    }
+}
+
+@Composable
+private fun CharacterHapticInlineSettingsClosureV4(
+    closureState: CharacterClosureState,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
+) {
+    val hapticContext = LocalCharacterHapticSettingsV4.current
+    PcToggleRowClosureV4(
+        title = "Respuesta háptica",
+        checked = closureState.hapticsEnabled,
+        secondary = "${hapticContext.preferences.strength.label} · ${hapticContext.preferences.duration.label}",
+        onCheckedChange = { enabled -> onClosureStateChange(closureState.copy(hapticsEnabled = enabled)) },
+    )
 }
 
 @Composable
@@ -252,7 +547,7 @@ private fun PcSettingsPairClosureV4(
     if (wide) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             verticalAlignment = Alignment.Top,
         ) {
             Box(modifier = Modifier.weight(1f)) { first() }
@@ -261,7 +556,7 @@ private fun PcSettingsPairClosureV4(
     } else {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
             first()
             second()
@@ -270,22 +565,19 @@ private fun PcSettingsPairClosureV4(
 }
 
 @Composable
-private fun LifecycleStatusCardClosureV4(
+private fun LifecycleStatusRowClosureV4(
     status: CharacterStatus,
     onStatusChange: (CharacterStatus) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    PcSettingCardClosureV4(
-        title = "Estado del personaje",
-        description = "Estado de ciclo de vida del personaje; no representa condiciones ni estado temporal de combate.",
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = appSpacingV4(4.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Text("Estado del personaje", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
         Box {
-            OutlinedButton(
-                onClick = { expanded = true },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(pcStatusLabelClosureV4(status))
-            }
+            OutlinedButton(onClick = { expanded = true }) { Text(pcStatusLabelClosureV4(status)) }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 CharacterStatus.entries.forEach { option ->
                     DropdownMenuItem(
@@ -302,66 +594,23 @@ private fun LifecycleStatusCardClosureV4(
 }
 
 @Composable
-private fun SpellcastingSettingsCardClosureV4(
-    enabled: Boolean,
-    onEnabledChange: (Boolean) -> Unit,
-) {
-    PcSettingCardClosureV4(
-        title = "Lanzamiento de Conjuros",
-        description = if (enabled) {
-            "Muestra las superficies y la pestaña Conjuros."
-        } else {
-            "Oculta las superficies de conjuros sin borrar sus datos guardados."
-        },
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(if (enabled) "Visible" else "Oculto", style = MaterialTheme.typography.labelLarge)
-            Switch(checked = enabled, onCheckedChange = onEnabledChange)
-        }
-    }
-}
-
-@Composable
-private fun BooleanSettingCardClosureV4(
-    title: String,
-    description: String,
-    checked: Boolean,
-    enabled: Boolean = true,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    PcSettingCardClosureV4(title = title, description = description) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(if (checked) "Activado" else "Desactivado", style = MaterialTheme.typography.labelLarge)
-            Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
-        }
-    }
-}
-
-@Composable
 private fun ModuleSettingsCardClosureV4(
     state: CharacterClosureState,
     suggestedModules: Set<CharacterModuleKind>,
     onStateChange: (CharacterClosureState) -> Unit,
 ) {
-    PcSettingCardClosureV4(
-        title = "Módulos especiales",
-        description = "Automático usa sugerencias de clase/subclase. Mostrar u Ocultar permite adaptar personajes personalizados sin borrar datos.",
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
     ) {
-        CharacterModuleKind.entries.forEach { module ->
+        CharacterModuleKind.entries.forEachIndexed { index, module ->
             ModuleSettingRowClosureV4(
                 module = module,
                 suggested = module in suggestedModules,
                 mode = state.moduleOverrideMode(module),
                 onModeChange = { mode -> onStateChange(state.withModuleOverride(module, mode)) },
             )
+            if (index < CharacterModuleKind.entries.lastIndex) HorizontalDivider()
         }
     }
 }
@@ -380,21 +629,16 @@ private fun ModuleSettingRowClosureV4(
         CharacterModuleOverrideMode.FORCE_HIDE -> false
     }
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = appSpacingV4(2.dp)),
+        modifier = Modifier.fillMaxWidth().padding(vertical = appSpacingV4(5.dp)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(pcModuleLabelClosureV4(module), style = MaterialTheme.typography.labelLarge)
+            Text(pcModuleLabelClosureV4(module), style = MaterialTheme.typography.bodyMedium)
             Text(
-                buildString {
-                    append(if (suggested) "Sugerido por clase/subclase" else "Sin sugerencia automática")
-                    append(" · ")
-                    append(if (visible) "Visible" else "Oculto")
-                },
+                "${pcOverrideLabelClosureV4(mode)} · ${if (visible) "Visible" else "Oculto"}",
                 style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Box {
@@ -410,39 +654,6 @@ private fun ModuleSettingRowClosureV4(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun NavigationSettingCardClosureV4(
-    title: String,
-    description: String,
-    actionLabel: String,
-    enabled: Boolean = true,
-    onClick: () -> Unit,
-) {
-    PcSettingCardClosureV4(title = title, description = description) {
-        TextButton(onClick = onClick, enabled = enabled) { Text(actionLabel) }
-    }
-}
-
-@Composable
-private fun PcSettingCardClosureV4(
-    title: String,
-    description: String,
-    content: @Composable () -> Unit,
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(7.dp)),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-        ) {
-            Text(title, style = MaterialTheme.typography.titleSmall)
-            Text(description, style = MaterialTheme.typography.labelSmall)
-            content()
         }
     }
 }
