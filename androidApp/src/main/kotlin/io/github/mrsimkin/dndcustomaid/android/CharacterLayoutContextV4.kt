@@ -11,8 +11,23 @@ internal enum class CharacterFormFactorV4 {
     TABLET_LANDSCAPE,
 }
 
+/**
+ * Presentation pressure derived from the height actually available to the caller.
+ *
+ * This intentionally does not replace form-factor classification: phone landscape keeps the
+ * phone navigation model. It gives individual surfaces a second axis for deciding how much
+ * persistent chrome they can afford (P16).
+ */
+internal enum class CharacterVerticalSpaceV4 {
+    COMFORTABLE,
+    REDUCED,
+    CONSTRAINED,
+}
+
 internal data class CharacterLayoutContextV4(
     val formFactor: CharacterFormFactorV4,
+    val availableWidthDp: Int,
+    val availableHeightDp: Int,
 ) {
     val isPhone: Boolean
         get() = formFactor == CharacterFormFactorV4.PHONE_PORTRAIT ||
@@ -24,6 +39,12 @@ internal data class CharacterLayoutContextV4(
     val isLandscape: Boolean
         get() = formFactor == CharacterFormFactorV4.PHONE_LANDSCAPE ||
             formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+
+    val verticalSpace: CharacterVerticalSpaceV4
+        get() = characterVerticalSpaceForHeightV4(availableHeightDp)
+
+    val isVerticallyConstrained: Boolean
+        get() = verticalSpace == CharacterVerticalSpaceV4.CONSTRAINED
 }
 
 internal const val CHARACTER_TABLET_MIN_SHORT_SIDE_DP = 600
@@ -42,6 +63,17 @@ internal fun characterFormFactorV4(
     }
 }
 
+/**
+ * Implementation thresholds are deliberately kept here rather than spread through screens.
+ * Acceptance is behavioral (usable content must remain practical), not tied to these exact
+ * numbers; they may be tuned from device QA without changing the product contract.
+ */
+internal fun characterVerticalSpaceForHeightV4(availableHeightDp: Int): CharacterVerticalSpaceV4 = when {
+    availableHeightDp < 440 -> CharacterVerticalSpaceV4.CONSTRAINED
+    availableHeightDp < 640 -> CharacterVerticalSpaceV4.REDUCED
+    else -> CharacterVerticalSpaceV4.COMFORTABLE
+}
+
 @Composable
 internal fun characterLayoutContextV4(): CharacterLayoutContextV4 {
     val configuration = LocalConfiguration.current
@@ -51,6 +83,8 @@ internal fun characterLayoutContextV4(): CharacterLayoutContextV4 {
             screenHeightDp = configuration.screenHeightDp,
             landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
         ),
+        availableWidthDp = configuration.screenWidthDp,
+        availableHeightDp = configuration.screenHeightDp,
     )
 }
 
