@@ -14,10 +14,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import kotlin.math.roundToInt
 
 /**
  * Keeps the lifted card composed independently from a lazy list/grid placeholder.
@@ -30,8 +28,8 @@ import kotlin.math.roundToInt
 internal fun CharacterReorderOverlayHostV4(
     session: CharacterReorderSessionV4,
     modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
     liftedContent: @Composable BoxScope.(draggedId: String) -> Unit,
+    content: @Composable BoxScope.() -> Unit,
 ) {
     var hostBounds by remember(session) { mutableStateOf<Rect?>(null) }
     val density = LocalDensity.current
