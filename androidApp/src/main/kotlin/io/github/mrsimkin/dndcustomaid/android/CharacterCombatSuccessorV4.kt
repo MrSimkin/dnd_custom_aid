@@ -31,7 +31,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,10 +45,26 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.characterCombatEntryTypeSpanishLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.characterDamageSummary
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
-import io.github.mrsimkin.dndcustomaid.shared.character.parseCharacterDiceExpression
+import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
+
+private val STANDARD_DIE_SIDES_V4 = listOf(4, 6, 8, 10, 12, 20)
+private val STANDARD_DAMAGE_TYPES_V4 = listOf(
+    "Ácido",
+    "Contundente",
+    "Cortante",
+    "Frío",
+    "Fuego",
+    "Fuerza",
+    "Necrótico",
+    "Perforante",
+    "Psíquico",
+    "Radiante",
+    "Relámpago",
+    "Trueno",
+    "Veneno",
+)
 
 @Composable
 internal fun CharacterCombatSuccessorTabV4(
@@ -139,32 +154,47 @@ internal fun CharacterCombatSuccessorTabV4(
             )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(if (wide) 8.dp else 5.dp)),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 8.dp else 5.dp),
+                end = appSpacingV4(if (wide) 8.dp else 5.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
-            Text("Ataques y acciones", style = MaterialTheme.typography.titleSmall)
-            TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-        }
+            if (sheet.currentHp <= 0) {
+                item(key = "combat-death-saves") {
+                    CharacterCombatDeathSavesSectionV4(
+                        sheet = sheet,
+                        onSheetChange = onOperationalSheetChange,
+                        hapticsEnabled = hapticsEnabled,
+                    )
+                }
+            }
 
-        if (entries.isEmpty()) {
-            CharacterUsefulEmptyState(
-                title = "Sin ataques o acciones",
-                message = "Añade ataques, acciones, reacciones o referencias de combate. El daño puede registrarse por componentes.",
-                onAdd = if (structuralEditingEnabled) ::beginAdd else null,
-                modifier = Modifier.padding(horizontal = appSpacingV4(if (wide) 8.dp else 5.dp)),
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                contentPadding = PaddingValues(
-                    start = appSpacingV4(if (wide) 8.dp else 5.dp),
-                    end = appSpacingV4(if (wide) 8.dp else 5.dp),
-                    bottom = appSpacingV4(88.dp),
-                ),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-            ) {
+            item(key = "combat-entries-header") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Ataques y acciones", style = MaterialTheme.typography.titleSmall)
+                    if (structuralEditingEnabled) {
+                        TextButton(onClick = ::beginAdd) { Text("Añadir") }
+                    }
+                }
+            }
+
+            if (entries.isEmpty()) {
+                item(key = "combat-empty") {
+                    CharacterUsefulEmptyState(
+                        title = "Sin ataques o acciones",
+                        message = "Añade ataques, acciones, reacciones o referencias de combate.",
+                        onAdd = if (structuralEditingEnabled) ::beginAdd else null,
+                    )
+                }
+            } else {
                 itemsIndexed(entries, key = { _, entry -> entry.id.toString() }) { index, entry ->
                     CharacterCombatSuccessorCardV4(
                         entry = entry,
@@ -235,7 +265,6 @@ internal fun CharacterCombatSuccessorTabV4(
                 editorOpen = false
             },
             saveEnabled = valid,
-            supportingText = "El daño estructurado se guarda junto con la ficha; el resumen antiguo queda solo como compatibilidad derivada.",
         ) {
             OutlinedTextField(
                 value = editorName,
@@ -296,29 +325,29 @@ internal fun CharacterCombatSuccessorTabV4(
                 TextButton(
                     onClick = {
                         editorDamageJson = characterDamageComponentsToJsonV4(
-                            components + CharacterDamageComponent(CharacterDamageComponentKind.DICE, ""),
+                            components + CharacterDamageComponent(CharacterDamageComponentKind.DICE, "1d8"),
                         )
                     },
-                ) { Text("+ Dados") }
+                ) { Text("Añadir dados") }
                 TextButton(
                     onClick = {
                         editorDamageJson = characterDamageComponentsToJsonV4(
-                            components + CharacterDamageComponent(CharacterDamageComponentKind.FLAT, ""),
+                            components + CharacterDamageComponent(CharacterDamageComponentKind.FLAT, "0"),
                         )
                     },
-                ) { Text("+ Plano") }
+                ) { Text("Añadir plano") }
                 TextButton(
                     onClick = {
                         editorDamageJson = characterDamageComponentsToJsonV4(
                             components + CharacterDamageComponent(CharacterDamageComponentKind.TEXT, ""),
                         )
                     },
-                ) { Text("+ Texto") }
+                ) { Text("Añadir efecto") }
             }
             CharacterInlineValidationMessage(
                 when {
                     !attackValid -> "El modificador de ataque debe ser un entero o quedar vacío."
-                    !damageValid -> "Cada componente debe tener una expresión válida: por ejemplo 1d8, +3 o un texto de efecto."
+                    !damageValid -> "Revisa los componentes de daño incompletos."
                     else -> null
                 },
             )
@@ -392,14 +421,14 @@ private fun CharacterCombatSuccessorCardV4(
                 modifier = Modifier
                     .fillMaxWidth()
                     .characterMeasuredReorderDragV4(
-                                enabled = structuralEditingEnabled,
-                                onHaptic = onHaptic,
-                                onMove = onMove,
-                                onVisualStateChange = { state ->
-                                    dragging = state.active
-                                    accumulatedDrag = state.offsetY
-                                },
-                            )
+                        enabled = structuralEditingEnabled,
+                        onHaptic = onHaptic,
+                        onMove = onMove,
+                        onVisualStateChange = { state ->
+                            dragging = state.active
+                            accumulatedDrag = state.offsetY
+                        },
+                    )
                     .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
             ) {
@@ -453,8 +482,10 @@ private fun CharacterCombatSuccessorCardV4(
                     onClick = { onFavoriteChange(!favorite) },
                     enabled = favoriteEnabled,
                 )
-                TextButton(onClick = onEdit, enabled = structuralEditingEnabled) { Text("Editar") }
-                TextButton(onClick = onDelete, enabled = structuralEditingEnabled) { Text("Eliminar") }
+                if (structuralEditingEnabled) {
+                    TextButton(onClick = onEdit) { Text("Editar") }
+                    TextButton(onClick = onDelete) { Text("Eliminar") }
+                }
             }
         }
     }
@@ -485,64 +516,254 @@ private fun CharacterCombatTypeSelectorV4(
     }
 }
 
+private data class CharacterDiceComponentDraftV4(
+    val negativeDice: Boolean,
+    val quantity: String,
+    val sides: String,
+    val modifier: String,
+)
+
+private val DICE_COMPONENT_REGEX_V4 = Regex("^([+-]?)([0-9]+)[dD]([0-9]+)([+-][0-9]+)?$")
+
+private fun parseDiceComponentDraftV4(expression: String): CharacterDiceComponentDraftV4 {
+    val match = DICE_COMPONENT_REGEX_V4.matchEntire(expression.trim())
+    return if (match == null) {
+        CharacterDiceComponentDraftV4(false, "", "", "")
+    } else {
+        CharacterDiceComponentDraftV4(
+            negativeDice = match.groupValues[1] == "-",
+            quantity = match.groupValues[2],
+            sides = match.groupValues[3],
+            modifier = match.groupValues[4],
+        )
+    }
+}
+
+private fun buildDiceComponentExpressionV4(draft: CharacterDiceComponentDraftV4): String = buildString {
+    if (draft.negativeDice) append('-')
+    append(draft.quantity)
+    append('d')
+    append(draft.sides)
+    append(draft.modifier)
+}
+
 @Composable
 private fun CharacterDamageComponentEditorRowV4(
     component: CharacterDamageComponent,
     onChange: (CharacterDamageComponent) -> Unit,
     onRemove: () -> Unit,
 ) {
-    var expanded by remember(component.kind) { mutableStateOf(false) }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(appSpacingV4(5.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(characterDamageKindLabelV4(component.kind), style = MaterialTheme.typography.labelLarge)
+                StableRemoveIconButton(onClick = onRemove, contentDescription = "Eliminar componente de daño")
+            }
+
+            when (component.kind) {
+                CharacterDamageComponentKind.DICE -> DiceDamageFieldsV4(component = component, onChange = onChange)
+                CharacterDamageComponentKind.FLAT -> FlatDamageFieldsV4(component = component, onChange = onChange)
+                CharacterDamageComponentKind.TEXT -> OutlinedTextField(
+                    value = component.expression,
+                    onValueChange = { onChange(component.copy(expression = it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Efecto") },
+                    minLines = 1,
+                    maxLines = 3,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiceDamageFieldsV4(
+    component: CharacterDamageComponent,
+    onChange: (CharacterDamageComponent) -> Unit,
+) {
+    val parsed = parseDiceComponentDraftV4(component.expression)
+    var dieMenuExpanded by remember { mutableStateOf(false) }
+    var otherSides by remember(component.kind) {
+        mutableStateOf(parsed.sides.toIntOrNull()?.let { it !in STANDARD_DIE_SIDES_V4 } ?: false)
+    }
+
+    fun updateDraft(updated: CharacterDiceComponentDraftV4) {
+        onChange(component.copy(expression = buildDiceComponentExpressionV4(updated)))
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(modifier = Modifier.weight(0.9f)) {
-            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-                Text(characterDamageKindLabelV4(component.kind), maxLines = 1)
+        var signExpanded by remember { mutableStateOf(false) }
+        Box(modifier = Modifier.weight(0.55f)) {
+            OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(if (parsed.negativeDice) "−" else "+")
             }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                CharacterDamageComponentKind.entries.forEach { kind ->
+            DropdownMenu(expanded = signExpanded, onDismissRequest = { signExpanded = false }) {
+                listOf(false to "+", true to "−").forEach { (negative, label) ->
                     DropdownMenuItem(
-                        text = { Text(characterDamageKindLabelV4(kind)) },
+                        text = { Text(label) },
                         onClick = {
-                            onChange(component.copy(kind = kind))
-                            expanded = false
+                            updateDraft(parsed.copy(negativeDice = negative))
+                            signExpanded = false
                         },
                     )
                 }
             }
         }
         OutlinedTextField(
-            value = component.expression,
-            onValueChange = { onChange(component.copy(expression = it)) },
-            modifier = Modifier.weight(1f),
-            label = {
-                Text(
-                    when (component.kind) {
-                        CharacterDamageComponentKind.DICE -> "1d8"
-                        CharacterDamageComponentKind.FLAT -> "+3"
-                        CharacterDamageComponentKind.TEXT -> "Efecto"
+            value = parsed.quantity,
+            onValueChange = { value ->
+                updateDraft(parsed.copy(quantity = normalizeCharacterUnsignedIntegerInput(value)))
+            },
+            modifier = Modifier.weight(0.9f),
+            label = { Text("Cant.") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        Box(modifier = Modifier.weight(1f)) {
+            OutlinedButton(onClick = { dieMenuExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                val sides = parsed.sides.toIntOrNull()
+                Text(if (!otherSides && sides in STANDARD_DIE_SIDES_V4) "d$sides" else "Otro…")
+            }
+            DropdownMenu(expanded = dieMenuExpanded, onDismissRequest = { dieMenuExpanded = false }) {
+                STANDARD_DIE_SIDES_V4.forEach { sides ->
+                    DropdownMenuItem(
+                        text = { Text("d$sides") },
+                        onClick = {
+                            otherSides = false
+                            updateDraft(parsed.copy(sides = sides.toString()))
+                            dieMenuExpanded = false
+                        },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("Otro…") },
+                    onClick = {
+                        otherSides = true
+                        updateDraft(parsed.copy(sides = ""))
+                        dieMenuExpanded = false
                     },
                 )
-            },
+            }
+        }
+        OutlinedTextField(
+            value = parsed.modifier,
+            onValueChange = { value -> updateDraft(parsed.copy(modifier = sanitizeSignedIntegerInputV4(value))) },
+            modifier = Modifier.weight(1f),
+            label = { Text("Mod.") },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        if (component.kind != CharacterDamageComponentKind.TEXT) {
+    }
+
+    if (otherSides) {
+        OutlinedTextField(
+            value = parsed.sides,
+            onValueChange = { value -> updateDraft(parsed.copy(sides = normalizeCharacterUnsignedIntegerInput(value))) },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Caras del dado") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+    }
+
+    DamageTypeSelectorV4(component = component, onChange = onChange)
+}
+
+@Composable
+private fun FlatDamageFieldsV4(
+    component: CharacterDamageComponent,
+    onChange: (CharacterDamageComponent) -> Unit,
+) {
+    OutlinedTextField(
+        value = component.expression,
+        onValueChange = { onChange(component.copy(expression = sanitizeSignedIntegerInputV4(it))) },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text("Daño plano") },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+    )
+    DamageTypeSelectorV4(component = component, onChange = onChange)
+}
+
+@Composable
+private fun DamageTypeSelectorV4(
+    component: CharacterDamageComponent,
+    onChange: (CharacterDamageComponent) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val current = component.typeText?.trim().orEmpty()
+    val standard = STANDARD_DAMAGE_TYPES_V4.firstOrNull { it.equals(current, ignoreCase = true) }
+    var customMode by remember(component.kind) { mutableStateOf(current.isNotEmpty() && standard == null) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(modifier = Modifier.weight(1f)) {
+            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(when {
+                    customMode -> "Otro…"
+                    standard != null -> standard
+                    else -> "Tipo de daño"
+                })
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                STANDARD_DAMAGE_TYPES_V4.forEach { type ->
+                    DropdownMenuItem(
+                        text = { Text(type) },
+                        onClick = {
+                            customMode = false
+                            onChange(component.copy(typeText = type))
+                            expanded = false
+                        },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("Otro…") },
+                    onClick = {
+                        customMode = true
+                        onChange(component.copy(typeText = null))
+                        expanded = false
+                    },
+                )
+            }
+        }
+        if (customMode) {
             OutlinedTextField(
-                value = component.typeText.orEmpty(),
+                value = current,
                 onValueChange = { onChange(component.copy(typeText = it)) },
-                modifier = Modifier.weight(1.1f),
-                label = { Text("Tipo") },
+                modifier = Modifier.weight(1f),
+                label = { Text("Otro tipo") },
                 singleLine = true,
             )
         }
-        TextButton(onClick = onRemove) { Text("×") }
     }
 }
 
 private fun characterDamageComponentValidV4(component: CharacterDamageComponent): Boolean = when (component.kind) {
-    CharacterDamageComponentKind.DICE -> parseCharacterDiceExpression(component.expression) != null
+    CharacterDamageComponentKind.DICE -> {
+        val parsed = parseDiceComponentDraftV4(component.expression)
+        val quantity = parsed.quantity.toIntOrNull()
+        val sides = parsed.sides.toIntOrNull()
+        val modifierValid = parsed.modifier.isEmpty() || parsed.modifier.toIntOrNull() != null
+        quantity != null && quantity > 0 && sides != null && sides > 0 && modifierValid
+    }
     CharacterDamageComponentKind.FLAT -> component.expression.trim().toIntOrNull() != null
     CharacterDamageComponentKind.TEXT -> component.expression.isNotBlank()
 }
@@ -550,7 +771,7 @@ private fun characterDamageComponentValidV4(component: CharacterDamageComponent)
 private fun characterDamageKindLabelV4(kind: CharacterDamageComponentKind): String = when (kind) {
     CharacterDamageComponentKind.DICE -> "Dados"
     CharacterDamageComponentKind.FLAT -> "Plano"
-    CharacterDamageComponentKind.TEXT -> "Texto"
+    CharacterDamageComponentKind.TEXT -> "Efecto"
 }
 
 private fun formatSignedCombatSuccessorV4(value: Int): String = if (value >= 0) "+$value" else value.toString()
