@@ -12,28 +12,29 @@ Read in this order:
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented areas;
 3. `docs/PROJECT_STATE.md` — authoritative current state and next action;
 4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/BRANCH_STATUS.md` — branch interpretation/cleanup status;
-6. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
-7. `docs/CONVENTIONS.md`;
-8. `docs/PRODUCT.md`;
-9. `docs/ROADMAP.md`;
-10. `docs/WORKFLOW.md`;
-11. `docs/ARCHITECTURE.md`;
-12. `docs/TESTING.md`;
-13. relevant current checkpoints/feature files.
+5. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md` — controlling current Player QA findings;
+6. `docs/BRANCH_STATUS.md` — branch interpretation/cleanup status;
+7. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
+8. `docs/CONVENTIONS.md`;
+9. `docs/PRODUCT.md`;
+10. `docs/ROADMAP.md`;
+11. `docs/WORKFLOW.md`;
+12. `docs/ARCHITECTURE.md`;
+13. `docs/TESTING.md`;
+14. relevant current checkpoints/feature files.
 
 ## Canonical source of truth
 
-- `main` is the canonical current project baseline.
+- `main` is the canonical repository baseline under D-0066.
 - Git is the project's operative memory.
 - Repository files, not chat memory, determine durable project truth.
 - `docs/PROJECT_STATE.md` is the authoritative current-state snapshot.
 - `docs/checkpoints/LATEST.md` is the exact resume pointer.
-- `implementation/phase4a-successor-cycle` is the focused continuation branch for the active Phase 4A successor cycle and is aligned with `main` at night-close boundaries.
+- `implementation/phase4a-successor-cycle` is the active continuation branch carrying the current Phase 4A Player implementation, `preqa.8 / 40800` QA evidence, and the acceptance-repair discussion line.
 - Historical implementation branches are not competing current state.
-- Obsolete non-frozen `tmp/*` refs may be archived/removed from the visible branch list; explicitly frozen QA-evidence branches remain immutable.
+- Obsolete non-frozen `tmp/*` refs may be archived/removed; explicitly frozen QA-evidence branches remain immutable.
 
-D-0066 established that **canonical does not mean release-ready**. Development work may be consolidated into `main` before owner acceptance when the owner explicitly approves that repository-ordering boundary.
+D-0066 established that **canonical does not mean release-ready**. Repository ordering and owner acceptance are separate decisions.
 
 ## Working relationship
 
@@ -57,67 +58,54 @@ Meaningful work must be explained and persisted in Git. C-0009 remains controlli
 
 See `docs/ARCHITECTURE.md` for the full record.
 
-## Current implementation reality
+## Current Player implementation reality
 
-Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open, but the successor repair/refinement cycle has now completed **increments A–E of nine**.
+Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open.
 
-Completed successor areas include:
+The entire planned successor sequence **A–I is implemented and automated-green**, followed by a post-A–I stabilization pass. There is no planned Increment J.
 
-- additive schema/domain/storage foundation and migration/backup compatibility;
-- custom attributes and optional saves;
-- per-source spellcasting configuration;
-- Custom Markers + Resource placement/recovery foundations;
-- explicit phone/tablet/orientation layout context;
-- shared compact toolbar, drag, IME, numeric and contextual-help primitives;
-- character-first startup and Back hierarchy;
-- PC Settings administration, tab order, custom skills/attributes/Markers and haptics;
-- compact General projections and inline standard/custom Habilidades;
-- structured Combat damage and character-aware Dice flow;
-- compact Gestión with canonical Inspiration/Markers/Resources, mixed rest recovery, conditions infrastructure and concentration help.
+The current technically verified Player build is:
 
-Increment E's fully wired automated gate is green:
+- `0.4.0-preqa.8` / build `40800` / `debug`;
+- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
+- validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
+- workflow `34430548061` — SUCCESS;
+- artifact `10134364621` / `dnd-custom-aid-debug-apk`;
+- APK SHA-256 `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
 
-- validation commit `0587db5e65d89e809f138e83d053903659216886`;
-- workflow `34307068166` — SUCCESS;
-- artifact `10087074946` / `dnd-custom-aid-debug-apk`;
-- ZIP digest `55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
+This is **not** an accepted or release-ready build.
 
-This is **development verification, not owner visual acceptance**.
+## Current owner QA status
 
-## Owner-audition status
+A consolidated real-device owner QA pass was completed on **build 40800** using the Redmi Note 11 Pro 5G.
 
-The last owner-auditioned practical build remains:
+The build passed important boundaries including update-in-place/data preservation, persistence, normal portrait navigation, representative editor/IME behavior, currency, Conjuros portrait, Notas, Application Settings functionality, representative conditional modules, backup/export, phone-landscape retention of the phone interaction model, and representative larger text.
 
-- `0.4.0-preqa.7` / build `40700` / `debug`;
-- product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
-- workflow `34171466714` — SUCCESS;
-- artifact `10035895186`;
-- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
+It also exposed Phase 4A acceptance blockers. The authoritative detailed record is:
 
-Its owner phone audition did not pass visual acceptance; it generated the repair backlog now driving the successor cycle.
+`docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`
 
-Primary owner test device: **Redmi Note 11 Pro 5G**.
+Physical tablet QA is intentionally deferred until shared/systemic defects found during phone QA are repaired. Shared defects must be repaired across phone and tablet where they share state/components/primitives, but tablet PASS/FAIL remains untested until a repaired build is physically audited.
 
-Physical tablet acceptance remains pending and the old tablet/wide presentation is itself a redesign target.
+Build `40700` is historical evidence only. It is **not** the current QA target or resume point.
 
 ## Current next action
 
-Resume at **Increment F — Conjuros compact source-context redesign**.
+Do **not** restart old QA, do **not** begin a speculative Increment J, and do **not** begin DM implementation.
 
-Protected direction:
+The immediate Player task is **design reconciliation of the 40800 QA findings, one point at a time**.
 
-- one compact sticky source-context bar rather than stacked permanent source/filter blocks;
-- selected source visibly owns ability, `CD salv. conjuro` and `Mod. ataque mágico`;
-- `Todos los conjuros` remains compact;
-- expanded filters/source details are transient;
-- useful level/slot context remains without erasing the spell list;
-- phone landscape remains a phone interaction model and must keep practical spell content visible.
+For each QA point:
 
-After F, produce the planned early targeted Redmi portrait/landscape interaction build and audition before continuing blindly.
+1. discuss the exact observed problem and intended behavior with the owner;
+2. resolve only the design/interaction details needed for that point;
+3. once the owner closes the point, consolidate the decision durably in the repository;
+4. move to the next QA point;
+5. do not implement the repair pass until the discussion sequence has produced an accepted bounded repair specification, unless the owner explicitly changes that instruction.
 
-Four planned increments remain after the completed A–E boundary: **F, G, H and I**.
+After the discussion pass, define and implement the bounded Phase 4A acceptance-repair package, validate it, produce a monotonic successor QA build, retest affected phone boundaries, then perform physical tablet portrait/landscape QA before freezing a replacement M6 candidate and explicitly closing Phase 4A.
 
-**DM feature implementation remains blocked until Phase 4A is later repaired through the remaining successor increments, accepted through the required owner gates, and explicitly closed.**
+**DM feature implementation remains blocked until explicit Phase 4A closure.** DM design/discovery documentation may continue independently when the owner chooses, but it is not implementation authorization.
 
 ## Build and verification commands
 
