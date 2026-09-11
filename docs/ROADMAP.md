@@ -40,9 +40,9 @@ Phase 4 expanded into a deliberate **Character Foundation Closure** cycle before
 
 ### Phase 4A — Character Foundation Closure
 
-**Status:** A–I successor engineering plus post-audition Player stabilization complete/automated-green; consolidated physical owner QA pending and currently pinned until the owner can test.
+**Status:** A–I successor engineering and post-A–I stabilization are complete/automated-green. Consolidated owner phone QA of `0.4.0-preqa.8 / 40800` has been performed and **failed acceptance with bounded repair findings**. The project is now in **point-by-point QA design reconciliation before the acceptance-repair implementation pass**.
 
-D-0047 remains the controlling broad character-closure scope. D-0066 controls repository consolidation. D-0067 plus the September 2026 owner audition/refinement package controls the repair/refinement direction.
+D-0047 remains the controlling broad character-closure scope. D-0066 controls repository consolidation. D-0067 plus the September 2026 owner audition/refinement package controls the repair/refinement direction. The controlling current QA evidence is `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`.
 
 The repository may consolidate technically verified development boundaries into `main` before acceptance when the owner explicitly requests repository ordering. **Presence on `main` is not a Phase 4A acceptance criterion.**
 
@@ -70,14 +70,28 @@ There is **no planned Increment J**. After A–I, owner-audition findings drove 
 - authoritative validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
 - workflow `34430548061` — SUCCESS;
 - artifact `10134364621` / `dnd-custom-aid-debug-apk`;
-- ZIP digest `b7ead12a7501bbef96fef861321b5bebfd64c631647423b8eab9faec9580699a`;
+- ZIP digest `b7ead12a7501bbef96f861321b5bebfd64c631647423b8eab9faec9580699a`;
 - APK SHA-256 `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
 
-This is the **consolidated Player owner-QA build**, not yet a frozen formal M6 candidate and not an accepted Phase 4A baseline.
+This is the latest technically verified and owner-audited Player build. It is **not** a frozen formal M6 candidate and **not** an accepted Phase 4A baseline.
 
-Physical owner testing is currently pinned because the owner cannot test at this time. This is only a scheduling pause; it does not lower or waive the acceptance boundary.
+The owner successfully completed the update-in-place/data-preservation test and a consolidated phone pass covering portrait, landscape and representative larger text. The pass established meaningful PASS evidence but also exposed acceptance blockers. Physical tablet QA is intentionally deferred until shared/systemic findings are repaired.
 
-The first resumed physical test must install `preqa.8 / 40800` **over the existing QA app/data without uninstalling or clearing data first**, then continue as one consolidated Player QA rather than repeated micro-auditions.
+Build `40700` is historical evidence only and is not the current QA target.
+
+#### Current design-reconciliation rule
+
+Before implementation of the acceptance repair pass, review the `40800` QA findings **one point at a time** with the owner.
+
+For each point:
+
+- discuss the exact defect and intended interaction;
+- resolve only the design details needed for that point;
+- once closed by the owner, consolidate that decision durably in repository documentation;
+- then move to the next point;
+- do not collapse unrelated findings into one discussion package unless the owner explicitly requests it.
+
+When the point-by-point discussion is complete, convert the closed decisions into a bounded acceptance-repair implementation plan.
 
 ### Phase 4A exit criterion
 
@@ -86,17 +100,17 @@ Phase 4A is complete only when:
 - D-0047 implementation exists — **done**;
 - successor A–I engineering exists and automated gates are green — **done**;
 - post-audition Player stabilization is implemented and full-gate green — **done**;
-- owner observations and cross-cutting directions are durably captured — **done for the current package**;
-- consolidated physical owner phone QA demonstrates the repaired baseline is acceptable — **pending / currently pinned**;
-- tablet portrait/landscape acceptance is completed on the redesigned Player tablet surface — **pending**;
+- consolidated physical owner phone QA has been executed — **done for build 40800, but build not accepted**;
+- current QA findings have been individually reconciled with the owner and converted into an accepted repair specification — **in progress**;
+- blocking findings are repaired and targeted phone retest passes — **pending**;
+- tablet portrait/landscape acceptance is completed on the repaired Player tablet surface — **pending**;
 - one exact replacement formal M6 candidate is explicitly frozen when ready — **pending**;
 - upgrade/persistence and relevant formal regression QA pass — **pending**;
-- blocking findings are resolved — **pending**;
 - the owner explicitly accepts/closes Phase 4A — **pending**.
 
 **No DM-feature implementation begins before Phase 4A acceptance/closure.**
 
-DM-side discovery/design may be discussed and documented while physical QA is waiting, but documentation is not implementation permission.
+DM-side discovery/design may be discussed and documented while Phase 4A remains open, but documentation is not implementation permission.
 
 ### Phase 4B — DM combat / live-session work
 
