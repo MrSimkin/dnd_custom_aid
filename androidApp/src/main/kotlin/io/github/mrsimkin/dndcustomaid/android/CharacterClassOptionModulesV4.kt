@@ -3,7 +3,7 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -38,8 +39,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_CLASS_OPTION_ACTIVE_FILTER_KEY
@@ -54,14 +53,12 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPresentationOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderedSubsetResult
 import io.github.mrsimkin.dndcustomaid.shared.character.characterClassOptionKindDisplayLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.characterClassOptionSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterClassOption
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterMetamagicOptionManual
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterPactOptionManual
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterTechniqueOptionManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterClassOptionSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterClassOptionOrders
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterMetamagicOptions
@@ -69,7 +66,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterPactOpti
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterTechniqueOptions
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 private const val H2_FILTER_SEPARATOR = "\u001E"
@@ -89,7 +85,6 @@ private data class H2ModuleConfig(
         CharacterCollectionQuery,
         (CharacterClassOption) -> Boolean,
     ) -> List<CharacterClassOption>,
-    val move: (List<CharacterClassOption>, Uuid, Int) -> List<CharacterClassOption>,
 )
 
 private val techniquesConfigH2 = H2ModuleConfig(
@@ -104,7 +99,6 @@ private val techniquesConfigH2 = H2ModuleConfig(
     present = { options, order, query, favorite ->
         presentCharacterTechniqueOptions(options, order, query, favorite)
     },
-    move = ::moveCharacterTechniqueOptionManual,
 )
 
 private val metamagicConfigH2 = H2ModuleConfig(
@@ -119,7 +113,6 @@ private val metamagicConfigH2 = H2ModuleConfig(
     present = { options, order, query, favorite ->
         presentCharacterMetamagicOptions(options, order, query, favorite)
     },
-    move = ::moveCharacterMetamagicOptionManual,
 )
 
 private val pactsConfigH2 = H2ModuleConfig(
@@ -134,7 +127,6 @@ private val pactsConfigH2 = H2ModuleConfig(
     present = { options, order, query, favorite ->
         presentCharacterPactOptions(options, order, query, favorite)
     },
-    move = ::moveCharacterPactOptionManual,
 )
 
 @Composable
@@ -340,6 +332,25 @@ private fun CharacterClassOptionModuleH2(
         editorOpen = false
     }
 
+    fun commitOwnedReorder(proposedOwnedIds: List<String>) {
+        if (!canReorder) return
+        val normalized = normalizeCharacterClassOptionOrders(options)
+        val allIds = normalized.map { it.id.toString() }
+        val currentOwnedIds = normalized
+            .filter { it.kind in config.allowedKinds }
+            .map { it.id.toString() }
+        val mergedIds = applyCharacterReorderedSubsetResult(
+            allIds = allIds,
+            currentSubsetIds = currentOwnedIds,
+            proposedSubsetIds = proposedOwnedIds,
+        )
+        if (mergedIds == allIds) return
+        val byId = normalized.associateBy { it.id.toString() }
+        val reordered = mergedIds.mapNotNull(byId::get)
+        if (reordered.size != normalized.size) return
+        onOptionsChange(reordered.mapIndexed { index, option -> option.copy(sortOrder = index) })
+    }
+
     val collection: @Composable (Modifier) -> Unit = { modifier ->
         ClassOptionCollectionH2(
             modifier = modifier,
@@ -361,20 +372,7 @@ private fun CharacterClassOptionModuleH2(
             onEdit = ::beginEdit,
             onDuplicate = ::duplicate,
             onDelete = { deleteId = it.id.toString() },
-            onMove = { option, offset ->
-                if (!canReorder) {
-                    false
-                } else {
-                    val before = normalizeCharacterClassOptionOrders(options)
-                    val moved = config.move(options, option.id, offset)
-                    if (moved == before) {
-                        false
-                    } else {
-                        onOptionsChange(moved)
-                        true
-                    }
-                }
-            },
+            onCommitReorder = ::commitOwnedReorder,
             onFavoriteChange = { option, enabled ->
                 onClosureStateChange(
                     closureState.withQuickAccess(
@@ -389,10 +387,10 @@ private fun CharacterClassOptionModuleH2(
     }
 
     val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
-    characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+        characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
-if (sideEditorVisible) {
-    Row(
+    if (sideEditorVisible) {
+        Row(
             modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
@@ -547,11 +545,13 @@ private fun ClassOptionCollectionH2(
     onEdit: (CharacterClassOption) -> Unit,
     onDuplicate: (CharacterClassOption) -> Unit,
     onDelete: (CharacterClassOption) -> Unit,
-    onMove: (CharacterClassOption, Int) -> Boolean,
+    onCommitReorder: (List<String>) -> Unit,
     onFavoriteChange: (CharacterClassOption, Boolean) -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
     val classById = remember(classes) { classes.associateBy { it.id } }
+    val listState = rememberLazyListState()
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
     val favoriteCount = ownedOptions.count { option ->
         closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id)
     }
@@ -596,94 +596,147 @@ private fun ClassOptionCollectionH2(
         addAll(sourceFilters)
     }
 
-    LazyColumn(
+    val normalizedOptions = normalizeCharacterClassOptionOrders(options)
+    val canonicalOwned = normalizedOptions.filter { it.kind in config.allowedKinds }
+    val canonicalOwnedIds = canonicalOwned.map { it.id.toString() }
+    val optionById = ownedOptions.associateBy { it.id.toString() }
+    val sessionEnabled = canReorder && canonicalOwnedIds.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "class-option-${config.stateKey}",
+        canonicalOrder = canonicalOwnedIds,
+        enabled = sessionEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = onCommitReorder,
+        onHaptic = onHaptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+
+    val layoutOptions = if (canReorder) {
+        reorderSession.previewOrder.mapNotNull(optionById::get)
+    } else {
+        visible
+    }
+
+    CharacterReorderOverlayHostV4(
+        session = reorderSession,
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = appSpacingV4(6.dp),
-            end = appSpacingV4(6.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-    ) {
-        stickyHeader(key = "h2-${config.stateKey}-tools") {
-            CharacterCollectionToolbarV4(
-                itemCount = visible.size,
-                query = query,
-                onQueryChange = onQueryChange,
-                order = order,
-                onOrderChange = onOrderChange,
-                filters = filters,
-                searchLabel = config.searchLabel,
-                collapsibleSearch = true,
-                showItemCount = false,
-                compactOrderControl = true,
-                contextContent = {
-                    Text(
-                        config.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                onAdd = if (structuralEditingEnabled) onAdd else null,
-            )
-        }
-
-        item(key = "h2-${config.stateKey}-help") {
-            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
-                CharacterHelpV4(config.description)
-                if (!canReorder && visible.isNotEmpty()) {
-                    Text(
-                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                        } else {
-                            "Limpia búsqueda y filtros para reordenar manualmente."
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-            }
-        }
-
-        if (ownedOptions.isEmpty()) {
-            item {
-                CharacterUsefulEmptyState(
-                    title = "Sin ${config.title.lowercase()}",
-                    message = config.emptyMessage,
-                    onAdd = if (structuralEditingEnabled) onAdd else null,
-                    addLabel = "Añadir ${config.singularLabel}",
+        liftedContent = { draggedId ->
+            optionById[draggedId]?.let { option ->
+                ClassOptionRowH2(
+                    option = option,
+                    linkedClass = option.linkedClassId?.let(classById::get),
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
+                    favoriteEnabled = false,
+                    reorderSession = null,
+                    structuralEditingEnabled = false,
+                    selected = selectedEditingId == option.id.toString(),
+                    onFavoriteChange = {},
+                    onEdit = {},
+                    onDuplicate = {},
+                    onDelete = {},
+                    lifted = true,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
-        } else if (visible.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No hay registros que coincidan con esta búsqueda y filtros.",
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+        },
+    ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .characterReorderSessionViewportV4(reorderSession),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(6.dp),
+                end = appSpacingV4(6.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            stickyHeader(key = "h2-${config.stateKey}-tools") {
+                CharacterCollectionToolbarV4(
+                    itemCount = visible.size,
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    order = order,
+                    onOrderChange = onOrderChange,
+                    filters = filters,
+                    searchLabel = config.searchLabel,
+                    collapsibleSearch = true,
+                    showItemCount = false,
+                    compactOrderControl = true,
+                    contextContent = {
+                        Text(
+                            config.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
+                )
+            }
+
+            item(key = "h2-${config.stateKey}-help") {
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                    CharacterHelpV4(config.description)
+                    if (!canReorder && visible.isNotEmpty()) {
+                        Text(
+                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                            } else {
+                                "Limpia búsqueda y filtros para reordenar manualmente."
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                 }
             }
-        }
 
-        items(count = visible.size, key = { index -> "h2-${config.stateKey}-${visible[index].id}" }) { index ->
-            val option = visible[index]
-            ClassOptionRowH2(
-                option = option,
-                linkedClass = option.linkedClassId?.let(classById::get),
-                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
-                favoriteEnabled = structuralEditingEnabled && option.id in persistedOptionIds,
-                reorderEnabled = canReorder && ownedOptions.size > 1,
-                structuralEditingEnabled = structuralEditingEnabled,
-                selected = selectedEditingId == option.id.toString(),
-                onFavoriteChange = { onFavoriteChange(option, it) },
-                onMove = { offset -> onMove(option, offset) },
-                onEdit = { onEdit(option) },
-                onDuplicate = { onDuplicate(option) },
-                onDelete = { onDelete(option) },
-                onHaptic = onHaptic,
-            )
+            if (ownedOptions.isEmpty()) {
+                item {
+                    CharacterUsefulEmptyState(
+                        title = "Sin ${config.title.lowercase()}",
+                        message = config.emptyMessage,
+                        onAdd = if (structuralEditingEnabled) onAdd else null,
+                        addLabel = "Añadir ${config.singularLabel}",
+                    )
+                }
+            } else if (visible.isEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "No hay registros que coincidan con esta búsqueda y filtros.",
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+
+            items(
+                count = layoutOptions.size,
+                key = { index -> "h2-${config.stateKey}-${layoutOptions[index].id}" },
+            ) { index ->
+                val option = layoutOptions[index]
+                ClassOptionRowH2(
+                    option = option,
+                    linkedClass = option.linkedClassId?.let(classById::get),
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
+                    favoriteEnabled = structuralEditingEnabled && option.id in persistedOptionIds,
+                    reorderSession = reorderSession.takeIf { sessionEnabled },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    selected = selectedEditingId == option.id.toString(),
+                    onFavoriteChange = { onFavoriteChange(option, it) },
+                    onEdit = { onEdit(option) },
+                    onDuplicate = { onDuplicate(option) },
+                    onDelete = { onDelete(option) },
+                    modifier = Modifier
+                        .animateItem()
+                        .fillMaxWidth(),
+                )
+            }
         }
     }
 }
@@ -694,98 +747,110 @@ private fun ClassOptionRowH2(
     linkedClass: CharacterClassLevel?,
     favorite: Boolean,
     favoriteEnabled: Boolean,
-    reorderEnabled: Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
-    onMove: (Int) -> Boolean,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(option.id) { mutableStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    val id = option.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier.fillMaxWidth().characterMeasuredReorderDragV4(
-                    enabled = reorderEnabled,
-                    onHaptic = onHaptic,
-                    onMove = onMove,
-                    onVisualStateChange = { state ->
-                        dragging = state.active
-                        accumulatedDrag = state.offsetY
-                    },
-                )
-                .characterDragFeedbackV4(dragState).clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(
-                width = if (selected) 2.dp else 1.dp,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            ),
-            color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    Surface(
+        modifier = modifier.then(geometryModifier),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(pickupModifier)
+                    .clickable(
+                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        onClick = onEdit,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
             ) {
-Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                Text(
+                    option.name.ifBlank { "Registro sin nombre" },
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                    ModuleBadgeH1(characterClassOptionKindDisplayLabel(option.kind))
+                    ModuleBadgeH1(if (option.active) "Activo" else "Inactivo")
+                }
+                val provenance = listOfNotNull(
+                    linkedClass?.let { classLevel ->
+                        buildString {
+                            append(classLevel.name)
+                            classLevel.subclassName?.takeIf(String::isNotBlank)?.let { append(" · $it") }
+                        }
+                    },
+                    option.source?.takeIf(String::isNotBlank),
+                ).joinToString(" · ")
+                if (provenance.isNotBlank()) {
                     Text(
-                        option.name.ifBlank { "Registro sin nombre" },
-                        style = MaterialTheme.typography.labelLarge,
-                        maxLines = 2,
+                        provenance,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
-                        ModuleBadgeH1(characterClassOptionKindDisplayLabel(option.kind))
-                        ModuleBadgeH1(if (option.active) "Activo" else "Inactivo")
-                    }
-                    val provenance = listOfNotNull(
-                        linkedClass?.let { classLevel ->
-                            buildString {
-                                append(classLevel.name)
-                                classLevel.subclassName?.takeIf(String::isNotBlank)?.let { append(" · $it") }
-                            }
-                        },
-                        option.source?.takeIf(String::isNotBlank),
-                    ).joinToString(" · ")
-                    if (provenance.isNotBlank()) {
-                        Text(provenance, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    option.costText?.takeIf(String::isNotBlank)?.let {
-                        Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (option.effectSummary.isNotBlank()) {
-                        Text(option.effectSummary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    StableFavoriteIconButton(
-                        selected = favorite,
-                        onClick = { onFavoriteChange(!favorite) },
-                        enabled = structuralEditingEnabled && favoriteEnabled,
-                        contentDescription = if (favorite) "Quitar ${option.name} de Favoritos" else "Añadir ${option.name} a Favoritos",
+                option.costText?.takeIf(String::isNotBlank)?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                if (option.effectSummary.isNotBlank()) {
+                    Text(option.effectSummary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                StableFavoriteIconButton(
+                    selected = favorite,
+                    onClick = { onFavoriteChange(!favorite) },
+                    enabled = !lifted && structuralEditingEnabled && favoriteEnabled,
+                    contentDescription = if (favorite) {
+                        "Quitar ${option.name} de Favoritos"
+                    } else {
+                        "Añadir ${option.name} a Favoritos"
+                    },
+                )
+                if (structuralEditingEnabled && !lifted) {
+                    StableDuplicateIconButton(
+                        onClick = onDuplicate,
+                        contentDescription = "Duplicar ${option.name}",
                     )
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(
-                            onClick = onDuplicate,
-                            contentDescription = "Duplicar ${option.name}",
-                        )
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${option.name}")
-                    }
+                    StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${option.name}")
                 }
             }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
