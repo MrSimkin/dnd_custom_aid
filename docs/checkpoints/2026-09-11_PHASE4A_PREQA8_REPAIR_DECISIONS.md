@@ -95,11 +95,40 @@ Those are separate discussion points and must not be inferred from this state de
 
 **Status:** `CLOSED / READY FOR REPAIR SPEC`.
 
+### P3 — Custom Habilidades geometry and custom Atributos participation
+
+**QA problem:** `preqa.8 / 40800` renders custom skills with visibly different margin/padding from ordinary skills in both `Por habilidades` and `Por atributo`, despite the intended inline behavior.
+
+**Owner-approved target behavior for custom Habilidades:**
+
+- A custom Habilidad uses the same row geometry, alignment, padding, spacing, controls and interaction model as an ordinary Habilidad.
+- This applies in both `Por habilidades` and `Por atributo` grouping.
+- Italicized naming is the intended visual distinction for a custom Habilidad; it must not receive a special card, badge, indentation, background, row height or container geometry merely because it is custom.
+- A custom Habilidad is therefore a normal participant in the skill system, not a visually separate secondary object.
+
+**Owner clarification discovered during P3 — custom Atributos:**
+
+This was not an observed `40800` QA failure and had not previously been explicitly discussed/tested. The owner confirms it as required Player behavior rather than leaving it as an assumption:
+
+- custom Atributos follow the same native-participant principle as the six basic Atributos: use the same interaction/visual grammar rather than a special custom-only container style;
+- custom Atributos are additional to the six basic Atributos and may occupy additional row(s) beyond the standard six rather than displacing or masquerading as one of them;
+- custom Habilidades may be assigned to a custom Atributo;
+- when the Habilidades view is grouped `Por atributo`, those custom Habilidades must group under their assigned custom Atributo exactly as standard skills group under standard Atributos;
+- the data model/UI must therefore not assume that the parent Atributo of a Habilidad can only be one of the six basic attributes.
+
+This clarification is part of the acceptance boundary even though it was surfaced outside the original QA checklist, because leaving it implicit would create an avoidable implementation ambiguity.
+
+**Phone/tablet scope:** identical semantic behavior across phone and tablet; responsive wrapping may differ, but custom versus standard geometry must remain coherent within each layout.
+
+**Regression boundary:** visual/integration coverage must compare ordinary and custom Habilidad geometry in both grouping modes. Additional coverage must prove creation/display of custom Atributos beyond the six basics and assignment/grouping of custom Habilidades under a custom Atributo. This behavior must be tested rather than merely assumed.
+
+**Status:** `CLOSED / READY FOR REPAIR SPEC`.
+
 ## Current discussion point
 
-**P3 — Custom Habilidad geometry versus ordinary skills.**
+**P4 — Attack structured-damage editor UX.**
 
-The QA finding says custom skills currently have visibly different margin/padding from ordinary skills in both `Por habilidades` and `Por atributo`. The already-protected product direction is that custom skills participate inline as ordinary skills, with italics as the intended visual distinction rather than a different container geometry.
+The underlying structured-damage functionality works in `40800`, including typed dice expressions and rolling, but the owner rejected the interaction: fields read like examples (`1d8`, `+3`) rather than semantic controls and dice combinations require manual typing instead of a direct compact dice-oriented interaction. P4 must define the desired editing grammar without sacrificing valid structured damage expressions or multiple damage components.
 
 ## Remaining boundary
 
