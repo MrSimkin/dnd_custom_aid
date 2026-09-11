@@ -25,9 +25,11 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterReorderSlot
+import io.github.mrsimkin.dndcustomaid.shared.character.nearestCharacterReorderIndex
+import io.github.mrsimkin.dndcustomaid.shared.character.previewCharacterReorder
 import kotlinx.coroutines.isActive
 import kotlin.math.abs
-import kotlin.math.hypot
 import kotlin.math.min
 
 /**
@@ -161,30 +163,17 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         val dragged = draggedId ?: return
         val initial = sourceBounds ?: return
         val visualCenter = initial.center + dragDelta
-
-        var bestIndex = previewOrder.indexOf(dragged)
-        var bestDistance = Float.POSITIVE_INFINITY
-
-        previewOrder.forEachIndexed { index, id ->
-            val bounds = itemBounds[id] ?: return@forEachIndexed
-            val slotCenter = bounds.center
-            val distance = hypot(
-                (visualCenter.x - slotCenter.x).toDouble(),
-                (visualCenter.y - slotCenter.y).toDouble(),
-            ).toFloat()
-            if (distance < bestDistance) {
-                bestDistance = distance
-                bestIndex = index
-            }
+        val slots = itemBounds.map { (id, bounds) ->
+            CharacterReorderSlot(id = id, centerX = bounds.center.x, centerY = bounds.center.y)
         }
-
-        val currentIndex = previewOrder.indexOf(dragged)
-        if (currentIndex < 0 || bestIndex < 0 || bestIndex == currentIndex) return
-
-        val reordered = previewOrder.toMutableList()
-        reordered.removeAt(currentIndex)
-        val insertionIndex = bestIndex.coerceIn(0, reordered.size)
-        reordered.add(insertionIndex, dragged)
+        val targetIndex = nearestCharacterReorderIndex(
+            order = previewOrder,
+            draggedId = dragged,
+            visualCenterX = visualCenter.x,
+            visualCenterY = visualCenter.y,
+            renderedSlots = slots,
+        )
+        val reordered = previewCharacterReorder(previewOrder, dragged, targetIndex)
         if (reordered != previewOrder) {
             previewOrder = reordered
             onHaptic(CharacterHapticEventV4.DRAG_STEP)
