@@ -3,12 +3,12 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -63,6 +63,13 @@ internal fun characterCompactSingleLineFieldHeightV4(): Dp {
     return height.coerceIn(48f, 64f).dp
 }
 
+/**
+ * Shared adaptive editor surface (P9).
+ *
+ * Short editors wrap their natural content. Medium/large editors are bounded by the usable
+ * dialog viewport and scroll internally. The action row lives outside the scroll region so
+ * Save/Cancel remain reachable without forcing every editor to occupy the full screen.
+ */
 @Composable
 internal fun CharacterImeSafeEditorDialog(
     title: String,
@@ -80,11 +87,14 @@ internal fun CharacterImeSafeEditorDialog(
     val dialogEnvironment = characterDialogEnvironmentV4()
 
     Dialog(
-        onDismissRequest = { focusManager.clearFocus() },
+        onDismissRequest = {
+            focusManager.clearFocus()
+            onCancel()
+        },
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         dialogEnvironment.Provide {
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .imePadding()
@@ -101,22 +111,21 @@ internal fun CharacterImeSafeEditorDialog(
                     modifier = modifier
                         .fillMaxWidth()
                         .widthIn(max = 640.dp)
-                        .fillMaxHeight(),
+                        .heightIn(max = maxHeight),
                     shape = MaterialTheme.shapes.large,
                     tonalElevation = 5.dp,
                     shadowElevation = 6.dp,
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(scrollState)
+                            .fillMaxWidth()
                             .padding(
                                 top = appSpacingV4(6.dp),
                                 start = appSpacingV4(6.dp),
                                 end = appSpacingV4(6.dp),
                                 bottom = appSpacingV4(5.dp),
                             ),
-                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
                     ) {
                         Text(title, style = MaterialTheme.typography.titleMedium)
                         supportingText?.takeIf { it.isNotBlank() }?.let {
@@ -126,7 +135,15 @@ internal fun CharacterImeSafeEditorDialog(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        content()
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false)
+                                .verticalScroll(scrollState),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+                        ) {
+                            content()
+                        }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp), Alignment.End),
