@@ -1,84 +1,133 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheetTabKey
 
-/** P6/P10: tab order uses the same whole-row long-press drag grammar as Player collections. */
+/**
+ * P6 proof consumer: a genuine one-dimensional pick-up-and-move viewport.
+ *
+ * The list stays in its normal layout. Long-pressing a row lifts that row in place; rendered slot
+ * geometry drives the transient preview; canonical tab order changes only once, on successful
+ * drop. The viewport owns its scroll state so the shared P6 engine can edge-auto-scroll rather
+ * than trapping long drags inside one oversized parent item.
+ */
 @Composable
 internal fun CharacterTabOrderDragSettingsV4(
     hapticsEnabled: Boolean,
+    enabled: Boolean,
+    onBack: () -> Unit,
 ) {
     val context = LocalCharacterPcSettingsContextV4.current ?: return
-    val order = context.successorState.preferences.tabOrder
+    val canonicalOrder = context.successorState.preferences.tabOrder
+    val canonicalIds = canonicalOrder.map { it.name }
+    val keyById = remember(canonicalOrder) { canonicalOrder.associateBy { it.name } }
+    val listState = rememberLazyListState()
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+    val reorderState = rememberCharacterSpatialReorderStateV4(
+        canonicalOrder = canonicalIds,
+        onCommitOrder = { committedIds ->
+            val current = context.successorState
+            val currentById = current.preferences.tabOrder.associateBy { it.name }
+            val committed = committedIds.mapNotNull(currentById::get)
+            if (committed.size == current.preferences.tabOrder.size && committed != current.preferences.tabOrder) {
+                context.onSuccessorStateChange(
+                    current.copy(
+                        preferences = current.preferences.copy(tabOrder = committed),
+                    ),
+                )
+            }
+        },
+        onHaptic = haptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+    )
+    CharacterSpatialReorderAutoScrollEffectV4(reorderState)
+
+    val previewOrder = reorderState.previewOrder.mapNotNull(keyById::get)
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+            .characterSpatialReorderViewportV4(reorderState),
+        contentPadding = PaddingValues(
+            start = appSpacingV4(7.dp),
+            end = appSpacingV4(7.dp),
+            top = appSpacingV4(5.dp),
+            bottom = appSpacingV4(28.dp),
+        ),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        Text(
-            "Mantén pulsada una fila y arrástrala para cambiar su posición.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        order.forEachIndexed { index, key ->
-            var dragState by remember(key) { mutableStateOf(CharacterDragVisualStateV4()) }
-            CharacterDropIndicatorV4(visible = dragState.showDropBefore)
+        item(key = "tab-order-header") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            ) {
+                StableBackIconButton(onClick = onBack, contentDescription = "Volver a Ajustes de personaje")
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Orden de pestañas", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        if (enabled) "Mantén pulsada una fila y arrástrala."
+                        else "Modo Mesa: orden en solo lectura.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        itemsIndexed(
+            items = previewOrder,
+            key = { _, key -> key.name },
+        ) { index, key ->
+            val id = key.name
+            val active = reorderState.draggedId == id
             Surface(
                 modifier = Modifier
+                    .animateItem()
                     .fillMaxWidth()
-                    .characterMeasuredReorderDragV4(
-                        enabled = true,
-                        onHaptic = haptic,
-                        onMove = { offset ->
-                            val currentOrder = context.successorState.preferences.tabOrder
-                            val currentIndex = currentOrder.indexOf(key)
-                            val target = currentIndex + offset
-                            if (currentIndex !in currentOrder.indices || target !in currentOrder.indices) {
-                                false
-                            } else {
-                                val changed = currentOrder.toMutableList()
-                                val item = changed.removeAt(currentIndex)
-                                changed.add(target, item)
-                                context.onSuccessorStateChange(
-                                    context.successorState.copy(
-                                        preferences = context.successorState.preferences.copy(tabOrder = changed),
-                                    ),
-                                )
-                                true
-                            }
-                        },
-                        onVisualStateChange = { dragState = it },
+                    .characterSpatialReorderItemV4(
+                        state = reorderState,
+                        id = id,
+                        enabled = enabled,
                     )
-                    .characterDragFeedbackV4(dragState),
+                    .characterSpatialReorderVisualV4(reorderState, id),
                 shape = MaterialTheme.shapes.small,
                 border = BorderStroke(
-                    width = if (dragState.active) 2.dp else 1.dp,
-                    color = if (dragState.active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                    width = if (active) 2.dp else 1.dp,
+                    color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                 ),
-                tonalElevation = if (dragState.active) 3.dp else 0.dp,
+                tonalElevation = if (active) 3.dp else 0.dp,
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(8.dp),
-                        vertical = appSpacingV4(7.dp),
-                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = appSpacingV4(8.dp),
+                            vertical = appSpacingV4(8.dp),
+                        ),
                     horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -90,7 +139,6 @@ internal fun CharacterTabOrderDragSettingsV4(
                     Text(characterTabOrderLabelV4(key), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            CharacterDropIndicatorV4(visible = dragState.showDropAfter)
         }
     }
 }
