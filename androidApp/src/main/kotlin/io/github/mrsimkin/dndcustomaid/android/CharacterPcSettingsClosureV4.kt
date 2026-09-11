@@ -110,10 +110,11 @@ internal fun CharacterPcSettingsClosureV4(
                 onOpenApplicationSettings = onOpenApplicationSettings,
             )
 
-            PcSettingsPageClosureV4.TAB_ORDER -> PcSettingsSubpageClosureV4(
-                title = "Orden de pestañas",
+            PcSettingsPageClosureV4.TAB_ORDER -> CharacterTabOrderDragSettingsV4(
+                hapticsEnabled = closureState.hapticsEnabled,
+                enabled = !closureState.tableModeEnabled,
                 onBack = { pageName = PcSettingsPageClosureV4.MAIN.name },
-            ) { CharacterTabOrderSettingsV4() }
+            )
 
             PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES -> PcSettingsSubpageClosureV4(
                 title = "Características personalizadas",
