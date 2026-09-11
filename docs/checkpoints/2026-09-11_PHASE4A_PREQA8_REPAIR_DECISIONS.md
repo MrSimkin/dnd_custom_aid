@@ -168,11 +168,65 @@ This clarification is part of the acceptance boundary even though it was surface
 
 **Status:** `CLOSED / READY FOR REPAIR SPEC`.
 
+### P5 — Combate fixed quick-reference footprint / compact fixed-region principle
+
+**QA problem:** at `Compactación de espacios = 100%`, the fixed Combate quick-reference region in `40800` consumed roughly 60% of the phone portrait viewport and became even more obstructive in landscape. The owner explicitly rejected treating a lower global compactness setting as the solution.
+
+**Owner-approved Combate HUD target:**
+
+- Replace the vertically stacked `Referencia rápida` card grammar with a genuinely compact fixed combat HUD.
+- Remove the redundant `Referencia rápida` heading from the fixed region.
+- Keep `CA`, `Iniciativa` and `Velocidad` permanently visible in one compact inline reference row rather than separate vertically expensive mini-cards.
+- Combine current and maximum HP into one compact projection such as `PV 37/52` rather than separate `PG actuales` and `PG máximos` boxes.
+- Keep temporary HP visible compactly as `Temp. 8`.
+- The permanent `PG temp.` action button is removed. Tapping/activating the visible temporary-HP value provides the explicit exact-value edit path instead.
+- Keep the P2 high-frequency operation as a compact permanent row: `Daño | cantidad | Curar`.
+- Tapping/activating the combined current/max HP projection exposes the secondary exact `Establecer PV` correction path defined in P2.
+- Death-save controls must **not** enlarge the permanent fixed HUD. When relevant, they appear as the first normal scrollable Combate section immediately below the HUD.
+- The fixed HUD must leave attacks/actions as the dominant scrollable content area at the normal `100%` spacing setting. The repair must not depend on telling the owner to lower application compactness.
+
+**Accepted conceptual shape:**
+
+`CA 18     Inic. +4     Vel. 30 ft (9 m)`  
+`PV 37/52     Temp. 8`  
+`Daño | cantidad | Curar`
+
+The exact responsive arrangement may adapt, but this compact information grammar is the target.
+
+**General fixed/sticky-region principle clarified during P5:**
+
+- Across the application, fixed/sticky informational regions should be compact by default because permanent viewport occupation directly reduces the working/content area.
+- A fixed region should behave more like a HUD/status strip than like an ordinary spacious scrollable card.
+- Prefer inline label/value presentation over stacked mini-cards where the information remains clear.
+- Remove redundant headings when surrounding navigation/context already explains the region.
+- Minimize vertical stacking and unnecessary internal padding while preserving legibility.
+- Interactive elements must retain safe/usable touch targets; `compact` must not mean tiny or difficult to operate.
+- Normal scrollable cards may remain more spacious because they do not permanently consume viewport space.
+- Available **vertical height**, not only width/orientation name, must be considered when deciding how aggressively a persistent region compacts/adapts. The separate global landscape/sticky-policy QA point will refine that rule later rather than being silently collapsed into P5.
+
+**Global speed-formatting clarification discovered during P5:**
+
+- Character speed is imperial-first everywhere it is projected, with the quick 5.5e-style metric conversion shown consistently in parentheses.
+- Example: `30 ft (9 m)`, `25 ft (7.5 m)`, `5 ft (1.5 m)`.
+- This is a shared presentation rule, not a General-tab-only feature. General, Combate, Supercompact, Table Mode and any other current/future Player reference projection of the same canonical speed should use the same formatter/policy rather than reimplementing it independently.
+
+**Explicitly not decided in P5:**
+
+- death-save mechanics/state-transition semantics beyond moving their controls outside the permanent HUD;
+- the broader global phone-landscape/sticky policy, which remains its own QA point;
+- unrelated Combate attack/action card layout beyond ensuring the fixed HUD leaves that content usable.
+
+**Phone/tablet scope:** the compact fixed-region principle and Combate HUD information grammar apply across phone/tablet. Layout may reflow with available width/height, but tablet must not revert to the old vertically wasteful stacked mini-card model merely because more width exists.
+
+**Regression boundary:** visual/integration coverage must prove the compact HUD retains `CA`, `Iniciativa`, `Velocidad`, combined current/max HP, temporary HP and direct `Daño/Curar` operation; removes the redundant heading and permanent temp-HP button; keeps death saves outside the fixed HUD; leaves a meaningful scrollable attacks/actions area at 100% spacing; preserves tappable exact-HP/temp-HP correction paths; and applies the shared imperial-first speed formatter consistently across representative Player surfaces.
+
+**Status:** `CLOSED / READY FOR REPAIR SPEC`.
+
 ## Current discussion point
 
-**P5 — Combate fixed quick-reference footprint.**
+**P6 — Direct drag-and-drop reorder in normal collection layout.**
 
-At normal `Compactación de espacios = 100%`, the fixed Combate reference region consumed roughly 60% of the phone portrait viewport in `40800`, with an even more severe effect in landscape. The owner explicitly rejected treating a lower compactness setting such as 40% as the solution. P5 must determine what should remain persistently visible, what can collapse/scroll/adapt, and how the fixed region should react to available vertical space without yet broadening into the separate global phone-landscape/sticky-policy finding.
+The owner rejected the current special `Reordenar -> transformed one-column layout -> Listo` workflow. P6 must define direct reordering behavior in the collection's actual normal presentation, including multicolumn layouts, while preserving safe editing/tapping behavior and useful movement feedback across shared collection surfaces.
 
 ## Remaining boundary
 
