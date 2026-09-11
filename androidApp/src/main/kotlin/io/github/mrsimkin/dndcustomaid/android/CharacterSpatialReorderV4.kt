@@ -63,7 +63,6 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         private set
 
     private var sourceBounds: Rect? = null
-    private var pickupOffsetInItem: Offset = Offset.Zero
     private var onCommitOrder: (List<String>) -> Unit = {}
     private var onHaptic: (CharacterHapticEventV4) -> Unit = {}
     private var autoScrollBy: (suspend (Float) -> Float)? = null
@@ -103,15 +102,15 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         viewportBounds = bounds
     }
 
-    fun beginDrag(id: String, pickupOffset: Offset): Boolean {
+    /** Start from an absolute pointer position so the pickup surface may be only part of a card. */
+    fun beginDragAtRoot(id: String, pointerRoot: Offset): Boolean {
         if (active || id !in previewOrder) return false
         val bounds = itemBounds[id] ?: return false
         canonicalOrderSnapshot = previewOrder.toList()
         draggedId = id
         sourceBounds = bounds
-        pickupOffsetInItem = pickupOffset
         dragDelta = Offset.Zero
-        pointerInRoot = bounds.topLeft + pickupOffset
+        pointerInRoot = pointerRoot
         onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
         return true
     }
@@ -127,8 +126,8 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         if (id != draggedId) return Offset.Zero
         val initial = sourceBounds ?: return dragDelta
         val current = itemBounds[id] ?: return dragDelta
-        // Keep the original pickup point visually anchored under the pointer even after preview
-        // reflow or scroll moves the item's layout slot beneath the lifted drawing.
+        // Keep the original picked card visually anchored while its preview slot and/or scrolling
+        // parent moves beneath it. Active pointer movement itself is never spring-interpolated.
         return (initial.topLeft + dragDelta) - current.topLeft
     }
 
@@ -153,7 +152,6 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
     private fun clearTransient(keepPreview: Boolean) {
         draggedId = null
         sourceBounds = null
-        pickupOffsetInItem = Offset.Zero
         dragDelta = Offset.Zero
         pointerInRoot = null
         if (!keepPreview) previewOrder = canonicalOrderSnapshot
@@ -205,8 +203,6 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
             else -> return false
         }
 
-        // Per-frame speed: deliberately modest at the band edge, accelerating near the viewport
-        // boundary. It is a scroll assist, not a fling.
         val maxPerFrame = 22f * density
         val minPerFrame = 2f * density
         val requested = direction * (minPerFrame + (maxPerFrame - minPerFrame) * proximity * proximity)
@@ -237,7 +233,6 @@ internal fun rememberCharacterSpatialReorderStateV4(
     return state
 }
 
-/** Register the scrollable collection viewport used by edge auto-scroll. */
 internal fun Modifier.characterSpatialReorderViewportV4(
     vararg states: CharacterSpatialReorderStateV4,
 ): Modifier = onGloballyPositioned { coordinates ->
@@ -245,51 +240,66 @@ internal fun Modifier.characterSpatialReorderViewportV4(
     states.forEach { it.setViewport(bounds) }
 }
 
+/** Full-card geometry registration. Keep this on the item that visually moves. */
+@Composable
+internal fun Modifier.characterSpatialReorderBoundsV4(
+    state: CharacterSpatialReorderStateV4,
+    id: String,
+): Modifier {
+    DisposableEffect(state, id) {
+        onDispose { state.unregisterBounds(id) }
+    }
+    return onGloballyPositioned { state.registerBounds(id, it.boundsInRoot()) }
+}
+
 /**
- * Attach to the reorderable card/row body. Short taps are left to existing click handlers; the
- * reorder session starts only after Compose resolves a long-press drag gesture.
- *
- * This modifier is composable so lazy items can unregister geometry when disposed. Without that
- * lifecycle cleanup, an off-screen item's stale rectangle could become a false destination during
- * edge auto-scroll.
+ * Pickup detector for a safe card-body region. This is deliberately separate from item geometry so
+ * buttons, checkboxes, menus and other operational children can remain outside the pickup surface.
  */
+@Composable
+internal fun Modifier.characterSpatialReorderDragHandleV4(
+    state: CharacterSpatialReorderStateV4,
+    id: String,
+    enabled: Boolean,
+): Modifier {
+    var handleBounds by remember(state, id) { mutableStateOf<Rect?>(null) }
+    val geometry = onGloballyPositioned { handleBounds = it.boundsInRoot() }
+    if (!enabled) return geometry
+    return geometry.pointerInput(state, id, enabled) {
+        var pickupAccepted = false
+        detectDragGesturesAfterLongPress(
+            onDragStart = { localOffset ->
+                val rootBounds = handleBounds
+                pickupAccepted = if (rootBounds == null) false
+                else state.beginDragAtRoot(id, rootBounds.topLeft + localOffset)
+            },
+            onDrag = { change, amount ->
+                if (pickupAccepted) {
+                    change.consume()
+                    state.dragBy(amount)
+                }
+            },
+            onDragEnd = {
+                if (pickupAccepted) state.finishDrag()
+                pickupAccepted = false
+            },
+            onDragCancel = {
+                if (pickupAccepted) state.cancelDrag()
+                pickupAccepted = false
+            },
+        )
+    }
+}
+
+/** Convenience for simple rows whose entire surface is safe to pick up. */
 @Composable
 internal fun Modifier.characterSpatialReorderItemV4(
     state: CharacterSpatialReorderStateV4,
     id: String,
     enabled: Boolean,
-): Modifier {
-    DisposableEffect(state, id) {
-        onDispose { state.unregisterBounds(id) }
-    }
-    val geometry = onGloballyPositioned { state.registerBounds(id, it.boundsInRoot()) }
-    return if (!enabled) {
-        geometry
-    } else {
-        geometry.pointerInput(state, id, enabled) {
-            var pickupAccepted = false
-            detectDragGesturesAfterLongPress(
-                onDragStart = { localOffset ->
-                    pickupAccepted = state.beginDrag(id, localOffset)
-                },
-                onDrag = { change, amount ->
-                    if (pickupAccepted) {
-                        change.consume()
-                        state.dragBy(amount)
-                    }
-                },
-                onDragEnd = {
-                    if (pickupAccepted) state.finishDrag()
-                    pickupAccepted = false
-                },
-                onDragCancel = {
-                    if (pickupAccepted) state.cancelDrag()
-                    pickupAccepted = false
-                },
-            )
-        }
-    }
-}
+): Modifier = this
+    .characterSpatialReorderBoundsV4(state, id)
+    .characterSpatialReorderDragHandleV4(state, id, enabled)
 
 /**
  * Draw feedback for the actively lifted item. Active pointer tracking is intentionally direct;
@@ -321,7 +331,6 @@ internal fun Modifier.characterSpatialReorderVisualV4(
     }
 }
 
-/** Run edge auto-scroll only while a reorder session is active. */
 @Composable
 internal fun CharacterSpatialReorderAutoScrollEffectV4(
     state: CharacterSpatialReorderStateV4,
