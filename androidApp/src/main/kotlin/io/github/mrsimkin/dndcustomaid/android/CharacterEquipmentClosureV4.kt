@@ -3,10 +3,9 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,9 +18,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -43,8 +42,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -66,7 +63,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.consumeInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateInventoryUsage
 import io.github.mrsimkin.dndcustomaid.shared.character.effectiveInventoryCarryState
-import io.github.mrsimkin.dndcustomaid.shared.character.inventoryUsageFor
+import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterReorderedSubset
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterInventorySection
 import io.github.mrsimkin.dndcustomaid.shared.character.withInventoryUsage
 import java.util.Locale
@@ -91,8 +88,6 @@ internal fun CharacterEquipmentClosureTabV4(
     var activeFiltersText by rememberSaveable { mutableStateOf("") }
     var ordinaryCollapsed by rememberSaveable { mutableStateOf(false) }
     var specialCollapsed by rememberSaveable { mutableStateOf(false) }
-    var ordinaryReorderMode by rememberSaveable("equipment-ordinary-linear-reorder") { mutableStateOf(false) }
-    var specialReorderMode by rememberSaveable("equipment-special-linear-reorder") { mutableStateOf(false) }
 
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -157,8 +152,6 @@ internal fun CharacterEquipmentClosureTabV4(
         characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
     fun updateQuery(updated: CharacterCollectionQuery) {
-        ordinaryReorderMode = false
-        specialReorderMode = false
         searchText = updated.searchText
         activeFiltersText = updated.activeFilterKeys.sorted().joinToString("|")
     }
@@ -203,25 +196,6 @@ internal fun CharacterEquipmentClosureTabV4(
         editorQuickUse = usage.quickUseAmount.toString()
         editorCarryName = effectiveInventoryCarryState(item, usage).name
         editorOpen = true
-    }
-
-    fun moveWithinSection(item: CharacterInventoryItem, offset: Int): Boolean {
-        if (!structuralEditingEnabled) return false
-        val section = draft.items
-            .filter { it.special == item.special }
-            .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
-        val index = section.indexOfFirst { it.id == item.id }
-        val target = index + offset
-        if (index < 0 || target !in section.indices) return false
-        val reordered = section.toMutableList()
-        val moved = reordered.removeAt(index)
-        reordered.add(target, moved)
-        val iterator = reordered.iterator()
-        val merged = draft.items.map { current ->
-            if (current.special == item.special) iterator.next() else current
-        }.mapIndexed { order, current -> current.copy(sortOrder = order) }
-        onDraftChange(draft.copy(items = merged))
-        return true
     }
 
     fun duplicate(item: CharacterInventoryItem) {
@@ -286,166 +260,189 @@ internal fun CharacterEquipmentClosureTabV4(
         editorOpen = false
     }
 
+    fun commitSectionOrder(committedIds: List<String>) {
+        if (!structuralEditingEnabled || committedIds.isEmpty()) return
+        val orderedItems = draft.items.sortedWith(
+            compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() },
+        )
+        val byId = orderedItems.associateBy { it.id.toString() }
+        val mergedIds = mergeCharacterReorderedSubset(
+            allIds = orderedItems.map { it.id.toString() },
+            reorderedSubsetIds = committedIds,
+        )
+        if (mergedIds == orderedItems.map { it.id.toString() }) return
+        val merged = mergedIds.mapNotNull(byId::get).mapIndexed { order, current -> current.copy(sortOrder = order) }
+        if (merged.size == orderedItems.size) onDraftChange(draft.copy(items = merged))
+    }
+
+    val ordinaryCanonicalIds = draft.items
+        .filterNot { it.special }
+        .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
+        .map { it.id.toString() }
+    val specialCanonicalIds = draft.items
+        .filter { it.special }
+        .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
+        .map { it.id.toString() }
+    val equipmentListState = rememberLazyListState()
+    val ordinaryReorderState = rememberCharacterSpatialReorderStateV4(
+        canonicalOrder = ordinaryCanonicalIds,
+        onCommitOrder = ::commitSectionOrder,
+        onHaptic = haptic,
+        autoScrollBy = { delta -> equipmentListState.scrollBy(delta) },
+    )
+    val specialReorderState = rememberCharacterSpatialReorderStateV4(
+        canonicalOrder = specialCanonicalIds,
+        onCommitOrder = ::commitSectionOrder,
+        onHaptic = haptic,
+        autoScrollBy = { delta -> equipmentListState.scrollBy(delta) },
+    )
+    CharacterSpatialReorderAutoScrollEffectV4(ordinaryReorderState)
+    CharacterSpatialReorderAutoScrollEffectV4(specialReorderState)
+
     Row(
         modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(if (sideEditorVisible) 8.dp else 0.dp)),
     ) {
+        val listModifier = if (sideEditorVisible) Modifier.weight(1f).fillMaxHeight() else Modifier.fillMaxSize()
         LazyColumn(
-            modifier = if (sideEditorVisible) Modifier.weight(1f).fillMaxHeight() else Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = appSpacingV4(if (wide) 10.dp else 5.dp),
-            end = appSpacingV4(if (wide) 10.dp else 5.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(92.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-    ) {
-        stickyHeader(key = "equipment-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+            state = equipmentListState,
+            modifier = listModifier.characterSpatialReorderViewportV4(ordinaryReorderState, specialReorderState),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 10.dp else 5.dp),
+                end = appSpacingV4(if (wide) 10.dp else 5.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(92.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            stickyHeader(key = "equipment-tools") {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(
+                            horizontal = appSpacingV4(7.dp),
+                            vertical = appSpacingV4(6.dp),
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                     ) {
-                        Column {
-                            Text("Equipo", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "${draft.items.size} objetos · ${formatWeightDualF2(carriedWeight)} transportados · $attunedCount sintonizados",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column {
+                                Text("Equipo", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    "${draft.items.size} objetos · ${formatWeightDualF2(carriedWeight)} transportados · $attunedCount sintonizados",
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                            TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                         }
-                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-                    CharacterCollectionToolbarV4(
-                        itemCount = ordinaryVisible.size + specialVisible.size,
-                        query = query,
-                        onQueryChange = ::updateQuery,
-                        filters = equipmentFiltersF2(draft, ::usageFor),
-                        searchLabel = "Buscar equipo",
-                    )
-                }
-            }
-        }
-
-        item {
-            EquipmentSectionF2(
-                title = "Objetos",
-                items = ordinaryVisible,
-                order = ordinaryOrder,
-                onOrderChange = {
-                    ordinaryReorderMode = false
-                    ordinaryOrderName = it.name
-                },
-                collapsed = ordinaryCollapsed,
-                onCollapsedChange = { ordinaryCollapsed = it },
-                reorderAvailable = reorderAvailableOrdinary,
-                reorderMode = ordinaryReorderMode,
-                onReorderModeChange = { active ->
-                    ordinaryReorderMode = active
-                    if (active) specialReorderMode = false
-                },
-                queryActive = !query.isEmptyF2(),
-                wide = wide,
-                special = false,
-                selectedId = editingId,
-                usageFor = ::usageFor,
-                onEdit = ::beginEdit,
-                onMove = ::moveWithinSection,
-                onQuickUse = { item, usage ->
-                    onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
-                    haptic(CharacterHapticEventV4.RESOURCE)
-                },
-                onDuplicate = ::duplicate,
-                onDelete = { deleteId = it.id.toString() },
-                structuralEditingEnabled = structuralEditingEnabled,
-                onHaptic = haptic,
-            )
-        }
-
-        item {
-            EquipmentSectionF2(
-                title = "Equipo especial",
-                items = specialVisible,
-                order = specialOrder,
-                onOrderChange = {
-                    specialReorderMode = false
-                    specialOrderName = it.name
-                },
-                collapsed = specialCollapsed,
-                onCollapsedChange = { specialCollapsed = it },
-                reorderAvailable = reorderAvailableSpecial,
-                reorderMode = specialReorderMode,
-                onReorderModeChange = { active ->
-                    specialReorderMode = active
-                    if (active) ordinaryReorderMode = false
-                },
-                queryActive = !query.isEmptyF2(),
-                wide = wide,
-                special = true,
-                selectedId = editingId,
-                usageFor = ::usageFor,
-                onEdit = ::beginEdit,
-                onMove = ::moveWithinSection,
-                onQuickUse = { _, usage ->
-                    onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
-                    haptic(CharacterHapticEventV4.RESOURCE)
-                },
-                onDuplicate = ::duplicate,
-                onDelete = { deleteId = it.id.toString() },
-                structuralEditingEnabled = structuralEditingEnabled,
-                onHaptic = haptic,
-            )
-        }
-
-        item {
-            EquipmentDefensesAndResourcesG1(
-                armorClass = armorClass,
-                equippedItems = equippedItems,
-                resources = equipmentResources,
-                configurations = resourceConfigurations,
-                onResourceValueChange = { resourceId, value ->
-                    onResourceValueChange(resourceId, value)
-                    haptic(CharacterHapticEventV4.RESOURCE)
-                },
-            )
-        }
-
-        item {
-            CompactCurrenciesF2(
-                currencies = draft.currencies,
-                wide = wide,
-                structuralEditingEnabled = structuralEditingEnabled,
-                onCurrenciesChange = { onDraftChange(draft.copy(currencies = it)) },
-                onAddCurrency = {
-                    customCurrencyName = ""
-                    customCurrencyAmount = "0"
-                    addCurrencyOpen = true
-                },
-            )
-        }
-
-        item {
-            EquipmentValuablesG1(
-                value = successorState?.preferences?.valuablesText.orEmpty(),
-                editingEnabled = structuralEditingEnabled && settingsContext != null,
-                onValueChange = { updated ->
-                    settingsContext?.let { context ->
-                        val current = context.successorState
-                        context.onSuccessorStateChange(
-                            current.copy(preferences = current.preferences.copy(valuablesText = updated)),
+                        CharacterCollectionToolbarV4(
+                            itemCount = ordinaryVisible.size + specialVisible.size,
+                            query = query,
+                            onQueryChange = ::updateQuery,
+                            filters = equipmentFiltersF2(draft, ::usageFor),
+                            searchLabel = "Buscar equipo",
                         )
                     }
-                },
-            )
+                }
+            }
+
+            item(key = "equipment-ordinary") {
+                CharacterEquipmentSpatialSectionV4(
+                    title = "Objetos",
+                    items = ordinaryVisible,
+                    order = ordinaryOrder,
+                    onOrderChange = { ordinaryOrderName = it.name },
+                    collapsed = ordinaryCollapsed,
+                    onCollapsedChange = { ordinaryCollapsed = it },
+                    reorderAvailable = reorderAvailableOrdinary,
+                    reorderState = ordinaryReorderState,
+                    queryActive = !query.isEmptyF2(),
+                    wide = wide,
+                    special = false,
+                    selectedId = editingId,
+                    usageFor = ::usageFor,
+                    onEdit = ::beginEdit,
+                    onQuickUse = { _, usage ->
+                        onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+                    onDuplicate = ::duplicate,
+                    onDelete = { deleteId = it.id.toString() },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                )
+            }
+
+            item(key = "equipment-special") {
+                CharacterEquipmentSpatialSectionV4(
+                    title = "Equipo especial",
+                    items = specialVisible,
+                    order = specialOrder,
+                    onOrderChange = { specialOrderName = it.name },
+                    collapsed = specialCollapsed,
+                    onCollapsedChange = { specialCollapsed = it },
+                    reorderAvailable = reorderAvailableSpecial,
+                    reorderState = specialReorderState,
+                    queryActive = !query.isEmptyF2(),
+                    wide = wide,
+                    special = true,
+                    selectedId = editingId,
+                    usageFor = ::usageFor,
+                    onEdit = ::beginEdit,
+                    onQuickUse = { _, usage ->
+                        onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+                    onDuplicate = ::duplicate,
+                    onDelete = { deleteId = it.id.toString() },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                )
+            }
+
+            item(key = "equipment-defenses") {
+                EquipmentDefensesAndResourcesG1(
+                    armorClass = armorClass,
+                    equippedItems = equippedItems,
+                    resources = equipmentResources,
+                    configurations = resourceConfigurations,
+                    onResourceValueChange = { resourceId, value ->
+                        onResourceValueChange(resourceId, value)
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+                )
+            }
+
+            item(key = "equipment-currencies") {
+                CompactCurrenciesF2(
+                    currencies = draft.currencies,
+                    wide = wide,
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    onCurrenciesChange = { onDraftChange(draft.copy(currencies = it)) },
+                    onAddCurrency = {
+                        customCurrencyName = ""
+                        customCurrencyAmount = "0"
+                        addCurrencyOpen = true
+                    },
+                )
+            }
+
+            item(key = "equipment-valuables") {
+                EquipmentValuablesG1(
+                    value = successorState?.preferences?.valuablesText.orEmpty(),
+                    editingEnabled = structuralEditingEnabled && settingsContext != null,
+                    onValueChange = { updated ->
+                        settingsContext?.let { context ->
+                            val current = context.successorState
+                            context.onSuccessorStateChange(
+                                current.copy(preferences = current.preferences.copy(valuablesText = updated)),
+                            )
+                        }
+                    },
+                )
+            }
         }
-    }
 
         if (sideEditorVisible) {
             EquipmentEditorPanelF3(
@@ -661,272 +658,6 @@ private fun equipmentFiltersF2(
         }
     }
     option.copy(count = count)
-}
-
-@Composable
-private fun EquipmentSectionF2(
-    title: String,
-    items: List<CharacterInventoryItem>,
-    order: CharacterPresentationOrder,
-    onOrderChange: (CharacterPresentationOrder) -> Unit,
-    collapsed: Boolean,
-    onCollapsedChange: (Boolean) -> Unit,
-    reorderAvailable: Boolean,
-    reorderMode: Boolean,
-    onReorderModeChange: (Boolean) -> Unit,
-    queryActive: Boolean,
-    wide: Boolean,
-    special: Boolean,
-    selectedId: String?,
-    usageFor: (CharacterInventoryItem) -> CharacterInventoryUsage,
-    onEdit: (CharacterInventoryItem) -> Unit,
-    onMove: (CharacterInventoryItem, Int) -> Boolean,
-    onQuickUse: (CharacterInventoryItem, CharacterInventoryUsage) -> Unit,
-    onDuplicate: (CharacterInventoryItem) -> Unit,
-    onDelete: (CharacterInventoryItem) -> Unit,
-    structuralEditingEnabled: Boolean,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("$title (${items.size})", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                OrderButtonF2("Manual", order == CharacterPresentationOrder.MANUAL) {
-                    onOrderChange(CharacterPresentationOrder.MANUAL)
-                }
-                OrderButtonF2("A–Z", order == CharacterPresentationOrder.ALPHABETICAL) {
-                    onOrderChange(CharacterPresentationOrder.ALPHABETICAL)
-                }
-                if (reorderAvailable && items.size > 1) {
-                    CharacterLinearReorderModeControlV4(
-                        active = reorderMode,
-                        onToggle = { onReorderModeChange(!reorderMode) },
-                    )
-                }
-                TextButton(onClick = { onCollapsedChange(!collapsed) }) {
-                    Text(if (collapsed) "Mostrar" else "Ocultar")
-                }
-            }
-            if (reorderMode) {
-                CharacterHelpV4(
-                    "Reordenación lineal: esta sección pasa temporalmente a una columna para usar el arrastre vertical estable. Pulsa Listo para volver a tus columnas.",
-                )
-            } else if (order == CharacterPresentationOrder.MANUAL && queryActive) {
-                Text(
-                    "Limpia búsqueda y filtros para activar Reordenar.",
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-            if (!collapsed) {
-                if (items.isEmpty()) {
-                    Text("Sin elementos visibles.", style = MaterialTheme.typography.bodySmall)
-                } else {
-                    val columns = if (reorderMode) {
-                        1
-                    } else {
-                        constrainedCardColumnsV4(
-                            wide = wide,
-                            phoneMax = if (special) 2 else 3,
-                            wideMax = if (special) 3 else 5,
-                        )
-                    }
-                    items.chunked(columns).forEachIndexed { rowIndex, rowItems ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                            verticalAlignment = Alignment.Top,
-                        ) {
-                            rowItems.forEachIndexed { columnIndex, item ->
-                                EquipmentDenseItemF2(
-                                    item = item,
-                                    gridIndex = rowIndex * columns + columnIndex,
-                                    gridItemCount = items.size,
-                                    gridColumns = columns,
-                                    usage = usageFor(item),
-                                    canReorder = reorderAvailable && reorderMode,
-                                    special = special,
-                                    selected = selectedId == item.id.toString(),
-                                    onEdit = { onEdit(item) },
-                                    onMove = { offset -> onMove(item, offset) },
-                                    onQuickUse = { onQuickUse(item, usageFor(item)) },
-                                    onDuplicate = { onDuplicate(item) },
-                                    onDelete = { onDelete(item) },
-                                    structuralEditingEnabled = structuralEditingEnabled,
-                                    onHaptic = onHaptic,
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                            repeat(columns - rowItems.size) { Spacer(modifier = Modifier.weight(1f)) }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OrderButtonF2(label: String, selected: Boolean, onClick: () -> Unit) {
-    if (selected) {
-        Button(onClick = onClick, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)) { Text(label) }
-    } else {
-        OutlinedButton(onClick = onClick, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)) { Text(label) }
-    }
-}
-
-@Composable
-private fun EquipmentDenseItemF2(
-    item: CharacterInventoryItem,
-    gridIndex: Int,
-    gridItemCount: Int,
-    gridColumns: Int,
-    usage: CharacterInventoryUsage,
-    canReorder: Boolean,
-    special: Boolean,
-    selected: Boolean,
-    onEdit: () -> Unit,
-    onMove: (Int) -> Boolean,
-    onQuickUse: () -> Unit,
-    onDuplicate: () -> Unit,
-    onDelete: () -> Unit,
-    structuralEditingEnabled: Boolean,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var dragState by remember(item.id) { mutableStateOf(CharacterDragVisualStateV4()) }
-    val reorderModifier = if (gridColumns > 1) {
-        Modifier.characterMeasuredGridReorderDragV4(
-            enabled = canReorder,
-            onHaptic = onHaptic,
-            onMove = { rowDelta, columnDelta ->
-                val currentRow = gridIndex / gridColumns
-                val currentColumn = gridIndex % gridColumns
-                val targetRow = currentRow + rowDelta
-                val targetColumn = currentColumn + columnDelta
-                val targetIndex = targetRow * gridColumns + targetColumn
-                val targetValid =
-                    targetRow >= 0 &&
-                        targetColumn in 0 until gridColumns &&
-                        targetIndex in 0 until gridItemCount
-                if (targetValid) onMove(targetIndex - gridIndex) else false
-            },
-            onVisualStateChange = { dragState = it },
-        )
-    } else {
-        Modifier.characterMeasuredReorderDragV4(
-            enabled = canReorder,
-            onHaptic = onHaptic,
-            onMove = onMove,
-            onVisualStateChange = { dragState = it },
-        )
-    }
-    val carry = effectiveInventoryCarryState(item, usage)
-    val stateLabels = buildList {
-        add(if (carry == CharacterInventoryCarryState.CARRIED) "Transportado" else "Guardado")
-        if (item.equipped) add("Equipado")
-        if (item.attuned) add("Sintonizado")
-    }
-    val meta = buildList {
-        when (usage.kind) {
-            CharacterConsumableKind.CONSUMABLE -> add("Consumible −${usage.quickUseAmount}")
-            CharacterConsumableKind.AMMUNITION -> add("Munición −${usage.quickUseAmount}")
-            CharacterConsumableKind.NONE -> Unit
-        }
-        item.location?.takeIf { it.isNotBlank() }?.let { add(it) }
-    }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(reorderModifier)
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(
-                1.dp,
-                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            ),
-            tonalElevation = if (special) 1.dp else 0.dp,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
-                        Text(item.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        if (special) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                            ) {
-                                stateLabels.forEach { label ->
-                                    CharacterSemanticBadgeV4(
-                                        label = label,
-                                        kind = CharacterSemanticBadgeKindV4.STATE,
-                                    )
-                                }
-                            }
-                        } else {
-                            Text(
-                                stateLabels.joinToString(" · "),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        if (meta.isNotEmpty()) {
-                            Text(
-                                meta.joinToString(" · "),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text("×${item.quantity}", style = MaterialTheme.typography.labelLarge)
-                        item.weightLb?.let { Text("${formatCompactF2(it)} lb/u", style = MaterialTheme.typography.labelSmall) }
-                    }
-                }
-                if (special) {
-                    item.description?.takeIf { it.isNotBlank() }?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (usage.kind != CharacterConsumableKind.NONE && item.quantity > 0) {
-                        TextButton(
-                            onClick = onQuickUse,
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                        ) { Text("Usar −${usage.quickUseAmount}") }
-                    }
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${item.name}")
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${item.name}")
-                    }
-                }
-            }
-        }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
-    }
 }
 
 @Composable
