@@ -3,27 +3,31 @@
 **Last verified:** 2026-09-11  
 **Canonical branch:** `main`  
 **Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Current implementation boundary:** planned successor A–I plus post-audition Player stabilization remain automated-green; owner phone QA has now identified acceptance blockers requiring a bounded repair pass  
-**Current phase:** Phase 4A — successor acceptance repair / closure preparation  
+**Current implementation boundary:** planned successor A–I plus post-A–I Player stabilization remain automated-green; owner phone QA of `preqa.8 / 40800` identified acceptance blockers  
+**Current phase:** Phase 4A — owner design reconciliation before bounded acceptance repair  
 **Current QA build:** `0.4.0-preqa.8` / `40800` / debug  
 **Release status:** not owner-accepted; not release-ready  
 **Owner phone QA:** consolidated pass completed through portrait, landscape and representative larger text  
-**Player tablet QA:** intentionally deferred until shared/systemic phone findings are repaired  
+**Player tablet QA:** intentionally deferred until shared/systemic findings are repaired  
+**Current work rule:** discuss QA findings one point at a time; consolidate every closed point before moving on  
 **DM work:** design/discovery may remain documented; implementation is blocked until explicit Phase 4A closure
 
 ## 1. Canonical repository reality
 
-`main` remains the canonical baseline and has not been advanced by the later successor implementation/stabilization sequence. The active continuation branch contains the current A–I successor implementation, post-audition stabilization, the future-DM design baseline D-0068 and the newly recorded owner/device QA findings.
+`main` remains the canonical repository baseline under D-0066 but is older than the live successor acceptance line. The active continuation branch contains the current A–I successor implementation, post-A–I stabilization, `preqa.8 / 40800` owner-QA evidence, the point-by-point repair-decision log and future-DM design documentation.
 
 Use:
 
 - `docs/checkpoints/LATEST.md` for the exact continuation position;
 - `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md` for the controlling owner/device QA findings and repair scope;
+- `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` for individually closed repair decisions;
 - `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md` for exact `preqa.8 / 40800` product/audit/full-gate evidence;
 - `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md` for future DM design truth only;
 - `docs/TESTING.md` for the acceptance contract.
 
 Automated-green, documented or canonical does not mean owner-accepted or release-ready.
+
+Build `40700` is historical evidence only and is not the current QA target or resume point.
 
 ## 2. Successor implementation status
 
@@ -34,13 +38,13 @@ The planned A–I implementation sequence remains complete/automated-green:
 - C — character-first navigation + PC Settings + General/Habilidades;
 - D — Combat + Dice;
 - E — Gestión + Markers + Resources + recovery/conditions;
-- F — compact Conjuros source-context redesign;
+- F — Conjuros compact source-context redesign;
 - G — Equipo/Rasgos/conditional modules/Notas/Trasfondo;
 - H — full-screen Application Settings/live previews/themes;
 - I — separate tablet portrait/landscape redesign;
 - post-A–I stabilization — Rasgos provenance, reorder fallback, Settings/font/theme refinements, app-wide multiline density and residual audit.
 
-The owner/device QA of `preqa.8 / 40800` demonstrated that several automated-green assumptions did not satisfy the intended interaction contract. The next work is therefore a **bounded acceptance-repair pass**, not a new speculative feature increment.
+The owner/device QA of `preqa.8 / 40800` demonstrated that several automated-green assumptions did not satisfy the intended interaction contract. The next implementation will therefore be a **bounded acceptance-repair pass**, but implementation is not yet the immediate step.
 
 There is no authorized Player Increment J and no authorized DM implementation increment.
 
@@ -63,69 +67,33 @@ This remains the latest technically verified build. It is **not** an accepted M6
 
 ## 4. Owner/device QA completed on preqa.8
 
-### PASS evidence
+The owner physically verified meaningful PASS boundaries including update-in-place/data preservation, persistence, phone portrait baseline navigation, representative editor/IME operations, currency, Conjuros portrait, normal Notas use, Application Settings functionality, representative conditional modules, backup/export, phone-landscape retention of the phone interaction model and representative larger application text.
 
-The owner physically verified:
+The same pass found acceptance blockers involving canonical HP synchronization, Table mode activation, high-frequency damage/healing UX, Combat viewport footprint, direct reorder interaction, Rasgos provenance, Supercompact concept, short-height sticky/fixed behavior, Trasfondo photo regression, shared editor sizing, attack-damage editing, PC Settings presentation, compactness proportionality, theme presentation, custom-skill geometry and minor help-icon alignment.
 
-- in-place install over the previous QA app/data without clearing data;
-- campaigns/characters and representative Player data survived;
-- full close/reopen persistence succeeded;
-- phone portrait baseline navigation is broadly good;
-- representative editor keyboard / Save / Cancel / Delete / persistence function works;
-- currency works;
-- Conjuros portrait source/context behavior is good;
-- Notas normal browsing/editing/search is good;
-- Application Settings is functionally understandable;
-- representative conditional modules work;
-- representative backup/export works;
-- phone landscape remains a phone interaction model;
-- representative larger application text is usable.
+The authoritative detailed findings are in `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`.
 
-### Acceptance blockers / repair themes
+## 5. Current design-reconciliation protocol
 
-Owner QA established the following repair requirements:
+The owner requires the QA findings to be handled **one point at a time**, not grouped during discussion.
 
-1. **Canonical HP/state:** General HP changes do not reliably propagate to Combate. One datum must have one authoritative state.
-2. **Damage/healing UX:** current frequent combat workflow is too cumbersome.
-3. **Combate fixed reference footprint:** consumes too much viewport, especially in short-height landscape.
-4. **Direct reorder:** reject the temporary one-column `Reordenar -> Listo` system; reorder must be direct drag-and-drop in the normal active card layout.
-5. **Rasgos provenance:** `Clase`, `Subclase`, `Raza` and `Trasfondo` must be selected from this character's canonical data and must not require retyping; `Otro` and `Don` may be free text.
-6. **Trasfondo photos:** restore the previous preferred photo UX while keeping the new durable persistence/storage/backup behavior.
-7. **Shared editor sizing:** preserve IME safety but stop making nearly every short editor effectively full-height.
-8. **Attack damage editor UX:** structured model works, but the labels/interaction are awkward and need a more direct compact dice/component grammar.
-9. **Compactness:** current slider disproportionately changes inter-box gaps relative to the rest of the interface.
-10. **Theme selector:** retain the current good representative preview but restore a simple three-color palette shorthand alongside the theme name.
-11. **Contextual help icons:** behavior is good; `ⓘ` positioning/alignment needs refinement.
-12. **PC Settings:** functionally sound but visually/information-architecturally poor; perform one coherent page-level redesign rather than many micro-patches.
-13. **Modo mesa:** cannot be activated even after saving/cleaning the sheet; this is a functional blocker.
-14. **Vista supercompacta:** current concept is rejected; redesign it as a dense at-table PC reference using the scanning/information grammar of a modern D&D 5.5e monster/NPC stat block rather than primarily a Favorites dashboard.
-15. **Phone landscape sticky/fixed UI:** sticky regions consume too much or effectively all usable height.
-16. **Conjuros landscape:** sticky `Nivel` box becomes obstructive.
-17. **Vertical spacing:** margins/padding already inconvenient in portrait become a major problem in landscape; responsive density must consider available **height**, not only width/orientation.
-18. **Custom Habilidad layout:** custom skills must visually match ordinary skills except for the approved italic distinction.
+For every point:
 
-The full detailed classification and repair rules are in `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`.
+1. inspect the exact QA observation and relevant current implementation/context;
+2. discuss only that point in enough detail to remove implementation ambiguity;
+3. identify phone/tablet/shared implications where they belong to that point;
+4. once the owner explicitly closes the point, record the approved behavior, constraints, rejected alternatives and required regression boundary in `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`;
+5. only then move to the next point.
 
-## 5. Cross-device repair rule
+A point may have transversal implementation consequences without being merged conceptually with other open findings.
+
+Do not begin the acceptance-repair implementation pass until the owner has completed the required point-by-point reconciliation or explicitly changes this instruction.
+
+## 6. Cross-device repair rule
 
 Physical tablet portrait/landscape QA has **not yet been performed** on `preqa.8`.
 
-The owner explicitly requested that the next fixes **not be limited to phone**. Shared/systemic defects found on phone are therefore repair requirements across phone and tablet wherever they share state, component, primitive, spacing policy, special-mode logic or product concept.
-
-This includes at minimum:
-
-- canonical state authority;
-- editor sizing;
-- reorder behavior;
-- provenance selection;
-- damage/healing operations;
-- compactness/spacing;
-- PC Settings UX/IA;
-- theme selector presentation;
-- Table mode;
-- Supercompact;
-- sticky/fixed-region responsive height policy;
-- Trasfondo photo interaction where shared.
+Shared/systemic defects found on phone are repair requirements across phone and tablet wherever they share state, component, primitive, spacing policy, special-mode logic or product concept.
 
 Evidence must remain precise:
 
@@ -133,9 +101,9 @@ Evidence must remain precise:
 - **physical evidence:** phone only so far;
 - **tablet acceptance:** still pending and must be performed on the repaired build.
 
-## 6. Automated-boundary corrections required
+## 7. Automated-boundary corrections required
 
-Owner QA exposed areas where static/model validation was too weak. The next repair pass must add stronger validation for actual behavior:
+Owner QA exposed areas where static/model validation was too weak. The next repair pass must add stronger validation for actual behavior, especially:
 
 - HP propagation across General/Combate/shared surfaces;
 - real Table-mode activation from a clean persisted state;
@@ -143,25 +111,17 @@ Owner QA exposed areas where static/model validation was too weak. The next repa
 - direct normal-layout drag-and-drop reorder behavior;
 - short-height phone-landscape sticky/fixed viewport behavior.
 
-Automated tests must support owner acceptance rather than merely prove internal helpers exist.
+Additional closed points may add their own focused regression requirements to the repair-decision log.
 
-## 7. Future DM boundary
+## 8. Future DM boundary
 
-D-0068 remains the future Phase 4B design baseline. No DM product code was implemented during Player QA.
+D-0068 remains future Phase 4B design truth. No DM product code was implemented during Player QA.
 
-Protected DM directions remain:
+No DM implementation begins before explicit Phase 4A closure.
 
-- live DM Combat Desk is tablet-landscape only;
-- initiative remains always visible but independent of selected reference;
-- current 5.5e monster-stat-block reading grammar is preferred;
-- DM state is private by default;
-- grids/maps/tokens/automatic targeting/range/encounter balancing/VTT combat execution remain non-goals.
+## 9. Protected owner directions
 
-Do not begin DM implementation before explicit Phase 4A closure.
-
-## 8. Protected owner directions
-
-These are controlling:
+These remain controlling:
 
 - one datum / one canonical state;
 - compact compatible controls rather than unnecessary vertical stacks;
@@ -180,20 +140,22 @@ These are controlling:
 - generic `Fuente` schema leakage must not be reintroduced;
 - no DM implementation before explicit Phase 4A closure.
 
-## 9. Exact next position
+## 10. Exact next position
 
 Next project session:
 
 1. read `docs/checkpoints/LATEST.md`;
 2. read `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`;
-3. discuss the grouped QA findings with the owner and settle only the remaining implementation details;
-4. define a bounded acceptance-repair plan across shared phone/tablet surfaces;
-5. implement only those accepted repairs on `implementation/phase4a-successor-cycle`;
-6. strengthen the exact automated boundaries listed above;
-7. produce the next monotonic successor QA build;
-8. perform targeted phone retest of repaired blockers;
-9. once shared/systemic phone issues are acceptable, perform tablet portrait and tablet landscape physical QA on the repaired build;
-10. freeze the replacement formal M6 candidate only after owner-audited behavior is acceptable;
-11. complete final regression/upgrade acceptance;
-12. explicitly close Phase 4A;
-13. only then may DM implementation begin.
+3. read `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`;
+4. discuss the next unresolved `40800` QA point with the owner, by itself;
+5. when explicitly closed, consolidate it in the repair-decision log;
+6. repeat point by point until the required design reconciliation is complete;
+7. then define and implement the bounded acceptance-repair plan;
+8. strengthen the exact automated boundaries required by the closed decisions;
+9. produce the next monotonic successor QA build;
+10. perform targeted phone retest of repaired blockers;
+11. once shared/systemic phone issues are acceptable, perform tablet portrait and tablet landscape physical QA on the repaired build;
+12. freeze the replacement formal M6 candidate only after owner-audited behavior is acceptable;
+13. complete final regression/upgrade acceptance;
+14. explicitly close Phase 4A;
+15. only then may DM implementation begin.
