@@ -301,11 +301,12 @@ internal fun StableSortIconButton(
 
 @Composable
 internal fun StableAddIcon(
+    modifier: Modifier = Modifier,
     contentDescription: String = "Añadir",
 ) {
     val color = MaterialTheme.colorScheme.onPrimaryContainer
     Canvas(
-        modifier = Modifier
+        modifier = modifier
             .size(24.dp)
             .semantics { this.contentDescription = contentDescription },
     ) {
