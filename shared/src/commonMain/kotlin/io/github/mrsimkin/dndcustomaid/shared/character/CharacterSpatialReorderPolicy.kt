@@ -53,3 +53,21 @@ fun previewCharacterReorder(
     reordered.add(targetIndex.coerceIn(0, reordered.size), draggedId)
     return reordered
 }
+
+/**
+ * Replace the relative order of one complete subset while preserving every non-subset position.
+ * Useful for collections such as ordinary/special Equipment that share one persisted sort domain
+ * but reorder independently on screen. Invalid/incomplete subsets are rejected as a no-op.
+ */
+fun mergeCharacterReorderedSubset(
+    allIds: List<String>,
+    reorderedSubsetIds: List<String>,
+): List<String> {
+    if (allIds.distinct().size != allIds.size || reorderedSubsetIds.distinct().size != reorderedSubsetIds.size) return allIds
+    val subset = reorderedSubsetIds.toSet()
+    if (subset.isEmpty()) return allIds
+    val currentSubset = allIds.filter { it in subset }
+    if (currentSubset.size != reorderedSubsetIds.size || currentSubset.toSet() != subset) return allIds
+    val iterator = reorderedSubsetIds.iterator()
+    return allIds.map { id -> if (id in subset) iterator.next() else id }
+}
