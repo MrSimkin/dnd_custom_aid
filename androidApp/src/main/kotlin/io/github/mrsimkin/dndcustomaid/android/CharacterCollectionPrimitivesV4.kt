@@ -10,6 +10,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.DropdownMenu
@@ -34,10 +36,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -91,11 +97,7 @@ internal fun rememberCharacterHapticHookV4(
                     val requestedAmplitude = (hapticPreferences.strength.amplitude * eventScale)
                         .toInt()
                         .coerceIn(1, 255)
-                    val amplitude = if (vibrator.hasAmplitudeControl()) {
-                        requestedAmplitude
-                    } else {
-                        VibrationEffect.DEFAULT_AMPLITUDE
-                    }
+                    val amplitude = if (vibrator.hasAmplitudeControl()) requestedAmplitude else VibrationEffect.DEFAULT_AMPLITUDE
                     vibrator.vibrate(VibrationEffect.createOneShot(duration, amplitude))
                 } else {
                     val feedback = when (event) {
@@ -121,61 +123,36 @@ private fun characterVibratorV4(context: Context): Vibrator? =
     }
 
 @Composable
-internal fun Modifier.characterDragFeedbackV4(
-    state: CharacterDragVisualStateV4,
-): Modifier {
+internal fun Modifier.characterDragFeedbackV4(state: CharacterDragVisualStateV4): Modifier {
     val scale = animateFloatAsState(
         targetValue = if (state.active) 1.045f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
         label = "character-drag-scale",
     ).value
     val elevation = animateFloatAsState(
         targetValue = if (state.active) 24f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
         label = "character-drag-elevation",
     ).value
     val alpha = animateFloatAsState(
         targetValue = if (state.active) 0.96f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
         label = "character-drag-alpha",
     ).value
     val offsetX = animateFloatAsState(
         targetValue = state.offsetX,
-        animationSpec = if (state.active) {
-            spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessHigh,
-            )
-        } else {
-            spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMediumLow,
-            )
-        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = if (state.active) Spring.StiffnessHigh else Spring.StiffnessMediumLow,
+        ),
         label = "character-drag-offset-x",
     ).value
     val offsetY = animateFloatAsState(
         targetValue = state.offsetY,
-        animationSpec = if (state.active) {
-            spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessHigh,
-            )
-        } else {
-            spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMediumLow,
-            )
-        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = if (state.active) Spring.StiffnessHigh else Spring.StiffnessMediumLow,
+        ),
         label = "character-drag-offset",
     ).value
 
@@ -192,14 +169,8 @@ internal fun Modifier.characterDragFeedbackV4(
 }
 
 @Composable
-internal fun CharacterDropIndicatorV4(
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val alpha = animateFloatAsState(
-        targetValue = if (visible) 1f else 0f,
-        label = "character-drop-indicator",
-    ).value
+internal fun CharacterDropIndicatorV4(visible: Boolean, modifier: Modifier = Modifier) {
+    val alpha = animateFloatAsState(targetValue = if (visible) 1f else 0f, label = "character-drop-indicator").value
     val indicatorColor = MaterialTheme.colorScheme.primary
     Spacer(
         modifier = modifier
@@ -224,14 +195,9 @@ private fun CharacterToolbarChipV4(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier
-            .heightIn(min = 34.dp)
-            .clickable(onClick = onClick),
+        modifier = modifier.heightIn(min = 34.dp).clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
-        border = BorderStroke(
-            1.dp,
-            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-        ),
+        border = BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
     ) {
         Box(
@@ -243,6 +209,7 @@ private fun CharacterToolbarChipV4(
     }
 }
 
+/** Kept only for source compatibility while remaining callers are migrated to direct drag (P6). */
 @Composable
 internal fun CharacterLinearReorderModeControlV4(
     active: Boolean,
@@ -296,6 +263,45 @@ private fun CharacterCompactSearchV4(
 }
 
 @Composable
+private fun CharacterToolbarAddButtonV4(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .size(38.dp)
+            .semantics { contentDescription = "Añadir" }
+            .clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            StableAddIcon(modifier = Modifier.size(18.dp))
+        }
+    }
+}
+
+@Composable
+private fun CharacterFilterSelectionIndicatorV4() {
+    val color = MaterialTheme.colorScheme.primary
+    Canvas(modifier = Modifier.size(16.dp)) {
+        val stroke = 2.dp.toPx()
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.12f, size.height * 0.52f),
+            end = Offset(size.width * 0.40f, size.height * 0.80f),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = color,
+            start = Offset(size.width * 0.40f, size.height * 0.80f),
+            end = Offset(size.width * 0.90f, size.height * 0.20f),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+@Composable
 internal fun CharacterCollectionToolbarV4(
     itemCount: Int,
     query: CharacterCollectionQuery,
@@ -327,11 +333,7 @@ internal fun CharacterCollectionToolbarV4(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (contextContent != null && (!collapsibleSearch || !searchExpanded)) {
-                if (collapsibleSearch) {
-                    Box(modifier = Modifier.weight(1f)) { contextContent() }
-                } else {
-                    contextContent()
-                }
+                if (collapsibleSearch) Box(modifier = Modifier.weight(1f)) { contextContent() } else contextContent()
             }
 
             if (collapsibleSearch) {
@@ -342,11 +344,7 @@ internal fun CharacterCollectionToolbarV4(
                         label = searchLabel,
                         modifier = Modifier.weight(1f),
                     )
-                    CharacterToolbarChipV4(
-                        text = "Cerrar",
-                        selected = false,
-                        onClick = { searchExpanded = false },
-                    )
+                    CharacterToolbarChipV4(text = "Cerrar", selected = false, onClick = { searchExpanded = false })
                 } else {
                     CharacterToolbarChipV4(
                         text = if (query.searchText.isBlank()) "Buscar" else "Buscar •",
@@ -364,20 +362,14 @@ internal fun CharacterCollectionToolbarV4(
             }
 
             if (!collapsibleSearch || !searchExpanded) {
-                if (showItemCount) {
-                    Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
-                }
+                if (showItemCount) Text(itemCount.toString(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
 
                 if (order != null && onOrderChange != null) {
                     Box {
                         if (compactOrderControl) {
                             StableSortIconButton(
                                 onClick = { orderMenuOpen = true },
-                                contentDescription = if (order == CharacterPresentationOrder.MANUAL) {
-                                    "Orden actual: Manual"
-                                } else {
-                                    "Orden actual: A–Z"
-                                },
+                                contentDescription = if (order == CharacterPresentationOrder.MANUAL) "Orden actual: Manual" else "Orden actual: A–Z",
                             )
                         } else {
                             CharacterToolbarChipV4(
@@ -386,10 +378,7 @@ internal fun CharacterCollectionToolbarV4(
                                 onClick = { orderMenuOpen = true },
                             )
                         }
-                        DropdownMenu(
-                            expanded = orderMenuOpen,
-                            onDismissRequest = { orderMenuOpen = false },
-                        ) {
+                        DropdownMenu(expanded = orderMenuOpen, onDismissRequest = { orderMenuOpen = false }) {
                             CharacterPresentationOrder.entries.forEach { option ->
                                 DropdownMenuItem(
                                     text = { Text(if (option == CharacterPresentationOrder.MANUAL) "Manual" else "A–Z") },
@@ -410,15 +399,22 @@ internal fun CharacterCollectionToolbarV4(
                             selected = activeFilterCount > 0,
                             onClick = { filterMenuOpen = true },
                         )
-                        DropdownMenu(
-                            expanded = filterMenuOpen,
-                            onDismissRequest = { filterMenuOpen = false },
-                        ) {
+                        DropdownMenu(expanded = filterMenuOpen, onDismissRequest = { filterMenuOpen = false }) {
                             filters.forEach { filter ->
                                 val active = filter.key in query.activeFilterKeys
                                 val countSuffix = filter.count?.let { " ($it)" }.orEmpty()
                                 DropdownMenuItem(
-                                    text = { Text("${if (active) "✓ " else ""}${filter.label}$countSuffix") },
+                                    text = {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Box(modifier = Modifier.size(16.dp), contentAlignment = Alignment.Center) {
+                                                if (active) CharacterFilterSelectionIndicatorV4()
+                                            }
+                                            Text("${filter.label}$countSuffix")
+                                        }
+                                    },
                                     onClick = { onQueryChange(query.toggleFilter(filter.key)) },
                                 )
                             }
@@ -426,14 +422,7 @@ internal fun CharacterCollectionToolbarV4(
                     }
                 }
 
-                if (onAdd != null) {
-                    CharacterToolbarChipV4(
-                        text = "+",
-                        selected = false,
-                        onClick = onAdd,
-                        modifier = Modifier.widthIn(min = 38.dp),
-                    )
-                }
+                if (onAdd != null) CharacterToolbarAddButtonV4(onClick = onAdd)
             }
         }
     }
