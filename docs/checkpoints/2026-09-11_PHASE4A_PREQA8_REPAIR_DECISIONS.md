@@ -281,11 +281,56 @@ The exact responsive arrangement may adapt, but this compact information grammar
 
 **Status:** `CLOSED / READY FOR REPAIR SPEC`.
 
+## Open decision under discussion
+
+### P7 — Canonical provenance / character-owned origin references — ROUND 1 CONSOLIDATED
+
+**Original QA problem:** `preqa.8 / 40800` still allows Rasgos to request redundant/free-text provenance even when the character already owns canonical class/race/background identity data. Current shared provenance behavior can also fall back to free text when canonical options are absent, which can create a second conflicting copy of structured identity.
+
+**Round-1 owner-approved rules:**
+
+1. `Subclase` is an explicit structured provenance kind and must not be flattened into `Clase`.
+2. A structured origin with no canonical value on this character does **not** fall back to arbitrary free text. Example: choosing `Raza` when this PC has no race/species registered must explain that no such identity is registered and must not permit inventing the value inside the dependent editor.
+3. If a structured provenance kind has exactly one eligible canonical character entity, that entity is selected automatically rather than requiring a redundant extra tap.
+4. In multiclass cases, subclass choices are disambiguated with their parent class, conceptually `Evocación (Mago)`.
+5. Structured provenance binds to stable canonical identity, not to a copied display string. Renaming the referenced entity updates dependent projections rather than leaving stale duplicated text.
+6. If a referenced canonical entity is deleted, dependent data survives with a soft/unresolved reference state. It is not silently remapped, deleted, or converted to unrelated arbitrary free text.
+7. Legacy text provenance is migrated conservatively: an exact/unambiguous match to an eligible entity on this character may be linked automatically; ambiguous/unmatched provenance remains preserved for owner correction, and the old source text must not be discarded.
+8. `Dote`, `Don / bendición` and `Otro` remain free-text capable **for the current repair**, but `Dote` in particular must be architecturally ready to become SRD/custom-catalog-backed soon. The same future-readiness principle should apply to other domains that are natural canonical entities.
+9. A Rasgo has one provenance origin. This cardinality applies to Rasgos specifically and must not be generalized blindly to domains whose approved model permits multiple associations.
+
+**Species/race hierarchy clarification raised by owner:**
+
+- The model must support canonical identity below the base species/race level. Older D&D material can use formal subraces (for example Drow as an Elf subrace or elemental Genasi variants), while 5.5e/SRD 5.2.1 uses several more specific nested-choice concepts such as lineage, ancestry, or similar species traits.
+- Therefore the underlying identity model must not assume that every child of a species is literally named `Subraza`. It needs an edition/source-aware child/variant relationship capable of representing subrace, lineage, ancestry, legacy or a custom equivalent while still preserving the parent species/race.
+- This is an architecture/readiness requirement; final user-facing terminology for the child/variant selector remains to be settled in the next P7 round.
+
+**Transversal scope requested by owner:**
+
+- The owner explicitly expanded P7 beyond the visible Rasgos defect: the same canonical/reference discipline should be applied to analogous structured domains such as backgrounds, classes/subclasses, species/race variants, feats, spells, items and other provenance-bearing character data where the concept is genuinely canonical.
+- This does **not** mean every domain receives identical fields or identical relationship cardinality. Existing approved domain semantics remain authoritative. In particular, spell records may have multiple spellcasting-source associations while Rasgos have one provenance origin.
+- The repair/spec must distinguish a reusable **reference/identity rule** from each domain's own ownership/cardinality rules.
+- No global static catalog should replace the requirement that provenance selection refers to entities actually registered/acquired on **this character**. A future SRD/custom catalog may help create or identify those entities, but dependent provenance selectors must not pretend the PC owns something merely because it exists in a catalog.
+
+**Compatibility with prior project decisions:**
+
+- D-0058 already defines spellcasting sources as stable character-owned entities and permits one conceptual spell to belong to multiple sources; P7 must preserve that model rather than force single provenance onto spells.
+- D-0063 already requires soft reference failure and conservative deletion across domains; P7's unresolved-reference behavior strengthens and generalizes that principle rather than replacing it.
+- The earlier Fuente redundancy audit already identified this as a cross-cutting information-architecture issue and preferred structured origin type + specific origin where provenance has real user-facing purpose.
+- D-0059's older `Rasgos.Fuente = free text` decision is therefore superseded for structured provenance by the later owner QA clarification in this checkpoint; compatibility/migration must preserve old stored text without keeping the ambiguous normal-editing model.
+
+**SRD investigation requirement before P7 closure:**
+
+- Before P7 is closed, the discussion must use official SRD/current Basic Rules structure to verify which concepts are canonical definitions, which are character-owned selections/instances, which have parent-child hierarchy, and which can legitimately have multiple acquisition/source associations.
+- The intent is not to implement the full future SRD/custom catalog during this repair. The intent is to avoid a repair that hard-codes text fields or IDs in a way that immediately blocks the coming SRD/custom implementation.
+
+**Status:** `OPEN — ROUND 1 CONSOLIDATED; SRD/TRANSVERSAL MODEL REVIEW IN PROGRESS`.
+
 ## Current discussion point
 
-**P7 — Rasgos provenance from canonical character identity.**
+**P7 — Round 2: transversal canonical-entity / provenance model.**
 
-The QA finding says Rasgos still requests redundant free-text provenance even when the character already has canonical class/subclass/race/background identity data. P7 must make the actual selection interaction and edge-case behavior explicit while preserving the already-fixed rule that structured origins come from **this character**, not from a global static D&D catalog.
+Complete the official SRD and existing-project-model review, then ask only the remaining owner decisions needed to make shared canonical identity, character-owned references, hierarchy, unresolved-reference behavior and catalog-readiness explicit. Do not close P7 until those remaining questions are answered and consolidated.
 
 ## Remaining boundary
 
