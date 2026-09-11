@@ -9,7 +9,7 @@
 **Primary owner phone:** Redmi Note 11 Pro 5G  
 **Owner phone QA:** consolidated pass complete enough to define the next repair pass  
 **Player tablet QA:** intentionally deferred until shared/systemic phone findings are repaired  
-**DM discovery:** detailed Combat Desk product/UX baseline captured in D-0068  
+**Current work mode:** point-by-point owner design reconciliation of `40800` QA findings; consolidate each closed point before moving on  
 **DM implementation:** blocked until Phase 4A is accepted and explicitly closed
 
 ## Current boundary
@@ -18,13 +18,17 @@ The planned A–I engineering sequence and post-audition stabilization are compl
 
 The owner completed the required in-place upgrade/data-preservation test, phone portrait sampling, representative editors/IME, core Player modules, special modes, phone landscape and representative larger-text testing.
 
-Physical tablet portrait/landscape QA is **not cancelled**; it is deliberately deferred because several newly observed defects are shared/systemic and would predictably contaminate tablet QA. Shared defects are now part of the repair scope across phone and tablet by default, but tablet physical PASS/FAIL must still be established later on the repaired build.
+Physical tablet portrait/landscape QA is **not cancelled**; it is deliberately deferred because several newly observed defects are shared/systemic and would predictably contaminate tablet QA. Shared defects are part of the repair scope across phone and tablet by default, but tablet physical PASS/FAIL must still be established later on the repaired build.
 
 The controlling owner-QA checkpoint is:
 
 `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`
 
-Read it before planning or implementing any further Player repair.
+The active point-by-point decision log is:
+
+`docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`
+
+Read both before planning or implementing any further Player repair.
 
 The technically verified build boundary remains:
 
@@ -91,21 +95,6 @@ Do **not** scope these findings as phone-only merely because they were first obs
 
 Any issue caused by shared state, shared components, shared spacing, shared editor/reorder primitives, shared special-mode logic or shared product concept must be repaired across both phone and tablet surfaces unless a device-specific exception is demonstrated.
 
-At minimum, cross-device repair scope includes:
-
-- canonical HP/state authority;
-- shared editor sizing;
-- direct drag-and-drop reorder interaction;
-- Rasgos provenance selection model;
-- damage/healing interaction primitive;
-- compactness/spacing system;
-- PC Settings shared UX/IA;
-- theme selector presentation;
-- Table mode;
-- Supercompact concept;
-- sticky/fixed-region and responsive-height policy;
-- Trasfondo photo interaction where the same UI is shared.
-
 Important evidence distinction:
 
 - **repair scope:** phone + tablet for shared/systemic causes;
@@ -144,27 +133,31 @@ Do **not** begin tablet QA on the current build and do **not** begin DM implemen
 Next Player session:
 
 1. read `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`;
-2. discuss the grouped findings with the owner and resolve only remaining implementation details;
-3. define a bounded Phase 4A acceptance-repair plan across shared phone/tablet surfaces;
-4. implement only the accepted repair scope on the active continuation branch;
-5. run exact automated validation for each repaired boundary;
-6. produce the next monotonic successor QA build;
-7. perform targeted phone retest of the repaired blockers;
-8. after shared/systemic phone blockers are acceptable, perform tablet portrait and tablet landscape physical QA on the repaired build;
-9. freeze the replacement formal M6 candidate only when owner-audited behavior is acceptable;
-10. complete final regression/upgrade acceptance;
-11. explicitly close Phase 4A;
-12. only then may DM implementation begin.
+2. read `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`;
+3. select the next unresolved `40800` QA finding and discuss **that point only** with the owner in enough detail to remove implementation ambiguity;
+4. when the owner explicitly closes the point, consolidate the approved behavior, constraints, device scope and required regression boundary in the repair-decision log;
+5. only then move to the next QA point;
+6. after all required points are individually closed, define one bounded Phase 4A acceptance-repair implementation plan across shared phone/tablet surfaces;
+7. implement only the accepted repair scope on the active continuation branch;
+8. run exact automated validation for each repaired boundary;
+9. produce the next monotonic successor QA build;
+10. perform targeted phone retest of the repaired blockers;
+11. after shared/systemic phone blockers are acceptable, perform tablet portrait and tablet landscape physical QA on the repaired build;
+12. freeze the replacement formal M6 candidate only when owner-audited behavior is acceptable;
+13. complete final regression/upgrade acceptance;
+14. explicitly close Phase 4A;
+15. only then may DM implementation begin.
 
 ## Read next
 
-1. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md` — controlling owner/device QA findings, cross-device repair rule and next action;
-2. `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md` — exact current build/product/audit/full-gate evidence;
-3. `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md` — future DM Combat Desk design baseline; no implementation permission;
-4. `docs/PROJECT_STATE.md` — broader project snapshot;
-5. `docs/TESTING.md` — acceptance contract;
-6. `docs/ROADMAP.md` — Phase 4A/4B sequencing;
-7. `docs/BRANCH_STATUS.md` — repository authority map.
+1. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md` — controlling owner/device QA findings and cross-device repair rule;
+2. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` — live point-by-point owner decision record;
+3. `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md` — exact current build/product/audit/full-gate evidence;
+4. `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md` — future DM Combat Desk design baseline; no implementation permission;
+5. `docs/PROJECT_STATE.md` — broader project snapshot;
+6. `docs/TESTING.md` — acceptance contract;
+7. `docs/ROADMAP.md` — Phase 4A/4B sequencing;
+8. `docs/BRANCH_STATUS.md` — repository authority map.
 
 ## Protected owner directions
 
