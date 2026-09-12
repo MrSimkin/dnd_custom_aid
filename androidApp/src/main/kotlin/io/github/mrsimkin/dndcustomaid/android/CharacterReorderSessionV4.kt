@@ -13,7 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderResult
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterReorderSemanticStep
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterReorderSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.nearestCharacterReorderIndex
 import io.github.mrsimkin.dndcustomaid.shared.character.previewCharacterReorder
@@ -63,6 +62,7 @@ internal class CharacterReorderSessionV4 internal constructor(
     private val coordinator: CharacterReorderCoordinatorV4,
 ) {
     private var canonicalOrderSnapshot: List<String> = initialCanonicalOrder.distinct()
+    private var reorderGroupSnapshot: Map<String, String> = emptyMap()
     private val itemBounds = mutableStateMapOf<String, Rect>()
 
     var previewOrder: List<String> by mutableStateOf(canonicalOrderSnapshot)
@@ -109,21 +109,25 @@ internal class CharacterReorderSessionV4 internal constructor(
     /**
      * Synchronize external structural state and current reorder eligibility.
      *
-     * Any material external order change or loss of eligibility during a live drag cancels the
-     * transient session. We never reinterpret a gesture against a structurally different draft.
+     * Any material external order/group change or loss of eligibility during a live drag cancels
+     * the transient session. We never reinterpret a gesture against a structurally different draft.
      */
     fun sync(
         canonicalOrder: List<String>,
         enabled: Boolean,
+        reorderGroupById: Map<String, String> = emptyMap(),
     ) {
         val normalized = canonicalOrder.distinct()
+        val normalizedGroups = reorderGroupById.filterKeys { it in normalized }
         val externalOrderChanged = normalized != canonicalOrderSnapshot
-        if (active && (!enabled || externalOrderChanged)) {
+        val externalGroupsChanged = normalizedGroups != reorderGroupSnapshot
+        if (active && (!enabled || externalOrderChanged || externalGroupsChanged)) {
             cancelDrag()
         }
         this.enabled = enabled
         if (!active) {
             canonicalOrderSnapshot = normalized
+            reorderGroupSnapshot = normalizedGroups
             if (previewOrder != normalized) previewOrder = normalized
             itemBounds.keys.retainAll(normalized.toSet())
         }
@@ -195,10 +199,17 @@ internal class CharacterReorderSessionV4 internal constructor(
      * Each action is one complete validated structural-draft reorder transaction.
      */
     fun semanticMove(id: String, delta: Int): Boolean {
-        if (!enabled || active || delta == 0) return false
+        if (!enabled || active || delta == 0 || id !in canonicalOrderSnapshot) return false
         if (!coordinator.tryAcquire(sessionKey)) return false
         return try {
-            val proposed = moveCharacterReorderSemanticStep(canonicalOrderSnapshot, id, delta)
+            val eligibleIds = eligibleOrderFor(id, canonicalOrderSnapshot)
+            val sourceIndex = eligibleIds.indexOf(id)
+            if (sourceIndex < 0) return false
+            val targetIndex = (sourceIndex + delta).coerceIn(0, eligibleIds.lastIndex)
+            if (targetIndex == sourceIndex) return false
+            val targetId = eligibleIds[targetIndex]
+            val globalTargetIndex = canonicalOrderSnapshot.indexOf(targetId)
+            val proposed = previewCharacterReorder(canonicalOrderSnapshot, id, globalTargetIndex)
             val finalOrder = applyCharacterReorderResult(canonicalOrderSnapshot, proposed)
             if (finalOrder == canonicalOrderSnapshot) {
                 false
@@ -228,20 +239,38 @@ internal class CharacterReorderSessionV4 internal constructor(
         coordinator.release(sessionKey)
     }
 
+    private fun sameReorderGroup(firstId: String, secondId: String): Boolean {
+        if (reorderGroupSnapshot.isEmpty()) return true
+        return reorderGroupSnapshot[firstId] == reorderGroupSnapshot[secondId]
+    }
+
+    private fun eligibleOrderFor(dragged: String, order: List<String>): List<String> =
+        if (reorderGroupSnapshot.isEmpty()) order else order.filter { sameReorderGroup(dragged, it) }
+
     private fun retargetFromGeometry() {
         val dragged = draggedId ?: return
         val visualBounds = draggedVisualBounds ?: return
-        val slots = itemBounds.map { (id, bounds) ->
-            CharacterReorderSlot(id = id, centerX = bounds.center.x, centerY = bounds.center.y)
+        val eligibleOrder = eligibleOrderFor(dragged, previewOrder)
+        if (eligibleOrder.size < 2) return
+        val eligibleSet = eligibleOrder.toSet()
+        val slots = itemBounds.mapNotNull { (id, bounds) ->
+            if (id in eligibleSet) {
+                CharacterReorderSlot(id = id, centerX = bounds.center.x, centerY = bounds.center.y)
+            } else {
+                null
+            }
         }
-        val targetIndex = nearestCharacterReorderIndex(
-            order = previewOrder,
+        val eligibleTargetIndex = nearestCharacterReorderIndex(
+            order = eligibleOrder,
             draggedId = dragged,
             visualCenterX = visualBounds.center.x,
             visualCenterY = visualBounds.center.y,
             renderedSlots = slots,
         )
-        val reordered = previewCharacterReorder(previewOrder, dragged, targetIndex)
+        val targetId = eligibleOrder.getOrNull(eligibleTargetIndex) ?: return
+        val globalTargetIndex = previewOrder.indexOf(targetId)
+        if (globalTargetIndex < 0) return
+        val reordered = previewCharacterReorder(previewOrder, dragged, globalTargetIndex)
         if (reordered != previewOrder) {
             previewOrder = reordered
             onHaptic(CharacterHapticEventV4.DRAG_STEP)
@@ -291,6 +320,7 @@ internal fun rememberCharacterReorderSessionV4(
     onCommitOrder: (List<String>) -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
     autoScrollBy: (suspend (Float) -> Float)? = null,
+    reorderGroupById: Map<String, String> = emptyMap(),
 ): CharacterReorderSessionV4 {
     val session = remember(sessionKey, coordinator) {
         CharacterReorderSessionV4(
@@ -309,7 +339,11 @@ internal fun rememberCharacterReorderSessionV4(
             onHaptic = { currentHaptic(it) },
             autoScrollBy = currentAutoScroll,
         )
-        session.sync(canonicalOrder = canonicalOrder, enabled = enabled)
+        session.sync(
+            canonicalOrder = canonicalOrder,
+            enabled = enabled,
+            reorderGroupById = reorderGroupById,
+        )
     }
     DisposableEffect(session) {
         onDispose { session.dispose() }
