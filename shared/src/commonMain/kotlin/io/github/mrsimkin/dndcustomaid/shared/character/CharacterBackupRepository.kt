@@ -16,6 +16,7 @@ class CharacterBackupRepository(
     private val characters = CharacterRepository(database)
     private val closure = CharacterClosureRepository(database)
     private val successor = CharacterSuccessorRepository(database)
+    private val provenance = CharacterProvenanceRepository(database)
 
     fun exportCharacter(
         characterId: Uuid,
@@ -25,11 +26,15 @@ class CharacterBackupRepository(
         val character = requireNotNull(characters.character(characterId)) {
             "Character must already exist locally."
         }
+        val successorState = provenance.state(
+            characterId = characterId,
+            baseState = successor.state(characterId),
+        )
         val document = CharacterBackupDocument(
             exportedAtEpochSeconds = exportedAtEpochSeconds,
             character = character,
             closureState = closure.state(characterId),
-            successorState = successor.state(characterId),
+            successorState = successorState,
         )
         val validation = characterBackupValidationMessage(document)
         require(validation == null) { validation ?: "Invalid character backup." }
@@ -55,10 +60,15 @@ class CharacterBackupRepository(
                 campaignId = destinationCampaignId,
                 rawName = document.character.name,
             )
-            val plan = prepareCharacterBackupImport(
+            val basePlan = prepareCharacterBackupImport(
                 document = document,
                 destinationCampaignId = destinationCampaignId,
                 targetCharacterId = placeholder.id,
+                idFactory = idFactory,
+            )
+            val plan = remapCharacterProvenanceForImportedCopy(
+                document = document,
+                plan = basePlan,
                 idFactory = idFactory,
             )
             val savedCharacter = characters.saveCharacter(plan.character)
@@ -77,7 +87,11 @@ class CharacterBackupRepository(
             )
             // Successor state is saved last because it may reference custom skills from the
             // closure aggregate as well as spell sources/attacks/resources from the core sheet.
-            val savedSuccessor = successor.saveState(savedCharacter.id, plan.successorState)
+            val savedBaseSuccessor = successor.saveState(savedCharacter.id, plan.successorState)
+            val savedSuccessor = provenance.saveState(
+                savedCharacter.id,
+                savedBaseSuccessor.withCharacterProvenanceFrom(plan.successorState),
+            )
             result = CharacterBackupImportResult(
                 sourceCharacterId = plan.sourceCharacterId,
                 sourceCampaignId = plan.sourceCampaignId,
