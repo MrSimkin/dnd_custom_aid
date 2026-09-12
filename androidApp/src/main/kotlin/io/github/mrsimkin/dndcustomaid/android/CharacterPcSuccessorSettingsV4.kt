@@ -219,34 +219,74 @@ internal fun CharacterCustomSkillsSettingsV4(
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var deleteId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    val orderedSkills = closureState.customSkills.sortedBy { it.sortOrder }
+    val skillById = remember(orderedSkills) { orderedSkills.associateBy { it.id.toString() } }
+    val canonicalIds = orderedSkills.map { it.id.toString() }
+    val coordinator = rememberCharacterReorderCoordinatorV4()
+    val haptic = rememberCharacterHapticHookV4(closureState.hapticsEnabled)
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "pc-custom-skills",
+        canonicalOrder = canonicalIds,
+        enabled = !closureState.tableModeEnabled,
+        coordinator = coordinator,
+        onCommitOrder = { committedIds ->
+            val currentById = closureState.customSkills.associateBy { it.id.toString() }
+            val reordered = committedIds.mapIndexedNotNull { index, id ->
+                currentById[id]?.copy(sortOrder = index)
+            }
+            if (reordered.size == closureState.customSkills.size) {
+                onClosureStateChange(closureState.copy(customSkills = reordered))
+            }
+        },
+        onHaptic = haptic,
+    )
+    val previewSkills = reorderSession.previewOrder.mapNotNull(skillById::get)
+
     SuccessorSettingCardV4(
         title = "Habilidades personalizadas",
         description = "Administra habilidades homebrew y asígnalas a una característica estándar o personalizada.",
     ) {
-        SettingsCardHeaderActionV4(
-            empty = closureState.customSkills.isEmpty(),
-            emptyText = "Sin habilidades personalizadas.",
-            onAdd = { editorId = null; editorOpen = true },
-        )
-        closureState.customSkills.sortedBy { it.sortOrder }.forEach { skill ->
-            val reference = successorState.customSkillAbilities
-                .firstOrNull { it.customSkillId == skill.id }
-                ?.ability
-                ?: CharacterAbilityReference.builtIn(skill.ability)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(skill.name, style = MaterialTheme.typography.bodySmall)
-                    Text(
-                        "${abilityReferenceLabelV4(reference, successorState.customAttributes)} · ${trainingLabelSettingsV4(skill.training)}",
-                        style = MaterialTheme.typography.labelSmall,
-                    )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .characterReorderSessionViewportV4(reorderSession),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+        ) {
+            SettingsCardHeaderActionV4(
+                empty = closureState.customSkills.isEmpty(),
+                emptyText = "Sin habilidades personalizadas.",
+                onAdd = { editorId = null; editorOpen = true },
+            )
+            previewSkills.forEach { skill ->
+                val id = skill.id.toString()
+                val reference = successorState.customSkillAbilities
+                    .firstOrNull { it.customSkillId == skill.id }
+                    ?.ability
+                    ?: CharacterAbilityReference.builtIn(skill.ability)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .characterReorderSessionBoundsV4(reorderSession, id)
+                        .characterReorderSessionSemanticsV4(reorderSession, id)
+                        .characterReorderSessionVisualV4(reorderSession, id)
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .characterReorderSessionDragHandleV4(reorderSession, id),
+                    ) {
+                        Text(skill.name, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "${abilityReferenceLabelV4(reference, successorState.customAttributes)} · ${trainingLabelSettingsV4(skill.training)}",
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                    TextButton(onClick = { editorId = id; editorOpen = true }) { Text("Editar") }
+                    TextButton(onClick = { deleteId = id }) { Text("Eliminar") }
                 }
-                TextButton(onClick = { editorId = skill.id.toString(); editorOpen = true }) { Text("Editar") }
-                TextButton(onClick = { deleteId = skill.id.toString() }) { Text("Eliminar") }
             }
         }
     }
