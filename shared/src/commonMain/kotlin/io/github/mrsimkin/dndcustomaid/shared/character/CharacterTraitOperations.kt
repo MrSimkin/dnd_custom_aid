@@ -155,6 +155,43 @@ fun moveCharacterTraitManual(
         .mapIndexed { index, trait -> trait.copy(sortOrder = index) }
 }
 
+/**
+ * Apply one complete direct-drag proposal while preserving the canonical slots owned by every
+ * trait group. Grouping changes which traits may exchange positions; it never lets one group
+ * displace another group's slots in the underlying manual order.
+ */
+fun applyCharacterTraitManualOrder(
+    traits: List<CharacterTrait>,
+    proposedIds: List<String>,
+    grouping: CharacterTraitGrouping = CharacterTraitGrouping.NONE,
+): List<CharacterTrait> {
+    val normalized = normalizeCharacterTraitOrder(traits)
+    val canonicalIds = normalized.map { it.id.toString() }
+    if (!isValidCharacterReorderResult(canonicalIds, proposedIds)) return normalized
+
+    val traitById = normalized.associateBy { it.id.toString() }
+    val finalIds = if (grouping == CharacterTraitGrouping.NONE) {
+        proposedIds
+    } else {
+        val groupById = normalized.associate { trait ->
+            trait.id.toString() to characterTraitGroupingKey(trait, grouping)
+        }
+        groupById.values.distinct().fold(canonicalIds) { accumulated, groupKey ->
+            val currentGroupIds = canonicalIds.filter { id -> groupById[id] == groupKey }
+            val proposedGroupIds = proposedIds.filter { id -> groupById[id] == groupKey }
+            applyCharacterReorderedSubsetResult(
+                allIds = accumulated,
+                currentSubsetIds = currentGroupIds,
+                proposedSubsetIds = proposedGroupIds,
+            )
+        }
+    }
+
+    val reordered = finalIds.mapNotNull(traitById::get)
+    if (reordered.size != normalized.size) return normalized
+    return reordered.mapIndexed { index, trait -> trait.copy(sortOrder = index) }
+}
+
 fun duplicateCharacterTrait(
     source: CharacterTrait,
     newId: Uuid,
