@@ -325,8 +325,12 @@ private fun PcSettingsMainClosureV4(
                 PcToggleRowClosureV4(
                     title = "Modo Mesa",
                     checked = closureState.tableModeEnabled,
-                    enabled = closureState.tableModeEnabled || tableModeCanEnable,
-                    secondary = if (!tableModeCanEnable && !closureState.tableModeEnabled) "Cambios de edición pendientes" else null,
+                    enabled = true,
+                    secondary = if (!tableModeCanEnable && !closureState.tableModeEnabled) {
+                        "Cambios de edición pendientes: revisar al activar"
+                    } else {
+                        null
+                    },
                     onCheckedChange = { enabled ->
                         onClosureStateChange(closureState.copy(tableModeEnabled = enabled))
                     },

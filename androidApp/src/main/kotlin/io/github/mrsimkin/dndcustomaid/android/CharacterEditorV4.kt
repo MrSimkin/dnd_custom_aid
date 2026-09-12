@@ -204,6 +204,8 @@ internal fun CharacterEditorScreenV4(
         )
     }
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
+    var confirmTableModeTransition by rememberSaveable(characterId.toString(), "table-mode-transition") { mutableStateOf(false) }
+    var activateTableModeAfterBlankSave by rememberSaveable(characterId.toString(), "table-mode-after-blank-save") { mutableStateOf(false) }
     var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }
     var showSupercompact by rememberSaveable(characterId.toString(), "supercompact") { mutableStateOf(false) }
     var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }
@@ -585,6 +587,44 @@ internal fun CharacterEditorScreenV4(
         }
     }
 
+    fun enableTableModeNow() {
+        if (closureState.tableModeEnabled) return
+        closureState = closureRepository.saveState(
+            characterId,
+            closureState.copy(tableModeEnabled = true),
+        )
+        savedMessage = "Guardado"
+    }
+
+    fun saveAndActivateTableMode() {
+        if (!structuralEditingEnabled) return
+        if (draft.missingRequiredNumberLabels().isNotEmpty()) {
+            activateTableModeAfterBlankSave = true
+            confirmBlankNumbers = true
+            return
+        }
+        val candidate = draft.toSheetOrNull(stored) ?: return
+        persist(candidate)
+        enableTableModeNow()
+    }
+
+    fun discardDraftsAndActivateTableMode() {
+        draft = CharacterEditorDraftV4.from(stored)
+        combatDraftJson = storedCombatDraftJson
+        combatDamageDraftJson = storedCombatDamageDraftJson
+        spellcastingProfilesDraftJson = storedSpellcastingProfilesDraftJson
+        equipmentDraftJson = storedEquipmentDraftJson
+        backgroundDraftJson = storedBackgroundDraftJson
+        traitsDraftJson = storedTraitsDraftJson
+        traitProvenanceDraftJson = storedTraitProvenanceDraftJson
+        canonicalOriginsDraftJson = storedCanonicalOriginsDraftJson
+        spellcastingDraftJson = storedSpellcastingDraftJson
+        notesDraftJson = storedNotesDraftJson
+        h1ModuleDraftJson = storedH1ModuleDraftJson
+        proficiencyDraftJson = storedProficiencyDraftJson
+        enableTableModeNow()
+    }
+
     fun save() {
         if (!structuralEditingEnabled) return
         if (draft.missingRequiredNumberLabels().isNotEmpty()) {
@@ -600,6 +640,10 @@ internal fun CharacterEditorScreenV4(
         val candidate = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: return
         confirmBlankNumbers = false
         persist(candidate)
+        if (activateTableModeAfterBlankSave) {
+            activateTableModeAfterBlankSave = false
+            enableTableModeNow()
+        }
     }
 
     fun persistSpellcasterEnabled(enabled: Boolean) {
@@ -619,7 +663,10 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun persistClosureState(updated: CharacterClosureState) {
-        if (!closureState.tableModeEnabled && updated.tableModeEnabled && hasUnsavedChanges) return
+        if (!closureState.tableModeEnabled && updated.tableModeEnabled && hasUnsavedChanges) {
+            confirmTableModeTransition = true
+            return
+        }
         if (updated == closureState) return
         closureState = closureRepository.saveState(characterId, updated)
         savedMessage = "Guardado"
@@ -1025,12 +1072,46 @@ internal fun CharacterEditorScreenV4(
         )
     }
 
+    if (confirmTableModeTransition) {
+        AlertDialog(
+            onDismissRequest = { confirmTableModeTransition = false },
+            title = { Text("Activar Modo Mesa") },
+            text = {
+                Text(
+                    "Hay cambios de edición pendientes. Elige qué hacer antes de entrar en Modo Mesa.",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmTableModeTransition = false
+                        saveAndActivateTableMode()
+                    },
+                ) { Text("Guardar y activar") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(
+                        onClick = {
+                            confirmTableModeTransition = false
+                            discardDraftsAndActivateTableMode()
+                        },
+                    ) { Text("Descartar y activar") }
+                    TextButton(onClick = { confirmTableModeTransition = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            },
+        )
+    }
+
     if (confirmBlankNumbers) {
         val missing = draft.missingRequiredNumberLabels()
         AlertDialog(
             onDismissRequest = {
                 confirmBlankNumbers = false
                 leaveAfterSave = false
+                activateTableModeAfterBlankSave = false
             },
             title = { Text("Guardar campos vacíos como 0") },
             text = {
@@ -1053,6 +1134,7 @@ internal fun CharacterEditorScreenV4(
                     onClick = {
                         confirmBlankNumbers = false
                         leaveAfterSave = false
+                        activateTableModeAfterBlankSave = false
                     },
                 ) { Text("Cancelar") }
             },
