@@ -91,19 +91,33 @@ Validation:
 
 No additional P6 implementation change is required for the active tab-order subpage.
 
+## Active-branch correction: custom skills
+
+A follow-up trace after the first checkpoint write established that `CharacterCustomSkillsV4.kt` is not the active sheet path that owns custom-skill editing. The active Player sheet renders custom skills as projections through `presentCharacterSkills(...)`; the sheet text explicitly sends custom-skill configuration to PC Settings.
+
+The live structural editor is:
+- `CharacterPcSuccessorSettingsV4.kt` → `CharacterCustomSkillsSettingsV4(...)`
+- reached from `CharacterPcSettingsClosureV4.kt` → PC Settings → `Habilidades personalizadas`.
+
+Therefore the earlier tentative target of adding reorder to the old `Por habilidades` / `Por atributo` card is superseded and must **not** be implemented merely because that older file still contains `sortOrder` presentation logic.
+
 ## Confirmed remaining P6 work
 
-### Custom skills
+### Custom skills — active PC Settings manager
 
-The active custom-skill collections persist and render by `sortOrder`, but the Player-facing custom-skill collection currently has no direct reorder interaction.
+The live custom-skill manager persists `closureState.customSkills` by `sortOrder` but currently renders a plain ordered list with Edit/Delete controls and no direct drag interaction.
 
 Required migration:
-- `Por habilidades`: reorder across the complete custom-skill list;
-- `Por atributo`: reorder only inside the currently displayed attribute group, preserving the positions of skills belonging to other attributes;
-- preserve stable ids, ability assignment, training and all non-order state;
+- direct long-press drag in the active PC Settings custom-skills list;
+- stable-id reorder of the complete custom-skill list;
+- preserve ability mapping, training and every non-order field;
+- rewrite only `sortOrder` to the validated final order;
 - commit once on successful drop;
-- child edit/delete/open controls must not become pickup regions;
-- use existing haptic/reorder primitives rather than introducing a separate interaction grammar.
+- Edit/Delete controls remain ordinary child actions and must not become pickup regions;
+- Table Mode keeps this structural manager read-only/disabled;
+- use existing reorder/haptic primitives rather than introducing another interaction grammar.
+
+The normal Habilidades sheet remains a projection surface; it should not gain a competing structural-order editor as part of P6.
 
 ## Final audit still required after custom skills
 
@@ -115,9 +129,12 @@ Perform a branch-specific residue sweep for active Player code and distinguish:
 
 Do not broaden P6 into new reorder affordances without evidence that the collection is intended to support user-controlled manual order.
 
-## Branch state at checkpoint creation
+## Branch state at first checkpoint creation
 
-Head before this documentation commit:
+Head before the original documentation commit:
 `0ad04af7a107bcaaecfe0d0f30473894b9b26e50`
+
+Original documentation commit:
+`41dd6bba624d3c84a07139e86e6eb5ef1ae45efd`
 
 This checkpoint records implementation already completed; it does not replace the original P6 design decision checkpoint.
