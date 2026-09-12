@@ -1,0 +1,87 @@
+name: Temporary Phase4A P3 P4 Material3 source repair
+
+on:
+  push:
+    branches:
+      - implementation/phase4a-successor-cycle
+    paths:
+      - .github/workflows/tmp-phase4a-m3-source-repair.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: implementation/phase4a-successor-cycle
+          fetch-depth: 0
+      - name: Apply guarded source repairs
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
+              return text.replace(old, new, 1)
+
+          editor_path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt')
+          editor = editor_path.read_text()
+          pattern = r'@Composable\nprivate fun ReadOnlyTrainingV4\(training: SkillTraining\) \{.*?\n\}\n\n@Composable\nprivate fun SkillRowV4'
+          replacement = '\n'.join([
+              '@Composable',
+              'private fun ReadOnlyTrainingV4(training: SkillTraining) {',
+              '    // Match the 48dp layout footprint reserved by the ordinary M3 training selector',
+              '    // while keeping the custom projection visually compact and read-only.',
+              '    Box(',
+              '        modifier = Modifier.width(48.dp).heightIn(min = 48.dp, max = 48.dp),',
+              '        contentAlignment = Alignment.Center,',
+              '    ) {',
+              '        Surface(',
+              '            modifier = Modifier.width(44.dp).heightIn(min = 34.dp, max = 34.dp),',
+              '            shape = MaterialTheme.shapes.small,',
+              '            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),',
+              '            color = MaterialTheme.colorScheme.surface,',
+              '        ) {',
+              '            Box(contentAlignment = Alignment.Center) { TrainingGlyphV4(training) }',
+              '        }',
+              '    }',
+              '}',
+              '',
+              '@Composable',
+              'private fun SkillRowV4',
+          ])
+          editor, count = re.subn(pattern, replacement, editor, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit(f'P3 ReadOnlyTrainingV4: expected exactly one match, found {count}')
+          editor_path.write_text(editor)
+
+          combat_path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCombatSuccessorV4.kt')
+          combat = combat_path.read_text()
+          combat = replace_once(combat, 'import androidx.compose.foundation.layout.fillMaxWidth\n', 'import androidx.compose.foundation.layout.fillMaxWidth\nimport androidx.compose.foundation.layout.heightIn\n', 'P4 heightIn import')
+          combat = replace_once(combat, 'OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth())', 'OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp))', 'P4 sign selector')
+          combat = replace_once(combat, 'modifier = Modifier.weight(0.9f),\n            label = { Text("Cant.") },', 'modifier = Modifier.weight(0.9f).heightIn(min = 48.dp, max = 48.dp),\n            label = { Text("Cant.") },', 'P4 quantity field')
+          combat = replace_once(combat, 'OutlinedButton(onClick = { dieMenuExpanded = true }, modifier = Modifier.fillMaxWidth())', 'OutlinedButton(onClick = { dieMenuExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp))', 'P4 die selector')
+          combat = replace_once(combat, 'modifier = Modifier.weight(1f),\n            label = { Text("Mod.") },', 'modifier = Modifier.weight(1f).heightIn(min = 48.dp, max = 48.dp),\n            label = { Text("Mod.") },', 'P4 modifier field')
+          combat = replace_once(combat, 'modifier = Modifier.fillMaxWidth(),\n            label = { Text("Caras del dado") },', 'modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp),\n            label = { Text("Caras del dado") },', 'P4 custom die field')
+          combat = replace_once(combat, 'OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {\n                Text(when {\n                    customMode -> "Otro…"', 'OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp), contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {\n                Text(when {\n                    customMode -> "Otro…"', 'P4 damage type selector')
+          combat = replace_once(combat, 'modifier = Modifier.weight(1f),\n                label = { Text("Otro tipo") },', 'modifier = Modifier.weight(1f).heightIn(min = 48.dp, max = 48.dp),\n                label = { Text("Otro tipo") },', 'P4 custom damage type field')
+          combat = replace_once(combat, 'modifier = Modifier.fillMaxWidth(),\n        label = { Text("Daño plano") },', 'modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp),\n        label = { Text("Daño plano") },', 'P4 flat damage field')
+          combat_path.write_text(combat)
+          PY
+      - name: Commit source repairs and remove helper
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCombatSuccessorV4.kt
+          git rm .github/workflows/tmp-phase4a-m3-source-repair.yml
+          git commit -m "repair: harden P3 P4 compact Material3 geometry"
+          git push origin HEAD:implementation/phase4a-successor-cycle
