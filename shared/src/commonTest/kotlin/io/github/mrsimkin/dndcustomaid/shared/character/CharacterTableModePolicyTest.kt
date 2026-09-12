@@ -6,7 +6,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
-class CharacterTableModePolicyTest {
+class CharacterTableModeOperationalMergePolicyTest {
     private fun sheet(): CharacterSheet {
         val itemId = Uuid.random()
         val traitId = Uuid.random()
