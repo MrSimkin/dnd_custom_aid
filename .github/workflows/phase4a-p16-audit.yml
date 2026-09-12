@@ -1,0 +1,34 @@
+name: Phase4A P16 read-only layout audit
+
+on:
+  push:
+    branches:
+      - implementation/phase4a-successor-cycle
+    paths:
+      - .github/workflows/phase4a-p16-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: implementation/phase4a-successor-cycle
+      - name: Inventory P16 layout pressure sites
+        shell: bash
+        run: |
+          ROOT=androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android
+          echo '=== vertical-space/context consumers ==='
+          grep -R -n -E 'characterLayoutContextV4|CharacterVerticalSpaceV4|verticalSpace' "$ROOT" || true
+          echo '=== sticky headers ==='
+          grep -R -n 'stickyHeader' "$ROOT" || true
+          echo '=== collection toolbar call sites ==='
+          grep -R -n 'CharacterCollectionToolbarV4' "$ROOT" || true
+          echo '=== top-level adaptive/persistent shell references ==='
+          grep -R -n -E 'CharacterAdaptiveShellV4|CharacterTopTabStripV4|CharacterCombatOperationalCardV4' "$ROOT" || true
+          echo '=== local feet/metric conversion authorities ==='
+          grep -R -n -E 'metricTenths|0\.3048|formatSpeed[A-Za-z0-9_]*V4' "$ROOT" || true
