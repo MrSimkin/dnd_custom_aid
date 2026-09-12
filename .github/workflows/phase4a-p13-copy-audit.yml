@@ -1,0 +1,22 @@
+name: Phase4A P13 read-only copy audit
+
+on:
+  push:
+    branches:
+      - implementation/phase4a-successor-cycle
+    paths:
+      - .github/workflows/phase4a-p13-copy-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: implementation/phase4a-successor-cycle
+      - name: Audit Player-facing explanatory copy
+        run: python3 .github/scripts/phase4a_p13_copy_audit.py
