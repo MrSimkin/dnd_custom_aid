@@ -572,6 +572,8 @@ private fun SpellCollectionG2(
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
     val listState = rememberLazyListState()
+    val keepCollectionToolsSticky =
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
     val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
     val canonicalVisibleIds = visibleByLevel.flatMap { (_, spells) -> spells.map { it.id.toString() } }
     val visibleSpellById = visibleByLevel.values.flatten().associateBy { it.id.toString() }
@@ -708,7 +710,7 @@ private fun SpellCollectionG2(
                     if (sourceLevelCount == 0 && (slot == null || slot.total <= 0)) continue
                     val collapsed = level in collapsedLevels
 
-                    stickyHeader(key = "spell-g2-level-header-$level") {
+                    characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "spell-g2-level-header-$level") {
                         SpellLevelStickyHeaderG2(
                             level = level,
                             shownCount = levelSpells.size,

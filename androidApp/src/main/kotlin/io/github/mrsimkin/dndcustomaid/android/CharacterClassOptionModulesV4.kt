@@ -551,6 +551,8 @@ private fun ClassOptionCollectionH2(
 ) {
     val classById = remember(classes) { classes.associateBy { it.id } }
     val listState = rememberLazyListState()
+    val keepCollectionToolsSticky =
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
     val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
     val favoriteCount = ownedOptions.count { option ->
         closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id)
@@ -654,7 +656,7 @@ private fun ClassOptionCollectionH2(
             ),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
-            stickyHeader(key = "h2-${config.stateKey}-tools") {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "h2-${config.stateKey}-tools") {
                 CharacterCollectionToolbarV4(
                     itemCount = visible.size,
                     query = query,

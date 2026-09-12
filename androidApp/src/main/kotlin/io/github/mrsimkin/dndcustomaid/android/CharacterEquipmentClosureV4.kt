@@ -285,6 +285,8 @@ internal fun CharacterEquipmentClosureTabV4(
         .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
         .map { it.id.toString() }
     val equipmentListState = rememberLazyListState()
+    val keepCollectionToolsSticky =
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
     val ordinaryReorderState = rememberCharacterSpatialReorderStateV4(
         canonicalOrder = ordinaryCanonicalIds,
         onCommitOrder = ::commitSectionOrder,
@@ -316,7 +318,7 @@ internal fun CharacterEquipmentClosureTabV4(
             ),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
-            stickyHeader(key = "equipment-tools") {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "equipment-tools") {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(

@@ -10,6 +10,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -298,6 +300,19 @@ private fun CharacterFilterSelectionIndicatorV4() {
             strokeWidth = stroke,
             cap = StrokeCap.Round,
         )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+internal fun LazyListScope.characterAdaptiveStickyHeaderV4(
+    key: Any,
+    sticky: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (sticky) {
+        stickyHeader(key = key) { content() }
+    } else {
+        item(key = key) { content() }
     }
 }
 

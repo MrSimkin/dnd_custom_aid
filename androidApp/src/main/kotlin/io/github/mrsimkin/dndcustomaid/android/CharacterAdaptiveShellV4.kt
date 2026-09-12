@@ -17,6 +17,7 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheetTabKey
 
 @Composable
 internal fun CharacterAdaptiveShellV4(
+    layoutContext: CharacterLayoutContextV4,
     navigationPresentation: CharacterNavigationPresentationV4,
     selectedTab: CharacterTabV4,
     spellcasterEnabled: Boolean,
@@ -38,7 +40,6 @@ internal fun CharacterAdaptiveShellV4(
     header: @Composable () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val layoutContext = characterLayoutContextV4()
     val effectiveTabOrder = LocalCharacterPcSettingsContextV4.current
         ?.successorState
         ?.preferences
@@ -46,7 +47,8 @@ internal fun CharacterAdaptiveShellV4(
         ?: tabOrder
     val tabletStateHolder = rememberSaveableStateHolder()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    CompositionLocalProvider(LocalCharacterLayoutContextV4 provides layoutContext) {
+        Column(modifier = Modifier.fillMaxSize()) {
         // D01: the compact identity/save header remains outside all scrolling tab content.
         header()
 
@@ -142,6 +144,7 @@ internal fun CharacterAdaptiveShellV4(
                     }
                 }
             }
+        }
         }
     }
 }

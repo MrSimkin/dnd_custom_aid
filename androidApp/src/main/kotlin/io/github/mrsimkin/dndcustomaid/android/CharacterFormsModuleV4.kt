@@ -417,6 +417,10 @@ private fun FormsCollectionH1(
     ) + sourceFilters
 
     val listState = rememberLazyListState()
+
+    val keepCollectionToolsSticky =
+
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
     val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
     val normalizedForms = normalizeCharacterFormOrders(forms)
     val canonicalIds = normalizedForms.map { it.id.toString() }
@@ -474,7 +478,7 @@ private fun FormsCollectionH1(
             ),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
-            stickyHeader(key = "h1-forms-tools") {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "h1-forms-tools") {
                 CharacterCollectionToolbarV4(
                     itemCount = visible.size,
                     query = query,

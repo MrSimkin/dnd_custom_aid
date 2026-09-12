@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 
 internal enum class CharacterFormFactorV4 {
@@ -47,6 +48,8 @@ internal data class CharacterLayoutContextV4(
         get() = verticalSpace == CharacterVerticalSpaceV4.CONSTRAINED
 }
 
+internal val LocalCharacterLayoutContextV4 = compositionLocalOf<CharacterLayoutContextV4?> { null }
+
 internal const val CHARACTER_TABLET_MIN_SHORT_SIDE_DP = 600
 
 internal fun characterFormFactorV4(
@@ -75,7 +78,10 @@ internal fun characterVerticalSpaceForHeightV4(availableHeightDp: Int): Characte
 }
 
 @Composable
-internal fun characterLayoutContextV4(): CharacterLayoutContextV4 {
+internal fun characterLayoutContextForAvailableSizeV4(
+    availableWidthDp: Int,
+    availableHeightDp: Int,
+): CharacterLayoutContextV4 {
     val configuration = LocalConfiguration.current
     return CharacterLayoutContextV4(
         formFactor = characterFormFactorV4(
@@ -83,6 +89,16 @@ internal fun characterLayoutContextV4(): CharacterLayoutContextV4 {
             screenHeightDp = configuration.screenHeightDp,
             landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE,
         ),
+        availableWidthDp = availableWidthDp.coerceAtLeast(0),
+        availableHeightDp = availableHeightDp.coerceAtLeast(0),
+    )
+}
+
+@Composable
+internal fun characterLayoutContextV4(): CharacterLayoutContextV4 {
+    LocalCharacterLayoutContextV4.current?.let { return it }
+    val configuration = LocalConfiguration.current
+    return characterLayoutContextForAvailableSizeV4(
         availableWidthDp = configuration.screenWidthDp,
         availableHeightDp = configuration.screenHeightDp,
     )

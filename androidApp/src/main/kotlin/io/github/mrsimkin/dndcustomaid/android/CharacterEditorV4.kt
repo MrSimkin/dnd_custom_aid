@@ -836,10 +836,14 @@ internal fun CharacterEditorScreenV4(
                     .fillMaxSize()
                     .padding(scaffoldPadding),
             ) {
-                val layoutContext = characterLayoutContextV4()
+                val layoutContext = characterLayoutContextForAvailableSizeV4(
+                    availableWidthDp = maxWidth.value.toInt(),
+                    availableHeightDp = maxHeight.value.toInt(),
+                )
                 val navigationPresentation = characterNavigationPresentationForLayoutV4(layoutContext)
                 val wide = layoutContext.isTablet
                 CharacterAdaptiveShellV4(
+                    layoutContext = layoutContext,
                     navigationPresentation = navigationPresentation,
                     selectedTab = selectedTab,
                     spellcasterEnabled = stored.spellcasterEnabled,

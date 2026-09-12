@@ -212,6 +212,10 @@ internal fun CharacterTraitsClosureTabV4(
     }
 
     val listState = rememberLazyListState()
+
+    val keepCollectionToolsSticky =
+
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
     val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
     val normalizedTraits = normalize(traits)
     val canonicalIds = normalizedTraits.map { it.id.toString() }
@@ -286,7 +290,7 @@ internal fun CharacterTraitsClosureTabV4(
             ),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         ) {
-            stickyHeader(key = "traits-tools") {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "traits-tools") {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(

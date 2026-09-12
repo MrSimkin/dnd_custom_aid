@@ -502,6 +502,10 @@ private fun CompanionCollectionH3(
     }
 
     val listState = rememberLazyListState()
+
+    val keepCollectionToolsSticky =
+
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
     val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
     val normalizedCompanions = normalizeCharacterCompanionOrders(companions)
     val canonicalIds = normalizedCompanions.map { it.id.toString() }
@@ -560,7 +564,7 @@ private fun CompanionCollectionH3(
             ),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
-            stickyHeader(key = "h3-companions-tools") {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "h3-companions-tools") {
                 CharacterCollectionToolbarV4(
                     itemCount = visible.size,
                     query = query,
