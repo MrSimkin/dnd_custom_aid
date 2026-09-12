@@ -35,7 +35,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkillAbilityConfiguration
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
-import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheetTabKey
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableRecovery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
@@ -62,50 +61,6 @@ internal fun CharacterInspirationVisibilitySettingsV4() {
                     )
                 },
             )
-        }
-    }
-}
-
-@Composable
-internal fun CharacterTabOrderSettingsV4() {
-    val context = LocalCharacterPcSettingsContextV4.current ?: return
-    val order = context.successorState.preferences.tabOrder
-    SuccessorSettingCardV4(
-        title = "Orden de pestañas",
-        description = "Define el orden de la ficha. Las pestañas condicionales conservan su posición aunque estén ocultas.",
-    ) {
-        order.forEachIndexed { index, key ->
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(characterSheetTabLabelV4(key), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                TextButton(
-                    onClick = {
-                        context.onSuccessorStateChange(
-                            context.successorState.copy(
-                                preferences = context.successorState.preferences.copy(
-                                    tabOrder = order.moveItemV4(index, index - 1),
-                                ),
-                            ),
-                        )
-                    },
-                    enabled = index > 0,
-                ) { Text("↑") }
-                TextButton(
-                    onClick = {
-                        context.onSuccessorStateChange(
-                            context.successorState.copy(
-                                preferences = context.successorState.preferences.copy(
-                                    tabOrder = order.moveItemV4(index, index + 1),
-                                ),
-                            ),
-                        )
-                    },
-                    enabled = index < order.lastIndex,
-                ) { Text("↓") }
-            }
         }
     }
 }
@@ -753,7 +708,7 @@ private fun SettingsCardHeaderActionV4(
     ) {
         if (empty) Text(emptyText, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall)
         else Text("", modifier = Modifier.weight(1f))
-        TextButton(onClick = onAdd) { Text("+ Añadir") }
+        TextButton(onClick = onAdd) { Text("Añadir") }
     }
 }
 
@@ -773,33 +728,6 @@ private fun SuccessorSettingCardV4(
             content()
         }
     }
-}
-
-private fun <T> List<T>.moveItemV4(from: Int, to: Int): List<T> {
-    if (from !in indices || to !in indices || from == to) return this
-    val mutable = toMutableList()
-    val item = mutable.removeAt(from)
-    mutable.add(to, item)
-    return mutable
-}
-
-private fun characterSheetTabLabelV4(key: CharacterSheetTabKey): String = when (key) {
-    CharacterSheetTabKey.OVERVIEW -> "General"
-    CharacterSheetTabKey.SKILLS -> "Habilidades"
-    CharacterSheetTabKey.COMBAT -> "Combate"
-    CharacterSheetTabKey.DICE -> "Dados"
-    CharacterSheetTabKey.MANAGEMENT -> "Gestión"
-    CharacterSheetTabKey.EQUIPMENT -> "Equipo"
-    CharacterSheetTabKey.BACKGROUND -> "Trasfondo"
-    CharacterSheetTabKey.TRAITS -> "Rasgos"
-    CharacterSheetTabKey.SPELLS -> "Conjuros"
-    CharacterSheetTabKey.ARTIFICER -> "Artífice"
-    CharacterSheetTabKey.FORMS -> "Formas"
-    CharacterSheetTabKey.TECHNIQUES -> "Técnicas"
-    CharacterSheetTabKey.METAMAGIC -> "Metamagia"
-    CharacterSheetTabKey.PACTS -> "Pactos"
-    CharacterSheetTabKey.COMPANIONS -> "Compañeros"
-    CharacterSheetTabKey.NOTES -> "Notas"
 }
 
 private fun abilitySettingsLabelV4(ability: CharacterAbility): String = when (ability) {
