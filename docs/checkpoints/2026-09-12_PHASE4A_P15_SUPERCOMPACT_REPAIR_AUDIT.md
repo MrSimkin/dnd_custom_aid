@@ -6,11 +6,12 @@ Authority: `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P15_SUPERCOMPACT_CLOSED.m
 
 ## Status
 
-IMPLEMENTATION REPAIR APPLIED — NORMAL SCAFFOLD VALIDATION PENDING AT THIS CHECKPOINT REVISION.
+IMPLEMENTATION REPAIR COMPLETE — FINAL NORMAL SCAFFOLD VALIDATION PENDING AT THIS CHECKPOINT REVISION.
 
-This checkpoint records the branch-local P15 audit and the demonstrated gaps repaired in source commit:
+This checkpoint records the branch-local P15 audit and the demonstrated gaps repaired in source commits:
 
-`22e313f096fe9c42be8db17d3c61473c1339b314` — `repair: close P15 supercompact projection gaps`
+- `22e313f096fe9c42be8db17d3c61473c1339b314` — `repair: close P15 supercompact projection gaps`
+- `bfa0d2e7d0add3809902280cf4945073478b53fa` — `repair: finish global character distance formatting`
 
 It does not claim owner/device QA. The APK produced before P13–P16 and the aggregate Phase 4A sweep are complete is not a final QA candidate.
 
@@ -38,17 +39,27 @@ Four concrete contract gaps remained and were repaired:
    - Legacy sheet-level casting summary is retained only as a compatibility fallback when canonical source rows do not exist.
 
 4. **Global imperial-first distance formatting**
-   - Before repair, Supercompact and the normal editor each owned a local feet→metric formatter.
-   - Both local formatters were removed.
-   - New shared Android presentation authority: `CharacterDistanceFormatV4.kt` / `formatCharacterDistanceFeetV4(...)`.
-   - Supercompact movement and senses, plus the normal editor speed projection, now consume that same formatter.
+   - Initial repair removed local feet→metric formatters from Supercompact and the normal editor and introduced shared Android presentation authority `CharacterDistanceFormatV4.kt` / `formatCharacterDistanceFeetV4(...)`.
+   - A branch-wide P16/P15 cross-audit then found two additional local formatters in `CharacterCombatOperationalV4.kt` and `CharacterCombatTabV4.kt`.
+   - Follow-up source commit `bfa0d2e7...` removed both of those local authorities and routed both Combat projections through `formatCharacterDistanceFeetV4(...)`.
+   - The cleanup script asserted that `CharacterDistanceFormatV4.kt` is the only production Android file still containing the feet→metric conversion implementation.
+
+## P15 validation evidence so far
+
+Normal Scaffold `34720663527`, on descendant `4932a029f472f29601c04731e597873f613c0812` containing source commit `22e313f...`, completed GREEN:
+
+- backend: success
+- Kotlin/shared/Android/Desktop build and tests: success
+- Android debug APK upload: success
+
+That run proves the principal P15 repair compiles and passes the repository gate. It predates the final Combat formatter consolidation in `bfa0d2e7...`; therefore a final normal Scaffold on a descendant containing both source commits is still required before automation closure.
 
 ## Scope safety
 
 The repair changes presentation/projection only. It does not add a second persistence model, change structural-edit ownership, alter Table Mode semantics, modify canonical HP state, or merge anything to `main`.
 
-Temporary repair workflow/script files self-deleted in source commit `22e313f...`; they are not part of the resulting implementation.
+All temporary repair/audit workflow and script files used for the P15 corrections self-deleted in the repair commits and are not part of the resulting implementation.
 
-## Validation requirement
+## Final validation requirement
 
-P15 is not technically closed by this audit document alone. Closure requires the repository's normal Scaffold gate on a descendant containing source commit `22e313f...`, including the exact Kotlin/shared/Android/Desktop build gate and APK upload. The resulting run ID and conclusions must be recorded before P15 is declared automation-green.
+P15 is not technically closed by this audit document alone. Closure requires the repository's normal Scaffold gate on a descendant containing both `22e313f...` and `bfa0d2e7...`, including the exact Kotlin/shared/Android/Desktop build gate and APK upload. The resulting run ID and conclusions must be recorded before P15 is declared automation-green.
