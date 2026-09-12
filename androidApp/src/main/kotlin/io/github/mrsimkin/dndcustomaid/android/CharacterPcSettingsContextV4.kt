@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
@@ -48,17 +49,33 @@ internal fun CharacterPcSettingsStateProviderV4(
     characterId: Uuid,
     characterRepository: CharacterRepository,
     successorRepository: CharacterSuccessorRepository,
+    provenanceRepository: CharacterProvenanceRepository,
     content: @Composable () -> Unit,
 ) {
     var successorState by remember(characterId) {
-        mutableStateOf(successorRepository.state(characterId))
+        mutableStateOf(
+            provenanceRepository.state(
+                characterId = characterId,
+                baseState = successorRepository.state(characterId),
+            ),
+        )
     }
     val settingsContext = CharacterPcSettingsContextV4(
         characterId = characterId,
         successorState = successorState,
         onSuccessorStateChange = { updated ->
             if (updated != successorState) {
-                successorState = successorRepository.saveState(characterId, updated)
+                val savedBase = successorRepository.saveState(characterId, updated)
+                successorState = provenanceRepository.saveState(
+                    characterId,
+                    savedBase.copy(
+                        subclassIdentities = updated.subclassIdentities,
+                        speciesIdentity = updated.speciesIdentity,
+                        subraceIdentity = updated.subraceIdentity,
+                        backgroundIdentity = updated.backgroundIdentity,
+                        traitProvenance = updated.traitProvenance,
+                    ),
+                )
             }
         },
         loadCanonicalSheet = { characterRepository.character(characterId) },
