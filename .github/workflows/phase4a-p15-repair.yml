@@ -20,7 +20,10 @@ jobs:
           ref: implementation/phase4a-successor-cycle
           fetch-depth: 0
       - name: Apply audited P15 repair
-        run: python3 .github/scripts/phase4a_p15_repair.py
+        shell: bash
+        run: |
+          python3 .github/scripts/phase4a_p15_repair.py
+          python3 -c 'from pathlib import Path; paths=[Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSupercompactV4.kt"),Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt")]; [p.write_text(p.read_text().rstrip()+"\n") for p in paths]'
       - name: Validate and commit
         shell: bash
         run: |
