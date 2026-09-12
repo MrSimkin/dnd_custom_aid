@@ -197,7 +197,9 @@ class CharacterProvenanceRepository(
         val sheet = requireNotNull(characters.character(characterId)) {
             "Character must already exist locally."
         }
-        requireDistinctIds(state.subclassIdentities.map { it.id }, "Subclass identities")
+        require(state.subclassIdentities.map { it.id }.distinct().size == state.subclassIdentities.size) {
+            "Subclass identities must have distinct identity."
+        }
         require(state.subclassIdentities.map { it.parentClassId }.distinct().size == state.subclassIdentities.size) {
             "Each character class may own at most one current subclass identity."
         }
