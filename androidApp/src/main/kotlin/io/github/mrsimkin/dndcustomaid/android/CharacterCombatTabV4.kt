@@ -47,7 +47,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 @Composable
@@ -305,7 +304,7 @@ private fun CombatQuickReferenceCardV4(
             ) {
                 ReadOnlyReferenceV4("CA", armorClass, Modifier.weight(1f))
                 ReadOnlyReferenceV4("Iniciativa", initiative.ifBlank { "—" }, Modifier.weight(1f))
-                ReadOnlyReferenceV4("Velocidad", formatSpeedCombatV4(speed), Modifier.weight(1f))
+                ReadOnlyReferenceV4("Velocidad", formatCharacterDistanceFeetV4(speed), Modifier.weight(1f))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -552,17 +551,5 @@ private fun sanitizeSignedIntV4(raw: String): String {
     return sign + digits
 }
 
-private fun formatSpeedCombatV4(raw: String): String {
-    val feet = raw.trim().toIntOrNull() ?: return raw.ifBlank { "—" }
-    val metricTenths = feet * 3
-    val wholeMeters = metricTenths / 10
-    val remainder = abs(metricTenths % 10)
-    val metric = if (remainder == 0) {
-        wholeMeters.toString()
-    } else {
-        "$wholeMeters,$remainder"
-    }
-    return "$feet ft ($metric m)"
-}
 
 private fun formatSignedCombatV4(value: Int): String = if (value >= 0) "+$value" else value.toString()

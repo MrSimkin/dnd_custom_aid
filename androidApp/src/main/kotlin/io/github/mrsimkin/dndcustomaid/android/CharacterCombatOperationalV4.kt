@@ -29,7 +29,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterDamage
 import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterHealing
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterTemporaryHp
-import kotlin.math.abs
 
 private enum class CharacterHpExactEditorV4 {
     HIT_POINTS,
@@ -89,7 +88,7 @@ internal fun CharacterCombatOperationalCardV4(
                     ) {
                         OperationalInlineMetricV4("CA", armorClass)
                         OperationalInlineMetricV4("Inic.", initiative.ifBlank { "—" })
-                        OperationalInlineMetricV4("Vel.", formatSpeedOperationalV4(speed))
+                        OperationalInlineMetricV4("Vel.", formatCharacterDistanceFeetV4(speed))
                         OperationalInlineMetricV4(
                             "PV",
                             "${sheet.currentHp}/${sheet.maxHp}",
@@ -109,7 +108,7 @@ internal fun CharacterCombatOperationalCardV4(
                     ) {
                         OperationalInlineMetricV4("CA", armorClass, Modifier.weight(1f))
                         OperationalInlineMetricV4("Inic.", initiative.ifBlank { "—" }, Modifier.weight(1f))
-                        OperationalInlineMetricV4("Vel.", formatSpeedOperationalV4(speed), Modifier.weight(1.45f))
+                        OperationalInlineMetricV4("Vel.", formatCharacterDistanceFeetV4(speed), Modifier.weight(1.45f))
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -351,13 +350,4 @@ private fun DeathSaveCounterV4(
             TextButton(onClick = { onChange(value + 1) }, enabled = value < 3) { Text("+") }
         }
     }
-}
-
-private fun formatSpeedOperationalV4(raw: String): String {
-    val feet = raw.trim().toIntOrNull() ?: return raw.ifBlank { "—" }
-    val metricTenths = feet * 3
-    val wholeMeters = metricTenths / 10
-    val remainder = abs(metricTenths % 10)
-    val metric = if (remainder == 0) wholeMeters.toString() else "$wholeMeters,$remainder"
-    return "$feet ft ($metric m)"
 }
