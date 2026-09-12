@@ -19,10 +19,9 @@ jobs:
           ref: implementation/phase4a-successor-cycle
           fetch-depth: 0
 
-      - name: Execute inert audited repair script
+      - name: Apply audited P14 hardening
         shell: bash
-        run: |
-          python -c 'from pathlib import Path; p=Path(".github/workflows/phase4a-p14-final-repair.yml"); t=p.read_text(); m="          python - <<"; s=t.index("\n", t.index(m))+1; e=t.index("\n          PY\n", s); b=t[s:e]; b=b.replace("              5,\n          )\n          replace_once(\n              editor,", "              6,\n          )\n          replace_once(\n              editor,", 1); src="\n".join((line[10:] if line.startswith("          ") else line) for line in b.splitlines()); exec(compile(src, "p14_repair", "exec"))'
+        run: python .github/scripts/phase4a_p14_hardening.py
 
       - name: Validate repair shape
         shell: bash
@@ -39,6 +38,7 @@ jobs:
         run: |
           rm .github/workflows/phase4a-p14-final-repair.yml
           rm .github/workflows/phase4a-p14-recover-helper.yml
+          rm .github/scripts/phase4a_p14_hardening.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
