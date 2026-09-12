@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -69,6 +70,10 @@ internal fun characterCompactSingleLineFieldHeightV4(): Dp {
  * Short editors wrap their natural content. Medium/large editors are bounded by the usable
  * dialog viewport and scroll internally. The action row lives outside the scroll region so
  * Save/Cancel remain reachable without forcing every editor to occupy the full screen.
+ *
+ * [expanded] is an explicit exception for genuinely complex workflows. It reserves most of the
+ * currently usable height while preserving outer breathing room, IME adaptation and the stable
+ * action row; it is never the shared default.
  */
 @Composable
 internal fun CharacterImeSafeEditorDialog(
@@ -80,6 +85,7 @@ internal fun CharacterImeSafeEditorDialog(
     cancelLabel: String = "Cancelar",
     saveEnabled: Boolean = true,
     supportingText: String? = null,
+    expanded: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
@@ -111,7 +117,8 @@ internal fun CharacterImeSafeEditorDialog(
                     modifier = modifier
                         .fillMaxWidth()
                         .widthIn(max = 640.dp)
-                        .heightIn(max = maxHeight),
+                        .heightIn(max = maxHeight)
+                        .then(if (expanded) Modifier.fillMaxHeight(0.9f) else Modifier),
                     shape = MaterialTheme.shapes.large,
                     tonalElevation = 5.dp,
                     shadowElevation = 6.dp,
