@@ -4,7 +4,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,10 +20,11 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -42,8 +43,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,9 +62,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterSpellManualOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterSpellManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterSpellSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterSpellOrders
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
@@ -73,7 +72,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSpellLev
 import io.github.mrsimkin.dndcustomaid.shared.character.spellPreparedForView
 import io.github.mrsimkin.dndcustomaid.shared.character.spellVisibleForSource
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 private const val SPELL_FILTER_SEPARATOR_G2 = "\u001E"
@@ -140,6 +138,9 @@ internal fun CharacterSpellListClosureV4(
         )
     }
     val visibleCount = visibleByLevel.values.sumOf { it.size }
+    val visibleLevelById = visibleByLevel.flatMap { (level, spells) ->
+        spells.map { spell -> spell.id.toString() to level }
+    }.toMap()
 
     fun updateQuery(updated: CharacterCollectionQuery) {
         searchText = updated.searchText
@@ -306,23 +307,22 @@ internal fun CharacterSpellListClosureV4(
             onDuplicate = ::duplicate,
             onDelete = { deleteSpellId = it.id.toString() },
             onPreparedChange = ::togglePrepared,
-            onMove = { spell, offset ->
-                if (!canReorder) {
-                    false
-                } else {
-                    val before = normalizeCharacterSpellOrders(draft.spells)
-                    val moved = moveCharacterSpellManual(
-                        spells = draft.spells,
-                        spellId = spell.id,
-                        offset = offset,
-                        selectedSourceId = selectedSourceId,
-                    )
-                    if (moved == before) {
-                        false
-                    } else {
-                        onDraftChange(draft.copy(spells = moved))
-                        true
+            onReorder = { proposedIds ->
+                if (canReorder) {
+                    var reordered = normalizeCharacterSpellOrders(draft.spells)
+                    for (level in 0..9) {
+                        val proposedLevelIds = proposedIds.filter { id -> visibleLevelById[id] == level }
+                        if (proposedLevelIds.size > 1) {
+                            reordered = applyCharacterSpellManualOrder(
+                                spells = reordered,
+                                level = level,
+                                proposedVisibleIds = proposedLevelIds,
+                                selectedSourceId = selectedSourceId,
+                            )
+                        }
                     }
+                    val before = normalizeCharacterSpellOrders(draft.spells)
+                    if (reordered != before) onDraftChange(draft.copy(spells = reordered))
                 }
             },
             onFavoriteChange = { spell, enabled ->
@@ -340,10 +340,10 @@ internal fun CharacterSpellListClosureV4(
     }
 
     val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
-    characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+        characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
-if (sideEditorVisible) {
-    Row(
+    if (sideEditorVisible) {
+        Row(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding()
@@ -566,11 +566,40 @@ private fun SpellCollectionG2(
     onDuplicate: (CharacterSpell) -> Unit,
     onDelete: (CharacterSpell) -> Unit,
     onPreparedChange: (CharacterSpell, Boolean) -> Unit,
-    onMove: (CharacterSpell, Int) -> Boolean,
+    onReorder: (List<String>) -> Unit,
     onFavoriteChange: (CharacterSpell, Boolean) -> Unit,
     onSlotSpentChange: (Int, Int) -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
+    val listState = rememberLazyListState()
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+    val canonicalVisibleIds = visibleByLevel.flatMap { (_, spells) -> spells.map { it.id.toString() } }
+    val visibleSpellById = visibleByLevel.values.flatten().associateBy { it.id.toString() }
+    val reorderGroupById = visibleByLevel.flatMap { (level, spells) ->
+        spells.map { spell -> spell.id.toString() to level.toString() }
+    }.toMap()
+    val reorderEnabled = canReorder && canonicalVisibleIds.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "spell-list",
+        canonicalOrder = canonicalVisibleIds,
+        enabled = reorderEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = onReorder,
+        onHaptic = onHaptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+        reorderGroupById = reorderGroupById,
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+    val layoutByLevel = if (reorderEnabled) {
+        (0..9).associateWith { level ->
+            reorderSession.previewOrder.mapNotNull { id ->
+                visibleSpellById[id]?.takeIf { spell -> spell.level == level }
+            }
+        }
+    } else {
+        visibleByLevel
+    }
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
@@ -596,112 +625,137 @@ private fun SpellCollectionG2(
             onAdd = if (structuralEditingEnabled) onAdd else null,
         )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = PaddingValues(
-                start = appSpacingV4(6.dp),
-                end = appSpacingV4(6.dp),
-                top = 0.dp,
-                bottom = appSpacingV4(88.dp),
-            ),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-        ) {
-            if (!canReorder && visibleCount > 0) {
-                item(key = "spell-g2-order-help") {
-                    Text(
-                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                        } else {
-                            "Limpia búsqueda y filtros para reordenar manualmente."
-                        },
-                        modifier = Modifier.padding(horizontal = appSpacingV4(3.dp)),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-            }
-
-        if (draft.spells.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "Sin conjuros registrados. Crea al menos una fuente y añade el primer conjuro.",
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        } else if (visibleCount == 0) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No hay conjuros que coincidan con esta fuente, búsqueda y filtros.",
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        }
-
-        for (level in 0..9) {
-            val levelSpells = visibleByLevel[level].orEmpty()
-            val sourceLevelCount = draft.spells.count { spell ->
-                spell.level == level && spellVisibleForSource(spell, selectedSourceId)
-            }
-            val slot = slotByLevel[level]
-            if (sourceLevelCount == 0 && (slot == null || slot.total <= 0)) continue
-            val collapsed = level in collapsedLevels
-
-            stickyHeader(key = "spell-g2-level-header-$level") {
-                SpellLevelStickyHeaderG2(
-                    level = level,
-                    shownCount = levelSpells.size,
-                    sourceCount = sourceLevelCount,
-                    collapsed = collapsed,
-                    slot = slot,
-                    queryActive = query.searchText.isNotBlank() || query.activeFilterKeys.isNotEmpty(),
-                    onToggleCollapsed = {
-                        onCollapsedLevelsChange(
-                            if (collapsed) collapsedLevels - level else collapsedLevels + level,
-                        )
-                    },
-                    onSlotSpentChange = { spent -> onSlotSpentChange(level, spent) },
-                )
-            }
-
-            if (!collapsed) {
-                items(
-                    count = levelSpells.size,
-                    key = { index -> "spell-g2-${levelSpells[index].id}" },
-                ) { index ->
-                    val spell = levelSpells[index]
+        CharacterReorderOverlayHostV4(
+            session = reorderSession,
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            liftedContent = { draggedId ->
+                visibleSpellById[draggedId]?.let { spell ->
                     SpellRowG2(
                         spell = spell,
-                        modifier = Modifier.animateItem(
-                            fadeInSpec = null,
-                            placementSpec = tween(durationMillis = 75),
-                            fadeOutSpec = null,
-                        ),
                         sourceById = sourceById,
                         selectedSourceId = selectedSourceId,
                         favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.SPELL, spell.id),
-                        favoriteEnabled = spell.id in persistedSpellIds,
-                        reorderEnabled = canReorder && sourceLevelCount > 1,
-                        structuralEditingEnabled = structuralEditingEnabled,
-                        selected = selectedEditingId == spell.id.toString(),
-                        onPreparedChange = { onPreparedChange(spell, it) },
-                        onFavoriteChange = { onFavoriteChange(spell, it) },
-                        onMove = { offset -> onMove(spell, offset) },
-                        onEdit = { onEdit(spell) },
-                        onDuplicate = { onDuplicate(spell) },
-                        onDelete = { onDelete(spell) },
-                        onHaptic = onHaptic,
+                        favoriteEnabled = false,
+                        reorderSession = null,
+                        structuralEditingEnabled = false,
+                        selected = false,
+                        onPreparedChange = {},
+                        onFavoriteChange = {},
+                        onEdit = {},
+                        onDuplicate = {},
+                        onDelete = {},
+                        lifted = true,
+                        modifier = Modifier.fillMaxSize(),
                     )
+                }
+            },
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .characterReorderSessionViewportV4(reorderSession),
+                contentPadding = PaddingValues(
+                    start = appSpacingV4(6.dp),
+                    end = appSpacingV4(6.dp),
+                    top = 0.dp,
+                    bottom = appSpacingV4(88.dp),
+                ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+            ) {
+                if (!canReorder && visibleCount > 0) {
+                    item(key = "spell-g2-order-help") {
+                        Text(
+                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                            } else {
+                                "Limpia búsqueda y filtros para reordenar manualmente."
+                            },
+                            modifier = Modifier.padding(horizontal = appSpacingV4(3.dp)),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+
+                if (draft.spells.isEmpty()) {
+                    item {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                "Sin conjuros registrados. Crea al menos una fuente y añade el primer conjuro.",
+                                modifier = Modifier.padding(10.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                } else if (visibleCount == 0) {
+                    item {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                "No hay conjuros que coincidan con esta fuente, búsqueda y filtros.",
+                                modifier = Modifier.padding(10.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                }
+
+                for (level in 0..9) {
+                    val levelSpells = layoutByLevel[level].orEmpty()
+                    val sourceLevelCount = draft.spells.count { spell ->
+                        spell.level == level && spellVisibleForSource(spell, selectedSourceId)
+                    }
+                    val slot = slotByLevel[level]
+                    if (sourceLevelCount == 0 && (slot == null || slot.total <= 0)) continue
+                    val collapsed = level in collapsedLevels
+
+                    stickyHeader(key = "spell-g2-level-header-$level") {
+                        SpellLevelStickyHeaderG2(
+                            level = level,
+                            shownCount = levelSpells.size,
+                            sourceCount = sourceLevelCount,
+                            collapsed = collapsed,
+                            slot = slot,
+                            queryActive = query.searchText.isNotBlank() || query.activeFilterKeys.isNotEmpty(),
+                            onToggleCollapsed = {
+                                onCollapsedLevelsChange(
+                                    if (collapsed) collapsedLevels - level else collapsedLevels + level,
+                                )
+                            },
+                            onSlotSpentChange = { spent -> onSlotSpentChange(level, spent) },
+                        )
+                    }
+
+                    if (!collapsed) {
+                        items(
+                            count = levelSpells.size,
+                            key = { index -> "spell-g2-${levelSpells[index].id}" },
+                        ) { index ->
+                            val spell = levelSpells[index]
+                            SpellRowG2(
+                                spell = spell,
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = null,
+                                    placementSpec = tween(durationMillis = 75),
+                                    fadeOutSpec = null,
+                                ),
+                                sourceById = sourceById,
+                                selectedSourceId = selectedSourceId,
+                                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.SPELL, spell.id),
+                                favoriteEnabled = spell.id in persistedSpellIds,
+                                reorderSession = reorderSession.takeIf { reorderEnabled && sourceLevelCount > 1 },
+                                structuralEditingEnabled = structuralEditingEnabled,
+                                selected = selectedEditingId == spell.id.toString(),
+                                onPreparedChange = { onPreparedChange(spell, it) },
+                                onFavoriteChange = { onFavoriteChange(spell, it) },
+                                onEdit = { onEdit(spell) },
+                                onDuplicate = { onDuplicate(spell) },
+                                onDelete = { onDelete(spell) },
+                            )
+                        }
+                    }
                 }
             }
         }
-    }
     }
 }
 
@@ -756,93 +810,100 @@ private fun SpellRowG2(
     selectedSourceId: Uuid?,
     favorite: Boolean,
     favoriteEnabled: Boolean,
-    reorderEnabled: Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     structuralEditingEnabled: Boolean,
     selected: Boolean,
     onPreparedChange: (Boolean) -> Unit,
     onFavoriteChange: (Boolean) -> Unit,
-    onMove: (Int) -> Boolean,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
 ) {
-    var accumulatedDrag by remember(spell.id) { mutableStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    val id = spell.id.toString()
     val selectedAssociation = selectedSourceId?.let { sourceId ->
         spell.sourceAssociations.firstOrNull { it.sourceId == sourceId }
     }
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .characterMeasuredReorderDragV4(
-                    enabled = reorderEnabled,
-                    onHaptic = onHaptic,
-                    onMove = onMove,
-                    onVisualStateChange = { state ->
-                        dragging = state.active
-                        accumulatedDrag = state.offsetY
-                    },
-                    thresholdFraction = 0.65f,
-                )
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(
-                width = if (selected) 2.dp else 1.dp,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+    Surface(
+        modifier = modifier.fillMaxWidth().then(geometryModifier),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(
+                horizontal = appSpacingV4(5.dp),
+                vertical = appSpacingV4(4.dp),
             ),
-            color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(
-                    horizontal = appSpacingV4(5.dp),
-                    vertical = appSpacingV4(4.dp),
-                ),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
-                ) {
-                    Text(
-                        spell.name.ifBlank { "Conjuro sin nombre" },
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.labelLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (selectedAssociation != null) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = selectedAssociation.prepared,
-                                enabled = structuralEditingEnabled,
-                                onCheckedChange = onPreparedChange,
-                            )
-                            Text("Prep.", style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                    StableFavoriteIconButton(
-                        selected = favorite,
-                        onClick = { onFavoriteChange(!favorite) },
-                        enabled = structuralEditingEnabled && favoriteEnabled,
-                        contentDescription = if (favorite) "Quitar ${spell.name} de Favoritos" else "Añadir ${spell.name} a Favoritos",
-                    )
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${spell.name}")
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${spell.name}")
+                Text(
+                    spell.name.ifBlank { "Conjuro sin nombre" },
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(pickupModifier)
+                        .clickable(
+                            enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                            onClick = onEdit,
+                        ),
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (selectedAssociation != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = selectedAssociation.prepared,
+                            enabled = structuralEditingEnabled && !lifted,
+                            onCheckedChange = onPreparedChange,
+                        )
+                        Text("Prep.", style = MaterialTheme.typography.labelSmall)
                     }
                 }
+                StableFavoriteIconButton(
+                    selected = favorite,
+                    onClick = { onFavoriteChange(!favorite) },
+                    enabled = structuralEditingEnabled && !lifted && favoriteEnabled,
+                    contentDescription = if (favorite) "Quitar ${spell.name} de Favoritos" else "Añadir ${spell.name} a Favoritos",
+                )
+                if (structuralEditingEnabled && !lifted) {
+                    StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${spell.name}")
+                    StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${spell.name}")
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(pickupModifier)
+                    .clickable(
+                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        onClick = onEdit,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
@@ -877,7 +938,6 @@ private fun SpellRowG2(
                 }
             }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
