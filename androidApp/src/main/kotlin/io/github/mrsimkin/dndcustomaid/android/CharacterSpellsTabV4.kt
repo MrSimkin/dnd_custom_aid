@@ -2,7 +2,7 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,8 +38,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground
@@ -51,8 +49,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingPro
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderResult
 import io.github.mrsimkin.dndcustomaid.shared.character.characterAbilityReferenceAbbreviation
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 internal data class SpellSourceClassOptionV4(
@@ -159,16 +157,13 @@ internal fun CharacterSpellsTabV4(
     if (managerOpen && structuralEditingEnabled) {
         SourceManagerDialogV4(
             sources = draft.sources,
-            onMove = { index, offset ->
-                val target = index + offset
-                if (target !in draft.sources.indices) {
-                    false
-                } else {
-                    val reordered = draft.sources.toMutableList()
-                    val item = reordered.removeAt(index)
-                    reordered.add(target, item)
-                    updateSources(reordered)
-                    true
+            onReorder = { proposedIds ->
+                val canonicalIds = draft.sources.map { it.id.toString() }
+                val finalIds = applyCharacterReorderResult(canonicalIds, proposedIds)
+                if (finalIds != canonicalIds) {
+                    val sourceById = draft.sources.associateBy { it.id.toString() }
+                    val reordered = finalIds.mapNotNull(sourceById::get)
+                    if (reordered.size == draft.sources.size) updateSources(reordered)
                 }
             },
             onAdd = ::beginAddSource,
@@ -384,7 +379,7 @@ private fun Int.spellSourceSignedV4(): String = if (this >= 0) "+$this" else toS
 @Composable
 private fun SourceManagerDialogV4(
     sources: List<CharacterSpellcastingSource>,
-    onMove: (Int, Int) -> Boolean,
+    onReorder: (List<String>) -> Unit,
     onAdd: () -> Unit,
     onEdit: (CharacterSpellcastingSource) -> Unit,
     onDelete: (CharacterSpellcastingSource) -> Unit,
@@ -392,43 +387,87 @@ private fun SourceManagerDialogV4(
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
     val dialogEnvironment = characterDialogEnvironmentV4()
+    val listState = rememberLazyListState()
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+    val canonicalIds = sources.map { it.id.toString() }
+    val sourceById = sources.associateBy { it.id.toString() }
+    val reorderEnabled = sources.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "spell-sources",
+        canonicalOrder = canonicalIds,
+        enabled = reorderEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = onReorder,
+        onHaptic = onHaptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+    val layoutSources = if (reorderEnabled) {
+        reorderSession.previewOrder.mapNotNull(sourceById::get)
+    } else {
+        sources
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { dialogEnvironment.Provide { Text("Orígenes de conjuros") } },
         text = {
             dialogEnvironment.Provide {
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 500.dp)
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                contentPadding = PaddingValues(bottom = 32.dp),
-            ) {
-                item {
-                    CharacterHelpV4(
-                        "Cada origen organiza una sola colección de conjuros y conserva su propia aptitud, CD y ataque de lanzamiento.",
-                    )
-                }
-                item {
-                    TextButton(onClick = onAdd) { Text("Añadir origen") }
-                }
-                if (sources.isEmpty()) {
-                    item {
-                        Text("Sin fuentes registradas.", style = MaterialTheme.typography.bodySmall)
+                CharacterReorderOverlayHostV4(
+                    session = reorderSession,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 500.dp)
+                        .navigationBarsPadding(),
+                    liftedContent = { draggedId ->
+                        sourceById[draggedId]?.let { source ->
+                            SourceManagerRowV4(
+                                source = source,
+                                reorderSession = null,
+                                onEdit = {},
+                                onDelete = {},
+                                lifted = true,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    },
+                ) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .characterReorderSessionViewportV4(reorderSession),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                        contentPadding = PaddingValues(bottom = 32.dp),
+                    ) {
+                        item {
+                            CharacterHelpV4(
+                                "Cada origen organiza una sola colección de conjuros y conserva su propia aptitud, CD y ataque de lanzamiento.",
+                            )
+                        }
+                        item {
+                            TextButton(onClick = onAdd) { Text("Añadir origen") }
+                        }
+                        if (sources.isEmpty()) {
+                            item {
+                                Text("Sin fuentes registradas.", style = MaterialTheme.typography.bodySmall)
+                            }
+                        } else {
+                            items(
+                                count = layoutSources.size,
+                                key = { index -> layoutSources[index].id.toString() },
+                            ) { index ->
+                                val source = layoutSources[index]
+                                SourceManagerRowV4(
+                                    source = source,
+                                    reorderSession = reorderSession.takeIf { reorderEnabled },
+                                    onEdit = { onEdit(source) },
+                                    onDelete = { onDelete(source) },
+                                )
+                            }
+                        }
                     }
-                } else {
-                    items(sources.size) { index ->
-                        val source = sources[index]
-                        SourceManagerRowV4(
-                            source = source,
-                            onMove = { offset -> onMove(index, offset) },
-                            onEdit = { onEdit(source) },
-                            onDelete = { onDelete(source) },
-                            onHaptic = onHaptic,
-                        )
-                    }
                 }
-            }
             }
         },
         confirmButton = {
@@ -440,35 +479,32 @@ private fun SourceManagerDialogV4(
 @Composable
 private fun SourceManagerRowV4(
     source: CharacterSpellcastingSource,
-    onMove: (Int) -> Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(source.id) { mutableStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
+    val id = source.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
 
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .characterMeasuredReorderDragV4(
-                enabled = true,
-                onHaptic = onHaptic,
-                onMove = onMove,
-                onVisualStateChange = { state ->
-                    dragging = state.active
-                    accumulatedDrag = state.offsetY
-                },
-            )
-            .characterDragFeedbackV4(
-                CharacterDragVisualStateV4(
-                    active = dragging,
-                    offsetY = accumulatedDrag,
-                    showDropBefore = dragging && accumulatedDrag < 0f,
-                    showDropAfter = dragging && accumulatedDrag > 0f,
-                ),
-            )
-            .clickable(onClick = onEdit),
+            .then(geometryModifier),
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
@@ -476,17 +512,24 @@ private fun SourceManagerRowV4(
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(pickupModifier)
+                    .clickable(enabled = !lifted && !activePlaceholder, onClick = onEdit),
+            ) {
                 Text(source.name, style = MaterialTheme.typography.labelLarge)
                 Text(
                     "Origen: ${spellSourceOriginLabelV4(source.originKind)}",
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
-            StableRemoveIconButton(
-                onClick = onDelete,
-                contentDescription = "Eliminar fuente ${source.name}",
-            )
+            if (!lifted) {
+                StableRemoveIconButton(
+                    onClick = onDelete,
+                    contentDescription = "Eliminar fuente ${source.name}",
+                )
+            }
         }
     }
 }
