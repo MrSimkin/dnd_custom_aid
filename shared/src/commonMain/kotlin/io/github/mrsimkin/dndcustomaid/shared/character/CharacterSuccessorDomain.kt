@@ -180,6 +180,16 @@ data class CharacterSuccessorState(
     val resourceConfigurations: List<CharacterResourceSuccessorConfiguration> = emptyList(),
     val preferences: CharacterSuccessorPreferences = CharacterSuccessorPreferences(),
     val backgroundImages: List<CharacterBackgroundImage> = emptyList(),
+    /** Stable character-owned subclass acquisitions. Parent class remains the name authority. */
+    val subclassIdentities: List<CharacterOwnedSubclassIdentity> = emptyList(),
+    /** Canonical owned species/race identity; old background.race is a compatibility projection. */
+    val speciesIdentity: CharacterOwnedSpeciesIdentity? = null,
+    /** Optional most-specific child identity. Normal Player terminology is `Subraza`. */
+    val subraceIdentity: CharacterOwnedSubraceIdentity? = null,
+    /** Canonical owned background identity; old background.name is a compatibility projection. */
+    val backgroundIdentity: CharacterOwnedBackgroundIdentity? = null,
+    /** One provenance relationship per Trait instance when migrated/configured. */
+    val traitProvenance: List<CharacterTraitProvenance> = emptyList(),
 )
 
 fun CharacterSheet.abilityScore(
