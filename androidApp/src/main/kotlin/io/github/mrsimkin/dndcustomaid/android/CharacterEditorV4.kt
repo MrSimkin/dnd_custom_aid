@@ -1526,7 +1526,7 @@ private fun SpeedFieldV4(
                 modifier = Modifier.padding(horizontal = 3.dp, vertical = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(formatSpeedV4(value), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                Text(formatCharacterDistanceFeetV4(value), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
             }
         }
     }
@@ -1549,7 +1549,7 @@ private fun SpeedFieldV4(
                 placeholder = "0",
             )
             Text(
-                "Vista: ${formatSpeedV4(pending)}",
+                "Vista: ${formatCharacterDistanceFeetV4(pending)}",
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -3248,18 +3248,6 @@ private fun statusLabelV4(status: CharacterStatus): String = when (status) {
     CharacterStatus.DEAD -> "Muerto"
 }
 
-private fun formatSpeedV4(raw: String): String {
-    val feet = raw.trim().toIntOrNull() ?: return raw.ifBlank { "—" }
-    val metricTenths = feet * 3
-    val wholeMeters = metricTenths / 10
-    val remainder = kotlin.math.abs(metricTenths % 10)
-    val metric = if (remainder == 0) {
-        wholeMeters.toString()
-    } else {
-        "$wholeMeters,$remainder"
-    }
-    return "$feet ft ($metric m)"
-}
 
 private fun formatSignedV4(value: Int): String = if (value >= 0) "+$value" else value.toString()
 
