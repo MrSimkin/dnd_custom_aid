@@ -47,6 +47,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitProvenance
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourcePlacement
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourceSuccessorConfiguration
@@ -74,10 +77,13 @@ internal fun CharacterTraitsClosureTabV4(
     traits: List<CharacterTrait>,
     classes: List<CharacterClassLevel>,
     background: CharacterBackground,
+    successorState: CharacterSuccessorState,
+    traitProvenance: List<CharacterTraitProvenance>,
     closureState: CharacterClosureState,
     persistedTraitIds: Set<Uuid>,
     resources: List<CharacterResource>,
     onTraitsChange: (List<CharacterTrait>) -> Unit,
+    onTraitProvenanceChange: (List<CharacterTraitProvenance>) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
     onResourceValueChange: (Uuid, Int) -> Unit,
     structuralEditingEnabled: Boolean,
@@ -90,10 +96,9 @@ internal fun CharacterTraitsClosureTabV4(
 
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editorTraitId by rememberSaveable { mutableStateOf("") }
     var editorName by rememberSaveable { mutableStateOf("") }
-    var editorSource by rememberSaveable { mutableStateOf("") }
-    var editorCustomOrigin by rememberSaveable("trait-custom-origin") { mutableStateOf(false) }
-    var editorTypeName by rememberSaveable { mutableStateOf(CharacterTraitType.OTHER.name) }
+    var editorProvenanceJson by rememberSaveable("trait-provenance-p7-editor") { mutableStateOf("") }
     var editorDescription by rememberSaveable { mutableStateOf("") }
     var editorNotes by rememberSaveable { mutableStateOf("") }
     var editorMaxUses by rememberSaveable { mutableStateOf("") }
@@ -130,11 +135,20 @@ internal fun CharacterTraitsClosureTabV4(
 
     fun beginAdd() {
         if (!structuralEditingEnabled) return
+        val newTraitId = Uuid.random()
         editingId = null
+        editorTraitId = newTraitId.toString()
         editorName = ""
-        editorSource = ""
-        editorCustomOrigin = false
-        editorTypeName = CharacterTraitType.OTHER.name
+        editorProvenanceJson = characterTraitProvenanceToJsonP7V4(
+            listOf(
+                newTraitProvenanceForKindP7V4(
+                    traitId = newTraitId,
+                    kind = CharacterProvenanceKind.OTHER,
+                    classes = classes,
+                    successorState = successorState,
+                ),
+            ),
+        )
         editorDescription = ""
         editorNotes = ""
         editorMaxUses = ""
@@ -147,12 +161,18 @@ internal fun CharacterTraitsClosureTabV4(
     fun beginEdit(trait: CharacterTrait) {
         if (!structuralEditingEnabled) return
         editingId = trait.id.toString()
+        editorTraitId = trait.id.toString()
         editorName = trait.name
-        editorSource = trait.source
-        val originOptions = traitOriginOptionsG5(trait.type, classes, background)
-        editorCustomOrigin = originOptions.isNotEmpty() && trait.source.isNotBlank() &&
-            originOptions.none { it.label.equals(trait.source.trim(), ignoreCase = true) }
-        editorTypeName = trait.type.name
+        editorProvenanceJson = characterTraitProvenanceToJsonP7V4(
+            listOf(
+                traitProvenanceDraftP7V4(
+                    trait = trait,
+                    existing = traitProvenance.firstOrNull { it.traitId == trait.id },
+                    classes = classes,
+                    successorState = successorState,
+                ),
+            ),
+        )
         editorDescription = trait.description
         editorNotes = trait.notes.orEmpty()
         editorMaxUses = trait.maxUses?.toString().orEmpty()
@@ -179,7 +199,17 @@ internal fun CharacterTraitsClosureTabV4(
             newId = Uuid.random(),
             sortOrder = traits.size,
         )
+        val sourceProvenance = traitProvenanceDraftP7V4(
+            trait = trait,
+            existing = traitProvenance.firstOrNull { it.traitId == trait.id },
+            classes = classes,
+            successorState = successorState,
+        )
         onTraitsChange(normalize(traits + duplicated))
+        onTraitProvenanceChange(
+            traitProvenance.filterNot { it.traitId == duplicated.id } +
+                sourceProvenance.copy(traitId = duplicated.id),
+        )
     }
 
     val listState = rememberLazyListState()
@@ -398,8 +428,15 @@ internal fun CharacterTraitsClosureTabV4(
     }
 
     if (editorOpen && structuralEditingEnabled) {
-        val selectedType = runCatching { CharacterTraitType.valueOf(editorTypeName) }
-            .getOrDefault(CharacterTraitType.OTHER)
+        val editorTraitUuid = runCatching { Uuid.parse(editorTraitId) }.getOrElse { Uuid.random() }
+        val selectedProvenance = characterTraitProvenanceFromJsonP7V4(editorProvenanceJson)
+            .singleOrNull()
+            ?: newTraitProvenanceForKindP7V4(
+                traitId = editorTraitUuid,
+                kind = CharacterProvenanceKind.OTHER,
+                classes = classes,
+                successorState = successorState,
+            )
         val selectedActivation = editorActivationName.takeIf { it.isNotBlank() }?.let { raw ->
             runCatching { CharacterActivationType.valueOf(raw) }.getOrNull()
         }
@@ -411,17 +448,15 @@ internal fun CharacterTraitsClosureTabV4(
         } else {
             parsedMaxUses != null && parsedSpentUses != null && parsedSpentUses in 0..parsedMaxUses
         }
-        val valid = editorName.trim().isNotEmpty() && maxUsesValid && spentUsesValid
+        val provenanceValid = traitProvenanceIsValidP7V4(selectedProvenance, classes, successorState)
+        val valid = editorName.trim().isNotEmpty() && maxUsesValid && spentUsesValid && provenanceValid
 
         TraitEditorDialogG1(
             title = if (editingId == null) "Añadir rasgo" else "Editar rasgo",
             name = editorName,
-            source = editorSource,
-            type = selectedType,
-            originOptionsForType = { originType ->
-                traitOriginOptionsG5(traitTypeForOriginG2(originType), classes, background)
-            },
-            customOriginSelected = editorCustomOrigin,
+            provenance = selectedProvenance,
+            classes = classes,
+            successorState = successorState,
             description = editorDescription,
             notes = editorNotes,
             maxUses = editorMaxUses,
@@ -430,12 +465,8 @@ internal fun CharacterTraitsClosureTabV4(
             activation = selectedActivation,
             valid = valid,
             onNameChange = { editorName = it },
-            onSourceChange = { editorSource = it },
-            onCustomOriginSelectedChange = { editorCustomOrigin = it },
-            onTypeChange = {
-                editorTypeName = it.name
-                editorSource = ""
-                editorCustomOrigin = false
+            onProvenanceChange = { updated ->
+                editorProvenanceJson = characterTraitProvenanceToJsonP7V4(listOf(updated))
             },
             onDescriptionChange = { editorDescription = it },
             onNotesChange = { editorNotes = it },
@@ -446,13 +477,15 @@ internal fun CharacterTraitsClosureTabV4(
             onDismiss = { editorOpen = false },
             onApply = {
                 val existing = editingId?.let { id -> traits.firstOrNull { it.id.toString() == id } }
+                val traitId = existing?.id ?: editorTraitUuid
+                val provenance = normalizeTraitProvenanceP7V4(selectedProvenance.copy(traitId = traitId))
                 val maxUses = parsedMaxUses
                 val spentUses = if (maxUses == null) 0 else requireNotNull(parsedSpentUses).coerceIn(0, maxUses)
                 val trait = CharacterTrait(
-                    id = existing?.id ?: Uuid.random(),
+                    id = traitId,
                     name = editorName.trim(),
-                    source = editorSource.trim(),
-                    type = selectedType,
+                    source = traitProvenanceDisplaySourceP7V4(provenance, classes, successorState),
+                    type = traitTypeForProvenanceKindP7V4(provenance.kind),
                     description = editorDescription,
                     notes = editorNotes.trim().takeIf { it.isNotEmpty() },
                     maxUses = maxUses,
@@ -468,6 +501,9 @@ internal fun CharacterTraitsClosureTabV4(
                     traits.map { item -> if (item.id == existing.id) trait else item }
                 }
                 onTraitsChange(normalize(updated))
+                onTraitProvenanceChange(
+                    traitProvenance.filterNot { it.traitId == traitId } + provenance,
+                )
                 editorOpen = false
             },
         )
@@ -484,6 +520,7 @@ internal fun CharacterTraitsClosureTabV4(
                 onDismissRequest = { deleteId = null },
                 onConfirm = {
                     onTraitsChange(normalize(traits.filterNot { it.id == target.id }))
+                    onTraitProvenanceChange(traitProvenance.filterNot { it.traitId == target.id })
                     haptic(CharacterHapticEventV4.DESTRUCTIVE)
                     deleteId = null
                 },
@@ -740,10 +777,9 @@ private fun TraitCardG1(
 private fun TraitEditorDialogG1(
     title: String,
     name: String,
-    source: String,
-    type: CharacterTraitType,
-    originOptionsForType: (CharacterOriginTypeV4) -> List<CharacterOriginOptionV4>,
-    customOriginSelected: Boolean,
+    provenance: CharacterTraitProvenance,
+    classes: List<CharacterClassLevel>,
+    successorState: CharacterSuccessorState,
     description: String,
     notes: String,
     maxUses: String,
@@ -752,9 +788,7 @@ private fun TraitEditorDialogG1(
     activation: CharacterActivationType?,
     valid: Boolean,
     onNameChange: (String) -> Unit,
-    onSourceChange: (String) -> Unit,
-    onCustomOriginSelectedChange: (Boolean) -> Unit,
-    onTypeChange: (CharacterTraitType) -> Unit,
+    onProvenanceChange: (CharacterTraitProvenance) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
     onMaxUsesChange: (String) -> Unit,
@@ -779,37 +813,11 @@ private fun TraitEditorDialogG1(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        val originType = traitOriginTypeG2(type)
-        val originOptions = originOptionsForType(originType)
-        val originKey = originOptions.firstOrNull { option ->
-            option.label.equals(source.trim(), ignoreCase = true)
-        }?.key
-        CharacterProvenanceRowV4(
-            originType = originType,
-            originKey = originKey,
-            customOrigin = source,
-            optionsForType = originOptionsForType,
-            onOriginTypeChange = { onTypeChange(traitTypeForOriginG2(it)) },
-            onOriginKeyChange = { key ->
-                originOptionsForType(originType)
-                    .firstOrNull { it.key == key }
-                    ?.let { onSourceChange(it.label) }
-            },
-            onCustomOriginChange = onSourceChange,
-            allowCustomOriginOption = true,
-            customOriginSelected = customOriginSelected || (source.isNotBlank() && originKey == null),
-            onCustomOriginSelectedChange = onCustomOriginSelectedChange,
-            allowedTypes = listOf(
-                CharacterOriginTypeV4.CLASS,
-                CharacterOriginTypeV4.RACE,
-                CharacterOriginTypeV4.BACKGROUND,
-                CharacterOriginTypeV4.FEAT,
-                CharacterOriginTypeV4.GIFT,
-                CharacterOriginTypeV4.OTHER,
-            ),
-        )
-        CharacterHelpV4(
-            "Tipo de origen describe de dónde nace el rasgo; Origen específico identifica la clase, raza, trasfondo, dote, don/bendición o creación concreta. Ambos se guardan en el mismo rasgo, no como fuentes paralelas.",
+        CharacterTraitProvenanceEditorP7V4(
+            provenance = provenance,
+            classes = classes,
+            successorState = successorState,
+            onChange = onProvenanceChange,
         )
         Column {
             Text("Activación", style = MaterialTheme.typography.labelSmall)
@@ -887,6 +895,8 @@ private fun TraitEditorDialogG1(
                 maxUses.isNotBlank() &&
                     (spentUses.toIntOrNull() == null || spentUses.toInt() !in 0..(maxUses.toIntOrNull() ?: 0)) ->
                     "Los usos gastados deben estar entre 0 y el máximo."
+                !traitProvenanceIsValidP7V4(provenance, classes, successorState) ->
+                    "Selecciona un origen que pertenezca al personaje o conserva una relación anterior no disponible."
                 else -> null
             },
         )

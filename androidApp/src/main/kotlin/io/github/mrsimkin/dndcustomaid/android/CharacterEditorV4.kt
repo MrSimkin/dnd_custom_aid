@@ -152,6 +152,9 @@ internal fun CharacterEditorScreenV4(
     var traitsDraftJson by rememberSaveable(characterId.toString(), "traits") {
         mutableStateOf(characterTraitsToJsonV4(stored.traits))
     }
+    var traitProvenanceDraftJson by rememberSaveable(characterId.toString(), "trait-provenance-p7") {
+        mutableStateOf(characterTraitProvenanceToJsonP7V4(successorState.traitProvenance))
+    }
     var spellcastingDraftJson by rememberSaveable(characterId.toString(), "spellcasting") {
         mutableStateOf(
             characterSpellcastingDraftToJsonV4(
@@ -235,6 +238,9 @@ internal fun CharacterEditorScreenV4(
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
     val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
+    val traitProvenanceDraft = remember(traitProvenanceDraftJson) {
+        characterTraitProvenanceFromJsonP7V4(traitProvenanceDraftJson)
+    }
     val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }
     val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }
     val h1ModuleDraft = remember(h1ModuleDraftJson) { characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson) }
@@ -281,6 +287,9 @@ internal fun CharacterEditorScreenV4(
     }
     val storedBackgroundDraftJson = remember(stored) { characterBackgroundToJsonV4(stored.background) }
     val storedTraitsDraftJson = remember(stored) { characterTraitsToJsonV4(stored.traits) }
+    val storedTraitProvenanceDraftJson = remember(successorState.traitProvenance) {
+        characterTraitProvenanceToJsonP7V4(successorState.traitProvenance)
+    }
     val storedSpellcastingDraftJson = remember(stored) {
         characterSpellcastingDraftToJsonV4(
             CharacterSpellcastingDraftV4(
@@ -317,6 +326,7 @@ internal fun CharacterEditorScreenV4(
             equipmentDraftJson != storedEquipmentDraftJson ||
             backgroundDraftJson != storedBackgroundDraftJson ||
             traitsDraftJson != storedTraitsDraftJson ||
+            traitProvenanceDraftJson != storedTraitProvenanceDraftJson ||
             spellcastingDraftJson != storedSpellcastingDraftJson ||
             notesDraftJson != storedNotesDraftJson ||
             h1ModuleDraftJson != storedH1ModuleDraftJson ||
@@ -401,6 +411,13 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateTraitProvenance(
+        updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitProvenance>,
+    ) {
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(updated)
+        savedMessage = null
+    }
+
     fun updateSpellcasting(updated: CharacterSpellcastingDraftV4) {
         if (!structuralEditingEnabled) return
         spellcastingDraftJson = characterSpellcastingDraftToJsonV4(updated)
@@ -454,15 +471,19 @@ internal fun CharacterEditorScreenV4(
         val liveSpellSourceIds = stored.spellcastingSources.mapTo(mutableSetOf()) { it.id }
         val savedSpellcastingProfiles = characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
             .filter { it.sourceId in liveSpellSourceIds }
+        val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
+        val savedTraitProvenance = characterTraitProvenanceFromJsonP7V4(traitProvenanceDraftJson)
+            .filter { it.traitId in liveTraitIds }
         pcSettingsContext?.onSuccessorStateChange?.invoke(
             successorState.copy(
                 combatDamage = savedDamageProfiles,
                 spellcastingProfiles = savedSpellcastingProfiles,
+                traitProvenance = savedTraitProvenance,
             ),
         )
         combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(savedDamageProfiles)
         spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(savedSpellcastingProfiles)
-        val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(savedTraitProvenance)
         val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
         val liveClassOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id }
         val liveFormIds = stored.forms.mapTo(mutableSetOf()) { it.id }
@@ -498,6 +519,7 @@ internal fun CharacterEditorScreenV4(
         )
         backgroundDraftJson = characterBackgroundToJsonV4(stored.background)
         traitsDraftJson = characterTraitsToJsonV4(stored.traits)
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(savedTraitProvenance)
         spellcastingDraftJson = characterSpellcastingDraftToJsonV4(
             CharacterSpellcastingDraftV4(
                 sources = stored.spellcastingSources,
@@ -786,10 +808,13 @@ internal fun CharacterEditorScreenV4(
                             traits = traitsDraft,
                             classes = settingsSheet.classes,
                             background = backgroundDraft,
+                            successorState = successorState,
+                            traitProvenance = traitProvenanceDraft,
                             closureState = closureState,
                             persistedTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id },
                             resources = stored.resources,
                             onTraitsChange = ::updateTraits,
+                            onTraitProvenanceChange = ::updateTraitProvenance,
                             onClosureStateChange = ::persistStructuralClosureState,
                             onResourceValueChange = { resourceId, value ->
                                 stored.resources.firstOrNull { it.id == resourceId }?.let { resource ->
