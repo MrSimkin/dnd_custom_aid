@@ -413,7 +413,7 @@ internal fun CharacterEditorScreenV4(
     BackHandler(enabled = showSupercompact) {
         showSupercompact = false
     }
-    BackHandler(enabled = !showSupercompact && showPcSettings) {
+    BackHandler(enabled = !showSupercompact && showPcSettings && !confirmTableModeTransition) {
         showPcSettings = false
         selectedTabName = resolvedCharacterTabV4(
             savedTabName = selectedTabName,
@@ -422,7 +422,7 @@ internal fun CharacterEditorScreenV4(
         ).name
     }
     BackHandler(
-        enabled = !showSupercompact && !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting,
+        enabled = !showSupercompact && !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting && !confirmTableModeTransition,
     ) {
         requestBack()
     }
