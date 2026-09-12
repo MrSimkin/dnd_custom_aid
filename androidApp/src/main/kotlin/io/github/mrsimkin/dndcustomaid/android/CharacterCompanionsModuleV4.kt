@@ -3,7 +3,7 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -39,8 +40,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -53,18 +52,17 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCompanion
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPresentationOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderResult
 import io.github.mrsimkin.dndcustomaid.shared.character.characterCompanionKindFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.characterCompanionSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterCompanion
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterCompanionManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterCompanionSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterCompanionOrders
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterCompanions
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 private const val H3_FILTER_SEPARATOR = "\u001E"
@@ -228,6 +226,18 @@ internal fun CharacterCompanionsModuleV4(
         editorOpen = false
     }
 
+    fun commitCompanionReorder(proposedIds: List<String>) {
+        if (!canReorder) return
+        val normalized = normalizeCharacterCompanionOrders(companions)
+        val canonicalIds = normalized.map { it.id.toString() }
+        val finalIds = applyCharacterReorderResult(canonicalIds, proposedIds)
+        if (finalIds == canonicalIds) return
+        val byId = normalized.associateBy { it.id.toString() }
+        val reordered = finalIds.mapNotNull(byId::get)
+        if (reordered.size != normalized.size) return
+        onCompanionsChange(reordered.mapIndexed { index, companion -> companion.copy(sortOrder = index) })
+    }
+
     val collection: @Composable (Modifier) -> Unit = { modifier ->
         CompanionCollectionH3(
             modifier = modifier,
@@ -247,20 +257,7 @@ internal fun CharacterCompanionsModuleV4(
             onEdit = ::beginEdit,
             onDuplicate = ::duplicate,
             onDelete = { deleteId = it.id.toString() },
-            onMove = { companion, offset ->
-                if (!canReorder) {
-                    false
-                } else {
-                    val before = normalizeCharacterCompanionOrders(companions)
-                    val moved = moveCharacterCompanionManual(companions, companion.id, offset)
-                    if (moved == before) {
-                        false
-                    } else {
-                        onCompanionsChange(moved)
-                        true
-                    }
-                }
-            },
+            onCommitReorder = ::commitCompanionReorder,
             onFavoriteChange = { companion, enabled ->
                 onClosureStateChange(
                     closureState.withQuickAccess(
@@ -275,10 +272,10 @@ internal fun CharacterCompanionsModuleV4(
     }
 
     val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
-    characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+        characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
-if (sideEditorVisible) {
-    Row(
+    if (sideEditorVisible) {
+        Row(
             modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
         ) {
@@ -461,7 +458,7 @@ private fun CompanionCollectionH3(
     onEdit: (CharacterCompanion) -> Unit,
     onDuplicate: (CharacterCompanion) -> Unit,
     onDelete: (CharacterCompanion) -> Unit,
-    onMove: (CharacterCompanion, Int) -> Boolean,
+    onCommitReorder: (List<String>) -> Unit,
     onFavoriteChange: (CharacterCompanion, Boolean) -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
@@ -504,94 +501,145 @@ private fun CompanionCollectionH3(
         addAll(sourceFilters)
     }
 
-    LazyColumn(
+    val listState = rememberLazyListState()
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+    val normalizedCompanions = normalizeCharacterCompanionOrders(companions)
+    val canonicalIds = normalizedCompanions.map { it.id.toString() }
+    val companionById = companions.associateBy { it.id.toString() }
+    val sessionEnabled = canReorder && canonicalIds.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "companions",
+        canonicalOrder = canonicalIds,
+        enabled = sessionEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = onCommitReorder,
+        onHaptic = onHaptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+
+    val layoutCompanions = if (canReorder) {
+        reorderSession.previewOrder.mapNotNull(companionById::get)
+    } else {
+        visible
+    }
+
+    CharacterReorderOverlayHostV4(
+        session = reorderSession,
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = appSpacingV4(6.dp),
-            end = appSpacingV4(6.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-    ) {
-        stickyHeader(key = "h3-companions-tools") {
-            CharacterCollectionToolbarV4(
-                itemCount = visible.size,
-                query = query,
-                onQueryChange = onQueryChange,
-                order = order,
-                onOrderChange = onOrderChange,
-                filters = filters,
-                searchLabel = "Buscar en Compañeros",
-                collapsibleSearch = true,
-                showItemCount = false,
-                compactOrderControl = true,
-                contextContent = {
-                    Text(
-                        "Compañeros",
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                onAdd = if (structuralEditingEnabled) onAdd else null,
-            )
-        }
-
-        item(key = "h3-companions-help") {
-            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
-                CharacterHelpV4("Entidades persistentes del personaje. El combate del DM mantiene su propio estado de encuentro.")
-                if (!canReorder && visible.isNotEmpty()) {
-                    Text(
-                        if (order == CharacterPresentationOrder.ALPHABETICAL) {
-                            "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
-                        } else {
-                            "Limpia búsqueda y filtros para reordenar manualmente."
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-            }
-        }
-
-        if (companions.isEmpty()) {
-            item {
-                CharacterUsefulEmptyState(
-                    title = "Sin compañeros",
-                    message = "Añade una bestia, constructo, espíritu, familiar u otro compañero persistente que merezca referencia propia.",
-                    onAdd = if (structuralEditingEnabled) onAdd else null,
-                    addLabel = "Añadir compañero",
+        liftedContent = { draggedId ->
+            companionById[draggedId]?.let { companion ->
+                CompanionRowH3(
+                    companion = companion,
+                    linkedClass = companion.linkedClassId?.let(classById::get),
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMPANION, companion.id),
+                    favoriteEnabled = false,
+                    reorderSession = null,
+                    structuralEditingEnabled = false,
+                    selected = selectedEditingId == companion.id.toString(),
+                    onFavoriteChange = {},
+                    onEdit = {},
+                    onDuplicate = {},
+                    onDelete = {},
+                    lifted = true,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
-        } else if (visible.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No hay compañeros que coincidan con esta búsqueda y filtros.",
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+        },
+    ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .characterReorderSessionViewportV4(reorderSession),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(6.dp),
+                end = appSpacingV4(6.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            stickyHeader(key = "h3-companions-tools") {
+                CharacterCollectionToolbarV4(
+                    itemCount = visible.size,
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    order = order,
+                    onOrderChange = onOrderChange,
+                    filters = filters,
+                    searchLabel = "Buscar en Compañeros",
+                    collapsibleSearch = true,
+                    showItemCount = false,
+                    compactOrderControl = true,
+                    contextContent = {
+                        Text(
+                            "Compañeros",
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
+                )
+            }
+
+            item(key = "h3-companions-help") {
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                    CharacterHelpV4("Entidades persistentes del personaje. El combate del DM mantiene su propio estado de encuentro.")
+                    if (!canReorder && visible.isNotEmpty()) {
+                        Text(
+                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                                "A–Z es solo una vista. Vuelve a Manual para arrastrar sin perder el orden guardado."
+                            } else {
+                                "Limpia búsqueda y filtros para reordenar manualmente."
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                 }
             }
-        }
 
-        items(count = visible.size, key = { index -> "h3-companion-${visible[index].id}" }) { index ->
-            val companion = visible[index]
-            CompanionRowH3(
-                companion = companion,
-                linkedClass = companion.linkedClassId?.let(classById::get),
-                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMPANION, companion.id),
-                favoriteEnabled = structuralEditingEnabled && companion.id in persistedCompanionIds,
-                reorderEnabled = canReorder && companions.size > 1,
-                structuralEditingEnabled = structuralEditingEnabled,
-                selected = selectedEditingId == companion.id.toString(),
-                onFavoriteChange = { onFavoriteChange(companion, it) },
-                onMove = { offset -> onMove(companion, offset) },
-                onEdit = { onEdit(companion) },
-                onDuplicate = { onDuplicate(companion) },
-                onDelete = { onDelete(companion) },
-                onHaptic = onHaptic,
-            )
+            if (companions.isEmpty()) {
+                item {
+                    CharacterUsefulEmptyState(
+                        title = "Sin compañeros",
+                        message = "Añade una bestia, constructo, espíritu, familiar u otro compañero persistente que merezca referencia propia.",
+                        onAdd = if (structuralEditingEnabled) onAdd else null,
+                        addLabel = "Añadir compañero",
+                    )
+                }
+            } else if (visible.isEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "No hay compañeros que coincidan con esta búsqueda y filtros.",
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+
+            items(count = layoutCompanions.size, key = { index -> "h3-companion-${layoutCompanions[index].id}" }) { index ->
+                val companion = layoutCompanions[index]
+                CompanionRowH3(
+                    companion = companion,
+                    linkedClass = companion.linkedClassId?.let(classById::get),
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMPANION, companion.id),
+                    favoriteEnabled = structuralEditingEnabled && companion.id in persistedCompanionIds,
+                    reorderSession = reorderSession.takeIf { sessionEnabled },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    selected = selectedEditingId == companion.id.toString(),
+                    onFavoriteChange = { onFavoriteChange(companion, it) },
+                    onEdit = { onEdit(companion) },
+                    onDuplicate = { onDuplicate(companion) },
+                    onDelete = { onDelete(companion) },
+                    modifier = Modifier
+                        .animateItem()
+                        .fillMaxWidth(),
+                )
+            }
         }
     }
 }
@@ -602,106 +650,109 @@ private fun CompanionRowH3(
     linkedClass: CharacterClassLevel?,
     favorite: Boolean,
     favoriteEnabled: Boolean,
-    reorderEnabled: Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
-    onMove: (Int) -> Boolean,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(companion.id) { mutableStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    val id = companion.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier.fillMaxWidth().characterMeasuredReorderDragV4(
-                    enabled = reorderEnabled,
-                    onHaptic = onHaptic,
-                    onMove = onMove,
-                    onVisualStateChange = { state ->
-                        dragging = state.active
-                        accumulatedDrag = state.offsetY
-                    },
-                )
-                .characterDragFeedbackV4(dragState).clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(
-                width = if (selected) 2.dp else 1.dp,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            ),
-            color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    Surface(
+        modifier = modifier.then(geometryModifier),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(pickupModifier)
+                    .clickable(
+                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        onClick = onEdit,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
             ) {
-Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
-                    Text(
-                        companion.name.ifBlank { "Compañero sin nombre" },
-                        style = MaterialTheme.typography.labelLarge,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
-                        companion.kind.takeIf(String::isNotBlank)?.let { ModuleBadgeH1(it) }
-                        ModuleBadgeH1(if (companion.active) "Activo" else "Inactivo")
-                    }
-                    val provenance = listOfNotNull(
-                        linkedClass?.let { classLevel ->
-                            buildString {
-                                append(classLevel.name)
-                                classLevel.subclassName?.takeIf(String::isNotBlank)?.let { append(" · $it") }
-                            }
-                        },
-                        companion.source?.takeIf(String::isNotBlank),
-                    ).joinToString(" · ")
-                    if (provenance.isNotBlank()) {
-                        Text(provenance, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    val reference = buildList {
-                        companion.armorClass?.let { add("CA $it") }
-                        companion.currentHp?.let { current ->
-                            add(companion.maxHp?.let { max -> "PG $current/$max" } ?: "PG $current")
-                        } ?: companion.maxHp?.let { add("PG máx. $it") }
-                        if (companion.tempHp > 0) add("PG temp. ${companion.tempHp}")
-                        companion.speed?.takeIf(String::isNotBlank)?.let { add(it) }
-                    }.joinToString(" · ")
-                    if (reference.isNotBlank()) {
-                        Text(reference, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (companion.traitsActions.isNotBlank()) {
-                        Text(companion.traitsActions, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
+                Text(
+                    companion.name.ifBlank { "Compañero sin nombre" },
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                    companion.kind.takeIf(String::isNotBlank)?.let { ModuleBadgeH1(it) }
+                    ModuleBadgeH1(if (companion.active) "Activo" else "Inactivo")
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    StableFavoriteIconButton(
-                        selected = favorite,
-                        onClick = { onFavoriteChange(!favorite) },
-                        enabled = structuralEditingEnabled && favoriteEnabled,
-                        contentDescription = if (favorite) "Quitar ${companion.name} de Favoritos" else "Añadir ${companion.name} a Favoritos",
+                val provenance = listOfNotNull(
+                    linkedClass?.let { classLevel ->
+                        buildString {
+                            append(classLevel.name)
+                            classLevel.subclassName?.takeIf(String::isNotBlank)?.let { append(" · $it") }
+                        }
+                    },
+                    companion.source?.takeIf(String::isNotBlank),
+                ).joinToString(" · ")
+                if (provenance.isNotBlank()) {
+                    Text(provenance, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                val reference = buildList {
+                    companion.armorClass?.let { add("CA $it") }
+                    companion.currentHp?.let { current ->
+                        add(companion.maxHp?.let { max -> "PG $current/$max" } ?: "PG $current")
+                    } ?: companion.maxHp?.let { add("PG máx. $it") }
+                    if (companion.tempHp > 0) add("PG temp. ${companion.tempHp}")
+                    companion.speed?.takeIf(String::isNotBlank)?.let { add(it) }
+                }.joinToString(" · ")
+                if (reference.isNotBlank()) {
+                    Text(reference, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                if (companion.traitsActions.isNotBlank()) {
+                    Text(companion.traitsActions, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                StableFavoriteIconButton(
+                    selected = favorite,
+                    onClick = { onFavoriteChange(!favorite) },
+                    enabled = !lifted && structuralEditingEnabled && favoriteEnabled,
+                    contentDescription = if (favorite) "Quitar ${companion.name} de Favoritos" else "Añadir ${companion.name} a Favoritos",
+                )
+                if (structuralEditingEnabled && !lifted) {
+                    StableDuplicateIconButton(
+                        onClick = onDuplicate,
+                        contentDescription = "Duplicar ${companion.name}",
                     )
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(
-                            onClick = onDuplicate,
-                            contentDescription = "Duplicar ${companion.name}",
-                        )
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${companion.name}")
-                    }
+                    StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${companion.name}")
                 }
             }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
