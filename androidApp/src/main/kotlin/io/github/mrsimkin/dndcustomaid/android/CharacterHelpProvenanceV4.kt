@@ -86,7 +86,6 @@ internal fun CharacterHelpV4(
                 tooltip = {
                     RichTooltip(
                         modifier = Modifier.heightIn(max = 280.dp),
-                        caretSize = TooltipDefaults.caretSize,
                         maxWidth = 320.dp,
                     ) {
                         Text(
