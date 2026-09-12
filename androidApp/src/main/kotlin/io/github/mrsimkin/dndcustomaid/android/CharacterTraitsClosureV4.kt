@@ -3,7 +3,7 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -36,8 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,6 +54,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueK
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitGrouping
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterTraitManualOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitTypeDisplayLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitTypeFilterKey
@@ -62,10 +62,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitUsageMeter
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterTrait
 import io.github.mrsimkin.dndcustomaid.shared.character.groupCharacterTraits
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterTraitManual
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterTraits
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 private const val TRAIT_FILTER_SEPARATOR_G1 = "\u001E"
@@ -89,7 +87,6 @@ internal fun CharacterTraitsClosureTabV4(
     var searchText by rememberSaveable { mutableStateOf("") }
     var activeFiltersText by rememberSaveable { mutableStateOf("") }
     var groupingName by rememberSaveable { mutableStateOf(CharacterTraitGrouping.TYPE.name) }
-    var reorderMode by rememberSaveable("trait-linear-reorder") { mutableStateOf(false) }
 
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -120,12 +117,9 @@ internal fun CharacterTraitsClosureTabV4(
         query = query,
         isFavorite = { trait -> closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id) },
     )
-    val groups = groupCharacterTraits(visibleTraits, grouping)
     val reorderAvailable = structuralEditingEnabled && query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
-    val canReorder = reorderAvailable && reorderMode
 
     fun updateQuery(updated: CharacterCollectionQuery) {
-        reorderMode = false
         searchText = updated.searchText
         activeFiltersText = updated.activeFilterKeys.sorted().joinToString(TRAIT_FILTER_SEPARATOR_G1)
     }
@@ -188,180 +182,211 @@ internal fun CharacterTraitsClosureTabV4(
         onTraitsChange(normalize(traits + duplicated))
     }
 
-    LazyColumn(
+    val listState = rememberLazyListState()
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+    val normalizedTraits = normalize(traits)
+    val canonicalIds = normalizedTraits.map { it.id.toString() }
+    val traitById = traits.associateBy { it.id.toString() }
+    val canonicalGroups = groupCharacterTraits(normalizedTraits, grouping)
+    val reorderGroupById = canonicalGroups.flatMap { group ->
+        group.traits.map { trait -> trait.id.toString() to group.key }
+    }.toMap()
+    val reorderEnabled = reorderAvailable && canonicalIds.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "traits",
+        canonicalOrder = canonicalIds,
+        enabled = reorderEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = { proposedIds ->
+            val reordered = applyCharacterTraitManualOrder(
+                traits = traits,
+                proposedIds = proposedIds,
+                grouping = grouping,
+            )
+            if (reordered != normalizedTraits) onTraitsChange(reordered)
+        },
+        onHaptic = haptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+        reorderGroupById = reorderGroupById,
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+    val layoutTraits = if (reorderAvailable) {
+        reorderSession.previewOrder.mapNotNull(traitById::get)
+            .mapIndexed { index, trait -> trait.copy(sortOrder = index) }
+    } else {
+        visibleTraits
+    }
+    val groups = groupCharacterTraits(layoutTraits, grouping)
+
+    CharacterReorderOverlayHostV4(
+        session = reorderSession,
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
             .navigationBarsPadding(),
-        contentPadding = PaddingValues(
-            start = appSpacingV4(if (wide) 10.dp else 5.dp),
-            end = appSpacingV4(if (wide) 10.dp else 5.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        liftedContent = { draggedId ->
+            traitById[draggedId]?.let { trait ->
+                TraitCardG1(
+                    trait = trait,
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
+                    favoriteEnabled = false,
+                    reorderSession = null,
+                    structuralEditingEnabled = false,
+                    onFavoriteChange = {},
+                    onEdit = {},
+                    onSpendUse = {},
+                    onRecoverUse = {},
+                    onDuplicate = {},
+                    onDelete = {},
+                    lifted = true,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        },
     ) {
-        stickyHeader(key = "traits-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .characterReorderSessionViewportV4(reorderSession),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 10.dp else 5.dp),
+                end = appSpacingV4(if (wide) 10.dp else 5.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            stickyHeader(key = "traits-tools") {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(
+                            horizontal = appSpacingV4(7.dp),
+                            vertical = appSpacingV4(6.dp),
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Rasgos", style = MaterialTheme.typography.titleSmall)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Rasgos", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    "Clase, raza, trasfondo, dotes, dones / bendiciones y contenido personalizado.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                            TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
+                        }
+                        CharacterCollectionToolbarV4(
+                            itemCount = visibleTraits.size,
+                            query = query,
+                            onQueryChange = ::updateQuery,
+                            filters = traitFiltersG1(traits, closureState),
+                            searchLabel = "Buscar rasgos",
+                        )
+                        TraitGroupingControlsG1(
+                            grouping = grouping,
+                            onGroupingChange = { groupingName = it.name },
+                        )
+                        if (structuralEditingEnabled && !reorderAvailable && visibleTraits.isNotEmpty()) {
                             Text(
-                                "Clase, raza, trasfondo, dotes, dones / bendiciones y contenido personalizado.",
+                                "Limpia búsqueda y filtros para reordenar manualmente.",
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
-                    CharacterCollectionToolbarV4(
-                        itemCount = visibleTraits.size,
-                        query = query,
-                        onQueryChange = ::updateQuery,
-                        filters = traitFiltersG1(traits, closureState),
-                        searchLabel = "Buscar rasgos",
-                    )
-                    TraitGroupingControlsG1(
-                        grouping = grouping,
-                        onGroupingChange = {
-                            reorderMode = false
-                            groupingName = it.name
+                }
+            }
+
+            if (traitResources.isNotEmpty()) {
+                item(key = "traits-resources") {
+                    TraitsResourcesCardG2(
+                        resources = traitResources,
+                        configurations = resourceConfigurations,
+                        onResourceValueChange = { resourceId, value ->
+                            onResourceValueChange(resourceId, value)
+                            haptic(CharacterHapticEventV4.RESOURCE)
                         },
                     )
-                    if (reorderAvailable && visibleTraits.size > 1) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            CharacterLinearReorderModeControlV4(
-                                active = reorderMode,
-                                onToggle = { reorderMode = !reorderMode },
-                            )
-                        }
-                        if (reorderMode) {
-                            CharacterHelpV4(
-                                "Reordenación lineal: los rasgos pasan temporalmente a una columna para usar el arrastre vertical estable. Pulsa Listo para volver a tus columnas.",
-                            )
-                        }
-                    } else if (visibleTraits.isNotEmpty()) {
+                }
+            }
+
+            if (traits.isEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            "Limpia búsqueda y filtros para activar Reordenar.",
-                            style = MaterialTheme.typography.labelSmall,
+                            "Sin rasgos registrados. La app no crea rasgos automáticamente desde otras secciones.",
+                            modifier = Modifier.padding(appSpacingV4(10.dp)),
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
-            }
-        }
-
-        if (traitResources.isNotEmpty()) {
-            item(key = "traits-resources") {
-                TraitsResourcesCardG2(
-                    resources = traitResources,
-                    configurations = resourceConfigurations,
-                    onResourceValueChange = { resourceId, value ->
-                        onResourceValueChange(resourceId, value)
-                        haptic(CharacterHapticEventV4.RESOURCE)
-                    },
-                )
-            }
-        }
-
-        if (traits.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "Sin rasgos registrados. La app no crea rasgos automáticamente desde otras secciones.",
-                        modifier = Modifier.padding(appSpacingV4(10.dp)),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        } else if (visibleTraits.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No hay rasgos que coincidan con la búsqueda y filtros actuales.",
-                        modifier = Modifier.padding(appSpacingV4(10.dp)),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        } else {
-            groups.forEach { group ->
-                item(key = "trait-group-${group.key}") {
+            } else if (visibleTraits.isEmpty()) {
+                item {
                     Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
-                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                        ) {
-                            if (grouping != CharacterTraitGrouping.NONE) {
-                                Text(
-                                    "${group.label} (${group.traits.size})",
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                            }
-                            val columns = if (reorderMode) {
-                                1
-                            } else {
-                                constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
-                            }
-                            group.traits.chunked(columns).forEachIndexed { rowIndex, rowTraits ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                                    verticalAlignment = Alignment.Top,
-                                ) {
-                                    rowTraits.forEachIndexed { columnIndex, trait ->
-                                        TraitCardG1(
-                                            trait = trait,
-                                            gridIndex = rowIndex * columns + columnIndex,
-                                            gridItemCount = group.traits.size,
-                                            gridColumns = columns,
-                                            favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
-                                            favoriteEnabled = structuralEditingEnabled && trait.id in persistedTraitIds,
-                                            canReorder = canReorder,
-                                            structuralEditingEnabled = structuralEditingEnabled,
-                                            onFavoriteChange = { enabled ->
-                                                onClosureStateChange(
-                                                    closureState.withQuickAccess(
-                                                        CharacterQuickAccessKind.TRAIT,
-                                                        trait.id,
-                                                        enabled,
-                                                    ),
-                                                )
-                                            },
-                                            onEdit = { beginEdit(trait) },
-                                            onMove = { offset ->
-                                                val moved = moveCharacterTraitManual(
-                                                    traits = traits,
-                                                    traitId = trait.id,
-                                                    offset = offset,
-                                                    grouping = grouping,
-                                                )
-                                                if (moved == normalize(traits)) {
-                                                    false
-                                                } else {
-                                                    onTraitsChange(moved)
-                                                    true
-                                                }
-                                            },
-                                            onSpendUse = { updateSpentUses(trait, 1) },
-                                            onRecoverUse = { updateSpentUses(trait, -1) },
-                                            onDuplicate = { duplicate(trait) },
-                                            onDelete = { deleteId = trait.id.toString() },
-                                            onHaptic = haptic,
-                                            modifier = Modifier.weight(1f),
-                                        )
-                                    }
-                                    repeat(columns - rowTraits.size) {
-                                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            "No hay rasgos que coincidan con la búsqueda y filtros actuales.",
+                            modifier = Modifier.padding(appSpacingV4(10.dp)),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            } else {
+                groups.forEach { group ->
+                    item(key = "trait-group-${group.key}") {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(
+                                    horizontal = appSpacingV4(6.dp),
+                                    vertical = appSpacingV4(5.dp),
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                            ) {
+                                if (grouping != CharacterTraitGrouping.NONE) {
+                                    Text(
+                                        "${group.label} (${group.traits.size})",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                }
+                                val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
+                                group.traits.chunked(columns).forEach { rowTraits ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                                        verticalAlignment = Alignment.Top,
+                                    ) {
+                                        rowTraits.forEach { trait ->
+                                            TraitCardG1(
+                                                trait = trait,
+                                                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
+                                                favoriteEnabled = structuralEditingEnabled && trait.id in persistedTraitIds,
+                                                reorderSession = reorderSession.takeIf {
+                                                    reorderEnabled && group.traits.size > 1
+                                                },
+                                                structuralEditingEnabled = structuralEditingEnabled,
+                                                onFavoriteChange = { enabled ->
+                                                    onClosureStateChange(
+                                                        closureState.withQuickAccess(
+                                                            CharacterQuickAccessKind.TRAIT,
+                                                            trait.id,
+                                                            enabled,
+                                                        ),
+                                                    )
+                                                },
+                                                onEdit = { beginEdit(trait) },
+                                                onSpendUse = { updateSpentUses(trait, 1) },
+                                                onRecoverUse = { updateSpentUses(trait, -1) },
+                                                onDuplicate = { duplicate(trait) },
+                                                onDelete = { deleteId = trait.id.toString() },
+                                                modifier = Modifier.weight(1f),
+                                            )
+                                        }
+                                        repeat(columns - rowTraits.size) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
                                     }
                                 }
                             }
@@ -563,50 +588,34 @@ private fun TraitGroupingControlsG1(
 @Composable
 private fun TraitCardG1(
     trait: CharacterTrait,
-    gridIndex: Int,
-    gridItemCount: Int,
-    gridColumns: Int,
     favorite: Boolean,
     favoriteEnabled: Boolean,
-    canReorder: Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     structuralEditingEnabled: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onEdit: () -> Unit,
-    onMove: (Int) -> Boolean,
     onSpendUse: () -> Unit,
     onRecoverUse: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    var dragState by remember(trait.id) { mutableStateOf(CharacterDragVisualStateV4()) }
-    val reorderModifier = if (gridColumns > 1) {
-        Modifier.characterMeasuredGridReorderDragV4(
-            enabled = canReorder,
-            onHaptic = onHaptic,
-            onMove = { rowDelta, columnDelta ->
-                val currentRow = gridIndex / gridColumns
-                val currentColumn = gridIndex % gridColumns
-                val targetRow = currentRow + rowDelta
-                val targetColumn = currentColumn + columnDelta
-                val targetIndex = targetRow * gridColumns + targetColumn
-                val targetValid =
-                    targetRow >= 0 &&
-                        targetColumn in 0 until gridColumns &&
-                        targetIndex in 0 until gridItemCount
-                if (targetValid) onMove(targetIndex - gridIndex) else false
-            },
-            onVisualStateChange = { dragState = it },
-        )
+    val id = trait.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
     } else {
-        Modifier.characterMeasuredReorderDragV4(
-            enabled = canReorder,
-            onHaptic = onHaptic,
-            onMove = onMove,
-            onVisualStateChange = { dragState = it },
-        )
+        Modifier
     }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
     val metadata = buildList {
         trait.source.takeIf { it.isNotBlank() }?.let(::add)
         add(characterTraitTypeDisplayLabel(trait.type))
@@ -614,102 +623,116 @@ private fun TraitCardG1(
     }.joinToString(" · ")
     val meter = characterTraitUsageMeter(trait)
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(reorderModifier)
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    Surface(
+        modifier = modifier.fillMaxWidth().then(geometryModifier),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(
+                horizontal = appSpacingV4(6.dp),
+                vertical = appSpacingV4(5.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(pickupModifier)
+                        .clickable(
+                            enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                            onClick = onEdit,
+                        ),
                 ) {
-Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            trait.name,
-                            style = MaterialTheme.typography.labelLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            metadata,
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    StableFavoriteIconButton(
-                        selected = favorite,
-                        onClick = { onFavoriteChange(!favorite) },
-                        enabled = favoriteEnabled,
+                    Text(
+                        trait.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        metadata,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
+                StableFavoriteIconButton(
+                    selected = favorite,
+                    onClick = { onFavoriteChange(!favorite) },
+                    enabled = !lifted && favoriteEnabled,
+                )
+            }
 
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(pickupModifier)
+                    .clickable(
+                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        onClick = onEdit,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+            ) {
                 Text(
                     trait.description.ifBlank { "Sin descripción" },
                     style = if (trait.description.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-
-                meter?.let { usage ->
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
-                        LinearProgressIndicator(
-                            progress = { usage.remainingFraction },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Text(
-                            "${usage.remaining} / ${usage.max} disponibles" +
-                                if (usage.spent > 0) " · ${usage.spent} gastados" else "",
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                        trait.recovery?.takeIf { it.isNotBlank() }?.let {
-                            Text("Recuperación: $it", style = MaterialTheme.typography.labelSmall)
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            TextButton(
-                                onClick = onRecoverUse,
-                                enabled = usage.spent > 0,
-                                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
-                            ) { Text("Recuperar") }
-                            TextButton(
-                                onClick = onSpendUse,
-                                enabled = usage.remaining > 0,
-                                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
-                            ) { Text("Gastar") }
-                        }
-                    }
-                }
-
                 trait.notes?.takeIf { it.isNotBlank() }?.let {
                     Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${trait.name}")
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${trait.name}")
+            }
+
+            meter?.let { usage ->
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
+                    LinearProgressIndicator(
+                        progress = { usage.remainingFraction },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text(
+                        "${usage.remaining} / ${usage.max} disponibles" +
+                            if (usage.spent > 0) " · ${usage.spent} gastados" else "",
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    trait.recovery?.takeIf { it.isNotBlank() }?.let {
+                        Text("Recuperación: $it", style = MaterialTheme.typography.labelSmall)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(
+                            onClick = onRecoverUse,
+                            enabled = !lifted && usage.spent > 0,
+                            contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
+                        ) { Text("Recuperar") }
+                        TextButton(
+                            onClick = onSpendUse,
+                            enabled = !lifted && usage.remaining > 0,
+                            contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
+                        ) { Text("Gastar") }
                     }
                 }
             }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (structuralEditingEnabled && !lifted) {
+                    StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${trait.name}")
+                    StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${trait.name}")
+                }
+            }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
