@@ -25,101 +25,81 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import re
-
           path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHelpProvenanceV4.kt')
           text = path.read_text()
-
           def replace_once(old, new, label):
               global text
               count = text.count(old)
               if count != 1:
                   raise SystemExit(f'{label}: expected exactly one match, found {count}')
               text = text.replace(old, new, 1)
-
-          replace_once(
-              'import androidx.compose.material3.DropdownMenuItem\n',
-              'import androidx.compose.material3.DropdownMenuItem\nimport androidx.compose.material3.ExperimentalMaterial3Api\nimport androidx.compose.material3.RichTooltip\nimport androidx.compose.material3.TooltipBox\nimport androidx.compose.material3.TooltipDefaults\n',
-              'P12 Material3 tooltip imports',
-          )
-          replace_once(
-              'import androidx.compose.runtime.remember\n',
-              'import androidx.compose.runtime.remember\nimport androidx.compose.runtime.rememberCoroutineScope\n',
-              'P12 coroutine scope import',
-          )
-          replace_once(
-              'import androidx.compose.ui.unit.dp\n',
-              'import androidx.compose.ui.unit.dp\nimport kotlinx.coroutines.launch\n',
-              'P12 coroutine launch import',
-          )
-          replace_once(
-              'import androidx.compose.material3.TooltipDefaults\n',
-              'import androidx.compose.material3.TooltipDefaults\nimport androidx.compose.material3.rememberTooltipState\n',
-              'P12 tooltip state import',
-          )
-
+          replace_once('import androidx.compose.material3.DropdownMenuItem\n', 'import androidx.compose.material3.DropdownMenuItem\nimport androidx.compose.material3.ExperimentalMaterial3Api\nimport androidx.compose.material3.RichTooltip\nimport androidx.compose.material3.TooltipBox\nimport androidx.compose.material3.TooltipDefaults\nimport androidx.compose.material3.rememberTooltipState\n', 'tooltip imports')
+          replace_once('import androidx.compose.runtime.remember\n', 'import androidx.compose.runtime.remember\nimport androidx.compose.runtime.rememberCoroutineScope\n', 'coroutine scope import')
+          replace_once('import androidx.compose.ui.unit.dp\n', 'import androidx.compose.ui.unit.dp\nimport kotlinx.coroutines.launch\n', 'coroutine launch import')
           pattern = r'@Composable\ninternal fun CharacterHelpV4\(.*?\n\}\n\n/\*\* Proper graphical info control;'
-          replacement = '''@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun CharacterHelpV4(
-    text: String,
-    modifier: Modifier = Modifier,
-    mode: CharacterHelpModeV4 = LocalCharacterHelpModeV4.current,
-) {
-    when (mode) {
-        // Approved P12 behavior: do not redesign the always-visible form.
-        CharacterHelpModeV4.ALWAYS_VISIBLE -> Text(
-            text = text,
-            modifier = modifier,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        CharacterHelpModeV4.INFO -> {
-            val tooltipState = rememberTooltipState(isPersistent = true)
-            val coroutineScope = rememberCoroutineScope()
-            TooltipBox(
-                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
-                tooltip = {
-                    RichTooltip(
-                        modifier = Modifier.heightIn(max = 280.dp),
-                        caretSize = TooltipDefaults.caretSize,
-                        maxWidth = 320.dp,
-                    ) {
-                        Text(
-                            text = text,
-                            modifier = Modifier.verticalScroll(rememberScrollState()),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                },
-                state = tooltipState,
-                modifier = modifier,
-                onDismissRequest = { tooltipState.dismiss() },
-                focusable = true,
-                enableUserInput = false,
-            ) {
-                CharacterInfoIconButtonV4(
-                    onClick = {
-                        if (tooltipState.isVisible) {
-                            tooltipState.dismiss()
-                        } else {
-                            coroutineScope.launch { tooltipState.show() }
-                        }
-                    },
-                    contentDescription = if (tooltipState.isVisible) "Ocultar ayuda" else "Mostrar ayuda",
-                )
-            }
-        }
-
-        CharacterHelpModeV4.HIDDEN -> Unit
-    }
-}
-
-/** Proper graphical info control;'''
-          text, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
+          lines = [
+              '@OptIn(ExperimentalMaterial3Api::class)',
+              '@Composable',
+              'internal fun CharacterHelpV4(',
+              '    text: String,',
+              '    modifier: Modifier = Modifier,',
+              '    mode: CharacterHelpModeV4 = LocalCharacterHelpModeV4.current,',
+              ') {',
+              '    when (mode) {',
+              '        // Approved P12 behavior: do not redesign the always-visible form.',
+              '        CharacterHelpModeV4.ALWAYS_VISIBLE -> Text(',
+              '            text = text,',
+              '            modifier = modifier,',
+              '            style = MaterialTheme.typography.bodySmall,',
+              '            color = MaterialTheme.colorScheme.onSurfaceVariant,',
+              '        )',
+              '',
+              '        CharacterHelpModeV4.INFO -> {',
+              '            val tooltipState = rememberTooltipState(isPersistent = true)',
+              '            val coroutineScope = rememberCoroutineScope()',
+              '            TooltipBox(',
+              '                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),',
+              '                tooltip = {',
+              '                    RichTooltip(',
+              '                        modifier = Modifier.heightIn(max = 280.dp),',
+              '                        caretSize = TooltipDefaults.caretSize,',
+              '                        maxWidth = 320.dp,',
+              '                    ) {',
+              '                        Text(',
+              '                            text = text,',
+              '                            modifier = Modifier.verticalScroll(rememberScrollState()),',
+              '                            style = MaterialTheme.typography.bodySmall,',
+              '                        )',
+              '                    }',
+              '                },',
+              '                state = tooltipState,',
+              '                modifier = modifier,',
+              '                onDismissRequest = { tooltipState.dismiss() },',
+              '                focusable = true,',
+              '                enableUserInput = false,',
+              '            ) {',
+              '                CharacterInfoIconButtonV4(',
+              '                    onClick = {',
+              '                        if (tooltipState.isVisible) {',
+              '                            tooltipState.dismiss()',
+              '                        } else {',
+              '                            coroutineScope.launch { tooltipState.show() }',
+              '                        }',
+              '                    },',
+              '                    contentDescription = if (tooltipState.isVisible) "Ocultar ayuda" else "Mostrar ayuda",',
+              '                )',
+              '            }',
+              '        }',
+              '',
+              '        CharacterHelpModeV4.HIDDEN -> Unit',
+              '    }',
+              '}',
+              '',
+              '/** Proper graphical info control;',
+          ]
+          text, count = re.subn(pattern, '\n'.join(lines), text, count=1, flags=re.S)
           if count != 1:
-              raise SystemExit(f'P12 CharacterHelpV4 block: expected exactly one match, found {count}')
-
+              raise SystemExit(f'CharacterHelpV4 block: expected one match, found {count}')
           path.write_text(text)
           PY
 
@@ -128,17 +108,16 @@ internal fun CharacterHelpV4(
         run: |
           python - <<'PY'
           from pathlib import Path
-          path = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHelpProvenanceV4.kt')
-          text = path.read_text()
-          info_block = text.split('CharacterHelpModeV4.INFO -> {', 1)[1].split('CharacterHelpModeV4.HIDDEN -> Unit', 1)[0]
+          text = Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHelpProvenanceV4.kt').read_text()
+          info = text.split('CharacterHelpModeV4.INFO -> {', 1)[1].split('CharacterHelpModeV4.HIDDEN -> Unit', 1)[0]
           required = ['TooltipBox(', 'RichTooltip(', 'rememberTooltipState(isPersistent = true)', 'focusable = true', 'enableUserInput = false']
-          missing = [needle for needle in required if needle not in info_block]
+          missing = [item for item in required if item not in info]
           if missing:
               raise SystemExit(f'P12 guard missing: {missing}')
-          if 'DropdownMenu(' in info_block:
-              raise SystemExit('P12 guard: INFO help still contains DropdownMenu')
+          if 'DropdownMenu(' in info:
+              raise SystemExit('INFO help still contains DropdownMenu')
           if 'ⓘ' in text:
-              raise SystemExit('P12 guard: literal pseudo-info glyph reintroduced')
+              raise SystemExit('literal pseudo-info glyph reintroduced')
           PY
 
       - name: Commit P12 source and remove helper
