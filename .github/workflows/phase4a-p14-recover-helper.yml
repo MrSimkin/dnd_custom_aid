@@ -1,0 +1,47 @@
+name: Phase4A P14 recovery helper
+
+on:
+  push:
+    branches:
+      - implementation/phase4a-successor-cycle
+    paths:
+      - .github/workflows/phase4a-p14-recover-helper.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: implementation/phase4a-successor-cycle
+          fetch-depth: 0
+
+      - name: Execute inert audited repair script
+        shell: bash
+        run: |
+          python -c 'from pathlib import Path; p=Path(".github/workflows/phase4a-p14-final-repair.yml"); t=p.read_text(); m="          python - <<"; s=t.index("\n", t.index(m))+1; e=t.index("\n          PY\n", s); b=t[s:e]; b=b.replace("              5,\n          )\n          replace_once(\n              editor,", "              6,\n          )\n          replace_once(\n              editor,", 1); src="\n".join((line[10:] if line.startswith("          ") else line) for line in b.splitlines()); exec(compile(src, "p14_repair", "exec"))'
+
+      - name: Validate repair shape
+        shell: bash
+        run: |
+          grep -q "mergeCharacterOperationalState" shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterTableModePolicy.kt
+          grep -q "tableModePendingChanges" androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+          grep -q "onStructuralSheetChange = ::persistStructuralSheet" androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+          grep -q "mergeCharacterOperationalSuccessorState" androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterPcSettingsContextV4.kt
+          test -f shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterTableModePolicyTest.kt
+          git diff --check
+
+      - name: Commit repair and remove helpers
+        shell: bash
+        run: |
+          rm .github/workflows/phase4a-p14-final-repair.yml
+          rm .github/workflows/phase4a-p14-recover-helper.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix: harden P14 table mode boundaries"
+          git push origin HEAD:implementation/phase4a-successor-cycle
