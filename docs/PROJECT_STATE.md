@@ -1,209 +1,94 @@
-# Project State
+# Project State — global repository navigation
 
-**Last verified:** 2026-09-09  
-**Canonical branch:** `main`  
-**Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Repository consolidation:** D-0066 baseline + 2026-09-09 successor night-close through Increment E  
-**Current phase:** Phase 4A — Character Foundation Closure successor repair/refinement cycle  
-**Release status:** debug / development; known owner-acceptance work remains; not release-ready  
-**DM work:** blocked until Phase 4A is repaired, accepted and explicitly closed
+**Last verified:** 2026-09-12  
+**Canonical navigation/discovery branch:** `main`  
+**Authoritative current Player implementation branch:** `implementation/phase4a-successor-cycle`  
+**Phase 4A Player state:** P1–P16 repaired/automation-qualified; P17 physical owner/device QA pending  
+**DM implementation:** blocked until Phase 4A owner acceptance and explicit closure
 
-## 1. Canonical repository reality
+## 1. `main` is not currently the latest Player runtime
 
-`main` is the canonical current development baseline. Canonical does **not** mean released, QA-accepted or owner-accepted.
+`main` remains the canonical place for global repository navigation and the later Phase 5A/DM product-discovery decisions, but it is intentionally divergent from the active Player implementation branch.
 
-The 2026-09-09 night-close consolidation advances `main` by normal fast-forward to the same completed-E baseline as `implementation/phase4a-successor-cycle`. The active branch remains the focused continuation line for Increment F tomorrow; it is not a competing source of truth.
+Verified pre-reconciliation source boundaries:
 
-Use:
+- `main`: `de3930a8c0357bbbaa77c423f0011041f5cfd111`;
+- Player successor: `d630270f2f3d8fab94f3c1290963c2da7afaf06d`.
 
-- `docs/checkpoints/LATEST.md` for the exact next action;
-- `docs/checkpoints/2026-09-09_NIGHT_CLOSE_AFTER_INCREMENT_E.md` for session continuity;
-- `docs/BRANCH_STATUS.md` for branch interpretation/cleanup;
-- `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md` for the controlling A–I implementation sequence.
+The Player successor branch contains extensive Phase 4A implementation/repair work not on `main`. `main` contains later DM/Phase 5A discovery documentation not on the Player branch.
 
-Frozen QA candidate branches remain immutable historical evidence.
+Do not use `main` as current Player source merely because it is the default branch, and do not overwrite `main` with the Player branch because doing so would lose valid later discovery history.
 
-## 2. Current implementation progress
+See `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md` and `docs/BRANCH_STATUS.md`.
 
-The successor cycle has nine planned increments.
+## 2. Current Player / Phase 4A state
 
-- A — schema/domain/storage foundation: **COMPLETE / GREEN**;
-- B — shared UX/responsive primitives: **COMPLETE / GREEN**;
-- C — character-first navigation + PC Settings + General/Habilidades: **COMPLETE / GREEN**;
-- D — Combat + Dice: **COMPLETE / GREEN**;
-- E — Gestión + Markers + Resources + recovery/conditions: **COMPLETE / GREEN**;
-- F — compact Conjuros source-context redesign: **NEXT**;
-- G — Equipo/Rasgos/conditional modules/Notas/Trasfondo: pending;
-- H — full-screen Application Settings/live previews/themes: pending;
-- I — separate tablet portrait/landscape redesign: pending.
+Authoritative code branch:
 
-Four increments remain: **F, G, H and I**.
+`implementation/phase4a-successor-cycle`
 
-## 3. Latest technically verified successor boundary
+Latest automation-qualified Player product/source boundary before continuity-documentation commits:
 
-Increment E final integrated validation:
+`d630270f2f3d8fab94f3c1290963c2da7afaf06d`
 
-- active successor Gestión wiring source commit `4b3ab53faada5af7b50f73ce951fe767c13ff63a`;
-- validation commit `0587db5e65d89e809f138e83d053903659216886`;
-- workflow `34307068166` — **SUCCESS**;
-- artifact ID `10087074946` / `dnd-custom-aid-debug-apk`;
-- artifact ZIP digest `sha256:55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
+Normal Scaffold run `34721374190` completed `success` on that exact SHA and published artifact `10306416852` with digest `sha256:c22e08deb3fbfd9a278b6e48cc4ac6d306229b6b1e354995eb7b25735eca645d`.
 
-Verified in that gate:
+Current interpretation:
 
-- backend/type-check;
-- shared/Kotlin tests;
-- Android debug compilation/assembly;
-- desktop compilation/build;
-- Android debug APK upload.
+- P1–P16 accepted repair implementation is present and automation-qualified;
+- P17 is the physical tablet-QA gate policy, not another code repair;
+- physical owner/device acceptance remains pending;
+- no CI result may be promoted to owner acceptance.
 
-This artifact is a development validation artifact. It has **not** received owner visual/device acceptance and is **not** a formal M6 candidate.
+The next Player technical step is a monotonic successor QA package identity from the repaired source, then normal validation and owner/device QA.
 
-## 4. Latest owner-auditioned practical build
+## 3. Current DM / Phase 5A discovery line on `main`
 
-The last owner-auditioned build remains:
+The later valid discovery/decision work on `main` must be preserved. Current important records include:
 
-- version `0.4.0-preqa.7`;
-- build `40700`;
-- type `debug`;
-- product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
-- workflow `34171466714` — SUCCESS;
-- artifact `10035895186`;
-- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
+- D-0068 — DM live Workspace/Desk direction and DM Attention Budget foundations;
+- D-0069 — approved DM Desk family, including DM Screen, Stage Desk, Dungeon Desk and Combat Desk;
+- D-0070 — shared Player/DM rules-question capability and its scope/naming clarification;
+- the associated latest/checkpoint updates that preserve these decisions.
 
-Primary owner phone: **Redmi Note 11 Pro 5G**.
+These are product/design decisions and continuity records. They do **not** authorize DM feature implementation before Phase 4A closes.
 
-Stages A–F of that prior build produced the canonical repair backlog; they were not a visual acceptance pass. Do not ask the owner to rediscover already-globalized findings screen by screen.
+If DM discovery resumes, continue from the accepted records on `main` rather than reconstructing them from the Player branch.
 
-## 5. Implemented successor foundations A–E
+## 4. Authorization state
 
-### A — data/storage
+Historical 2026-09-11 authorization on the Player branch permitted the accepted P1–P17 Phase 4A repair pass and validation, but explicitly did not authorize `main` integration or DM implementation.
 
-- generalized built-in/custom ability references;
-- custom attributes and optional custom saving throws;
-- custom-skill ability mapping;
-- per-source spellcasting ability/DC/attack configuration;
-- structured combat damage with safe legacy TEXT fallback;
-- Custom Markers distinct from Resources;
-- reusable binary/counter/current-max + structured recovery mechanics;
-- Resource placements across General/Gestión/Equipo/Rasgos;
-- durable tab order;
-- persistent app-owned background-image model;
-- own-format backup/import carrying successor state;
-- additive SQLDelight migrations and migration regression tests.
+On 2026-09-12 the owner explicitly authorized continuity files to be corrected on all appropriate development branches, including `main` if needed so no development line remains unclear. This current documentation reconciliation uses that newer authorization only for repository continuity/navigation.
 
-### B — shared UX
+It does not:
 
-- explicit phone portrait / phone landscape / tablet portrait / tablet landscape context;
-- spacing scale including 40%;
-- compact collection toolbar primitive;
-- whole-card long-press drag foundation with haptic/visual feedback;
-- IME-safe editor family;
-- numeric normalization;
-- global contextual help modes `Siempre visible` / `ⓘ / tooltip` / `Oculto`;
-- compact provenance `Tipo de origen | Origen específico`.
+- retroactively alter the historical authorization checkpoint;
+- authorize DM implementation;
+- waive physical Player QA;
+- authorize claiming owner acceptance;
+- authorize destructive history rewrite or loss of either branch's valid work.
 
-Card movement feel is technically improved but remains pending owner real-device acceptance.
+## 5. Exact continuation rules
 
-### C — navigation/settings/general/skills
+### Player implementation / QA preparation
 
-- character-first root list with canonical Raza, classes/levels and campaign;
-- PC Settings information architecture;
-- tab order;
-- custom attributes/skills/Markers configuration;
-- bounded haptic strength/duration choices;
-- compact General projections;
-- per-source spellcasting reference rows;
-- standard/custom skills integrated in Habilidades;
-- `Conocimiento Arcano` terminology;
-- compact passive-skill reference row.
+Use `implementation/phase4a-successor-cycle` and its own `docs/checkpoints/LATEST.md`.
 
-### D — Combat + Dice
+Do not restart older A–I increments or P1–P16 repairs. Continue only with the documented QA packaging/owner-QA boundary or with a repair point reopened by actual QA evidence.
 
-- ordered structured damage components;
-- compact attack-card hierarchy;
-- shared attack/damage draft transaction;
-- compact `modo → categoría → objetivo → tirar` flow;
-- custom attributes/saves/skills as roll targets;
-- attacks and source-specific spell attacks;
-- structured damage rolls from the same attack components;
-- roll decomposition;
-- device-wide result presentation setting.
+### DM / Phase 5A discovery
 
-### E — Gestión/live state/recovery
+Use `main` and preserve D-0068/D-0069/D-0070 plus subsequent accepted discovery decisions.
 
-- compact fixed operational state;
-- one-row death saves;
-- canonical Inspiration and explicit unsaved-General-vs-persisted-state signaling;
-- compact Custom Marker and Resource controls;
-- placement-aware Gestión Resource projection;
-- mixed typed Resource/Marker rest preview/apply;
-- explicit structured recovery only for automatic proposals;
-- manual/free text remains review-only;
-- condition catalog infrastructure with stable source/help identity and no unapproved corpus text;
-- concentration check/DC explanation routed through contextual-help mode.
+Discovery may continue when explicitly requested. DM implementation remains blocked until Phase 4A is explicitly closed.
 
-## 6. Protected owner directions
+### Cross-line integration
 
-These remain controlling across all later increments:
+Do not force-push or mechanically fast-forward one divergent line over the other. Any future integration must explicitly preserve both the current Player implementation and later main-only discovery records.
 
-- one datum / one canonical state;
-- do not spread information across several rows when one clear row suffices at the current width/text scale;
-- reduce unnecessary margins/padding app-wide without shrinking required touch targets;
-- whole-card drag where safe; stronger movement feel/feedback;
-- phone landscape is a phone interaction model, not tablet UI;
-- tablet/wide UX needs independent redesign;
-- use `Raza`, never `Especie/raza`;
-- use `Electrum`, never `Electro`;
-- Spanish class/subclass presentation; do not foreground edition metadata without functional purpose;
-- contextual explanations remain useful content and use the three-mode help system rather than being deleted for compactness;
-- generic `Fuente` schema leakage should not be reintroduced;
-- when provenance matters, use `Tipo de origen | Origen específico`, default `Clase`;
-- Conjuros functional source association remains a real behavioral concept and may be custom/non-class.
+## 6. Release/acceptance status
 
-## 7. Conditional/deferred content boundaries
+The project is still development/debug and is not release-ready.
 
-### SRD-backed existing-content selectors
-
-`Buscar existente` vs custom-create remains approved **only when an approved official corpus is actually loaded**. This cycle does not silently expand into full SRD ingestion.
-
-### Sandy Petersen Cthulhu Mythos conditions
-
-Architecture supports the owner's source family, but exact proprietary Spanish descriptions remain deferred until project-appropriate/owner-provided text is available.
-
-### Armor/AC
-
-General can project canonical AC and equipped-item references. Do not invent an automatic AC rules engine until inventory has sufficient structured armor/shield semantics.
-
-## 8. Tablet and owner acceptance
-
-No physical owner tablet acceptance has been completed. Tablet/wide UI is already known to need redesign, so Increment I is a redesign task rather than validation of the old wide layout.
-
-No successor implementation artifact through Increment E should be described as owner visual acceptance.
-
-The early targeted phone retest remains scheduled after Increment F, focusing especially on Conjuros portrait/landscape, representative editor/keyboard behavior, card drag feel, Gestión operational/death-save footprint, Habilidades passive row and 40% spacing.
-
-## 9. Exact next execution position
-
-Resume with **Increment F — Conjuros compact source-context redesign**.
-
-Do not restart A–E and do not rerun build 40700 screen-by-screen.
-
-Protected F direction:
-
-- one compact sticky source-context bar;
-- selected source clearly owns casting ability / `CD salv. conjuro` / `Mod. ataque mágico`;
-- `Todos los conjuros` does not permanently show all source statistics;
-- source detail/filter/search expansion is transient/collapsible;
-- sticky level/slot context remains useful but must not erase the spell list;
-- phone landscape must show practical spell content without switching to the old tablet interaction model.
-
-After F, produce the planned early targeted Redmi portrait + landscape interaction build/audition.
-
-## 10. Phase 4A closure remains open
-
-Repository/main consolidation is development housekeeping, not the Phase 4A exit gate.
-
-Phase 4A still requires later successor integration through F–I, targeted owner phone acceptance, redesigned tablet acceptance, blocking repair resolution, a new formal M6 freeze when appropriate, formal regression/upgrade QA and explicit owner closure.
-
-**No DM feature implementation begins before that explicit closure.**
+Phase 4A cannot be marked accepted/closed until the repaired uniquely identifiable QA build receives the required physical owner/device exercise and explicit owner closure.

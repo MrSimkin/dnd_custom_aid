@@ -1,99 +1,106 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-09  
-**Controlling consolidation decision:** D-0066  
-**Canonical branch:** `main`  
-**Focused continuation branch:** `implementation/phase4a-successor-cycle`  
-**Night-close boundary:** completed successor Increment E
+**Updated:** 2026-09-12  
+**Canonical navigation branch:** `main`  
+**Authoritative Player implementation branch:** `implementation/phase4a-successor-cycle`  
+**Current Player boundary:** P1–P16 implemented/automation-green; P17 physical owner-QA gate pending
 
-This file exists because the repository accumulated many implementation, safety, retry and QA branch refs during Phase 4. Branch existence does **not** imply current authority.
+This file exists to prevent branch names, old checkpoints, or commit chronology from being mistaken for current authority.
 
-## 1. Current authority
+## 1. Two active authoritative lines
 
-At the 2026-09-09 night-close boundary:
+### `main` — global navigation + later DM/Phase 5A discovery decisions
 
-- `main` is the canonical current development baseline;
-- `implementation/phase4a-successor-cycle` is the focused continuation branch for the remaining F–I work;
-- the two are deliberately aligned at the completed-E night-close baseline;
-- `docs/PROJECT_STATE.md` is the authoritative current-state snapshot;
-- `docs/checkpoints/LATEST.md` is the exact resume pointer;
-- `docs/checkpoints/2026-09-09_NIGHT_CLOSE_AFTER_INCREMENT_E.md` is the session continuity package.
+`main` is the place to read the latest global project/discovery decisions. It contains later Phase 5A/DM product-design documentation that is not present on the Player successor branch.
 
-Canonical does not mean release-ready or owner-accepted. Increment E is technically green, while owner/device acceptance and increments F–I remain open.
+It does **not** contain the latest Player runtime repair implementation and must not be used as the source branch for current Phase 4A Player code.
 
-## 2. Frozen immutable QA evidence — KEEP
+DM implementation remains blocked until Phase 4A receives physical owner/device acceptance and explicit closure.
 
-These two refs remain intentionally immutable historical evidence:
+### `implementation/phase4a-successor-cycle` — current Player runtime
+
+This is the authoritative source line for current Player/Phase 4A code, including the accepted `preqa.8 / 40800` repair pass.
+
+Verified product/source boundary before the 2026-09-12 continuity documentation commit:
+
+`d630270f2f3d8fab94f3c1290963c2da7afaf06d`
+
+Normal Scaffold run `34721374190` succeeded on that exact source boundary and published the post-repair debug APK artifact.
+
+P1–P16 are implemented/automation-qualified. P17 is the physical tablet-QA gate decision, not another implementation repair.
+
+## 2. The refs are intentionally divergent
+
+Before this continuity repair:
+
+- `main` = `de3930a8c0357bbbaa77c423f0011041f5cfd111`;
+- `implementation/phase4a-successor-cycle` = `d630270f2f3d8fab94f3c1290963c2da7afaf06d`.
+
+`main` has newer DM/Phase 5A discovery documentation absent from the Player branch. The Player branch has extensive Player implementation absent from `main`.
+
+Therefore:
+
+- do not force-move either branch;
+- do not assume `main` is the latest Player code merely because it is the default branch;
+- do not assume the Player branch supersedes later DM discovery records on `main`;
+- do not merge merely for cosmetic linearity;
+- if a future integration is desired, reconcile both lines explicitly and preserve both sets of valid work.
+
+## 3. Historical implementation branches
+
+These are milestone/history refs, not current resume points:
+
+- `implementation/phase4-preqa-ux-repair` — strict ancestor of the current successor line;
+- `implementation/phase4-preqa-consolidation` — strict ancestor of the current successor line;
+- `implementation/phase4-character-closure`;
+- `implementation/character-data-foundation`;
+- `implementation/local-campaign-selection`;
+- `implementation/initial-scaffold`;
+- older architecture/foundation/discovery milestone refs.
+
+Do not begin new work from them unless explicitly investigating history.
+
+`discovery/p12-material3-audit` is retained as P12 audit evidence, not as the active implementation line.
+
+## 4. Frozen QA evidence — keep immutable
+
+The surviving frozen QA refs are historical evidence:
 
 - `tmp/phase4-l-frozen-qa-candidate`;
 - `tmp/phase4-m5-frozen-qa-candidate`.
 
-Never delete, force-move, repurpose or treat them as current development branches merely for tidiness.
+Do not repurpose, force-move or use them as current development branches.
 
-## 3. Historical milestone branches
+## 5. Removed/superseded temporary branches
 
-Older discovery/foundation/architecture/implementation milestone branches may remain as historical labels. They are not current authority once their accepted content is represented by `main`.
+Temporary Table Mode / QA helper branches that no longer appear in the current branch inventory are not missing active development lines. Their relevant accepted work is represented in the successor branch and/or durable checkpoints.
 
-Examples include:
+Use `docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md` for deliberately removed historical refs rather than recreating them.
 
-- `discovery/initial-product-picture`;
-- `foundation/continuity-structure`;
-- `architecture/phase2-topology`;
-- `architecture/approved-backend-and-android`;
-- `implementation/initial-scaffold`;
-- `implementation/local-campaign-selection`;
-- `implementation/character-data-foundation`;
-- `implementation/phase4-character-closure`;
-- `implementation/phase4-preqa-consolidation`;
-- `implementation/phase4-preqa-ux-repair`.
+## 6. P-series reading rule
 
-Do not start new work from them.
+The `preqa.8 / 40800` repair-design sequence is P1–P17. Later files that repeat a P number are implementation/audit/closure records for those accepted points; numeric label order is not a substitute for Git ancestry and checkpoint meaning.
 
-## 4. Obsolete temporary refs
+In particular:
 
-The many non-frozen `tmp/*` refs were implementation safety/retry/helper labels accumulated during Phase 4. D-0066 already established that they are not valid resume points.
+- P15 = Supercompact repair; later P15 audit/implementation work may include transversal consistency fixes discovered while proving it;
+- P16 = landscape/adaptive vertical-space policy and implementation;
+- P17 = physical tablet-QA gate policy; physical tablet acceptance is still pending.
 
-At this night-close boundary they are handled as follows:
+## 7. Exact resume rule
 
-1. write a durable archive index containing each branch name and its final SHA before deletion;
-2. keep the two frozen refs above;
-3. remove the remaining obsolete `tmp/*` refs from the visible branch list;
-4. also remove the clearly invalid/superseded `implementation/phase4a-successor-cycle-temp-invalid` ref after recording its SHA;
-5. leave meaningful historical milestone branches in place.
+If the task is Player implementation/QA preparation:
 
-Deleting those obsolete refs is branch-list housekeeping. It does not rewrite `main`, mutate frozen candidates or change current product state.
+1. switch to `implementation/phase4a-successor-cycle`;
+2. read `docs/checkpoints/LATEST.md` there;
+3. do not restart P1–P16;
+4. continue only with the documented monotonic QA packaging / owner-QA boundary or a defect reopened by actual QA evidence.
 
-Durable archive index:
+If the task is DM/Phase 5A product discovery:
 
-`docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md`
+1. use `main`;
+2. read `docs/checkpoints/LATEST.md` there;
+3. preserve D-0068/D-0069/D-0070 and later accepted discovery decisions;
+4. do not implement DM features before explicit Phase 4A closure.
 
-Use that file when an old deleted branch name/SHA needs historical reconstruction.
-
-## 5. Current successor branch relation to main
-
-Before the night-close fast-forward, `implementation/phase4a-successor-cycle` was a clean descendant of `main` with zero commits behind. The owner explicitly requested consolidation after finishing Increment E.
-
-The night-close operation therefore uses a **normal fast-forward**, not a force push or history rewrite, and aligns both refs at the same completed-E development baseline.
-
-Tomorrow's Increment F work continues on:
-
-`implementation/phase4a-successor-cycle`
-
-A later coherent boundary may again be consolidated into `main` when explicitly desired. Acceptance remains separate from repository ordering.
-
-## 6. Historical M6 and helper evidence
-
-The 2026-09-08 M6 detour record has already been copied into canonical history with a HISTORICAL / SUPERSEDED status. Temporary validator/workflow code that existed only to manipulate or verify old branch refs is intentionally not a product feature and does not need a live branch ref once its relevant evidence is archived.
-
-## 7. Interpretation rule
-
-When branch history is confusing:
-
-1. read `docs/checkpoints/LATEST.md`;
-2. read `docs/PROJECT_STATE.md`;
-3. use `main` for canonical project truth;
-4. use the focused successor branch only for the documented active continuation;
-5. consult the branch-ref archive for deleted historical refs;
-6. consult frozen branches only for exact historical QA evidence.
-
-Do not reconstruct current product truth from an arbitrary old branch merely because the ref still exists.
+If the task is repository reconciliation, read `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md` first.
