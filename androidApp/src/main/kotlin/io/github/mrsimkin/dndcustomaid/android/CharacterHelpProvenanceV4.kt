@@ -17,6 +17,11 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RichTooltip
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,6 +31,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -38,6 +44,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 internal enum class CharacterHelpModeV4(val label: String) {
     ALWAYS_VISIBLE("Siempre visible"),
@@ -55,6 +62,7 @@ internal fun CharacterHelpModeProviderV4(
     CompositionLocalProvider(LocalCharacterHelpModeV4 provides mode, content = content)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CharacterHelpV4(
     text: String,
@@ -71,30 +79,39 @@ internal fun CharacterHelpV4(
         )
 
         CharacterHelpModeV4.INFO -> {
-            var open by remember { mutableStateOf(false) }
-            Box(modifier = modifier) {
-                CharacterInfoIconButtonV4(
-                    onClick = { open = !open },
-                    contentDescription = if (open) "Ocultar ayuda" else "Mostrar ayuda",
-                )
-                DropdownMenu(
-                    expanded = open,
-                    onDismissRequest = { open = false },
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .widthIn(min = 180.dp, max = 320.dp)
-                            .heightIn(max = 280.dp)
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 12.dp, vertical = 9.dp),
+            val tooltipState = rememberTooltipState(isPersistent = true)
+            val coroutineScope = rememberCoroutineScope()
+            TooltipBox(
+                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(),
+                tooltip = {
+                    RichTooltip(
+                        modifier = Modifier.heightIn(max = 280.dp),
+                        caretSize = TooltipDefaults.caretSize,
+                        maxWidth = 320.dp,
                     ) {
                         Text(
-                            text,
+                            text = text,
+                            modifier = Modifier.verticalScroll(rememberScrollState()),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
-                }
+                },
+                state = tooltipState,
+                modifier = modifier,
+                onDismissRequest = { tooltipState.dismiss() },
+                focusable = true,
+                enableUserInput = false,
+            ) {
+                CharacterInfoIconButtonV4(
+                    onClick = {
+                        if (tooltipState.isVisible) {
+                            tooltipState.dismiss()
+                        } else {
+                            coroutineScope.launch { tooltipState.show() }
+                        }
+                    },
+                    contentDescription = if (tooltipState.isVisible) "Ocultar ayuda" else "Mostrar ayuda",
+                )
             }
         }
 
