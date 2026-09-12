@@ -361,7 +361,7 @@ internal fun CharacterCompanionsModuleV4(
                     ) {
                         Text("Compañeros", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Selecciona un compañero para editarlo. La lista conserva búsqueda, filtros y orden.",
+                            "Selecciona un compañero para editarlo.",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }

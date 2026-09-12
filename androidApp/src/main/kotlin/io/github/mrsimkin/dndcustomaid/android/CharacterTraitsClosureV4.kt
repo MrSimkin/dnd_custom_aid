@@ -307,7 +307,7 @@ internal fun CharacterTraitsClosureTabV4(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Rasgos", style = MaterialTheme.typography.titleSmall)
                                 Text(
-                                    "Clase, raza, trasfondo, dotes, dones / bendiciones y contenido personalizado.",
+                                    "Rasgos del personaje y contenido personalizado.",
                                     style = MaterialTheme.typography.labelSmall,
                                 )
                             }

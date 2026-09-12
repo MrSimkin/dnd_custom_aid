@@ -339,7 +339,7 @@ internal fun CharacterArtificeModuleV4(
                     ) {
                         Text("Editor de Artífice", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Selecciona un plan o dispositivo. La lista conserva búsqueda, filtros y orden mientras editas.",
+                            "Selecciona un plan o dispositivo.",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir registro") }

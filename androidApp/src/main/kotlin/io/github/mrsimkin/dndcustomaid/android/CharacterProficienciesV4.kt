@@ -67,8 +67,11 @@ internal fun CharacterProficienciesCardV4(
                 Column(modifier = Modifier.fillMaxWidth(0.72f)) {
                     Text("Idiomas y competencias", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        "Idiomas, herramientas, armaduras, armas y otras competencias. La ficha no valida legalidad.",
+                        "Idiomas, herramientas, armaduras, armas y otras competencias.",
                         style = MaterialTheme.typography.labelSmall,
+                    )
+                    CharacterHelpV4(
+                        "La ficha conserva estas referencias, pero no valida su legalidad.",
                     )
                 }
                 TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) {

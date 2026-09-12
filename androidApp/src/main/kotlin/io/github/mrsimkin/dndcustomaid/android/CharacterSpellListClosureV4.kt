@@ -449,7 +449,7 @@ internal fun CharacterSpellListClosureV4(
                     ) {
                         Text("Editor de conjuro", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Selecciona un conjuro de la lista o añade uno nuevo. La lista conserva su búsqueda, filtros y posición mientras editas.",
+                            "Selecciona un conjuro o añade uno nuevo.",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir conjuro") }

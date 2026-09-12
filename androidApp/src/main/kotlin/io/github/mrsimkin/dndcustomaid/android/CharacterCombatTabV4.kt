@@ -315,10 +315,6 @@ private fun CombatQuickReferenceCardV4(
                 ReadOnlyReferenceV4("PG máximos", maxHp, Modifier.weight(1f))
                 ReadOnlyReferenceV4("PG temporales", tempHp, Modifier.weight(1f))
             }
-            Text(
-                "Estos valores son referencias de la misma ficha; no son copias independientes.",
-                style = MaterialTheme.typography.labelSmall,
-            )
         }
     }
 }

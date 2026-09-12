@@ -709,7 +709,7 @@ private fun EquipmentEditorPanelF3(
             ) {
                 Text("Editor de equipo", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Selecciona un objeto de la lista para editarlo sin perder tu posición, búsqueda ni filtros.",
+                    "Selecciona un objeto para editarlo.",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Button(onClick = onBeginAdd, modifier = Modifier.padding(top = appSpacingV4(10.dp))) {

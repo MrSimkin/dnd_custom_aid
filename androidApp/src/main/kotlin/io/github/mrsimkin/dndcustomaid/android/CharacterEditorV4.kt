@@ -2017,9 +2017,8 @@ private fun SavesCardV4(
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
 ) {
     SectionCardV4("Tiradas de salvación") {
-        Text(
+        CharacterHelpV4(
             "Marca competencia cuando corresponda. Toca el total para ver el cálculo y editar Ajuste adicional.",
-            style = MaterialTheme.typography.labelSmall,
         )
         val columns = if (wide) 3 else 2
         CharacterAbility.entries.chunked(columns).forEach { abilities ->
@@ -2139,9 +2138,8 @@ private fun SkillsListCardV4(
         successorState = successorState,
     )
     SectionCardV4("Habilidades") {
-        Text(
-            "Las habilidades estándar se editan aquí. Las personalizadas se configuran en Ajustes del PJ y aparecen integradas en la misma lista.",
-            style = MaterialTheme.typography.labelSmall,
+        CharacterHelpV4(
+            "Las habilidades estándar se editan aquí. Las personalizadas se configuran en Ajustes del PJ y aparecen en esta misma lista.",
         )
         if (wide) {
             val midpoint = (rows.size + 1) / 2

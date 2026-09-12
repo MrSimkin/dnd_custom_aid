@@ -56,8 +56,11 @@ internal fun CharacterCustomSkillsCardV4(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Habilidades personalizadas", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        "Homebrew u otras habilidades asociadas a una característica. Usan el mismo cálculo de competencia/pericia.",
+                        "Homebrew y otras habilidades asociadas a una característica.",
                         style = MaterialTheme.typography.labelSmall,
+                    )
+                    CharacterHelpV4(
+                        "Usan el mismo cálculo de competencia y pericia que las habilidades estándar.",
                     )
                 }
                 TextButton(onClick = { editorId = null; editorOpen = true }) { Text("+ Añadir") }

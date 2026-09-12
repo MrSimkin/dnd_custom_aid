@@ -312,7 +312,7 @@ internal fun CharacterFormsModuleV4(
                     ) {
                         Text("Editor de forma", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Selecciona una forma de la biblioteca o añade una nueva. La ficha base no se modifica al abrirla.",
+                            "Selecciona una forma o añade una nueva.",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir forma") }

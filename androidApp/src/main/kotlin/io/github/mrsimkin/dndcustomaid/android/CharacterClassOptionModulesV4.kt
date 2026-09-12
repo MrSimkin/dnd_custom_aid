@@ -461,7 +461,7 @@ private fun CharacterClassOptionModuleH2(
                     ) {
                         Text(config.title, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Selecciona un registro para editarlo. La lista conserva búsqueda, filtros y orden.",
+                            "Selecciona un registro para editarlo.",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
