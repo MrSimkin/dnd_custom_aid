@@ -1,0 +1,43 @@
+CREATE TABLE character_owned_subclass_identity (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    parent_class_id TEXT NOT NULL,
+    definition_key TEXT,
+    UNIQUE(character_id, parent_class_id)
+);
+
+CREATE TABLE character_owned_species_identity (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    id TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    definition_key TEXT,
+    rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED'
+);
+
+CREATE TABLE character_owned_subrace_identity (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    id TEXT NOT NULL UNIQUE,
+    parent_species_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    definition_key TEXT,
+    rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED'
+);
+
+CREATE TABLE character_owned_background_identity (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    id TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    definition_key TEXT,
+    rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED'
+);
+
+-- Provenance targets are deliberately soft references. Deleting a source entity must leave the
+-- Trait relation unresolved rather than cascade-delete or silently remap it.
+CREATE TABLE character_trait_provenance (
+    trait_id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    provenance_kind TEXT NOT NULL,
+    target_id TEXT,
+    free_text TEXT,
+    legacy_text TEXT
+);
