@@ -2066,13 +2066,20 @@ private fun ReadOnlySkillTotalV4(total: Int?) {
 
 @Composable
 private fun ReadOnlyTrainingV4(training: SkillTraining) {
-    Surface(
-        modifier = Modifier.width(44.dp).heightIn(min = 34.dp),
-        shape = MaterialTheme.shapes.small,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        color = MaterialTheme.colorScheme.surface,
+    // Match the 48dp layout footprint reserved by the ordinary M3 training selector
+    // while keeping the custom projection visually compact and read-only.
+    Box(
+        modifier = Modifier.width(48.dp).heightIn(min = 48.dp, max = 48.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) { TrainingGlyphV4(training) }
+        Surface(
+            modifier = Modifier.width(44.dp).heightIn(min = 34.dp, max = 34.dp),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Box(contentAlignment = Alignment.Center) { TrainingGlyphV4(training) }
+        }
     }
 }
 
