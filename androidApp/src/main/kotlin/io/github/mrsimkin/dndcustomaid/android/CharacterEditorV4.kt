@@ -155,6 +155,13 @@ internal fun CharacterEditorScreenV4(
     var traitProvenanceDraftJson by rememberSaveable(characterId.toString(), "trait-provenance-p7") {
         mutableStateOf(characterTraitProvenanceToJsonP7V4(successorState.traitProvenance))
     }
+    var canonicalOriginsDraftJson by rememberSaveable(characterId.toString(), "canonical-origins-p7") {
+        mutableStateOf(
+            characterCanonicalOriginsDraftToJsonP7V4(
+                CharacterCanonicalOriginsDraftP7V4.from(successorState),
+            ),
+        )
+    }
     var spellcastingDraftJson by rememberSaveable(characterId.toString(), "spellcasting") {
         mutableStateOf(
             characterSpellcastingDraftToJsonV4(
@@ -232,8 +239,14 @@ internal fun CharacterEditorScreenV4(
     val spellcastingProfiles = remember(spellcastingProfilesDraftJson) {
         characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
     }
-    val projectedSuccessorState = remember(successorState, spellcastingProfiles) {
-        successorState.copy(spellcastingProfiles = spellcastingProfiles)
+    val canonicalOriginsDraft = remember(canonicalOriginsDraftJson) {
+        characterCanonicalOriginsDraftFromJsonP7V4(canonicalOriginsDraftJson)
+    }
+    val provenanceDraftSuccessorState = remember(successorState, canonicalOriginsDraft) {
+        canonicalOriginsDraft.projectOnto(successorState)
+    }
+    val projectedSuccessorState = remember(provenanceDraftSuccessorState, spellcastingProfiles) {
+        provenanceDraftSuccessorState.copy(spellcastingProfiles = spellcastingProfiles)
     }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
@@ -290,6 +303,15 @@ internal fun CharacterEditorScreenV4(
     val storedTraitProvenanceDraftJson = remember(successorState.traitProvenance) {
         characterTraitProvenanceToJsonP7V4(successorState.traitProvenance)
     }
+    val storedCanonicalOriginsDraftJson = remember(
+        successorState.speciesIdentity,
+        successorState.subraceIdentity,
+        successorState.backgroundIdentity,
+    ) {
+        characterCanonicalOriginsDraftToJsonP7V4(
+            CharacterCanonicalOriginsDraftP7V4.from(successorState),
+        )
+    }
     val storedSpellcastingDraftJson = remember(stored) {
         characterSpellcastingDraftToJsonV4(
             CharacterSpellcastingDraftV4(
@@ -327,6 +349,7 @@ internal fun CharacterEditorScreenV4(
             backgroundDraftJson != storedBackgroundDraftJson ||
             traitsDraftJson != storedTraitsDraftJson ||
             traitProvenanceDraftJson != storedTraitProvenanceDraftJson ||
+            canonicalOriginsDraftJson != storedCanonicalOriginsDraftJson ||
             spellcastingDraftJson != storedSpellcastingDraftJson ||
             notesDraftJson != storedNotesDraftJson ||
             h1ModuleDraftJson != storedH1ModuleDraftJson ||
@@ -406,6 +429,12 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateCanonicalOrigins(updated: CharacterCanonicalOriginsDraftP7V4) {
+        if (!structuralEditingEnabled) return
+        canonicalOriginsDraftJson = characterCanonicalOriginsDraftToJsonP7V4(updated)
+        savedMessage = null
+    }
+
     fun updateTraits(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>) {
         traitsDraftJson = characterTraitsToJsonV4(updated)
         savedMessage = null
@@ -472,10 +501,16 @@ internal fun CharacterEditorScreenV4(
         val savedSpellcastingProfiles = characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
             .filter { it.sourceId in liveSpellSourceIds }
         val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
-        val savedTraitProvenance = characterTraitProvenanceFromJsonP7V4(traitProvenanceDraftJson)
-            .filter { it.traitId in liveTraitIds }
+        val savedCanonicalOrigins = characterCanonicalOriginsDraftFromJsonP7V4(canonicalOriginsDraftJson).normalized()
+        val provenanceSaveState = savedCanonicalOrigins.projectOnto(successorState)
+        val savedTraitProvenance = refreshResolvedTraitProvenanceLabelsP7V4(
+            items = characterTraitProvenanceFromJsonP7V4(traitProvenanceDraftJson)
+                .filter { it.traitId in liveTraitIds },
+            classes = stored.classes,
+            successorState = provenanceSaveState,
+        )
         pcSettingsContext?.onSuccessorStateChange?.invoke(
-            successorState.copy(
+            provenanceSaveState.copy(
                 combatDamage = savedDamageProfiles,
                 spellcastingProfiles = savedSpellcastingProfiles,
                 traitProvenance = savedTraitProvenance,
@@ -483,6 +518,7 @@ internal fun CharacterEditorScreenV4(
         )
         combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(savedDamageProfiles)
         spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(savedSpellcastingProfiles)
+        canonicalOriginsDraftJson = characterCanonicalOriginsDraftToJsonP7V4(savedCanonicalOrigins)
         traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(savedTraitProvenance)
         val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
         val liveClassOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id }
@@ -520,6 +556,7 @@ internal fun CharacterEditorScreenV4(
         backgroundDraftJson = characterBackgroundToJsonV4(stored.background)
         traitsDraftJson = characterTraitsToJsonV4(stored.traits)
         traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(savedTraitProvenance)
+        canonicalOriginsDraftJson = characterCanonicalOriginsDraftToJsonP7V4(savedCanonicalOrigins)
         spellcastingDraftJson = characterSpellcastingDraftToJsonV4(
             CharacterSpellcastingDraftV4(
                 sources = stored.spellcastingSources,
@@ -800,7 +837,9 @@ internal fun CharacterEditorScreenV4(
                         )
                         CharacterTabV4.BACKGROUND -> CharacterBackgroundTabV4(
                             background = backgroundDraft,
+                            canonicalOrigins = canonicalOriginsDraft,
                             onBackgroundChange = ::updateBackground,
+                            onCanonicalOriginsChange = ::updateCanonicalOrigins,
                             structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                         )
@@ -808,7 +847,7 @@ internal fun CharacterEditorScreenV4(
                             traits = traitsDraft,
                             classes = settingsSheet.classes,
                             background = backgroundDraft,
-                            successorState = successorState,
+                            successorState = provenanceDraftSuccessorState,
                             traitProvenance = traitProvenanceDraft,
                             closureState = closureState,
                             persistedTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id },

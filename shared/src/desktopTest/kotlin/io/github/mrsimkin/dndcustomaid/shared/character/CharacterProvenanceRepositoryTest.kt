@@ -5,6 +5,8 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
@@ -74,8 +76,8 @@ class CharacterProvenanceRepositoryTest {
             )
             assertEquals(CharacterProvenanceResolutionStatus.UNRESOLVED, raceResolution.status)
             assertEquals(CharacterProvenanceResolutionStatus.UNRESOLVED, backgroundResolution.status)
-            assertEquals("Elfo", raceResolution.label)
-            assertEquals("Sabio", backgroundResolution.label)
+            assertEquals("Alto elfo", raceResolution.label)
+            assertEquals("Erudito", backgroundResolution.label)
         }
     }
 
@@ -109,6 +111,124 @@ class CharacterProvenanceRepositoryTest {
             )
             assertEquals(CharacterProvenanceResolutionStatus.UNRESOLVED, resolution.status)
             assertTrue(characterProvenanceOptions(requireNotNull(characters.character(saved.id)), state, CharacterProvenanceKind.CLASS).size == 2)
+        }
+    }
+
+    @Test
+    fun subraceIsOwnedChildOfCurrentRaceAndUsesSameCanonicalSchemaForCustomDefinitions() {
+        withDatabase { database ->
+            val campaigns = CampaignRepository(database)
+            val characters = CharacterRepository(database)
+            val provenance = CharacterProvenanceRepository(database)
+            val campaign = campaigns.createCampaign("Subraza")
+            val base = characters.createCharacter(campaign.id, "Linaje")
+            val saved = characters.saveCharacter(
+                base.copy(background = CharacterBackground(race = "Elfo")),
+            )
+
+            val initial = provenance.state(saved.id)
+            val species = requireNotNull(initial.speciesIdentity)
+            val child = CharacterOwnedSubraceIdentity(
+                id = Uuid.random(),
+                parentSpeciesId = species.id,
+                name = "Elfo lunar",
+                definitionKey = "custom:elfo-lunar",
+            )
+            val withSubrace = provenance.saveState(
+                saved.id,
+                initial.copy(subraceIdentity = child),
+            )
+            val option = characterProvenanceOptions(
+                requireNotNull(characters.character(saved.id)),
+                withSubrace,
+                CharacterProvenanceKind.SUBRACE,
+            ).single()
+            assertEquals(child.id, option.targetId)
+            assertEquals("Elfo lunar", option.label)
+            assertEquals("Elfo", option.parentLabel)
+            assertEquals("custom:elfo-lunar", withSubrace.subraceIdentity?.definitionKey)
+
+            assertFailsWith<IllegalArgumentException> {
+                provenance.saveState(
+                    saved.id,
+                    withSubrace.copy(speciesIdentity = null),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun structuredOriginsRejectFreeTextAndSeparateTraitInstancesKeepSeparateSources() {
+        withDatabase { database ->
+            val campaigns = CampaignRepository(database)
+            val characters = CharacterRepository(database)
+            val provenance = CharacterProvenanceRepository(database)
+            val campaign = campaigns.createCampaign("Instancias")
+            val firstClassId = Uuid.random()
+            val secondClassId = Uuid.random()
+            val firstTraitId = Uuid.random()
+            val secondTraitId = Uuid.random()
+            val saved = characters.saveCharacter(
+                characters.createCharacter(campaign.id, "Dos fuentes").copy(
+                    classes = listOf(
+                        classLevel(firstClassId, "Guerrero", 0),
+                        classLevel(secondClassId, "Mago", 1),
+                    ),
+                    traits = listOf(
+                        trait(firstTraitId, "Entrenamiento", "Guerrero", CharacterTraitType.CLASS, 0),
+                        trait(secondTraitId, "Entrenamiento", "Mago", CharacterTraitType.CLASS, 1),
+                    ),
+                ),
+            )
+
+            val state = provenance.state(saved.id)
+            val first = state.traitProvenance.single { it.traitId == firstTraitId }
+            val second = state.traitProvenance.single { it.traitId == secondTraitId }
+            assertNotEquals(first.traitId, second.traitId)
+            assertEquals(firstClassId, first.targetId)
+            assertEquals(secondClassId, second.targetId)
+            assertNotEquals(first.targetId, second.targetId)
+
+            assertFailsWith<IllegalArgumentException> {
+                provenance.saveState(
+                    saved.id,
+                    state.copy(
+                        traitProvenance = state.traitProvenance.map { item ->
+                            if (item.traitId == firstTraitId) item.copy(freeText = "atajo manual") else item
+                        },
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun subclassOptionsRemainAttachedToParentClassForDisambiguation() {
+        withDatabase { database ->
+            val campaigns = CampaignRepository(database)
+            val characters = CharacterRepository(database)
+            val provenance = CharacterProvenanceRepository(database)
+            val campaign = campaigns.createCampaign("Subclases")
+            val firstClassId = Uuid.random()
+            val secondClassId = Uuid.random()
+            val saved = characters.saveCharacter(
+                characters.createCharacter(campaign.id, "Dos tradiciones").copy(
+                    classes = listOf(
+                        classLevel(firstClassId, "Mago", 0).copy(subclassName = "Tradición"),
+                        classLevel(secondClassId, "Bardo", 1).copy(subclassName = "Tradición"),
+                    ),
+                ),
+            )
+
+            val state = provenance.state(saved.id)
+            val options = characterProvenanceOptions(
+                requireNotNull(characters.character(saved.id)),
+                state,
+                CharacterProvenanceKind.SUBCLASS,
+            )
+            assertEquals(2, options.size)
+            assertEquals(setOf("Tradición (Mago)", "Tradición (Bardo)"), options.map { it.disambiguatedLabel }.toSet())
+            assertEquals(setOf(firstClassId, secondClassId), state.subclassIdentities.map { it.parentClassId }.toSet())
         }
     }
 

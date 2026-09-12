@@ -139,7 +139,10 @@ internal fun traitProvenanceOptionsP7V4(
         ?.let { listOf(CharacterTraitProvenanceOptionP7V4(kind, it.id, it.name.trim())) }
         .orEmpty()
     CharacterProvenanceKind.SUBRACE -> successorState.subraceIdentity
-        ?.takeIf { child -> successorState.speciesIdentity?.id == child.parentSpeciesId && child.name.isNotBlank() }
+        ?.takeIf { child ->
+            successorState.speciesIdentity?.takeIf { it.name.isNotBlank() }?.id == child.parentSpeciesId &&
+                child.name.isNotBlank()
+        }
         ?.let { child ->
             listOf(
                 CharacterTraitProvenanceOptionP7V4(
@@ -167,15 +170,16 @@ internal fun newTraitProvenanceForKindP7V4(
     classes: List<CharacterClassLevel>,
     successorState: CharacterSuccessorState,
 ): CharacterTraitProvenance {
-    val soleTarget = if (kind.isStructuredCharacterProvenance()) {
-        traitProvenanceOptionsP7V4(kind, classes, successorState).singleOrNull()?.targetId
+    val soleOption = if (kind.isStructuredCharacterProvenance()) {
+        traitProvenanceOptionsP7V4(kind, classes, successorState).singleOrNull()
     } else {
         null
     }
     return CharacterTraitProvenance(
         traitId = traitId,
         kind = kind,
-        targetId = soleTarget,
+        targetId = soleOption?.targetId,
+        legacyText = soleOption?.displayLabel,
     )
 }
 
@@ -216,7 +220,7 @@ internal fun traitProvenanceDraftP7V4(
         traitId = trait.id,
         kind = matched?.kind ?: defaultKind,
         targetId = matched?.targetId,
-        legacyText = legacy,
+        legacyText = matched?.displayLabel ?: legacy,
     )
 }
 
@@ -236,6 +240,24 @@ internal fun normalizeTraitProvenanceP7V4(
     )
 }
 
+internal fun refreshResolvedTraitProvenanceLabelsP7V4(
+    items: List<CharacterTraitProvenance>,
+    classes: List<CharacterClassLevel>,
+    successorState: CharacterSuccessorState,
+): List<CharacterTraitProvenance> = items.map { item ->
+    if (!item.kind.isStructuredCharacterProvenance()) {
+        normalizeTraitProvenanceP7V4(item)
+    } else {
+        val option = item.targetId?.let { targetId ->
+            traitProvenanceOptionsP7V4(item.kind, classes, successorState)
+                .firstOrNull { it.targetId == targetId }
+        }
+        normalizeTraitProvenanceP7V4(
+            if (option != null) item.copy(legacyText = option.displayLabel) else item,
+        )
+    }
+}
+
 internal fun traitProvenanceIsValidP7V4(
     provenance: CharacterTraitProvenance,
     classes: List<CharacterClassLevel>,
@@ -244,7 +266,7 @@ internal fun traitProvenanceIsValidP7V4(
     if (!provenance.kind.isStructuredCharacterProvenance()) return true
     val options = traitProvenanceOptionsP7V4(provenance.kind, classes, successorState)
     if (provenance.targetId != null && options.any { it.targetId == provenance.targetId }) return true
-    return provenance.targetId != null && !provenance.legacyText.isNullOrBlank()
+    return !provenance.legacyText.isNullOrBlank()
 }
 
 internal fun traitProvenanceDisplaySourceP7V4(
@@ -274,7 +296,7 @@ internal fun CharacterTraitProvenanceEditorP7V4(
     val options = traitProvenanceOptionsP7V4(provenance.kind, classes, successorState)
     val selected = provenance.targetId?.let { id -> options.firstOrNull { it.targetId == id } }
     val unresolved = provenance.kind.isStructuredCharacterProvenance() &&
-        provenance.targetId != null && selected == null
+        selected == null && !provenance.legacyText.isNullOrBlank()
 
     Column {
         Text("Tipo de origen", style = MaterialTheme.typography.labelSmall)
@@ -330,7 +352,7 @@ internal fun CharacterTraitProvenanceEditorP7V4(
                                         kind = option.kind,
                                         targetId = option.targetId,
                                         freeText = null,
-                                        legacyText = provenance.legacyText,
+                                        legacyText = option.displayLabel,
                                     ),
                                 )
                                 sourceMenuOpen = false
@@ -344,7 +366,8 @@ internal fun CharacterTraitProvenanceEditorP7V4(
                     "Configura primero este origen en los datos canónicos del personaje; no se crea una segunda copia de texto aquí.",
                     style = MaterialTheme.typography.labelSmall,
                 )
-            } else if (unresolved) {
+            }
+            if (unresolved) {
                 Text(
                     "El origen anterior ya no pertenece al personaje. Puedes conservar la relación sin resolver o elegir uno de los orígenes actuales.",
                     style = MaterialTheme.typography.labelSmall,

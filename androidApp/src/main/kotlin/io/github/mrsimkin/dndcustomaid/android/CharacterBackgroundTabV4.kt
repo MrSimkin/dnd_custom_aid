@@ -67,7 +67,9 @@ private enum class BackgroundNarrativeFieldV4(val label: String) {
 @Composable
 internal fun CharacterBackgroundTabV4(
     background: CharacterBackground,
+    canonicalOrigins: CharacterCanonicalOriginsDraftP7V4,
     onBackgroundChange: (CharacterBackground) -> Unit,
+    onCanonicalOriginsChange: (CharacterCanonicalOriginsDraftP7V4) -> Unit,
     structuralEditingEnabled: Boolean,
     wide: Boolean,
 ) {
@@ -157,7 +159,10 @@ internal fun CharacterBackgroundTabV4(
                     Text("Trasfondo", style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
                         value = background.name,
-                        onValueChange = { onBackgroundChange(background.copy(name = it)) },
+                        onValueChange = { value ->
+                            onBackgroundChange(background.copy(name = value))
+                            onCanonicalOriginsChange(canonicalOrigins.withBackgroundName(value))
+                        },
                         enabled = structuralEditingEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Nombre del trasfondo") },
@@ -169,21 +174,39 @@ internal fun CharacterBackgroundTabV4(
                     ) {
                         OutlinedTextField(
                             value = background.race,
-                            onValueChange = { onBackgroundChange(background.copy(race = it)) },
+                            onValueChange = { value ->
+                                onBackgroundChange(background.copy(race = value))
+                                onCanonicalOriginsChange(canonicalOrigins.withSpeciesName(value))
+                            },
                             enabled = structuralEditingEnabled,
                             modifier = Modifier.weight(1f),
                             label = { Text("Raza") },
                             singleLine = true,
                         )
                         OutlinedTextField(
-                            value = background.religionFaith,
-                            onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
-                            enabled = structuralEditingEnabled,
+                            value = canonicalOrigins.subraceIdentity?.name.orEmpty(),
+                            onValueChange = { value ->
+                                onCanonicalOriginsChange(canonicalOrigins.withSubraceName(value))
+                            },
+                            enabled = structuralEditingEnabled && canonicalOrigins.speciesIdentity?.name?.isNotBlank() == true,
                             modifier = Modifier.weight(1f),
-                            label = { Text("Religión / Fe") },
+                            label = { Text("Subraza") },
                             singleLine = true,
+                            supportingText = if (canonicalOrigins.speciesIdentity?.name?.isBlank() != false) {
+                                { Text("Configura primero la Raza") }
+                            } else {
+                                null
+                            },
                         )
                     }
+                    OutlinedTextField(
+                        value = background.religionFaith,
+                        onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
+                        enabled = structuralEditingEnabled,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Religión / Fe") },
+                        singleLine = true,
+                    )
                     OutlinedTextField(
                         value = background.summary,
                         onValueChange = { onBackgroundChange(background.copy(summary = it)) },

@@ -116,11 +116,28 @@ class CharacterProvenanceRepository(
                 sheet = sheet,
                 successorState = projected,
             )
+        }.map { provenance ->
+            if (!provenance.kind.isStructuredCharacterProvenance()) {
+                provenance
+            } else {
+                val currentLabel = provenance.targetId?.let { targetId ->
+                    characterProvenanceOptions(sheet, projected, provenance.kind)
+                        .firstOrNull { it.targetId == targetId }
+                        ?.disambiguatedLabel
+                }
+                if (currentLabel != null && provenance.legacyText != currentLabel) {
+                    provenance.copy(legacyText = currentLabel)
+                } else {
+                    provenance
+                }
+            }
         }
         projected = projected.copy(traitProvenance = traitProvenance)
 
         // Persist bootstrap/reconciliation results immediately so generated owned identities,
-        // canonical renames/deletions and migration choices are stable across reopen.
+        // canonical renames/deletions and migration choices are stable across reopen. Resolved
+        // structured relationships also refresh their historical display snapshot, so a later
+        // source deletion preserves the latest canonical label without remapping the identity.
         val requiresBootstrapWrite =
             subclassIdentities != storedSubclassIdentities ||
                 speciesIdentity != storedSpecies ||
@@ -221,10 +238,11 @@ class CharacterProvenanceRepository(
         }
         state.subraceIdentity?.let { identity ->
             require(identity.name.trim().isNotEmpty()) { "Subrace identity name must not be blank." }
-            state.speciesIdentity?.let { species ->
-                require(identity.parentSpeciesId == species.id) {
-                    "Subrace identity must belong to this character's current species/race identity."
-                }
+            val species = requireNotNull(state.speciesIdentity) {
+                "Subrace identity requires this character to own a current species/race identity."
+            }
+            require(identity.parentSpeciesId == species.id) {
+                "Subrace identity must belong to this character's current species/race identity."
             }
         }
         state.backgroundIdentity?.let { identity ->
