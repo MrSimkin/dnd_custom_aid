@@ -1,4 +1,4 @@
-name: Phase4A P13 read-only copy audit
+name: Phase4A P13 copy repair
 
 on:
   push:
@@ -9,14 +9,25 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  audit:
+  repair:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: implementation/phase4a-successor-cycle
-      - name: Audit Player-facing explanatory copy
+          fetch-depth: 0
+      - name: Apply audited P13 copy simplification
         run: python3 .github/scripts/phase4a_p13_copy_audit.py
+      - name: Validate and commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m "repair: simplify P13 Player explanatory copy"
+          git push origin HEAD:implementation/phase4a-successor-cycle
