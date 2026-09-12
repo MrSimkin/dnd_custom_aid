@@ -1,178 +1,67 @@
-# Latest project checkpoint
+# Latest project checkpoint — Player / Phase 4A
 
-**Updated:** 2026-09-11  
-**Canonical branch:** `main`  
-**Active continuation branch:** `implementation/phase4a-successor-cycle`  
-**Phase:** Phase 4A successor acceptance / closure preparation  
-**Current QA build:** `0.4.0-preqa.8` / `40800` / debug  
-**Release status:** NOT owner-accepted and NOT release-ready  
-**Primary owner phone:** Redmi Note 11 Pro 5G  
-**Owner phone QA:** consolidated pass complete enough to define the next repair pass  
-**Player tablet QA:** intentionally deferred until shared/systemic phone findings are repaired  
-**Current work mode:** point-by-point owner design reconciliation of `40800` QA findings; consolidate each closed point before moving on  
-**DM implementation:** blocked until Phase 4A is accepted and explicitly closed
+**Updated:** 2026-09-12  
+**Branch:** `implementation/phase4a-successor-cycle`  
+**Role:** authoritative Player implementation/repair line  
+**Product boundary:** P1–P16 implemented and automation-qualified  
+**Acceptance boundary:** P17 physical owner/device QA pending  
+**Release status:** debug/development; NOT owner-accepted and NOT release-ready
 
-## Current boundary
+## Resume here
 
-The planned A–I engineering sequence and post-audition stabilization are complete and automated-green, but owner/device QA of `preqa.8 / 40800` found multiple Phase 4A acceptance blockers.
+Read first:
 
-The owner completed the required in-place upgrade/data-preservation test, phone portrait sampling, representative editors/IME, core Player modules, special modes, phone landscape and representative larger-text testing.
+1. `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md` — current cross-branch truth and authorization boundary;
+2. `docs/PROJECT_STATE.md` — current Player implementation/QA state;
+3. `docs/BRANCH_STATUS.md` — branch roles and what not to restart;
+4. `docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` — durable P1–P17 repair authorization;
+5. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P17_TABLET_QA_GATE_CLOSED.md` — physical tablet-QA gate policy.
 
-Physical tablet portrait/landscape QA is **not cancelled**; it is deliberately deferred because several newly observed defects are shared/systemic and would predictably contaminate tablet QA. Shared defects are part of the repair scope across phone and tablet by default, but tablet physical PASS/FAIL must still be established later on the repaired build.
+Historical decision/audit/implementation checkpoints remain evidence; this live pointer supersedes stale resume instructions inside older files.
 
-The controlling owner-QA checkpoint is:
+## Current technical proof
 
-`docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`
+Latest automation-qualified post-repair source:
 
-The active point-by-point decision log is:
+`d630270f2f3d8fab94f3c1290963c2da7afaf06d`
 
-`docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`
+Normal Scaffold run:
 
-Read both before planning or implementing any further Player repair.
+`34721374190` — **SUCCESS** on that exact SHA.
 
-The technically verified build boundary remains:
+Artifact:
 
-`docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md`
+- `10306416852` / `dnd-custom-aid-debug-apk`;
+- digest `sha256:c22e08deb3fbfd9a278b6e48cc4ac6d306229b6b1e354995eb7b25735eca645d`.
 
-Future DM Combat Desk design baseline remains:
+P13's older “normal Scaffold validation pending” wording is therefore no longer the live state. P15/P16 implementation closure evidence remains valid. P1–P16 must not be restarted absent new QA evidence.
 
-`docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md`
+## P17 means QA policy, not another repair implementation
 
-D-0068 is design truth only and does not authorize DM implementation before explicit Phase 4A closure.
+P17 is already design-closed. It governs physical tablet QA:
 
-## QA results now established on preqa.8
+- hard shared/systemic failures may defer tablet testing;
+- bounded/local/soft defects do not automatically block it;
+- actual tablet PASS/FAIL requires physical tablet evidence;
+- tablet evidence may reopen the relevant P1–P16 repair point.
 
-### Confirmed PASS areas
+Owner/device acceptance has not yet been claimed.
 
-- in-place upgrade over prior QA installation/data;
-- campaigns/characters and representative data preservation;
-- full close/reopen persistence;
-- phone portrait baseline navigation;
-- representative editor keyboard / Save / Cancel / Delete / reopen function;
-- currency;
-- Conjuros portrait source/context behavior;
-- Notas normal browsing/editing/search;
-- Application Settings functionality/understandability;
-- representative conditional modules;
-- representative backup/export;
-- phone landscape remains a phone interaction model rather than switching to tablet UI;
-- representative larger application text scale.
+## Exact next technical action
 
-### Functional/state blockers
+The current source still identifies itself as `0.4.0-preqa.8 / 40800`, the same identity as the owner-tested build that generated the repair backlog.
 
-1. HP changes in General do not propagate correctly to Combate; this violates one-datum/one-state.
-2. `Modo mesa` cannot be activated even after saving/cleaning the sheet, contrary to the intended Table-mode contract.
+Therefore:
 
-### Core/high-frequency UX blockers
+1. advance to the next monotonic QA package identity without changing accepted behavior;
+2. run the normal Scaffold gate on that exact commit;
+3. publish and checkpoint the resulting APK artifact/digest;
+4. then hand that uniquely identifiable build to the owner for targeted phone regression and P17-governed physical tablet QA.
 
-3. damage/healing registration is too cumbersome for frequent combat use;
-4. Combate fixed quick-reference area consumes too much of the viewport;
-5. the new special one-column `Reordenar -> Listo` workflow is owner-rejected; target is direct drag-and-drop of cards in their normal layout, including multicolumn layouts where applicable;
-6. Rasgos structured provenance still requires redundant typing of known origins; `Clase`, `Subclase`, `Raza` and `Trasfondo` must come from this character's canonical data, while `Otro` and `Don` may use free text;
-7. Vista supercompacta is conceptually rejected and must be redesigned as a dense at-table PC reference using the information-density/scanning grammar of a modern D&D 5.5e monster/NPC stat block rather than being primarily a Favorites dashboard.
+Do not introduce unrelated feature work before that gate. Do not begin DM implementation.
 
-### Responsive/systemic blockers
+## Cross-branch reminder
 
-8. sticky/fixed regions consume too much or effectively all usable vertical space in phone landscape;
-9. Conjuros sticky `Nivel` region becomes obstructive in landscape;
-10. excessive vertical margins/padding that are merely inconvenient in portrait become a major landscape usability problem;
-11. responsive layout policy must consider available **height**, not only width/form-factor/orientation labels.
+`main` is intentionally divergent and contains later global/Phase 5A/DM discovery decisions absent here. This Player branch contains the current Player runtime absent from `main`.
 
-### Owner-rejected regressions / required design corrections
-
-12. Trasfondo photo UX was unnecessarily redesigned; restore the previous preferred photo interaction/presentation while retaining the new durable persistence/storage and backup behavior;
-13. shared editor windows are functionally safe but too often full-height regardless of content; make short editors size adaptively while preserving IME safety;
-14. attack structured-damage model works but the editor interaction/labels are awkward and need a more direct compact dice/component UX;
-15. PC Settings functions but needs one coherent visual/information-architecture redesign rather than scattered padding patches;
-16. compactness scaling is disproportionate: inter-card/box gaps change much more than the rest of the UI;
-17. theme selector should show **name + simple three-color palette shorthand + current useful representative preview**;
-18. custom Habilidad geometry must match ordinary skills; italics remain the intended distinction;
-19. contextual `ⓘ` behavior is good but icon positioning/alignment needs refinement.
-
-## Cross-device repair rule
-
-Do **not** scope these findings as phone-only merely because they were first observed on phone.
-
-Any issue caused by shared state, shared components, shared spacing, shared editor/reorder primitives, shared special-mode logic or shared product concept must be repaired across both phone and tablet surfaces unless a device-specific exception is demonstrated.
-
-Important evidence distinction:
-
-- **repair scope:** phone + tablet for shared/systemic causes;
-- **physical acceptance evidence:** phone only so far;
-- **tablet physical QA:** still required later on the repaired build.
-
-## Current technically verified build identity
-
-- version `0.4.0-preqa.8`;
-- build `40800`;
-- type `debug`;
-- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
-- product tree `c612c07345ecdfc91d972118314ee649fe2048c4`;
-- validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
-- normal `Scaffold checks` workflow `34430548061` — **SUCCESS**;
-- artifact ID `10134364621` (`dnd-custom-aid-debug-apk`);
-- ZIP digest `sha256:b7ead12a7501bbef96f861321b5bebfd64c631647423b8eab9faec9580699a`;
-- extracted APK digest `sha256:bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
-
-Automated green remains evidence of technical correctness only; it did not predict all owner/device acceptance defects.
-
-## Automated-boundary lessons from owner QA
-
-Future repair validation must strengthen actual interaction coverage where static/model checks created false confidence:
-
-- Rasgos: validate that choosing a structured origin type presents canonical character origins and does not require redundant typing;
-- Table mode: validate actual activation from a clean persisted state, not only policy logic;
-- HP: validate propagation across General/Combate/shared surfaces;
-- responsive layout: explicitly exercise short-height phone landscape sticky/fixed regions;
-- reorder: validate the owner-approved direct normal-layout drag interaction, not merely a vertical fallback mode.
-
-## Exact next position
-
-Do **not** begin tablet QA on the current build and do **not** begin DM implementation.
-
-Next Player session:
-
-1. read `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`;
-2. read `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`;
-3. select the next unresolved `40800` QA finding and discuss **that point only** with the owner in enough detail to remove implementation ambiguity;
-4. when the owner explicitly closes the point, consolidate the approved behavior, constraints, device scope and required regression boundary in the repair-decision log;
-5. only then move to the next QA point;
-6. after all required points are individually closed, define one bounded Phase 4A acceptance-repair implementation plan across shared phone/tablet surfaces;
-7. implement only the accepted repair scope on the active continuation branch;
-8. run exact automated validation for each repaired boundary;
-9. produce the next monotonic successor QA build;
-10. perform targeted phone retest of the repaired blockers;
-11. after shared/systemic phone blockers are acceptable, perform tablet portrait and tablet landscape physical QA on the repaired build;
-12. freeze the replacement formal M6 candidate only when owner-audited behavior is acceptable;
-13. complete final regression/upgrade acceptance;
-14. explicitly close Phase 4A;
-15. only then may DM implementation begin.
-
-## Read next
-
-1. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md` — controlling owner/device QA findings and cross-device repair rule;
-2. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` — live point-by-point owner decision record;
-3. `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md` — exact current build/product/audit/full-gate evidence;
-4. `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md` — future DM Combat Desk design baseline; no implementation permission;
-5. `docs/PROJECT_STATE.md` — broader project snapshot;
-6. `docs/TESTING.md` — acceptance contract;
-7. `docs/ROADMAP.md` — Phase 4A/4B sequencing;
-8. `docs/BRANCH_STATUS.md` — repository authority map.
-
-## Protected owner directions
-
-- one datum / one canonical state across tabs;
-- phone landscape remains a phone interaction model;
-- phone and tablet share repair responsibility for shared/systemic defects;
-- tablet portrait/landscape remain independently designed and still require physical acceptance later;
-- reduce unnecessary margins/padding without degrading required touch targets;
-- responsive layout must consider available height as well as width;
-- direct drag-and-drop in the normal card layout is the reorder target;
-- `Clase`, `Subclase`, `Raza` and `Trasfondo` provenance must use canonical character data; `Otro` and `Don` may use free text;
-- restore preferred old UX when persistence was the actual requested underlying change;
-- Supercompact should read as a dense PC stat block inspired by the 5.5e monster/NPC reading grammar;
-- contextual help remains one canonical explanation rendered as `Siempre visible`, `ⓘ / tooltip`, or `Oculto`;
-- generic `Fuente` schema leakage must not be reintroduced;
-- use `Raza`, never `Especie/raza`;
-- use `Electrum`, never `Electro`;
-- no DM feature implementation before explicit Phase 4A closure.
+Do not force either branch over the other. A future integration must explicitly preserve both valid lines.

@@ -1,119 +1,106 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-11  
-**Controlling consolidation decision:** D-0066  
-**Canonical branch:** `main`  
-**Focused continuation branch:** `implementation/phase4a-successor-cycle`  
-**Current continuation boundary:** A–I successor implementation + post-A–I stabilization automated-green; owner phone QA of `preqa.8 / 40800` completed and not accepted; point-by-point acceptance-repair design reconciliation is current; DM discovery documented only
+**Updated:** 2026-09-12  
+**Canonical navigation branch:** `main`  
+**Authoritative Player implementation branch:** `implementation/phase4a-successor-cycle`  
+**Current Player boundary:** P1–P16 implemented/automation-green; P17 physical owner-QA gate pending
 
-This file exists because the repository accumulated many implementation, safety, retry and QA branch refs during Phase 4. Branch existence does **not** imply current authority.
+This file exists to prevent branch names, old checkpoints, or commit chronology from being mistaken for current authority.
 
-## 1. Current authority
+## 1. Two active authoritative lines
 
-At the current continuation boundary:
+### `main` — global navigation + later DM/Phase 5A discovery decisions
 
-- `main` remains the canonical repository baseline under D-0066 and is intentionally older than the live successor acceptance line;
-- `implementation/phase4a-successor-cycle` contains the full A–I Player successor implementation, post-A–I stabilization, the current `preqa.8 / 40800` QA evidence and design-only future-DM discovery;
-- the continuation branch is the authoritative branch for current Phase 4A Player acceptance work;
-- `docs/PROJECT_STATE.md` is the broader current-state snapshot;
-- `docs/checkpoints/LATEST.md` is the exact practical resume pointer;
-- `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md` is the controlling owner/device QA record;
-- `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` is the point-by-point repair-decision consolidation log;
-- `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md` preserves the exact technically verified Player product/full-gate boundary;
-- `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md` is future DM design truth only, not implementation authorization.
+`main` is the place to read the latest global project/discovery decisions. It contains later Phase 5A/DM product-design documentation that is not present on the Player successor branch.
 
-Canonical, documented or automated-green does not mean release-ready or owner-accepted.
+It does **not** contain the latest Player runtime repair implementation and must not be used as the source branch for current Phase 4A Player code.
 
-## 2. Current technically verified and owner-audited Player product
+DM implementation remains blocked until Phase 4A receives physical owner/device acceptance and explicit closure.
 
-The current Player QA artifact is:
+### `implementation/phase4a-successor-cycle` — current Player runtime
 
-- version `0.4.0-preqa.8` / build `40800` / debug;
-- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
-- product tree `c612c07345ecdfc91d972118314ee649fe2048c4`;
-- authoritative validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
-- normal full-gate workflow `34430548061` — SUCCESS;
-- artifact `10134364621` / `dnd-custom-aid-debug-apk`;
-- ZIP digest `b7ead12a7501bbef96f861321b5bebfd64c631647423b8eab9faec9580699a`;
-- extracted APK digest `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
+This is the authoritative source line for current Player/Phase 4A code, including the accepted `preqa.8 / 40800` repair pass.
 
-The owner physically tested this build on Redmi Note 11 Pro 5G through phone portrait, phone landscape and representative larger-text coverage. The result is **NOT ACCEPTED — acceptance-repair pass required**.
+Verified product/source boundary before the 2026-09-12 continuity documentation commit:
 
-Physical tablet QA remains deferred until shared/systemic defects are repaired.
+`d630270f2f3d8fab94f3c1290963c2da7afaf06d`
 
-Build `40700` and the earlier staged audition remain historical evidence only. They are not the current resume point.
+Normal Scaffold run `34721374190` succeeded on that exact source boundary and published the post-repair debug APK artifact.
 
-## 3. Frozen immutable QA evidence — KEEP
+P1–P16 are implemented/automation-qualified. P17 is the physical tablet-QA gate decision, not another implementation repair.
 
-These refs remain intentionally immutable historical evidence:
+## 2. The refs are intentionally divergent
+
+Before this continuity repair:
+
+- `main` = `de3930a8c0357bbbaa77c423f0011041f5cfd111`;
+- `implementation/phase4a-successor-cycle` = `d630270f2f3d8fab94f3c1290963c2da7afaf06d`.
+
+`main` has newer DM/Phase 5A discovery documentation absent from the Player branch. The Player branch has extensive Player implementation absent from `main`.
+
+Therefore:
+
+- do not force-move either branch;
+- do not assume `main` is the latest Player code merely because it is the default branch;
+- do not assume the Player branch supersedes later DM discovery records on `main`;
+- do not merge merely for cosmetic linearity;
+- if a future integration is desired, reconcile both lines explicitly and preserve both sets of valid work.
+
+## 3. Historical implementation branches
+
+These are milestone/history refs, not current resume points:
+
+- `implementation/phase4-preqa-ux-repair` — strict ancestor of the current successor line;
+- `implementation/phase4-preqa-consolidation` — strict ancestor of the current successor line;
+- `implementation/phase4-character-closure`;
+- `implementation/character-data-foundation`;
+- `implementation/local-campaign-selection`;
+- `implementation/initial-scaffold`;
+- older architecture/foundation/discovery milestone refs.
+
+Do not begin new work from them unless explicitly investigating history.
+
+`discovery/p12-material3-audit` is retained as P12 audit evidence, not as the active implementation line.
+
+## 4. Frozen QA evidence — keep immutable
+
+The surviving frozen QA refs are historical evidence:
 
 - `tmp/phase4-l-frozen-qa-candidate`;
 - `tmp/phase4-m5-frozen-qa-candidate`.
 
-Never delete, force-move, repurpose or treat them as current development branches merely for tidiness.
+Do not repurpose, force-move or use them as current development branches.
 
-## 4. Historical milestone branches
+## 5. Removed/superseded temporary branches
 
-Older discovery/foundation/architecture/implementation milestone branches remain historical labels and are not current authority. Examples include:
+Temporary Table Mode / QA helper branches that no longer appear in the current branch inventory are not missing active development lines. Their relevant accepted work is represented in the successor branch and/or durable checkpoints.
 
-- `discovery/initial-product-picture`;
-- `foundation/continuity-structure`;
-- `architecture/phase2-topology`;
-- `architecture/approved-backend-and-android`;
-- `implementation/initial-scaffold`;
-- `implementation/local-campaign-selection`;
-- `implementation/character-data-foundation`;
-- `implementation/phase4-character-closure`;
-- `implementation/phase4-preqa-consolidation`;
-- `implementation/phase4-preqa-ux-repair`.
+Use `docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md` for deliberately removed historical refs rather than recreating them.
 
-Do not start new work from them.
+## 6. P-series reading rule
 
-## 5. Obsolete temporary refs
+The `preqa.8 / 40800` repair-design sequence is P1–P17. Later files that repeat a P number are implementation/audit/closure records for those accepted points; numeric label order is not a substitute for Git ancestry and checkpoint meaning.
 
-Non-frozen `tmp/*` implementation safety/retry/helper refs are not valid resume points. Their pre-cleanup names/final SHAs were archived in:
+In particular:
 
-`docs/archive/2026-09-09_BRANCH_REF_ARCHIVE_BEFORE_CLEANUP.md`
+- P15 = Supercompact repair; later P15 audit/implementation work may include transversal consistency fixes discovered while proving it;
+- P16 = landscape/adaptive vertical-space policy and implementation;
+- P17 = physical tablet-QA gate policy; physical tablet acceptance is still pending.
 
-The invalid/superseded `implementation/phase4a-successor-cycle-temp-invalid` ref is likewise historical.
+## 7. Exact resume rule
 
-## 6. Current successor branch relation to main
+If the task is Player implementation/QA preparation:
 
-At the completed-E night close, `main` and the continuation branch were aligned by normal fast-forward. Successor work F–I, post-A–I stabilization, `40800` owner QA documentation and later repair-decision documentation continued on:
+1. switch to `implementation/phase4a-successor-cycle`;
+2. read `docs/checkpoints/LATEST.md` there;
+3. do not restart P1–P16;
+4. continue only with the documented monotonic QA packaging / owner-QA boundary or a defect reopened by actual QA evidence.
 
-`implementation/phase4a-successor-cycle`
+If the task is DM/Phase 5A product discovery:
 
-Do not silently fast-forward or merge this line to `main` merely because automated gates are green. A later consolidation into `main` must follow an explicit repository-ordering decision. Owner/device acceptance remains separate.
+1. use `main`;
+2. read `docs/checkpoints/LATEST.md` there;
+3. preserve D-0068/D-0069/D-0070 and later accepted discovery decisions;
+4. do not implement DM features before explicit Phase 4A closure.
 
-## 7. Current Player next action
-
-Remain on `implementation/phase4a-successor-cycle`.
-
-The immediate task is **not implementation** and is **not another QA pass**. Review the `40800` QA findings **one point at a time** with the owner.
-
-For each point:
-
-1. discuss the exact observed problem and intended behavior;
-2. resolve only that point's remaining design/interaction details;
-3. once the owner closes the point, consolidate the decision in `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` and update controlling continuity files if the decision changes project-level truth;
-4. then move to the next point.
-
-After all required points are reconciled, define the bounded Phase 4A acceptance-repair implementation plan, implement it on this branch, validate it, produce the next monotonic QA build, retest affected phone boundaries, then perform Player tablet portrait/landscape QA.
-
-## 8. DM boundary
-
-DM design/discovery may continue as documentation when explicitly chosen, but no DM product code may begin before explicit Phase 4A owner acceptance/closure.
-
-## 9. Interpretation rule
-
-When branch history is confusing:
-
-1. read `docs/checkpoints/LATEST.md`;
-2. read `docs/PROJECT_STATE.md`;
-3. use `implementation/phase4a-successor-cycle` for the live Phase 4A Player acceptance line;
-4. use `main` as the canonical repository baseline, not as proof that it contains the newest acceptance work;
-5. use the September 11 `40800` QA checkpoint for current owner findings;
-6. use D-0068 for future DM design only;
-7. consult the branch-ref archive/frozen refs only for historical evidence.
-
-Do not reconstruct current product truth from an arbitrary older branch or historical QA document merely because the ref still exists.
+If the task is repository reconciliation, read `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md` first.
