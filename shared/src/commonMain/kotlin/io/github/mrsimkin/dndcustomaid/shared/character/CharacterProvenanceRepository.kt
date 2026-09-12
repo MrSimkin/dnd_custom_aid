@@ -56,12 +56,13 @@ class CharacterProvenanceRepository(
                 rulesFamily = enumOrDefault(rulesFamily, CharacterRulesFamily.UNSPECIFIED),
             )
         }.executeAsOneOrNull()
-        val speciesIdentity = storedSpecies ?: sheet.background.race
-            .trim()
-            .takeIf { it.isNotEmpty() }
-            ?.let { CharacterOwnedSpeciesIdentity(id = Uuid.random(), name = it) }
+        val currentRaceName = sheet.background.race.trim().takeIf { it.isNotEmpty() }
+        val speciesIdentity = currentRaceName?.let { name ->
+            storedSpecies?.copy(name = name)
+                ?: CharacterOwnedSpeciesIdentity(id = Uuid.random(), name = name)
+        }
 
-        val subraceIdentity = database.characterProvenanceQueries.selectSubraceIdentity(id) {
+        val storedSubrace = database.characterProvenanceQueries.selectSubraceIdentity(id) {
                 _, rowId, parentSpeciesId, name, definitionKey, rulesFamily ->
             CharacterOwnedSubraceIdentity(
                 id = Uuid.parse(rowId),
@@ -71,6 +72,9 @@ class CharacterProvenanceRepository(
                 rulesFamily = enumOrDefault(rulesFamily, CharacterRulesFamily.UNSPECIFIED),
             )
         }.executeAsOneOrNull()
+        val subraceIdentity = storedSubrace?.takeIf { identity ->
+            speciesIdentity != null && identity.parentSpeciesId == speciesIdentity.id
+        }
 
         val storedBackground = database.characterProvenanceQueries.selectBackgroundIdentity(id) {
                 _, rowId, name, definitionKey, rulesFamily ->
@@ -81,10 +85,11 @@ class CharacterProvenanceRepository(
                 rulesFamily = enumOrDefault(rulesFamily, CharacterRulesFamily.UNSPECIFIED),
             )
         }.executeAsOneOrNull()
-        val backgroundIdentity = storedBackground ?: sheet.background.name
-            .trim()
-            .takeIf { it.isNotEmpty() }
-            ?.let { CharacterOwnedBackgroundIdentity(id = Uuid.random(), name = it) }
+        val currentBackgroundName = sheet.background.name.trim().takeIf { it.isNotEmpty() }
+        val backgroundIdentity = currentBackgroundName?.let { name ->
+            storedBackground?.copy(name = name)
+                ?: CharacterOwnedBackgroundIdentity(id = Uuid.random(), name = name)
+        }
 
         var projected = baseState.copy(
             subclassIdentities = subclassIdentities,
@@ -114,14 +119,15 @@ class CharacterProvenanceRepository(
         }
         projected = projected.copy(traitProvenance = traitProvenance)
 
-        // Persist bootstrap results immediately so generated owned identities and migration choices
-        // are stable across reopen even before the owner edits another successor setting.
+        // Persist bootstrap/reconciliation results immediately so generated owned identities,
+        // canonical renames/deletions and migration choices are stable across reopen.
         val requiresBootstrapWrite =
             subclassIdentities != storedSubclassIdentities ||
                 speciesIdentity != storedSpecies ||
+                subraceIdentity != storedSubrace ||
+                backgroundIdentity != storedBackground ||
                 traitProvenance.size != storedProvenance.size ||
-                traitProvenance.any { storedProvenance[it.traitId] != it } ||
-                (backgroundIdentity != storedBackground && storedBackground == null)
+                traitProvenance.any { storedProvenance[it.traitId] != it }
         if (requiresBootstrapWrite) {
             persist(characterId, projected)
         }
