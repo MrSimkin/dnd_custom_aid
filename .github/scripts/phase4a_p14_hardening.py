@@ -1,0 +1,895 @@
+from pathlib import Path
+
+
+def replace_once(path, old, new):
+    p = Path(path)
+    text = p.read_text()
+    count = text.count(old)
+    if count != 1:
+        raise SystemExit(f"{path}: expected exactly one match, found {count}\n--- OLD ---\n{old}")
+    p.write_text(text.replace(old, new, 1))
+
+
+def replace_count(path, old, new, expected):
+    p = Path(path)
+    text = p.read_text()
+    count = text.count(old)
+    if count != expected:
+        raise SystemExit(f"{path}: expected {expected} matches, found {count}\n--- OLD ---\n{old}")
+    p.write_text(text.replace(old, new))
+
+
+policy = Path('shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterTableModePolicy.kt')
+policy.write_text('''package io.github.mrsimkin.dndcustomaid.shared.character
+
+/**
+ * Explicit interaction policy for F16 Table/read-only mode.
+ *
+ * Table mode is not a blanket input lock: presentation-only actions and intentional session/live
+ * operations remain available. Only structural character/configuration writes are suppressed.
+ */
+enum class CharacterTableInteractionKind {
+    PRESENTATION,
+    OPERATIONAL,
+    STRUCTURAL,
+}
+
+fun isCharacterInteractionAllowedInTableMode(
+    tableModeEnabled: Boolean,
+    kind: CharacterTableInteractionKind,
+): Boolean = !tableModeEnabled || kind != CharacterTableInteractionKind.STRUCTURAL
+
+fun isCharacterStructuralEditingEnabled(tableModeEnabled: Boolean): Boolean =
+    isCharacterInteractionAllowedInTableMode(tableModeEnabled, CharacterTableInteractionKind.STRUCTURAL)
+
+/**
+ * Merge an operational CharacterSheet proposal onto the persisted structural definition.
+ * Only explicit live/session values cross this boundary.
+ */
+fun mergeCharacterOperationalState(
+    persisted: CharacterSheet,
+    proposed: CharacterSheet,
+): CharacterSheet {
+    val proposedSlots = proposed.spellSlots.associateBy(CharacterSpellSlot::level)
+    val proposedItems = proposed.inventoryItems.associateBy(CharacterInventoryItem::id)
+    val proposedTraits = proposed.traits.associateBy(CharacterTrait::id)
+    val proposedResources = proposed.resources.associateBy(CharacterResource::id)
+
+    return persisted.copy(
+        currentHp = proposed.currentHp.coerceIn(0, persisted.maxHp.coerceAtLeast(0)),
+        tempHp = proposed.tempHp.coerceAtLeast(0),
+        inspiration = proposed.inspiration,
+        deathSaveSuccesses = proposed.deathSaveSuccesses.coerceIn(0, 3),
+        deathSaveFailures = proposed.deathSaveFailures.coerceIn(0, 3),
+        spellSlots = persisted.spellSlots.map { slot ->
+            val proposedSpent = proposedSlots[slot.level]?.spentSlots ?: slot.spentSlots
+            slot.copy(spentSlots = proposedSpent.coerceIn(0, slot.totalSlots.coerceAtLeast(0)))
+        },
+        inventoryItems = persisted.inventoryItems.map { item ->
+            item.copy(quantity = proposedItems[item.id]?.quantity?.coerceAtLeast(0) ?: item.quantity)
+        },
+        traits = persisted.traits.map { trait ->
+            val proposedSpent = proposedTraits[trait.id]?.spentUses ?: trait.spentUses
+            val normalizedSpent = trait.maxUses?.let { maximum ->
+                proposedSpent.coerceIn(0, maximum.coerceAtLeast(0))
+            } ?: proposedSpent.coerceAtLeast(0)
+            trait.copy(spentUses = normalizedSpent)
+        },
+        resources = persisted.resources.map { resource ->
+            val proposedValue = proposedResources[resource.id]?.currentValue ?: resource.currentValue
+            val normalizedValue = resource.maxValue?.let { maximum ->
+                proposedValue.coerceIn(0, maximum.coerceAtLeast(0))
+            } ?: proposedValue.coerceAtLeast(0)
+            resource.copy(currentValue = normalizedValue)
+        },
+    )
+}
+
+/** Table Mode closure-state boundary: keep session controls, reject structural configuration. */
+fun mergeCharacterOperationalClosureState(
+    persisted: CharacterClosureState,
+    proposed: CharacterClosureState,
+): CharacterClosureState = persisted.copy(
+    exhaustionLevel = proposed.exhaustionLevel.coerceAtLeast(0),
+    concentration = proposed.concentration,
+    tableModeEnabled = proposed.tableModeEnabled,
+    hapticsEnabled = proposed.hapticsEnabled,
+    conditions = proposed.conditions,
+    reconciliationCheckpoints = proposed.reconciliationCheckpoints,
+    temporaryEffects = proposed.temporaryEffects,
+)
+
+/** Table Mode successor-state boundary: live marker values and presentation visibility only. */
+fun mergeCharacterOperationalSuccessorState(
+    persisted: CharacterSuccessorState,
+    proposed: CharacterSuccessorState,
+): CharacterSuccessorState {
+    val proposedMarkers = proposed.customMarkers.associateBy(CharacterCustomMarker::id)
+    val mergedMarkers = persisted.customMarkers.map { marker ->
+        val proposedValue = proposedMarkers[marker.id]?.currentValue ?: marker.currentValue
+        val normalizedValue = when (marker.valueKind) {
+            CharacterTrackableValueKind.BINARY -> proposedValue.coerceIn(0, 1)
+            CharacterTrackableValueKind.CURRENT_MAX -> marker.maxValue?.let { maximum ->
+                proposedValue.coerceIn(0, maximum.coerceAtLeast(0))
+            } ?: proposedValue.coerceAtLeast(0)
+            CharacterTrackableValueKind.COUNTER -> proposedValue.coerceAtLeast(0)
+        }
+        marker.copy(currentValue = normalizedValue)
+    }
+    return persisted.copy(
+        customMarkers = mergedMarkers,
+        preferences = persisted.preferences.copy(
+            inspirationVisible = proposed.preferences.inspirationVisible,
+        ),
+    )
+}
+''')
+
+tests = Path('shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterTableModePolicyTest.kt')
+if tests.exists():
+    raise SystemExit(f'{tests}: file unexpectedly already exists')
+tests.write_text('''package io.github.mrsimkin.dndcustomaid.shared.character
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.uuid.Uuid
+
+class CharacterTableModePolicyTest {
+    private fun sheet(): CharacterSheet {
+        val itemId = Uuid.random()
+        val traitId = Uuid.random()
+        val resourceId = Uuid.random()
+        return CharacterSheet(
+            id = Uuid.random(),
+            campaignId = Uuid.random(),
+            name = "Persisted",
+            status = CharacterStatus.ACTIVE,
+            updatedAtEpochSeconds = 1L,
+            strength = 10,
+            dexterity = 12,
+            constitution = 14,
+            intelligence = 16,
+            wisdom = 8,
+            charisma = 11,
+            armorClass = 15,
+            maxHp = 30,
+            currentHp = 25,
+            tempHp = 0,
+            initiativeAdjustment = 1,
+            speed = 30,
+            proficiencyBonus = 2,
+            savingThrows = emptyList(),
+            passivePerceptionAdjustment = 0,
+            spellSaveDc = 13,
+            classes = emptyList(),
+            skills = emptyList(),
+            spellSlots = listOf(CharacterSpellSlot(level = 1, totalSlots = 4, spentSlots = 1)),
+            inventoryItems = listOf(
+                CharacterInventoryItem(
+                    id = itemId,
+                    name = "Potion",
+                    quantity = 3,
+                    weightLb = 0.5,
+                    equipped = false,
+                    notes = null,
+                    sortOrder = 0,
+                    special = false,
+                    description = null,
+                    location = null,
+                    attuned = false,
+                ),
+            ),
+            traits = listOf(
+                CharacterTrait(
+                    id = traitId,
+                    name = "Second Wind",
+                    source = "Class",
+                    type = CharacterTraitType.CLASS,
+                    description = "Persisted description",
+                    notes = null,
+                    maxUses = 2,
+                    spentUses = 0,
+                    recovery = "Short rest",
+                    activation = CharacterActivationType.BONUS_ACTION,
+                    sortOrder = 0,
+                ),
+            ),
+            resources = listOf(
+                CharacterResource(
+                    id = resourceId,
+                    name = "Ki",
+                    currentValue = 2,
+                    maxValue = 5,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun operationalSheetMergeAppliesLiveValuesAndRejectsStructure() {
+        val persisted = sheet()
+        val proposed = persisted.copy(
+            name = "Structural overwrite",
+            status = CharacterStatus.DEAD,
+            armorClass = 99,
+            maxHp = 999,
+            currentHp = 7,
+            tempHp = 4,
+            inspiration = true,
+            deathSaveSuccesses = 2,
+            deathSaveFailures = 1,
+            spellSlots = persisted.spellSlots.map { it.copy(totalSlots = 99, spentSlots = 3) },
+            inventoryItems = persisted.inventoryItems.map { it.copy(name = "Renamed", quantity = 1) },
+            traits = persisted.traits.map { it.copy(description = "Overwritten", spentUses = 1) },
+            resources = persisted.resources.map { it.copy(name = "Renamed resource", currentValue = 4, maxValue = 99) },
+        )
+
+        val merged = mergeCharacterOperationalState(persisted, proposed)
+
+        assertEquals("Persisted", merged.name)
+        assertEquals(CharacterStatus.ACTIVE, merged.status)
+        assertEquals(15, merged.armorClass)
+        assertEquals(30, merged.maxHp)
+        assertEquals(7, merged.currentHp)
+        assertEquals(4, merged.tempHp)
+        assertTrue(merged.inspiration)
+        assertEquals(2, merged.deathSaveSuccesses)
+        assertEquals(1, merged.deathSaveFailures)
+        assertEquals(4, merged.spellSlots.single().totalSlots)
+        assertEquals(3, merged.spellSlots.single().spentSlots)
+        assertEquals("Potion", merged.inventoryItems.single().name)
+        assertEquals(1, merged.inventoryItems.single().quantity)
+        assertEquals("Persisted description", merged.traits.single().description)
+        assertEquals(1, merged.traits.single().spentUses)
+        assertEquals("Ki", merged.resources.single().name)
+        assertEquals(5, merged.resources.single().maxValue)
+        assertEquals(4, merged.resources.single().currentValue)
+    }
+
+    @Test
+    fun closureMergeKeepsSessionStateButRejectsStructuralConfiguration() {
+        val condition = CharacterCondition(Uuid.random(), "Prone")
+        val persisted = CharacterClosureState(
+            portraitRef = "portrait-a",
+            tableModeEnabled = true,
+            hapticsEnabled = true,
+            moduleOverrides = listOf(CharacterModuleOverride(CharacterModuleKind.ARTIFICER, CharacterModuleOverrideMode.AUTO)),
+        )
+        val proposed = persisted.copy(
+            portraitRef = "portrait-b",
+            tableModeEnabled = false,
+            hapticsEnabled = false,
+            exhaustionLevel = 2,
+            conditions = listOf(condition),
+            moduleOverrides = listOf(CharacterModuleOverride(CharacterModuleKind.ARTIFICER, CharacterModuleOverrideMode.FORCE_SHOW)),
+        )
+
+        val merged = mergeCharacterOperationalClosureState(persisted, proposed)
+
+        assertEquals("portrait-a", merged.portraitRef)
+        assertFalse(merged.tableModeEnabled)
+        assertFalse(merged.hapticsEnabled)
+        assertEquals(2, merged.exhaustionLevel)
+        assertEquals(listOf(condition), merged.conditions)
+        assertEquals(persisted.moduleOverrides, merged.moduleOverrides)
+    }
+
+    @Test
+    fun successorMergeAllowsMarkerValueAndPresentationOnly() {
+        val marker = CharacterCustomMarker(
+            id = Uuid.random(),
+            name = "Momentum",
+            valueKind = CharacterTrackableValueKind.CURRENT_MAX,
+            currentValue = 1,
+            maxValue = 5,
+        )
+        val persisted = CharacterSuccessorState(
+            customMarkers = listOf(marker),
+            preferences = CharacterSuccessorPreferences(
+                valuablesText = "Keep me",
+                tabOrder = listOf(CharacterSheetTabKey.OVERVIEW, CharacterSheetTabKey.COMBAT),
+                inspirationVisible = true,
+            ),
+        )
+        val proposed = persisted.copy(
+            customMarkers = listOf(marker.copy(name = "Renamed", currentValue = 4, maxValue = 99)),
+            preferences = CharacterSuccessorPreferences(
+                valuablesText = "Overwrite",
+                tabOrder = listOf(CharacterSheetTabKey.NOTES),
+                inspirationVisible = false,
+            ),
+        )
+
+        val merged = mergeCharacterOperationalSuccessorState(persisted, proposed)
+
+        assertEquals("Momentum", merged.customMarkers.single().name)
+        assertEquals(5, merged.customMarkers.single().maxValue)
+        assertEquals(4, merged.customMarkers.single().currentValue)
+        assertEquals("Keep me", merged.preferences.valuablesText)
+        assertEquals(listOf(CharacterSheetTabKey.OVERVIEW, CharacterSheetTabKey.COMBAT), merged.preferences.tabOrder)
+        assertFalse(merged.preferences.inspirationVisible)
+    }
+}
+''')
+
+editor = 'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt'
+replace_once(editor, 'import androidx.compose.foundation.clickable\n', 'import androidx.compose.foundation.clickable\nimport androidx.compose.foundation.rememberScrollState\nimport androidx.compose.foundation.verticalScroll\n')
+replace_once(editor, 'import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled\n', 'import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled\nimport io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalClosureState\nimport io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalState\n')
+replace_once(editor, '''    val hasUnsavedChanges =
+        draft.toJson() != storedDraftJson ||
+            combatDraftJson != storedCombatDraftJson ||
+            combatDamageDraftJson != storedCombatDamageDraftJson ||
+            spellcastingProfilesDraftJson != storedSpellcastingProfilesDraftJson ||
+            equipmentDraftJson != storedEquipmentDraftJson ||
+            backgroundDraftJson != storedBackgroundDraftJson ||
+            traitsDraftJson != storedTraitsDraftJson ||
+            traitProvenanceDraftJson != storedTraitProvenanceDraftJson ||
+            canonicalOriginsDraftJson != storedCanonicalOriginsDraftJson ||
+            spellcastingDraftJson != storedSpellcastingDraftJson ||
+            notesDraftJson != storedNotesDraftJson ||
+            h1ModuleDraftJson != storedH1ModuleDraftJson ||
+            proficiencyDraftJson != storedProficiencyDraftJson
+''', '''    val hasUnsavedChanges =
+        draft.toJson() != storedDraftJson ||
+            combatDraftJson != storedCombatDraftJson ||
+            combatDamageDraftJson != storedCombatDamageDraftJson ||
+            spellcastingProfilesDraftJson != storedSpellcastingProfilesDraftJson ||
+            equipmentDraftJson != storedEquipmentDraftJson ||
+            backgroundDraftJson != storedBackgroundDraftJson ||
+            traitsDraftJson != storedTraitsDraftJson ||
+            traitProvenanceDraftJson != storedTraitProvenanceDraftJson ||
+            canonicalOriginsDraftJson != storedCanonicalOriginsDraftJson ||
+            spellcastingDraftJson != storedSpellcastingDraftJson ||
+            notesDraftJson != storedNotesDraftJson ||
+            h1ModuleDraftJson != storedH1ModuleDraftJson ||
+            proficiencyDraftJson != storedProficiencyDraftJson
+    val tableModePendingChanges = buildList {
+        val persistedDraft = CharacterEditorDraftV4.from(stored)
+        fun addScalar(label: String, before: String, after: String) {
+            if (before != after) add("$label: ${before.ifBlank { "—" }} → ${after.ifBlank { "—" }}")
+        }
+        addScalar("Nombre", persistedDraft.name, draft.name)
+        addScalar("Estado", persistedDraft.status.name, draft.status.name)
+        addScalar("FUE", persistedDraft.strength, draft.strength)
+        addScalar("DES", persistedDraft.dexterity, draft.dexterity)
+        addScalar("CON", persistedDraft.constitution, draft.constitution)
+        addScalar("INT", persistedDraft.intelligence, draft.intelligence)
+        addScalar("SAB", persistedDraft.wisdom, draft.wisdom)
+        addScalar("CAR", persistedDraft.charisma, draft.charisma)
+        addScalar("CA", persistedDraft.armorClass, draft.armorClass)
+        addScalar("PG máximos", persistedDraft.maxHp, draft.maxHp)
+        addScalar("PG actuales", persistedDraft.currentHp, draft.currentHp)
+        addScalar("PG temporales", persistedDraft.tempHp, draft.tempHp)
+        addScalar("Ajuste iniciativa", persistedDraft.initiativeAdjustment, draft.initiativeAdjustment)
+        addScalar("Velocidad", persistedDraft.speed, draft.speed)
+        addScalar("Ajuste competencia", persistedDraft.proficiencyBonusAdjustment, draft.proficiencyBonusAdjustment)
+        addScalar("Ajuste Percepción pasiva", persistedDraft.passivePerceptionAdjustment, draft.passivePerceptionAdjustment)
+        addScalar("CD de conjuros", persistedDraft.spellSaveDc, draft.spellSaveDc)
+        addScalar("Ataque de conjuros", persistedDraft.spellAttackModifier, draft.spellAttackModifier)
+        addScalar("Característica de conjuros", persistedDraft.spellcastingAbility.name, draft.spellcastingAbility.name)
+        if (persistedDraft.classes != draft.classes) add("Clases y niveles: cambios pendientes")
+        if (persistedDraft.saves != draft.saves) add("Tiradas de salvación: cambios pendientes")
+        if (persistedDraft.skills != draft.skills) add("Habilidades: cambios pendientes")
+        if (persistedDraft.spellSlots.map { it.level to it.total } != draft.spellSlots.map { it.level to it.total }) add("Espacios de conjuro: configuración pendiente")
+        if (combatDraftJson != storedCombatDraftJson) add("Combate: acciones / ataques pendientes")
+        if (combatDamageDraftJson != storedCombatDamageDraftJson) add("Combate: daño estructurado pendiente")
+        if (spellcastingProfilesDraftJson != storedSpellcastingProfilesDraftJson) add("Conjuros: perfiles de lanzamiento pendientes")
+        if (equipmentDraftJson != storedEquipmentDraftJson) add("Equipo y monedas: cambios pendientes")
+        if (backgroundDraftJson != storedBackgroundDraftJson) add("Trasfondo: cambios pendientes")
+        if (traitsDraftJson != storedTraitsDraftJson) add("Rasgos: cambios pendientes")
+        if (traitProvenanceDraftJson != storedTraitProvenanceDraftJson) add("Rasgos: procedencia pendiente")
+        if (canonicalOriginsDraftJson != storedCanonicalOriginsDraftJson) add("Identidad de raza / trasfondo: cambios pendientes")
+        if (spellcastingDraftJson != storedSpellcastingDraftJson) add("Conjuros: fuentes o conjuros pendientes")
+        if (notesDraftJson != storedNotesDraftJson) add("Notas: cambios pendientes")
+        if (h1ModuleDraftJson != storedH1ModuleDraftJson) add("Módulos de clase / formas / compañeros: cambios pendientes")
+        if (proficiencyDraftJson != storedProficiencyDraftJson) add("Competencias: cambios pendientes")
+    }.distinct()
+''')
+replace_once(editor, '''    fun updateEquipmentItems(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>) {
+        equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(items = updated))
+        savedMessage = null
+    }
+
+    fun updateCurrencies(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>) {
+        equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(currencies = updated))
+        savedMessage = null
+    }
+
+    fun updateEquipmentDraft(updated: CharacterEquipmentDraftV4) {
+        equipmentDraftJson = equipmentDraftToJsonV4(updated)
+        savedMessage = null
+    }
+''', '''    fun updateEquipmentItems(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>) {
+        if (!structuralEditingEnabled) return
+        equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(items = updated))
+        savedMessage = null
+    }
+
+    fun updateCurrencies(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>) {
+        if (!structuralEditingEnabled) return
+        equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(currencies = updated))
+        savedMessage = null
+    }
+
+    fun updateEquipmentDraft(updated: CharacterEquipmentDraftV4) {
+        if (!structuralEditingEnabled) return
+        equipmentDraftJson = equipmentDraftToJsonV4(updated)
+        savedMessage = null
+    }
+''')
+replace_once(editor, '''    fun updateTraits(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>) {
+        traitsDraftJson = characterTraitsToJsonV4(updated)
+        savedMessage = null
+    }
+
+    fun updateTraitProvenance(
+        updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitProvenance>,
+    ) {
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(updated)
+        savedMessage = null
+    }
+''', '''    fun updateTraits(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>) {
+        if (!structuralEditingEnabled) return
+        traitsDraftJson = characterTraitsToJsonV4(updated)
+        savedMessage = null
+    }
+
+    fun updateTraitProvenance(
+        updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitProvenance>,
+    ) {
+        if (!structuralEditingEnabled) return
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(updated)
+        savedMessage = null
+    }
+''')
+replace_once(editor, '''    fun persistSpellcasterEnabled(enabled: Boolean) {
+        if (enabled == stored.spellcasterEnabled) return
+''', '''    fun persistSpellcasterEnabled(enabled: Boolean) {
+        if (!structuralEditingEnabled) return
+        if (enabled == stored.spellcasterEnabled) return
+''')
+replace_once(editor, '''    fun persistStatus(status: CharacterStatus) {
+        if (status == stored.status && status == draft.status) return
+''', '''    fun persistStatus(status: CharacterStatus) {
+        if (!structuralEditingEnabled) return
+        if (status == stored.status && status == draft.status) return
+''')
+replace_once(editor, '''    fun persistClosureState(updated: CharacterClosureState) {
+        if (!closureState.tableModeEnabled && updated.tableModeEnabled && hasUnsavedChanges) {
+            confirmTableModeTransition = true
+            return
+        }
+        if (updated == closureState) return
+        closureState = closureRepository.saveState(characterId, updated)
+        savedMessage = "Guardado"
+    }
+''', '''    fun persistClosureState(updated: CharacterClosureState) {
+        if (!closureState.tableModeEnabled && updated.tableModeEnabled && hasUnsavedChanges) {
+            confirmTableModeTransition = true
+            return
+        }
+        val effective = if (closureState.tableModeEnabled) {
+            mergeCharacterOperationalClosureState(closureState, updated)
+        } else {
+            updated
+        }
+        if (effective == closureState) return
+        closureState = closureRepository.saveState(characterId, effective)
+        savedMessage = "Guardado"
+    }
+''')
+replace_once(editor, '''
+
+    fun persistOperationalSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        stored = repository.saveCharacter(updated)
+        savedMessage = "Guardado"
+    }
+
+    fun persistCombatOperationalSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        val previous = stored
+        stored = repository.saveCharacter(updated)
+        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
+            draft = draft.copy(
+                currentHp = stored.currentHp.toString(),
+                tempHp = stored.tempHp.toString(),
+            )
+        }
+        savedMessage = "Guardado"
+    }
+
+    fun persistSupercompactSheet(updated: CharacterSheet) {
+        if (updated == stored) return
+        val previous = stored
+        stored = repository.saveCharacter(updated)
+        var syncedDraft = draft
+        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
+            syncedDraft = syncedDraft.copy(
+                currentHp = stored.currentHp.toString(),
+                tempHp = stored.tempHp.toString(),
+            )
+        }
+        if (stored.spellSlots != previous.spellSlots) {
+            val persistedByLevel = stored.spellSlots.associateBy { it.level }
+            syncedDraft = syncedDraft.copy(
+                spellSlots = syncedDraft.spellSlots.map { slot ->
+                    val persisted = persistedByLevel[slot.level]
+                    slot.copy(
+                        total = persisted?.totalSlots?.toString() ?: "0",
+                        spent = persisted?.spentSlots ?: 0,
+                    )
+                },
+            )
+        }
+        draft = syncedDraft
+        savedMessage = "Guardado"
+    }
+''', '''
+
+    fun syncOperationalDraftsFromStored() {
+        val persistedSlots = stored.spellSlots.associateBy { it.level }
+        draft = draft.copy(
+            currentHp = stored.currentHp.toString(),
+            tempHp = stored.tempHp.toString(),
+            spellSlots = draft.spellSlots.map { slot ->
+                slot.copy(spent = persistedSlots[slot.level]?.spentSlots ?: 0)
+            },
+        )
+        val currentEquipment = equipmentDraftFromJsonV4(equipmentDraftJson)
+        val persistedItems = stored.inventoryItems.associateBy { it.id }
+        equipmentDraftJson = equipmentDraftToJsonV4(
+            currentEquipment.copy(
+                items = currentEquipment.items.map { item ->
+                    persistedItems[item.id]?.let { persisted -> item.copy(quantity = persisted.quantity) } ?: item
+                },
+            ),
+        )
+        val persistedTraits = stored.traits.associateBy { it.id }
+        traitsDraftJson = characterTraitsToJsonV4(
+            characterTraitsFromJsonV4(traitsDraftJson).map { trait ->
+                persistedTraits[trait.id]?.let { persisted -> trait.copy(spentUses = persisted.spentUses) } ?: trait
+            },
+        )
+    }
+
+    fun persistOperationalSheet(updated: CharacterSheet) {
+        val effective = mergeCharacterOperationalState(stored, updated)
+        if (effective == stored) return
+        stored = repository.saveCharacter(effective)
+        syncOperationalDraftsFromStored()
+        savedMessage = "Guardado"
+    }
+
+    fun persistStructuralSheet(updated: CharacterSheet) {
+        if (!structuralEditingEnabled || updated == stored) return
+        stored = repository.saveCharacter(updated)
+        savedMessage = "Guardado"
+    }
+
+    fun persistCombatOperationalSheet(updated: CharacterSheet) {
+        persistOperationalSheet(updated)
+    }
+
+    fun persistSupercompactSheet(updated: CharacterSheet) {
+        persistOperationalSheet(updated)
+    }
+''')
+replace_once(editor, '''                        CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(
+                            sheet = stored,
+                            generalDraftSheet = settingsSheet,
+                            closureState = closureState,
+                            onSheetChange = ::persistOperationalSheet,
+                            onClosureStateChange = ::persistClosureState,
+''', '''                        CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(
+                            sheet = stored,
+                            generalDraftSheet = settingsSheet,
+                            closureState = closureState,
+                            onSheetChange = ::persistOperationalSheet,
+                            onStructuralSheetChange = ::persistStructuralSheet,
+                            onClosureStateChange = ::persistClosureState,
+''')
+replace_once(editor, '''                        CharacterTabV4.EQUIPMENT -> CharacterEquipmentClosureTabV4(
+                            draft = equipmentDraft,
+                            onDraftChange = ::updateEquipmentDraft,
+                            armorClass = stored.armorClass,
+''', '''                        CharacterTabV4.EQUIPMENT -> CharacterEquipmentClosureTabV4(
+                            draft = equipmentDraft,
+                            onDraftChange = ::updateEquipmentDraft,
+                            onOperationalItemsChange = { updatedItems ->
+                                persistOperationalSheet(stored.copy(inventoryItems = updatedItems))
+                            },
+                            armorClass = stored.armorClass,
+''')
+replace_once(editor, '''                            onTraitsChange = ::updateTraits,
+                            onTraitProvenanceChange = ::updateTraitProvenance,
+                            onClosureStateChange = ::persistStructuralClosureState,
+''', '''                            onTraitsChange = ::updateTraits,
+                            onTraitProvenanceChange = ::updateTraitProvenance,
+                            onSpentUsesChange = { traitId, spentUses ->
+                                persistOperationalSheet(
+                                    stored.copy(
+                                        traits = stored.traits.map { trait ->
+                                            if (trait.id == traitId) trait.copy(spentUses = spentUses) else trait
+                                        },
+                                    ),
+                                )
+                            },
+                            onClosureStateChange = ::persistStructuralClosureState,
+''')
+replace_once(editor, '''                            onSlotSpentChange = { level, spent ->
+                                val slot = draft.spellSlotFor(level)
+                                val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                                updateDraft(
+                                    draft.withSpellSlot(
+                                        slot.copy(spent = spent.coerceIn(0, total)),
+                                    ),
+                                )
+                            },
+''', '''                            onSlotSpentChange = { level, spent ->
+                                val persistedSlot = stored.spellSlots.firstOrNull { it.level == level }
+                                if (persistedSlot != null) {
+                                    persistOperationalSheet(
+                                        stored.copy(
+                                            spellSlots = stored.spellSlots.map { slot ->
+                                                if (slot.level == level) slot.copy(spentSlots = spent.coerceIn(0, slot.totalSlots.coerceAtLeast(0))) else slot
+                                            },
+                                        ),
+                                    )
+                                }
+                            },
+''')
+replace_count(editor, 'onClosureStateChange = ::persistClosureState,\n                            wide = wide,', 'onClosureStateChange = ::persistStructuralClosureState,\n                            wide = wide,', 6)
+replace_once(editor, '''            text = {
+                Text(
+                    "Hay cambios de edición pendientes. Elige qué hacer antes de entrar en Modo Mesa.",
+                )
+            },
+''', '''            text = {
+                Column(
+                    modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                ) {
+                    Text("Hay cambios de edición pendientes. Revísalos antes de entrar en Modo Mesa.")
+                    tableModePendingChanges.forEach { change ->
+                        Text("• $change", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            },
+''')
+
+equipment = 'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt'
+replace_once(equipment, '''    draft: CharacterEquipmentDraftV4,
+    onDraftChange: (CharacterEquipmentDraftV4) -> Unit,
+    armorClass: Int,
+''', '''    draft: CharacterEquipmentDraftV4,
+    onDraftChange: (CharacterEquipmentDraftV4) -> Unit,
+    onOperationalItemsChange: (List<CharacterInventoryItem>) -> Unit,
+    armorClass: Int,
+''')
+replace_count(equipment, '''                    onQuickUse = { _, usage ->
+                        onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+''', '''                    onQuickUse = { _, usage ->
+                        onOperationalItemsChange(consumeInventoryItem(draft.items, usage))
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+''', 2)
+
+traits = 'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterTraitsClosureV4.kt'
+replace_once(traits, '''    onTraitsChange: (List<CharacterTrait>) -> Unit,
+    onTraitProvenanceChange: (List<CharacterTraitProvenance>) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
+''', '''    onTraitsChange: (List<CharacterTrait>) -> Unit,
+    onTraitProvenanceChange: (List<CharacterTraitProvenance>) -> Unit,
+    onSpentUsesChange: (Uuid, Int) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
+''')
+replace_once(traits, '''        onTraitsChange(
+            traits.map { item -> if (item.id == trait.id) item.copy(spentUses = next) else item },
+        )
+''', '''        onSpentUsesChange(trait.id, next)
+''')
+
+management = 'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterManagementSuccessorV4.kt'
+replace_once(management, '''    closureState: CharacterClosureState,
+    onSheetChange: (CharacterSheet) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
+''', '''    closureState: CharacterClosureState,
+    onSheetChange: (CharacterSheet) -> Unit,
+    onStructuralSheetChange: (CharacterSheet) -> Unit,
+    onClosureStateChange: (CharacterClosureState) -> Unit,
+''')
+replace_count(management, 'onSheetChange(sheet.copy(resources = updatedResources))', 'onStructuralSheetChange(sheet.copy(resources = updatedResources))', 2)
+
+context = 'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterPcSettingsContextV4.kt'
+replace_once(context, 'import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceRepository\n', 'import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository\nimport io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceRepository\n')
+replace_once(context, 'import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState\n', 'import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState\nimport io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalSuccessorState\n')
+replace_once(context, '''    characterRepository: CharacterRepository,
+    successorRepository: CharacterSuccessorRepository,
+''', '''    characterRepository: CharacterRepository,
+    closureRepository: CharacterClosureRepository,
+    successorRepository: CharacterSuccessorRepository,
+''')
+replace_once(context, '''        onSuccessorStateChange = { updated ->
+            if (updated != successorState) {
+                val savedBase = successorRepository.saveState(characterId, updated)
+                successorState = provenanceRepository.saveState(
+                    characterId,
+                    savedBase.copy(
+                        subclassIdentities = updated.subclassIdentities,
+                        speciesIdentity = updated.speciesIdentity,
+                        subraceIdentity = updated.subraceIdentity,
+                        backgroundIdentity = updated.backgroundIdentity,
+                        traitProvenance = updated.traitProvenance,
+                    ),
+                )
+            }
+        },
+''', '''        onSuccessorStateChange = { updated ->
+            val effective = if (closureRepository.state(characterId).tableModeEnabled) {
+                mergeCharacterOperationalSuccessorState(successorState, updated)
+            } else {
+                updated
+            }
+            if (effective != successorState) {
+                val savedBase = successorRepository.saveState(characterId, effective)
+                successorState = provenanceRepository.saveState(
+                    characterId,
+                    savedBase.copy(
+                        subclassIdentities = effective.subclassIdentities,
+                        speciesIdentity = effective.speciesIdentity,
+                        subraceIdentity = effective.subraceIdentity,
+                        backgroundIdentity = effective.backgroundIdentity,
+                        traitProvenance = effective.traitProvenance,
+                    ),
+                )
+            }
+        },
+''')
+
+main = 'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/MainActivity.kt'
+replace_once(main, '''                    characterRepository = characterRepository,
+                    successorRepository = characterSuccessorRepository,
+''', '''                    characterRepository = characterRepository,
+                    closureRepository = characterClosureRepository,
+                    successorRepository = characterSuccessorRepository,
+''')
+
+settings = 'androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterPcSettingsClosureV4.kt'
+replace_once(settings, '''    val page = runCatching { PcSettingsPageClosureV4.valueOf(pageName) }.getOrDefault(PcSettingsPageClosureV4.MAIN)
+''', '''    val requestedPage = runCatching { PcSettingsPageClosureV4.valueOf(pageName) }.getOrDefault(PcSettingsPageClosureV4.MAIN)
+    val page = if (closureState.tableModeEnabled && requestedPage != PcSettingsPageClosureV4.MAIN) PcSettingsPageClosureV4.MAIN else requestedPage
+''')
+replace_once(settings, '''    fun requestStatus(requested: CharacterStatus) {
+        when (requested) {
+''', '''    fun requestStatus(requested: CharacterStatus) {
+        if (closureState.tableModeEnabled) return
+        when (requested) {
+''')
+replace_once(settings, '''                inspirationVisible = pcContext?.pcConfiguration?.inspirationVisible ?: true,
+                onInspirationVisibleChange = { visible ->
+''', '''                inspirationVisible = pcContext?.pcConfiguration?.inspirationVisible ?: true,
+                structuralSettingsEnabled = !closureState.tableModeEnabled,
+                onInspirationVisibleChange = { visible ->
+''')
+replace_once(settings, '''    inspirationVisible: Boolean,
+    onInspirationVisibleChange: (Boolean) -> Unit,
+''', '''    inspirationVisible: Boolean,
+    structuralSettingsEnabled: Boolean,
+    onInspirationVisibleChange: (Boolean) -> Unit,
+''')
+replace_count(settings, '''                                title = "Lanzamiento de conjuros",
+                                checked = spellcasterEnabled,
+                                onCheckedChange = onSpellcasterEnabledChange,
+''', '''                                title = "Lanzamiento de conjuros",
+                                checked = spellcasterEnabled,
+                                enabled = structuralSettingsEnabled,
+                                onCheckedChange = onSpellcasterEnabledChange,
+''', 1)
+for title, summary in [
+    ('Orden de pestañas', 'if (tabCount == 1) "1 pestaña" else "$tabCount pestañas"'),
+    ('Atributos personalizados', 'customAttributeCount.toString()'),
+    ('Habilidades personalizadas', 'closureState.customSkills.size.toString()'),
+    ('Marcadores personalizados', 'customMarkerCount.toString()'),
+    ('Módulos', '"$visibleModules visibles"'),
+]:
+    old = f'''                                title = "{title}",\n                                summary = {summary},\n                                onClick = {{ onNavigate(PcSettingsPageClosureV4.'''
+    if old not in Path(settings).read_text():
+        continue
+# Explicit compact/wide row edits below keep matching strict and reviewable.
+replace_count(settings, '''                                summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                                onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
+''', '''                                summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                                enabled = structuralSettingsEnabled,
+                                onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
+''', 1)
+replace_count(settings, '''                                summary = customAttributeCount.toString(),
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
+''', '''                                summary = customAttributeCount.toString(),
+                                enabled = structuralSettingsEnabled,
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
+''', 1)
+replace_count(settings, '''                                summary = closureState.customSkills.size.toString(),
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
+''', '''                                summary = closureState.customSkills.size.toString(),
+                                enabled = structuralSettingsEnabled,
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
+''', 1)
+replace_count(settings, '''                                summary = customMarkerCount.toString(),
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
+''', '''                                summary = customMarkerCount.toString(),
+                                enabled = structuralSettingsEnabled,
+                                onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
+''', 1)
+replace_count(settings, '''                                summary = "$visibleModules visibles",
+                                onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
+''', '''                                summary = "$visibleModules visibles",
+                                enabled = structuralSettingsEnabled,
+                                onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
+''', 1)
+replace_once(settings, '''                    PcToggleRowClosureV4("Lanzamiento de conjuros", spellcasterEnabled, onSpellcasterEnabledChange)
+''', '''                    PcToggleRowClosureV4(
+                        title = "Lanzamiento de conjuros",
+                        checked = spellcasterEnabled,
+                        onCheckedChange = onSpellcasterEnabledChange,
+                        enabled = structuralSettingsEnabled,
+                    )
+''')
+replace_once(settings, '''                        summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                        onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
+''', '''                        summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                        enabled = structuralSettingsEnabled,
+                        onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
+''')
+replace_once(settings, '''                        summary = customAttributeCount.toString(),
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
+''', '''                        summary = customAttributeCount.toString(),
+                        enabled = structuralSettingsEnabled,
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
+''')
+replace_once(settings, '''                        summary = closureState.customSkills.size.toString(),
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
+''', '''                        summary = closureState.customSkills.size.toString(),
+                        enabled = structuralSettingsEnabled,
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
+''')
+replace_once(settings, '''                        summary = customMarkerCount.toString(),
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
+''', '''                        summary = customMarkerCount.toString(),
+                        enabled = structuralSettingsEnabled,
+                        onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
+''')
+replace_once(settings, '''                        summary = "$visibleModules visibles",
+                        onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
+''', '''                        summary = "$visibleModules visibles",
+                        enabled = structuralSettingsEnabled,
+                        onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
+''')
+replace_once(settings, '''                LifecycleStatusRowClosureV4(status = status, onStatusChange = onStatusChange)
+''', '''                LifecycleStatusRowClosureV4(
+                    status = status,
+                    enabled = structuralSettingsEnabled,
+                    onStatusChange = onStatusChange,
+                )
+''')
+replace_once(settings, '''private fun LifecycleStatusRowClosureV4(
+    status: CharacterStatus,
+    onStatusChange: (CharacterStatus) -> Unit,
+) {
+''', '''private fun LifecycleStatusRowClosureV4(
+    status: CharacterStatus,
+    enabled: Boolean,
+    onStatusChange: (CharacterStatus) -> Unit,
+) {
+''')
+replace_once(settings, '''            OutlinedButton(onClick = { expanded = true }) { Text(pcStatusLabelClosureV4(status)) }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+''', '''            OutlinedButton(onClick = { expanded = true }, enabled = enabled) { Text(pcStatusLabelClosureV4(status)) }
+            DropdownMenu(expanded = enabled && expanded, onDismissRequest = { expanded = false }) {
+''')
+
+print('P14 audited hardening patch applied successfully')
