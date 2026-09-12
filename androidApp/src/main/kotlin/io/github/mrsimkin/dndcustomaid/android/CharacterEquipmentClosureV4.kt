@@ -75,6 +75,7 @@ import kotlin.uuid.Uuid
 internal fun CharacterEquipmentClosureTabV4(
     draft: CharacterEquipmentDraftV4,
     onDraftChange: (CharacterEquipmentDraftV4) -> Unit,
+    onOperationalItemsChange: (List<CharacterInventoryItem>) -> Unit,
     armorClass: Int,
     resources: List<CharacterResource>,
     onResourceValueChange: (Uuid, Int) -> Unit,
@@ -366,7 +367,7 @@ internal fun CharacterEquipmentClosureTabV4(
                     usageFor = ::usageFor,
                     onEdit = ::beginEdit,
                     onQuickUse = { _, usage ->
-                        onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
+                        onOperationalItemsChange(consumeInventoryItem(draft.items, usage))
                         haptic(CharacterHapticEventV4.RESOURCE)
                     },
                     onDuplicate = ::duplicate,
@@ -392,7 +393,7 @@ internal fun CharacterEquipmentClosureTabV4(
                     usageFor = ::usageFor,
                     onEdit = ::beginEdit,
                     onQuickUse = { _, usage ->
-                        onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
+                        onOperationalItemsChange(consumeInventoryItem(draft.items, usage))
                         haptic(CharacterHapticEventV4.RESOURCE)
                     },
                     onDuplicate = ::duplicate,

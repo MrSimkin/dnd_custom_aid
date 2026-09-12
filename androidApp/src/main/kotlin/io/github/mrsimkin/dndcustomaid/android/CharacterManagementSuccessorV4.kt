@@ -72,6 +72,7 @@ internal fun CharacterManagementSuccessorTabV4(
     generalDraftSheet: CharacterSheet,
     closureState: CharacterClosureState,
     onSheetChange: (CharacterSheet) -> Unit,
+    onStructuralSheetChange: (CharacterSheet) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
     structuralEditingEnabled: Boolean,
     wide: Boolean,
@@ -276,7 +277,7 @@ internal fun CharacterManagementSuccessorTabV4(
                     }
                 }
                 // Parent Resource must exist before successor FK-backed configuration is persisted.
-                onSheetChange(sheet.copy(resources = updatedResources))
+                onStructuralSheetChange(sheet.copy(resources = updatedResources))
 
                 val retainedRules = closureState.resourceRecovery.filterNot { it.resourceId == resource.id }
                 onClosureStateChange(
@@ -305,7 +306,7 @@ internal fun CharacterManagementSuccessorTabV4(
                     haptic(CharacterHapticEventV4.DESTRUCTIVE)
                     val updatedResources = sheet.resources.filterNot { it.id == target.id }
                         .mapIndexed { index, item -> item.copy(sortOrder = index) }
-                    onSheetChange(sheet.copy(resources = updatedResources))
+                    onStructuralSheetChange(sheet.copy(resources = updatedResources))
                     val liveResourceIds = updatedResources.mapTo(mutableSetOf()) { it.id }
                     onClosureStateChange(
                         closureState.copy(

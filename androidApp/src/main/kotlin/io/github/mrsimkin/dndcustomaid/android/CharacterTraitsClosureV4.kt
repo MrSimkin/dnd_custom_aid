@@ -84,6 +84,7 @@ internal fun CharacterTraitsClosureTabV4(
     resources: List<CharacterResource>,
     onTraitsChange: (List<CharacterTrait>) -> Unit,
     onTraitProvenanceChange: (List<CharacterTraitProvenance>) -> Unit,
+    onSpentUsesChange: (Uuid, Int) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
     onResourceValueChange: (Uuid, Int) -> Unit,
     structuralEditingEnabled: Boolean,
@@ -186,9 +187,7 @@ internal fun CharacterTraitsClosureTabV4(
         val max = trait.maxUses ?: return
         val next = (trait.spentUses + delta).coerceIn(0, max)
         if (next == trait.spentUses) return
-        onTraitsChange(
-            traits.map { item -> if (item.id == trait.id) item.copy(spentUses = next) else item },
-        )
+        onSpentUsesChange(trait.id, next)
         haptic(CharacterHapticEventV4.RESOURCE)
     }
 

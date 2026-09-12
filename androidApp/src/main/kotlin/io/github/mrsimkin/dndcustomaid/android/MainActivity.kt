@@ -169,6 +169,7 @@ private fun DndCustomAidApp(
                 CharacterPcSettingsStateProviderV4(
                     characterId = characterId,
                     characterRepository = characterRepository,
+                    closureRepository = characterClosureRepository,
                     successorRepository = characterSuccessorRepository,
                     provenanceRepository = characterProvenanceRepository,
                 ) {

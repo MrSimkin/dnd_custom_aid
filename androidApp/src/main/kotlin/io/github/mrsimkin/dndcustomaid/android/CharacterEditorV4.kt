@@ -6,6 +6,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -90,6 +92,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.customSkillTotal
 import io.github.mrsimkin.dndcustomaid.shared.character.generalSpellcastingRows
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSkills
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
+import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalClosureState
+import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalState
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.visibleCharacterModules
@@ -356,6 +360,47 @@ internal fun CharacterEditorScreenV4(
             notesDraftJson != storedNotesDraftJson ||
             h1ModuleDraftJson != storedH1ModuleDraftJson ||
             proficiencyDraftJson != storedProficiencyDraftJson
+    val tableModePendingChanges = buildList {
+        val persistedDraft = CharacterEditorDraftV4.from(stored)
+        fun addScalar(label: String, before: String, after: String) {
+            if (before != after) add("$label: ${before.ifBlank { "—" }} → ${after.ifBlank { "—" }}")
+        }
+        addScalar("Nombre", persistedDraft.name, draft.name)
+        addScalar("Estado", persistedDraft.status.name, draft.status.name)
+        addScalar("FUE", persistedDraft.strength, draft.strength)
+        addScalar("DES", persistedDraft.dexterity, draft.dexterity)
+        addScalar("CON", persistedDraft.constitution, draft.constitution)
+        addScalar("INT", persistedDraft.intelligence, draft.intelligence)
+        addScalar("SAB", persistedDraft.wisdom, draft.wisdom)
+        addScalar("CAR", persistedDraft.charisma, draft.charisma)
+        addScalar("CA", persistedDraft.armorClass, draft.armorClass)
+        addScalar("PG máximos", persistedDraft.maxHp, draft.maxHp)
+        addScalar("PG actuales", persistedDraft.currentHp, draft.currentHp)
+        addScalar("PG temporales", persistedDraft.tempHp, draft.tempHp)
+        addScalar("Ajuste iniciativa", persistedDraft.initiativeAdjustment, draft.initiativeAdjustment)
+        addScalar("Velocidad", persistedDraft.speed, draft.speed)
+        addScalar("Ajuste competencia", persistedDraft.proficiencyBonusAdjustment, draft.proficiencyBonusAdjustment)
+        addScalar("Ajuste Percepción pasiva", persistedDraft.passivePerceptionAdjustment, draft.passivePerceptionAdjustment)
+        addScalar("CD de conjuros", persistedDraft.spellSaveDc, draft.spellSaveDc)
+        addScalar("Ataque de conjuros", persistedDraft.spellAttackModifier, draft.spellAttackModifier)
+        addScalar("Característica de conjuros", persistedDraft.spellcastingAbility.name, draft.spellcastingAbility.name)
+        if (persistedDraft.classes != draft.classes) add("Clases y niveles: cambios pendientes")
+        if (persistedDraft.saves != draft.saves) add("Tiradas de salvación: cambios pendientes")
+        if (persistedDraft.skills != draft.skills) add("Habilidades: cambios pendientes")
+        if (persistedDraft.spellSlots.map { it.level to it.total } != draft.spellSlots.map { it.level to it.total }) add("Espacios de conjuro: configuración pendiente")
+        if (combatDraftJson != storedCombatDraftJson) add("Combate: acciones / ataques pendientes")
+        if (combatDamageDraftJson != storedCombatDamageDraftJson) add("Combate: daño estructurado pendiente")
+        if (spellcastingProfilesDraftJson != storedSpellcastingProfilesDraftJson) add("Conjuros: perfiles de lanzamiento pendientes")
+        if (equipmentDraftJson != storedEquipmentDraftJson) add("Equipo y monedas: cambios pendientes")
+        if (backgroundDraftJson != storedBackgroundDraftJson) add("Trasfondo: cambios pendientes")
+        if (traitsDraftJson != storedTraitsDraftJson) add("Rasgos: cambios pendientes")
+        if (traitProvenanceDraftJson != storedTraitProvenanceDraftJson) add("Rasgos: procedencia pendiente")
+        if (canonicalOriginsDraftJson != storedCanonicalOriginsDraftJson) add("Identidad de raza / trasfondo: cambios pendientes")
+        if (spellcastingDraftJson != storedSpellcastingDraftJson) add("Conjuros: fuentes o conjuros pendientes")
+        if (notesDraftJson != storedNotesDraftJson) add("Notas: cambios pendientes")
+        if (h1ModuleDraftJson != storedH1ModuleDraftJson) add("Módulos de clase / formas / compañeros: cambios pendientes")
+        if (proficiencyDraftJson != storedProficiencyDraftJson) add("Competencias: cambios pendientes")
+    }.distinct()
 
     fun requestBack() {
         if (hasUnsavedChanges) {
@@ -411,16 +456,19 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun updateEquipmentItems(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>) {
+        if (!structuralEditingEnabled) return
         equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(items = updated))
         savedMessage = null
     }
 
     fun updateCurrencies(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>) {
+        if (!structuralEditingEnabled) return
         equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(currencies = updated))
         savedMessage = null
     }
 
     fun updateEquipmentDraft(updated: CharacterEquipmentDraftV4) {
+        if (!structuralEditingEnabled) return
         equipmentDraftJson = equipmentDraftToJsonV4(updated)
         savedMessage = null
     }
@@ -438,6 +486,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun updateTraits(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>) {
+        if (!structuralEditingEnabled) return
         traitsDraftJson = characterTraitsToJsonV4(updated)
         savedMessage = null
     }
@@ -445,6 +494,7 @@ internal fun CharacterEditorScreenV4(
     fun updateTraitProvenance(
         updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitProvenance>,
     ) {
+        if (!structuralEditingEnabled) return
         traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(updated)
         savedMessage = null
     }
@@ -647,6 +697,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun persistSpellcasterEnabled(enabled: Boolean) {
+        if (!structuralEditingEnabled) return
         if (enabled == stored.spellcasterEnabled) return
         stored = repository.saveCharacter(stored.copy(spellcasterEnabled = enabled))
         if (!enabled && selectedTabName == CharacterTabV4.SPELLS.name) {
@@ -656,6 +707,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun persistStatus(status: CharacterStatus) {
+        if (!structuralEditingEnabled) return
         if (status == stored.status && status == draft.status) return
         stored = repository.saveCharacter(stored.copy(status = status))
         draft = draft.copy(status = status)
@@ -667,8 +719,13 @@ internal fun CharacterEditorScreenV4(
             confirmTableModeTransition = true
             return
         }
-        if (updated == closureState) return
-        closureState = closureRepository.saveState(characterId, updated)
+        val effective = if (closureState.tableModeEnabled) {
+            mergeCharacterOperationalClosureState(closureState, updated)
+        } else {
+            updated
+        }
+        if (effective == closureState) return
+        closureState = closureRepository.saveState(characterId, effective)
         savedMessage = "Guardado"
     }
 
@@ -678,50 +735,52 @@ internal fun CharacterEditorScreenV4(
     }
 
 
+    fun syncOperationalDraftsFromStored() {
+        val persistedSlots = stored.spellSlots.associateBy { it.level }
+        draft = draft.copy(
+            currentHp = stored.currentHp.toString(),
+            tempHp = stored.tempHp.toString(),
+            spellSlots = draft.spellSlots.map { slot ->
+                slot.copy(spent = persistedSlots[slot.level]?.spentSlots ?: 0)
+            },
+        )
+        val currentEquipment = equipmentDraftFromJsonV4(equipmentDraftJson)
+        val persistedItems = stored.inventoryItems.associateBy { it.id }
+        equipmentDraftJson = equipmentDraftToJsonV4(
+            currentEquipment.copy(
+                items = currentEquipment.items.map { item ->
+                    persistedItems[item.id]?.let { persisted -> item.copy(quantity = persisted.quantity) } ?: item
+                },
+            ),
+        )
+        val persistedTraits = stored.traits.associateBy { it.id }
+        traitsDraftJson = characterTraitsToJsonV4(
+            characterTraitsFromJsonV4(traitsDraftJson).map { trait ->
+                persistedTraits[trait.id]?.let { persisted -> trait.copy(spentUses = persisted.spentUses) } ?: trait
+            },
+        )
+    }
+
     fun persistOperationalSheet(updated: CharacterSheet) {
-        if (updated == stored) return
+        val effective = mergeCharacterOperationalState(stored, updated)
+        if (effective == stored) return
+        stored = repository.saveCharacter(effective)
+        syncOperationalDraftsFromStored()
+        savedMessage = "Guardado"
+    }
+
+    fun persistStructuralSheet(updated: CharacterSheet) {
+        if (!structuralEditingEnabled || updated == stored) return
         stored = repository.saveCharacter(updated)
         savedMessage = "Guardado"
     }
 
     fun persistCombatOperationalSheet(updated: CharacterSheet) {
-        if (updated == stored) return
-        val previous = stored
-        stored = repository.saveCharacter(updated)
-        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
-            draft = draft.copy(
-                currentHp = stored.currentHp.toString(),
-                tempHp = stored.tempHp.toString(),
-            )
-        }
-        savedMessage = "Guardado"
+        persistOperationalSheet(updated)
     }
 
     fun persistSupercompactSheet(updated: CharacterSheet) {
-        if (updated == stored) return
-        val previous = stored
-        stored = repository.saveCharacter(updated)
-        var syncedDraft = draft
-        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
-            syncedDraft = syncedDraft.copy(
-                currentHp = stored.currentHp.toString(),
-                tempHp = stored.tempHp.toString(),
-            )
-        }
-        if (stored.spellSlots != previous.spellSlots) {
-            val persistedByLevel = stored.spellSlots.associateBy { it.level }
-            syncedDraft = syncedDraft.copy(
-                spellSlots = syncedDraft.spellSlots.map { slot ->
-                    val persisted = persistedByLevel[slot.level]
-                    slot.copy(
-                        total = persisted?.totalSlots?.toString() ?: "0",
-                        spent = persisted?.spentSlots ?: 0,
-                    )
-                },
-            )
-        }
-        draft = syncedDraft
-        savedMessage = "Guardado"
+        persistOperationalSheet(updated)
     }
 
     if (showSupercompact) {
@@ -854,6 +913,7 @@ internal fun CharacterEditorScreenV4(
                             generalDraftSheet = settingsSheet,
                             closureState = closureState,
                             onSheetChange = ::persistOperationalSheet,
+                            onStructuralSheetChange = ::persistStructuralSheet,
                             onClosureStateChange = ::persistClosureState,
                             structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
@@ -862,6 +922,9 @@ internal fun CharacterEditorScreenV4(
                         CharacterTabV4.EQUIPMENT -> CharacterEquipmentClosureTabV4(
                             draft = equipmentDraft,
                             onDraftChange = ::updateEquipmentDraft,
+                            onOperationalItemsChange = { updatedItems ->
+                                persistOperationalSheet(stored.copy(inventoryItems = updatedItems))
+                            },
                             armorClass = stored.armorClass,
                             resources = stored.resources,
                             onResourceValueChange = { resourceId, value ->
@@ -901,6 +964,15 @@ internal fun CharacterEditorScreenV4(
                             resources = stored.resources,
                             onTraitsChange = ::updateTraits,
                             onTraitProvenanceChange = ::updateTraitProvenance,
+                            onSpentUsesChange = { traitId, spentUses ->
+                                persistOperationalSheet(
+                                    stored.copy(
+                                        traits = stored.traits.map { trait ->
+                                            if (trait.id == traitId) trait.copy(spentUses = spentUses) else trait
+                                        },
+                                    ),
+                                )
+                            },
                             onClosureStateChange = ::persistStructuralClosureState,
                             onResourceValueChange = { resourceId, value ->
                                 stored.resources.firstOrNull { it.id == resourceId }?.let { resource ->
@@ -944,13 +1016,16 @@ internal fun CharacterEditorScreenV4(
                             onSpellcastingProfilesChange = ::updateSpellcastingProfiles,
                             structuralEditingEnabled = structuralEditingEnabled,
                             onSlotSpentChange = { level, spent ->
-                                val slot = draft.spellSlotFor(level)
-                                val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                                updateDraft(
-                                    draft.withSpellSlot(
-                                        slot.copy(spent = spent.coerceIn(0, total)),
-                                    ),
-                                )
+                                val persistedSlot = stored.spellSlots.firstOrNull { it.level == level }
+                                if (persistedSlot != null) {
+                                    persistOperationalSheet(
+                                        stored.copy(
+                                            spellSlots = stored.spellSlots.map { slot ->
+                                                if (slot.level == level) slot.copy(spentSlots = spent.coerceIn(0, slot.totalSlots.coerceAtLeast(0))) else slot
+                                            },
+                                        ),
+                                    )
+                                }
                             },
                             onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
@@ -964,7 +1039,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -975,7 +1050,7 @@ internal fun CharacterEditorScreenV4(
                             onFormsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(forms = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -987,7 +1062,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -999,7 +1074,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -1011,7 +1086,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -1023,7 +1098,7 @@ internal fun CharacterEditorScreenV4(
                             onCompanionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(companions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -1077,9 +1152,15 @@ internal fun CharacterEditorScreenV4(
             onDismissRequest = { confirmTableModeTransition = false },
             title = { Text("Activar Modo Mesa") },
             text = {
-                Text(
-                    "Hay cambios de edición pendientes. Elige qué hacer antes de entrar en Modo Mesa.",
-                )
+                Column(
+                    modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                ) {
+                    Text("Hay cambios de edición pendientes. Revísalos antes de entrar en Modo Mesa.")
+                    tableModePendingChanges.forEach { change ->
+                        Text("• $change", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
             },
             confirmButton = {
                 TextButton(

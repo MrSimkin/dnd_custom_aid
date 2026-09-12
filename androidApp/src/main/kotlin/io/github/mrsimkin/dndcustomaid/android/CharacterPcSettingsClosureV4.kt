@@ -66,12 +66,14 @@ internal fun CharacterPcSettingsClosureV4(
 ) {
     var pendingLifecycleStatusName by rememberSaveable { mutableStateOf<String?>(null) }
     var pageName by rememberSaveable { mutableStateOf(PcSettingsPageClosureV4.MAIN.name) }
-    val page = runCatching { PcSettingsPageClosureV4.valueOf(pageName) }.getOrDefault(PcSettingsPageClosureV4.MAIN)
+    val requestedPage = runCatching { PcSettingsPageClosureV4.valueOf(pageName) }.getOrDefault(PcSettingsPageClosureV4.MAIN)
+    val page = if (closureState.tableModeEnabled && requestedPage != PcSettingsPageClosureV4.MAIN) PcSettingsPageClosureV4.MAIN else requestedPage
     val layoutContext = characterLayoutContextV4()
     val wide = layoutContext.availableWidthDp >= 720
     val pcContext = LocalCharacterPcSettingsContextV4.current
 
     fun requestStatus(requested: CharacterStatus) {
+        if (closureState.tableModeEnabled) return
         when (requested) {
             CharacterStatus.RETIRED,
             CharacterStatus.DEAD,
@@ -94,6 +96,7 @@ internal fun CharacterPcSettingsClosureV4(
                 customMarkerCount = pcContext?.successorState?.customMarkers?.size ?: 0,
                 tabCount = pcContext?.successorState?.preferences?.tabOrder?.size ?: 0,
                 inspirationVisible = pcContext?.pcConfiguration?.inspirationVisible ?: true,
+                structuralSettingsEnabled = !closureState.tableModeEnabled,
                 onInspirationVisibleChange = { visible ->
                     pcContext?.onPcConfigurationChange?.invoke(
                         pcContext.pcConfiguration.copy(inspirationVisible = visible),
@@ -190,6 +193,7 @@ private fun PcSettingsMainClosureV4(
     customMarkerCount: Int,
     tabCount: Int,
     inspirationVisible: Boolean,
+    structuralSettingsEnabled: Boolean,
     onInspirationVisibleChange: (Boolean) -> Unit,
     onBack: () -> Unit,
     onStatusChange: (CharacterStatus) -> Unit,
@@ -232,6 +236,7 @@ private fun PcSettingsMainClosureV4(
                             PcToggleRowClosureV4(
                                 title = "Lanzamiento de conjuros",
                                 checked = spellcasterEnabled,
+                                enabled = structuralSettingsEnabled,
                                 onCheckedChange = onSpellcasterEnabledChange,
                             )
                             PcSettingsDividerClosureV4()
@@ -244,6 +249,7 @@ private fun PcSettingsMainClosureV4(
                             PcNavigationRowClosureV4(
                                 title = "Orden de pestañas",
                                 summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                                enabled = structuralSettingsEnabled,
                                 onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
                             )
                         }
@@ -253,24 +259,28 @@ private fun PcSettingsMainClosureV4(
                             PcNavigationRowClosureV4(
                                 title = "Características personalizadas",
                                 summary = customAttributeCount.toString(),
+                                enabled = structuralSettingsEnabled,
                                 onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
                             )
                             PcSettingsDividerClosureV4()
                             PcNavigationRowClosureV4(
                                 title = "Habilidades personalizadas",
                                 summary = closureState.customSkills.size.toString(),
+                                enabled = structuralSettingsEnabled,
                                 onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
                             )
                             PcSettingsDividerClosureV4()
                             PcNavigationRowClosureV4(
                                 title = "Marcadores personalizados",
                                 summary = customMarkerCount.toString(),
+                                enabled = structuralSettingsEnabled,
                                 onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
                             )
                             PcSettingsDividerClosureV4()
                             PcNavigationRowClosureV4(
                                 title = "Módulos especiales",
                                 summary = "$visibleModules visibles",
+                                enabled = structuralSettingsEnabled,
                                 onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
                             )
                         }
@@ -280,13 +290,19 @@ private fun PcSettingsMainClosureV4(
         } else {
             item(key = "pc-settings-sheet-nav") {
                 PcSettingsSectionClosureV4("Ficha y navegación") {
-                    PcToggleRowClosureV4("Lanzamiento de conjuros", spellcasterEnabled, onSpellcasterEnabledChange)
+                    PcToggleRowClosureV4(
+                        title = "Lanzamiento de conjuros",
+                        checked = spellcasterEnabled,
+                        onCheckedChange = onSpellcasterEnabledChange,
+                        enabled = structuralSettingsEnabled,
+                    )
                     PcSettingsDividerClosureV4()
                     PcToggleRowClosureV4("Inspiración", inspirationVisible, onInspirationVisibleChange)
                     PcSettingsDividerClosureV4()
                     PcNavigationRowClosureV4(
                         title = "Orden de pestañas",
                         summary = if (tabCount == 1) "1 pestaña" else "$tabCount pestañas",
+                        enabled = structuralSettingsEnabled,
                         onClick = { onNavigate(PcSettingsPageClosureV4.TAB_ORDER) },
                     )
                 }
@@ -296,24 +312,28 @@ private fun PcSettingsMainClosureV4(
                     PcNavigationRowClosureV4(
                         title = "Características personalizadas",
                         summary = customAttributeCount.toString(),
+                        enabled = structuralSettingsEnabled,
                         onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_ATTRIBUTES) },
                     )
                     PcSettingsDividerClosureV4()
                     PcNavigationRowClosureV4(
                         title = "Habilidades personalizadas",
                         summary = closureState.customSkills.size.toString(),
+                        enabled = structuralSettingsEnabled,
                         onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_SKILLS) },
                     )
                     PcSettingsDividerClosureV4()
                     PcNavigationRowClosureV4(
                         title = "Marcadores personalizados",
                         summary = customMarkerCount.toString(),
+                        enabled = structuralSettingsEnabled,
                         onClick = { onNavigate(PcSettingsPageClosureV4.CUSTOM_MARKERS) },
                     )
                     PcSettingsDividerClosureV4()
                     PcNavigationRowClosureV4(
                         title = "Módulos especiales",
                         summary = "$visibleModules visibles",
+                        enabled = structuralSettingsEnabled,
                         onClick = { onNavigate(PcSettingsPageClosureV4.MODULES) },
                     )
                 }
@@ -350,7 +370,11 @@ private fun PcSettingsMainClosureV4(
 
         item(key = "pc-settings-character-data") {
             PcSettingsSectionClosureV4("Personaje y datos") {
-                LifecycleStatusRowClosureV4(status = status, onStatusChange = onStatusChange)
+                LifecycleStatusRowClosureV4(
+                    status = status,
+                    enabled = structuralSettingsEnabled,
+                    onStatusChange = onStatusChange,
+                )
                 PcSettingsDividerClosureV4()
                 PcActionRowClosureV4(
                     title = "Respaldo local",
@@ -572,6 +596,7 @@ private fun PcSettingsPairClosureV4(
 @Composable
 private fun LifecycleStatusRowClosureV4(
     status: CharacterStatus,
+    enabled: Boolean,
     onStatusChange: (CharacterStatus) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -582,8 +607,8 @@ private fun LifecycleStatusRowClosureV4(
     ) {
         Text("Estado del personaje", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
         Box {
-            OutlinedButton(onClick = { expanded = true }) { Text(pcStatusLabelClosureV4(status)) }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            OutlinedButton(onClick = { expanded = true }, enabled = enabled) { Text(pcStatusLabelClosureV4(status)) }
+            DropdownMenu(expanded = enabled && expanded, onDismissRequest = { expanded = false }) {
                 CharacterStatus.entries.forEach { option ->
                     DropdownMenuItem(
                         text = { Text(pcStatusLabelClosureV4(option)) },
