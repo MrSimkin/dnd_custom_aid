@@ -1,4 +1,4 @@
-name: Phase4A P16 read-only layout audit
+name: Phase4A P15 global distance cleanup
 
 on:
   push:
@@ -9,26 +9,25 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  audit:
+  repair:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: implementation/phase4a-successor-cycle
-      - name: Inventory P16 layout pressure sites
+          fetch-depth: 0
+      - name: Apply audited global distance cleanup
+        run: python3 .github/scripts/phase4a_p15_global_distance_repair.py
+      - name: Validate and commit
         shell: bash
         run: |
-          ROOT=androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android
-          echo '=== vertical-space/context consumers ==='
-          grep -R -n -E 'characterLayoutContextV4|CharacterVerticalSpaceV4|verticalSpace' "$ROOT" || true
-          echo '=== sticky headers ==='
-          grep -R -n 'stickyHeader' "$ROOT" || true
-          echo '=== collection toolbar call sites ==='
-          grep -R -n 'CharacterCollectionToolbarV4' "$ROOT" || true
-          echo '=== top-level adaptive/persistent shell references ==='
-          grep -R -n -E 'CharacterAdaptiveShellV4|CharacterTopTabStripV4|CharacterCombatOperationalCardV4' "$ROOT" || true
-          echo '=== local feet/metric conversion authorities ==='
-          grep -R -n -E 'metricTenths|0\.3048|formatSpeed[A-Za-z0-9_]*V4' "$ROOT" || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m "repair: finish global character distance formatting"
+          git push origin HEAD:implementation/phase4a-successor-cycle
