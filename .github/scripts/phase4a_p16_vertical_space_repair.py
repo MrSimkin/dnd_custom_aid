@@ -177,18 +177,24 @@ for name in STICKY_FILES:
     sticky_count = text.count("stickyHeader(")
     if sticky_count != 1:
         raise SystemExit(f"{name}: expected exactly one audited stickyHeader, found {sticky_count}")
-    list_state_count = text.count("val listState = rememberLazyListState()")
-    if list_state_count != 1:
-        raise SystemExit(f"{name}: expected exactly one listState anchor, found {list_state_count}")
     if "keepCollectionToolsSticky" in text:
         raise SystemExit(f"{name}: adaptive sticky policy already present unexpectedly")
-    text = text.replace(
-        "val listState = rememberLazyListState()",
-        '''val listState = rememberLazyListState()
-    val keepCollectionToolsSticky =
-        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE''',
-        1,
+
+    sticky_pos = text.index("stickyHeader(")
+    preceding = text[:sticky_pos]
+    list_state_matches = list(re.finditer(r"(?m)^(\s*)val\s+\w+\s*=\s*rememberLazyListState\(\)\s*$", preceding))
+    if not list_state_matches:
+        raise SystemExit(f"{name}: no rememberLazyListState() anchor before audited sticky header")
+    anchor = list_state_matches[-1]
+    indent = anchor.group(1)
+    insertion = (
+        "\n"
+        + indent
+        + "val keepCollectionToolsSticky =\n"
+        + indent
+        + "    characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE"
     )
+    text = text[:anchor.end()] + insertion + text[anchor.end():]
     text = text.replace(
         "stickyHeader(",
         "characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, ",
