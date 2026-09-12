@@ -227,7 +227,7 @@ internal fun CharacterBackgroundTabV4(
                     verticalAlignment = Alignment.Top,
                 ) {
                     CharacterBackgroundImageCardV4(
-                        title = "Principal",
+                        title = "Imagen principal",
                         image = primaryImage,
                         editingEnabled = imageEditingEnabled,
                         onPick = { primaryImageLauncher.launch("image/*") },
@@ -235,7 +235,7 @@ internal fun CharacterBackgroundTabV4(
                         modifier = Modifier.weight(1f),
                     )
                     CharacterBackgroundImageCardV4(
-                        title = "Secundaria",
+                        title = "Imagen secundaria",
                         image = secondaryImage,
                         editingEnabled = imageEditingEnabled,
                         onPick = { secondaryImageLauncher.launch("image/*") },
@@ -465,34 +465,45 @@ private fun CharacterBackgroundImageViewerV4(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 6.dp,
         ) {
-            Column(
+            Box(
                 modifier = Modifier.fillMaxSize().padding(appSpacingV4(8.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                contentAlignment = Alignment.Center,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+                Surface(
+                    modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                    tonalElevation = 3.dp,
                 ) {
-                    Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                    TextButton(onClick = onDismiss) { Text("Cerrar") }
-                }
-                Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                    Image(
-                        bitmap = bitmap,
-                        contentDescription = title,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit,
-                    )
-                }
-                if (editingEnabled) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp)),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        TextButton(onClick = onChange) { Text("Cambiar") }
-                        TextButton(onClick = onRemove) { Text("Eliminar") }
+                        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        TextButton(onClick = onDismiss) { Text("Cerrar") }
+                    }
+                }
+                if (editingEnabled) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                        tonalElevation = 3.dp,
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(onClick = onChange) { Text("Cambiar") }
+                            TextButton(onClick = onRemove) { Text("Eliminar") }
+                        }
                     }
                 }
             }
