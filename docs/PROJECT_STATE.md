@@ -3,91 +3,101 @@
 **Last verified:** 2026-09-12  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
-**Current phase:** repaired P1–P16 implementation is automation-qualified; P17 physical owner/device QA remains  
+**Current QA candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`  
+**Current phase:** P1–P16 repaired and automation-qualified; physical owner/device QA remains under P17  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
-## 1. Read this branch as the Player code authority
+## 1. Branch authority
 
-This branch contains the current Player implementation. `main` is currently divergent and contains later global/DM product-discovery documentation that is not on this branch; `main` must not be mistaken for the latest Player runtime.
+This branch contains the current Player implementation. `main` is intentionally divergent and contains later global/Phase 5A/DM product-discovery records that are not on this branch. `main` must not be mistaken for the latest Player runtime, and this branch must not overwrite valid later discovery work on `main`.
 
-Cross-branch explanation: `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md` and `docs/BRANCH_STATUS.md`.
+Cross-branch authority is documented in:
 
-## 2. Controlling repair authorization
+- `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md`;
+- `docs/BRANCH_STATUS.md`.
 
-`docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` records the owner's authorization for the accepted `preqa.8 / 40800` P1–P17 repair pass.
+## 2. Authorization boundary
 
-That authorization permits implementing the accepted Player repair scope, validation/build/checkpoint work, and automatic continuation inside the accepted repair blueprint. It does not authorize unrelated behavior, DM implementation, or claiming owner acceptance without physical QA.
+`docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` records the owner's durable authorization for the accepted `preqa.8 / 40800` P1–P17 Player repair cycle.
 
-The 2026-09-12 owner instruction additionally authorizes continuity documentation to be repaired on the correct branches, including `main`, solely to make current repository state unambiguous.
+That permits the accepted Player repair scope, validation, QA packaging and checkpoints. It does not permit unrelated Player feature invention, DM implementation, destructive history rewriting, or claiming physical acceptance without actual owner/device QA.
 
-## 3. Current repair status
+The owner's 2026-09-12 instruction additionally authorizes continuity documentation to be corrected on all appropriate branches, including `main`, and continuation under the real existing authorizations. That newer instruction does not waive P17 or the final Phase 4A owner-closure gate.
 
-- P1–P12: implemented/closed through their recorded implementation and validation gates.
-- P13: implementation and full-app explanatory-copy audit complete. Its checkpoint originally recorded the normal Scaffold gate as pending; that pending gate is now superseded by successful run `34721374190` on exact branch HEAD `d630270f2f3d8fab94f3c1290963c2da7afaf06d`.
-- P14: Table Mode re-audit/repair closed.
-- P15: Supercompact implementation/repair closed; related transversal consistency work belongs to proving this accepted P15, not to a second independent P15 cycle.
-- P16: landscape/adaptive vertical-space implementation closed and automation-green.
-- P17: design decision closed; this is the physical tablet-QA gate policy. Physical tablet QA itself has **not** been performed/accepted.
+## 3. Repair status
 
-Do not restart P1–P16 because an older live pointer says work was pending.
+- P1–P12: implemented/closed through their recorded implementation and validation evidence.
+- P13: implementation/full-app copy audit complete; its formerly pending normal Scaffold condition is superseded by later successful normal gates.
+- P14: Table Mode repair/re-audit closed.
+- P15: Supercompact repair implemented/closed; associated transversal presentation consistency fixes belong to proving this accepted P15, not to a second independent P15 cycle.
+- P16: adaptive landscape/vertical-space repair implemented/closed and automation-green.
+- P17: design decision closed; it is the physical tablet-QA gate policy, not another code-repair item.
 
-## 4. Latest automation-qualified product boundary
+Do not restart P1–P16 absent new physical QA evidence.
 
-Product/source commit:
+## 4. Current QA candidate
 
-`d630270f2f3d8fab94f3c1290963c2da7afaf06d`
+Candidate identity:
 
-Normal workflow:
+- versionName: `0.4.0-preqa.9`;
+- versionCode/build: `40900`;
+- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`.
 
-- Scaffold checks run `34721374190`;
-- event: push;
-- conclusion: `success`;
-- exact head SHA: `d630270f2f3d8fab94f3c1290963c2da7afaf06d`.
+The monotonic version/build bump distinguishes this repaired candidate from the earlier physical owner-QA `0.4.0-preqa.8 / 40800` build that generated the repair backlog.
+
+No new Player behavior was introduced by the candidate identity commit. The accepted repaired behavior was already present at `d630270f2f3d8fab94f3c1290963c2da7afaf06d`; later changes before the candidate gate were continuity documentation and package identity only.
+
+## 5. Automated evidence
+
+Normal Scaffold run:
+
+`34726572588` — **SUCCESS** on exact candidate SHA `cd0c203d337c062fa388010d300e875f2f54ced7`.
+
+Verified in the run:
+
+- backend dependency install / Worker type-check: success;
+- stable CI debug keystore preparation: success;
+- Kotlin/shared/Android/Desktop build-and-test surface: success;
+- Android debug APK upload: success.
 
 Published artifact:
 
-- ID `10306416852`;
+- ID `10307444450`;
 - name `dnd-custom-aid-debug-apk`;
-- digest `sha256:c22e08deb3fbfd9a278b6e48cc4ac6d306229b6b1e354995eb7b25735eca645d`.
+- size `13608921` bytes;
+- GitHub Actions artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
 
-This proves the post-repair source passes the normal automated gate. It does not prove real-device UX acceptance.
+Detailed candidate checkpoint:
 
-## 5. Build identity caveat
+`docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`.
 
-`androidApp/build.gradle.kts` still identifies the current branch as:
+## 6. Physical owner-QA boundary
 
-- `versionName = "0.4.0-preqa.8"`;
-- `versionCode = 40800`.
+Automation is complete for this candidate. Owner/device acceptance is not.
 
-That is the same package identity as the physical owner-QA build that generated the repair backlog. Therefore the fresh successful artifact above is technically newer source but is not yet a clean monotonic owner-QA identity.
-
-The next technical continuation step is to create a monotonic successor QA build identity from this repaired source, run the normal gate, publish/checkpoint its exact artifact, then hand that build to the owner.
-
-## 6. P17 / owner-device gate
-
-P17's durable rule is failure-type based rather than requiring a perfect phone PASS before tablet testing:
+P17's durable rule is failure-type based:
 
 - hard shared/systemic primitive failure that would invalidate tablet evidence -> defer/stop tablet QA;
-- soft PASS / soft FAIL / bounded/local defects -> tablet QA may proceed;
-- uncertainty about phone-specific vs responsive/shared behavior -> tablet evidence may be diagnostically useful;
-- no tablet PASS/FAIL may be inferred without physical tablet testing.
+- soft PASS / soft FAIL / bounded local defects -> tablet QA may proceed;
+- uncertain phone-specific vs responsive/shared issue -> tablet evidence may be diagnostically useful;
+- no tablet PASS/FAIL may be inferred without actual tablet testing.
 
-Representative physical tablet QA includes portrait/landscape, navigation/adaptive layout, Combat/P5/P16, Conjuros sticky behavior, representative editor/IME behavior, reorder, PC/Application Settings responsiveness, Supercompact, Table Mode, larger-text/density behavior, persistence/reopen and a cross-surface canonical-state sanity check.
+Targeted phone regression should cover representative shared repaired boundaries, especially canonical HP/Combat, reorder, adaptive editors/IME, settings, Table Mode, Supercompact, P16 vertical-space/landscape, Conjuros sticky/source-context behavior and persistence.
 
-A real-device defect may reopen the relevant P1–P16 point. Owner acceptance is explicit, never inferred from CI.
+Representative physical tablet QA should cover portrait/landscape navigation/adaptive layout, Combat/P5/P16, Conjuros, P9 editor/IME, P6 reorder, PC/Application Settings, P15 Supercompact, P14 Table Mode, larger text/density, persistence/reopen and a canonical-state sanity check.
+
+A physical failure may reopen the relevant P1–P16 point. CI cannot close this gate.
 
 ## 7. Global/DM line
 
-Current Phase 5A/DM discovery decisions live on `main`, including the accepted Desk-family and shared Player/DM rules-question direction. Preserve them when future integration occurs.
+Current Phase 5A/DM discovery decisions live on `main`, including the accepted Desk-family and shared Player/DM rules-question direction. Preserve them during future integration.
 
-DM implementation remains blocked until Phase 4A is physically accepted and explicitly closed.
+DM **implementation** remains blocked until Phase 4A is physically accepted and explicitly closed.
 
-## 8. Exact next action
+## 8. Exact continuation point
 
-1. Preserve the current repaired source behavior; do not add unrelated Player features.
-2. Advance the QA package identity monotonically from `0.4.0-preqa.8 / 40800`.
-3. Run normal Scaffold validation on that exact QA-build commit.
-4. Record workflow/artifact/digest in a dedicated QA checkpoint and refresh `LATEST.md`.
-5. Give the resulting build to the owner for targeted phone regression and then P17-governed tablet QA when meaningful.
-6. If QA finds a defect, reopen only the relevant accepted repair boundary and repair it on this branch.
-7. If owner/device QA accepts the repaired baseline, record explicit Phase 4A acceptance/closure before any DM implementation begins.
+There is no remaining pre-QA implementation item that should be invented merely to keep development moving.
+
+The next required evidence is physical owner/device QA of `0.4.0-preqa.9 / 40900`.
+
+If QA finds a defect, reopen only the relevant accepted repair boundary and repair it on this branch. If QA accepts the repaired baseline, record explicit Phase 4A owner acceptance/closure. Only after that closure may DM implementation begin.

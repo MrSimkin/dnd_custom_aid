@@ -3,9 +3,10 @@
 **Updated:** 2026-09-12  
 **Canonical navigation branch:** `main`  
 **Authoritative Player implementation branch:** `implementation/phase4a-successor-cycle`  
-**Current Player boundary:** P1–P16 implemented/automation-green; P17 physical owner-QA gate pending
+**Current Player QA candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`  
+**Current Player boundary:** P1–P16 repaired/automation-qualified; P17 physical owner/device QA pending
 
-This file exists to prevent branch names, old checkpoints, or commit chronology from being mistaken for current authority.
+This file exists so branch names, old checkpoints, or commit chronology cannot be mistaken for current authority.
 
 ## 1. Two active authoritative lines
 
@@ -19,32 +20,32 @@ DM implementation remains blocked until Phase 4A receives physical owner/device 
 
 ### `implementation/phase4a-successor-cycle` — current Player runtime
 
-This is the authoritative source line for current Player/Phase 4A code, including the accepted `preqa.8 / 40800` repair pass.
+This is the authoritative source line for current Player/Phase 4A code, including the accepted `preqa.8 / 40800` repair pass and the repaired `preqa.9 / 40900` QA candidate.
 
-Verified product/source boundary before the 2026-09-12 continuity documentation commit:
+Canonical QA candidate source/package commit:
 
-`d630270f2f3d8fab94f3c1290963c2da7afaf06d`
+`cd0c203d337c062fa388010d300e875f2f54ced7`
 
-Normal Scaffold run `34721374190` succeeded on that exact source boundary and published the post-repair debug APK artifact.
+Normal Scaffold run `34726572588` succeeded on that exact SHA and published artifact `10307444450` (`dnd-custom-aid-debug-apk`) with artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
 
-P1–P16 are implemented/automation-qualified. P17 is the physical tablet-QA gate decision, not another implementation repair.
+P1–P16 are implemented/automation-qualified. P17 is the physical tablet-QA gate decision, not another implementation repair. Physical owner/device acceptance remains pending.
 
-## 2. The refs are intentionally divergent
+Documentation-only commits may move the branch HEAD beyond the candidate SHA. The candidate identity and automated evidence remain anchored to `cd0c203...` and run `34726572588`.
 
-Before this continuity repair:
+## 2. The active refs are intentionally divergent
 
-- `main` = `de3930a8c0357bbbaa77c423f0011041f5cfd111`;
-- `implementation/phase4a-successor-cycle` = `d630270f2f3d8fab94f3c1290963c2da7afaf06d`.
+The 2026-09-12 continuity reconciliation established that `main` and `implementation/phase4a-successor-cycle` contain different valid post-common-ancestor work:
 
-`main` has newer DM/Phase 5A discovery documentation absent from the Player branch. The Player branch has extensive Player implementation absent from `main`.
+- `main` carries later DM/Phase 5A discovery documentation;
+- the successor branch carries extensive Player implementation/repair work.
 
 Therefore:
 
 - do not force-move either branch;
-- do not assume `main` is the latest Player code merely because it is the default branch;
+- do not assume `main` is latest Player code merely because it is the default branch;
 - do not assume the Player branch supersedes later DM discovery records on `main`;
 - do not merge merely for cosmetic linearity;
-- if a future integration is desired, reconcile both lines explicitly and preserve both sets of valid work.
+- any future integration must explicitly preserve both sets of valid work.
 
 ## 3. Historical implementation branches
 
@@ -89,12 +90,14 @@ In particular:
 
 ## 7. Exact resume rule
 
-If the task is Player implementation/QA preparation:
+If the task is Player implementation/QA:
 
 1. switch to `implementation/phase4a-successor-cycle`;
 2. read `docs/checkpoints/LATEST.md` there;
-3. do not restart P1–P16;
-4. continue only with the documented monotonic QA packaging / owner-QA boundary or a defect reopened by actual QA evidence.
+3. use `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md` as the current QA candidate checkpoint;
+4. do not restart P1–P16;
+5. next evidence is physical owner/device QA of `0.4.0-preqa.9 / 40900`;
+6. only a real QA finding should reopen a relevant repair point.
 
 If the task is DM/Phase 5A product discovery:
 
