@@ -232,7 +232,7 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
     }
 }
 
-private fun Rect.toCharacterReorderSlotV4(id: String): CharacterReorderSlot =
+internal fun Rect.toCharacterReorderSlotV4(id: String): CharacterReorderSlot =
     CharacterReorderSlot(id = id, centerX = center.x, centerY = center.y)
 
 @Composable
