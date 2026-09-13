@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Current exact frozen physical candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; CROSS-DEVICE PHYSICAL DISCOVERY COMPLETE WITH OPEN FINDINGS  
-**Current implementation state:** consolidated repair IN PROGRESS; **Round 1 structured dice COMPLETE / AUTOMATION GREEN**; next = Round 2 T1 reorder target stability  
+**Current implementation state:** consolidated repair IN PROGRESS; **Round 1 structured dice COMPLETE / GREEN; Round 2 reorder stability COMPLETE / GREEN**; next = **Round 3 shared compact checkbox + responsive grouping**  
 **Release status:** development/debug; Phase 4A OPEN; DM implementation blocked pending explicit Phase 4A closure
 
 ## Authority / authorization
@@ -17,9 +17,10 @@ Owner product decisions required by the post-P17 audit are complete. In particul
 
 Resume in this order:
 
-1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md` — latest completed implementation round and exact automation evidence;
-2. `docs/checkpoints/2026-09-13_PHASE4A_OWNER_REPAIR_DECISIONS_IMPLEMENTATION_GO.md` — owner decisions + implementation authorization;
-3. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — complete source/root-cause audit, repair-family contracts and targeted physical revalidation matrix.
+1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md` — latest completed implementation round and exact automation evidence;
+2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md` — prior completed structured-dice round;
+3. `docs/checkpoints/2026-09-13_PHASE4A_OWNER_REPAIR_DECISIONS_IMPLEMENTATION_GO.md` — owner decisions + implementation authorization;
+4. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — complete source/root-cause audit, repair-family contracts and targeted physical revalidation matrix.
 
 Supporting physical evidence remains:
 
@@ -74,25 +75,31 @@ No further broad tablet QA is required on `preqa.12`.
 
 ### Round 1 — structured dice / signed modifier foundation: COMPLETE / GREEN
 
-Round baseline: `80126079f79d55c34724a3b596c066d63fe665e5`.
+Round product/test HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`. Authoritative Scaffold `34787688776` / run `1508` — **SUCCESS**.
 
-Product/test chain:
+Implemented shared `NdS±M` parsing/rolling, independent quantity/sides/modifier draft state, explicit signed serialization, direct compact sign-toggle behavior, focused tests and a durable control guard. Phone 7–9 are implemented but remain targeted-physical-revalidation pending. T2 remains partial because result silhouettes, Custom Throw die/modifier UX and Dice-tab display-mode ownership remain.
 
-- `5ea3f521049d2143fb4f6a6e326139e0b21788cb` — shared `NdS±M` parser/result support;
-- `570304505f9d2ba89a3666839c3a06178cf7d0db` — focused positive/negative/bare/incomplete parser and rolling tests;
-- `046d549bdc0dd8564c0d532e8cc021835bda731c` — Android structured modifier serialization/state + direct sign control;
-- `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0` — durable geometry/source guard updated to enforce the new direct-sign contract.
+### Round 2 — T1 reorder target stability: COMPLETE / GREEN
 
-Authoritative green Scaffold: run `34787688776` / run number `1508` at `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0` — **SUCCESS**. Guard, Kotlin/shared tests, Android build/APK upload and backend all passed.
+Round baseline `de5f2aeb55e6e3f4558d58103f0781b4baa960fa`; product/test HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`.
 
-The earlier run `34787610695` failed only because the old guard still required the intentionally removed sign-dropdown marker; that stale guard was corrected in the same round.
+Implemented:
 
-Round 1 fixes the implementation basis for phone 7–9 and the shared signed-modifier part of T2. It does not yet complete T2 die silhouettes, Custom Throw die/modifier UX or Dice-tab display-mode ownership.
+- stable drag-start target geometry rather than animated preview-bound feedback;
+- canonical-order preview generation instead of feeding preview order back into targeting;
+- 12% geometric hysteresis/deadband around target boundaries;
+- explicit stable-slot translation for real viewport auto-scroll;
+- one-time capture for newly revealed lazy targets;
+- same contract across one-dimensional/shared and spatial reorder engines;
+- focused common tests and a persistent CI reorder-stability guard.
+
+Authoritative Scaffold run `34788409987` / run number `1519` at `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb` — **SUCCESS**. Backend, compact geometry guard, reorder stability guard, Kotlin/shared tests, Android build and debug APK upload all passed.
+
+T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Existing physical video remains the failure baseline; do not ask the owner to repeat or reattach it.
 
 ### Remaining repair families
 
-- **Round 2 / next:** T1 reorder target stability across one-dimensional and spatial engines.
-- **Checkbox/responsive toggle grouping:** phone 17.1–17.3 and tablet reproduction; shared compact primitive + migration + guard + responsive packing.
+- **Round 3 / next:** shared compact checkbox + responsive grouping family — phone 17.1–17.3 and tablet reproduction; audit all checkbox/tri-state/switch sites and migrate affected layouts with responsive packing + durable guard.
 - **Spell source/bootstrap:** T5; canonical class origins drive source availability while preserving compatible source/profile overlays and IDs.
 - **Class editor controls:** T6 numeric keyboards + standard die/`Otro…` selector.
 - **Application Settings:** approved T3 adaptive portrait/landscape card-density semantics + T4 symmetric text scale + T9 explicit haptics None.
@@ -117,7 +124,7 @@ Do not physically revalidate each intermediate round independently unless a repa
 
 ## Exact route / next action
 
-1. Execute **Round 2: T1 reorder target stability** with focused tests.
+1. Execute **Round 3: shared compact checkbox + responsive grouping family** with an app-wide Android Player site audit, focused tests/guards and responsive packing repair.
 2. At the end of every bounded implementation/test round, update a durable round checkpoint, this `PROJECT_STATE.md`, and `docs/checkpoints/LATEST.md` before proceeding.
 3. Continue remaining repair families in dependency-aware order, preserving accepted physical evidence.
 4. Run the normal aggregate Scaffold gate over the completed consolidated repair.
