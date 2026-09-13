@@ -4,7 +4,8 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Latest physically tested candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7` — FAILED SHARED HP/UX ACCEPTANCE BOUNDARY  
-**Current phase:** bounded P1/P2 + transversal presentation repair implemented through regression-locked R3; exact automation running; owner QA intentionally paused until the next monotonic repaired candidate  
+**Current repaired candidate:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` — EXACT CANDIDATE QUALIFICATION IN PROGRESS  
+**Current phase:** R1–R3 automation-green; versioned repaired candidate qualification/package gate; owner QA intentionally paused until exact artifact is qualified  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
 ## Branch authority and authorization
@@ -25,7 +26,7 @@ Blocking findings:
 - Combate `Establecer PV` did not change current HP while exact temp-HP correction worked;
 - `Daño — Cantidad — Curar` was visually out of proportion, reopening transversal sizing/spacing consistency.
 
-Exact owner/device record: `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`.
+Exact owner/device record and repair handoff: `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`.
 
 ## Repair status
 
@@ -39,7 +40,7 @@ Exact owner/device record: `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_
 
 - `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — ordinary save canonicalizes HP; valid General HP drafts flush canonically on navigation; max/current/temp resynchronize; transient invalid/incomplete typing remains local.
 
-### R3 — accepted P2 feedback + Combat row proportion — implemented + regression-locked / automation in progress
+### R3 — accepted P2 feedback + Combat row proportion — implemented + regression-locked + automation-green
 
 Controlling P2 contract: `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`.
 
@@ -48,21 +49,29 @@ Controlling P2 contract: `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECI
 - `ff06bdf1552268f9805c9ff4a3108a3675a22fe5` — Combat HUD consumes the shared classifier.
 - `ddd9d01dab4f0b45470174712a5c115de1112d90` — tests lock no-change/PV-only/Temp-only/both targeting.
 
-**Exact current product boundary:** `ddd9d01dab4f0b45470174712a5c115de1112d90`.  
-**Exact current qualification run:** Scaffold `34730363231` — IN PROGRESS at this update.
+Exact regression-locked product gate: Scaffold `34730363231` on `ddd9d01dab4f0b45470174712a5c115de1112d90` — **SUCCESS** (backend, Kotlin/shared tests/builds, Android assemble, debug APK upload).
 
-R1–R3 are not yet physically accepted, and the repair package is not declared automation-green until the exact current run completes successfully.
+## Current repaired candidate gate
+
+After the green R1–R3 product boundary, Android identity advanced monotonically to:
+
+- versionName `0.4.0-preqa.10`;
+- versionCode `41000`;
+- exact candidate commit `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3`;
+- exact candidate Scaffold run `34730531791`.
+
+At this state update, backend is **SUCCESS** and the Kotlin/shared/Android aggregate job is **IN PROGRESS**. The candidate is not yet physically handed off and no artifact/digest claim is made until this exact versioned run is fully green.
 
 ## Current gate
 
-Do not continue exhaustive owner QA on failed `preqa.9`. After exact R3 automation is green, assign the next monotonic QA identity (current branch still declares `preqa.9 / 40900`; `40900` must not be reused), package/verify the exact artifact, then resume focused phone QA. P17 tablet QA remains paused until no hard shared/systemic failure makes tablet evidence misleading.
+Do not continue exhaustive owner QA on failed `preqa.9`. Finish `preqa.10` exact qualification, freeze artifact evidence, then resume focused phone QA on the reopened P1/P2/presentation boundary. P17 tablet QA remains paused until no hard shared/systemic failure makes tablet evidence misleading.
 
 P3–P16 remain historically implemented/automation-qualified unless later physical evidence specifically reopens them. Phase 4A remains open. DM implementation remains blocked until explicit owner acceptance/closure.
 
 ## Historical failed candidate proof
 
-`preqa.9 / 40900` candidate `cd0c203d337c062fa388010d300e875f2f54ced7` had Scaffold `34726572588` — SUCCESS, artifact `10307444450`, GitHub artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`. CI remains valid for its scope; physical QA exposed missing behavior outside that scope.
+`preqa.9 / 40900` candidate `cd0c203d337c062fa388010d300e875f2f54ced7` had Scaffold `34726572588` — SUCCESS, artifact `10307444450`, GitHub artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`. CI remains valid for its scope; later physical QA exposed missing behavior outside that scope.
 
 ## Exact continuation point
 
-Read `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`, then `docs/checkpoints/LATEST.md`. Continue at exact R3 run `34730363231`; do not restart R1/R2 or invent unrelated Player work.
+Read `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`, then `docs/checkpoints/LATEST.md`. Continue from candidate run `34730531791`; do not restart R1–R3 or invent unrelated Player work.
