@@ -4,31 +4,29 @@ This roadmap defines development stages, not a fixed feature list. Product conte
 
 ## Phase 0 — Project Foundation
 
-**Status:** Complete. Merged through PR #1 on 2026-08-28.
+**Status:** Complete.
 
 ---
 
 ## Phase 1 — Product Discovery and Design
 
-**Status:** Complete. Approved product/MVP baseline merged through PR #2 on 2026-08-29.
+**Status:** Complete.
 
 ---
 
 ## Phase 2 — Technical Foundation
 
-**Status:** Complete. Architecture checkpoint merged through PR #3; audited minimal scaffold merged through PR #4 on 2026-08-30.
+**Status:** Complete.
 
-The canonical foundation provides one shared Kotlin Multiplatform module, Android Jetpack Compose, Compose Multiplatform Desktop, SQLDelight, a TypeScript Cloudflare Worker area, PostgreSQL migration/data-loading area and one simple GitHub Actions workflow.
+The approved foundation uses Kotlin Multiplatform shared code, Android Jetpack Compose, Compose Multiplatform Desktop, SQLDelight/SQLite, a TypeScript Cloudflare Worker area and PostgreSQL migration/data-loading infrastructure.
 
-C-0009 remains controlling: do not activate speculative infrastructure without a concrete approved feature need.
+C-0009 remains controlling: do not activate speculative infrastructure without a concrete approved need.
 
 ---
 
 ## Phase 3 — First Vertical Slice
 
-**Status:** Complete. Local Android campaign creation and active-campaign selection merged through PR #5 on 2026-08-30.
-
-The slice proved Android Material 3 UI, shared Kotlin behavior, SQLDelight persistence and basic phone/tablet usability.
+**Status:** Complete.
 
 ---
 
@@ -40,105 +38,65 @@ Phase 4 expanded into a deliberate **Character Foundation Closure** cycle before
 
 ### Phase 4A — Character Foundation Closure
 
-**Status:** A–I successor engineering and post-A–I stabilization are complete/automated-green. Consolidated owner phone QA of `0.4.0-preqa.8 / 40800` has been performed and **failed acceptance with bounded repair findings**. The project is now in **point-by-point QA design reconciliation before the acceptance-repair implementation pass**.
+**Status:** accepted Player repair implementation complete / automation-qualified; physical owner/device acceptance pending.
 
-D-0047 remains the controlling broad character-closure scope. D-0066 controls repository consolidation. D-0067 plus the September 2026 owner audition/refinement package controls the repair/refinement direction. The controlling current QA evidence is `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`.
+Authoritative Player branch:
 
-The repository may consolidate technically verified development boundaries into `main` before acceptance when the owner explicitly requests repository ordering. **Presence on `main` is not a Phase 4A acceptance criterion.**
+`implementation/phase4a-successor-cycle`
 
-#### Successor implementation sequence
+Current QA candidate:
 
-The reconciled implementation plan contained nine increments:
+- version `0.4.0-preqa.9`;
+- versionCode/build `40900`;
+- candidate commit `cd0c203d337c062fa388010d300e875f2f54ced7`;
+- Scaffold run `34726572588` — **SUCCESS**;
+- artifact ID `10307444450` / `dnd-custom-aid-debug-apk`;
+- artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
 
-1. **A — schema/domain/storage foundation:** COMPLETE / GREEN;
-2. **B — shared UX/responsive primitives:** COMPLETE / GREEN;
-3. **C — character-first navigation + PC Settings + General/Habilidades:** COMPLETE / GREEN;
-4. **D — Combat + Dice:** COMPLETE / GREEN;
-5. **E — Gestión + Markers + Resources + recovery/conditions:** COMPLETE / GREEN;
-6. **F — Conjuros compact source-context redesign:** COMPLETE / GREEN;
-7. **G — Equipo/Rasgos/conditional modules/Notas/Trasfondo:** COMPLETE / GREEN;
-8. **H — full-screen Application Settings/live previews/themes:** COMPLETE / GREEN;
-9. **I — separate tablet portrait/landscape redesign:** COMPLETE / GREEN.
+The earlier A–I successor engineering and the later `preqa.8 / 40800` physical phone QA are historical inputs to the accepted repair cycle. The accepted repair plan was then implemented through P1–P16 and automation-qualified. P17 is the physical tablet-QA gate policy, not another coding increment.
 
-There is **no planned Increment J**. After A–I, owner-audition findings drove a focused stabilization pass covering Rasgos provenance, multi-column reorder behavior, settings/font/theme refinement, app-wide multiline density and residual Player acceptance auditing.
+There is no unfinished Increment J and no hidden P1–P16 coding backlog.
 
-#### Current consolidated owner-QA build
+#### Current Phase 4A gate
 
-- version `0.4.0-preqa.8` / build `40800` / `debug`;
-- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
-- product tree `c612c07345ecdfc91d972118314ee649fe2048c4`;
-- authoritative validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
-- workflow `34430548061` — SUCCESS;
-- artifact `10134364621` / `dnd-custom-aid-debug-apk`;
-- ZIP digest `b7ead12a7501bbef96f861321b5bebfd64c631647423b8eab9faec9580699a`;
-- APK SHA-256 `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
+The next required evidence is **physical owner/device QA of `0.4.0-preqa.9 / 40900`**.
 
-This is the latest technically verified and owner-audited Player build. It is **not** a frozen formal M6 candidate and **not** an accepted Phase 4A baseline.
+Start with targeted phone regression/acceptance around representative repaired shared boundaries. If no hard shared/systemic failure would invalidate tablet evidence, continue with physical Player tablet portrait/landscape QA under P17.
 
-The owner successfully completed the update-in-place/data-preservation test and a consolidated phone pass covering portrait, landscape and representative larger text. The pass established meaningful PASS evidence but also exposed acceptance blockers. Physical tablet QA is intentionally deferred until shared/systemic findings are repaired.
+A real QA failure may reopen only the relevant accepted repair boundary on `implementation/phase4a-successor-cycle`.
 
-Build `40700` is historical evidence only and is not the current QA target.
-
-#### Current design-reconciliation rule
-
-Before implementation of the acceptance repair pass, review the `40800` QA findings **one point at a time** with the owner.
-
-For each point:
-
-- discuss the exact defect and intended interaction;
-- resolve only the design details needed for that point;
-- once closed by the owner, consolidate that decision durably in repository documentation;
-- then move to the next point;
-- do not collapse unrelated findings into one discussion package unless the owner explicitly requests it.
-
-When the point-by-point discussion is complete, convert the closed decisions into a bounded acceptance-repair implementation plan.
+Do not invent unrelated Player features merely to keep implementation moving while this gate is open.
 
 ### Phase 4A exit criterion
 
 Phase 4A is complete only when:
 
-- D-0047 implementation exists — **done**;
-- successor A–I engineering exists and automated gates are green — **done**;
-- post-audition Player stabilization is implemented and full-gate green — **done**;
-- consolidated physical owner phone QA has been executed — **done for build 40800, but build not accepted**;
-- current QA findings have been individually reconciled with the owner and converted into an accepted repair specification — **in progress**;
-- blocking findings are repaired and targeted phone retest passes — **pending**;
-- tablet portrait/landscape acceptance is completed on the repaired Player tablet surface — **pending**;
-- one exact replacement formal M6 candidate is explicitly frozen when ready — **pending**;
-- upgrade/persistence and relevant formal regression QA pass — **pending**;
+- D-0047 character-foundation scope exists — **done**;
+- successor engineering and the accepted repair package are implemented — **done**;
+- P1–P16 automated validation is green — **done**;
+- a unique repaired QA candidate exists — **done: `preqa.9 / 40900`**;
+- targeted physical phone QA of the repaired candidate is acceptable — **pending**;
+- physical Player tablet portrait/landscape QA is completed under P17 — **pending**;
+- blocking findings, if any, are repaired and revalidated — **pending as needed**;
 - the owner explicitly accepts/closes Phase 4A — **pending**.
 
-**No DM-feature implementation begins before Phase 4A acceptance/closure.**
+**No DM feature implementation begins before Phase 4A owner acceptance and explicit closure.**
 
-DM-side discovery/design may be discussed and documented while Phase 4A remains open, but documentation is not implementation permission.
+### Phase 4B / Phase 5A — DM live-session product line
 
-### Phase 4B — DM combat / live-session work
+**Status:** product/discovery decisions active on `main`; implementation blocked.
 
-**Status:** Product/UX discovery baseline captured; implementation still blocked by Phase 4A owner acceptance and closure.
+`main` carries the later valid DM/Phase 5A discovery/design line, including the approved Desk-family direction and shared Player/DM rules-question capability.
 
-The detailed owner-approved discovery baseline is `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md`.
+This line is allowed to continue as product discovery/design when explicitly requested. It is **not** implementation authorization while Phase 4A remains open.
 
-The current Phase 4B direction is a **private tablet-landscape DM Combat Desk**, not a VTT. Core confirmed requirements include:
-
-- initiative remains always visible and independent from which stat block/reference is open;
-- modular hide/show Reference Desk, Combat State, Encounter Notes/Rules of Engagement, Clocks, Markers and Quick Rules;
-- individual PC/NPC/monster references plus first-class Party Overview and Creature Overview (tree vs forest);
-- reusable creature definitions separated from live encounter instances;
-- deliberate DM encounter overrides/improvisation for HP, AC, participants and actions without silently rewriting reusable definitions;
-- quick official-rules checking as a memory aid, never forced rules validation;
-- DM-private state by default; any future player-visible combat projection must be explicit/sanitized and its exact initiative model remains unresolved;
-- explicit non-goals: grids, maps, tokens, automatic targeting/range, encounter balancing and VTT-style combat execution;
-- live Combat Desk target is tablet landscape only; phone/portrait live-combat layouts are not required.
-
-D-0068 also preserves wireframe candidates, reversibility/history ideas and the explicit open-question list that must be resolved before coding.
-
-This stage will consume the stable reusable character data foundation only after Phase 4A is explicitly closed. The durable character sheet and future live combat state remain separate under D-0025/D-0026 and the later refinements captured in D-0068.
+Future DM implementation must begin from the accepted `main` discovery decisions only after explicit Phase 4A closure, while preserving the completed Player foundation.
 
 ---
 
 ## Phase 5 — MVP Hardening
 
-**Goal:** make the first release dependable enough for real use.
+**Goal:** make the first release dependable enough for real use after the relevant implementation lines are accepted.
 
 Potential areas, only as observed/needed:
 
@@ -150,7 +108,7 @@ Potential areas, only as observed/needed:
 - PDF/export verification;
 - accessibility;
 - data migration/recovery;
-- performance where measured to matter;
+- measured performance work;
 - crash handling;
 - proportionate privacy/security review;
 - packaging/release process.
@@ -162,3 +120,7 @@ Potential areas, only as observed/needed:
 **Goal:** add features based on actual priorities/usage while preserving continuity.
 
 Possible later directions include broader Android/desktop parity, player desktop, desktop combat, co-DMs, explicit DM-device combat handoff, house-rule-aware clarification, realtime transport if proven useful, and other owner-approved expansions.
+
+## Branch/continuity rule
+
+The roadmap does not define branch authority by itself. Current branch roles and lifecycle are controlled by `docs/BRANCH_STATUS.md`; exact practical resume points are controlled by `docs/checkpoints/LATEST.md` on each active authoritative line.
