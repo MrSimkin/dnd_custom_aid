@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Latest physically tested candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7` — FAILED SHARED HP/UX ACCEPTANCE BOUNDARY  
-**Current phase:** P1/P2 + transversal presentation consistency reopened by physical owner/device QA; canonical HP repair layer implemented, remaining UI/presentation repair and validation pending  
+**Current phase:** P1/P2 + transversal presentation consistency reopened by physical owner/device QA; canonical HP repair and regression lock implemented, remaining UI/presentation repair and validation pending  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
 ## 1. Branch authority
@@ -41,12 +41,14 @@ Exact owner/device evidence: `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_Q
 
 ## 4. Repair status
 
-### R1 — canonical HP state boundary — implemented, validation pending
+### R1 — canonical HP state boundary — implemented + regression-locked, automation pending
 
 - `e0397146445c2cd78e7d017943bca1eb76101939` — shared exact hit-point update helpers now enforce non-negative max HP, `0 <= current <= max`, no silent healing on max increase, and clamp-on-max-reduction semantics.
 - `9f3c888b19c694408a2f81d8eae63359d879a3eb` — operational merge now preserves proposed max HP and clamps proposed current HP against that same canonical maximum. The prior implementation silently discarded proposed max HP and normalized current HP against the old persisted maximum.
+- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` — direct regression tests lock exact current/max normalization, no silent healing on max increase and clamp on max decrease.
+- `49833bb64857376c4931e91c5af684bd287b2aba` — operational-merge regression tests now lock proposed max-HP persistence, `20/10 → 10/10`, max increase without healing and temp-HP preservation; the stale prior expectation that max HP was rejected as structural state was removed.
 
-This directly repairs the identified source-level cause of Combat exact-current/max HP correction being lost. R1 is not yet automation-qualified or physically accepted.
+This directly repairs and regression-locks the identified source-level cause of Combat exact-current/max HP correction being lost. R1 is not yet automation-qualified or physically accepted.
 
 ### Still open
 
@@ -54,7 +56,7 @@ This directly repairs the identified source-level cause of Combat exact-current/
 - normal structural save path still requires canonical HP normalization;
 - changed-state HP glow/pulse remains to be implemented;
 - transversal presentation consistency remains to be classified against historical audit and repaired;
-- regression tests, focused validation, aggregate validation and new QA packaging remain pending.
+- focused validation, aggregate validation and new QA packaging remain pending.
 
 P3–P16 remain historically implemented/automation-qualified unless later physical QA specifically reopens them. P17 tablet physical QA remains PAUSED while these shared defects are open.
 
@@ -73,13 +75,12 @@ CI remains valid for its tested scope; physical QA showed that scope did not cov
 
 Before physical QA resumes:
 
-1. add regression coverage for the canonical HP helper/merge repair;
-2. implement General field-level canonical commit without a global Save requirement while preserving transient typing drafts;
-3. normalize HP through the normal structural save route;
-4. implement/verify changed-state feedback and transversal presentation consistency;
-5. run focused and aggregate validation;
-6. assign a new monotonic QA identity and artifact after green material code changes;
-7. physically recheck the reopened phone boundary.
+1. implement General field-level canonical commit without a global Save requirement while preserving transient typing drafts;
+2. normalize HP through the normal structural save route;
+3. implement/verify changed-state feedback and transversal presentation consistency;
+4. run focused and aggregate validation, including the new R1 regression coverage;
+5. assign a new monotonic QA identity and artifact after green material code changes;
+6. physically recheck the reopened phone boundary.
 
 Representative P17 tablet QA may resume only after the hard shared defects no longer make tablet acceptance evidence misleading.
 
