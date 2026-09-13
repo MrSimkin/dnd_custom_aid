@@ -33,6 +33,10 @@ jobs:
       - name: Apply guarded transversal control repair
         shell: bash
         run: |
+          set -euo pipefail
+          test ! -e androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCompactControlPrimitivesV4.kt
+          printf '%s' 'cGFja2FnZSBpby5naXRodWIubXJzaW1raW4uZG5kY3VzdG9tYWlkLmFuZHJvaWQKCmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLmZvdW5kYXRpb24uQm9yZGVyU3Ryb2tlCmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLmZvdW5kYXRpb24uY2xpY2thYmxlCmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLmZvdW5kYXRpb24ubGF5b3V0LkFycmFuZ2VtZW50CmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLmZvdW5kYXRpb24ubGF5b3V0LkJveAppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5mb3VuZGF0aW9uLmxheW91dC5Db2x1bW4KaW1wb3J0IGFuZHJvaWR4LmNvbXBvc2UuZm91bmRhdGlvbi5sYXlvdXQuUm93CmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLmZvdW5kYXRpb24ubGF5b3V0LmZpbGxNYXhXaWR0aAppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5mb3VuZGF0aW9uLmxheW91dC5oZWlnaHRJbgppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5mb3VuZGF0aW9uLmxheW91dC5wYWRkaW5nCmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLmZvdW5kYXRpb24udGV4dC5CYXNpY1RleHRGaWVsZAppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5mb3VuZGF0aW9uLnRleHQuS2V5Ym9hcmRPcHRpb25zCmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLm1hdGVyaWFsMy5Mb2NhbENvbnRlbnRDb2xvcgppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5tYXRlcmlhbDMuTWF0ZXJpYWxUaGVtZQppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5tYXRlcmlhbDMuUHJvdmlkZVRleHRTdHlsZQppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5tYXRlcmlhbDMuU3VyZmFjZQppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5tYXRlcmlhbDMuVGV4dAppbXBvcnQgYW5kcm9pZHguY29tcG9zZS5ydW50aW1lLkNvbXBvc2FibGUKaW1wb3J0IGFuZHJvaWR4LmNvbXBvc2UucnVudGltZS5Db21wb3NpdGlvbkxvY2FsUHJvdmlkZXIKaW1wb3J0IGFuZHJvaWR4LmNvbXBvc2UudWkuQWxpZ25tZW50CmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLnVpLk1vZGlmaWVyCmltcG9ydCBhbmRyb2lkeC5jb21wb3NlLnVpLmdyYXBoaWNzLlNvbGlkQ29sb3IKaW1wb3J0IGFuZHJvaWR4LmNvbXBvc2UudWkudW5pdC5kcAoKLyoqCiAqIFNoYXJlZCBjb21wYWN0IFBsYXllciBmaWVsZCBnZW9tZXRyeSBmb3IgUGhhc2UgNEEuCiAqCiAqIE1hdGVyaWFsIE91dGxpbmVkVGV4dEZpZWxkIGRlZmF1bHRzIHByZXZpb3VzbHkgbGVmdCBlZGl0b3IvZm9ybSBmaWVsZHMgd2l0aCBpbmNvbnNpc3RlbnQKICogaW50ZXJuYWwgdmVydGljYWwgd2hpdGVzcGFjZS4gVGhpcyBwcmltaXRpdmUgb3ducyB0aGF0IHdoaXRlc3BhY2UgZGlyZWN0bHkgd2hpbGUgcHJlc2VydmluZwogKiB0aGUgYWNjZXB0ZWQgNDhkcC1vci1sYXJnZXIgc2luZ2xlLWxpbmUgaW50ZXJhY3Rpb24gZW52ZWxvcGUsIGZvbnQtc2NhbGUgZ3Jvd3RoLCBtdWx0aWxpbmUKICogY29udGVudCBncm93dGgsIG51bWVyaWMga2V5Ym9hcmRzLCBkaXNhYmxlZC9yZWFkLW9ubHkgc2VtYW50aWNzLCBlcnJvciBzdGF0ZSBhbmQgc3VwcG9ydCB0ZXh0LgogKi8KQENvbXBvc2FibGUKaW50ZXJuYWwgZnVuIENoYXJhY3RlckNvbXBhY3RPdXRsaW5lZFRleHRGaWVsZFY0KAogICAgdmFsdWU6IFN0cmluZywKICAgIG9uVmFsdWVDaGFuZ2U6IChTdHJpbmcpIC0+IFVuaXQsCiAgICBtb2RpZmllcjogTW9kaWZpZXIgPSBNb2RpZmllciwKICAgIGVuYWJsZWQ6IEJvb2xlYW4gPSB0cnVlLAogICAgcmVhZE9ubHk6IEJvb2xlYW4gPSBmYWxzZSwKICAgIGxhYmVsOiAoQENvbXBvc2FibGUgKCkgLT4gVW5pdCk/ID0gbnVsbCwKICAgIHBsYWNlaG9sZGVyOiAoQENvbXBvc2FibGUgKCkgLT4gVW5pdCk/ID0gbnVsbCwKICAgIHN1cHBvcnRpbmdUZXh0OiAoQENvbXBvc2FibGUgKCkgLT4gVW5pdCk/ID0gbnVsbCwKICAgIHByZWZpeDogKEBDb21wb3NhYmxlICgpIC0+IFVuaXQpPyA9IG51bGwsCiAgICBpc0Vycm9yOiBCb29sZWFuID0gZmFsc2UsCiAgICBrZXlib2FyZE9wdGlvbnM6IEtleWJvYXJkT3B0aW9ucyA9IEtleWJvYXJkT3B0aW9ucy5EZWZhdWx0LAogICAgc2luZ2xlTGluZTogQm9vbGVhbiA9IGZhbHNlLAogICAgbWluTGluZXM6IEludCA9IDEsCiAgICBtYXhMaW5lczogSW50ID0gSW50Lk1BWF9WQUxVRSwKKSB7CiAgICB2YWwgcmVzb2x2ZWRNaW5MaW5lcyA9IGlmIChzaW5nbGVMaW5lKSAxIGVsc2UgbWluTGluZXMuY29lcmNlQXRMZWFzdCgxKQogICAgdmFsIHJlc29sdmVkTWF4TGluZXMgPSBpZiAoc2luZ2xlTGluZSkgMSBlbHNlIG1heExpbmVzLmNvZXJjZUF0TGVhc3QocmVzb2x2ZWRNaW5MaW5lcykKICAgIHZhbCBjb250ZW50Q29sb3IgPSB3aGVuIHsKICAgICAgICAhZW5hYmxlZCAtPiBNYXRlcmlhbFRoZW1lLmNvbG9yU2NoZW1lLm9uU3VyZmFjZS5jb3B5KGFscGhhID0gMC4zOGYpCiAgICAgICAgZWxzZSAtPiBNYXRlcmlhbFRoZW1lLmNvbG9yU2NoZW1lLm9uU3VyZmFjZQogICAgfQogICAgdmFsIHNlY29uZGFyeUNvbG9yID0gd2hlbiB7CiAgICAgICAgIWVuYWJsZWQgLT4gTWF0ZXJpYWxUaGVtZS5jb2xvclNjaGVtZS5vblN1cmZhY2VWYXJpYW50LmNvcHkoYWxwaGEgPSAwLjM4ZikKICAgICAgICBpc0Vycm9yIC0+IE1hdGVyaWFsVGhlbWUuY29sb3JTY2hlbWUuZXJyb3IKICAgICAgICBlbHNlIC0+IE1hdGVyaWFsVGhlbWUuY29sb3JTY2hlbWUub25TdXJmYWNlVmFyaWFudAogICAgfQogICAgdmFsIGJvcmRlckNvbG9yID0gd2hlbiB7CiAgICAgICAgIWVuYWJsZWQgLT4gTWF0ZXJpYWxUaGVtZS5jb2xvclNjaGVtZS5vdXRsaW5lVmFyaWFudC5jb3B5KGFscGhhID0gMC41NWYpCiAgICAgICAgaXNFcnJvciAtPiBNYXRlcmlhbFRoZW1lLmNvbG9yU2NoZW1lLmVycm9yCiAgICAgICAgZWxzZSAtPiBNYXRlcmlhbFRoZW1lLmNvbG9yU2NoZW1lLm91dGxpbmUKICAgIH0KCiAgICBDb2x1bW4obW9kaWZpZXIgPSBtb2RpZmllcikgewogICAgICAgIFN1cmZhY2UoCiAgICAgICAgICAgIG1vZGlmaWVyID0gTW9kaWZpZXIKICAgICAgICAgICAgICAgIC5maWxsTWF4V2lkdGgoKQogICAgICAgICAgICAgICAgLnRoZW4oCiAgICAgICAgICAgICAgICAgICAgaWYgKHNpbmdsZUxpbmUpIHsKICAgICAgICAgICAgICAgICAgICAgICAgTW9kaWZpZXIuaGVpZ2h0SW4obWluID0gY2hhcmFjdGVyQ29tcGFjdFNpbmdsZUxpbmVGaWVsZEhlaWdodFY0KCkpCiAgICAgICAgICAgICAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAgICAgICAgICAgTW9kaWZpZXIKICAgICAgICAgICAgICAgICAgICB9LAogICAgICAgICAgICAgICAgKSwKICAgICAgICAgICAgc2hhcGUgPSBNYXRlcmlhbFRoZW1lLnNoYXBlcy5leHRyYVNtYWxsLAogICAgICAgICAgICBib3JkZXIgPSBCb3JkZXJTdHJva2UoMS5kcCwgYm9yZGVyQ29sb3IpLAogICAgICAgICAgICBjb2xvciA9IE1hdGVyaWFsVGhlbWUuY29sb3JTY2hlbWUuc3VyZmFjZUNvbnRhaW5lckxvdywKICAgICAgICApIHsKICAgICAgICAgICAgQ29sdW1uKAogICAgICAgICAgICAgICAgbW9kaWZpZXIgPSBNb2RpZmllcgogICAgICAgICAgICAgICAgICAgIC5maWxsTWF4V2lkdGgoKQogICAgICAgICAgICAgICAgICAgIC5wYWRkaW5nKAogICAgICAgICAgICAgICAgICAgICAgICBob3Jpem9udGFsID0gOC5kcCwKICAgICAgICAgICAgICAgICAgICAgICAgdmVydGljYWwgPSBpZiAoc2luZ2xlTGluZSkgMy5kcCBlbHNlIDUuZHAsCiAgICAgICAgICAgICAgICAgICAgKSwKICAgICAgICAgICAgICAgIHZlcnRpY2FsQXJyYW5nZW1lbnQgPSBBcnJhbmdlbWVudC5zcGFjZWRCeSgxLmRwKSwKICAgICAgICAgICAgKSB7CiAgICAgICAgICAgICAgICBsYWJlbD8ubGV0IHsgbGFiZWxDb250ZW50IC0+CiAgICAgICAgICAgICAgICAgICAgQ29tcG9zaXRpb25Mb2NhbFByb3ZpZGVyKExvY2FsQ29udGVudENvbG9yIHByb3ZpZGVzIHNlY29uZGFyeUNvbG9yKSB7CiAgICAgICAgICAgICAgICAgICAgICAgIFByb3ZpZGVUZXh0U3R5bGUoTWF0ZXJpYWxUaGVtZS50eXBvZ3JhcGh5LmxhYmVsU21hbGwpIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGxhYmVsQ29udGVudCgpCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBSb3coCiAgICAgICAgICAgICAgICAgICAgbW9kaWZpZXIgPSBNb2RpZmllci5maWxsTWF4V2lkdGgoKSwKICAgICAgICAgICAgICAgICAgICB2ZXJ0aWNhbEFsaWdubWVudCA9IGlmIChzaW5nbGVMaW5lKSBBbGlnbm1lbnQuQ2VudGVyVmVydGljYWxseSBlbHNlIEFsaWdubWVudC5Ub3AsCiAgICAgICAgICAgICAgICApIHsKICAgICAgICAgICAgICAgICAgICBwcmVmaXg/LmxldCB7IHByZWZpeENvbnRlbnQgLT4KICAgICAgICAgICAgICAgICAgICAgICAgQ29tcG9zaXRpb25Mb2NhbFByb3ZpZGVyKExvY2FsQ29udGVudENvbG9yIHByb3ZpZGVzIGNvbnRlbnRDb2xvcikgewogICAgICAgICAgICAgICAgICAgICAgICAgIFByb3ZpZGVUZXh0U3R5bGUoTWF0ZXJpYWxUaGVtZS50eXBvZ3JhcGh5LmJvZHlNZWRpdW0pIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwcmVmaXhDb250ZW50KCkKICAgICAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgICAgICBhbmRyb2lkeC5jb21wb3NlLmZvdW5kYXRpb24ubGF5b3V0LlNwYWNlcihtb2RpZmllciA9IE1vZGlmaWVyLnBhZGRpbmcoaG9yaXpvbnRhbCA9IDIuZHApKQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBCb3gobW9kaWZpZXIgPSBNb2RpZmllci53ZWlnaHQoMWYpKSB7CiAgICAgICAgICAgICAgICAgICAgICAgIGlmICh2YWx1ZS5pc0VtcHR5KCkpIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPy5sZXQgeyBwbGFjZWhvbGRlckNvbnRlbnQgLT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBDb21wb3NpdGlvbkxvY2FsUHJvdmlkZXIoTG9jYWxDb250ZW50Q29sb3IgcHJvdmlkZXMgc2Vjb25kYXJ5Q29sb3IpIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgUHJvdmlkZVRleHRTdHlsZShNYXRlcmlhbFRoZW1lLnR5cG9ncmFwaHkuYm9keU1lZGl1bSkgewogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlckNvbnRlbnQoKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICAgICAgQmFzaWNUZXh0RmllbGQoCiAgICAgICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZSA9IHZhbHVlLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgb25WYWx1ZUNoYW5nZSA9IG9uVmFsdWVDaGFuZ2UsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBtb2RpZmllciA9IE1vZGlmaWVyLmZpbGxNYXhXaWR0aCgpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgZW5hYmxlZCA9IGVuYWJsZWQsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICByZWFkT25seSA9IHJlYWRPbmx5LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgdGV4dFN0eWxlID0gTWF0ZXJpYWxUaGVtZS50eXBvZ3JhcGh5LmJvZHlNZWRpdW0uY29weShjb2xvciA9IGNvbnRlbnRDb2xvciksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBrZXlib2FyZE9wdGlvbnMgPSBrZXlib2FyZE9wdGlvbnMsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBzaW5nbGVMaW5lID0gc2luZ2xlTGluZSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1pbkxpbmVzID0gcmVzb2x2ZWRNaW5MaW5lcywKICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1heExpbmVzID0gcmVzb2x2ZWRNYXhMaW5lcywKICAgICAgICAgICAgICAgICAgICAgICAgICAgIGN1cnNvckJydXNoID0gU29saWRDb2xvcihNYXRlcmlhbFRoZW1lLmNvbG9yU2NoZW1lLnByaW1hcnkpLAogICAgICAgICAgICAgICAgICAgICAgICApCiAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIHN1cHBvcnRpbmdUZXh0Py5sZXQgeyBzdXBwb3J0aW5nQ29udGVudCAtPgogICAgICAgICAgICBCb3gobW9kaWZpZXIgPSBNb2RpZmllci5wYWRkaW5nKHN0YXJ0ID0gOC5kcCwgZW5kID0gOC5kcCwgdG9wID0gMi5kcCkpIHsKICAgICAgICAgICAgICAgIENvbXBvc2l0aW9uTG9jYWxQcm92aWRlcihMb2NhbENvbnRlbnRDb2xvciBwcm92aWRlcyBzZWNvbmRhcnlDb2xvcikgewogICAgICAgICAgICAgICAgICAgIFByb3ZpZGVUZXh0U3R5bGUoTWF0ZXJpYWxUaGVtZS50eXBvZ3JhcGh5LmxhYmVsU21hbGwpIHsKICAgICAgICAgICAgICAgICAgICAgICAgc3VwcG9ydGluZ0NvbnRlbnQoKQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KfQoKLyoqCiAqIENvbXBhY3QgdmlzdWFsIGdseXBoIHNlbGVjdG9yIHdpdGggYSBzYWZlIGludGVyYWN0aW9uIGVudmVsb3BlLgogKiBUaGUgdmlzaWJsZSArLy0gY29udHJvbCBmb2xsb3dzIHRoZSBleGlzdGluZyAzMC0zNGRwIGNvbXBhY3Qgc3RlcC9hY3Rpb24gZ3JhbW1hciB3aGlsZSB0aGUKICogc3Vycm91bmRpbmcgaGl0IHRhcmdldCByZW1haW5zIGF0IGxlYXN0IDQ4ZHAgaGlnaCwgc28gY29tcGFjdCBhcHBlYXJhbmNlIGRvZXMgbm90IG1lYW4gYSB0aW55CiAqIHRvdWNoIHRhcmdldC4KICovCkBDb21wb3NhYmxlCmludGVybmFsIGZ1biBDaGFyYWN0ZXJDb21wYWN0R2x5cGhTZWxlY3RvclY0KAogICAgZ2x5cGg6IFN0cmluZywKICAgIG9uQ2xpY2s6ICgpIC0+IFVuaXQsCiAgICBtb2RpZmllcjogTW9kaWZpZXIgPSBNb2RpZmllciwKICAgIGVuYWJsZWQ6IEJvb2xlYW4gPSB0cnVlLAopIHsKICAgIHZhbCBjb250ZW50Q29sb3IgPSBpZiAoZW5hYmxlZCkgewogICAgICAgIE1hdGVyaWFsVGhlbWUuY29sb3JTY2hlbWUub25TdXJmYWNlCiAgICB9IGVsc2UgewogICAgICAgIE1hdGVyaWFsVGhlbWUuY29sb3JTY2hlbWUub25TdXJmYWNlLmNvcHkoYWxwaGEgPSAwLjM4ZikKICAgIH0KICAgIHZhbCBib3JkZXJDb2xvciA9IGlmIChlbmFibGVkKSB7CiAgICAgICAgTWF0ZXJpYWxUaGVtZS5jb2xvclNjaGVtZS5vdXRsaW5lCiAgICB9IGVsc2UgewogICAgICAgIE1hdGVyaWFsVGhlbWUuY29sb3JTY2hlbWUub3V0bGluZVZhcmlhbnQuY29weShhbHBoYSA9IDAuNTVmKQogICAgfQogICAgQm94KAogICAgICAgIG1vZGlmaWVyID0gbW9kaWZpZXIKICAgICAgICAgICAgLmhlaWdodEluKG1pbiA9IGNoYXJhY3RlckNvbXBhY3RTaW5nbGVMaW5lRmllbGRIZWlnaHRWNCgpKQogICAgICAgICAgICAuY2xpY2thYmxlKGVuYWJsZWQgPSBlbmFibGVkLCBvbkNsaWNrID0gb25DbGljayksCiAgICAgIGNvbnRlbnRBbGlnbm1lbnQgPSBBbGlnbm1lbnQuQ2VudGVyLAogICAgKSB7CiAgICAgICAgU3VyZmFjZSgKICAgICAgICAgICAgbW9kaWZpZXIgPSBNb2RpZmllci5maWxsTWF4V2lkdGgoKS5oZWlnaHRJbihtaW4gPSAzNC5kcCksCiAgICAgICAgICAgIHNoYXBlID0gTWF0ZXJpYWxUaGVtZS5zaGFwZXMuZXh0cmFTbWFsbCwKICAgICAgICAgICAgYm9yZGVyID0gQm9yZGVyU3Ryb2tlKDEuZHAsIGJvcmRlckNvbG9yKSwKICAgICAgICAgICAgY29sb3IgPSBNYXRlcmlhbFRoZW1lLmNvbG9yU2NoZW1lLnN1cmZhY2VDb250YWluZXJMb3csCiAgICAgICAgKSB7CiAgICAgICAgICAgIEJveCgKICAgICAgICAgICAgICAgIG1vZGlmaWVyID0gTW9kaWZpZXIuZmlsbE1heFdpZHRoKCkucGFkZGluZyhob3Jpem9udGFsID0gNC5kcCwgdmVydGljYWwgPSAzLmRwKSwKICAgICAgICAgICAgICAgIGNvbnRlbnRBbGlnbm1lbnQgPSBBbGlnbm1lbnQuQ2VudGVyLAogICAgICAgICAgICApIHsKICAgICAgICAgICAgICAgIFRleHQoCiAgICAgICAgICAgICAgICAgICAgZ2x5cGgsCiAgICAgICAgICAgICAgICAgICAgc3R5bGUgPSBNYXRlcmlhbFRoZW1lLnR5cG9ncmFwaHkubGFiZWxMYXJnZSwKICAgICAgICAgICAgICAgICAgICBjb2xvciA9IGNvbnRlbnRDb2xvciwKICAgICAgICAgICAgICAgICAgICBtYXhMaW5lcyA9IDEsCiAgICAgICAgICAgICAgICApCiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cn0K' | base64 --decode > androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCompactControlPrimitivesV4.kt
+          printf '%s' 'IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwpmcm9tIF9fZnV0dXJlX18gaW1wb3J0IGFubm90YXRpb25zCmltcG9ydCBwYXRobGliCmltcG9ydCByZQppbXBvcnQgc3lzCgpST09UID0gcGF0aGxpYi5QYXRoKCdhbmRyb2lkQXBwL3NyYy9tYWluL2tvdGxpbi9pby9naXRodWIvbXJzaW1raW4vZG5kY3VzdG9tYWlkL2FuZHJvaWQnKQpyYXdfcGF0dGVybiA9IHJlLmNvbXBpbGUocicoPzwhW0EtWmEtejAtOV9dKU91dGxpbmVkVGV4dEZpZWxkXHMqXCgnKQpyYXdfc2l0ZXMgPSBbXQptYXRlcmlhbF9pbXBvcnRzID0gW10KY29tcGFjdF9jYWxscyA9IDAKZm9yIHBhdGggaW4gc29ydGVkKFJPT1QuZ2xvYignKi5rdCcpKToKICAgIHRleHQgPSBwYXRoLnJlYWRfdGV4dChlbmNvZGluZz0ndXRmLTgnKQogICAgZm9yIG1hdGNoIGluIHJhd19wYXR0ZXJuLmZpbmRpdGVyKHRleHQpOgogICAgICAgIHJhd19zaXRlcy5hcHBlbmQoZid7cGF0aC5uYW1lfTp7dGV4dC5jb3VudChjaHIoMTApLCAwLCBtYXRjaC5zdGFydCgpKSArIDF9JykKICAgIGlmICdpbXBvcnQgYW5kcm9pZHguY29tcG9zZS5tYXRlcmlhbDMuT3V0bGluZWRUZXh0RmllbGQnIGluIHRleHQ6CiAgICAgICAgbWF0ZXJpYWxfaW1wb3J0cy5hcHBlbmQocGF0aC5uYW1lKQogICAgY29tcGFjdF9jYWxscyArPSB0ZXh0LmNvdW50KCdDaGFyYWN0ZXJDb21wYWN0T3V0bGluZWRUZXh0RmllbGRWNCgnKQoKZXJyb3JzID0gW10KaWYgcmF3X3NpdGVzOgogICAgZXJyb3JzLmFwcGVuZCgncmF3IE1hdGVyaWFsIE91dGxpbmVkVGV4dEZpZWxkIGNhbGwgc2l0ZXMgcmVtYWluOiAnICsgJywgJy5qb2luKHJhd19zaXRlcykpCmlmIG1hdGVyaWFsX2ltcG9ydHM6CiAgICBlcnJvcnMuYXBwZW5kKCdyYXcgTWF0ZXJpYWwgT3V0bGluZWRUZXh0RmllbGQgaW1wb3J0cyByZW1haW46ICcgKyAnLCAnLmpvaW4obWF0ZXJpYWxfaW1wb3J0cykpCiMgMTYwIG1pZ3JhdGVkIGNhbGwgc2l0ZXMgcGx1cyB0aGUgc2hhcmVkIHByaW1pdGl2ZSBkZWNsYXJhdGlvbiBhdCB0aGUgY3VycmVudCByZXBhaXIgYm91bmRhcnkuCmlmIGNvbXBhY3RfY2FsbHMgPCAxNjE6CiAgICBlcnJvcnMuYXBwZW5kKGYnZXhwZWN0ZWQgYXQgbGVhc3QgMTYwIGNvbXBhY3QgUGxheWVyIGZpZWxkIHVzYWdlczsgb2JzZXJ2ZWQgY291bnQgaW5jbHVkaW5nIGRlY2xhcmF0aW9uPXtjb21wYWN0X2NhbGxzfScpCgpjb21iYXQgPSAoUk9PVCAvICdDaGFyYWN0ZXJDb21iYXRTdWNjZXNzb3JWNC5rdCcpLnJlYWRfdGV4dChlbmNvZGluZz0ndXRmLTgnKQptYXJrZXIgPSAndmFyIHNpZ25FeHBhbmRlZCBieSByZW1lbWJlciB7IG11dGFibGVTdGF0ZU9mKGZhbHNlKSB9JwpzdGFydCA9IGNvbWJhdC5maW5kKG1hcmtlcikKZW5kID0gY29tYmF0LmZpbmQoJ0Ryb3Bkb3duTWVudSgnLCBzdGFydCkKaWYgc3RhcnQgPCAwIG9yIGVuZCA8IDA6CiAgICBlcnJvcnMuYXBwZW5kKCdzdHJ1Y3R1cmVkLWRpY2Ugc2lnbiBzZWxlY3RvciBib3VuZGFyeSBub3QgZm91bmQnKQplbHNlOgogICAgc2lnbl9ibG9jayA9IGNvbWJhdFtzdGFydDplbmRdCiAgICBpZiAnQ2hhcmFjdGVyQ29tcGFjdEdseXBoU2VsZWN0b3JWNCgnIG5vdCBpbiBzaWduX2Jsb2NrOgogICAgICAgIGVycm9ycy5hcHBlbmQoJ3N0cnVjdHVyZWQtZGljZSArLy0gc2VsZWN0b3IgaXMgbm90IHVzaW5nIHRoZSBjb21wYWN0IGdseXBoIHNlbGVjdG9yJykKICAgIGlmICdPdXRsaW5lZEJ1dHRvbig nIGluIHNpZ25fYmxvY2s6CiAgICAgICAgZXJyb3JzLmFwcGVuZCgnc3RydWN0dXJlZC1kaWNlICsvLSBzZWxlY3RvciByZWdyZXNzZWQgdG8gcmF3IE91dGxpbmVkQnV0dG9uIGdlb21ldHJ5JykKCmlmIGVycm9yczoKICAgIGZvciBlcnJvciBpbiBlcnJvcnM6CiAgICAgICAgcHJpbnQoJ0VSUk9SOicsIGVycm9yLCBmaWxlPXN5cy5zdGRlcnIpCiAgICByYWlzZSBTeXN0ZW1FeGl0KDEpCnByaW50KGYnUGxheWVyIGNvbXBhY3QtY29udHJvbCBnZW9tZXRyeSBndWFyZCBQQVNTOiBjb21wYWN0RmllbGRDb3VudD17Y29tcGFjdF9jYWxscyAtIDF9OyByYXdNYXRlcmlhbEZpZWxkcz0wOyBkaWNlU2lnbj1zaGFyZWQtY29tcGFjdC1nbHlwaCcpCg==' | base64 --decode > scripts/check_player_control_geometry.py
           python3 - <<'PY'
           from __future__ import annotations
           import pathlib
@@ -40,221 +44,20 @@ jobs:
 
           root = pathlib.Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android')
           primitive = root / 'CharacterCompactControlPrimitivesV4.kt'
-          if primitive.exists():
-              raise SystemExit(f'{primitive} already exists; refusing ambiguous rerun')
-
-          primitive.write_text(r'''package io.github.mrsimkin.dndcustomaid.android
-
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.unit.dp
-
-/**
- * Shared compact Player field geometry for Phase 4A.
- *
- * Material OutlinedTextField defaults previously left editor/form fields with inconsistent
- * internal vertical whitespace. This primitive owns that whitespace directly while preserving
- * the accepted 48dp-or-larger single-line interaction envelope, font-scale growth, multiline
- * content growth, numeric keyboards, disabled/read-only semantics, error state and support text.
- */
-@Composable
-internal fun CharacterCompactOutlinedTextFieldV4(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    readOnly: Boolean = false,
-    label: (@Composable () -> Unit)? = null,
-    placeholder: (@Composable () -> Unit)? = null,
-    supportingText: (@Composable () -> Unit)? = null,
-    prefix: (@Composable () -> Unit)? = null,
-    isError: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    singleLine: Boolean = false,
-    minLines: Int = 1,
-    maxLines: Int = Int.MAX_VALUE,
-) {
-    val resolvedMinLines = if (singleLine) 1 else minLines.coerceAtLeast(1)
-    val resolvedMaxLines = if (singleLine) 1 else maxLines.coerceAtLeast(resolvedMinLines)
-    val contentColor = when {
-        !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-    val secondaryColor = when {
-        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-        isError -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    val borderColor = when {
-        !enabled -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
-        isError -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.outline
-    }
-
-    Column(modifier = modifier) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (singleLine) {
-                        Modifier.heightIn(min = characterCompactSingleLineFieldHeightV4())
-                    } else {
-                        Modifier
-                    },
-                ),
-            shape = MaterialTheme.shapes.extraSmall,
-            border = BorderStroke(1.dp, borderColor),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 8.dp,
-                        vertical = if (singleLine) 3.dp else 5.dp,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(1.dp),
-            ) {
-                label?.let { labelContent ->
-                    CompositionLocalProvider(LocalContentColor provides secondaryColor) {
-                        ProvideTextStyle(MaterialTheme.typography.labelSmall) {
-                            labelContent()
-                        }
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = if (singleLine) Alignment.CenterVertically else Alignment.Top,
-                ) {
-                    prefix?.let { prefixContent ->
-                        CompositionLocalProvider(LocalContentColor provides contentColor) {
-                            ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
-                                prefixContent()
-                            }
-                        }
-                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(horizontal = 2.dp))
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        if (value.isEmpty()) {
-                            placeholder?.let { placeholderContent ->
-                                CompositionLocalProvider(LocalContentColor provides secondaryColor) {
-                                    ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
-                                        placeholderContent()
-                                    }
-                                }
-                            }
-                        }
-                        BasicTextField(
-                            value = value,
-                            onValueChange = onValueChange,
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = enabled,
-                            readOnly = readOnly,
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(color = contentColor),
-                            keyboardOptions = keyboardOptions,
-                            singleLine = singleLine,
-                            minLines = resolvedMinLines,
-                            maxLines = resolvedMaxLines,
-                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        )
-                    }
-                }
-            }
-        }
-        supportingText?.let { supportingContent ->
-            Box(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 2.dp)) {
-                CompositionLocalProvider(LocalContentColor provides secondaryColor) {
-                    ProvideTextStyle(MaterialTheme.typography.labelSmall) {
-                        supportingContent()
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * Compact visual glyph selector with a safe interaction envelope.
- * The visible +/- control follows the existing 30-34dp compact step/action grammar while the
- * surrounding hit target remains at least 48dp high, so compact appearance does not mean a tiny
- * touch target.
- */
-@Composable
-internal fun CharacterCompactGlyphSelectorV4(
-    glyph: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    val contentColor = if (enabled) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-    }
-    val borderColor = if (enabled) {
-        MaterialTheme.colorScheme.outline
-    } else {
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
-    }
-    Box(
-        modifier = modifier
-            .heightIn(min = characterCompactSingleLineFieldHeightV4())
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp),
-            shape = MaterialTheme.shapes.extraSmall,
-            border = BorderStroke(1.dp, borderColor),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 3.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    glyph,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = contentColor,
-                    maxLines = 1,
-                )
-            }
-        }
-    }
-}
-''', encoding='utf-8')
-
           migrated = 0
           touched = []
           pattern = re.compile(r'(?<![A-Za-z0-9_])OutlinedTextField\s*\(')
+
           for path in sorted(root.glob('*.kt')):
               if path == primitive:
                   continue
               text = path.read_text(encoding='utf-8')
               original = text
-              text = text.replace('androidx.compose.material3.OutlinedTextField(', 'CharacterCompactOutlinedTextFieldV4(')
-              text, count = pattern.subn('CharacterCompactOutlinedTextFieldV4(', text)
-              migrated += count
+              qualified = 'androidx.compose.material3.OutlinedTextField('
+              qualified_count = text.count(qualified)
+              text = text.replace(qualified, 'CharacterCompactOutlinedTextFieldV4(')
+              text, plain_count = pattern.subn('CharacterCompactOutlinedTextFieldV4(', text)
+              migrated += qualified_count + plain_count
               text = text.replace('import androidx.compose.material3.OutlinedTextField\n', '')
               if text != original:
                   path.write_text(text, encoding='utf-8')
@@ -265,80 +68,16 @@ internal fun CharacterCompactGlyphSelectorV4(
 
           combat = root / 'CharacterCombatSuccessorV4.kt'
           text = combat.read_text(encoding='utf-8')
-          old = '''            OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
-                Text(if (parsed.negativeDice) "−" else "+")
-            }
-'''
-          new = '''            CharacterCompactGlyphSelectorV4(
-                glyph = if (parsed.negativeDice) "−" else "+",
-                onClick = { signExpanded = true },
-                modifier = Modifier.fillMaxWidth(),
-            )
-'''
-          if text.count(old) != 1:
+          normalized_old = '            OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {\n                Text(if (parsed.negativeDice) "−" else "+")\n            }\n'
+          new = '            CharacterCompactGlyphSelectorV4(\n                glyph = if (parsed.negativeDice) "−" else "+",\n                onClick = { signExpanded = true },\n                modifier = Modifier.fillMaxWidth(),\n            )\n'
+          if text.count(normalized_old) != 1:
               raise SystemExit('Structured-dice sign selector source no longer matches guarded pre-repair form')
-          combat.write_text(text.replace(old, new), encoding='utf-8')
-
-          guard = pathlib.Path('scripts/check_player_control_geometry.py')
-          guard.parent.mkdir(parents=True, exist_ok=True)
-          guard.write_text(r'''#!/usr/bin/env python3
-from __future__ import annotations
-import pathlib
-import re
-import sys
-
-ROOT = pathlib.Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android')
-raw_pattern = re.compile(r'(?<![A-Za-z0-9_])OutlinedTextField\s*\(')
-raw_sites = []
-material_imports = []
-compact_calls = 0
-for path in sorted(ROOT.glob('*.kt')):
-    text = path.read_text(encoding='utf-8')
-    for match in raw_pattern.finditer(text):
-        raw_sites.append(f'{path.name}:{text.count(chr(10), 0, match.start()) + 1}')
-    if 'import androidx.compose.material3.OutlinedTextField' in text:
-        material_imports.append(path.name)
-    compact_calls += text.count('CharacterCompactOutlinedTextFieldV4(')
-
-errors = []
-if raw_sites:
-    errors.append('raw Material OutlinedTextField call sites remain: ' + ', '.join(raw_sites))
-if material_imports:
-    errors.append('raw Material OutlinedTextField imports remain: ' + ', '.join(material_imports))
-# 160 migrated call sites plus the shared primitive declaration at the current repair boundary.
-if compact_calls < 161:
-    errors.append(f'expected at least 160 compact Player field usages; observed count including declaration={compact_calls}')
-
-combat = (ROOT / 'CharacterCombatSuccessorV4.kt').read_text(encoding='utf-8')
-marker = 'var signExpanded by remember { mutableStateOf(false) }'
-start = combat.find(marker)
-end = combat.find('DropdownMenu(', start)
-if start < 0 or end < 0:
-    errors.append('structured-dice sign selector boundary not found')
-else:
-    sign_block = combat[start:end]
-    if 'CharacterCompactGlyphSelectorV4(' not in sign_block:
-        errors.append('structured-dice +/- selector is not using the compact glyph selector')
-    if 'OutlinedButton(' in sign_block:
-        errors.append('structured-dice +/- selector regressed to raw OutlinedButton geometry')
-
-if errors:
-    for error in errors:
-        print('ERROR:', error, file=sys.stderr)
-    raise SystemExit(1)
-print(f'Player compact-control geometry guard PASS: compactFieldCount={compact_calls - 1}; rawMaterialFields=0; diceSign=shared-compact-glyph')
-''', encoding='utf-8')
+          combat.write_text(text.replace(normalized_old, new), encoding='utf-8')
 
           scaffold = pathlib.Path('.github/workflows/scaffold-check.yml')
           text = scaffold.read_text(encoding='utf-8')
-          needle = '''      - name: Prepare stable CI debug keystore
-        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
-'''
-          insert = '''      - name: Guard compact Player control geometry
-        run: python3 scripts/check_player_control_geometry.py
-      - name: Prepare stable CI debug keystore
-        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
-'''
+          needle = '      - name: Prepare stable CI debug keystore\n        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore\n'
+          insert = '      - name: Guard compact Player control geometry\n        run: python3 scripts/check_player_control_geometry.py\n      - name: Prepare stable CI debug keystore\n        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore\n'
           if text.count(needle) != 1:
               raise SystemExit('Scaffold insertion anchor no longer unique')
           scaffold.write_text(text.replace(needle, insert), encoding='utf-8')
@@ -360,14 +99,12 @@ print(f'Player compact-control geometry guard PASS: compactFieldCount={compact_c
       - name: Commit exact product repair
         shell: bash
         run: |
+          set -euo pipefail
           git diff --check
           git status --short
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android \
-            scripts/check_player_control_geometry.py \
-            .github/workflows/scaffold-check.yml
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android scripts/check_player_control_geometry.py .github/workflows/scaffold-check.yml
           if git diff --cached --quiet; then
             echo "No repair diff produced" >&2
             exit 1
