@@ -4,53 +4,19 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Previous physical candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7` — FAILED SHARED HP/UX ACCEPTANCE BOUNDARY  
-**Current repaired physical-QA candidate:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` — AUTOMATION GREEN / REOPENED R1–R3 PHONE BOUNDARY PHYSICALLY PASSED  
-**Current phase:** remaining targeted phone regression on preqa.10, then representative P17 tablet QA if no hard shared/systemic failure emerges  
+**Current physical-evidence candidate:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` — AUTOMATION GREEN; R1–R3 PHYSICAL PASS; P16/P4 REOPENED BY LATER PHONE QA  
+**Current phase:** bounded P16 vertical-space/persistent-footprint + P4 attack-damage-editor repair from physical owner evidence  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
 ## Branch authority and authorization
 
 This branch is the authoritative Player implementation/Phase 4A repair line. `main` is intentionally divergent and carries later global/Phase 5A/DM discovery records; it is not the latest Player runtime. See `docs/BRANCH_STATUS.md` and `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md`.
 
-`docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` authorizes P1–P17 repair/validation, QA packaging, and bounded repairs reopened by real QA evidence. Current work is inside that authorization. No P18 exists.
+`docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` authorizes P1–P17 repair/validation, QA packaging, and bounded repairs reopened by real QA evidence. Current work remains inside that authorization. No P18 exists.
 
-## Physical preqa.9 evidence
+## Current candidate identity
 
-Preserved PASS: update-in-place, launch, existing campaign/character preservation, representative saved-data preservation, full close/reopen, max-HP increase without silent healing, damage/temp-HP arithmetic, healing cap, amount clearing, and Combate-operation→General projection.
-
-Blocking findings were:
-
-- General HP required an extra global `Guardar` before Combate saw the change;
-- lowering max HP could project invalid current > max (`20/10` observed);
-- accepted subtle affected-HP feedback was absent;
-- Combate `Establecer PV` did not change current HP while exact temp-HP correction worked;
-- `Daño — Cantidad — Curar` was visually out of proportion, reopening transversal sizing/spacing consistency.
-
-The owner and assistant agreed not to complete exhaustive QA on known-bad `preqa.9`.
-
-## Repair status
-
-### R1 — canonical HP state — implemented + regression-locked
-
-- `e0397146445c2cd78e7d017943bca1eb76101939` — canonical HP operation/invariants.
-- `9f3c888b19c694408a2f81d8eae63359d879a3eb` — operational merge preserves proposed max/current HP canonically.
-- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9`, `49833bb64857376c4931e91c5af684bd287b2aba` — regression coverage including `20/10 -> 10/10` and no-silent-heal behavior.
-
-### R2 — General HP propagation — implemented
-
-- `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — ordinary save canonicalizes HP; valid General HP drafts flush canonically on navigation; max/current/temp resynchronize; transient invalid/incomplete typing remains local.
-
-### R3 — accepted P2 feedback + Combat row proportion — implemented + regression-locked + automation-green
-
-- `cc452b156d43967d9eb794a661162c3f3a05f336` — targeted brief affected-HP feedback and rebalanced `Daño | cantidad | Curar` geometry.
-- `ef051af8d2e36a3b765a80487afd9754d5a67e17` — shared canonical HP-change impact classifier.
-- `ff06bdf1552268f9805c9ff4a3108a3675a22fe5` — Combat HUD consumes the shared classifier.
-- `ddd9d01dab4f0b45470174712a5c115de1112d90` — tests lock no-change/PV-only/Temp-only/both targeting.
-- Scaffold `34730363231` on `ddd9d01d…`: **SUCCESS**.
-
-## Current repaired candidate
-
-Authoritative candidate evidence: `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md`.
+Authoritative candidate checkpoint: `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md`.
 
 - versionName `0.4.0-preqa.10`;
 - versionCode `41000`;
@@ -61,32 +27,73 @@ Authoritative candidate evidence: `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_Q
 - APK size `38,865,008` bytes;
 - independent APK SHA-256 `ee5db263883c8b1979b12cc9ca365ba9f190009b2b46e4e9b53681408c128c78`.
 
-The only product delta between the already-green regression boundary `ddd9d01d…` and candidate `a0d7dbd8…` is the Android version identity; intervening non-product changes are continuity documentation.
+## Preserved physical PASS — R1–R3
 
-## Physical preqa.10 evidence
+The owner reported **`1–7 OK`** for the exact focused repaired boundary on `preqa.10`.
 
-The owner physically reported **`1–7 OK`** for the exact focused repaired boundary defined by the candidate checkpoint.
-
-Therefore direct owner/device PASS now covers:
+Physical PASS therefore covers:
 
 - General HP → Combate canonical propagation without an extra global `Guardar` merely to cross tabs;
 - max-HP reduction clamp with no invalid `current > max` projection;
-- Temp-only, PV-only and spillover affected-state feedback behavior as accepted in P2;
+- Temp-only, PV-only and spillover affected-state feedback behavior accepted in P2;
 - working Combate `Establecer PV` exact correction and canonical projection;
-- coherent `Daño | cantidad | Curar` sizing/proportion/padding relative to the Combat HUD.
+- materially corrected `Daño | cantidad | Curar` three-part operation-row proportion relative to the failed preqa.9 candidate.
 
-The specific `preqa.9` R1–R3 failure boundary is now physically cleared on `preqa.10`; do not re-run those seven points absent contradictory new evidence.
+These R1–R3 passes remain valid and should not be repeated absent contradictory evidence.
+
+## New physical preqa.10 evidence — P16 / P4 reopened
+
+Current controlling physical progress checkpoint: `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_OWNER_PHONE_QA_PROGRESS.md`.
+
+### P16 / persistent vertical-space boundary — REOPENED
+
+Owner phone portrait/landscape testing is broadly usable in general terms, but annotated physical screenshots show that the accepted combined-footprint/usable-height policy is not fully satisfied:
+
+- the Combat `Cantidad` field retains disproportionate top/bottom internal vertical padding;
+- in phone landscape, the top character shell (identity/back on the left; settings/`Guardar` on the right) retains substantial vertical occupation instead of exploiting shallow/wide geometry sufficiently;
+- the combined app/header shell + tab navigation + Combat HUD leaves too little primary attacks/actions area relative to the available screen;
+- the defect is about the **combined persistent footprint**, not merely one isolated margin.
+
+This reopens P16's full-app vertical-space audit and keeps P5's compact fixed-HUD principle relevant. Historical automation-green P16 evidence remains valid for its tested scope; physical acceptance is not valid for the observed phone boundary.
+
+Owner guidance: reduce unnecessary vertical margins/padding and exploit available width before enlarging surrounding controls. Portrait long-card action-button relocation is a consideration to evaluate, not an approved automatic change.
+
+### P4 attack structured-damage editor — REOPENED
+
+During the same physical session, the owner accidentally opened a weapon/attack damage editor and found a functional defect:
+
+- dice cannot be selected correctly/reliably;
+- numeric controls/values are clipped;
+- internal controls do not fit the available vertical area correctly;
+- the editor/control remains too large at normal `100%` spacing.
+
+This physically reopens P4 because the accepted direct structured dice-selector workflow is not usable as observed. The clipping/oversizing also implicates shared editor/spacing behavior (P9 and/or common spacing primitives); exact secondary root-cause mapping must be established from source inspection rather than guessed.
+
+Explicit owner repair priority: **fix/reduce internal vertical margin/padding first; ensure controls fit and remain selectable; only then consider a modest outer-box size change if still necessary. Do not solve the defect simply by making the box larger.**
 
 ## Current gate
 
-Continue remaining targeted phone regression on the same `preqa.10` candidate. The next coherent boundary is the compact/fixed Combat HUD under constrained vertical space and phone landscape behavior, followed by representative P6 reorder persistence, P9 editor/IME reachability, Application/PC settings, P14 Table Mode, P15 Supercompact, P16 vertical-space behavior, Conjuros sticky/source context, and final persistence/reopen/canonical-state sanity.
+Under the established QA-efficiency rule, broad owner testing should pause while the known material defects are repaired rather than collecting exhaustive evidence from a candidate that will be superseded.
 
-Representative P17 tablet QA may proceed after phone testing if no hard shared/systemic failure emerges. A bounded/local phone defect does not automatically block unrelated tablet evidence; a hard shared/systemic failure can.
+Next engineering work is bounded to:
 
-P3–P16 remain historically implemented/automation-qualified unless later physical evidence specifically reopens them. Phase 4A remains open. DM implementation remains blocked until explicit owner acceptance/closure.
+1. inspect shared character top/header shell + Combat HUD against P16's combined persistent-footprint/usable-height contract;
+2. inspect the Combat amount field and related shared spacing primitives for disproportionate vertical padding at 100%;
+3. inspect/reproduce the attack structured-damage editor defect against P4 and shared P9 sizing/spacing primitives;
+4. repair only the reopened accepted boundaries;
+5. add focused regression coverage where feasible, run aggregate validation, and issue a new monotonic QA identity after material product changes;
+6. resume owner physical QA from these reopened points.
+
+P17 tablet QA remains pending; no tablet PASS/FAIL is claimed. Phase 4A remains open. DM implementation remains blocked until explicit owner acceptance/closure.
 
 ## Exact continuation point
 
-Read `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md`, then `docs/checkpoints/LATEST.md`.
+Read first:
 
-The repaired R1–R3 physical recheck is complete and passed. Next action is remaining targeted phone QA, beginning with the compact/fixed Combat HUD and constrained-height/landscape boundary. Do not restart R1–R3 or invent unrelated Player work.
+1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_OWNER_PHONE_QA_PROGRESS.md`;
+2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md`;
+3. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P16_LANDSCAPE_VERTICAL_SPACE_CLOSED.md`;
+4. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` for P4/P5/P9 contracts;
+5. `docs/checkpoints/LATEST.md`.
+
+Do not restart R1–R3, do not continue broad QA before addressing the recorded defects, and do not invent P18 or unrelated Player work.
