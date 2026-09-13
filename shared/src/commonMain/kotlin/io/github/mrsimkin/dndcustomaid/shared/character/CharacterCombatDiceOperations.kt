@@ -210,14 +210,16 @@ fun characterCombatEntryTypeSpanishLabel(type: CharacterCombatEntryType): String
 data class CharacterDiceExpression(
     val count: Int,
     val sides: Int,
+    val modifier: Int = 0,
 )
 
 fun parseCharacterDiceExpression(raw: String): CharacterDiceExpression? {
-    val match = Regex("^([0-9]*)[dD]([0-9]+)$").matchEntire(raw.trim()) ?: return null
+    val match = Regex("^([0-9]*)[dD]([0-9]+)([+-][0-9]+)?$").matchEntire(raw.trim()) ?: return null
     val count = match.groupValues[1].takeIf { it.isNotEmpty() }?.toIntOrNull() ?: 1
     val sides = match.groupValues[2].toIntOrNull() ?: return null
+    val modifier = match.groupValues[3].takeIf { it.isNotEmpty() }?.toIntOrNull() ?: 0
     if (count !in 1..100 || sides !in 2..1000) return null
-    return CharacterDiceExpression(count = count, sides = sides)
+    return CharacterDiceExpression(count = count, sides = sides, modifier = modifier)
 }
 
 data class CharacterDamageRolledComponent(
@@ -257,7 +259,7 @@ fun resolveCharacterDamageRoll(
                     CharacterDamageRolledComponent(
                         component = component,
                         diceResults = results,
-                        numericValue = results.sum(),
+                        numericValue = results.sum() + expression.modifier,
                     )
                 }
             }
