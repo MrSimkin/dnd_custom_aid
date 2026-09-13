@@ -27,20 +27,32 @@ if compact_calls < 161:
     errors.append(f'expected at least 160 compact Player field usages; observed count including declaration={compact_calls}')
 
 combat = (ROOT / 'CharacterCombatSuccessorV4.kt').read_text(encoding='utf-8')
-marker = 'var signExpanded by remember { mutableStateOf(false) }'
-start = combat.find(marker)
-end = combat.find('DropdownMenu(', start)
-if start < 0 or end < 0:
-    errors.append('structured-dice sign selector boundary not found')
+dice_start = combat.find('private fun DiceDamageFieldsV4(')
+dice_end = combat.find('@Composable\nprivate fun FlatDamageFieldsV4(', dice_start)
+if dice_start < 0 or dice_end < 0:
+    errors.append('structured-dice editor boundary not found')
 else:
-    sign_block = combat[start:end]
-    if 'CharacterCompactGlyphSelectorV4(' not in sign_block:
+    dice_block = combat[dice_start:dice_end]
+    if 'CharacterCompactGlyphSelectorV4(' not in dice_block:
         errors.append('structured-dice +/- selector is not using the compact glyph selector')
-    if 'OutlinedButton(' in sign_block:
-        errors.append('structured-dice +/- selector regressed to raw OutlinedButton geometry')
+    if 'modifierSign = nextDiceModifierSignV4(parsed)' not in dice_block:
+        errors.append('structured-dice sign selector is not a direct sign toggle')
+    if 'value = parsed.modifierMagnitude' not in dice_block:
+        errors.append('structured-dice modifier is not kept in an independent magnitude field')
+    if 'signExpanded' in dice_block:
+        errors.append('structured-dice sign selector regressed to dropdown state')
+
+build_start = combat.find('private fun buildDiceComponentExpressionV4(')
+build_end = combat.find('private fun nextDiceModifierSignV4(', build_start)
+if build_start < 0 or build_end < 0:
+    errors.append('structured-dice serializer boundary not found')
+else:
+    build_block = combat[build_start:build_end]
+    if 'append(draft.modifierSign.token)' not in build_block or 'append(draft.modifierMagnitude)' not in build_block:
+        errors.append('structured-dice serializer no longer emits an explicit signed modifier token')
 
 if errors:
     for error in errors:
         print('ERROR:', error, file=sys.stderr)
     raise SystemExit(1)
-print(f'Player compact-control geometry guard PASS: compactFieldCount={compact_calls - 1}; rawMaterialFields=0; diceSign=shared-compact-glyph')
+print(f'Player compact-control geometry guard PASS: compactFieldCount={compact_calls - 1}; rawMaterialFields=0; diceSign=shared-direct-compact-glyph; diceModifier=independent-signed-field')
