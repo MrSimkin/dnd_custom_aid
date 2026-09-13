@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterHpChangeImpact
@@ -104,10 +106,13 @@ internal fun CharacterCombatOperationalCardV4(
             val temporaryHpHighlighted = hpFeedback == CharacterHpChangeImpact.TEMPORARY_HP ||
                 hpFeedback == CharacterHpChangeImpact.BOTH
             val controlHeight = characterCompactSingleLineFieldHeightV4()
+            val compactVerticalSpace = layoutContext.verticalSpace != CharacterVerticalSpaceV4.COMFORTABLE
+            val hudVerticalPadding = if (compactVerticalSpace) 2.dp else 4.dp
+            val hudRowSpacing = appSpacingV4(if (compactVerticalSpace) 2.dp else 3.dp)
 
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = hudVerticalPadding),
+                verticalArrangement = Arrangement.spacedBy(hudRowSpacing),
             ) {
                 if (singleMetricRow) {
                     Row(
@@ -175,13 +180,10 @@ internal fun CharacterCombatOperationalCardV4(
                         enabled = validAmount && (sheet.currentHp > 0 || sheet.tempHp > 0),
                         modifier = Modifier.weight(1f).heightIn(min = controlHeight),
                     ) { Text("Daño") }
-                    OutlinedTextField(
+                    CombatAmountFieldV4(
                         value = amountText,
                         onValueChange = { amountText = normalizeCharacterUnsignedIntegerInput(it) },
-                        modifier = Modifier.weight(0.72f).heightIn(min = controlHeight),
-                        label = { Text("Cantidad") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(0.72f),
                     )
                     TextButton(
                         onClick = { amount?.let { applyOperational(applyCharacterHealing(sheet, it)) } },
@@ -223,6 +225,42 @@ internal fun CharacterCombatOperationalCardV4(
             },
         )
         null -> Unit
+    }
+}
+
+@Composable
+private fun CombatAmountFieldV4(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.heightIn(min = characterCompactSingleLineFieldHeightV4()),
+        shape = MaterialTheme.shapes.extraSmall,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 3.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp),
+        ) {
+            Text(
+                "Cantidad",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            )
+        }
     }
 }
 

@@ -49,21 +49,49 @@ internal fun CharacterAdaptiveShellV4(
 
     CompositionLocalProvider(LocalCharacterLayoutContextV4 provides layoutContext) {
         Column(modifier = Modifier.fillMaxSize()) {
-        // D01: the compact identity/save header remains outside all scrolling tab content.
-        header()
+            val combinePhoneLandscapeHeaderAndTabs =
+                layoutContext.formFactor == CharacterFormFactorV4.PHONE_LANDSCAPE &&
+                    navigationPresentation == CharacterNavigationPresentationV4.TOP_TABS &&
+                    layoutContext.verticalSpace != CharacterVerticalSpaceV4.COMFORTABLE
 
-        when (layoutContext.formFactor) {
+            // Keep the identity/save controls persistent, but in shallow phone landscape use width
+            // instead of spending a second full row of scarce vertical space.
+            if (!combinePhoneLandscapeHeaderAndTabs) {
+                header()
+            }
+
+            when (layoutContext.formFactor) {
             CharacterFormFactorV4.PHONE_PORTRAIT,
             CharacterFormFactorV4.PHONE_LANDSCAPE,
             -> when (navigationPresentation) {
                 CharacterNavigationPresentationV4.TOP_TABS -> {
-                    CharacterTopTabStripV4(
-                        selectedTab = selectedTab,
-                        spellcasterEnabled = spellcasterEnabled,
-                        visibleModules = visibleModules,
-                        tabOrder = effectiveTabOrder,
-                        onSelect = onSelect,
-                    )
+                    if (combinePhoneLandscapeHeaderAndTabs) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(modifier = Modifier.widthIn(max = 360.dp)) {
+                                header()
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                CharacterTopTabStripV4(
+                                    selectedTab = selectedTab,
+                                    spellcasterEnabled = spellcasterEnabled,
+                                    visibleModules = visibleModules,
+                                    tabOrder = effectiveTabOrder,
+                                    onSelect = onSelect,
+                                )
+                            }
+                        }
+                    } else {
+                        CharacterTopTabStripV4(
+                            selectedTab = selectedTab,
+                            spellcasterEnabled = spellcasterEnabled,
+                            visibleModules = visibleModules,
+                            tabOrder = effectiveTabOrder,
+                            onSelect = onSelect,
+                        )
+                    }
                     Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                         content()
                     }
