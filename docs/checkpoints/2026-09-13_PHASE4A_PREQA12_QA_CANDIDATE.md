@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-13  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** AUTOMATION GREEN / OWNER PHONE QA PASS / P17 TABLET QA PENDING
+**Status:** AUTOMATION GREEN / PHONE QA EXECUTED WITH OPEN FINDINGS / P17 TABLET QA ACTIVE
 
 ## Candidate identity
 
@@ -69,26 +69,31 @@ Exact versioned candidate proof:
 
 ## Physical evidence state
 
-The owner physically tested this exact `preqa.12 / 41200` candidate and reported both required post-repair phone boundaries as PASS:
+The owner physically tested this exact `preqa.12 / 41200` candidate in several passes.
+
+Earlier bounded evidence remains valid:
 
 - affected transversal geometry recheck: **5/5 PASS**;
-- remaining phone-wide regression gate: **7/7 PASS**.
+- broad phone-wide regression gate as then phrased: **7/7 PASS**.
 
-The 5/5 boundary covered representative compact labelled/editable fields in portrait and landscape, structured-dice `+ / −` compactness/alignment/tapability, representative editability, and short Save/Cancel sanity. This physically closes the defect exposed by `preqa.11` check 8.
+A later, more detailed 23-check phone pass on the same candidate exposed additional findings, so the earlier conclusion that the complete phone gate was cleanly CLOSED/PASS is superseded.
 
-The 7/7 remaining phone gate covered lifecycle persistence, main navigation, a representative non-Combat editor, keyboard/editor behavior, harmless preference persistence, cancel/discard safety, and a broad portrait/landscape regression sweep.
+Latest open findings:
 
-Preserved cumulative evidence:
+- check 7 — structured damage: entering a modifier after selecting a die can change the die to `Otro`;
+- check 8 — structured damage `Otro`: modifier input is misrouted/behaves as `caras del daño`, preventing normal modifier entry;
+- check 17.1–17.3 — app-wide checkbox/control-density and responsive grouping audit required, including Equipo checkbox styling and Conjuros landscape/multi-row grouping;
+- check 9 — non-blocking UX request for direct `+`/`−` tap-toggle instead of dropdown;
+- check 16 — non-blocking request for slightly tighter window vertical padding where safe;
+- check 21 — not assessed because the test was not understood;
+- check 22 — incomplete/ambiguous physical result.
 
-- `preqa.10` R1–R3 physical PASS;
-- `preqa.11` checks 1–7 and 9 physical PASS;
-- `preqa.11` check 8 physical FAIL, now closed by the `preqa.12` affected-boundary PASS;
-- `preqa.12` phone QA gate: **PASS**.
+All other reported PASS in that detailed pass is preserved. See `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` for the controlling current interpretation.
 
-Durable owner-result checkpoint: `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_OWNER_PHONE_QA_PASS.md`.
+## P17 route
 
-## Exact next action
+The controlling physical-QA contract permits P17 tablet QA when phone findings do not expose a hard shared/systemic failure that makes tablet evidence meaningless. Current findings do not meet that blocking threshold.
 
-Proceed to **P17 tablet QA**. Do not restart phone QA from zero absent contradictory evidence or a later change that directly affects an already-tested phone behavior.
+Therefore proceed to **P17 tablet portrait/landscape QA on this same exact candidate before the next repair build**. Tablet findings will be consolidated with current phone findings into one coherent repair batch. After repair, revalidate affected/touched cross-device families rather than restarting unrelated PASS coverage.
 
-Phase 4A remains open until P17 is resolved and the owner explicitly accepts/closes the phase. No P18 exists; DM implementation remains blocked until explicit owner closure.
+Phase 4A remains open until P17 has real physical evidence, blocking defects are repaired/revalidated as needed, and the owner explicitly accepts/closes the phase. No P18 exists; DM implementation remains blocked until explicit owner closure.
