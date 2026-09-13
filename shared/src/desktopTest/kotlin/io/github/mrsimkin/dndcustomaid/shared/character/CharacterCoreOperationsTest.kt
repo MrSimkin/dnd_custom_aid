@@ -40,6 +40,38 @@ class CharacterCoreOperationsTest {
     }
 
     @Test
+    fun exactHitPointCorrectionClampsCurrentAgainstRequestedMaximum() {
+        val original = sheet(currentHp = 20, maxHp = 20)
+
+        val changed = setCharacterHitPoints(original, currentHp = 20, maxHp = 10)
+
+        assertEquals(10, changed.maxHp)
+        assertEquals(10, changed.currentHp)
+    }
+
+    @Test
+    fun maximumHitPointCorrectionDoesNotHealWhenIncreasingAndClampsWhenDecreasing() {
+        val original = sheet(currentHp = 7, maxHp = 10)
+
+        val increased = setCharacterMaxHp(original, maxHp = 15)
+        val decreased = setCharacterMaxHp(original.copy(currentHp = 9), maxHp = 5)
+
+        assertEquals(15, increased.maxHp)
+        assertEquals(7, increased.currentHp)
+        assertEquals(5, decreased.maxHp)
+        assertEquals(5, decreased.currentHp)
+    }
+
+    @Test
+    fun exactCurrentHitPointCorrectionUsesExistingMaximum() {
+        val original = sheet(currentHp = 7, maxHp = 10)
+
+        assertEquals(10, setCharacterCurrentHp(original, 20).currentHp)
+        assertEquals(0, setCharacterCurrentHp(original, -4).currentHp)
+        assertEquals(10, setCharacterCurrentHp(original, 20).maxHp)
+    }
+
+    @Test
     fun quickDamageConsumesTemporaryHpBeforeCurrentHp() {
         val original = sheet(currentHp = 10, maxHp = 20, tempHp = 5)
         val changed = applyCharacterDamage(original, 7)
