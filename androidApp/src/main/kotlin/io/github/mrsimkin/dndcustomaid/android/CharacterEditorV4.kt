@@ -94,6 +94,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSkills
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalState
+import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterHitPoints
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.visibleCharacterModules
@@ -530,7 +531,12 @@ internal fun CharacterEditorScreenV4(
         val notes = characterNotesDraftFromJsonV4(notesDraftJson)
         val h1Modules = characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson)
         val proficiencies = characterProficienciesFromJsonV4(proficiencyDraftJson)
-        val integrated = candidate.copy(
+        val normalizedCandidate = setCharacterHitPoints(
+            sheet = candidate,
+            currentHp = candidate.currentHp,
+            maxHp = candidate.maxHp,
+        ).copy(tempHp = candidate.tempHp.coerceAtLeast(0))
+        val integrated = normalizedCandidate.copy(
             combatEntries = combatEntriesFromJsonV4(combatDraftJson),
             inventoryItems = equipment.items,
             currencies = equipment.currencies,
@@ -738,6 +744,7 @@ internal fun CharacterEditorScreenV4(
     fun syncOperationalDraftsFromStored() {
         val persistedSlots = stored.spellSlots.associateBy { it.level }
         draft = draft.copy(
+            maxHp = stored.maxHp.toString(),
             currentHp = stored.currentHp.toString(),
             tempHp = stored.tempHp.toString(),
             spellSlots = draft.spellSlots.map { slot ->
@@ -767,6 +774,18 @@ internal fun CharacterEditorScreenV4(
         stored = repository.saveCharacter(effective)
         syncOperationalDraftsFromStored()
         savedMessage = "Guardado"
+    }
+
+    fun persistGeneralHitPointsFromDraft() {
+        val currentHp = draft.currentHp.trim().toIntOrNull() ?: return
+        val maxHp = draft.maxHp.trim().toIntOrNull() ?: return
+        val tempHp = draft.tempHp.trim().toIntOrNull() ?: return
+        val updated = setCharacterHitPoints(
+            sheet = stored,
+            currentHp = currentHp,
+            maxHp = maxHp,
+        ).copy(tempHp = tempHp.coerceAtLeast(0))
+        persistOperationalSheet(updated)
     }
 
     fun persistStructuralSheet(updated: CharacterSheet) {
@@ -848,7 +867,12 @@ internal fun CharacterEditorScreenV4(
                     selectedTab = selectedTab,
                     spellcasterEnabled = stored.spellcasterEnabled,
                     visibleModules = visibleModules,
-                    onSelect = { selectedTabName = it.name },
+                    onSelect = { targetTab ->
+                        if (selectedTab == CharacterTabV4.OVERVIEW && targetTab != CharacterTabV4.OVERVIEW) {
+                            persistGeneralHitPointsFromDraft()
+                        }
+                        selectedTabName = targetTab.name
+                    },
                     header = {
                         EditorHeaderV4(
                             characterName = draft.name,
