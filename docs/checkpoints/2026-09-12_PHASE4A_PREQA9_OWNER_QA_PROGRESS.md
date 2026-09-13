@@ -46,22 +46,26 @@ The owner explicitly states that this kind of presentation inconsistency is like
 
 ## Repair progress
 
-### Repair step R1 — canonical HP state boundary — IMPLEMENTED, validation pending
+### Repair step R1 — canonical HP state boundary — IMPLEMENTED + REGRESSION-LOCKED / AUTOMATION PENDING
 
 Two concrete source defects were confirmed and repaired:
 
 1. `CharacterCoreOperations.kt` now exposes canonical exact current/max HP operations. They normalize maximum HP to a non-negative value, clamp current HP into `0..max`, preserve current HP when maximum increases, and clamp current HP when maximum decreases. Commit: `e0397146445c2cd78e7d017943bca1eb76101939` (`fix: canonicalize exact hit-point updates`).
 2. `CharacterTableModePolicy.kt::mergeCharacterOperationalState` previously discarded `proposed.maxHp` entirely and clamped proposed current HP against the old persisted maximum. It now canonicalizes both proposed current and proposed maximum HP together through the shared exact-state operation. Commit: `9f3c888b19c694408a2f81d8eae63359d879a3eb` (`fix: preserve canonical max and current HP in operational merge`).
 
-This directly addresses the persistence-path defect behind the failed Combat `Establecer PV` observation and creates one reusable invariant boundary for subsequent General/save-path repair. This step is **implemented but not yet automation-qualified or physically accepted**.
+Regression coverage is now committed:
+
+- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` (`test: lock canonical hit-point normalization`) adds direct tests for exact current/max correction, `current <= max`, no silent healing on max increase, clamp on max decrease, and exact-current normalization against the existing maximum.
+- `49833bb64857376c4931e91c5af684bd287b2aba` (`test: lock operational HP merge semantics`) corrects the pre-existing operational-merge test that still encoded the old broken assumption that proposed max HP was structural/rejected. It now locks the physical-failure shape (`20/10` proposal normalizes to `10/10`), verifies proposed max HP is carried through, verifies max increase does not heal, and preserves temp HP.
+
+These commits lock the repaired source semantics but **have not yet been declared automation-green**. CI/focused and aggregate validation remain pending after the bounded UI repair lands.
 
 Still open after R1:
 
 - General HP fields remain draft-only until their UI wiring is repaired; no-extra-`Guardar` propagation is therefore not yet fixed;
 - the normal structural save path still needs to be routed through canonical HP normalization so no path can persist `current > max`;
 - changed-state glow/pulse remains to be implemented;
-- `Daño — Cantidad — Curar` and the broader presentation-consistency boundary remain to be audited/repaired;
-- regression coverage and CI validation remain pending.
+- `Daño — Cantidad — Curar` and the broader presentation-consistency boundary remain to be audited/repaired.
 
 ## Reopened boundaries and gate effect
 
@@ -77,11 +81,10 @@ These are shared/systemic enough that proceeding to P17 tablet acceptance eviden
 
 ## Exact next action
 
-1. add regression coverage for the canonical HP merge/helper repair;
-2. repair General live HP commit + normal-save normalization without persisting transient per-keystroke max-HP drafts;
-3. classify and repair the P2 feedback and transversal presentation defects;
-4. run focused and aggregate validation;
-5. issue a new monotonic QA identity and physical-QA artifact after material product changes are green;
-6. resume physical phone QA at this reopened boundary before continuing to tablet P17 evidence.
+1. repair General live HP commit + normal-save normalization without persisting transient per-keystroke max-HP drafts;
+2. classify and repair the P2 feedback and transversal presentation defects;
+3. run focused and aggregate validation, including the newly committed HP regression locks;
+4. issue a new monotonic QA identity and physical-QA artifact after material product changes are green;
+5. resume physical phone QA at this reopened boundary before continuing to tablet P17 evidence.
 
 Do not invent P18 or unrelated Player work. DM implementation remains blocked until explicit Phase 4A owner acceptance/closure.
