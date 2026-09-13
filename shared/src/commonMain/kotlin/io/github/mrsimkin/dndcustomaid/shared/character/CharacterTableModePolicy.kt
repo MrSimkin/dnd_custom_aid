@@ -32,9 +32,13 @@ fun mergeCharacterOperationalState(
     val proposedItems = proposed.inventoryItems.associateBy(CharacterInventoryItem::id)
     val proposedTraits = proposed.traits.associateBy(CharacterTrait::id)
     val proposedResources = proposed.resources.associateBy(CharacterResource::id)
+    val normalizedHitPoints = setCharacterHitPoints(
+        sheet = persisted,
+        currentHp = proposed.currentHp,
+        maxHp = proposed.maxHp,
+    )
 
-    return persisted.copy(
-        currentHp = proposed.currentHp.coerceIn(0, persisted.maxHp.coerceAtLeast(0)),
+    return normalizedHitPoints.copy(
         tempHp = proposed.tempHp.coerceAtLeast(0),
         inspiration = proposed.inspiration,
         deathSaveSuccesses = proposed.deathSaveSuccesses.coerceIn(0, 3),
