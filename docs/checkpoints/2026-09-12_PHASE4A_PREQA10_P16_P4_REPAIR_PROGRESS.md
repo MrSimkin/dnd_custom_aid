@@ -3,7 +3,7 @@
 **Date:** 2026-09-12  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Source physical evidence:** `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_OWNER_PHONE_QA_PROGRESS.md`  
-**Status:** P16 + P4 SOURCE REPAIRS IMPLEMENTED / COMBINED AUTOMATION NEXT
+**Status:** P16 + P4 SOURCE REPAIRS IMPLEMENTED / AGGREGATE AUTOMATION GREEN / NEW CANDIDATE NEXT
 
 ## Preserved evidence
 
@@ -11,75 +11,73 @@ The focused `preqa.10 / 41000` R1–R3 owner-phone recheck remains **PASS** and 
 
 ## R4 / reopened P16 — combined phone-landscape footprint
 
-### Confirmed source cause
-
-The earlier automation-green P16 implementation correctly measured usable height, made collection/spell stickiness conditional, and reflowed Combat metrics under vertical pressure. Physical `preqa.10` evidence exposed one remaining shared-shell gap: `CharacterAdaptiveShellV4` still rendered the entire identity/save header as one full-width persistent row **above** the full-width top-tab strip in phone landscape.
-
-The Combat `Cantidad` field also retained standard `OutlinedTextField` internal vertical geometry, leaving visibly disproportionate top/bottom whitespace in the permanent HUD.
-
-### Product repair
+Product commit:
 
 `fcf62103e4d4f1a4167d31efc05d13964c873d6d` — `repair: compact phone landscape shell and Combat HUD`
 
-Net diff from pre-repair live HEAD `4029c415232ed9941a238c7bbee0b9c7d0678856` to this product boundary changes exactly:
+Confirmed source gap: the shared shell still stacked the full-width identity/save header above the full-width top-tab strip in shallow phone landscape. `Cantidad` also retained disproportionate default Material text-field vertical geometry.
+
+Repair behavior:
+
+- `PHONE_LANDSCAPE` + top tabs + `REDUCED`/`CONSTRAINED` height now places identity/save header + scrollable top tabs in **one horizontal persistent row**;
+- phone top-tab semantics are preserved; no tablet side-rail switch;
+- portrait/tablet shell behavior is unchanged;
+- constrained Combat HUD nonessential vertical padding/row spacing is reduced;
+- `Cantidad` uses an explicitly compact numeric input surface with controlled internal padding;
+- `Daño` / `Curar` retain safe action height and prior R1–R3 semantics.
+
+Net diff from pre-repair live HEAD `4029c415232ed9941a238c7bbee0b9c7d0678856` to this boundary contains exactly:
 
 - `CharacterAdaptiveShellV4.kt`
 - `CharacterCombatOperationalV4.kt`
 
-Repair behavior:
-
-- in `PHONE_LANDSCAPE` with top-tab navigation and `REDUCED`/`CONSTRAINED` vertical space, identity/save header + scrollable top tabs share **one horizontal persistent row**;
-- phone top-tab semantics are preserved; no tablet side-rail switch;
-- portrait/tablet shell behavior is unchanged;
-- constrained Combat HUD nonessential vertical padding/row spacing is reduced;
-- `Daño` / `Curar` retain safe action height;
-- `Cantidad` uses an explicitly compact numeric input surface with controlled internal padding;
-- R1–R3 HP/damage semantics are unchanged.
-
 ## R5 / reopened P4 — structured damage editor
 
-### Confirmed source causes
-
-Source inspection identified two independent causes matching the physical report:
-
-1. quantity/modifier and related numeric Material `OutlinedTextField`s were forced to exactly `48.dp` (`min = 48.dp, max = 48.dp`), clipping their internal label/text geometry;
-2. the dice component was reparsed with a strict complete-expression regex after every edit. Intermediate structured states such as `1d`, `d8`, `1d8-`, or empty sides while selecting `Otro…` failed parsing and collapsed the draft controls to blanks.
-
-### Product repair
+Product commit:
 
 `b40ed12862f73f8e179254b7e86a819962046cf1` — `repair: stabilize and compact structured damage editor`
 
-Net diff from the live pre-P4 boundary `703dd1ce166ebc6a8a0e7b37b85998467d739d8a` to this product commit changes exactly:
+Confirmed physical-failure causes:
 
-- `CharacterCombatSuccessorV4.kt`
-
-No temporary patch workflow remains in the resulting tree.
+1. quantity/modifier and related labelled Material numeric fields were forced to exactly `48.dp`, clipping their internal label/text geometry;
+2. a strict whole-expression dice parser ran after every edit, so valid intermediate states such as `1d`, `d8`, `1d8-`, or temporarily empty custom sides collapsed the structured draft.
 
 Repair behavior:
 
-- the dice draft parser now deliberately accepts incomplete editing tokens (`1d`, `d8`, `1d8-`, etc.) so recomposition does not erase neighboring structured controls;
-- save-time validity remains strict: quantity/sides must still parse to positive integers and signed modifier must be a complete integer before the editor can save;
-- quantity, modifier, custom die sides, flat damage and custom damage type now use compact inline field surfaces with explicit small internal padding rather than clipped floating-label Material text fields;
-- the compact fields keep the shared safe minimum single-line height and are **not** locked to a smaller fixed maximum;
-- sign/die/type selector buttons keep a safe minimum height but are no longer artificially capped to exactly 48 dp;
-- damage-component card padding/spacing is reduced before any outer-dialog enlargement, matching the owner's explicit priority;
-- the outer `CharacterImeSafeEditorDialog` is unchanged; no larger modal/container was introduced.
+- draft parsing accepts incomplete editing tokens so recomposition does not erase neighboring controls;
+- save-time validity remains strict;
+- quantity, modifier, custom die sides, flat damage and custom damage type use compact explicitly padded inline fields with the shared safe minimum height;
+- sign/die/type selector controls keep a safe minimum height without a rigid exact maximum;
+- damage-component internal padding/spacing is reduced;
+- the outer editor/dialog was **not enlarged**, following the owner's padding-first repair priority.
 
-### Diff/guard evidence
+Net pre/post P4 diff contains exactly `CharacterCombatSuccessorV4.kt`.
 
-Both repair commits were produced by exact-match guarded one-shot patchers. The temporary workflow files self-deleted. Net repository comparison proves only the intended production files remain changed for each repair boundary.
+## Guard / repository hygiene
 
-## Validation state
+Both repairs were applied through exact-match guarded one-shot patchers. Temporary workflow files self-deleted. Net repository comparisons show only the intended production files remain changed.
 
-P16 and P4 are now **source-repaired but not yet declared automation-green or physically reaccepted**. The first aggregate Scaffold gate must run on a descendant containing both `fcf62103…` and `b40ed128…` unchanged. Any compile/test/build failure must be repaired before candidate versioning.
+## Aggregate automated proof
+
+First normal Scaffold descendant containing **both** P16 and P4 product commits unchanged:
+
+- commit: `5a6cb06cbcd3380622a01c27cac3985d65f51ab9` (documentation-only descendant of both product commits)
+- run: `34732466227`
+- conclusion: **SUCCESS**
+- backend typecheck: success
+- shared/Kotlin tests and builds: success
+- Android assemble: success
+- Android debug APK upload: success
+
+This qualifies the combined repaired source state for candidate versioning. It does **not** constitute physical owner acceptance of P16 or P4.
 
 ## Gate effect
 
 - R1–R3 physical phone PASS: preserved.
-- P16: source repair implemented; automation + focused physical recheck pending.
-- P4: source repair implemented; automation + focused physical recheck pending.
-- `preqa.10 / 41000`: historical physical-evidence candidate; do not resume broad owner QA.
-- next candidate must use a new monotonic version/build identity after green validation.
+- P16: source repaired + aggregate automation green; focused physical recheck pending.
+- P4: source repaired + aggregate automation green; focused physical recheck pending.
+- `preqa.10 / 41000`: historical physical-evidence candidate; do not resume broad owner QA on it.
+- next candidate must use a new monotonic version/build identity.
 - P17 tablet QA: pending.
 - Phase 4A: open.
 - P18: does not exist.
@@ -87,7 +85,4 @@ P16 and P4 are now **source-repaired but not yet declared automation-green or ph
 
 ## Exact next action
 
-1. run/observe the normal Scaffold gate on this combined repaired source state;
-2. repair any failure rather than accepting by inspection;
-3. after green aggregate validation, advance to the next monotonic QA identity, validate that exact candidate, freeze artifact/digest evidence, and hand it to the owner;
-4. resume focused phone QA only on the reopened P16/P4 boundaries, preserving R1–R3 PASS.
+Advance Android identity to `0.4.0-preqa.11 / 41100`, validate that exact versioned commit with the normal Scaffold workflow, freeze artifact/digest evidence after success, then hand the exact APK to the owner for a focused P16/P4 phone recheck while preserving R1–R3 PASS.
