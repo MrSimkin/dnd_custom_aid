@@ -4,100 +4,74 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Candidate:** `0.4.0-preqa.9 / 40900`  
 **Candidate commit:** `cd0c203d337c062fa388010d300e875f2f54ced7`  
-**Status:** PHYSICAL OWNER QA FOUND BLOCKING SHARED DEFECTS / R1–R3 SOURCE REPAIR IMPLEMENTED / AUTOMATION IN PROGRESS
+**Status:** PHYSICAL OWNER QA FOUND BLOCKING SHARED DEFECTS / R1–R3 REPAIR IMPLEMENTED + R3 FEEDBACK TARGETING REGRESSION-LOCKED / AUTOMATION IN PROGRESS
 
 ## Physical evidence preserved
 
 ### Step 1 — update-in-place and persistence sanity — PASS
 
-The owner physically confirmed that `preqa.9 / 40900` installed over the previous QA build, launched normally, preserved campaigns and the normal test character, preserved representative saved data across General/Combate/Equipo-Monedas/Conjuros/Notas, and survived a full close/reopen. This remains valid owner/device evidence.
+The owner physically confirmed that `preqa.9 / 40900` installed over the previous QA build, launched normally, preserved campaigns and the normal test character, preserved representative saved data across General/Combate/Equipo-Monedas/Conjuros/Notas, and survived a full close/reopen.
 
 ### Step 2 — P1/P2 canonical HP and damage/healing — FAIL / REPAIR BOUNDARY REOPENED
 
-The owner reported:
+Physical findings:
 
-1. General HP edits did not become canonical/visible in Combate without an explicit global `Guardar`, contrary to the accepted cross-surface behavior.
+1. General HP edits were not canonical/visible in Combate without an extra global `Guardar`.
 2. Increasing maximum HP without silently healing passed.
-3. Lowering maximum HP failed to clamp current HP; the physical observation included invalid Combate state `20/10`.
-4. The accepted subtle changed-HP feedback was absent. This failure applies across the tested damage paths and need not be repeated operation by operation.
-5. Damage arithmetic, temporary-HP absorption/spill semantics and amount clearing passed, apart from missing feedback.
-6. Healing capped at maximum HP and amount clearing passed.
+3. Lowering maximum HP failed to clamp current HP; the owner observed invalid Combate state `20/10`.
+4. The accepted subtle changed-HP feedback was absent; this systemic feedback finding need not be repeated for every damage/heal operation.
+5. Damage arithmetic, temp-HP absorption/spill and amount clearing passed apart from missing feedback.
+6. Healing cap and amount clearing passed.
 7. Combate operation → General canonical projection passed.
-8. Combate `Establecer PV` failed to change current HP, while exact temporary-HP correction worked.
+8. Combate `Establecer PV` did not change current HP, while exact temp-HP correction worked.
 
 ### Step 2A — transversal presentation observation
 
-The owner additionally reported that the `Daño — Cantidad — Curar` row was visibly out of proportion with surrounding Combate elements. This reopens the previously required transversal size/margin/padding consistency boundary; the owner should not have to report the same class of inconsistency element by element.
+`Daño — Cantidad — Curar` was visibly out of proportion with surrounding Combate UI. This reopens the previously required transversal size/margin/padding consistency boundary; the owner should not have to enumerate the same class of presentation miss control by control.
 
-## Controlling accepted P2 contract recovered
+## Controlling accepted P2 contract
 
-`docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` is the controlling design record for P1/P2. Its P2 decision requires:
-
-- one compact permanent `Daño | cantidad | Curar` operation row;
-- immediate operation without a Save/confirmation step;
-- amount reset after application;
-- canonical P1 HP semantics, including temp-HP-first damage and healing capped by max HP;
-- minimal/non-intrusive visual feedback: only affected HP display box(es) receive a brief/subtle glow or pulse;
-- feedback follows actual state change: temp-only absorption highlights Temp only, spillover may highlight Temp + current HP, healing highlights current HP when it changes;
-- no snackbar/toast operation message and no Undo;
-- exact `Establecer PV` remains a secondary correction path;
-- responsive compactness must preserve usable touch targets.
-
-R3 is implemented against this existing contract, not a new UX invention.
+`docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` requires one compact permanent `Daño | cantidad | Curar` row, immediate apply without Save/confirmation, amount reset, canonical HP semantics, and minimal feedback in which **only the HP display box(es) actually changed receive a brief/subtle glow or pulse**. Temp-only absorption targets Temp only; spillover may target Temp + current HP; healing targets current HP. No snackbar/toast and no Undo. Exact `Establecer PV` remains a secondary correction path. Compactness must retain usable touch targets.
 
 ## Repair progress
 
-### R1 — canonical HP state boundary — IMPLEMENTED + REGRESSION-LOCKED
+### R1 — canonical HP state — IMPLEMENTED + REGRESSION-LOCKED
 
-- `e0397146445c2cd78e7d017943bca1eb76101939` — canonical exact current/max HP operation enforces non-negative max, `0 <= current <= max`, no silent healing on max increase, clamp on max decrease.
-- `9f3c888b19c694408a2f81d8eae63359d879a3eb` — operational merge now carries proposed max HP and normalizes current against that same maximum instead of discarding max HP.
+- `e0397146445c2cd78e7d017943bca1eb76101939` — canonical exact current/max HP operation and invariants.
+- `9f3c888b19c694408a2f81d8eae63359d879a3eb` — operational merge preserves proposed max HP and normalizes current against it.
 - `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` — direct canonical HP regression tests.
-- `49833bb64857376c4931e91c5af684bd287b2aba` — operational merge regression tests, including `20/10 -> 10/10`, max increase without healing and temp-HP preservation.
+- `49833bb64857376c4931e91c5af684bd287b2aba` — operational merge tests including `20/10 -> 10/10`, max increase without healing and temp-HP preservation.
 
 ### R2 — General HP navigation/save propagation — IMPLEMENTED
 
-- `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — normal General `Guardar` uses the canonical HP operation; operational sync refreshes max/current/temp together; leaving General for another character tab canonically flushes valid HP draft values without requiring global `Guardar`; transient/unparseable numeric typing remains local.
+- `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — normal General save uses canonical HP semantics; valid HP drafts flush canonically when leaving General; max/current/temp resynchronize together; transient/unparseable typing remains local.
 
-The R2 product diff changed only the intended `CharacterEditorV4.kt` HP-wiring locations. Temporary guarded patch machinery used for the large source file was removed immediately after the product commit.
+### R3 — P2 affected-state feedback + Combat control proportion — IMPLEMENTED + REGRESSION-LOCKED / AUTOMATION RUNNING
 
-### R3 — P2 changed-state feedback + Combat control proportion — IMPLEMENTED / AUTOMATION RUNNING
+Source/layout repair:
 
-Product commit: `cc452b156d43967d9eb794a661162c3f3a05f336` (`repair: restore combat HP feedback and control proportion`).
+- `cc452b156d43967d9eb794a661162c3f3a05f336` — restores short/subtle feedback around only the affected inline HP metric(s), keeps haptics, and rebalances `Daño | cantidad | Curar` with symmetric action space, a narrower amount field and shared compact control height.
 
-The source repair:
+Regression hardening:
 
-- adds an ephemeral feedback target for current/max HP, temporary HP, or both;
-- triggers feedback from actual before/after state differences for damage, healing, exact `Establecer PV`, and exact temporary-HP correction;
-- renders a short Material-color highlight only around the affected inline HP metric(s), rather than pulsing the entire Combat card;
-- restarts the brief feedback window on repeated operations;
-- keeps haptic behavior and canonical operation semantics intact;
-- gives `Daño` and `Curar` symmetric weighted action space, narrows the numeric amount field relative to the actions, and uses the shared compact single-line control-height policy for all three controls;
-- changes only `CharacterCombatOperationalV4.kt`.
+- `ef051af8d2e36a3b765a80487afd9754d5a67e17` — introduces shared deterministic `CharacterHpChangeImpact` classification (`NONE`, `HIT_POINTS`, `TEMPORARY_HP`, `BOTH`).
+- `ff06bdf1552268f9805c9ff4a3108a3675a22fe5` — Combat feedback now consumes that shared classifier instead of duplicating before/after logic in UI code.
+- `ddd9d01dab4f0b45470174712a5c115de1112d90` — common regression tests lock no-change, PV-only, Temp-only and spillover/both feedback targeting.
 
-Diff guard from pre-R3 live state `97793d3eade15e5b4fb25c750bf515dba6c5d154` to the product commit reports exactly one commit and one modified product file (`CharacterCombatOperationalV4.kt`), with no unrelated source movement.
+**Current exact R3 product boundary:** `ddd9d01dab4f0b45470174712a5c115de1112d90`.
 
-Exact product Scaffold run: `34730201935` on `cc452b156d43967d9eb794a661162c3f3a05f336`.
+**Current exact Scaffold run:** `34730363231` on that commit — IN PROGRESS at this checkpoint update.
 
-At this checkpoint update:
-
-- backend job: SUCCESS;
-- Kotlin/shared/Android job: IN PROGRESS;
-- therefore R3 is **not yet declared automation-green** and no new QA candidate is declared yet.
+The earlier exact R3 source run `34730201935` on `cc452b15…` had backend SUCCESS while Kotlin was still running, but it is superseded as the qualification target by the later regression-locked product boundary above.
 
 ## Gate effect
 
-`preqa.9 / 40900` remains a failed physical candidate and historical evidence only. The owner and assistant explicitly agreed not to continue exhaustive physical testing on this known-bad candidate. Existing observations are preserved as repair evidence.
+`preqa.9 / 40900` remains a failed physical candidate. The owner and assistant explicitly agreed to stop exhaustive testing on it, preserve the observations, repair first, then resume on a new candidate.
 
-Reopened boundaries remain:
-
-- P1 canonical HP state / General↔Combate propagation and invariants;
-- P2 high-frequency damage/heal/exact correction and changed-state feedback;
-- transversal presentation consistency for the observed Combat control geometry.
-
-P17 tablet physical QA remains PAUSED until the bounded repair is automation-green and a new monotonic physical-QA candidate exists. No P18 is created. DM implementation remains blocked until explicit Phase 4A owner acceptance/closure.
+P17 tablet physical QA remains PAUSED. No P18 is created. DM implementation remains blocked pending explicit Phase 4A owner acceptance/closure.
 
 ## Exact next action
 
-1. finish exact Scaffold run `34730201935` and repair any failure rather than accepting R3 by inspection alone;
-2. once R1–R3 are automation-green, assign the next monotonic QA identity (do not reuse `40900`), build/package the exact candidate and record run/artifact/digest evidence;
-3. resume focused owner phone QA on that repaired candidate before continuing broader/tablet P17 evidence.
+1. finish exact Scaffold run `34730363231`; repair any failure rather than accepting R3 by inspection;
+2. after green R1–R3 validation, assign the next monotonic QA identity (`40900` must not be reused), package the exact candidate and record commit/run/artifact/digest evidence;
+3. resume focused owner phone QA on that repaired candidate before broader/tablet P17 evidence.
