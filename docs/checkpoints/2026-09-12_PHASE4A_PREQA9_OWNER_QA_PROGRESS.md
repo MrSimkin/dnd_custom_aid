@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Candidate:** `0.4.0-preqa.9 / 40900`  
 **Candidate commit:** `cd0c203d337c062fa388010d300e875f2f54ced7`  
-**Status:** PHYSICAL OWNER QA IN PROGRESS / NOT YET ACCEPTED
+**Status:** PHYSICAL OWNER QA FOUND BLOCKING SHARED DEFECTS / REPAIR REQUIRED
 
 ## Evidence recorded
 
@@ -23,10 +23,46 @@ This confirms, on the owner's physical test device for the current QA pass:
 
 Interpretation: the initial upgrade/persistence boundary for `preqa.9 / 40900` is **PASS**. This is real owner/device evidence, not inferred from CI.
 
-## Still open
+### Step 2 — P1/P2 canonical HP and damage/healing physical QA
 
-This does not accept Phase 4A and does not establish tablet PASS/FAIL.
+Owner result: **FAIL / SHARED REPAIR BOUNDARY REOPENED**.
 
-The next targeted physical QA boundary is canonical HP synchronization and the damage/healing workflow across General and Combate. Subsequent representative repaired boundaries remain pending under the P17 owner/device QA gate.
+The owner tested the agreed General ↔ Combate canonical-HP and combat operation behavior and reported:
 
-Any physical defect may reopen only the relevant accepted P1–P16 repair boundary. DM implementation remains blocked until explicit Phase 4A owner acceptance/closure.
+1. **FAIL — General HP edits are not live-propagated.** The owner reiterated the prior agreement that changing HP data in General must not require an explicit `Guardar`/commit before the changed canonical value is visible from Combate. This failure is transversal to equivalent General HP fields and must not be requested/reported repeatedly point by point.
+2. **PASS — increasing maximum HP did not silently heal.** The tested max-HP increase preserved current HP as intended.
+3. **DOUBLE FAIL — maximum-HP reduction/clamping is broken.** After changing the value and using `Guardar` in General, General did not automatically clamp/update current HP. In the physical observation, Combate displayed `20/10`, proving that an invalid `current > maximum` state was allowed to project. The exact observed `20/10` is preserved here as evidence; do not normalize it into the expected test value.
+4. **FAIL — agreed subtle changed-HP feedback is absent.** Damage/HP changes did not produce the agreed subtle glow/pulse. The owner states this also applies to the next damage test and should not need to be repeated for every operation.
+5. **PASS for damage arithmetic/state semantics, except the already-recorded missing feedback.** Temporary HP absorption/spill behavior and amount clearing worked in the tested path.
+6. **PASS — healing semantics.** Healing capped at maximum HP and the amount field cleared in the tested path.
+7. **PASS — Combat operation → General projection.** After the tested combat operation, General reflected the resulting canonical HP state without app reopen.
+8. **FAIL — `Establecer PV` current-HP correction is ineffective.** Exact correction of current HP caused no current-HP change on either tested surface. The analogous temporary-HP exact correction does work, narrowing the defect to the current-HP correction path rather than the entire exact-state editor.
+
+### Step 2A — transversal presentation observation
+
+The owner additionally reports that the `Daño — Cantidad — Curar` row is visibly out of proportion with the surrounding Combate elements. This is treated as evidence that the previously required full size/margin/padding consistency audit either did not fully land on this element or regressed.
+
+The owner explicitly states that this kind of presentation inconsistency is likely cross-app/transversal and should not have to be repeated on every individual element. The repair pass must therefore inspect the relevant shared sizing/spacing rules rather than patch only this one row cosmetically. Exact historical P-boundary mapping is to be confirmed from the accepted presentation-audit records before code changes; P15/transversal presentation consistency is the likely existing boundary, not a new P-number.
+
+## Reopened boundaries and gate effect
+
+Physical owner evidence now reopens at minimum:
+
+- **P1** — canonical HP state and General/Combate propagation/invariants;
+- **P2** — combat damage/healing exact-correction and changed-state feedback;
+- **transversal size/margin/padding presentation consistency** — exact existing P-boundary mapping to be confirmed before implementation.
+
+These are shared/systemic enough that proceeding to P17 tablet acceptance evidence now would be misleading. **Tablet QA is paused until this bounded repair is implemented, automation-qualified, repackaged under a new monotonic QA identity, and the repaired shared boundary is physically rechecked.**
+
+`preqa.9 / 40900` remains valuable physical evidence but is **not an acceptable Phase 4A candidate** in its present form.
+
+## Exact next action
+
+1. inspect the current successor implementation and accepted repair records for P1/P2 and transversal presentation consistency;
+2. repair the bounded defects under the already-authorized Phase 4A repair scope;
+3. add/strengthen automated regression coverage for the concrete physical failures;
+4. run focused and aggregate validation;
+5. if the candidate changes materially, issue a new monotonic QA identity and physical-QA artifact;
+6. resume physical phone QA at this reopened boundary before continuing to tablet P17 evidence.
+
+Do not invent P18 or unrelated Player work. DM implementation remains blocked until explicit Phase 4A owner acceptance/closure.
