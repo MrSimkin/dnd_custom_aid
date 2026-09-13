@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -578,10 +580,13 @@ private data class CharacterDiceComponentDraftV4(
     val modifier: String,
 )
 
-private val DICE_COMPONENT_REGEX_V4 = Regex("^([+-]?)([0-9]+)[dD]([0-9]+)([+-][0-9]+)?$")
+// Deliberately accepts incomplete editing tokens such as `1d`, `d8` and `1d8-`.
+// Save-time validation remains strict; this parser only prevents recomposition from erasing
+// neighboring structured controls while the owner is still editing one part.
+private val DICE_COMPONENT_DRAFT_REGEX_V4 = Regex("^([+-]?)([0-9]*)[dD]([0-9]*)([+-][0-9]*)?$")
 
 private fun parseDiceComponentDraftV4(expression: String): CharacterDiceComponentDraftV4 {
-    val match = DICE_COMPONENT_REGEX_V4.matchEntire(expression.trim())
+    val match = DICE_COMPONENT_DRAFT_REGEX_V4.matchEntire(expression.trim())
     return if (match == null) {
         CharacterDiceComponentDraftV4(false, "", "", "")
     } else {
@@ -614,8 +619,11 @@ private fun CharacterDamageComponentEditorRowV4(
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(appSpacingV4(5.dp)),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            modifier = Modifier.fillMaxWidth().padding(
+                horizontal = appSpacingV4(4.dp),
+                vertical = appSpacingV4(3.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -643,6 +651,46 @@ private fun CharacterDamageComponentEditorRowV4(
 }
 
 @Composable
+private fun CompactDamageFieldV4(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    keyboardType: KeyboardType = KeyboardType.Text,
+) {
+    Surface(
+        modifier = modifier.heightIn(min = characterCompactSingleLineFieldHeightV4()),
+        shape = MaterialTheme.shapes.extraSmall,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            )
+        }
+    }
+}
+
+@Composable
 private fun DiceDamageFieldsV4(
     component: CharacterDamageComponent,
     onChange: (CharacterDamageComponent) -> Unit,
@@ -664,7 +712,7 @@ private fun DiceDamageFieldsV4(
     ) {
         var signExpanded by remember { mutableStateOf(false) }
         Box(modifier = Modifier.weight(0.55f)) {
-            OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
+            OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
                 Text(if (parsed.negativeDice) "−" else "+")
             }
             DropdownMenu(expanded = signExpanded, onDismissRequest = { signExpanded = false }) {
@@ -679,18 +727,17 @@ private fun DiceDamageFieldsV4(
                 }
             }
         }
-        OutlinedTextField(
+        CompactDamageFieldV4(
+            label = "Cant.",
             value = parsed.quantity,
             onValueChange = { value ->
                 updateDraft(parsed.copy(quantity = normalizeCharacterUnsignedIntegerInput(value)))
             },
-            modifier = Modifier.weight(0.9f).heightIn(min = 48.dp, max = 48.dp),
-            label = { Text("Cant.") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(0.9f),
+            keyboardType = KeyboardType.Number,
         )
         Box(modifier = Modifier.weight(1f)) {
-            OutlinedButton(onClick = { dieMenuExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
+            OutlinedButton(onClick = { dieMenuExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
                 val sides = parsed.sides.toIntOrNull()
                 Text(if (!otherSides && sides in STANDARD_DIE_SIDES_V4) "d$sides" else "Otro…")
             }
@@ -715,24 +762,22 @@ private fun DiceDamageFieldsV4(
                 )
             }
         }
-        OutlinedTextField(
+        CompactDamageFieldV4(
+            label = "Mod.",
             value = parsed.modifier,
             onValueChange = { value -> updateDraft(parsed.copy(modifier = sanitizeSignedIntegerInputV4(value))) },
-            modifier = Modifier.weight(1f).heightIn(min = 48.dp, max = 48.dp),
-            label = { Text("Mod.") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+            keyboardType = KeyboardType.Number,
         )
     }
 
     if (otherSides) {
-        OutlinedTextField(
+        CompactDamageFieldV4(
+            label = "Caras del dado",
             value = parsed.sides,
             onValueChange = { value -> updateDraft(parsed.copy(sides = normalizeCharacterUnsignedIntegerInput(value))) },
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp),
-            label = { Text("Caras del dado") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth(),
+            keyboardType = KeyboardType.Number,
         )
     }
 
@@ -744,13 +789,12 @@ private fun FlatDamageFieldsV4(
     component: CharacterDamageComponent,
     onChange: (CharacterDamageComponent) -> Unit,
 ) {
-    OutlinedTextField(
+    CompactDamageFieldV4(
+        label = "Daño plano",
         value = component.expression,
         onValueChange = { onChange(component.copy(expression = sanitizeSignedIntegerInputV4(it))) },
-        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp),
-        label = { Text("Daño plano") },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth(),
+        keyboardType = KeyboardType.Number,
     )
     DamageTypeSelectorV4(component = component, onChange = onChange)
 }
@@ -771,7 +815,7 @@ private fun DamageTypeSelectorV4(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(modifier = Modifier.weight(1f)) {
-            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp, max = 48.dp), contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {
+            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()), contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) {
                 Text(when {
                     customMode -> "Otro…"
                     standard != null -> standard
@@ -800,12 +844,11 @@ private fun DamageTypeSelectorV4(
             }
         }
         if (customMode) {
-            OutlinedTextField(
+            CompactDamageFieldV4(
+                label = "Otro tipo",
                 value = current,
                 onValueChange = { onChange(component.copy(typeText = it)) },
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp, max = 48.dp),
-                label = { Text("Otro tipo") },
-                singleLine = true,
+                modifier = Modifier.weight(1f),
             )
         }
     }
