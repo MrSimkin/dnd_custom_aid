@@ -3,70 +3,62 @@
 **Updated:** 2026-09-12  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
-**Previous physical-evidence candidate:** `0.4.0-preqa.10 / 41000` — R1–R3 PHYSICAL PASS; later phone QA reopened P16/P4  
-**Current repaired physical-QA candidate:** `0.4.0-preqa.11 / 41100` at `21dc2b0eed4afc261b89578da424cd28d9894500` — AUTOMATION GREEN  
-**Exact candidate run:** `34732621381` — SUCCESS  
-**Acceptance boundary:** focused owner P16/P4 phone recheck → remaining representative phone/tablet evidence  
+**Current physical-evidence candidate:** `0.4.0-preqa.11 / 41100` at `21dc2b0eed4afc261b89578da424cd28d9894500` — AUTOMATION GREEN; OWNER FOCUSED RECHECK 1–7 + 9 PASS / 8 FAIL  
+**Acceptance boundary:** full-app equivalent-control vertical padding/spacing audit + repair → focused geometry recheck → remaining phone/tablet evidence  
 **Release status:** debug/development; NOT owner-accepted and NOT release-ready
 
 ## Resume here
 
-1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_QA_CANDIDATE.md` — **exact current candidate/run/artifact/digest evidence and focused owner recheck**.
-2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_P16_P4_REPAIR_PROGRESS.md` — exact P16/P4 product repair commits and aggregate green proof.
-3. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_OWNER_PHONE_QA_PROGRESS.md` — physical evidence that reopened P16/P4 and owner repair priorities.
-4. `docs/PROJECT_STATE.md` — live Player state/gate.
-5. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md` — previous physical candidate evidence.
-6. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P16_LANDSCAPE_VERTICAL_SPACE_CLOSED.md` — controlling P16 contract.
-7. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` — controlling P4/P5/P9 contracts.
+1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_OWNER_PHONE_QA_PROGRESS.md` — **current owner physical evidence, transversal failure and exact continuation point**.
+2. `docs/PROJECT_STATE.md` — live Player authority/current repair gate.
+3. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_QA_CANDIDATE.md` — exact preqa.11 candidate/run/artifact/digest evidence and partial physical result.
+4. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_P16_P4_REPAIR_PROGRESS.md` — product repair chain that produced preqa.11.
+5. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` — controlling accepted P4/P5 and related repair principles.
+6. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P16_LANDSCAPE_VERTICAL_SPACE_CLOSED.md` — controlling full-app vertical-space/combined-footprint policy.
+7. `docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` — durable repair/validation authorization.
 
-## Preserved PASS — do not repeat
+## Physical PASS preserved — do not repeat from scratch
 
-Owner `preqa.10` report `1–7 OK` remains physical PASS for R1–R3: canonical HP propagation/max clamp, targeted HP feedback, exact `Establecer PV`, and the earlier gross Combat operation-row proportion repair.
+Earlier `preqa.10` R1–R3 remains PASS.
 
-## Repaired boundaries in preqa.11
+On `preqa.11`, the owner reported **checks 1–7 OK and 9 OK**. Preserve these physical passes for their tested scope:
 
-**P16 — `fcf62103…`**
+- portrait `Cantidad` padding/height repair;
+- phone-landscape combined header/tab/HUD footprint;
+- portrait↔landscape rotation sanity;
+- standard die selection;
+- `Otro…` custom die editing;
+- incomplete dice draft editing without neighboring-state wipe;
+- numeric visibility/no clipping;
+- Save/Cancel and valid component persistence.
 
-- shallow phone landscape uses one horizontal persistent row for identity/save header + scrollable top tabs;
-- phone top-tab navigation semantics are preserved;
-- constrained Combat HUD padding/spacing is tighter;
-- `Cantidad` uses explicit compact internal padding rather than the taller default Material text-field body.
+## Current blocker — check 8 FAIL / transversal full-app audit reopened
 
-**P4 — `b40ed128…`**
+The owner supplied an annotated portrait `Editar ataque o acción` screenshot showing multiple equivalent controls with excessive vertical internal padding / empty space and clarified that this class of defect also applies in landscape.
 
-- partial dice-edit state (`1d`, `d8`, `1d8-`, temporarily empty custom sides) remains stable during editing;
-- strict save validity remains;
-- numeric/custom fields no longer use clipped exact-48dp labelled Material geometry;
-- selector controls use safe minimum height without rigid maximum;
-- component internal padding/spacing is reduced;
-- outer modal is not enlarged.
+This must **not** be repaired only in that dialog. The owner had previously required a full-app size/margin/padding audit; recurrence across equivalent objects means the earlier audit was incomplete or ineffective. The next pass must inventory and correct equivalent/shared Player controls across the app.
 
-Portrait relocation of long-card actions is still only a consideration, not part of the repair.
+Required repair policy:
 
-## Candidate evidence
+- vertical padding/margins first;
+- preserve usable touch targets and legibility;
+- outer size only afterward if genuinely required;
+- no solution based on making dialogs/containers larger;
+- prefer shared primitives/policies over isolated per-screen tweaks;
+- cover both portrait and landscape.
 
-- `0.4.0-preqa.11 / 41100`
-- exact commit `21dc2b0eed4afc261b89578da424cd28d9894500`
-- exact Scaffold `34732621381` — **SUCCESS**
-- artifact ID `10309348779`
-- ZIP size `13,616,149` bytes
-- GitHub artifact/ZIP digest `sha256:752302327bc4af330f5a1ea6e11b6ad61e4324e8cc230675f6d8d2da48fff391`
-- independent ZIP hash: exact match
-- APK size `38,881,392` bytes
-- independent APK SHA-256 `1eebaffbed5e2f0d4479f288575186a916dde0a124e26e72948144bda032ff3a`
+The structured dice **`+ / −` selector** is explicitly included for inspection of glyph/icon choice, padding, alignment, touch-target geometry and consistency with equivalent compact controls. Do not infer a redesign until comparable controls/source have been audited.
 
 ## Exact next action
 
-Install `preqa.11` over the existing QA installation without clearing data. Recheck only the reopened P16/P4 physical boundary:
+Pause broad owner QA and P17 tablet QA. On `implementation/phase4a-successor-cycle`:
 
-1. portrait `Cantidad` padding/height;
-2. phone landscape combined header/tab/HUD footprint and useful attacks/actions area;
-3. rotate landscape↔portrait without overlap/reachability/state regression;
-4. standard die selection works reliably;
-5. `Otro…` custom die sides works without wiping neighboring fields;
-6. clearing/retyping quantity/sides/signed modifier keeps the structured controls stable;
-7. numeric values are fully visible, not clipped;
-8. internal editor geometry is materially more compact at 100% without a larger modal;
-9. Save/Cancel remains usable and a valid edited component persists.
+1. inventory all shared/equivalent Player form/editor/selector controls capable of the observed excessive vertical padding/margins;
+2. determine what shared primitives/usages escaped the earlier full-app audit;
+3. include the `+ / −` dice selector in the audit;
+4. implement the smallest transversal repair consistent with P5/P16 usable-height principles and relevant shared editor/P9 geometry contracts;
+5. update `2026-09-12_PHASE4A_PREQA11_OWNER_PHONE_QA_PROGRESS.md`, `PROJECT_STATE.md` and this `LATEST.md` after each material repair step;
+6. run focused regression + aggregate Scaffold validation;
+7. if product code changes materially, issue the next monotonic candidate after `preqa.11 / 41100`, freeze exact commit/run/artifact/digest evidence, and recheck only the affected geometry boundary before broader phone/tablet QA.
 
-R1–R3 remain PASS. P17 tablet QA remains pending. No P18 exists. Phase 4A remains open. DM implementation remains blocked until explicit owner closure.
+No P18 exists. Phase 4A remains open. DM implementation remains blocked until explicit owner closure. Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change.
