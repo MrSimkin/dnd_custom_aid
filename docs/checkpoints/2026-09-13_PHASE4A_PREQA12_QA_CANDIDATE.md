@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-13  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** AUTOMATION-GREEN EXACT PHYSICAL-QA CANDIDATE / AFFECTED TRANSVERSAL GEOMETRY RECHECK PENDING
+**Status:** AUTOMATION GREEN / OWNER PHONE QA PASS / P17 TABLET QA PENDING
 
 ## Candidate identity
 
@@ -69,22 +69,26 @@ Exact versioned candidate proof:
 
 ## Physical evidence state
 
-`preqa.12` has **no owner/device PASS or FAIL yet**. Do not infer physical acceptance from automation.
+The owner physically tested this exact `preqa.12 / 41200` candidate and reported both required post-repair phone boundaries as PASS:
 
-Preserve from earlier candidates:
+- affected transversal geometry recheck: **5/5 PASS**;
+- remaining phone-wide regression gate: **7/7 PASS**.
+
+The 5/5 boundary covered representative compact labelled/editable fields in portrait and landscape, structured-dice `+ / −` compactness/alignment/tapability, representative editability, and short Save/Cancel sanity. This physically closes the defect exposed by `preqa.11` check 8.
+
+The 7/7 remaining phone gate covered lifecycle persistence, main navigation, a representative non-Combat editor, keyboard/editor behavior, harmless preference persistence, cancel/discard safety, and a broad portrait/landscape regression sweep.
+
+Preserved cumulative evidence:
 
 - `preqa.10` R1–R3 physical PASS;
 - `preqa.11` checks 1–7 and 9 physical PASS;
-- `preqa.11` check 8 physical FAIL is the boundary repaired by this candidate.
+- `preqa.11` check 8 physical FAIL, now closed by the `preqa.12` affected-boundary PASS;
+- `preqa.12` phone QA gate: **PASS**.
 
-## Focused owner recheck for preqa.12
+Durable owner-result checkpoint: `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_OWNER_PHONE_QA_PASS.md`.
 
-Do **not** rerun broad QA from zero. First recheck only the affected transversal geometry boundary:
+## Exact next action
 
-1. In portrait, open representative ordinary labelled/editable Player fields, including the prior `Editar ataque o acción` example. Confirm vertical internal whitespace is materially reduced and content is proportionate rather than floating inside oversized field interiors.
-2. Repeat representative equivalent fields in landscape. Confirm the compact geometry remains coherent and does not create clipping or awkward alignment.
-3. In structured damage, inspect the `+ / −` sign selector. Confirm it looks compact/aligned consistently with neighboring compact controls **and remains easy to tap**.
-4. Edit representative text and numeric fields to ensure the shared primitive remains practically focusable/editable; include one multiline field if convenient so content growth is sanity-checked.
-5. Perform a short Save/Cancel sanity check in an affected editor. This is not a rerun of all preqa.11 functional checks; it only guards against a presentation repair breaking basic interaction.
+Proceed to **P17 tablet QA**. Do not restart phone QA from zero absent contradictory evidence or a later change that directly affects an already-tested phone behavior.
 
-If this affected boundary passes physically, record that result, then resume the remaining broader phone QA and afterward P17 tablet QA. Phase 4A remains open until explicit owner acceptance/closure. No P18 exists; DM implementation remains blocked.
+Phase 4A remains open until P17 is resolved and the owner explicitly accepts/closes the phase. No P18 exists; DM implementation remains blocked until explicit owner closure.
