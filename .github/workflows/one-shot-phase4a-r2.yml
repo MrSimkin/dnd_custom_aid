@@ -1,0 +1,38 @@
+name: One-shot Phase 4A R2 patch
+
+on:
+  push:
+    branches:
+      - implementation/phase4a-successor-cycle
+    paths:
+      - .github/workflows/one-shot-phase4a-r2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: implementation/phase4a-successor-cycle
+          fetch-depth: 0
+      - name: Apply guarded R2 source patch
+        run: python3 tools/one_shot_phase4a_r2.py
+      - name: Verify intended file is the only product change
+        run: |
+          git diff --exit-code -- . ':!androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt'
+          git diff --check
+          git diff -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+      - name: Commit R2 source patch
+        run: |
+          if git diff --quiet -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt; then
+            echo 'No source change produced; refusing to create an empty repair commit.'
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt
+          git commit -m 'fix: persist General HP across navigation and save'
+          git push origin HEAD:implementation/phase4a-successor-cycle
