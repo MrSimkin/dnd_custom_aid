@@ -84,8 +84,8 @@ class CharacterTableModeOperationalMergePolicyTest {
             name = "Structural overwrite",
             status = CharacterStatus.DEAD,
             armorClass = 99,
-            maxHp = 999,
-            currentHp = 7,
+            maxHp = 10,
+            currentHp = 20,
             tempHp = 4,
             inspiration = true,
             deathSaveSuccesses = 2,
@@ -101,8 +101,8 @@ class CharacterTableModeOperationalMergePolicyTest {
         assertEquals("Persisted", merged.name)
         assertEquals(CharacterStatus.ACTIVE, merged.status)
         assertEquals(15, merged.armorClass)
-        assertEquals(30, merged.maxHp)
-        assertEquals(7, merged.currentHp)
+        assertEquals(10, merged.maxHp)
+        assertEquals(10, merged.currentHp)
         assertEquals(4, merged.tempHp)
         assertTrue(merged.inspiration)
         assertEquals(2, merged.deathSaveSuccesses)
@@ -116,6 +116,18 @@ class CharacterTableModeOperationalMergePolicyTest {
         assertEquals("Ki", merged.resources.single().name)
         assertEquals(5, merged.resources.single().maxValue)
         assertEquals(4, merged.resources.single().currentValue)
+    }
+
+    @Test
+    fun operationalSheetMergeUsesProposedMaximumWithoutSilentHealing() {
+        val persisted = sheet().copy(maxHp = 30, currentHp = 18, tempHp = 2)
+        val proposed = persisted.copy(maxHp = 40, currentHp = 18, tempHp = 6)
+
+        val merged = mergeCharacterOperationalState(persisted, proposed)
+
+        assertEquals(40, merged.maxHp)
+        assertEquals(18, merged.currentHp)
+        assertEquals(6, merged.tempHp)
     }
 
     @Test
