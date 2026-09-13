@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Current exact QA candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; PHONE QA EXECUTED WITH OPEN FINDINGS  
-**Current phase:** P17 physical tablet QA on the same `preqa.12` candidate before consolidated repair  
+**Current phase:** P17 physical tablet QA IN PROGRESS on the same `preqa.12` candidate before consolidated repair  
 **Release status:** development/debug; Phase 4A OPEN; DM implementation blocked pending explicit Phase 4A closure
 
 ## Authority / authorization
@@ -37,9 +37,30 @@ Latest detailed phone findings:
 - check 22 INCOMPLETE/AMBIGUOUS;
 - check 23 PASS.
 
-Controlling current checkpoint: `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md`.
-
 The older `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_OWNER_PHONE_QA_PASS.md` remains historical evidence but is explicitly superseded for current gate status.
+
+## P17 tablet QA — current progress
+
+Controlling tablet-progress checkpoint: `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md`.
+
+Exact physical tablet evidence so far on `preqa.12 / 41200`:
+
+1. Install/update + launch: PASS.
+2. Campaign baseline: PASS.
+3. Portrait main navigation/adaptive shell: PASS.
+4. Landscape main navigation/adaptive shell: PASS.
+5. Portrait↔landscape rotation/state sanity: PASS.
+
+No tablet baseline finding currently blocks continued P17.
+
+Non-blocking findings captured during this tablet pass:
+
+- **T1:** card reorder/movement interaction behaves abnormally across devices/orientations/column counts, including one column. Treat as open P6/reorder interaction defect requiring source audit and video review. The supplied video was not exposed to the available file-inspection layer in the recording turn, so no more specific motion diagnosis is claimed yet.
+- **T2:** clarified dice-mode product/UX contract — visual die result should resemble selected die shape; `Otro`/total use circle; same principle applies to damage; Dice Mode control should move to the relevant tab; Custom Throw must support die choice + modifier comparable to attack/damage.
+- **T3:** App Settings column control no longer clearly represents current adaptive behavior; audit/redesign control and behavior semantics.
+- **T4:** App Settings density/scale must center 100% and use symmetric decrement/increment options; owner accepts adding 50%/60% if needed for symmetry.
+
+T1–T4 are accepted for the post-P17 consolidated repair backlog and do not block continued tablet evidence collection.
 
 ## Why P17 proceeds before repair
 
@@ -65,9 +86,9 @@ No product code, APK, version or artifact has changed since that candidate was b
 
 ## Exact route / next action
 
-1. Run **P17 physical tablet QA now** on exact `preqa.12 / 41200`, portrait and landscape, preserving all valid phone evidence.
+1. Continue **P17 physical tablet QA now** on exact `preqa.12 / 41200`, covering Combat/P5/P16, Conjuros, representative P9 editor/IME behavior, P6 reorder characterization, settings responsiveness, P15 Supercompact, P14 Table Mode, larger text/density, persistence/reopen and canonical shared-state sanity such as HP.
 2. Record tablet PASS/FAIL/observations without treating known phone defects as automatic tablet failures.
-3. After tablet discovery is complete, audit the full Player checkbox/responsive-layout family and consolidate all phone + tablet defects/refinements into one coherent repair batch.
+3. After tablet discovery is complete, audit the full Player checkbox/responsive-layout family and consolidate all phone + tablet defects/refinements, including T1–T4, into one coherent repair batch.
 4. Produce a new monotonic candidate after material product changes.
 5. Revalidate only failed/touched/affected phone and tablet families plus unresolved phone checks 21/22; do not restart unaffected PASS coverage wholesale.
 6. Phase 4A may close only after required defects are repaired/revalidated, P17 has actual tablet evidence, and the owner explicitly accepts/closes Phase 4A.
