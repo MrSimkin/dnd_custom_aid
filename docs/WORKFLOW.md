@@ -6,23 +6,38 @@ This file defines the approved operating workflow for AI-led implementation with
 
 The repository must always make a clear distinction between:
 
-- accepted project state;
+- approved/accepted project state;
+- implemented but not owner-accepted state;
 - work in progress;
 - proposed decisions;
 - unresolved questions;
 - approved conventions;
-- verification actually performed.
+- verification actually performed;
+- branch role/lifecycle.
 
-The goal is to prevent a future agent from confusing an experiment, chat suggestion, unrecorded convention, or remembered discussion with approved project truth.
+The goal is to prevent a future agent from confusing an experiment, chat suggestion, historical checkpoint, branch name, green CI result or remembered discussion with current approved project truth.
 
-## 2. Branch model
+## 2. Current branch model
 
-- `main` = canonical accepted/published project state.
-- Substantial changes = developed on a focused branch.
-- Experiments must not be treated as canonical until merged.
-- Merge into `main` only after owner approval or explicit delegation for that category of change.
+Current branch lifecycle is controlled by `docs/BRANCH_STATUS.md`.
 
-This model is approved by D-0007.
+There are presently **two active authoritative lines**:
+
+- `main` — canonical global navigation plus Phase 5A/DM product discovery/design;
+- `implementation/phase4a-successor-cycle` — authoritative Player/Phase 4A runtime, QA and defect-repair line.
+
+They intentionally contain different valid work and must not be mechanically collapsed.
+
+Rules:
+
+- do not assume `main` contains the latest Player runtime;
+- do not assume the Player successor supersedes later `main`-only DM discovery;
+- do not force-move either active ref over the other;
+- all other surviving branches are historical/audit/frozen evidence unless `docs/BRANCH_STATUS.md` explicitly changes their lifecycle;
+- frozen QA refs remain immutable;
+- any future integration of the two active lines requires explicit owner authorization and must preserve both sets of valid work.
+
+D-0007 remains the historical general branching decision. D-0066 remains part of the repository-ordering history. Later explicit continuity records control the current dual-line topology.
 
 ## 3. Communication model
 
@@ -56,15 +71,18 @@ See D-0011.
 
 ## 5. Work item lifecycle
 
-### Step A — Understand
+### Step A — Establish authority
 
 Before implementation:
 
 1. read the mandatory continuity files;
-2. identify what is already approved;
-3. identify applicable conventions;
-4. identify unknown behavior or decisions;
-5. explain meaningful unresolved choices to the owner.
+2. identify the correct active authoritative branch from `docs/BRANCH_STATUS.md`;
+3. read that branch's `docs/PROJECT_STATE.md` and `docs/checkpoints/LATEST.md`;
+4. identify the owner's actual authorization boundary;
+5. identify what is already approved/implemented/accepted;
+6. identify applicable conventions and material unknowns.
+
+Do not begin from a historical branch or stale checkpoint merely because its old prose says “next.”
 
 ### Step B — Explore alternatives
 
@@ -96,7 +114,7 @@ A lightweight feature-spec template lives under `docs/templates/`.
 
 ### Step D — Implement
 
-Only after the required behavior/design decisions are sufficiently approved for the work at hand, the coding agent may:
+Only after the required behavior/design decisions are sufficiently approved and the active branch/authorization are clear, the coding agent may:
 
 - write the code;
 - create/update tests;
@@ -107,27 +125,33 @@ Only after the required behavior/design decisions are sufficiently approved for 
 
 Do not bundle unrelated behavior into the same change without a clear reason.
 
+Do not invent work merely because an owner/manual gate temporarily blocks further implementation.
+
 ### Step E — Verify
 
 Run the checks appropriate to the change. Record:
 
 - commands/checks executed;
+- exact revision/build tested;
 - what passed;
 - what failed;
-- what was not tested and why.
+- what was not tested and why;
+- whether evidence is automated, emulator/simulator, or physical owner/device evidence.
 
-Do not describe unexecuted tests as passed.
+Do not describe unexecuted tests as passed. Do not infer owner acceptance from CI.
 
 ### Step F — Update operative memory
 
 Before presenting meaningful work as complete, update all applicable repository truth:
 
 - `docs/PROJECT_STATE.md`;
-- `docs/DECISIONS.md` if a decision changed;
+- `docs/checkpoints/LATEST.md` when the practical resume point changes;
+- `docs/BRANCH_STATUS.md` when branch lifecycle/authority changes;
+- `docs/DECISIONS.md` or detailed decision records if a decision changed;
 - `docs/CONVENTIONS.md` if a convention was approved/changed;
 - `docs/PRODUCT.md` if approved scope/design changed;
-- architecture/testing docs when applicable;
-- feature-specific documentation when applicable;
+- roadmap/architecture/testing docs when applicable;
+- feature-specific documentation/checkpoints when applicable;
 - known issues, rationale, unresolved questions, and next action.
 
 A meaningful fact needed for continuation must not be left only in chat.
@@ -141,20 +165,25 @@ Explain the result clearly, including:
 - what the owner can now do or what changed in project understanding;
 - what was tested;
 - known limitations;
-- any pending decision;
-- whether the change is still on a branch or has been merged.
+- any pending decision/manual gate;
+- which active branch contains the work;
+- whether cross-line integration is needed or intentionally deferred.
 
-### Step H — Merge/publish
+### Step H — Publish/integrate
 
-Merge into `main` only after owner approval or explicit delegation for that category of change.
+Publish commits to the correct active authoritative line for the work.
 
-After merge, ensure `docs/PROJECT_STATE.md` reflects the canonical merged state rather than the now-completed branch state.
+- Player/Phase 4A runtime, QA packaging and QA-reopened defect repairs belong on `implementation/phase4a-successor-cycle` unless a later explicit decision changes that authority.
+- Global navigation and Phase 5A/DM discovery/design belong on `main`.
+- A continuity/governance correction that affects both active lines may be committed to both when explicitly authorized.
+- Do **not** merge one active line into the other merely for cosmetic linearity.
+- Cross-line integration requires explicit owner authorization and an evidence-based reconciliation that preserves both valid histories.
 
 ## 6. Significant decision workflow
 
 When a significant decision is required:
 
-1. add or update a `Pending` decision entry;
+1. add or update a `Pending` decision entry when appropriate;
 2. present the owner with realistic options;
 3. explain practical trade-offs;
 4. give a recommendation when justified;
@@ -167,8 +196,6 @@ Do not use implementation momentum as a reason to bypass this process.
 
 Agents may make reversible, low-impact implementation details that do not alter approved behavior and do not establish a new durable convention.
 
-Examples may include a local helper extraction, an obvious private implementation detail, or an equivalent line-level choice.
-
 However:
 
 - meaningful technical approaches must still be explained;
@@ -177,11 +204,11 @@ However:
 
 See D-0008 and `docs/CONVENTIONS.md`.
 
-## 8. Commit and PR quality
+## 8. Commit quality
 
 Commit messages should describe the outcome, not the chat history.
 
-A pull request or review summary should contain:
+A review/checkpoint summary should contain:
 
 - purpose;
 - important changes;
@@ -189,13 +216,14 @@ A pull request or review summary should contain:
 - verification performed;
 - documentation updated;
 - known issues;
-- owner action required.
+- owner action/manual evidence required;
+- active branch and exact continuation point.
 
 ## 9. Failed or partial work
 
 Partial work is acceptable if clearly recorded.
 
-If work cannot be completed in a session, `docs/PROJECT_STATE.md` must say:
+If work cannot be completed in a session, operative-memory docs must say:
 
 - what was completed;
 - what remains;
@@ -203,10 +231,24 @@ If work cannot be completed in a session, `docs/PROJECT_STATE.md` must say:
 - relevant branch/commit;
 - next recommended action.
 
-Never hide an unfinished migration, failing test, or uncertain behavior behind a generic “in progress” note.
+Never hide an unfinished migration, failing test, uncertain behavior, or unresolved manual gate behind a generic “in progress” note.
 
-## 10. Secrets and credentials
+## 10. Current Phase 4A gate
 
-Never commit passwords, tokens, API keys, signing keys, private certificates, or other credentials.
+The current Player candidate is `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`, automation-green under Scaffold run `34726572588`.
 
-If future development needs secrets, document the setup using placeholders and secure local/CI secret storage rather than putting real values in tracked files.
+P1–P16 are implemented/automation-qualified. P17 is the physical Player-tablet QA gate policy.
+
+Until physical owner/device QA produces new evidence:
+
+- do not restart P1–P16;
+- do not invent unrelated Player features;
+- a real QA defect may reopen only the relevant accepted repair boundary on the Player successor branch;
+- DM discovery/design may continue on `main` when requested;
+- DM feature implementation remains blocked until explicit Phase 4A owner closure.
+
+## 11. Secrets and credentials
+
+Never commit passwords, tokens, API keys, production/release signing keys, private certificates, or other credentials.
+
+If future development needs secrets, document setup using placeholders and secure local/CI secret storage rather than putting real values in tracked files.
