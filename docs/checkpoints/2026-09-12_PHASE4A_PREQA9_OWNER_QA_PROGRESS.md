@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Candidate:** `0.4.0-preqa.9 / 40900`  
 **Candidate commit:** `cd0c203d337c062fa388010d300e875f2f54ced7`  
-**Status:** PHYSICAL OWNER QA FOUND BLOCKING SHARED DEFECTS / REPAIR REQUIRED
+**Status:** PHYSICAL OWNER QA FOUND BLOCKING SHARED DEFECTS / BOUNDED REPAIR IN PROGRESS
 
 ## Evidence recorded
 
@@ -44,6 +44,25 @@ The owner additionally reports that the `Daño — Cantidad — Curar` row is vi
 
 The owner explicitly states that this kind of presentation inconsistency is likely cross-app/transversal and should not have to be repeated on every individual element. The repair pass must therefore inspect the relevant shared sizing/spacing rules rather than patch only this one row cosmetically. Exact historical P-boundary mapping is to be confirmed from the accepted presentation-audit records before code changes; P15/transversal presentation consistency is the likely existing boundary, not a new P-number.
 
+## Repair progress
+
+### Repair step R1 — canonical HP state boundary — IMPLEMENTED, validation pending
+
+Two concrete source defects were confirmed and repaired:
+
+1. `CharacterCoreOperations.kt` now exposes canonical exact current/max HP operations. They normalize maximum HP to a non-negative value, clamp current HP into `0..max`, preserve current HP when maximum increases, and clamp current HP when maximum decreases. Commit: `e0397146445c2cd78e7d017943bca1eb76101939` (`fix: canonicalize exact hit-point updates`).
+2. `CharacterTableModePolicy.kt::mergeCharacterOperationalState` previously discarded `proposed.maxHp` entirely and clamped proposed current HP against the old persisted maximum. It now canonicalizes both proposed current and proposed maximum HP together through the shared exact-state operation. Commit: `9f3c888b19c694408a2f81d8eae63359d879a3eb` (`fix: preserve canonical max and current HP in operational merge`).
+
+This directly addresses the persistence-path defect behind the failed Combat `Establecer PV` observation and creates one reusable invariant boundary for subsequent General/save-path repair. This step is **implemented but not yet automation-qualified or physically accepted**.
+
+Still open after R1:
+
+- General HP fields remain draft-only until their UI wiring is repaired; no-extra-`Guardar` propagation is therefore not yet fixed;
+- the normal structural save path still needs to be routed through canonical HP normalization so no path can persist `current > max`;
+- changed-state glow/pulse remains to be implemented;
+- `Daño — Cantidad — Curar` and the broader presentation-consistency boundary remain to be audited/repaired;
+- regression coverage and CI validation remain pending.
+
 ## Reopened boundaries and gate effect
 
 Physical owner evidence now reopens at minimum:
@@ -58,11 +77,11 @@ These are shared/systemic enough that proceeding to P17 tablet acceptance eviden
 
 ## Exact next action
 
-1. inspect the current successor implementation and accepted repair records for P1/P2 and transversal presentation consistency;
-2. repair the bounded defects under the already-authorized Phase 4A repair scope;
-3. add/strengthen automated regression coverage for the concrete physical failures;
+1. add regression coverage for the canonical HP merge/helper repair;
+2. repair General live HP commit + normal-save normalization without persisting transient per-keystroke max-HP drafts;
+3. classify and repair the P2 feedback and transversal presentation defects;
 4. run focused and aggregate validation;
-5. if the candidate changes materially, issue a new monotonic QA identity and physical-QA artifact;
+5. issue a new monotonic QA identity and physical-QA artifact after material product changes are green;
 6. resume physical phone QA at this reopened boundary before continuing to tablet P17 evidence.
 
 Do not invent P18 or unrelated Player work. DM implementation remains blocked until explicit Phase 4A owner acceptance/closure.
