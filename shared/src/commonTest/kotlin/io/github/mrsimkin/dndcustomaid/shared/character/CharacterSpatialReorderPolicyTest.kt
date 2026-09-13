@@ -3,7 +3,7 @@ package io.github.mrsimkin.dndcustomaid.shared.character
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class CharacterSpatialReorderPolicyTest {
+class CharacterStableReorderTargetingTest {
     private val canonical = listOf("A", "B", "C", "D")
     private val verticalSlots = listOf(
         CharacterReorderSlot("A", centerX = 50f, centerY = 50f),
@@ -26,8 +26,6 @@ class CharacterSpatialReorderPolicyTest {
         assertEquals(2, target)
         assertEquals(listOf("A", "C", "B", "D"), previewCharacterReorder(canonical, "B", target))
 
-        // Re-evaluating the same pointer against the same drag-start geometry must be idempotent.
-        // The preview order itself is deliberately not fed back into target calculation.
         val repeatedTarget = stableCharacterReorderTargetIndex(
             canonicalOrder = canonical,
             draggedId = "B",
