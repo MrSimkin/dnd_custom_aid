@@ -1,64 +1,68 @@
 # Latest project checkpoint — Player / Phase 4A
 
-**Updated:** 2026-09-12  
+**Updated:** 2026-09-13  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
-**Current physical-evidence candidate:** `0.4.0-preqa.11 / 41100` at `21dc2b0eed4afc261b89578da424cd28d9894500` — AUTOMATION GREEN; OWNER FOCUSED RECHECK 1–7 + 9 PASS / 8 FAIL  
-**Acceptance boundary:** full-app equivalent-control vertical padding/spacing audit + repair → focused geometry recheck → remaining phone/tablet evidence  
+**Last physical-evidence candidate:** `0.4.0-preqa.11 / 41100` — owner checks 1–7 + 9 PASS / check 8 FAIL  
+**Current engineering identity:** `0.4.0-preqa.12 / 41200` — transversal repair incorporated; exact versioned automation/artifact evidence pending freeze  
+**Acceptance boundary:** focused owner recheck of repaired full-app equivalent-control geometry, then resume remaining phone/tablet evidence  
 **Release status:** debug/development; NOT owner-accepted and NOT release-ready
 
 ## Resume here
 
-1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_OWNER_PHONE_QA_PROGRESS.md` — **current owner physical evidence, transversal failure and exact continuation point**.
-2. `docs/PROJECT_STATE.md` — live Player authority/current repair gate.
-3. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_QA_CANDIDATE.md` — exact preqa.11 candidate/run/artifact/digest evidence and partial physical result.
-4. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_P16_P4_REPAIR_PROGRESS.md` — product repair chain that produced preqa.11.
-5. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` — controlling accepted P4/P5 and related repair principles.
-6. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P16_LANDSCAPE_VERTICAL_SPACE_CLOSED.md` — controlling full-app vertical-space/combined-footprint policy.
-7. `docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` — durable repair/validation authorization.
+1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_OWNER_PHONE_QA_PROGRESS.md` — preserved physical evidence plus completed transversal repair chain and next owner boundary.
+2. `docs/PROJECT_STATE.md` — live Player authority/current gate.
+3. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_QA_CANDIDATE.md` — prior exact candidate evidence and physical partial result.
+4. `scripts/check_player_control_geometry.py` — persistent guard preventing regression to raw Material field geometry or the old dice-sign button path.
+5. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_P16_P4_REPAIR_PROGRESS.md` — earlier P16/P4 repair chain whose physical passes remain preserved.
+6. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` and `2026-09-11_PHASE4A_PREQA8_P16_LANDSCAPE_VERTICAL_SPACE_CLOSED.md` — controlling compact/usable-height principles.
 
-## Physical PASS preserved — do not repeat from scratch
+## Physical PASS preserved — do not restart
 
 Earlier `preqa.10` R1–R3 remains PASS.
 
-On `preqa.11`, the owner reported **checks 1–7 OK and 9 OK**. Preserve these physical passes for their tested scope:
+On `preqa.11`, the owner reported **checks 1–7 OK and 9 OK; check 8 FAIL**. Preserve the PASS scope for portrait `Cantidad`, phone-landscape combined footprint, rotation sanity, standard/custom dice editing, incomplete-draft stability, numeric visibility, and Save/Cancel + valid persistence.
 
-- portrait `Cantidad` padding/height repair;
-- phone-landscape combined header/tab/HUD footprint;
-- portrait↔landscape rotation sanity;
-- standard die selection;
-- `Otro…` custom die editing;
-- incomplete dice draft editing without neighboring-state wipe;
-- numeric visibility/no clipping;
-- Save/Cancel and valid component persistence.
+The only reopened boundary from that owner session was the broader full-app equivalent-control vertical padding/spacing consistency illustrated by `Editar ataque o acción`, plus inspection of the structured-dice `+ / −` selector.
 
-## Current blocker — check 8 FAIL / transversal full-app audit reopened
+## Transversal repair completed
 
-The owner supplied an annotated portrait `Editar ataque o acción` screenshot showing multiple equivalent controls with excessive vertical internal padding / empty space and clarified that this class of defect also applies in landscape.
+The 2026-09-13 audit found the systemic escape hatch: **160 raw Material `OutlinedTextField` usages across 29 current Player files** were not governed by a shared compact internal-padding policy.
 
-This must **not** be repaired only in that dialog. The owner had previously required a full-app size/margin/padding audit; recurrence across equivalent objects means the earlier audit was incomplete or ineffective. The next pass must inventory and correct equivalent/shared Player controls across the app.
+Repair outcome:
 
-Required repair policy:
+- all 160 sites migrated to shared `CharacterCompactOutlinedTextFieldV4`;
+- actual editable single-line controls retain a safe 48dp+ interaction envelope while visual/internal whitespace is compacted;
+- current multiline/numeric/read-only/error/supporting-text semantics are preserved;
+- structured-dice `+ / −` now uses the shared compact glyph selector with a safe hit envelope;
+- cards/dialogs were not globally enlarged or indiscriminately resized;
+- regression guard is now part of normal Scaffold.
 
-- vertical padding/margins first;
-- preserve usable touch targets and legibility;
-- outer size only afterward if genuinely required;
-- no solution based on making dialogs/containers larger;
-- prefer shared primitives/policies over isolated per-screen tweaks;
-- cover both portrait and landscape.
+Key product/guard commits: `087f6b9c…`, `cc187f46…`, `ac6794ea…`, `869e2052…`, cleanup `05c638f6…`.
 
-The structured dice **`+ / −` selector** is explicitly included for inspection of glyph/icon choice, padding, alignment, touch-target geometry and consistency with equivalent compact controls. Do not infer a redesign until comparable controls/source have been audited.
+## Automated proof already green
+
+Focused repair run `34775917100`: **SUCCESS**.
+
+Cleaned pre-version aggregate at `05c638f67dfbb8504575b175feac9c520763e744`:
+
+- Scaffold `34776384008` — **SUCCESS**;
+- backend typecheck — PASS;
+- persistent geometry guard — PASS;
+- shared/Kotlin tests, Android assemble, desktop build — PASS;
+- APK upload — PASS.
 
 ## Exact next action
 
-Pause broad owner QA and P17 tablet QA. On `implementation/phase4a-successor-cycle`:
+The material repair requires a new monotonic candidate, now identified as `0.4.0-preqa.12 / 41200`.
 
-1. inventory all shared/equivalent Player form/editor/selector controls capable of the observed excessive vertical padding/margins;
-2. determine what shared primitives/usages escaped the earlier full-app audit;
-3. include the `+ / −` dice selector in the audit;
-4. implement the smallest transversal repair consistent with P5/P16 usable-height principles and relevant shared editor/P9 geometry contracts;
-5. update `2026-09-12_PHASE4A_PREQA11_OWNER_PHONE_QA_PROGRESS.md`, `PROJECT_STATE.md` and this `LATEST.md` after each material repair step;
-6. run focused regression + aggregate Scaffold validation;
-7. if product code changes materially, issue the next monotonic candidate after `preqa.11 / 41100`, freeze exact commit/run/artifact/digest evidence, and recheck only the affected geometry boundary before broader phone/tablet QA.
+Next:
 
-No P18 exists. Phase 4A remains open. DM implementation remains blocked until explicit owner closure. Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change.
+1. obtain aggregate Scaffold success for the exact versioned `preqa.12` commit;
+2. freeze exact commit/run/artifact/digest evidence in a new `preqa.12` QA-candidate checkpoint;
+3. synchronize this `LATEST.md`, `PROJECT_STATE.md`, and the owner-QA progress checkpoint with the frozen evidence;
+4. ask the owner to recheck **only the affected transversal geometry boundary first**: representative ordinary fields in portrait + landscape, the prior attack/action editor example, and the structured-dice `+ / −` selector, with quick editability/Save-Cancel sanity;
+5. preserve prior PASS; do not restart broad QA from zero;
+6. after this affected boundary physically passes, resume broader phone QA and then P17 tablet QA.
+
+No P18 exists. Phase 4A remains open. DM implementation remains blocked until explicit owner closure.
