@@ -4,17 +4,40 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
 **Current exact QA candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; PHONE QA HAS OPEN FINDINGS  
-**Current gate:** P17 physical tablet QA on the same candidate before consolidated repair  
+**Current gate:** P17 physical tablet QA IN PROGRESS on the same candidate before consolidated repair  
 **Release status:** debug/development; Phase 4A OPEN; DM implementation blocked pending explicit owner closure
 
 ## Resume here
 
-1. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — **controlling current physical-QA status and route**.
-2. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact candidate/run/artifact/digest evidence, updated with current phone findings and P17 route.
-3. `docs/PROJECT_STATE.md` — live Player authority/current gate.
-4. `docs/TESTING.md` — controlling physical-QA policy; explicitly permits P17 when phone findings do not make tablet evidence meaningless.
-5. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_OWNER_PHONE_QA_PASS.md` — historical bounded 5/5 + 7/7 PASS evidence; **superseded for current gate status** by the later 23-check findings.
-6. `scripts/check_player_control_geometry.py` — persistent field-geometry guard.
+1. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md` — **controlling current P17 evidence: tablet checks 1–5 PASS; findings T1–T4 captured; continue substantive tablet QA**.
+2. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — controlling phone findings and decision to run P17 before repair.
+3. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact candidate/run/artifact/digest evidence.
+4. `docs/PROJECT_STATE.md` — live Player authority/current gate.
+5. `docs/TESTING.md` — controlling physical-QA policy; explicitly permits P17 when phone findings do not make tablet evidence meaningless.
+6. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_OWNER_PHONE_QA_PASS.md` — historical bounded 5/5 + 7/7 PASS evidence; **superseded for current gate status** by the later 23-check findings.
+
+## Current tablet evidence
+
+P17 is being executed physically on exact `preqa.12 / 41200`.
+
+Tablet Batch 1:
+
+- 1 Install/update + launch: PASS;
+- 2 Campaign baseline: PASS;
+- 3 portrait main navigation/adaptive shell: PASS;
+- 4 landscape main navigation/adaptive shell: PASS;
+- 5 portrait↔landscape rotation/state sanity: PASS.
+
+No tablet baseline finding currently blocks further P17.
+
+Non-blocking findings captured during P17:
+
+- **T1:** card reorder/movement interaction behaves abnormally across devices/orientations/column counts, including one column; treat as open P6/reorder interaction defect. Owner supplied video, but it was not inspectable through the available file layer in the recording turn, so do not invent a more specific diagnosis yet.
+- **T2:** owner clarified dice-mode UX/product contract: die result visuals should resemble selected die shape; `Otro`/total use circle; same applies to damage; move Dice Mode control to relevant tab; Custom Throw must allow die + modifier choices comparable to attack/damage.
+- **T3:** App Settings column control no longer clearly represents current adaptive/column behavior; audit/remake control + semantics rather than cosmetic patch.
+- **T4:** App Settings density/scale must center 100% and use symmetric decrement/increment options; 50%/60% may be added if needed for symmetry.
+
+All T1–T4 are non-blocking for continued P17 and belong in the post-P17 consolidated repair batch.
 
 ## Current phone evidence
 
@@ -32,15 +55,7 @@ Preserve all earlier PASS evidence where not contradicted. Latest detailed 23-ch
 - 22 INCOMPLETE/AMBIGUOUS;
 - 23 PASS.
 
-The earlier complete-phone `CLOSED / PASS` interpretation is therefore superseded. Do not discard the individual PASS evidence and do not restart unaffected tests from zero.
-
-## P17 decision
-
-Proceed to **P17 tablet portrait/landscape QA now on the same exact `preqa.12 / 41200` APK**.
-
-This is permitted by the controlling QA contract because the current phone defects do not constitute a hard shared/systemic failure that makes tablet evidence meaningless. Tablet testing before repair is also useful for characterizing the open responsive checkbox/layout family across form factors.
-
-P17 execution does **not** waive the phone defects and does **not** close Phase 4A.
+The earlier complete-phone `CLOSED / PASS` interpretation remains superseded. Do not discard the individual PASS evidence and do not restart unaffected tests from zero.
 
 ## Candidate evidence unchanged
 
@@ -50,12 +65,12 @@ P17 execution does **not** waive the phone defects and does **not** close Phase 
 - ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
 - APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
 
-No product code, APK, version or artifact changed during the documentation correction.
+No product code, APK, version or artifact changed during QA recording.
 
 ## Exact route
 
-1. Execute P17 tablet QA on `preqa.12` and record actual tablet evidence.
-2. Combine tablet findings with phone checks 7–8, the app-wide 17.1–17.3 checkbox/responsive audit, and accepted non-blocking refinements 9/16.
+1. Continue P17 tablet QA on `preqa.12`, covering Combat/P5/P16, Conjuros, representative editor/IME behavior, reorder, settings responsiveness, P15 Supercompact, P14 Table Mode, larger text/density, persistence/reopen and canonical shared-state sanity such as HP.
+2. Combine tablet findings with phone checks 7–8, the app-wide 17.1–17.3 checkbox/responsive audit, accepted refinements 9/16, and T1–T4.
 3. Implement one coherent repair batch and create a new monotonic QA candidate if product code changes materially.
 4. Targeted revalidation only for failed/touched/affected phone/tablet families plus unresolved phone checks 21/22; preserve unrelated PASS.
 5. Explicit owner Phase 4A closure only after the repaired state has sufficient cross-device evidence.
