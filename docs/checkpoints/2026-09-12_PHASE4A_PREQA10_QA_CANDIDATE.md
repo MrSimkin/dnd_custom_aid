@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-12  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Status:** AUTOMATION-GREEN REPAIRED PHYSICAL-QA CANDIDATE / OWNER ACCEPTANCE PENDING
+**Status:** AUTOMATION GREEN / REOPENED R1–R3 PHONE REPAIR BOUNDARY PHYSICALLY PASSED / REMAINING TARGETED PHONE QA IN PROGRESS
 
 ## Candidate identity
 
@@ -60,27 +60,34 @@ APK extracted from the archive:
 
 The GitHub artifact digest is the ZIP/archive digest; the APK SHA-256 above is a separate independent hash of the APK file itself. Do not conflate the two.
 
-## Physical-QA boundary
+## Physical owner QA — repaired R1–R3 boundary
 
-This checkpoint does **not** claim owner/device acceptance. `preqa.10 / 41000` is the exact automation-green candidate to resume physical phone QA after `preqa.9` exposed shared P1/P2/presentation defects.
+The owner physically tested the exact `preqa.10 / 41000` candidate and reported **`1–7 OK`** for the focused repaired boundary. This is direct owner/device evidence, not inferred from automation.
 
-First physical recheck should focus on the reopened failures rather than restarting all prior QA from zero:
+Physical PASS therefore covers:
 
 1. General HP → Combate canonical propagation without requiring global `Guardar` merely to cross tabs;
-2. maximum-HP reduction clamps current HP canonically and cannot project `current > max`;
-3. temp-only absorbed damage highlights only Temp briefly/subtly;
-4. spillover damage highlights Temp + PV as actually changed;
-5. healing highlights PV when it changes;
-6. Combate `Establecer PV` performs an exact current/max correction and projects canonically;
-7. `Daño | cantidad | Curar` has coherent control height/proportion/padding relative to the surrounding Combat HUD.
+2. maximum-HP reduction clamps current HP canonically and no `current > max` state was observed;
+3. temp-only absorbed damage gives the accepted brief/subtle Temp-only feedback;
+4. spillover damage gives the accepted feedback to both Temp + PV when both actually change;
+5. healing gives the accepted PV feedback when current HP changes;
+6. Combate `Establecer PV` performs the exact current/max correction and projects canonically;
+7. `Daño | cantidad | Curar` control height/proportion/padding is coherent with the surrounding Combat HUD.
 
-Previously preserved `preqa.9` passes do not need to be rediscovered before this focused repair recheck. If the reopened boundary passes, continue the remaining targeted phone regression and then representative P17 tablet QA according to the existing gate policy.
+This physically clears the specific P1/P2/presentation defects that caused `preqa.9` to fail. These seven points do not need to be repeated again absent new contradictory evidence.
+
+## Current physical-QA boundary
+
+The focused R1–R3 repair recheck has passed. Continue the remaining targeted phone regression on the same exact candidate rather than restarting previously passed checks.
+
+Next phone coverage should proceed through the still-unconfirmed representative boundaries, beginning with the compact/fixed Combat HUD and constrained-height/landscape behavior, then representative P6 reorder persistence, P9 editor/IME reachability, settings, P14 Table Mode, P15 Supercompact, P16 vertical-space behavior, Conjuros sticky/source context, and final persistence/reopen/canonical-state sanity.
+
+Representative P17 tablet QA may proceed after phone testing if no hard shared/systemic failure emerges. A bounded/local phone defect does not automatically invalidate unrelated tablet evidence; a hard shared/systemic defect can pause it.
 
 ## Gate effect
 
 - `preqa.9 / 40900`: failed physical candidate; preserved historical evidence only.
-- `preqa.10 / 41000`: current exact repaired physical-QA candidate.
-- Phase 4A: still open; owner/device acceptance pending.
-- P17 tablet QA: paused until focused phone recheck shows no hard shared/systemic failure.
+- `preqa.10 / 41000`: current exact automation-green candidate; reopened R1–R3 repair boundary physically passed.
+- Phase 4A: still open; remaining targeted phone QA, P17 representative tablet QA and explicit owner closure are pending.
 - P18: does not exist.
 - DM implementation: blocked until explicit Phase 4A owner acceptance/closure.
