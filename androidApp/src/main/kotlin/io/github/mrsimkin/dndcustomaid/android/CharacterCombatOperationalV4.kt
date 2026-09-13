@@ -30,9 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterHpChangeImpact
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterDamage
 import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterHealing
+import io.github.mrsimkin.dndcustomaid.shared.character.characterHpChangeImpact
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterTemporaryHp
 import kotlinx.coroutines.delay
@@ -40,13 +42,6 @@ import kotlinx.coroutines.delay
 private enum class CharacterHpExactEditorV4 {
     HIT_POINTS,
     TEMP_HP,
-}
-
-private enum class CharacterHpFeedbackV4 {
-    NONE,
-    HIT_POINTS,
-    TEMP_HP,
-    BOTH,
 }
 
 /**
@@ -67,7 +62,7 @@ internal fun CharacterCombatOperationalCardV4(
 ) {
     var amountText by rememberSaveable { mutableStateOf("") }
     var exactEditor by rememberSaveable { mutableStateOf<String?>(null) }
-    var hpFeedback by remember { mutableStateOf(CharacterHpFeedbackV4.NONE) }
+    var hpFeedback by remember { mutableStateOf(CharacterHpChangeImpact.NONE) }
     var hpFeedbackEpoch by remember { mutableIntStateOf(0) }
     val amount = amountText.toIntOrNull()
     val validAmount = amount != null && amount > 0
@@ -75,21 +70,14 @@ internal fun CharacterCombatOperationalCardV4(
     val layoutContext = characterLayoutContextV4()
 
     fun triggerHpFeedback(updated: CharacterSheet) {
-        val hitPointsChanged = updated.currentHp != sheet.currentHp || updated.maxHp != sheet.maxHp
-        val temporaryHpChanged = updated.tempHp != sheet.tempHp
-        hpFeedback = when {
-            hitPointsChanged && temporaryHpChanged -> CharacterHpFeedbackV4.BOTH
-            hitPointsChanged -> CharacterHpFeedbackV4.HIT_POINTS
-            temporaryHpChanged -> CharacterHpFeedbackV4.TEMP_HP
-            else -> CharacterHpFeedbackV4.NONE
-        }
-        if (hpFeedback != CharacterHpFeedbackV4.NONE) hpFeedbackEpoch += 1
+        hpFeedback = characterHpChangeImpact(sheet, updated)
+        if (hpFeedback != CharacterHpChangeImpact.NONE) hpFeedbackEpoch += 1
     }
 
     LaunchedEffect(hpFeedbackEpoch) {
         if (hpFeedbackEpoch > 0) {
             delay(420)
-            hpFeedback = CharacterHpFeedbackV4.NONE
+            hpFeedback = CharacterHpChangeImpact.NONE
         }
     }
 
@@ -111,10 +99,10 @@ internal fun CharacterCombatOperationalCardV4(
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val singleMetricRow = maxWidth >= 620.dp &&
                 layoutContext.verticalSpace != CharacterVerticalSpaceV4.COMFORTABLE
-            val hitPointsHighlighted = hpFeedback == CharacterHpFeedbackV4.HIT_POINTS ||
-                hpFeedback == CharacterHpFeedbackV4.BOTH
-            val temporaryHpHighlighted = hpFeedback == CharacterHpFeedbackV4.TEMP_HP ||
-                hpFeedback == CharacterHpFeedbackV4.BOTH
+            val hitPointsHighlighted = hpFeedback == CharacterHpChangeImpact.HIT_POINTS ||
+                hpFeedback == CharacterHpChangeImpact.BOTH
+            val temporaryHpHighlighted = hpFeedback == CharacterHpChangeImpact.TEMPORARY_HP ||
+                hpFeedback == CharacterHpChangeImpact.BOTH
             val controlHeight = characterCompactSingleLineFieldHeightV4()
 
             Column(
