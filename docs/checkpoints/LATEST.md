@@ -3,7 +3,7 @@
 **Updated:** 2026-09-12  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
-**Product boundary:** physical `preqa.9` QA reopened P1/P2 and transversal presentation consistency; canonical HP repair layer implemented  
+**Product boundary:** physical `preqa.9` QA reopened P1/P2 and transversal presentation consistency; canonical HP repair + regression lock implemented  
 **Failed QA candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`  
 **Acceptance boundary:** complete bounded repair + revalidation before P17 tablet QA resumes  
 **Release status:** debug/development; NOT owner-accepted and NOT release-ready
@@ -37,14 +37,16 @@ Preserved passes include max-HP increase without silent healing, damage/temp-HP 
 
 ## Repair progress
 
-### R1 — canonical HP boundary — IMPLEMENTED / VALIDATION PENDING
+### R1 — canonical HP boundary — IMPLEMENTED + REGRESSION-LOCKED / AUTOMATION PENDING
 
 - `e0397146445c2cd78e7d017943bca1eb76101939` — `fix: canonicalize exact hit-point updates`: introduced one shared exact current/max HP normalization boundary.
 - `9f3c888b19c694408a2f81d8eae63359d879a3eb` — `fix: preserve canonical max and current HP in operational merge`: operational persistence now carries proposed max HP and clamps current HP against that canonical max instead of silently discarding max HP.
+- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` — `test: lock canonical hit-point normalization`: direct clamp/no-auto-heal/exact-current regression coverage.
+- `49833bb64857376c4931e91c5af684bd287b2aba` — `test: lock operational HP merge semantics`: replaces the stale test assumption that max HP was structural/rejected; locks `20/10 → 10/10`, proposed-max persistence, no silent healing and temp-HP preservation.
 
-This fixes the identified persistence-path cause of the failed Combat exact-PV operation in source, but it is not yet CI- or device-qualified.
+The identified exact-PV persistence defect is repaired and regression coverage is committed, but this repair is not yet CI- or device-qualified.
 
-Still open: General field-level canonical commit/no-global-Guardar behavior, structural-save normalization, visual feedback, presentation consistency, regression tests and aggregate validation.
+Still open: General field-level canonical commit/no-global-`Guardar` behavior, structural-save normalization, visual feedback, presentation consistency and aggregate validation.
 
 ## Current interpretation
 
@@ -59,7 +61,7 @@ No P18 is created.
 
 ## Exact next action
 
-Add regression coverage for R1, then repair General live HP commit + save normalization, followed by P2 feedback and the presentation-consistency defect. Run focused plus aggregate validation after the bounded code repair and package a new monotonic physical-QA candidate only after green automation.
+Repair General live HP commit + save normalization, followed by P2 feedback and the presentation-consistency defect. Then run focused plus aggregate validation including the new HP regression locks, and package a new monotonic physical-QA candidate only after green automation.
 
 ## Historical automated proof for failed `preqa.9`
 
