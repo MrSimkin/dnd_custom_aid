@@ -3,76 +3,94 @@
 **Last verified:** 2026-09-13  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
-**Current exact QA candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; PHONE QA EXECUTED WITH OPEN FINDINGS  
-**Current phase:** P17 physical tablet QA IN PROGRESS on the same `preqa.12` candidate before consolidated repair  
+**Current exact physical candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; CROSS-DEVICE PHYSICAL DISCOVERY COMPLETE WITH OPEN FINDINGS  
+**Current phase:** post-P17 cross-device source audit complete; consolidated repair plan ready; waiting only for owner confirmation of T3 Columns-setting semantics before implementation  
 **Release status:** development/debug; Phase 4A OPEN; DM implementation blocked pending explicit Phase 4A closure
 
 ## Authority / authorization
 
 This branch remains authoritative for current Player runtime and Phase 4A repairs. `main` remains intentionally divergent for global/Phase 5A/DM discovery and is not the latest Player runtime. Current work remains inside the durable P1–P17 repair/validation authorization. No P18 exists.
 
-## Current physical evidence
+## Controlling continuity
 
-Earlier physical evidence remains preserved where not contradicted:
+Resume from:
 
-- `preqa.10` R1–R3: PASS;
-- `preqa.11` checks 1–7 and 9: PASS;
-- `preqa.11` check 8: FAIL; its transversal field-geometry boundary was repaired in `preqa.12`;
-- `preqa.12` bounded geometry recheck: 5/5 PASS;
-- `preqa.12` broad regression gate as then phrased: 7/7 PASS.
+`docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md`
 
-A later detailed 23-check phone pass on the same exact `preqa.12` candidate supersedes the earlier interpretation that the complete phone gate was cleanly CLOSED/PASS.
+That checkpoint contains the complete post-P17 source/root-cause audit, repair-family grouping, compatibility constraints, implementation order, automated verification and targeted physical revalidation matrix.
 
-Latest detailed phone findings:
+Supporting physical evidence remains:
+
+- `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — latest detailed phone findings;
+- `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md` — complete P17 tablet discovery;
+- `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact candidate/run/artifact identity.
+
+## Physical evidence status
+
+### Phone — preserve accepted evidence
+
+Latest detailed 23-check pass on exact `preqa.12`:
 
 - checks 1–6 PASS;
-- check 7 OPEN DEFECT — structured-damage modifier entry can change selected die to `Otro`;
-- check 8 OPEN DEFECT — under `Otro`, modifier entry is misrouted/behaves as `caras del daño` and normal modifier entry is unavailable;
-- check 9 PASS + UX request — direct tap-toggle between `+` and `−` instead of dropdown;
-- checks 10–15 PASS;
-- check 16 PASS + non-blocking request — slightly tighter window vertical padding where safe;
-- check 17 OPEN FAMILY — app-wide Player checkbox/control-density and responsive grouping audit required (including Equipo checkbox styling and Conjuros source/prepared + V/S/M + Concentración/Ritual layout efficiency);
-- checks 18–20 PASS;
-- check 21 NOT ASSESSED because the test was not understood;
-- check 22 INCOMPLETE/AMBIGUOUS;
-- check 23 PASS.
+- 7–8 OPEN structured-damage modifier defects;
+- 9 PASS + direct sign-toggle UX request;
+- 10–16 PASS, with 16 only an optional compact-density refinement;
+- 17.1–17.3 OPEN systemic checkbox/responsive grouping family;
+- 18–20 PASS;
+- 21 UNASSESSED;
+- 22 PARTIAL/AMBIGUOUS;
+- 23 PASS.
 
-The older `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_OWNER_PHONE_QA_PASS.md` remains historical evidence but is explicitly superseded for current gate status.
+The earlier complete-phone CLOSED/PASS interpretation remains superseded, but individual valid PASS evidence remains preserved.
 
-## P17 tablet QA — current progress
+### Tablet P17 — discovery COMPLETE
 
-Controlling tablet-progress checkpoint: `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md`.
+Exact `preqa.12` tablet evidence:
 
-Exact physical tablet evidence so far on `preqa.12 / 41200`:
+1. install/update + launch PASS;
+2. campaign baseline PASS;
+3. portrait navigation/adaptive shell PASS;
+4. landscape navigation/adaptive shell PASS;
+5. rotation/state sanity PASS;
+6. Combat portrait PASS;
+7. Combat landscape FAIL / T7;
+8. canonical HP synchronization PASS;
+9. Conjuros portrait FAIL / T5;
+10. Conjuros landscape FAIL / same T5; visible landscape controls otherwise good;
+11. representative non-spell editor/IME PASS + same phone 17.1 checkbox family;
+12. PC Settings PASS;
+13. Application Settings responsiveness PASS;
+14. Supercompact PASS;
+15. Table Mode FAIL / T8;
+16. larger text/density PASS;
+17. cold persistence/reopen PASS;
+18. Conjuros sticky BLOCKED BY T5, not a new failure.
 
-1. Install/update + launch: PASS.
-2. Campaign baseline: PASS.
-3. Portrait main navigation/adaptive shell: PASS.
-4. Landscape main navigation/adaptive shell: PASS.
-5. Portrait↔landscape rotation/state sanity: PASS.
+No further broad tablet QA is required on `preqa.12`.
 
-No tablet baseline finding currently blocks continued P17.
+## Post-P17 source audit — confirmed repair families
 
-Non-blocking findings captured during this tablet pass:
+The audit confirms these source-level families rather than treating each physical symptom as an isolated screen patch:
 
-- **T1:** card reorder/movement interaction behaves abnormally across devices/orientations/column counts, including one column. Treat as open P6/reorder interaction defect requiring source audit and video review. The supplied video was not exposed to the available file-inspection layer in the recording turn, so no more specific motion diagnosis is claimed yet.
-- **T2:** clarified dice-mode product/UX contract — visual die result should resemble selected die shape; `Otro`/total use circle; same principle applies to damage; Dice Mode control should move to the relevant tab; Custom Throw must support die choice + modifier comparable to attack/damage.
-- **T3:** App Settings column control no longer clearly represents current adaptive behavior; audit/redesign control and behavior semantics.
-- **T4:** App Settings density/scale must center 100% and use symmetric decrement/increment options; owner accepts adding 50%/60% if needed for symmetry.
+- **Structured dice/result:** phone 7–9 + T2. Positive modifier serialization currently turns `1d8` + `2` into `1d82`; the shared roller also parses only bare `NdS`, so optional signed modifiers must be repaired end-to-end.
+- **Reorder target stability:** T1 is one shared live-geometry feedback family across one-dimensional and spatial reorder engines; preview animation changes bounds that are immediately reused as retarget input.
+- **Checkbox/responsive toggle grouping:** phone 17.1–17.3 is systemic. Raw Material Checkbox sites were confirmed across active Equipment, Spells, Companions, class-option, Artifice and Management UI; implement a shared compact primitive + responsive packing + durable source guard.
+- **Spell source/bootstrap:** T5 is an architectural mismatch. Canonical classes exist independently of manually managed spellcasting sources, unlike Rasgos provenance. Canonical origins should drive source availability while existing spellcasting source/profile data remains a compatibility-safe configuration overlay.
+- **Class editor controls:** T6 uses legacy text inputs for level/remaining hit dice/hit die; replace with numeric keypad and standard-die + `Otro…` selector while preserving catalog preselection.
+- **Wide Combat composition:** T7 comes from the active successor screen rendering attack/action cards full-width with no adaptive wide composition.
+- **Table Mode:** T8 is an affordance bug. Shared policy already defines structural editing as disabled while operational actions stay enabled; structural edit controls must stop appearing as normal actionable editors.
+- **Application Settings:** T3 exact column selectors are semantically misleading because effective columns are clamped/ignored differently by form factor, text scale and screen; T4 text-size options are asymmetric around 100 while spacing density is already symmetric.
+- **Optional compact-field refinement:** phone 16 is non-blocking and should change only if preview proves a safe visual benefit.
 
-T1–T4 are accepted for the post-P17 consolidated repair backlog and do not block continued tablet evidence collection.
+## T3 owner choice required before product implementation
 
-## Why P17 proceeds before repair
+Recommended: replace the four exact-count Columns selectors with one adaptive **card distribution / density** preference. The runtime computes effective columns from available width, text scale and target minimum card width. This matches the adaptive layout model and avoids promising an exact count the runtime may legally clamp.
 
-`docs/TESTING.md` explicitly permits P17 Player-tablet QA when phone results do not expose a hard shared/systemic failure that would make tablet evidence meaningless, and states that a bounded/local phone defect does not automatically block tablet QA.
+Fallback: retain context-specific selectors but define them explicitly as **maximum columns**, constrain values to actual maxima and explain that width/text scale can reduce the effective count.
 
-The current open findings do not describe install/start failure, crash/ANR, persistence corruption, navigation-wide failure or another condition that invalidates tablet observation. Tablet QA is also useful for characterizing the responsive checkbox/layout family before one consolidated repair.
+This is the only current repair family requiring an explicit owner product-semantics decision. The remaining repair directions are grounded in existing contracts, source behavior and physical evidence.
 
-Therefore `preqa.12` remains the exact P17 discovery/QA candidate even though it is not an accepted clean phone candidate.
-
-## Automated proof / candidate identity
-
-Exact candidate remains unchanged:
+## Candidate identity remains unchanged
 
 - versionName `0.4.0-preqa.12`;
 - versionCode `41200`;
@@ -82,15 +100,15 @@ Exact candidate remains unchanged:
 - ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
 - APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
 
-No product code, APK, version or artifact has changed since that candidate was built.
+No product source, APK, version or artifact changed during P17 recording or this source audit.
 
 ## Exact route / next action
 
-1. Continue **P17 physical tablet QA now** on exact `preqa.12 / 41200`, covering Combat/P5/P16, Conjuros, representative P9 editor/IME behavior, P6 reorder characterization, settings responsiveness, P15 Supercompact, P14 Table Mode, larger text/density, persistence/reopen and canonical shared-state sanity such as HP.
-2. Record tablet PASS/FAIL/observations without treating known phone defects as automatic tablet failures.
-3. After tablet discovery is complete, audit the full Player checkbox/responsive-layout family and consolidate all phone + tablet defects/refinements, including T1–T4, into one coherent repair batch.
-4. Produce a new monotonic candidate after material product changes.
-5. Revalidate only failed/touched/affected phone and tablet families plus unresolved phone checks 21/22; do not restart unaffected PASS coverage wholesale.
-6. Phase 4A may close only after required defects are repaired/revalidated, P17 has actual tablet evidence, and the owner explicitly accepts/closes Phase 4A.
+1. Owner selects the T3 Columns-setting semantics.
+2. Implement the dependency-aware consolidated repair plan on this branch with focused tests and guards.
+3. Run the normal aggregate Scaffold gate.
+4. Create/freeze a new monotonic physical-QA candidate after product changes.
+5. Targeted revalidation only: failed/touched/affected phone + tablet families, phone 21 settings persistence, affected slice of phone 22, and tablet 18 once T5 is repaired. Do not replay unrelated accepted PASS evidence.
+6. Phase 4A may close only after repaired evidence is sufficient and the owner explicitly accepts/closes it.
 
-Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change. No P18 exists. DM implementation remains blocked until explicit Phase 4A owner closure.
+Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change. DM implementation remains blocked until explicit Phase 4A owner closure.
