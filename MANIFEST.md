@@ -1,24 +1,25 @@
 # Repository Manifest
 
-This file maps the authoritative project-control files and implemented areas so a fresh human or AI can orient without reconstructing history from branch names.
+This file maps the authoritative project-control files and implemented areas so a fresh human or AI can orient without reconstructing history from branch names or old checkpoints.
 
-## Canonical rule
+## Current authority model
 
-`main` is the single canonical repository baseline under D-0066.
+There are currently **two active authoritative lines**:
 
-The active continuation branch for the current Phase 4A successor/acceptance cycle is `implementation/phase4a-successor-cycle`. It contains the full A–I Player successor implementation, later automated-green stabilization, `preqa.8 / 40800` owner-QA evidence, the active repair-decision discussion log and design-only DM discovery not yet merged to `main`.
+- `main` — canonical global navigation plus current Phase 5A/DM product-discovery decisions;
+- `implementation/phase4a-successor-cycle` — authoritative current Player/Phase 4A runtime, repair and QA line.
 
-Presence on `main` or the continuation branch does not imply release acceptance.
+These refs are intentionally divergent and contain different valid work. `main` is not the latest Player runtime. The Player successor branch must not overwrite valid later DM/Phase 5A discovery records on `main`.
 
-The repository contains many historical branches; use `docs/BRANCH_STATUS.md` rather than treating branch names as competing sources of truth.
+`docs/BRANCH_STATUS.md` is the canonical lifecycle map for every surviving branch/ref. Branch existence alone does not make a branch active.
 
 ## Root control files
 
 ### `README.md`
-Project entry point, mandatory read sequence, current build identity and broad stage summary.
+Project entry point, mandatory read sequence, current dual-line authority model, QA candidate and authorization boundary.
 
 ### `AGENTS.md`
-Mandatory operating rules for humans and AI/coding agents.
+Mandatory operating rules for humans and AI/coding agents. It explicitly distinguishes the two active authoritative lines and the owner-QA gate.
 
 ### `MANIFEST.md`
 This inventory.
@@ -26,137 +27,123 @@ This inventory.
 ## Core `docs/` truth
 
 ### `docs/PROJECT_STATE.md`
-Authoritative current implementation/QA state and exact next sequence.
+Authoritative current implementation/QA state and exact continuation rules for the branch on which it is read.
 
 ### `docs/checkpoints/LATEST.md`
-Stable practical resume pointer.
+Stable practical resume pointer on each active authoritative line.
 
 ### `docs/BRANCH_STATUS.md`
-Controlling interpretation of historical implementation/tmp/frozen branches after D-0066 consolidation.
+Canonical branch-lifecycle map: active lines, historical milestones, audit evidence, frozen QA refs and exact resume rules.
+
+### `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md`
+Canonical cross-branch reconciliation explaining why `main` and the Player successor intentionally diverge and how both valid lines must be preserved.
+
+### `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`
+Current Player QA candidate identity, automated evidence, physical owner-QA boundary and exact continuation point.
+
+### `docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md`
+Durable owner authorization for the accepted Player P1–P17 repair/validation cycle.
+
+### `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P17_TABLET_QA_GATE_CLOSED.md`
+Durable P17 physical tablet-QA gate policy.
 
 ### `docs/DECISIONS.md`
-Master chronological decision log. Later detailed approved decisions/checkpoints remain authoritative even before the master log is next reconciled.
-
-### `docs/decisions/D-0066_MAIN_CANONICAL_DEVELOPMENT_CONSOLIDATION.md`
-Owner-approved repository consolidation rule separating canonical repository ordering from QA/release acceptance.
-
-### `docs/decisions/D-0068_DM_COMBAT_DESK_PRODUCT_AND_UX.md`
-Owner-approved design baseline for the future DM tablet-landscape live Combat Desk. **Design truth only; no DM implementation before Phase 4A closure.**
+Master decision log. Later detailed approved decisions under `docs/decisions/` remain authoritative even if the master log has not yet been reconciled through the newest decision number.
 
 ### `docs/CONVENTIONS.md`
 Approved recurring project conventions.
 
 ### `docs/PRODUCT.md`
-Approved product scope and boundaries, refined by later specific decisions where stated.
+Approved product scope and boundaries.
 
 ### `docs/ROADMAP.md`
-Development phases and the current Phase 4A point-by-point reconciliation/closure boundary.
+Current phase/exit-gate view. Phase 4A is at owner/device QA, not mid-successor implementation.
 
 ### `docs/WORKFLOW.md`
-Approved design/implementation/verification/checkpoint/review/merge workflow.
+Approved design/implementation/verification/checkpoint/review workflow.
 
 ### `docs/ARCHITECTURE.md`
 Current approved architecture and implementation consequences.
 
 ### `docs/TESTING.md`
-Verification policy, technically verified build identity and owner-QA requirements. Historical evidence may remain in this file; `docs/checkpoints/LATEST.md` and `docs/PROJECT_STATE.md` control the current resume state.
-
-### `docs/PREQA_OWNER_VISUAL_AUDITION.md`
-Historical staged owner-audition guide used for build `40700`. **Do not use as the current resume pointer.**
+Current automated/physical-QA evidence and verification policy.
 
 ### `docs/TEST_DEVICES.md`
-Owner-confirmed physical test devices. Primary recorded phone: Redmi Note 11 Pro 5G. Physical tablet acceptance remains pending.
+Owner-confirmed physical test devices.
 
-## Current detailed checkpoints
+## Current Player / Phase 4A boundary
 
-### `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`
-Controlling real-device owner QA record for `0.4.0-preqa.8 / 40800`. Records PASS evidence, acceptance blockers, shared phone/tablet repair scope and tablet deferral.
+Phases 0–3 are complete. Phase 4A remains open pending physical owner/device acceptance and explicit closure.
 
-### `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`
-Live point-by-point owner design-reconciliation log. Every QA point is discussed individually; each explicitly closed decision is consolidated here before the next point begins. No repair implementation is authorized merely by opening this log.
+Accepted repair implementation:
 
-### `docs/checkpoints/2026-09-09_PHASE4A_PLAYER_PREQA8_STABILIZATION.md`
-Exact technically verified `0.4.0-preqa.8 / 40800` product/audit/full-gate checkpoint.
+- P1–P16 implemented / automation-qualified;
+- P17 design decision closed as the physical tablet-QA gate policy;
+- physical owner/device acceptance still pending.
 
-### `docs/checkpoints/2026-09-08_PHASE4A_RECONCILED_SUCCESSOR_IMPLEMENTATION_PLAN.md`
-Historical controlling A–I successor implementation plan. A–I engineering is complete; no planned Increment J exists.
+Current QA candidate:
 
-### September 7–8 preqa.7 audition checkpoints
-Historical `40700` Stage D/E/F and source/provenance audit evidence. They explain why successor work was undertaken but are not current QA targets.
+- version `0.4.0-preqa.9`;
+- versionCode/build `40900`;
+- candidate commit `cd0c203d337c062fa388010d300e875f2f54ced7`;
+- Scaffold run `34726572588` — **SUCCESS**;
+- artifact ID `10307444450`;
+- artifact name `dnd-custom-aid-debug-apk`;
+- artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
 
-### `docs/checkpoints/2026-09-08_PHASE4_M6_OWNER_QA_PROGRESS.md`
-Historical/superseded preservation of the one unique M6-detour upgrade-test record. Not a current resume point.
+This is automation-qualified development/debug evidence, **not owner acceptance**.
+
+## Current DM / Phase 5A boundary
+
+`main` contains later accepted Phase 5A/DM discovery/design decisions, including the current Desk-family and shared Player/DM rules-question direction.
+
+DM discovery/design may continue when explicitly requested.
+
+DM **implementation** remains blocked until Phase 4A receives physical owner/device acceptance and explicit owner closure.
 
 ## Implemented application areas
 
 ### `shared/`
-Kotlin Multiplatform shared domain/persistence module using SQLDelight.
-
-Current character work includes campaign-scoped characters, multiclass data, derived values/adjustments, Combat, Equipment/currencies, Background, Traits, Spells/sources/prepared state/shared slots, Notes, proficiencies, class/subclass provenance, Inspiration/death saves, Weapon Mastery, Resources, Forms, Companions, conditional modules and backup/import.
-
-Do not split this into speculative architecture-layer Gradle modules without a concrete need.
+Kotlin Multiplatform shared domain/persistence module using SQLDelight. Current character work includes campaign-scoped characters, multiclass data, derived values/adjustments, Combat, Equipment/currencies, Background, Traits, Spells/sources/prepared state/shared slots, Notes, proficiencies, class/subclass provenance, Inspiration/death saves, Weapon Mastery, Resources, Forms, Companions, conditional modules and backup/import.
 
 ### `androidApp/`
-Native Kotlin + Jetpack Compose Android app, `minSdk 30`.
+Native Kotlin + Jetpack Compose Android app, `minSdk 30`, targeting phone/tablet portrait and landscape. The current Player implementation includes General, Habilidades, Combate, Gestión, Equipo/Monedas, Trasfondo, Rasgos, conditional Conjuros, Notas, PC Settings, Application Settings, Supercompact, Table Mode and approved conditional module families.
 
-The Phase 4A character editor includes General, Habilidades, Combate, Gestión, Equipo/Monedas, Trasfondo, Rasgos, conditional Conjuros, Notas, PC Settings, Application Settings, Supercompact/Table mode and all approved conditional module families.
-
-A–I successor engineering plus post-A–I Player stabilization is automated-green. Build `40800` has received consolidated physical owner phone QA and is **not accepted**; point-by-point repair design reconciliation is current.
-
-The future DM Combat Desk has a documented product/UX baseline under D-0068 but **no DM implementation has begun**.
+The repaired implementation is automation-qualified but still awaits physical owner/device acceptance.
 
 ### `desktopApp/`
 Compose Multiplatform Desktop DM preparation/administration shell. Full Android parity is not required.
 
 ### `backend/`
-TypeScript Cloudflare Worker/API area with current minimal checks. Hosted integrations remain incremental.
+TypeScript Cloudflare Worker/API area with current automated checks.
 
 ### `database/`
 Hosted PostgreSQL schema/migration/data-loading area. Local Android character persistence lives under `shared/` SQLDelight/SQLite.
 
 ### `.github/workflows/scaffold-check.yml`
-Current CI gate: JDK 17, Android SDK 36, Gradle 9.5, shared desktop tests, Android debug assembly, Desktop build, backend Node/TypeScript check and debug APK artifact upload.
-
-The workflow reconstructs a stable development-only Android debug signing identity for update-in-place QA. It is not a release signing identity.
-
-## Latest technically verified Player product identity
-
-- version `0.4.0-preqa.8` / build `40800` / `debug`;
-- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
-- product tree `c612c07345ecdfc91d972118314ee649fe2048c4`;
-- authoritative validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
-- workflow `34430548061` — SUCCESS;
-- artifact `10134364621` / `dnd-custom-aid-debug-apk`;
-- artifact ZIP SHA-256 `b7ead12a7501bbef96f861321b5bebfd64c631647423b8eab9faec9580699a`;
-- APK SHA-256 `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
-
-The owner installed this build over the prior QA installation/data and completed the consolidated phone QA pass. Upgrade/data preservation passed. The overall build did **not** pass Phase 4A acceptance and requires the bounded repair pass now being designed point by point.
-
-Later documentation-only commits do not change the validated product identity unless a newer checkpoint explicitly says otherwise.
+Current normal automated gate: backend install/type-check, stable CI debug keystore preparation, Kotlin/shared/Android/Desktop build-and-test surface and Android debug APK artifact upload.
 
 ## Historical/discovery material
 
-### `docs/discovery/`
-Historical exploratory reasoning. It does not override approved decisions/current state.
+Historical checkpoints and milestone branches remain evidence; their old next-action text may be superseded.
 
-### `docs/checkpoints/`
-Durable implementation, QA and handoff history. Historical next-action text may be superseded; `LATEST.md` controls the current resume point.
+- `docs/checkpoints/LATEST.md` controls the practical resume point on the active branch;
+- `docs/BRANCH_STATUS.md` controls branch lifecycle/authority;
+- frozen QA refs stay immutable;
+- deliberately removed refs are documented under the archive rather than recreated.
 
-### historical branches
-Branch refs remain evidence/history but are non-current after D-0066. Frozen candidates are immutable. See `docs/BRANCH_STATUS.md`.
+Do not restart work from an old checkpoint merely because its prose says “next.”
 
 ## Authority rule
 
 If documents appear to conflict:
 
 1. `AGENTS.md` controls governance/working rules;
-2. later specific approved decisions/clarifications control over older general prose;
-3. `docs/CONVENTIONS.md` controls recurring approved practice;
-4. `docs/PRODUCT.md` controls approved product direction, with later specific decisions refining it where stated;
-5. `docs/PROJECT_STATE.md` controls current implementation/next action;
-6. `docs/checkpoints/LATEST.md` is the practical resume pointer;
-7. the September 11 `40800` QA checkpoint controls current owner findings;
-8. the September 11 repair-decision log controls newly closed point-by-point repair decisions;
-9. `docs/BRANCH_STATUS.md` controls interpretation of branch refs;
-10. discovery/history is contextual only;
-11. surface material contradictions instead of guessing.
+2. later specific Approved decisions/clarifications control over older general prose;
+3. `docs/BRANCH_STATUS.md` controls current branch lifecycle/role;
+4. `docs/PROJECT_STATE.md` controls current implementation state on the active branch;
+5. `docs/checkpoints/LATEST.md` controls practical resume;
+6. current detailed checkpoints provide exact evidence;
+7. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md` control their respective domains;
+8. historical discovery/checkpoints are contextual evidence only when superseded;
+9. surface material contradictions instead of guessing.
