@@ -67,6 +67,42 @@ fun setCharacterTemporaryHp(sheet: CharacterSheet, amount: Int): CharacterSheet 
     return sheet.copy(tempHp = amount)
 }
 
+/** Which canonical HP projection(s) actually changed across one operation. */
+enum class CharacterHpChangeImpact {
+    NONE,
+    HIT_POINTS,
+    TEMPORARY_HP,
+    BOTH,
+}
+
+fun characterHpChangeImpact(
+    beforeCurrentHp: Int,
+    beforeMaxHp: Int,
+    beforeTempHp: Int,
+    afterCurrentHp: Int,
+    afterMaxHp: Int,
+    afterTempHp: Int,
+): CharacterHpChangeImpact {
+    val hitPointsChanged = beforeCurrentHp != afterCurrentHp || beforeMaxHp != afterMaxHp
+    val temporaryHpChanged = beforeTempHp != afterTempHp
+    return when {
+        hitPointsChanged && temporaryHpChanged -> CharacterHpChangeImpact.BOTH
+        hitPointsChanged -> CharacterHpChangeImpact.HIT_POINTS
+        temporaryHpChanged -> CharacterHpChangeImpact.TEMPORARY_HP
+        else -> CharacterHpChangeImpact.NONE
+    }
+}
+
+fun characterHpChangeImpact(before: CharacterSheet, after: CharacterSheet): CharacterHpChangeImpact =
+    characterHpChangeImpact(
+        beforeCurrentHp = before.currentHp,
+        beforeMaxHp = before.maxHp,
+        beforeTempHp = before.tempHp,
+        afterCurrentHp = after.currentHp,
+        afterMaxHp = after.maxHp,
+        afterTempHp = after.tempHp,
+    )
+
 fun CharacterClosureState.hasQuickAccess(kind: CharacterQuickAccessKind, targetId: Uuid): Boolean =
     quickAccess.any { it.kind == kind && it.targetId == targetId }
 
