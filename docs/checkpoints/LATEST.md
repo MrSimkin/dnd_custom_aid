@@ -3,7 +3,7 @@
 **Updated:** 2026-09-12  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
-**Product boundary:** physical `preqa.9` QA reopened P1/P2 and transversal presentation consistency; canonical HP repair + regression lock implemented  
+**Product boundary:** physical `preqa.9` QA reopened P1/P2 and transversal presentation consistency; canonical HP + General navigation/save repairs implemented  
 **Failed QA candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`  
 **Acceptance boundary:** complete bounded repair + revalidation before P17 tablet QA resumes  
 **Release status:** debug/development; NOT owner-accepted and NOT release-ready
@@ -25,13 +25,13 @@ Historical checkpoints remain evidence. Any older live instruction saying to con
 
 ## Current physical QA evidence
 
-`preqa.9 / 40900` physically passed update-in-place/persistence sanity, then failed the shared P1/P2 acceptance boundary. Blocking findings remain:
+`preqa.9 / 40900` physically passed update-in-place/persistence sanity, then failed the shared P1/P2 acceptance boundary. Blocking findings were:
 
-- General HP edits require explicit `Guardar` before Combat sees them;
-- lowering maximum HP can persist/project invalid `current > max` state; the owner observed `20/10`;
-- subtle changed-HP feedback is absent;
+- General HP edits required explicit `Guardar` before Combat saw them;
+- lowering maximum HP could persist/project invalid `current > max`; owner observed `20/10`;
+- subtle changed-HP feedback was absent;
 - Combat `Establecer PV` current-HP correction was ineffective while temp-HP correction worked;
-- `Daño — Cantidad — Curar` is visibly out of proportion with surrounding Combate controls, reopening transversal size/margin/padding consistency.
+- `Daño — Cantidad — Curar` was visibly out of proportion with surrounding Combate controls.
 
 Preserved passes include max-HP increase without silent healing, damage/temp-HP arithmetic, healing cap, amount clearing and Combat-operation-to-General projection.
 
@@ -39,20 +39,31 @@ Preserved passes include max-HP increase without silent healing, damage/temp-HP 
 
 ### R1 — canonical HP boundary — IMPLEMENTED + REGRESSION-LOCKED / AUTOMATION PENDING
 
-- `e0397146445c2cd78e7d017943bca1eb76101939` — `fix: canonicalize exact hit-point updates`: introduced one shared exact current/max HP normalization boundary.
-- `9f3c888b19c694408a2f81d8eae63359d879a3eb` — `fix: preserve canonical max and current HP in operational merge`: operational persistence now carries proposed max HP and clamps current HP against that canonical max instead of silently discarding max HP.
-- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` — `test: lock canonical hit-point normalization`: direct clamp/no-auto-heal/exact-current regression coverage.
-- `49833bb64857376c4931e91c5af684bd287b2aba` — `test: lock operational HP merge semantics`: replaces the stale test assumption that max HP was structural/rejected; locks `20/10 → 10/10`, proposed-max persistence, no silent healing and temp-HP preservation.
+- `e0397146445c2cd78e7d017943bca1eb76101939` — canonical exact current/max HP normalization.
+- `9f3c888b19c694408a2f81d8eae63359d879a3eb` — operational persistence now carries proposed max HP and normalizes current against that max.
+- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` — direct HP normalization regression tests.
+- `49833bb64857376c4931e91c5af684bd287b2aba` — operational merge regression tests lock `20/10 → 10/10`, proposed max persistence, no silent healing and temp-HP preservation.
 
-The identified exact-PV persistence defect is repaired and regression coverage is committed, but this repair is not yet CI- or device-qualified.
+### R2 — General HP navigation/save propagation — IMPLEMENTED / AUTOMATION PENDING
 
-Still open: General field-level canonical commit/no-global-`Guardar` behavior, structural-save normalization, visual feedback, presentation consistency and aggregate validation.
+`da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — `fix: persist General HP across navigation and save`:
+
+- normal `Guardar` canonicalizes current/max HP and non-negative temp HP;
+- operational sync now refreshes max/current/temp HP together;
+- leaving General for another tab canonically flushes valid HP draft values, so General→Combate no longer depends on global `Guardar`;
+- transient/unparseable numeric drafts are not force-persisted;
+- the shared R1 HP operation is reused rather than duplicated.
+
+The R2 product diff was inspected and contains only the intended `CharacterEditorV4.kt` changes. Temporary guarded patch machinery used to overcome the connector's lack of line-patch writes was removed after the product commit.
+
+R1/R2 are not yet declared CI-green or physically accepted.
 
 ## Current interpretation
 
 - `preqa.9 / 40900`: failed physical acceptance candidate; historical evidence only;
-- P1/P2: reopened and under bounded repair;
-- transversal presentation consistency: reopened; historical boundary classification still pending;
+- P1 HP state/persistence defects: source repair implemented through R1/R2, validation pending;
+- P2 feedback defect: still open;
+- transversal presentation consistency: still open and pending historical boundary classification;
 - P17 tablet QA: paused;
 - Phase 4A owner acceptance: pending;
 - DM implementation: blocked until explicit Phase 4A closure.
@@ -61,7 +72,7 @@ No P18 is created.
 
 ## Exact next action
 
-Repair General live HP commit + save normalization, followed by P2 feedback and the presentation-consistency defect. Then run focused plus aggregate validation including the new HP regression locks, and package a new monotonic physical-QA candidate only after green automation.
+Recover and repair the accepted P2 subtle changed-state feedback contract, then classify/repair the transversal size/margin/padding inconsistency including `Daño — Cantidad — Curar`. After that, run focused + aggregate validation and package a new monotonic physical-QA candidate only after green automation.
 
 ## Historical automated proof for failed `preqa.9`
 
