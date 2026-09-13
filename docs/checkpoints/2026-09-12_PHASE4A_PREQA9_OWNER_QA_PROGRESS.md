@@ -46,7 +46,7 @@ The owner explicitly states that this kind of presentation inconsistency is like
 
 ## Repair progress
 
-### Repair step R1 — canonical HP state boundary — IMPLEMENTED + REGRESSION-LOCKED / AUTOMATION PENDING
+### R1 — canonical HP state boundary — IMPLEMENTED + REGRESSION-LOCKED / AUTOMATION PENDING
 
 Two concrete source defects were confirmed and repaired:
 
@@ -60,12 +60,26 @@ Regression coverage is now committed:
 
 These commits lock the repaired source semantics but **have not yet been declared automation-green**. CI/focused and aggregate validation remain pending after the bounded UI repair lands.
 
-Still open after R1:
+### R2 — General HP navigation/save propagation — IMPLEMENTED / AUTOMATION PENDING
 
-- General HP fields remain draft-only until their UI wiring is repaired; no-extra-`Guardar` propagation is therefore not yet fixed;
-- the normal structural save path still needs to be routed through canonical HP normalization so no path can persist `current > max`;
-- changed-state glow/pulse remains to be implemented;
-- `Daño — Cantidad — Curar` and the broader presentation-consistency boundary remain to be audited/repaired.
+Commit `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` (`fix: persist General HP across navigation and save`) repairs the General-side wiring without introducing per-keystroke persistence:
+
+- ordinary structural `Guardar` now routes current/max HP through the same canonical `setCharacterHitPoints` boundary and clamps temporary HP non-negative before persistence;
+- operational synchronization now refreshes **max HP as well as current/temp HP**, so a max-HP reduction that clamps current HP immediately projects the canonical pair back into General;
+- a valid General HP draft is canonically persisted when leaving General for another character tab, including Combate, so no global `Guardar` is required merely to make the HP change canonical/visible cross-tab;
+- incomplete/transient numeric tokens are not force-persisted: if current, max or temporary HP cannot yet be parsed as integers, the navigation flush returns without inventing a value;
+- the repair uses the same shared canonical HP operation already locked by R1 rather than duplicating clamp logic in the UI.
+
+The source commit was produced through a temporary exact-match guarded patcher because the repository connector has no line-patch write operation for the 143 KB editor file. The guard required each intended old fragment to occur exactly once and refused unrelated product-file changes. The resulting product commit was independently inspected: it changes only `CharacterEditorV4.kt` and only the five intended HP wiring fragments. The temporary workflow/helper were then removed; they are not part of the lasting product surface.
+
+R2 is **implemented but not yet automation-qualified or physically accepted**.
+
+Still open after R2:
+
+- changed-state HP glow/pulse remains to be restored/implemented according to the previously accepted P2 feedback contract;
+- `Daño — Cantidad — Curar` and the broader transversal size/margin/padding consistency boundary remain to be audited/repaired;
+- focused + aggregate validation must cover R1/R2 and the upcoming presentation repair;
+- a new monotonic QA identity/artifact is required before owner retest.
 
 ## Reopened boundaries and gate effect
 
@@ -75,15 +89,15 @@ Physical owner evidence now reopens at minimum:
 - **P2** — combat damage/healing exact-correction and changed-state feedback;
 - **transversal size/margin/padding presentation consistency** — exact existing P-boundary mapping to be confirmed before implementation.
 
-These are shared/systemic enough that proceeding to P17 tablet acceptance evidence now would be misleading. **Tablet QA is paused until this bounded repair is implemented, automation-qualified, repackaged under a new monotonic QA identity, and the repaired shared boundary is physically rechecked.**
+R1 and R2 implement the currently identified HP state/persistence repairs, but neither is yet automation- or device-qualified. P17 tablet acceptance remains paused until the full bounded repair is green and a new candidate is physically rechecked.
 
 `preqa.9 / 40900` remains valuable physical evidence but is **not an acceptable Phase 4A candidate** in its present form.
 
 ## Exact next action
 
-1. repair General live HP commit + normal-save normalization without persisting transient per-keystroke max-HP drafts;
-2. classify and repair the P2 feedback and transversal presentation defects;
-3. run focused and aggregate validation, including the newly committed HP regression locks;
+1. recover the accepted P2 subtle feedback contract from the existing repair/closure records and repair it without inventing a new interaction style;
+2. classify and repair the transversal size/margin/padding inconsistency, including the observed `Daño — Cantidad — Curar` row;
+3. run focused and aggregate validation covering R1/R2 and the presentation repair;
 4. issue a new monotonic QA identity and physical-QA artifact after material product changes are green;
 5. resume physical phone QA at this reopened boundary before continuing to tablet P17 evidence.
 
