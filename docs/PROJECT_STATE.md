@@ -4,96 +4,72 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Latest physically tested candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7` — FAILED SHARED HP/UX ACCEPTANCE BOUNDARY  
-**Current phase:** P1/P2 + transversal presentation consistency reopened by physical owner/device QA; canonical HP and General navigation/save repairs implemented, P2 feedback + presentation repair and validation pending  
+**Current phase:** bounded P1/P2 + transversal presentation repair implemented through R3; exact R3 automation running; owner QA intentionally paused until the next monotonic repaired candidate  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
-## 1. Branch authority
+## Branch authority
 
-This branch contains the current Player implementation and all Phase 4A physical-QA-driven repairs. `main` is intentionally divergent and contains later global/Phase 5A/DM product-discovery records that are not on this branch. `main` must not be mistaken for the latest Player runtime, and this branch must not overwrite valid later discovery work on `main`.
+This branch is the authoritative Player implementation/Phase 4A repair line. `main` is intentionally divergent and carries later global/Phase 5A/DM discovery records; it is not the latest Player runtime. Do not force either active line over the other. See `docs/BRANCH_STATUS.md` and `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md`.
 
-Cross-branch authority is documented in `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md` and `docs/BRANCH_STATUS.md`.
+## Authorization
 
-## 2. Authorization boundary
+`docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` authorizes the accepted P1–P17 Player repair/validation cycle, QA packaging, and bounded repairs reopened by real QA evidence. The current work is inside that authorization. No P18 is created.
 
-`docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` records the owner's durable authorization for the accepted `preqa.8 / 40800` P1–P17 Player repair cycle. That authorization permits repairs reopened by real QA evidence, their validation, QA packaging and checkpoints.
+## Physical preqa.9 evidence
 
-The current repair does not require a new P-number or new authorization. It is a bounded reopening of already-authorized accepted behavior.
+Preserved PASS: update-in-place, launch, existing campaign/character preservation, representative saved-data preservation, and full close/reopen.
 
-## 3. Physical `preqa.9` evidence
+Blocking physical findings that failed the next P1/P2 boundary:
 
-### Preserved PASS
+- General HP was not canonical/visible in Combate without an extra global `Guardar`;
+- lowering max HP could leave/project invalid current > max; owner observed `20/10`;
+- accepted subtle affected-HP feedback was absent;
+- Combate `Establecer PV` did not change current HP while exact temp-HP correction worked;
+- `Daño — Cantidad — Curar` was visually out of proportion with surrounding Combate UI, reopening the transversal sizing/spacing consistency boundary.
 
-The owner physically confirmed update-in-place/persistence sanity for `preqa.9 / 40900`: launch, campaign/character preservation, representative saved data and full reopen all passed.
+Preserved passes include max-HP increase without silent healing, damage/temp-HP arithmetic, healing cap, amount clearing and Combate-operation→General projection.
 
-### Shared/blocking FAIL
+Exact owner/device record: `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`.
 
-The next physical boundary exposed defects that automated testing had not caught:
+## Bounded repair status
 
-- General HP editing did not live-propagate to Combate without an explicit `Guardar`;
-- reducing maximum HP did not clamp current HP; physical observation included invalid Combate display `20/10`;
-- agreed subtle changed-state HP feedback was absent;
-- Combat `Establecer PV` was ineffective for current HP while temporary-HP exact correction worked;
-- `Daño — Cantidad — Curar` was out of proportion with surrounding Combate UI, reopening the transversal size/margin/padding consistency boundary.
+### R1 — canonical HP state — implemented + regression-locked
 
-Preserved passes: max-HP increase without silent healing, damage/temp-HP arithmetic, healing cap, amount clearing and Combat-operation-to-General projection.
+- `e0397146445c2cd78e7d017943bca1eb76101939` — canonical current/max HP operation and invariants.
+- `9f3c888b19c694408a2f81d8eae63359d879a3eb` — operational merge preserves proposed max HP and normalizes current against it.
+- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` — direct canonical HP tests.
+- `49833bb64857376c4931e91c5af684bd287b2aba` — operational merge tests including `20/10 -> 10/10` and no-silent-heal behavior.
 
-Exact owner/device evidence: `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`.
+### R2 — General HP save/navigation propagation — implemented
 
-## 4. Repair status
+- `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — ordinary General save canonicalizes HP; valid General HP drafts flush canonically when leaving General; max/current/temp resynchronize together; transient incomplete typing is not force-persisted.
 
-### R1 — canonical HP state boundary — implemented + regression-locked, automation pending
+### R3 — P2 feedback + Combat row proportion — implemented / exact automation in progress
 
-- `e0397146445c2cd78e7d017943bca1eb76101939` — shared exact hit-point update helpers now enforce non-negative max HP, `0 <= current <= max`, no silent healing on max increase, and clamp-on-max-reduction semantics.
-- `9f3c888b19c694408a2f81d8eae63359d879a3eb` — operational merge now preserves proposed max HP and clamps proposed current HP against that same canonical maximum. The prior implementation silently discarded proposed max HP and normalized current HP against the old persisted maximum.
-- `f327b6850933e50ec28cf2419bb1c11ae0cefcc9` — direct regression tests lock exact current/max normalization, no silent healing on max increase and clamp on max decrease.
-- `49833bb64857376c4931e91c5af684bd287b2aba` — operational-merge regression tests now lock proposed max-HP persistence, `20/10 → 10/10`, max increase without healing and temp-HP preservation; the stale prior expectation that max HP was rejected as structural state was removed.
+- controlling P2 contract recovered from `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md`;
+- product commit `cc452b156d43967d9eb794a661162c3f3a05f336` restores short/subtle feedback on only the HP metric(s) actually changed and rebalances `Daño | cantidad | Curar` with symmetric action space, a narrower amount field, and a shared compact control height;
+- R3 changes only `CharacterCombatOperationalV4.kt`;
+- exact product Scaffold run `34730201935`: backend SUCCESS; Kotlin/shared/Android still IN PROGRESS at this state update.
 
-This directly repairs and regression-locks the identified source-level cause of Combat exact-current/max HP correction being lost. R1 is not yet automation-qualified or physically accepted.
+R1–R3 are not yet declared automation-green as a package, and none is yet physically accepted.
 
-### R2 — General HP navigation/save propagation — implemented, automation pending
+## Current gate
 
-- `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — General HP now uses the shared canonical HP operation on ordinary structural save; operational synchronization refreshes max/current/temp HP together; leaving General for another character tab flushes a valid HP draft canonically before navigation, so General → Combate no longer depends on a global `Guardar`; transient/unparseable numeric input is not force-persisted.
-- The resulting source diff was independently inspected and changed only `CharacterEditorV4.kt` in the intended five HP-wiring locations. Temporary guarded patch machinery used because the connector exposes full-file replacement but no line-patch write was removed immediately after the product commit.
+Do not continue exhaustive owner QA on `preqa.9`; the owner and assistant explicitly agreed to preserve its observations and supersede it after repair.
 
-R2 addresses both previously open General no-global-`Guardar` propagation and normal structural-save normalization at source level. It is not yet automation-qualified or physically accepted.
+Next sequence:
 
-### Still open
+1. finish/inspect exact run `34730201935`, repairing any failure;
+2. after green automation, assign a new monotonic QA identity (never reuse `40900`), build/package the exact candidate, and record commit/run/artifact/digest;
+3. resume focused phone QA on the reopened P1/P2/presentation boundary;
+4. only then resume representative P17 tablet QA if no hard shared/systemic failure remains.
 
-- the agreed subtle changed-state HP glow/pulse remains to be recovered from the accepted P2 contract and repaired consistently across relevant HP-changing actions;
-- transversal presentation consistency remains to be classified against the historical audit/closure records and repaired, including the observed `Daño — Cantidad — Curar` proportion problem;
-- focused validation, aggregate validation and new QA packaging remain pending.
+P3–P16 remain historically implemented/automation-qualified unless later physical evidence specifically reopens a boundary. Phase 4A remains open. DM implementation remains blocked until explicit owner acceptance/closure.
 
-P3–P16 remain historically implemented/automation-qualified unless later physical QA specifically reopens them. P17 tablet physical QA remains PAUSED while these shared defects are open.
+## Historical failed candidate proof
 
-## 5. Failed candidate identity and historical automated proof
+`preqa.9 / 40900` candidate `cd0c203d337c062fa388010d300e875f2f54ced7` had normal Scaffold run `34726572588` — SUCCESS, artifact `10307444450`, GitHub artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`. CI remains valid for its tested scope; physical QA exposed gaps outside that scope.
 
-`preqa.9 / 40900`:
+## Exact continuation point
 
-- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- normal Scaffold run: `34726572588` — SUCCESS;
-- artifact ID: `10307444450`;
-- artifact digest: `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
-
-CI remains valid for its tested scope; physical QA showed that scope did not cover all required interaction/invariant behavior.
-
-## 6. Current repair gate
-
-Before physical QA resumes:
-
-1. recover and implement the accepted P2 subtle HP changed-state feedback contract;
-2. classify and repair the transversal size/margin/padding presentation inconsistency, including the observed Combat action row;
-3. run focused and aggregate validation covering R1/R2 and the presentation repair;
-4. assign a new monotonic QA identity and artifact after green material code changes;
-5. physically recheck the reopened phone boundary.
-
-Representative P17 tablet QA may resume only after the hard shared defects no longer make tablet acceptance evidence misleading.
-
-## 7. Global/DM line
-
-Current Phase 5A/DM discovery decisions live on `main`. Preserve them during future integration. DM implementation remains blocked until Phase 4A is physically accepted and explicitly closed.
-
-## 8. Exact continuation point
-
-Resume from `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`.
-
-Do not create P18 or unrelated Player features. Complete the bounded repair and validation, then produce the next monotonic APK for owner retest.
+Read `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`, then `docs/checkpoints/LATEST.md`. Continue from R3 automation; do not restart R1/R2 or invent unrelated Player work.
