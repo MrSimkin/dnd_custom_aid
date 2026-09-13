@@ -4,54 +4,61 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
 **Current exact frozen physical candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — PHONE + TABLET DISCOVERY COMPLETE WITH OPEN FINDINGS  
-**Current implementation gate:** consolidated post-P17 repair IN PROGRESS; **Round 1 structured dice COMPLETE / AUTOMATION GREEN**; next = **Round 2 T1 reorder stability**  
+**Current implementation gate:** consolidated post-P17 repair IN PROGRESS; **Rounds 1–2 COMPLETE / AUTOMATION GREEN**; next = **Round 3 shared compact checkbox + responsive grouping**  
 **Release status:** debug/development; Phase 4A OPEN; DM implementation blocked pending explicit owner closure
 
 ## Resume here
 
-1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md` — **latest completed implementation round; exact commits + green automation evidence**.
+1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md` — **latest completed implementation round; T1 repair + exact green automation evidence**.
 2. `docs/PROJECT_STATE.md` — live Player authority/current implementation state and next round.
-3. `docs/checkpoints/2026-09-13_PHASE4A_OWNER_REPAIR_DECISIONS_IMPLEMENTATION_GO.md` — owner decisions + explicit implementation authorization.
-4. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit + repair-family contracts + targeted revalidation matrix.
-5. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md` — complete P17 tablet discovery evidence.
-6. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — controlling detailed phone findings.
-7. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact preqa.12 candidate/run/artifact/digest evidence.
-8. `docs/TESTING.md` — physical-QA and failure-handling policy.
+3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md` — completed structured-dice/signed-modifier round.
+4. `docs/checkpoints/2026-09-13_PHASE4A_OWNER_REPAIR_DECISIONS_IMPLEMENTATION_GO.md` — owner decisions + explicit implementation authorization.
+5. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit + repair-family contracts + targeted revalidation matrix.
+6. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md` — complete P17 tablet discovery evidence.
+7. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — controlling detailed phone findings.
+8. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact preqa.12 candidate/run/artifact/digest evidence.
+9. `docs/TESTING.md` — physical-QA and failure-handling policy.
 
-## Round 1 — COMPLETE / AUTOMATION GREEN
+## Completed repair rounds
 
-Scope: phone 7–9 structured-damage signed-modifier foundation + shared `NdS±M` parser/roller gap.
+### Round 1 — structured dice / signed modifier foundation: COMPLETE / GREEN
 
-Implemented chain:
+Product/test HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`; authoritative Scaffold `34787688776` / run `1508` — **SUCCESS**.
 
-- `5ea3f521049d2143fb4f6a6e326139e0b21788cb` — shared parser/result supports bare, positive and negative modifiers;
-- `570304505f9d2ba89a3666839c3a06178cf7d0db` — focused parser/roller tests for bare, `+`, `-`, malformed and incomplete expressions;
-- `046d549bdc0dd8564c0d532e8cc021835bda731c` — Android quantity/sides/modifier-sign/modifier-magnitude state separated; explicit signed serialization; direct compact sign toggle;
-- `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0` — durable control guard updated to enforce the new direct-toggle/independent-modifier contract.
+Phone 7–9 implementation basis is repaired and protected by tests/guard, but physical revalidation waits for the consolidated new candidate. T2 remains partial because die-result silhouettes, Custom Throw die/modifier UX and Dice-tab display-mode ownership remain.
 
-Authoritative verification: Scaffold run `34787688776` / run number `1508` at `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0` — **SUCCESS**. Guard, shared/Kotlin tests, Android build/APK upload and backend passed.
+### Round 2 — T1 reorder target stability: COMPLETE / GREEN
 
-The previous run `34787610695` failed only because the old geometry guard still required the intentionally removed dropdown marker; the guard was repaired in the same round and the superseding run is green.
+Product/test HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`; authoritative Scaffold `34788409987` / run `1519` — **SUCCESS**.
 
-Physical findings 7–9 are **implemented but not yet physically revalidated**. Do not mark them PASS until the new consolidated candidate is frozen and targeted physical QA is performed.
+Both active reorder engines now target against stable drag-start geometry and canonical order rather than animated preview bounds, use hysteresis around slot boundaries, explicitly translate stable targets during actual viewport scrolling, and are protected by focused common tests plus a durable CI guard.
 
-T2 is only partial after Round 1: die-specific result silhouettes, Custom Throw die/custom-sides/signed-modifier UX, and moving dice-display-mode ownership to the Dice tab remain later work.
+T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Reuse the existing owner video as the failure baseline; do not ask for it again.
 
-## Next round — T1 reorder target stability
+## Next round — shared compact checkbox + responsive grouping
 
-Use the already-audited root cause and existing physical video evidence; do not ask the owner to re-explain or reattach it.
+This round addresses phone 17.1–17.3 and the tablet reproduction.
 
-Repair both active reorder paths so preview animation/recomposition bounds do not continuously retarget the active drag. Retarget from pointer motion and explicit auto-scroll/viewport changes using stable active-drag target geometry and appropriate hysteresis/deadband. Preserve final persisted order and one-column + spatial behavior. Land focused target-stability tests and update status again at the end of the round before proceeding.
+Required approach:
+
+- audit all Android Player `Checkbox`, `TriStateCheckbox`, `Switch` and associated row/wrap/container sites;
+- classify legitimate exceptions rather than blindly restyling every toggle;
+- establish a shared compact/touch-safe checkbox primitive if the systemic audit confirms it;
+- normalize control size, label typography, internal spacing and outer spacing;
+- repair responsive grouping so portrait items share a row when they fit and wider/landscape layouts exploit width instead of preserving unnecessary two-row groups;
+- specifically cover Equipment `Equipado` / `Equipo especial` and spell-editor V/S/M, Concentración/Ritual, source/prepared groups;
+- add focused tests/guards and run normal Scaffold;
+- update durable round checkpoint + `PROJECT_STATE.md` + this file before proceeding.
 
 ## Owner decisions controlling later rounds
 
-- **T3:** separate Portrait/Landscape adaptive card-distribution preferences (`Comfortable / Balanced / Compact / Dense` semantics; `Balanced` normal default). Runtime computes safe effective columns from width, orientation preference, text/UI density and minimum card width. Legacy exact-count prefs map compatibly.
+- **T3:** separate Portrait/Landscape adaptive card-distribution preferences (`Comfortable / Balanced / Compact / Dense`; `Balanced` normal default). Runtime computes safe effective columns from width, orientation preference, text/UI density and minimum card width. Legacy exact-count prefs map compatibly.
 - **T9:** explicit haptics `None`; existing users retain their prior non-none choice across upgrade.
 - **T4:** main text-size scale should be symmetric around 100; preferred normal range `50,60,70,80,90,100,110,120,130,140,150` with compatibility-safe mapping.
 
 ## Physical evidence preserved
 
-Phone exact preqa.12: 1–6 PASS; 7–8 OPEN/now implemented pending revalidation; 9 functional PASS + now-implemented direct-toggle refinement pending targeted revalidation; 10–16 PASS; 17.1–17.3 OPEN; 18–20 PASS; 21 UNASSESSED; 22 PARTIAL/AMBIGUOUS; 23 PASS.
+Phone exact preqa.12: 1–6 PASS; 7–8 OPEN/implemented pending revalidation; 9 functional PASS + implemented direct-toggle refinement pending revalidation; 10–16 PASS; 17.1–17.3 OPEN; 18–20 PASS; 21 UNASSESSED; 22 PARTIAL/AMBIGUOUS; 23 PASS.
 
 Tablet exact preqa.12: 1–6 PASS; 7 FAIL/T7; 8 PASS; 9–10 FAIL/T5; 11 PASS + checkbox family; 12–14 PASS; 15 FAIL/T8; 16–17 PASS; 18 BLOCKED BY T5.
 
@@ -67,7 +74,7 @@ Do not replay unrelated accepted evidence.
 
 ## Exact route
 
-1. Round 2 T1 reorder stabilization + focused tests + round status update.
+1. Round 3 shared compact checkbox + responsive grouping audit/repair + focused automation + status update.
 2. Continue remaining dependency-aware repair rounds, updating durable status after each.
 3. Run aggregate Scaffold over the completed consolidated repair.
 4. Freeze a new monotonic physical-QA candidate.
