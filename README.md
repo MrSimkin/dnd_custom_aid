@@ -10,9 +10,9 @@ Read in this order:
 
 1. `AGENTS.md` — mandatory operating rules;
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented areas;
-3. `docs/PROJECT_STATE.md` — authoritative current state and next action;
-4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/BRANCH_STATUS.md` — branch interpretation/cleanup status;
+3. `docs/PROJECT_STATE.md` — authoritative current state and next action for the branch you are on;
+4. `docs/checkpoints/LATEST.md` — exact practical resume pointer for that branch;
+5. `docs/BRANCH_STATUS.md` — canonical lifecycle map for every surviving branch/ref;
 6. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
 7. `docs/CONVENTIONS.md`;
 8. `docs/PRODUCT.md`;
@@ -22,18 +22,18 @@ Read in this order:
 12. `docs/TESTING.md`;
 13. relevant current checkpoints/feature files.
 
-## Canonical source of truth
+## Current repository authority
 
-- `main` is the canonical current project baseline.
-- Git is the project's operative memory.
-- Repository files, not chat memory, determine durable project truth.
-- `docs/PROJECT_STATE.md` is the authoritative current-state snapshot.
-- `docs/checkpoints/LATEST.md` is the exact resume pointer.
-- `implementation/phase4a-successor-cycle` is the focused continuation branch for the active Phase 4A successor cycle and is aligned with `main` at night-close boundaries.
-- Historical implementation branches are not competing current state.
-- Obsolete non-frozen `tmp/*` refs may be archived/removed from the visible branch list; explicitly frozen QA-evidence branches remain immutable.
+There are currently **two active authoritative lines**:
 
-D-0066 established that **canonical does not mean release-ready**. Development work may be consolidated into `main` before owner acceptance when the owner explicitly approves that repository-ordering boundary.
+- `main` — canonical global navigation plus current Phase 5A/DM product-discovery decisions;
+- `implementation/phase4a-successor-cycle` — authoritative current Player/Phase 4A runtime, repair and QA line.
+
+These branches intentionally contain different valid work. `main` is **not** currently the latest Player runtime, and the Player successor branch must not overwrite later DM/Phase 5A discovery records on `main`.
+
+Use `docs/BRANCH_STATUS.md` rather than reconstructing authority from branch names or commit chronology.
+
+All other surviving implementation/discovery/architecture/foundation branches are historical milestone/audit refs unless that file explicitly says otherwise. Frozen QA refs remain immutable evidence.
 
 ## Working relationship
 
@@ -57,67 +57,54 @@ Meaningful work must be explained and persisted in Git. C-0009 remains controlli
 
 See `docs/ARCHITECTURE.md` for the full record.
 
-## Current implementation reality
+## Current Player / Phase 4A reality
 
-Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open, but the successor repair/refinement cycle has now completed **increments A–E of nine**.
+Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open, but its accepted Player repair implementation is no longer an unfinished coding backlog.
 
-Completed successor areas include:
+The accepted P1–P16 repair set is implemented and automation-qualified on `implementation/phase4a-successor-cycle`.
 
-- additive schema/domain/storage foundation and migration/backup compatibility;
-- custom attributes and optional saves;
-- per-source spellcasting configuration;
-- Custom Markers + Resource placement/recovery foundations;
-- explicit phone/tablet/orientation layout context;
-- shared compact toolbar, drag, IME, numeric and contextual-help primitives;
-- character-first startup and Back hierarchy;
-- PC Settings administration, tab order, custom skills/attributes/Markers and haptics;
-- compact General projections and inline standard/custom Habilidades;
-- structured Combat damage and character-aware Dice flow;
-- compact Gestión with canonical Inspiration/Markers/Resources, mixed rest recovery, conditions infrastructure and concentration help.
+Current physical owner-QA candidate:
 
-Increment E's fully wired automated gate is green:
+- version: `0.4.0-preqa.9`;
+- versionCode/build: `40900`;
+- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
+- Scaffold workflow run: `34726572588` — **SUCCESS**;
+- artifact ID: `10307444450`;
+- artifact name: `dnd-custom-aid-debug-apk`;
+- artifact digest: `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
 
-- validation commit `0587db5e65d89e809f138e83d053903659216886`;
-- workflow `34307068166` — SUCCESS;
-- artifact `10087074946` / `dnd-custom-aid-debug-apk`;
-- ZIP digest `55bba08d09918a3f6102e4e2694da50c0ee5bb6e9bf3b1ac4c8849f9203ac50`.
+P17 is the already-defined physical tablet-QA gate policy, not another hidden implementation increment. Physical owner/device acceptance has **not** yet occurred, and Phase 4A is **not** explicitly closed.
 
-This is **development verification, not owner visual acceptance**.
+For exact Player continuation, switch to `implementation/phase4a-successor-cycle` and read:
 
-## Owner-audition status
+1. `docs/checkpoints/LATEST.md`;
+2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`;
+3. `docs/PROJECT_STATE.md`.
 
-The last owner-auditioned practical build remains:
+Do not restart P1–P16 absent actual physical QA evidence that reopens a specific repair boundary.
 
-- `0.4.0-preqa.7` / build `40700` / `debug`;
-- product commit `43ca1f5662123ce4d355d9d618b0bfba66d17697`;
-- workflow `34171466714` — SUCCESS;
-- artifact `10035895186`;
-- APK SHA-256 `6e024a00c3037030c4db8f1b1e4d840c1903dee3b5ea5d601c51d9d5a9c9039d`.
+## Current DM / Phase 5A reality
 
-Its owner phone audition did not pass visual acceptance; it generated the repair backlog now driving the successor cycle.
+`main` contains later accepted Phase 5A/DM product-discovery/design records, including the current Desk-family and shared Player/DM rules-question direction.
 
-Primary owner test device: **Redmi Note 11 Pro 5G**.
+This is an active **discovery/design** line, not an implementation authorization.
 
-Physical tablet acceptance remains pending and the old tablet/wide presentation is itself a redesign target.
+**DM feature implementation remains blocked until Phase 4A receives physical owner/device acceptance and explicit owner closure.**
 
-## Current next action
+For DM/product discovery, remain on `main` and follow its `docs/checkpoints/LATEST.md`.
 
-Resume at **Increment F — Conjuros compact source-context redesign**.
+## Current authorization boundary
 
-Protected direction:
+The durable Player authorization covers the accepted P1–P17 Phase 4A repair/validation cycle, QA packaging/checkpoints, and repairs reopened by real QA evidence.
 
-- one compact sticky source-context bar rather than stacked permanent source/filter blocks;
-- selected source visibly owns ability, `CD salv. conjuro` and `Mod. ataque mágico`;
-- `Todos los conjuros` remains compact;
-- expanded filters/source details are transient;
-- useful level/slot context remains without erasing the spell list;
-- phone landscape remains a phone interaction model and must keep practical spell content visible.
+The owner's 2026-09-12 instruction additionally authorizes continuity correction on all appropriate branches, including `main`, and continuation within the real existing authorizations.
 
-After F, produce the planned early targeted Redmi portrait/landscape interaction build and audition before continuing blindly.
+That does **not** authorize:
 
-Four planned increments remain after the completed A–E boundary: **F, G, H and I**.
-
-**DM feature implementation remains blocked until Phase 4A is later repaired through the remaining successor increments, accepted through the required owner gates, and explicitly closed.**
+- unrelated Player feature invention while the project is at the owner-QA gate;
+- self-awarded physical owner acceptance from CI;
+- destructive history rewriting;
+- DM feature implementation before explicit Phase 4A closure.
 
 ## Build and verification commands
 
