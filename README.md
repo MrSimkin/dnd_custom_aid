@@ -10,31 +10,30 @@ Read in this order:
 
 1. `AGENTS.md` — mandatory operating rules;
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented areas;
-3. `docs/PROJECT_STATE.md` — authoritative current state and next action;
-4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md` — controlling current Player QA findings;
-6. `docs/BRANCH_STATUS.md` — branch interpretation/cleanup status;
-7. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
-8. `docs/CONVENTIONS.md`;
-9. `docs/PRODUCT.md`;
-10. `docs/ROADMAP.md`;
-11. `docs/WORKFLOW.md`;
-12. `docs/ARCHITECTURE.md`;
-13. `docs/TESTING.md`;
-14. relevant current checkpoints/feature files.
+3. `docs/PROJECT_STATE.md` — authoritative current state and next action for the branch you are on;
+4. `docs/checkpoints/LATEST.md` — exact practical resume pointer for that branch;
+5. `docs/BRANCH_STATUS.md` — canonical lifecycle map for every surviving branch/ref;
+6. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
+7. `docs/CONVENTIONS.md`;
+8. `docs/PRODUCT.md`;
+9. `docs/ROADMAP.md`;
+10. `docs/WORKFLOW.md`;
+11. `docs/ARCHITECTURE.md`;
+12. `docs/TESTING.md`;
+13. relevant current checkpoints/feature files.
 
-## Canonical source of truth
+## Current repository authority
 
-- `main` is the canonical repository baseline under D-0066.
-- Git is the project's operative memory.
-- Repository files, not chat memory, determine durable project truth.
-- `docs/PROJECT_STATE.md` is the authoritative current-state snapshot.
-- `docs/checkpoints/LATEST.md` is the exact resume pointer.
-- `implementation/phase4a-successor-cycle` is the active continuation branch carrying the current Phase 4A Player implementation, `preqa.8 / 40800` QA evidence, and the acceptance-repair discussion line.
-- Historical implementation branches are not competing current state.
-- Obsolete non-frozen `tmp/*` refs may be archived/removed; explicitly frozen QA-evidence branches remain immutable.
+There are currently **two active authoritative lines**:
 
-D-0066 established that **canonical does not mean release-ready**. Repository ordering and owner acceptance are separate decisions.
+- `main` — canonical global navigation plus current Phase 5A/DM product-discovery decisions;
+- `implementation/phase4a-successor-cycle` — authoritative current Player/Phase 4A runtime, repair and QA line.
+
+These branches intentionally contain different valid work. `main` is **not** currently the latest Player runtime, and the Player successor branch must not overwrite later DM/Phase 5A discovery records on `main`.
+
+Use `docs/BRANCH_STATUS.md` rather than reconstructing authority from branch names or commit chronology.
+
+All other surviving implementation/discovery/architecture/foundation branches are historical milestone/audit refs unless that file explicitly says otherwise. Frozen QA refs remain immutable evidence.
 
 ## Working relationship
 
@@ -58,54 +57,54 @@ Meaningful work must be explained and persisted in Git. C-0009 remains controlli
 
 See `docs/ARCHITECTURE.md` for the full record.
 
-## Current Player implementation reality
+## Current Player / Phase 4A reality
 
-Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open.
+Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open, but its accepted Player repair implementation is no longer an unfinished coding backlog.
 
-The entire planned successor sequence **A–I is implemented and automated-green**, followed by a post-A–I stabilization pass. There is no planned Increment J.
+The accepted P1–P16 repair set is implemented and automation-qualified on `implementation/phase4a-successor-cycle`.
 
-The current technically verified Player build is:
+Current physical owner-QA candidate:
 
-- `0.4.0-preqa.8` / build `40800` / `debug`;
-- product source commit `c78b06776f5ae7a253b5b12b791c71fa2a7da096`;
-- validation/checkpoint head `2a9b682f6aca2e95facecf1f6256039fd96cfefd`;
-- workflow `34430548061` — SUCCESS;
-- artifact `10134364621` / `dnd-custom-aid-debug-apk`;
-- APK SHA-256 `bb02b413919f55551eb7d4e78dfab2c37145b852c8827126df80082bd7a40815`.
+- version: `0.4.0-preqa.9`;
+- versionCode/build: `40900`;
+- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
+- Scaffold workflow run: `34726572588` — **SUCCESS**;
+- artifact ID: `10307444450`;
+- artifact name: `dnd-custom-aid-debug-apk`;
+- artifact digest: `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
 
-This is **not** an accepted or release-ready build.
+P17 is the already-defined physical tablet-QA gate policy, not another hidden implementation increment. Physical owner/device acceptance has **not** yet occurred, and Phase 4A is **not** explicitly closed.
 
-## Current owner QA status
+For exact Player continuation, remain on `implementation/phase4a-successor-cycle` and read:
 
-A consolidated real-device owner QA pass was completed on **build 40800** using the Redmi Note 11 Pro 5G.
+1. `docs/checkpoints/LATEST.md`;
+2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`;
+3. `docs/PROJECT_STATE.md`.
 
-The build passed important boundaries including update-in-place/data preservation, persistence, normal portrait navigation, representative editor/IME behavior, currency, Conjuros portrait, Notas, Application Settings functionality, representative conditional modules, backup/export, phone-landscape retention of the phone interaction model, and representative larger text.
+Do not restart P1–P16 absent actual physical QA evidence that reopens a specific repair boundary.
 
-It also exposed Phase 4A acceptance blockers. The authoritative detailed record is:
+## Current DM / Phase 5A reality
 
-`docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`
+`main` contains later accepted Phase 5A/DM product-discovery/design records, including the current Desk-family and shared Player/DM rules-question direction.
 
-Physical tablet QA is intentionally deferred until shared/systemic defects found during phone QA are repaired. Shared defects must be repaired across phone and tablet where they share state/components/primitives, but tablet PASS/FAIL remains untested until a repaired build is physically audited.
+This is an active **discovery/design** line, not an implementation authorization.
 
-Build `40700` is historical evidence only. It is **not** the current QA target or resume point.
+**DM feature implementation remains blocked until Phase 4A receives physical owner/device acceptance and explicit owner closure.**
 
-## Current next action
+For DM/product discovery, use `main` and follow its `docs/checkpoints/LATEST.md`.
 
-Do **not** restart old QA, do **not** begin a speculative Increment J, and do **not** begin DM implementation.
+## Current authorization boundary
 
-The immediate Player task is **design reconciliation of the 40800 QA findings, one point at a time**.
+The durable Player authorization covers the accepted P1–P17 Phase 4A repair/validation cycle, QA packaging/checkpoints, and repairs reopened by real QA evidence.
 
-For each QA point:
+The owner's 2026-09-12 instruction additionally authorizes continuity correction on all appropriate branches, including `main`, and continuation within the real existing authorizations.
 
-1. discuss the exact observed problem and intended behavior with the owner;
-2. resolve only the design/interaction details needed for that point;
-3. once the owner closes the point, consolidate the decision durably in the repository;
-4. move to the next QA point;
-5. do not implement the repair pass until the discussion sequence has produced an accepted bounded repair specification, unless the owner explicitly changes that instruction.
+That does **not** authorize:
 
-After the discussion pass, define and implement the bounded Phase 4A acceptance-repair package, validate it, produce a monotonic successor QA build, retest affected phone boundaries, then perform physical tablet portrait/landscape QA before freezing a replacement M6 candidate and explicitly closing Phase 4A.
-
-**DM feature implementation remains blocked until explicit Phase 4A closure.** DM design/discovery documentation may continue independently when the owner chooses, but it is not implementation authorization.
+- unrelated Player feature invention while the project is at the owner-QA gate;
+- self-awarded physical owner acceptance from CI;
+- destructive history rewriting;
+- DM feature implementation before explicit Phase 4A closure.
 
 ## Build and verification commands
 
