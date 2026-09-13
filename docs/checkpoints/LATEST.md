@@ -4,17 +4,17 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
 **Failed physical candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`  
-**Current repaired physical-QA candidate:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` — AUTOMATION GREEN  
+**Current repaired physical-QA candidate:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` — AUTOMATION GREEN / REOPENED R1–R3 PHONE BOUNDARY PHYSICALLY PASSED  
 **Exact candidate run:** `34730531791` — SUCCESS  
-**Acceptance boundary:** focused owner phone recheck of repaired P1/P2/presentation failures → remaining targeted phone regression → P17 tablet if no hard shared failure remains  
+**Acceptance boundary:** remaining targeted phone regression → representative P17 tablet QA if no hard shared failure remains → explicit owner closure  
 **Release status:** debug/development; NOT owner-accepted and NOT release-ready
 
 ## Resume here
 
-1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md` — exact current candidate, automation and artifact evidence, focused physical recheck boundary.
-2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md` — source physical failures and R1–R3 repair chain.
-3. `docs/PROJECT_STATE.md` — live Player authority/gate.
-4. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` — controlling P1/P2 contract.
+1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md` — exact current candidate, automation/artifact evidence, and physical R1–R3 recheck result.
+2. `docs/PROJECT_STATE.md` — live Player authority and current remaining QA gate.
+3. `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md` — historical source failures and R1–R3 repair chain.
+4. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` — controlling accepted P1–P17 behavior.
 5. `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md` + `docs/BRANCH_STATUS.md` — dual-line authority.
 6. `docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md` — durable authorization.
 7. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P17_TABLET_QA_GATE_CLOSED.md` — tablet gate policy.
@@ -47,18 +47,26 @@ Dedicated checkpoint: `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.
 - APK size `38,865,008` bytes
 - independent APK SHA-256 `ee5db263883c8b1979b12cc9ca365ba9f190009b2b46e4e9b53681408c128c78`
 
-## Exact next action — focused phone repair recheck
+## Physical preqa.10 repaired-boundary result
 
-On the exact `preqa.10` APK, test the repaired failures first:
+Owner report: **`1–7 OK`** for the focused repaired phone boundary.
 
-1. General HP → Combate without global `Guardar` merely to cross tabs;
-2. max-HP reduction clamps current HP; no `current > max` state;
+Physical PASS covers:
+
+1. General HP → Combate without requiring global `Guardar` merely to cross tabs;
+2. max-HP reduction clamps current HP and does not project `current > max`;
 3. temp-only damage highlights Temp only;
 4. spillover damage highlights Temp + PV;
-5. healing highlights PV;
-6. `Establecer PV` exact correction changes/project current/max HP canonically;
+5. healing highlights PV when it changes;
+6. `Establecer PV` exact correction changes/projects current/max HP canonically;
 7. `Daño | cantidad | Curar` sizing/proportion/padding is coherent with the surrounding HUD.
 
-Do not restart all prior passes before this repair recheck. If this boundary passes, continue remaining targeted phone regression and then P17 tablet QA according to policy.
+These were the specific shared defects that invalidated `preqa.9`; they are now physically cleared on `preqa.10`. Do not repeat them unless later evidence contradicts this pass.
 
-P17 tablet QA remains paused until the focused phone repair boundary clears. No P18 exists. Phase 4A remains open. DM implementation remains blocked until explicit owner closure.
+## Exact next action — remaining targeted phone regression
+
+Begin with the compact/fixed Combate HUD under constrained vertical space and phone landscape behavior. Then continue representative P6 reorder persistence, P9 editor/IME reachability, Application/PC settings, P14 Table Mode, P15 Supercompact, P16 vertical-space behavior, Conjuros sticky/source context, and final persistence/reopen/canonical-state sanity.
+
+If phone testing reveals no hard shared/systemic failure, proceed to representative P17 tablet portrait/landscape QA under the existing policy. A bounded/local phone defect does not automatically block unrelated tablet evidence.
+
+No P18 exists. Phase 4A remains open. DM implementation remains blocked until explicit owner closure.
