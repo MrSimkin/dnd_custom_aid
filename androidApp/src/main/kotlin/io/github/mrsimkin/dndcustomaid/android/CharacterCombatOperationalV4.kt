@@ -1,5 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +18,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
@@ -29,10 +35,18 @@ import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterDamage
 import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterHealing
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterTemporaryHp
+import kotlinx.coroutines.delay
 
 private enum class CharacterHpExactEditorV4 {
     HIT_POINTS,
     TEMP_HP,
+}
+
+private enum class CharacterHpFeedbackV4 {
+    NONE,
+    HIT_POINTS,
+    TEMP_HP,
+    BOTH,
 }
 
 /**
@@ -53,13 +67,35 @@ internal fun CharacterCombatOperationalCardV4(
 ) {
     var amountText by rememberSaveable { mutableStateOf("") }
     var exactEditor by rememberSaveable { mutableStateOf<String?>(null) }
+    var hpFeedback by remember { mutableStateOf(CharacterHpFeedbackV4.NONE) }
+    var hpFeedbackEpoch by remember { mutableIntStateOf(0) }
     val amount = amountText.toIntOrNull()
     val validAmount = amount != null && amount > 0
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
     val layoutContext = characterLayoutContextV4()
 
+    fun triggerHpFeedback(updated: CharacterSheet) {
+        val hitPointsChanged = updated.currentHp != sheet.currentHp || updated.maxHp != sheet.maxHp
+        val temporaryHpChanged = updated.tempHp != sheet.tempHp
+        hpFeedback = when {
+            hitPointsChanged && temporaryHpChanged -> CharacterHpFeedbackV4.BOTH
+            hitPointsChanged -> CharacterHpFeedbackV4.HIT_POINTS
+            temporaryHpChanged -> CharacterHpFeedbackV4.TEMP_HP
+            else -> CharacterHpFeedbackV4.NONE
+        }
+        if (hpFeedback != CharacterHpFeedbackV4.NONE) hpFeedbackEpoch += 1
+    }
+
+    LaunchedEffect(hpFeedbackEpoch) {
+        if (hpFeedbackEpoch > 0) {
+            delay(420)
+            hpFeedback = CharacterHpFeedbackV4.NONE
+        }
+    }
+
     fun applyOperational(updated: CharacterSheet) {
         if (updated != sheet) {
+            triggerHpFeedback(updated)
             haptic(CharacterHapticEventV4.RESOURCE)
             onSheetChange(updated)
         }
@@ -75,6 +111,11 @@ internal fun CharacterCombatOperationalCardV4(
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val singleMetricRow = maxWidth >= 620.dp &&
                 layoutContext.verticalSpace != CharacterVerticalSpaceV4.COMFORTABLE
+            val hitPointsHighlighted = hpFeedback == CharacterHpFeedbackV4.HIT_POINTS ||
+                hpFeedback == CharacterHpFeedbackV4.BOTH
+            val temporaryHpHighlighted = hpFeedback == CharacterHpFeedbackV4.TEMP_HP ||
+                hpFeedback == CharacterHpFeedbackV4.BOTH
+            val controlHeight = characterCompactSingleLineFieldHeightV4()
 
             Column(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp),
@@ -93,11 +134,13 @@ internal fun CharacterCombatOperationalCardV4(
                             "PV",
                             "${sheet.currentHp}/${sheet.maxHp}",
                             modifier = Modifier.clickable { exactEditor = CharacterHpExactEditorV4.HIT_POINTS.name },
+                            highlighted = hitPointsHighlighted,
                         )
                         OperationalInlineMetricV4(
                             "Temp.",
                             sheet.tempHp.toString(),
                             modifier = Modifier.clickable { exactEditor = CharacterHpExactEditorV4.TEMP_HP.name },
+                            highlighted = temporaryHpHighlighted,
                         )
                     }
                 } else {
@@ -121,6 +164,7 @@ internal fun CharacterCombatOperationalCardV4(
                             modifier = Modifier.weight(1f).clickable {
                                 exactEditor = CharacterHpExactEditorV4.HIT_POINTS.name
                             },
+                            highlighted = hitPointsHighlighted,
                         )
                         OperationalInlineMetricV4(
                             "Temp.",
@@ -128,6 +172,7 @@ internal fun CharacterCombatOperationalCardV4(
                             modifier = Modifier.weight(1f).clickable {
                                 exactEditor = CharacterHpExactEditorV4.TEMP_HP.name
                             },
+                            highlighted = temporaryHpHighlighted,
                         )
                     }
                 }
@@ -140,11 +185,12 @@ internal fun CharacterCombatOperationalCardV4(
                     TextButton(
                         onClick = { amount?.let { applyOperational(applyCharacterDamage(sheet, it)) } },
                         enabled = validAmount && (sheet.currentHp > 0 || sheet.tempHp > 0),
+                        modifier = Modifier.weight(1f).heightIn(min = controlHeight),
                     ) { Text("Daño") }
                     OutlinedTextField(
                         value = amountText,
                         onValueChange = { amountText = normalizeCharacterUnsignedIntegerInput(it) },
-                        modifier = Modifier.weight(1f).heightIn(min = characterCompactSingleLineFieldHeightV4()),
+                        modifier = Modifier.weight(0.72f).heightIn(min = controlHeight),
                         label = { Text("Cantidad") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -152,6 +198,7 @@ internal fun CharacterCombatOperationalCardV4(
                     TextButton(
                         onClick = { amount?.let { applyOperational(applyCharacterHealing(sheet, it)) } },
                         enabled = validAmount && sheet.currentHp < sheet.maxHp,
+                        modifier = Modifier.weight(1f).heightIn(min = controlHeight),
                     ) { Text("Curar") }
                 }
             }
@@ -167,6 +214,7 @@ internal fun CharacterCombatOperationalCardV4(
                 val normalizedCurrent = currentHp.coerceIn(0, normalizedMax)
                 val updated = sheet.copy(currentHp = normalizedCurrent, maxHp = normalizedMax)
                 if (updated != sheet) {
+                    triggerHpFeedback(updated)
                     haptic(CharacterHapticEventV4.RESOURCE)
                     onSheetChange(updated)
                 }
@@ -179,6 +227,7 @@ internal fun CharacterCombatOperationalCardV4(
             onApply = { value ->
                 val updated = setCharacterTemporaryHp(sheet, value.coerceAtLeast(0))
                 if (updated != sheet) {
+                    triggerHpFeedback(updated)
                     haptic(CharacterHapticEventV4.RESOURCE)
                     onSheetChange(updated)
                 }
@@ -194,14 +243,30 @@ private fun OperationalInlineMetricV4(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
+    highlighted: Boolean = false,
 ) {
-    Row(
-        modifier = modifier.padding(horizontal = 2.dp, vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val feedbackColor by animateColorAsState(
+        targetValue = if (highlighted) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f)
+        } else {
+            Color.Transparent
+        },
+        animationSpec = tween(durationMillis = 140),
+        label = "combat-hp-feedback",
+    )
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.extraSmall,
+        color = feedbackColor,
     ) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+        Row(
+            modifier = Modifier.padding(horizontal = 3.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+        }
     }
 }
 
