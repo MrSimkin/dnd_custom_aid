@@ -12,10 +12,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderResult
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterReorderSlot
-import io.github.mrsimkin.dndcustomaid.shared.character.nearestCharacterReorderIndex
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderResult
 import io.github.mrsimkin.dndcustomaid.shared.character.previewCharacterReorder
+import io.github.mrsimkin.dndcustomaid.shared.character.stableCharacterReorderTargetIndex
+import io.github.mrsimkin.dndcustomaid.shared.character.translateCharacterReorderSlotsY
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -54,6 +55,10 @@ internal fun rememberCharacterReorderCoordinatorV4(): CharacterReorderCoordinato
  * action emits one validated final stable-id order to the caller; the caller applies that order to
  * the character structural draft. Durable persistence remains the normal character Save/Cancel
  * boundary.
+ *
+ * Pointer targeting is evaluated against a drag-start geometry snapshot. Animated preview cards
+ * may move to show the candidate order, but those layout changes are feedback and cannot themselves
+ * move the target. Real viewport scrolling translates the stable target geometry explicitly.
  */
 @Stable
 internal class CharacterReorderSessionV4 internal constructor(
@@ -64,6 +69,8 @@ internal class CharacterReorderSessionV4 internal constructor(
     private var canonicalOrderSnapshot: List<String> = initialCanonicalOrder.distinct()
     private var reorderGroupSnapshot: Map<String, String> = emptyMap()
     private val itemBounds = mutableStateMapOf<String, Rect>()
+    private var stableDragSlots: List<CharacterReorderSlot> = emptyList()
+    private var stableTargetId: String? = null
 
     var previewOrder: List<String> by mutableStateOf(canonicalOrderSnapshot)
         private set
@@ -136,7 +143,12 @@ internal class CharacterReorderSessionV4 internal constructor(
     fun registerBounds(id: String, bounds: Rect) {
         if (id !in previewOrder) return
         itemBounds[id] = bounds
-        if (active) retargetFromGeometry()
+        if (active && stableDragSlots.none { it.id == id }) {
+            // A lazy list may reveal a new item during auto-scroll. Capture it once at the current
+            // viewport position, but never replace an existing stable slot with preview-animation
+            // geometry from onGloballyPositioned.
+            stableDragSlots = stableDragSlots + bounds.toCharacterReorderSlotV4(id)
+        }
     }
 
     fun unregisterBounds(id: String) {
@@ -152,6 +164,10 @@ internal class CharacterReorderSessionV4 internal constructor(
         val bounds = itemBounds[id] ?: return false
         if (!coordinator.tryAcquire(sessionKey)) return false
         canonicalOrderSnapshot = previewOrder.toList()
+        stableDragSlots = canonicalOrderSnapshot.mapNotNull { candidateId ->
+            itemBounds[candidateId]?.toCharacterReorderSlotV4(candidateId)
+        }
+        stableTargetId = id
         draggedId = id
         sourceBounds = bounds
         dragDelta = Offset.Zero
@@ -164,7 +180,7 @@ internal class CharacterReorderSessionV4 internal constructor(
         if (!active) return
         dragDelta += delta
         pointerInRoot = pointerInRoot?.plus(delta)
-        retargetFromGeometry()
+        retargetFromStableGeometry()
     }
 
     /** Translation for non-lazy/bounded adapters where the original item remains composed. */
@@ -236,6 +252,8 @@ internal class CharacterReorderSessionV4 internal constructor(
         sourceBounds = null
         dragDelta = Offset.Zero
         pointerInRoot = null
+        stableDragSlots = emptyList()
+        stableTargetId = null
         coordinator.release(sessionKey)
     }
 
@@ -247,30 +265,30 @@ internal class CharacterReorderSessionV4 internal constructor(
     private fun eligibleOrderFor(dragged: String, order: List<String>): List<String> =
         if (reorderGroupSnapshot.isEmpty()) order else order.filter { sameReorderGroup(dragged, it) }
 
-    private fun retargetFromGeometry() {
+    private fun retargetFromStableGeometry() {
         val dragged = draggedId ?: return
         val visualBounds = draggedVisualBounds ?: return
-        val eligibleOrder = eligibleOrderFor(dragged, previewOrder)
+        val eligibleOrder = eligibleOrderFor(dragged, canonicalOrderSnapshot)
         if (eligibleOrder.size < 2) return
         val eligibleSet = eligibleOrder.toSet()
-        val slots = itemBounds.mapNotNull { (id, bounds) ->
-            if (id in eligibleSet) {
-                CharacterReorderSlot(id = id, centerX = bounds.center.x, centerY = bounds.center.y)
-            } else {
-                null
-            }
-        }
-        val eligibleTargetIndex = nearestCharacterReorderIndex(
-            order = eligibleOrder,
+        val eligibleSlots = stableDragSlots.filter { it.id in eligibleSet }
+        val currentTargetIndex = stableTargetId
+            ?.let(eligibleOrder::indexOf)
+            ?.takeIf { it >= 0 }
+            ?: eligibleOrder.indexOf(dragged)
+        val eligibleTargetIndex = stableCharacterReorderTargetIndex(
+            canonicalOrder = eligibleOrder,
             draggedId = dragged,
             visualCenterX = visualBounds.center.x,
             visualCenterY = visualBounds.center.y,
-            renderedSlots = slots,
+            stableSlots = eligibleSlots,
+            currentTargetIndex = currentTargetIndex,
         )
         val targetId = eligibleOrder.getOrNull(eligibleTargetIndex) ?: return
-        val globalTargetIndex = previewOrder.indexOf(targetId)
+        stableTargetId = targetId
+        val globalTargetIndex = canonicalOrderSnapshot.indexOf(targetId)
         if (globalTargetIndex < 0) return
-        val reordered = previewCharacterReorder(previewOrder, dragged, globalTargetIndex)
+        val reordered = previewCharacterReorder(canonicalOrderSnapshot, dragged, globalTargetIndex)
         if (reordered != previewOrder) {
             previewOrder = reordered
             onHaptic(CharacterHapticEventV4.DRAG_STEP)
@@ -306,8 +324,13 @@ internal class CharacterReorderSessionV4 internal constructor(
         val minPerFrame = 2f * density
         val requested = direction * (minPerFrame + (maxPerFrame - minPerFrame) * proximity * proximity)
         val consumed = scroll(requested)
-        if (abs(consumed) > 0.01f) retargetFromGeometry()
-        return abs(consumed) > 0.01f
+        if (abs(consumed) > 0.01f) {
+            // Positive scroll consumption moves list content upward in root coordinates.
+            stableDragSlots = translateCharacterReorderSlotsY(stableDragSlots, -consumed)
+            retargetFromStableGeometry()
+            return true
+        }
+        return false
     }
 }
 
