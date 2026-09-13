@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Latest physically tested candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7` — FAILED SHARED HP/UX ACCEPTANCE BOUNDARY  
-**Current phase:** P1/P2 + transversal presentation consistency reopened by physical owner/device QA; canonical HP repair and regression lock implemented, remaining UI/presentation repair and validation pending  
+**Current phase:** P1/P2 + transversal presentation consistency reopened by physical owner/device QA; canonical HP and General navigation/save repairs implemented, P2 feedback + presentation repair and validation pending  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
 ## 1. Branch authority
@@ -29,11 +29,11 @@ The owner physically confirmed update-in-place/persistence sanity for `preqa.9 /
 
 The next physical boundary exposed defects that automated testing had not caught:
 
-- General HP editing does not live-propagate to Combate without an explicit `Guardar`;
-- reducing maximum HP does not clamp current HP; physical observation included invalid Combate display `20/10`;
-- agreed subtle changed-state HP feedback is absent;
-- Combat `Establecer PV` is ineffective for current HP while temporary-HP exact correction works;
-- `Daño — Cantidad — Curar` is out of proportion with surrounding Combate UI, reopening the transversal size/margin/padding consistency boundary.
+- General HP editing did not live-propagate to Combate without an explicit `Guardar`;
+- reducing maximum HP did not clamp current HP; physical observation included invalid Combate display `20/10`;
+- agreed subtle changed-state HP feedback was absent;
+- Combat `Establecer PV` was ineffective for current HP while temporary-HP exact correction worked;
+- `Daño — Cantidad — Curar` was out of proportion with surrounding Combate UI, reopening the transversal size/margin/padding consistency boundary.
 
 Preserved passes: max-HP increase without silent healing, damage/temp-HP arithmetic, healing cap, amount clearing and Combat-operation-to-General projection.
 
@@ -50,12 +50,17 @@ Exact owner/device evidence: `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_Q
 
 This directly repairs and regression-locks the identified source-level cause of Combat exact-current/max HP correction being lost. R1 is not yet automation-qualified or physically accepted.
 
+### R2 — General HP navigation/save propagation — implemented, automation pending
+
+- `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — General HP now uses the shared canonical HP operation on ordinary structural save; operational synchronization refreshes max/current/temp HP together; leaving General for another character tab flushes a valid HP draft canonically before navigation, so General → Combate no longer depends on a global `Guardar`; transient/unparseable numeric input is not force-persisted.
+- The resulting source diff was independently inspected and changed only `CharacterEditorV4.kt` in the intended five HP-wiring locations. Temporary guarded patch machinery used because the connector exposes full-file replacement but no line-patch write was removed immediately after the product commit.
+
+R2 addresses both previously open General no-global-`Guardar` propagation and normal structural-save normalization at source level. It is not yet automation-qualified or physically accepted.
+
 ### Still open
 
-- General HP fields remain draft-only and therefore still require UI wiring for no-global-`Guardar` canonical propagation;
-- normal structural save path still requires canonical HP normalization;
-- changed-state HP glow/pulse remains to be implemented;
-- transversal presentation consistency remains to be classified against historical audit and repaired;
+- the agreed subtle changed-state HP glow/pulse remains to be recovered from the accepted P2 contract and repaired consistently across relevant HP-changing actions;
+- transversal presentation consistency remains to be classified against the historical audit/closure records and repaired, including the observed `Daño — Cantidad — Curar` proportion problem;
 - focused validation, aggregate validation and new QA packaging remain pending.
 
 P3–P16 remain historically implemented/automation-qualified unless later physical QA specifically reopens them. P17 tablet physical QA remains PAUSED while these shared defects are open.
@@ -75,12 +80,11 @@ CI remains valid for its tested scope; physical QA showed that scope did not cov
 
 Before physical QA resumes:
 
-1. implement General field-level canonical commit without a global Save requirement while preserving transient typing drafts;
-2. normalize HP through the normal structural save route;
-3. implement/verify changed-state feedback and transversal presentation consistency;
-4. run focused and aggregate validation, including the new R1 regression coverage;
-5. assign a new monotonic QA identity and artifact after green material code changes;
-6. physically recheck the reopened phone boundary.
+1. recover and implement the accepted P2 subtle HP changed-state feedback contract;
+2. classify and repair the transversal size/margin/padding presentation inconsistency, including the observed Combat action row;
+3. run focused and aggregate validation covering R1/R2 and the presentation repair;
+4. assign a new monotonic QA identity and artifact after green material code changes;
+5. physically recheck the reopened phone boundary.
 
 Representative P17 tablet QA may resume only after the hard shared defects no longer make tablet acceptance evidence misleading.
 
