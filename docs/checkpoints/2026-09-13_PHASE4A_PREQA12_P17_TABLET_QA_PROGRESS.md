@@ -22,11 +22,18 @@ No baseline finding currently blocks continued tablet QA.
 
 ## Non-blocking findings captured during P17
 
-### T1 — card reorder/movement interaction behaves abnormally across devices/orientations/column counts
+### T1 — card reorder live-reflow/drag feedback is unstable across devices/orientations/column counts
 
-Owner reports that moving cards behaves "weird" and is difficult to describe in words. It occurs across device/form-factor perspectives, portrait/landscape, and with different column counts, including a single column. Treat as an open P6/reorder interaction defect/UX issue requiring source audit and physical-video review before repair design.
+Owner reports that moving cards behaves abnormally across device/form-factor perspectives, portrait/landscape, and with different column counts, including a single column.
 
-The owner supplied a video in chat, but the attachment was not exposed to the available file-inspection layer in the recording turn. Do not invent a more specific motion diagnosis until the video is actually inspectable or equivalent direct evidence is available. This does not block P17.
+The subsequently supplied physical video was directly inspected. Observed behavior is now more specific:
+
+- while a card is still actively being dragged, the surrounding layout repeatedly reflows/snaps into candidate insertion positions;
+- the dragged card/placeholder does not remain visually stable relative to the finger during those transitions;
+- crossing insertion boundaries causes neighboring cards to jump/repack immediately;
+- as a result, the apparent drop target itself moves while the user is trying to place the card, producing a "chasing the layout" interaction rather than controlled drag-and-drop feedback.
+
+This evidence supports treating T1 as an open P6/reorder interaction/live-reflow defect rather than a tablet-specific breakpoint or column-count defect. The source-level root cause is **not yet asserted**; it still requires code audit before repair design. T1 remains non-blocking for continued P17 and should be included in the consolidated repair batch.
 
 ### T2 — dice-mode visual/product contract + custom throw capability correction
 
