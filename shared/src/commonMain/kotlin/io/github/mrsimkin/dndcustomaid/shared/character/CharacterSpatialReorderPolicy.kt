@@ -9,6 +9,16 @@ data class CharacterReorderSlot(
     val centerY: Float,
 )
 
+private fun characterReorderSlotDistance(
+    firstX: Float,
+    firstY: Float,
+    secondX: Float,
+    secondY: Float,
+): Float = hypot(
+    (firstX - secondX).toDouble(),
+    (firstY - secondY).toDouble(),
+).toFloat()
+
 /**
  * Return the index of the rendered slot whose center is nearest to the lifted item's visual center.
  * Missing/non-rendered ids are deliberately ignored; lazy-list callers must expose only currently
@@ -28,10 +38,12 @@ fun nearestCharacterReorderIndex(
     var bestDistance = Float.POSITIVE_INFINITY
     order.forEachIndexed { index, id ->
         val slot = slotById[id] ?: return@forEachIndexed
-        val distance = hypot(
-            (visualCenterX - slot.centerX).toDouble(),
-            (visualCenterY - slot.centerY).toDouble(),
-        ).toFloat()
+        val distance = characterReorderSlotDistance(
+            visualCenterX,
+            visualCenterY,
+            slot.centerX,
+            slot.centerY,
+        )
         if (distance < bestDistance) {
             bestDistance = distance
             bestIndex = index
@@ -39,6 +51,77 @@ fun nearestCharacterReorderIndex(
     }
     return bestIndex
 }
+
+/**
+ * Resolve a drag target against drag-start geometry with a small geometric hysteresis.
+ *
+ * The caller supplies the canonical order captured when pickup began and a stable slot snapshot.
+ * The currently accepted target is retained until a different slot is not merely closer, but
+ * closer by [hysteresisFraction] of the distance between the two slot centers. This deadband keeps
+ * a pointer hovering near a slot boundary from making the preview chatter between two positions.
+ *
+ * Critically, callers must not substitute animated preview-layout geometry for [stableSlots]. The
+ * preview may move around the lifted card, but those movements are feedback, not fresh drag input.
+ */
+fun stableCharacterReorderTargetIndex(
+    canonicalOrder: List<String>,
+    draggedId: String,
+    visualCenterX: Float,
+    visualCenterY: Float,
+    stableSlots: List<CharacterReorderSlot>,
+    currentTargetIndex: Int = canonicalOrder.indexOf(draggedId),
+    hysteresisFraction: Float = 0.12f,
+): Int {
+    val sourceIndex = canonicalOrder.indexOf(draggedId)
+    if (sourceIndex < 0) return -1
+    val candidateIndex = nearestCharacterReorderIndex(
+        order = canonicalOrder,
+        draggedId = draggedId,
+        visualCenterX = visualCenterX,
+        visualCenterY = visualCenterY,
+        renderedSlots = stableSlots,
+    )
+    if (candidateIndex < 0) return sourceIndex
+    if (currentTargetIndex !in canonicalOrder.indices || candidateIndex == currentTargetIndex) {
+        return candidateIndex
+    }
+
+    val slotsById = stableSlots.associateBy { it.id }
+    val currentSlot = slotsById[canonicalOrder[currentTargetIndex]] ?: return candidateIndex
+    val candidateSlot = slotsById[canonicalOrder[candidateIndex]] ?: return candidateIndex
+    val currentDistance = characterReorderSlotDistance(
+        visualCenterX,
+        visualCenterY,
+        currentSlot.centerX,
+        currentSlot.centerY,
+    )
+    val candidateDistance = characterReorderSlotDistance(
+        visualCenterX,
+        visualCenterY,
+        candidateSlot.centerX,
+        candidateSlot.centerY,
+    )
+    val slotSeparation = characterReorderSlotDistance(
+        currentSlot.centerX,
+        currentSlot.centerY,
+        candidateSlot.centerX,
+        candidateSlot.centerY,
+    )
+    val deadband = slotSeparation * hysteresisFraction.coerceIn(0f, 0.45f)
+    return if (candidateDistance + deadband < currentDistance) candidateIndex else currentTargetIndex
+}
+
+/**
+ * Translate a drag-start slot snapshot after a real viewport scroll.
+ *
+ * Compose scroll APIs report positive consumption when content moves toward the top, so callers
+ * pass `-consumedScrollY` here. Layout animation/recomposition must not call this helper.
+ */
+fun translateCharacterReorderSlotsY(
+    slots: List<CharacterReorderSlot>,
+    deltaY: Float,
+): List<CharacterReorderSlot> =
+    if (deltaY == 0f) slots else slots.map { it.copy(centerY = it.centerY + deltaY) }
 
 /** Move one stable id to a preview slot without mutating the canonical input list. */
 fun previewCharacterReorder(
