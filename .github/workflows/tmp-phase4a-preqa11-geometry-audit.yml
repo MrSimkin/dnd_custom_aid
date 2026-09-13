@@ -1,0 +1,146 @@
+name: Temporary Phase 4A full-app geometry audit
+
+on:
+  push:
+    branches:
+      - implementation/phase4a-successor-cycle
+    paths:
+      - .github/workflows/tmp-phase4a-preqa11-geometry-audit.yml
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Inventory Player control geometry
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from __future__ import annotations
+          import pathlib
+          import re
+          from collections import Counter, defaultdict
+
+          root = pathlib.Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android')
+          files = sorted(root.glob('*.kt'))
+          control_tokens = [
+              'OutlinedTextField(', 'BasicTextField(', 'TextField(',
+              'OutlinedButton(', 'Button(', 'TextButton(',
+              'DropdownMenu(', 'DropdownMenuItem(',
+              'Card(', 'Surface(',
+          ]
+          shared_tokens = [
+              'CharacterImeSafeEditorDialog(',
+              'CharacterCompactFieldRowV4(',
+              'characterCompactSingleLineFieldHeightV4(',
+              'CompactDamageFieldV4(',
+          ]
+          fun_re = re.compile(r'^\s*(?:(?:private|internal|public)\s+)?(?:inline\s+)?fun\s+([A-Za-z0-9_]+)\s*\(')
+
+          def enclosing_function(lines, idx):
+              for j in range(idx, -1, -1):
+                  m = fun_re.match(lines[j])
+                  if m:
+                      return m.group(1)
+              return '<file-scope>'
+
+          counts = Counter()
+          per_file = defaultdict(Counter)
+          raw_field_sites = []
+          button_sites = []
+          shared_sites = []
+          geometry_lines = []
+
+          for path in files:
+              lines = path.read_text(encoding='utf-8').splitlines()
+              rel = path.as_posix()
+              for i, line in enumerate(lines):
+                  stripped = line.strip()
+                  fn = enclosing_function(lines, i)
+                  for token in control_tokens:
+                      if token in line:
+                          counts[token] += line.count(token)
+                          per_file[rel][token] += line.count(token)
+                  for token in shared_tokens:
+                      if token in line:
+                          shared_sites.append((rel, i + 1, fn, token.rstrip('('), stripped))
+                  if 'OutlinedTextField(' in line:
+                      window = lines[i:min(len(lines), i + 22)]
+                      joined = ' '.join(x.strip() for x in window)
+                      label = ''
+                      m = re.search(r'label\s*=\s*\{\s*Text\(([^)]*)\)', joined)
+                      if m:
+                          label = m.group(1)
+                      raw_field_sites.append({
+                          'file': rel,
+                          'line': i + 1,
+                          'fn': fn,
+                          'label': label,
+                          'height': ('height(' in joined or 'heightIn(' in joined or 'defaultMinSize(' in joined),
+                          'padding': ('padding(' in joined or 'contentPadding' in joined),
+                          'single': ('singleLine = true' in joined),
+                      })
+                  if 'OutlinedButton(' in line or re.search(r'(?<!Outlined)\bButton\(', line):
+                      window = lines[i:min(len(lines), i + 18)]
+                      joined = ' '.join(x.strip() for x in window)
+                      button_sites.append({
+                          'file': rel,
+                          'line': i + 1,
+                          'fn': fn,
+                          'kind': 'OutlinedButton' if 'OutlinedButton(' in line else 'Button',
+                          'height': ('height(' in joined or 'heightIn(' in joined or 'defaultMinSize(' in joined),
+                          'contentPadding': ('contentPadding' in joined),
+                          'snippet': joined[:280],
+                      })
+                  if any(k in line for k in ('vertical = ', 'verticalArrangement = Arrangement.spacedBy', '.height(', '.heightIn(', 'contentPadding = PaddingValues')):
+                      if any(k in line for k in ('padding', 'spacedBy', '.height', 'contentPadding')):
+                          geometry_lines.append((rel, i + 1, fn, stripped))
+
+          print('=== FULL PLAYER CONTROL INVENTORY ===')
+          print(f'Kotlin UI files scanned: {len(files)}')
+          for token in control_tokens:
+              print(f'{token:<24} {counts[token]}')
+
+          print('\n=== FILES WITH EDITABLE / SELECTOR CONTROLS ===')
+          for rel, c in sorted(per_file.items()):
+              editable = c['OutlinedTextField('] + c['BasicTextField('] + c['OutlinedButton('] + c['DropdownMenu(']
+              if editable:
+                  print(f'{rel}: editable/selectors={editable}; OutlinedTextField={c["OutlinedTextField("]}; BasicTextField={c["BasicTextField("]}; OutlinedButton={c["OutlinedButton("]}; DropdownMenu={c["DropdownMenu("]}')
+
+          print('\n=== RAW MATERIAL OUTLINED TEXT FIELDS (equivalent field audit) ===')
+          for s in raw_field_sites:
+              print(f'{s["file"]}:{s["line"]} :: {s["fn"]} :: label={s["label"] or "?"} :: singleLine={s["single"]} :: nearbyHeightOverride={s["height"]} :: nearbyPaddingHint={s["padding"]}')
+
+          print('\n=== OUTLINED/PRIMARY BUTTON SITES (compact selector/action audit) ===')
+          for s in button_sites:
+              print(f'{s["file"]}:{s["line"]} :: {s["fn"]} :: {s["kind"]} :: nearbyHeightOverride={s["height"]} :: contentPadding={s["contentPadding"]} :: {s["snippet"]}')
+
+          print('\n=== SHARED GEOMETRY PRIMITIVE USAGES ===')
+          for rel, line, fn, token, snippet in shared_sites:
+              print(f'{rel}:{line} :: {fn} :: {token} :: {snippet}')
+
+          print('\n=== VERTICAL GEOMETRY HINTS IN CONTROL-BEARING FILES ===')
+          control_files = {s['file'] for s in raw_field_sites} | {s['file'] for s in button_sites}
+          for rel, line, fn, text in geometry_lines:
+              if rel in control_files:
+                  print(f'{rel}:{line} :: {fn} :: {text}')
+
+          print('\n=== SUMMARY / ESCAPE-HATCH SIGNALS ===')
+          files_with_raw = sorted({s['file'] for s in raw_field_sites})
+          files_with_shared_height = sorted({rel for rel, _, _, tok, _ in shared_sites if tok == 'characterCompactSingleLineFieldHeightV4'})
+          print('Files using raw OutlinedTextField:')
+          for f in files_with_raw:
+              print('  ' + f)
+          print('Files using shared compact single-line height token:')
+          for f in files_with_shared_height:
+              print('  ' + f)
+          print(f'Raw OutlinedTextField sites: {len(raw_field_sites)}')
+          print(f'Raw OutlinedTextField sites with nearby explicit height/min-size: {sum(1 for s in raw_field_sites if s["height"])}')
+          print(f'Raw OutlinedTextField sites without nearby explicit height/min-size: {sum(1 for s in raw_field_sites if not s["height"])}')
+          PY
