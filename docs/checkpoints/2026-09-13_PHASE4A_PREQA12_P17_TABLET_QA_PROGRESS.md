@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Candidate:** `0.4.0-preqa.12 / 41200`  
 **Exact candidate commit:** `abfc7e4a1519a27117f194721a425d75cb5df68a`  
-**Status:** P17 TABLET QA IN PROGRESS / BATCH 1: 1–5 PASS / BATCH 2: 6 PASS, 7 FAIL, 8 PASS, 9–10 FAIL / NON-BLOCKING FINDINGS T1–T7 OPEN
+**Status:** P17 TABLET QA IN PROGRESS / BATCH 1: 1–5 PASS / BATCH 2: 6 PASS, 7 FAIL, 8 PASS, 9–10 FAIL / BATCH 3: 11–14 PASS, 15 FAIL / NON-BLOCKING FINDINGS T1–T8 OPEN
 
 ## Tablet QA evidence so far
 
@@ -26,7 +26,15 @@ The owner is executing P17 on the same exact `preqa.12 / 41200` APK before conso
 9. Conjuros tablet portrait: **FAIL / OPEN**. On a newly created character configured as Mago/Mage level 10, expected spell-source context was not created/exposed; the spell source is absent, which prevents adding a spell through the tested flow. Tracked under **T5**.
 10. Conjuros tablet landscape: **FAIL / OPEN for the same T5 functional reason**. Owner reports the visible controls/layout themselves look good in landscape; the blocking issue in this test is the absent spell-source context, not a newly observed landscape-control defect.
 
-None of the Batch 2 findings currently makes the remainder of P17 evidence meaningless, so tablet discovery continues before repair.
+### Batch 3 — representative editor + settings + special presentation modes
+
+11. Representative non-spell editor / IME: **PASS**, with the already-known app-wide checkbox inconsistency reproduced again and explicitly classified as **same phone finding 17.1**, not a new tablet defect.
+12. PC / Character Settings responsiveness: **PASS**.
+13. Application Settings responsiveness: **PASS**. Previously recorded T3/T4 product issues remain open; no additional tablet-specific defect was reported in this check.
+14. P15 Supercompact portrait/landscape: **PASS**.
+15. P14 Table Mode portrait/landscape: **FAIL / OPEN**. Overall table presentation looks correct, but interactive/edit controls remain visibly available and can be opened even though their attempted edits/actions do not actually take effect. This creates a misleading affordance that looks like a broken normal editing mode rather than an intentional table/read-only interaction state. Tracked as **T8**.
+
+None of the findings through Batch 3 currently makes the remainder of P17 evidence meaningless, so tablet discovery continues before repair.
 
 ## Non-blocking findings captured during P17
 
@@ -102,14 +110,25 @@ This is an open P16/responsive-layout defect: wide-screen space is technically o
 
 T7 may share design principles with the existing phone responsive-layout family (especially 17.2/17.3), but it remains separately evidenced until code audit establishes a common cause. Non-blocking for continued P17.
 
+### T8 — Table Mode exposes editable affordances whose actions do not take effect
+
+In P14 Table Mode, the owner reports that the table itself looks correct, but controls still appear interactive: they can be opened and edits can apparently be initiated. The resulting actions/edits do not actually take effect.
+
+This is confusing because the UI advertises an editable interaction model while functionally behaving as though editing is unavailable. The repair audit must first establish the intended P14 contract, then make the affordance and behavior agree:
+
+- if Table Mode is intentionally read-only/restricted, controls that cannot act should not present as normal enabled editing controls; or
+- if those controls are intended to remain available, their actions must work and persist correctly in Table Mode.
+
+Do not choose between those product behaviors by assumption during QA recording; inspect the accepted P14 design/source contract before repair. Classify T8 as an interaction/affordance-state defect. It is non-blocking for completion of remaining P17 discovery.
+
 ## Relationship to open phone findings
 
-All earlier phone findings remain open where applicable, especially structured-damage checks 7–8 and the app-wide checkbox/responsive-layout family 17.1–17.3. Tablet T7 and phone 17.2/17.3 may ultimately share responsive-layout rules, but they are not collapsed into one root cause before source audit. T5 and T6 are cross-device product/control findings discovered during tablet QA rather than tablet-specific failures.
+All earlier phone findings remain open where applicable, especially structured-damage checks 7–8 and the app-wide checkbox/responsive-layout family 17.1–17.3. Tablet T7 and phone 17.2/17.3 may ultimately share responsive-layout rules, but they are not collapsed into one root cause before source audit. T5 and T6 are cross-device product/control findings discovered during tablet QA rather than tablet-specific failures. Batch 3 reproduced phone 17.1 on tablet, strengthening the evidence that the checkbox family is truly cross-device/systemic.
 
 P17 remains intentionally in progress before repair so tablet evidence can inform one coherent cross-device repair batch.
 
 ## Exact next action
 
-Continue P17 on the unchanged `preqa.12` candidate with Batch 3 covering representative non-spell editor/IME behavior, PC Settings responsiveness, Application Settings responsiveness, P15 Supercompact and P14 Table Mode. Preserve Batch 1 and Batch 2 evidence; do not rerun accepted checks merely because new findings were discovered.
+Continue P17 on the unchanged `preqa.12` candidate with a final discovery batch covering representative larger text/density behavior, a cold persistence/reopen check, and an independent Conjuros sticky-region check only if an existing character/source state makes that check possible without first repairing T5. Preserve all accepted evidence; do not rerun unrelated checks.
 
 Do not repair product code mid-P17 unless a newly discovered hard/systemic failure makes remaining tablet evidence meaningless. Phase 4A remains OPEN; DM implementation remains blocked pending explicit owner closure.
