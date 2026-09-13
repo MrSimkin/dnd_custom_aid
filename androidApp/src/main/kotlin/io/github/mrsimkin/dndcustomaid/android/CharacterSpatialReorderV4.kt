@@ -26,8 +26,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterReorderSlot
-import io.github.mrsimkin.dndcustomaid.shared.character.nearestCharacterReorderIndex
 import io.github.mrsimkin.dndcustomaid.shared.character.previewCharacterReorder
+import io.github.mrsimkin.dndcustomaid.shared.character.stableCharacterReorderTargetIndex
+import io.github.mrsimkin.dndcustomaid.shared.character.translateCharacterReorderSlotsY
 import kotlinx.coroutines.isActive
 import kotlin.math.abs
 import kotlin.math.min
@@ -37,8 +38,9 @@ import kotlin.math.min
  *
  * This is intentionally a pick-up-and-move interaction, not platform data drag-and-drop and not
  * the former threshold/index-step gesture. A collection owns one session. Items report their real
- * rendered bounds; the lifted item follows the pointer continuously while preview order is derived
- * from the nearest rendered slot. Canonical order is committed only when the gesture ends.
+ * rendered bounds before pickup; a stable drag-start slot snapshot then drives targeting while the
+ * lifted item follows the pointer continuously. Animated preview geometry is feedback only and is
+ * never fed back into target selection. Canonical order is committed only when the gesture ends.
  */
 @Stable
 internal class CharacterSpatialReorderStateV4 internal constructor(
@@ -46,6 +48,8 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
 ) {
     private var canonicalOrderSnapshot: List<String> = initialCanonicalOrder.distinct()
     private val itemBounds = mutableStateMapOf<String, Rect>()
+    private var stableDragSlots: List<CharacterReorderSlot> = emptyList()
+    private var stableTargetIndex: Int = -1
 
     var previewOrder: List<String> by mutableStateOf(canonicalOrderSnapshot)
         private set
@@ -91,7 +95,12 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
     fun registerBounds(id: String, bounds: Rect) {
         if (id !in previewOrder) return
         itemBounds[id] = bounds
-        if (active) retargetFromGeometry()
+        if (active && stableDragSlots.none { it.id == id }) {
+            // Lazy containers can compose a previously unseen card during auto-scroll. Add that
+            // newly rendered target once, but never overwrite drag-start slots with animated
+            // preview positions for cards that were already measured at pickup.
+            stableDragSlots = stableDragSlots + bounds.toCharacterReorderSlotV4(id)
+        }
     }
 
     fun unregisterBounds(id: String) {
@@ -107,6 +116,10 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         if (active || id !in previewOrder) return false
         val bounds = itemBounds[id] ?: return false
         canonicalOrderSnapshot = previewOrder.toList()
+        stableDragSlots = canonicalOrderSnapshot.mapNotNull { candidateId ->
+            itemBounds[candidateId]?.toCharacterReorderSlotV4(candidateId)
+        }
+        stableTargetIndex = canonicalOrderSnapshot.indexOf(id)
         draggedId = id
         sourceBounds = bounds
         dragDelta = Offset.Zero
@@ -119,7 +132,7 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         if (!active) return
         dragDelta += delta
         pointerInRoot = pointerInRoot?.plus(delta)
-        retargetFromGeometry()
+        retargetFromStableGeometry()
     }
 
     fun draggedTranslation(id: String): Offset {
@@ -154,24 +167,26 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         sourceBounds = null
         dragDelta = Offset.Zero
         pointerInRoot = null
+        stableDragSlots = emptyList()
+        stableTargetIndex = -1
         if (!keepPreview) previewOrder = canonicalOrderSnapshot
     }
 
-    private fun retargetFromGeometry() {
+    private fun retargetFromStableGeometry() {
         val dragged = draggedId ?: return
         val initial = sourceBounds ?: return
         val visualCenter = initial.center + dragDelta
-        val slots = itemBounds.map { (id, bounds) ->
-            CharacterReorderSlot(id = id, centerX = bounds.center.x, centerY = bounds.center.y)
-        }
-        val targetIndex = nearestCharacterReorderIndex(
-            order = previewOrder,
+        val targetIndex = stableCharacterReorderTargetIndex(
+            canonicalOrder = canonicalOrderSnapshot,
             draggedId = dragged,
             visualCenterX = visualCenter.x,
             visualCenterY = visualCenter.y,
-            renderedSlots = slots,
+            stableSlots = stableDragSlots,
+            currentTargetIndex = stableTargetIndex,
         )
-        val reordered = previewCharacterReorder(previewOrder, dragged, targetIndex)
+        if (targetIndex < 0) return
+        stableTargetIndex = targetIndex
+        val reordered = previewCharacterReorder(canonicalOrderSnapshot, dragged, targetIndex)
         if (reordered != previewOrder) {
             previewOrder = reordered
             onHaptic(CharacterHapticEventV4.DRAG_STEP)
@@ -207,9 +222,18 @@ internal class CharacterSpatialReorderStateV4 internal constructor(
         val minPerFrame = 2f * density
         val requested = direction * (minPerFrame + (maxPerFrame - minPerFrame) * proximity * proximity)
         val consumed = scroll(requested)
-        return abs(consumed) > 0.01f
+        if (abs(consumed) > 0.01f) {
+            // Positive scroll consumption moves list content upward in root coordinates.
+            stableDragSlots = translateCharacterReorderSlotsY(stableDragSlots, -consumed)
+            retargetFromStableGeometry()
+            return true
+        }
+        return false
     }
 }
+
+private fun Rect.toCharacterReorderSlotV4(id: String): CharacterReorderSlot =
+    CharacterReorderSlot(id = id, centerX = center.x, centerY = center.y)
 
 @Composable
 internal fun rememberCharacterSpatialReorderStateV4(
