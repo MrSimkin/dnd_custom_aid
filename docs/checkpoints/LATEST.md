@@ -3,66 +3,62 @@
 **Updated:** 2026-09-13  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
-**Last physical-evidence candidate:** `0.4.0-preqa.11 / 41100` — owner checks 1–7 + 9 PASS / check 8 FAIL  
-**Current engineering identity:** `0.4.0-preqa.12 / 41200` — transversal repair incorporated; exact versioned automation/artifact evidence pending freeze  
-**Acceptance boundary:** focused owner recheck of repaired full-app equivalent-control geometry, then resume remaining phone/tablet evidence  
+**Last physically tested candidate:** `0.4.0-preqa.11 / 41100` — checks 1–7 + 9 PASS / check 8 FAIL  
+**Current exact QA candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; focused physical geometry recheck pending  
+**Acceptance boundary:** repaired full-app equivalent-control geometry first; then remaining phone QA and P17 tablet QA  
 **Release status:** debug/development; NOT owner-accepted and NOT release-ready
 
 ## Resume here
 
-1. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_OWNER_PHONE_QA_PROGRESS.md` — preserved physical evidence plus completed transversal repair chain and next owner boundary.
-2. `docs/PROJECT_STATE.md` — live Player authority/current gate.
-3. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_QA_CANDIDATE.md` — prior exact candidate evidence and physical partial result.
-4. `scripts/check_player_control_geometry.py` — persistent guard preventing regression to raw Material field geometry or the old dice-sign button path.
-5. `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_P16_P4_REPAIR_PROGRESS.md` — earlier P16/P4 repair chain whose physical passes remain preserved.
-6. `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_REPAIR_DECISIONS.md` and `2026-09-11_PHASE4A_PREQA8_P16_LANDSCAPE_VERTICAL_SPACE_CLOSED.md` — controlling compact/usable-height principles.
+1. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — **exact current candidate/run/artifact/digest evidence and bounded owner recheck**.
+2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_OWNER_PHONE_QA_PROGRESS.md` — preserved physical PASS/FAIL plus repair handoff.
+3. `docs/PROJECT_STATE.md` — live Player authority/current gate.
+4. `scripts/check_player_control_geometry.py` — persistent guard against raw Material field-geometry regression and old dice-sign button path.
+5. `docs/checkpoints/2026-09-12_PHASE4A_PREQA11_QA_CANDIDATE.md` — prior candidate evidence; not current build.
+6. P16/P4 and repair-principle checkpoints from 2026-09-11/12 remain controlling where not superseded.
 
-## Physical PASS preserved — do not restart
+## What changed after preqa.11 check 8 failed
 
-Earlier `preqa.10` R1–R3 remains PASS.
+The owner required a transversal fix for repeated excessive vertical internal whitespace/padding in equivalent Player controls in portrait and landscape, not a screenshot-only repair. The `+ / −` structured-dice selector was included in that audit.
 
-On `preqa.11`, the owner reported **checks 1–7 OK and 9 OK; check 8 FAIL**. Preserve the PASS scope for portrait `Cantidad`, phone-landscape combined footprint, rotation sanity, standard/custom dice editing, incomplete-draft stability, numeric visibility, and Save/Cancel + valid persistence.
+Source inventory found **160 raw Material `OutlinedTextField` usages across 29 current Player files**. All are now routed through one shared compact field primitive. The editable single-line control still owns a safe 48dp+ interaction envelope; unnecessary internal visual whitespace is controlled by the shared decoration. The dice sign selector now uses a compact glyph surface inside a safe interaction envelope. Existing accepted custom compact controls remain untouched; cards/dialogs were not globally enlarged.
 
-The only reopened boundary from that owner session was the broader full-app equivalent-control vertical padding/spacing consistency illustrated by `Editar ataque o acción`, plus inspection of the structured-dice `+ / −` selector.
-
-## Transversal repair completed
-
-The 2026-09-13 audit found the systemic escape hatch: **160 raw Material `OutlinedTextField` usages across 29 current Player files** were not governed by a shared compact internal-padding policy.
-
-Repair outcome:
-
-- all 160 sites migrated to shared `CharacterCompactOutlinedTextFieldV4`;
-- actual editable single-line controls retain a safe 48dp+ interaction envelope while visual/internal whitespace is compacted;
-- current multiline/numeric/read-only/error/supporting-text semantics are preserved;
-- structured-dice `+ / −` now uses the shared compact glyph selector with a safe hit envelope;
-- cards/dialogs were not globally enlarged or indiscriminately resized;
-- regression guard is now part of normal Scaffold.
-
-Key product/guard commits: `087f6b9c…`, `cc187f46…`, `ac6794ea…`, `869e2052…`, cleanup `05c638f6…`.
-
-## Automated proof already green
+## Proof
 
 Focused repair run `34775917100`: **SUCCESS**.
 
-Cleaned pre-version aggregate at `05c638f67dfbb8504575b175feac9c520763e744`:
+Cleaned pre-version aggregate `05c638f67dfbb8504575b175feac9c520763e744`, Scaffold `34776384008`: **SUCCESS**.
 
-- Scaffold `34776384008` — **SUCCESS**;
-- backend typecheck — PASS;
+Exact `preqa.12` candidate:
+
+- commit `abfc7e4a1519a27117f194721a425d75cb5df68a`;
+- Scaffold `34776627282` — **SUCCESS**;
 - persistent geometry guard — PASS;
-- shared/Kotlin tests, Android assemble, desktop build — PASS;
-- APK upload — PASS.
+- backend + shared/Kotlin tests + Android assemble + desktop build + APK upload — PASS;
+- artifact ID `10323602038`, `dnd-custom-aid-debug-apk`;
+- ZIP `13,627,800` bytes;
+- GitHub digest / independent ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
+- APK `38,914,160` bytes, SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
+
+## Physical evidence preserved
+
+- earlier `preqa.10` R1–R3: PASS;
+- `preqa.11` checks 1–7 and 9: PASS;
+- `preqa.11` check 8: FAIL and is the boundary repaired by `preqa.12`;
+- `preqa.12`: no physical result yet.
 
 ## Exact next action
 
-The material repair requires a new monotonic candidate, now identified as `0.4.0-preqa.12 / 41200`.
+Install/test exact `preqa.12`. Do **not** restart the old nine-point list or broad QA from zero.
 
-Next:
+First recheck only:
 
-1. obtain aggregate Scaffold success for the exact versioned `preqa.12` commit;
-2. freeze exact commit/run/artifact/digest evidence in a new `preqa.12` QA-candidate checkpoint;
-3. synchronize this `LATEST.md`, `PROJECT_STATE.md`, and the owner-QA progress checkpoint with the frozen evidence;
-4. ask the owner to recheck **only the affected transversal geometry boundary first**: representative ordinary fields in portrait + landscape, the prior attack/action editor example, and the structured-dice `+ / −` selector, with quick editability/Save-Cancel sanity;
-5. preserve prior PASS; do not restart broad QA from zero;
-6. after this affected boundary physically passes, resume broader phone QA and then P17 tablet QA.
+1. representative ordinary labelled/editable Player fields in portrait, including `Editar ataque o acción`;
+2. equivalent fields in landscape;
+3. the structured-dice `+ / −` selector for compactness/alignment **and easy tapability**;
+4. quick text/numeric editability and optionally one multiline field;
+5. short Save/Cancel sanity in an affected editor.
+
+If this affected boundary passes, preserve all earlier PASS and resume remaining broad phone QA, then P17 tablet QA. If it fails, capture the specific remaining geometry and keep repair scope evidence-driven.
 
 No P18 exists. Phase 4A remains open. DM implementation remains blocked until explicit owner closure.

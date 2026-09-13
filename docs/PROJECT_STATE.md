@@ -3,86 +3,77 @@
 **Last verified:** 2026-09-13  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
-**Last physically tested candidate:** `0.4.0-preqa.11 / 41100` — owner checks 1–7 + 9 PASS / check 8 FAIL  
-**Current engineering identity:** `0.4.0-preqa.12 / 41200` — transversal geometry repair incorporated; exact versioned candidate automation/evidence to be frozen next  
-**Current phase:** automation-freeze `preqa.12`, then owner recheck of the affected transversal geometry boundary only  
+**Last physically tested candidate:** `0.4.0-preqa.11 / 41100` — checks 1–7 + 9 PASS / check 8 FAIL  
+**Current exact QA candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; physical geometry recheck pending  
+**Current phase:** focused owner recheck of repaired transversal equivalent-control geometry, then remaining phone QA and P17 tablet QA  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
 ## Authority / authorization
 
-This branch remains authoritative for the Player runtime and Phase 4A repairs. `main` remains intentionally divergent for global/Phase 5A/DM discovery and is not the latest Player runtime. Current work remains inside the durable P1–P17 repair/validation authorization. No P18 exists.
+This branch remains authoritative for current Player runtime and Phase 4A repairs. `main` remains intentionally divergent for global/Phase 5A/DM discovery and is not the latest Player runtime. Current work remains inside the durable P1–P17 repair/validation authorization. No P18 exists.
 
 ## Preserved physical evidence
 
-Do not restart valid physical evidence from scratch.
+Earlier `preqa.10` R1–R3 PASS remains valid.
 
-Earlier `preqa.10` R1–R3 PASS remains valid. On `preqa.11`, the owner physically reported **checks 1–7 and 9 PASS, check 8 FAIL**. The accepted tested scope includes:
+On `preqa.11`, the owner physically reported **checks 1–7 and 9 PASS, check 8 FAIL**. Preserve the PASS scope: portrait Combat `Cantidad`, phone-landscape shell footprint, rotation sanity, standard/custom dice editing, incomplete structured-damage edit stability, numeric clipping/visibility, and Save/Cancel + valid persistence.
 
-- portrait Combat `Cantidad` geometry;
-- phone-landscape shell combined footprint;
-- portrait↔landscape rotation sanity;
-- standard/custom dice editing;
-- incomplete structured-damage edit stability;
-- numeric clipping/visibility;
-- Save/Cancel and valid component persistence.
+Check 8 reopened only the broader full-app equivalent-control vertical padding/spacing boundary.
 
-Check 8 reopened only the broader full-app equivalent-control padding/spacing boundary.
+## Transversal geometry repair completed
 
-## Transversal geometry repair — implemented
+Full-app source inventory found **160 raw Material `OutlinedTextField` sites across 29 Player Kotlin files**. These bypassed a shared compact internal-padding policy, explaining recurrence outside previously repaired compact controls.
 
-The full-app source audit found **160 raw Material `OutlinedTextField` sites across 29 Player Kotlin files**. These bypassed any shared compact internal-padding policy, while older localized repairs and P9 dialog sizing existed separately. This split policy explained the recurrence.
+The accepted engineering repair now:
 
-The repair now:
-
-- routes all 160 raw Player fields through shared `CharacterCompactOutlinedTextFieldV4`;
-- keeps the actual editable single-line field at a safe 48dp+ interaction envelope while reducing unnecessary internal label/value whitespace;
-- preserves multiline growth, numeric keyboards, enabled/read-only/error/supporting/placeholder/prefix semantics used by current call sites;
+- routes all 160 sites through shared `CharacterCompactOutlinedTextFieldV4`;
+- gives the actual editable single-line control a safe 48dp+ interaction envelope while reducing unnecessary internal label/value whitespace;
+- preserves current multiline growth, numeric keyboard, enabled/read-only/error/supporting/placeholder/prefix semantics;
 - changes the structured-dice `+ / −` selector to the shared compact glyph grammar with a safe interaction envelope;
-- leaves accepted custom compact controls intact;
+- leaves already-accepted custom compact controls intact;
 - does not globally resize cards or enlarge dialogs.
 
-Key commits:
-
-- `087f6b9cd72b8bc376d9553d71be7ad48eb3a9ff` — shared compact field/glyph primitives;
-- `cc187f46efe73515953f84ad31b0162b208d86ea` — 160-site full-app migration + dice sign migration;
-- `ac6794ea64a3cefedb872e9047d5d1ece00266b7` — persistent geometry source guard;
-- `869e20526755b854f2711e319be1d4aed2ba38f6` — guard added to Scaffold;
-- `05c638f67dfbb8504575b175feac9c520763e744` — temporary repair workflow removed.
+Repair/guard chain: `087f6b9c…` → `cc187f46…` → `ac6794ea…` → `869e2052…` → cleanup `05c638f6…`.
 
 ## Automated proof
 
-Focused repair run `34775917100`: **SUCCESS**.
+Focused repair run `34775917100`: **SUCCESS**; geometry guard PASS (`compactFieldCount=160; rawMaterialFields=0; diceSign=shared-compact-glyph`) and Android assemble PASS.
 
-- migrated exactly 160 raw Material fields;
-- focused geometry guard: PASS (`compactFieldCount=160; rawMaterialFields=0; diceSign=shared-compact-glyph`);
-- focused Android assemble: PASS.
+Cleaned pre-version aggregate:
 
-Cleaned authoritative branch at `05c638f67dfbb8504575b175feac9c520763e744`:
+- commit `05c638f67dfbb8504575b175feac9c520763e744`;
+- Scaffold `34776384008` — **SUCCESS**.
 
-- Scaffold `34776384008`: **SUCCESS**;
-- backend typecheck: PASS;
-- persistent geometry guard: PASS;
-- shared desktop tests / Android assemble / desktop build: PASS;
-- APK upload: PASS.
+Exact versioned candidate:
 
-This is the pre-version aggregate proof for the new candidate.
+- versionName `0.4.0-preqa.12`;
+- versionCode `41200`;
+- candidate commit `abfc7e4a1519a27117f194721a425d75cb5df68a`;
+- Scaffold `34776627282` — **SUCCESS**;
+- backend typecheck, persistent geometry guard, shared/Kotlin tests, Android assemble, desktop build and APK upload all PASS.
 
-## Candidate state
+Artifact evidence:
 
-The product repair is material, so the candidate advances monotonically:
+- artifact `10323602038` / `dnd-custom-aid-debug-apk`;
+- ZIP size `13,627,800` bytes;
+- GitHub digest = independent ZIP SHA-256 = `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
+- APK size `38,914,160` bytes;
+- APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
 
-- versionName: `0.4.0-preqa.12`
-- versionCode: `41200`
-
-Do not call `preqa.12` automation-green or physically accepted until its exact versioned Scaffold run succeeds and its artifact evidence is frozen. `preqa.11` remains the last physically tested candidate.
+Controlling candidate checkpoint: `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md`.
 
 ## Exact next action
 
-1. run/observe normal Scaffold on the exact `preqa.12 / 41200` versioned commit;
-2. if green, freeze exact candidate commit, run, artifact ID/name/size, GitHub digest, independently verified ZIP SHA-256 and APK SHA-256 in a new candidate checkpoint;
-3. update this file, the owner-QA progress checkpoint and `docs/checkpoints/LATEST.md` with that frozen evidence;
-4. ask the owner for a focused physical recheck only of the transversal field/control geometry boundary in representative portrait + landscape surfaces and the structured-dice `+ / −` selector;
-5. preserve prior physical PASS unless contradictory evidence appears;
-6. only after the affected boundary passes resume broader phone QA, then P17 tablet QA.
+Do not restart broad QA from zero and do not start P17 yet.
+
+Owner first performs the bounded `preqa.12` affected-boundary recheck:
+
+1. representative ordinary labelled/editable fields in portrait, including the prior `Editar ataque o acción` example;
+2. representative equivalent fields in landscape;
+3. structured-dice `+ / −` selector visual compactness/alignment and tapability;
+4. quick editability sanity for representative text/numeric fields and, if convenient, one multiline field;
+5. short Save/Cancel sanity in an affected editor.
+
+If that boundary physically passes, record it while preserving earlier PASS, then resume remaining broad phone QA and afterward P17 tablet QA. If it fails, repair only evidence-backed remaining geometry rather than reopening unrelated functionality.
 
 Phase 4A remains open. Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change. DM implementation remains blocked until explicit owner acceptance/closure.
