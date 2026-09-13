@@ -74,14 +74,6 @@ jobs:
               raise SystemExit('Structured-dice sign selector no longer matches guarded source boundary')
           combat.write_text(text.replace(old, new), encoding='utf-8')
 
-          scaffold = pathlib.Path('.github/workflows/scaffold-check.yml')
-          text = scaffold.read_text(encoding='utf-8')
-          needle = '      - name: Prepare stable CI debug keystore\n        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore\n'
-          insert = '      - name: Guard compact Player control geometry\n        run: python3 scripts/check_player_control_geometry.py\n      - name: Prepare stable CI debug keystore\n        run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore\n'
-          if text.count(needle) != 1:
-              raise SystemExit('Scaffold guard insertion anchor is not unique')
-          scaffold.write_text(text.replace(needle, insert), encoding='utf-8')
-
           print(f'Migrated {migrated} raw Material fields across {len(touched)} Player files.')
           print('Touched:', ', '.join(touched))
           PY
@@ -103,7 +95,7 @@ jobs:
           git status --short
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android .github/workflows/scaffold-check.yml
+          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android
           if git diff --cached --quiet; then
             echo "No migration repair diff produced" >&2
             exit 1
