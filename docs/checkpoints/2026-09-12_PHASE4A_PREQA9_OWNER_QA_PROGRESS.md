@@ -1,12 +1,12 @@
-# Phase 4A — preqa.9 owner/device QA progress
+# Phase 4A — preqa.9 owner/device QA progress and repair handoff
 
 **Date:** 2026-09-12  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Candidate:** `0.4.0-preqa.9 / 40900`  
-**Candidate commit:** `cd0c203d337c062fa388010d300e875f2f54ced7`  
-**Status:** PHYSICAL OWNER QA FOUND BLOCKING SHARED DEFECTS / R1–R3 REPAIR IMPLEMENTED + R3 FEEDBACK TARGETING REGRESSION-LOCKED / AUTOMATION IN PROGRESS
+**Failed physical candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`  
+**New repaired candidate identity:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3`  
+**Status:** PREQA.9 PHYSICAL FAIL PRESERVED / R1–R3 AUTOMATION GREEN / PREQA.10 EXACT CANDIDATE QUALIFICATION IN PROGRESS
 
-## Physical evidence preserved
+## Physical evidence preserved from preqa.9
 
 ### Step 1 — update-in-place and persistence sanity — PASS
 
@@ -27,7 +27,9 @@ Physical findings:
 
 ### Step 2A — transversal presentation observation
 
-`Daño — Cantidad — Curar` was visibly out of proportion with surrounding Combate UI. This reopens the previously required transversal size/margin/padding consistency boundary; the owner should not have to enumerate the same class of presentation miss control by control.
+`Daño — Cantidad — Curar` was visibly out of proportion with surrounding Combate UI. This reopened the previously required transversal size/margin/padding consistency boundary; the owner should not have to enumerate the same class of presentation miss control by control.
+
+The owner and assistant explicitly agreed to stop exhaustive QA on known-bad `preqa.9`, preserve these observations as evidence, repair first, and resume on a new candidate.
 
 ## Controlling accepted P2 contract
 
@@ -46,32 +48,47 @@ Physical findings:
 
 - `da57a1c1e2fcb952892c75b3f1819954baaa5ce6` — normal General save uses canonical HP semantics; valid HP drafts flush canonically when leaving General; max/current/temp resynchronize together; transient/unparseable typing remains local.
 
-### R3 — P2 affected-state feedback + Combat control proportion — IMPLEMENTED + REGRESSION-LOCKED / AUTOMATION RUNNING
+### R3 — P2 affected-state feedback + Combat control proportion — IMPLEMENTED + REGRESSION-LOCKED + AUTOMATION GREEN
 
-Source/layout repair:
+- `cc452b156d43967d9eb794a661162c3f3a05f336` — restores short/subtle feedback around only affected inline HP metric(s), preserves haptics, and rebalances `Daño | cantidad | Curar` with symmetric action space, a narrower amount field and shared compact control height.
+- `ef051af8d2e36a3b765a80487afd9754d5a67e17` — shared deterministic `CharacterHpChangeImpact` classification (`NONE`, `HIT_POINTS`, `TEMPORARY_HP`, `BOTH`).
+- `ff06bdf1552268f9805c9ff4a3108a3675a22fe5` — Combat feedback consumes that shared classifier.
+- `ddd9d01dab4f0b45470174712a5c115de1112d90` — common regression tests lock no-change, PV-only, Temp-only and spillover/both targeting.
 
-- `cc452b156d43967d9eb794a661162c3f3a05f336` — restores short/subtle feedback around only the affected inline HP metric(s), keeps haptics, and rebalances `Daño | cantidad | Curar` with symmetric action space, a narrower amount field and shared compact control height.
+Exact regression-locked R3 product boundary: `ddd9d01dab4f0b45470174712a5c115de1112d90`.
 
-Regression hardening:
+Exact R3 qualification run: Scaffold `34730363231` — **SUCCESS**:
 
-- `ef051af8d2e36a3b765a80487afd9754d5a67e17` — introduces shared deterministic `CharacterHpChangeImpact` classification (`NONE`, `HIT_POINTS`, `TEMPORARY_HP`, `BOTH`).
-- `ff06bdf1552268f9805c9ff4a3108a3675a22fe5` — Combat feedback now consumes that shared classifier instead of duplicating before/after logic in UI code.
-- `ddd9d01dab4f0b45470174712a5c115de1112d90` — common regression tests lock no-change, PV-only, Temp-only and spillover/both feedback targeting.
+- backend typecheck: success;
+- Kotlin/shared tests and builds: success;
+- Android assemble: success;
+- Android debug APK upload: success.
 
-**Current exact R3 product boundary:** `ddd9d01dab4f0b45470174712a5c115de1112d90`.
+The earlier direct R3 source run `34730201935` on `cc452b15…` also completed fully green, confirming the Compose implementation itself builds/packages before the later regression hardening.
 
-**Current exact Scaffold run:** `34730363231` on that commit — IN PROGRESS at this checkpoint update.
+## New monotonic repaired candidate
 
-The earlier exact R3 source run `34730201935` on `cc452b15…` had backend SUCCESS while Kotlin was still running, but it is superseded as the qualification target by the later regression-locked product boundary above.
+After R1–R3 became automation-green, the Android identity was advanced monotonically:
+
+- versionName: `0.4.0-preqa.10`;
+- versionCode: `41000`;
+- exact candidate commit: `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` (`build: advance repaired QA candidate to preqa.10`);
+- exact candidate Scaffold run: `34730531791`.
+
+At this continuity update:
+
+- backend job: **SUCCESS**;
+- Kotlin/shared/Android aggregate job: **IN PROGRESS**;
+- therefore `preqa.10 / 41000` is **not yet handed off or declared qualified**;
+- artifact identity/digest must be captured only after this exact versioned run completes successfully.
 
 ## Gate effect
 
-`preqa.9 / 40900` remains a failed physical candidate. The owner and assistant explicitly agreed to stop exhaustive testing on it, preserve the observations, repair first, then resume on a new candidate.
-
-P17 tablet physical QA remains PAUSED. No P18 is created. DM implementation remains blocked pending explicit Phase 4A owner acceptance/closure.
+`preqa.9 / 40900` remains failed physical evidence only. P17 tablet physical QA remains PAUSED until the repaired candidate passes the focused owner phone boundary and no hard shared/systemic failure makes tablet evidence misleading. No P18 is created. DM implementation remains blocked pending explicit Phase 4A owner acceptance/closure.
 
 ## Exact next action
 
-1. finish exact Scaffold run `34730363231`; repair any failure rather than accepting R3 by inspection;
-2. after green R1–R3 validation, assign the next monotonic QA identity (`40900` must not be reused), package the exact candidate and record commit/run/artifact/digest evidence;
-3. resume focused owner phone QA on that repaired candidate before broader/tablet P17 evidence.
+1. finish exact candidate run `34730531791` on `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3`;
+2. if green, capture the exact workflow artifact ID, GitHub artifact digest and independently computed APK SHA-256; create/freeze the `preqa.10` QA-candidate checkpoint and advance live continuity;
+3. hand that exact APK to the owner for focused phone retest of the reopened P1/P2/presentation boundary;
+4. if that passes, resume the remaining targeted phone regression and representative P17 tablet QA according to the existing gate policy.
