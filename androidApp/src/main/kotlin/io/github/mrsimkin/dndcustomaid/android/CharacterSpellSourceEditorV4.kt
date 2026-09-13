@@ -10,7 +10,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -200,7 +199,7 @@ internal fun CharacterSpellSourceEditorV4(
             )
             CharacterSpellcastingOriginKind.RACE -> SpellOriginReadOnlyV4("Raza", background.race, "Configura Raza en Trasfondo antes de usar este origen.")
             CharacterSpellcastingOriginKind.BACKGROUND -> SpellOriginReadOnlyV4("Trasfondo", background.name, "Configura Trasfondo antes de usar este origen.")
-            CharacterSpellcastingOriginKind.OTHER -> OutlinedTextField(
+            CharacterSpellcastingOriginKind.OTHER -> CharacterCompactOutlinedTextFieldV4(
                 value = otherText,
                 onValueChange = { otherText = it },
                 label = { Text("Especificar origen") },
@@ -223,7 +222,7 @@ internal fun CharacterSpellSourceEditorV4(
         )
         CharacterCompactFieldRowV4(
             first = { modifier ->
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = saveAdjustmentText,
                     onValueChange = { saveAdjustmentText = normalizeCharacterSignedIntegerInput(it) },
                     label = { Text("Ajuste CD") },
@@ -233,7 +232,7 @@ internal fun CharacterSpellSourceEditorV4(
                 )
             },
             second = { modifier ->
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = attackAdjustmentText,
                     onValueChange = { attackAdjustmentText = normalizeCharacterSignedIntegerInput(it) },
                     label = { Text("Ajuste ataque") },

@@ -27,7 +27,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -877,7 +876,7 @@ private fun ClassOptionEditorFieldsH2(
     onNotesChange: (String) -> Unit,
     onActiveChange: (Boolean) -> Unit,
 ) {
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = name,
         onValueChange = onNameChange,
         modifier = Modifier.fillMaxWidth(),
@@ -916,14 +915,14 @@ private fun ClassOptionEditorFieldsH2(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = source,
             onValueChange = onSourceChange,
             modifier = Modifier.weight(1f),
             label = { Text("Fuente / procedencia") },
             singleLine = true,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = cost,
             onValueChange = onCostChange,
             modifier = Modifier.weight(1f),
@@ -931,7 +930,7 @@ private fun ClassOptionEditorFieldsH2(
             singleLine = true,
         )
     }
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = effect,
         onValueChange = onEffectChange,
         modifier = Modifier.fillMaxWidth(),
@@ -939,7 +938,7 @@ private fun ClassOptionEditorFieldsH2(
         minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 8,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = notes,
         onValueChange = onNotesChange,
         modifier = Modifier.fillMaxWidth(),

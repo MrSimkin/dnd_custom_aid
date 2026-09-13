@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -341,7 +340,7 @@ private fun SupercompactCombatSummaryV4(
                 enabled = liveControlsEnabled && hpAmountText.toIntOrNull()?.let { it > 0 } == true &&
                     (sheet.currentHp > 0 || sheet.tempHp > 0),
             ) { Text("Daño") }
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = hpAmountText,
                 onValueChange = onHpAmountChange,
                 modifier = Modifier.weight(1f),

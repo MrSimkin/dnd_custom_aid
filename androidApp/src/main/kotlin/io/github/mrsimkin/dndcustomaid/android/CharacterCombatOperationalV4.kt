@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -316,7 +315,7 @@ private fun CharacterExactHitPointsEditorV4(
     ) {
         CharacterCompactFieldRowV4(
             first = { modifier ->
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = currentText,
                     onValueChange = { currentText = normalizeCharacterUnsignedIntegerInput(it) },
                     modifier = modifier,
@@ -326,7 +325,7 @@ private fun CharacterExactHitPointsEditorV4(
                 )
             },
             second = { modifier ->
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = maxText,
                     onValueChange = { maxText = normalizeCharacterUnsignedIntegerInput(it) },
                     modifier = modifier,
@@ -360,7 +359,7 @@ private fun CharacterExactTemporaryHpEditorV4(
         onSave = { if (valid) onApply(requireNotNull(value)) },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = valueText,
             onValueChange = { valueText = normalizeCharacterUnsignedIntegerInput(it) },
             label = { Text("PV temporales") },

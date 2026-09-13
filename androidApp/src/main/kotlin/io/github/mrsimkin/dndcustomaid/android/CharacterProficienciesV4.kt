@@ -12,7 +12,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -249,7 +248,7 @@ private fun CharacterProficiencyEditorDialogV4(
                 }
             }
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = name,
             onValueChange = { name = it },
             label = { Text("Nombre") },
@@ -259,14 +258,14 @@ private fun CharacterProficiencyEditorDialogV4(
         CharacterInlineValidationMessage(
             if (name.isNotEmpty() && name.isBlank()) "El nombre no puede quedar vacío." else null,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = source,
             onValueChange = { source = it },
             label = { Text("Fuente opcional") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = { notes = it },
             label = { Text("Notas opcionales") },

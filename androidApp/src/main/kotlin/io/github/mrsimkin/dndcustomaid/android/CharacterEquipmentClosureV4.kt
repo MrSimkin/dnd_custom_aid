@@ -30,7 +30,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -605,14 +604,14 @@ internal fun CharacterEquipmentClosureTabV4(
             saveLabel = "Añadir",
             saveEnabled = customCurrencyName.trim().isNotEmpty() && amount != null,
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = customCurrencyName,
                 onValueChange = { customCurrencyName = it },
                 label = { Text("Nombre") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = customCurrencyAmount,
                 onValueChange = { customCurrencyAmount = sanitizeSignedF2(it) },
                 label = { Text("Cantidad") },
@@ -735,7 +734,7 @@ private fun EquipmentEditorPanelF3(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             ) {
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = name,
                     onValueChange = onNameChange,
                     label = { Text("Nombre") },
@@ -743,7 +742,7 @@ private fun EquipmentEditorPanelF3(
                     singleLine = true,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = quantity,
                         onValueChange = onQuantityChange,
                         label = { Text("Cantidad") },
@@ -751,7 +750,7 @@ private fun EquipmentEditorPanelF3(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = weight,
                         onValueChange = onWeightChange,
                         label = { Text("Peso/u. lb") },
@@ -766,7 +765,7 @@ private fun EquipmentEditorPanelF3(
                     Checkbox(checked = special, onCheckedChange = onSpecialChange)
                     Text("Especial")
                 }
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = location,
                     onValueChange = onLocationChange,
                     label = { Text("Contenedor / ubicación") },
@@ -787,7 +786,7 @@ private fun EquipmentEditorPanelF3(
                     onSelect = { onKindChange(CharacterConsumableKind.valueOf(it)) },
                 )
                 if (kind != CharacterConsumableKind.NONE) {
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = quickUse,
                         onValueChange = onQuickUseChange,
                         label = { Text("Descuento por uso") },
@@ -801,7 +800,7 @@ private fun EquipmentEditorPanelF3(
                         Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
                         Text("Sintonizado")
                     }
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = description,
                         onValueChange = onDescriptionChange,
                         label = { Text("Descripción especial") },
@@ -810,7 +809,7 @@ private fun EquipmentEditorPanelF3(
                         maxLines = 5,
                     )
                 }
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = notes,
                     onValueChange = onNotesChange,
                     label = { Text("Notas") },
@@ -876,9 +875,9 @@ private fun EquipmentEditorF2(
         onSave = onApply,
         saveEnabled = valid,
     ) {
-        OutlinedTextField(value = name, onValueChange = onNameChange, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = name, onValueChange = onNameChange, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = quantity,
                 onValueChange = onQuantityChange,
                 label = { Text("Cantidad") },
@@ -886,7 +885,7 @@ private fun EquipmentEditorF2(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = weight,
                 onValueChange = onWeightChange,
                 label = { Text("Peso/u. lb") },
@@ -901,7 +900,7 @@ private fun EquipmentEditorF2(
             Checkbox(checked = special, onCheckedChange = onSpecialChange)
             Text("Equipo especial")
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = location,
             onValueChange = onLocationChange,
             label = { Text("Contenedor / ubicación (opcional)") },
@@ -923,7 +922,7 @@ private fun EquipmentEditorF2(
             onSelect = { onKindChange(CharacterConsumableKind.valueOf(it)) },
         )
         if (kind != CharacterConsumableKind.NONE) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = quickUse,
                 onValueChange = onQuickUseChange,
                 label = { Text("Descuento por uso") },
@@ -937,7 +936,7 @@ private fun EquipmentEditorF2(
                 Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
                 Text("Sintonizado")
             }
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = description,
                 onValueChange = onDescriptionChange,
                 label = { Text("Descripción especial") },
@@ -946,7 +945,7 @@ private fun EquipmentEditorF2(
                 maxLines = 5,
             )
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = onNotesChange,
             label = { Text("Notas") },
@@ -1136,7 +1135,7 @@ private fun EquipmentValuablesG1(
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
         ) {
             Text("Gemas / arte", style = MaterialTheme.typography.titleSmall)
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = value,
                 onValueChange = { if (editingEnabled) onValueChange(it) },
                 readOnly = !editingEnabled,

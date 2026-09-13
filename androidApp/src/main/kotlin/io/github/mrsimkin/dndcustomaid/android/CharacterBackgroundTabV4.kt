@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -157,7 +156,7 @@ internal fun CharacterBackgroundTabV4(
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                 ) {
                     Text("Trasfondo", style = MaterialTheme.typography.titleSmall)
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = background.name,
                         onValueChange = { value ->
                             onBackgroundChange(background.copy(name = value))
@@ -172,7 +171,7 @@ internal fun CharacterBackgroundTabV4(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     ) {
-                        OutlinedTextField(
+                        CharacterCompactOutlinedTextFieldV4(
                             value = background.race,
                             onValueChange = { value ->
                                 onBackgroundChange(background.copy(race = value))
@@ -183,7 +182,7 @@ internal fun CharacterBackgroundTabV4(
                             label = { Text("Raza") },
                             singleLine = true,
                         )
-                        OutlinedTextField(
+                        CharacterCompactOutlinedTextFieldV4(
                             value = canonicalOrigins.subraceIdentity?.name.orEmpty(),
                             onValueChange = { value ->
                                 onCanonicalOriginsChange(canonicalOrigins.withSubraceName(value))
@@ -199,7 +198,7 @@ internal fun CharacterBackgroundTabV4(
                             },
                         )
                     }
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = background.religionFaith,
                         onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
                         enabled = structuralEditingEnabled,
@@ -207,7 +206,7 @@ internal fun CharacterBackgroundTabV4(
                         label = { Text("Religión / Fe") },
                         singleLine = true,
                     )
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = background.summary,
                         onValueChange = { onBackgroundChange(background.copy(summary = it)) },
                         enabled = structuralEditingEnabled,
@@ -315,7 +314,7 @@ internal fun CharacterBackgroundTabV4(
                         }
                     }
                     if (storyExpanded) {
-                        OutlinedTextField(
+                        CharacterCompactOutlinedTextFieldV4(
                             value = background.story,
                             onValueChange = { onBackgroundChange(background.copy(story = it)) },
                             enabled = structuralEditingEnabled,
@@ -360,7 +359,7 @@ internal fun CharacterBackgroundTabV4(
                 editingFieldName = null
             },
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = editorText,
                 onValueChange = { editorText = it },
                 modifier = Modifier.fillMaxWidth(),

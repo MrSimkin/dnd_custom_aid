@@ -22,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -356,7 +355,7 @@ private fun CreateCampaignDialog(
         onDismissRequest = onDismiss,
         title = { Text("Nueva campaña") },
         text = {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nombre de la campaña") },

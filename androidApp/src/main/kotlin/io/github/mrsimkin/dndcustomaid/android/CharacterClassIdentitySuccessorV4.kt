@@ -426,7 +426,7 @@ private fun CompactLabeledTextInputSuccessorV4(
 ) {
     Column {
         Text(label, style = MaterialTheme.typography.labelSmall)
-        androidx.compose.material3.OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
@@ -445,7 +445,7 @@ private fun CompactLabeledNumberInputSuccessorV4(
 ) {
     Column(modifier = modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1)
-        androidx.compose.material3.OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),

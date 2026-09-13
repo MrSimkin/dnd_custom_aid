@@ -31,7 +31,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -986,7 +985,7 @@ private fun SpellEditorFieldsG2(
     onAssociationChange: (Uuid, Boolean) -> Unit,
     onPreparedChange: (Uuid, Boolean) -> Unit,
 ) {
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = name,
         onValueChange = onNameChange,
         label = { Text("Nombre") },
@@ -997,7 +996,7 @@ private fun SpellEditorFieldsG2(
         firstWeight = 0.65f,
         secondWeight = 1.35f,
         first = { fieldModifier ->
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = level,
                 onValueChange = onLevelChange,
                 label = { Text("Nivel (0-9)") },
@@ -1007,7 +1006,7 @@ private fun SpellEditorFieldsG2(
             )
         },
         second = { fieldModifier ->
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = castingTime,
                 onValueChange = onCastingTimeChange,
                 label = { Text("Tiempo de lanzamiento") },
@@ -1018,7 +1017,7 @@ private fun SpellEditorFieldsG2(
     )
     CharacterCompactFieldRowV4(
         first = { fieldModifier ->
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = rangeText,
                 onValueChange = onRangeTextChange,
                 label = { Text("Alcance") },
@@ -1027,7 +1026,7 @@ private fun SpellEditorFieldsG2(
             )
         },
         second = { fieldModifier ->
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = duration,
                 onValueChange = onDurationChange,
                 label = { Text("Duración") },
@@ -1060,7 +1059,7 @@ private fun SpellEditorFieldsG2(
         Checkbox(material, onMaterialChange); Text("M")
     }
     if (material) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = materialText,
             onValueChange = onMaterialTextChange,
             label = { Text("Componente material (opcional)") },
@@ -1073,7 +1072,7 @@ private fun SpellEditorFieldsG2(
         Checkbox(concentration, onConcentrationChange); Text("Concentración")
         Checkbox(ritual, onRitualChange); Text("Ritual")
     }
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = description,
         onValueChange = onDescriptionChange,
         label = { Text("Descripción") },
@@ -1081,7 +1080,7 @@ private fun SpellEditorFieldsG2(
         minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 5,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = notes,
         onValueChange = onNotesChange,
         label = { Text("Notas (opcional)") },

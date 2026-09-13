@@ -28,7 +28,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -1092,7 +1091,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                     )
                 }
 
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = "Texto libre para historia, notas o descripciones largas.",
                     onValueChange = {},
                     readOnly = true,

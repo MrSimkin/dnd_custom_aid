@@ -19,7 +19,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -934,7 +933,7 @@ private fun SuccessorConditionEditorDialogV4(
             )
         }
         if (catalogEntry == null) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Condición") },
@@ -945,7 +944,7 @@ private fun SuccessorConditionEditorDialogV4(
             catalogEntry.helpText?.let { CharacterHelpV4(it) }
             Text("Fuente de catálogo: ${catalogEntry.sourceIdentity}", style = MaterialTheme.typography.labelSmall)
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = { notes = it },
             label = { Text("Notas") },
@@ -977,8 +976,8 @@ private fun SuccessorConcentrationEditorDialogV4(
         },
         saveEnabled = name.trim().isNotEmpty(),
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Conjuro o efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Conjuro o efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1076,7 +1075,7 @@ private fun SuccessorResourceEditorDialogV4(
         saveEnabled = valid,
         supportingText = "Un recurso conserva un solo valor canónico aunque se muestre en varias pestañas. La recuperación manual o ambigua nunca se aplica sola.",
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
 
         ManagementChoiceDropdownV4(
             label = "Tipo",
@@ -1093,7 +1092,7 @@ private fun SuccessorResourceEditorDialogV4(
                 }
             }
             CharacterTrackableValueKind.COUNTER -> {
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     currentText,
                     { currentText = it.filter(Char::isDigit) },
                     label = { Text("Actual") },
@@ -1104,7 +1103,7 @@ private fun SuccessorResourceEditorDialogV4(
             }
             CharacterTrackableValueKind.CURRENT_MAX -> {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         currentText,
                         { currentText = it.filter(Char::isDigit) },
                         label = { Text("Actual") },
@@ -1112,7 +1111,7 @@ private fun SuccessorResourceEditorDialogV4(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         maxText,
                         { maxText = it.filter(Char::isDigit) },
                         label = { Text("Máximo") },
@@ -1167,7 +1166,7 @@ private fun SuccessorResourceEditorDialogV4(
             }
         }
         if (automaticCadence && amountMode == CharacterRecoveryAmountMode.FIXED) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 fixedText,
                 { fixedText = it.filter(Char::isDigit) },
                 label = { Text("Cantidad fija") },
@@ -1179,7 +1178,7 @@ private fun SuccessorResourceEditorDialogV4(
         if (automaticCadence && amountMode == CharacterRecoveryAmountMode.TO_MAX && kind == CharacterTrackableValueKind.COUNTER) {
             Text("Este contador no tiene máximo: el descanso lo mostrará para revisión, sin cambio automático.", style = MaterialTheme.typography.labelSmall)
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             recoveryDescription,
             { recoveryDescription = it },
             label = { Text("Descripción de recuperación") },
@@ -1187,7 +1186,7 @@ private fun SuccessorResourceEditorDialogV4(
             singleLine = true,
         )
         if (cadence != CharacterRecoveryCadence.NONE) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 recoveryNotes,
                 { recoveryNotes = it },
                 label = { Text("Nota del descanso") },
@@ -1195,7 +1194,7 @@ private fun SuccessorResourceEditorDialogV4(
                 minLines = characterCompactTextAreaMinLinesV4(2),
             )
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1258,14 +1257,14 @@ private fun SuccessorTemporaryEffectEditorDialogV4(
         },
         saveEnabled = name.trim().isNotEmpty(),
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(summary, { summary = it }, label = { Text("Resumen / modificador") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(duration, { duration = it }, label = { Text("Duración") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(summary, { summary = it }, label = { Text("Resumen / modificador") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(duration, { duration = it }, label = { Text("Duración") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Activo")
             Switch(checked = active, onCheckedChange = { active = it })
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -1299,8 +1298,8 @@ private fun SuccessorReconciliationEditorDialogV4(
         onSave = { onSave(label, notes) },
         saveLabel = "Crear",
     ) {
-        OutlinedTextField(label, { label = it }, label = { Text("Etiqueta") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(label, { label = it }, label = { Text("Etiqueta") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

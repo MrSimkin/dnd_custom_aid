@@ -23,7 +23,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -454,7 +453,7 @@ private fun CombatEntryEditorDialogV4(
         onSave = onApply,
         saveEnabled = valid,
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = name,
             onValueChange = onNameChange,
             label = { Text("Nombre") },
@@ -490,7 +489,7 @@ private fun CombatEntryEditorDialogV4(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = attackModifier,
                 onValueChange = onAttackModifierChange,
                 label = { Text("Ataque (opcional)") },
@@ -498,7 +497,7 @@ private fun CombatEntryEditorDialogV4(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = range,
                 onValueChange = onRangeChange,
                 label = { Text("Alcance (opcional)") },
@@ -506,7 +505,7 @@ private fun CombatEntryEditorDialogV4(
                 singleLine = true,
             )
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = damageEffect,
             onValueChange = onDamageEffectChange,
             label = { Text("Daño / efecto") },
@@ -514,7 +513,7 @@ private fun CombatEntryEditorDialogV4(
             minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 4,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = onNotesChange,
             label = { Text("Notas (opcional)") },

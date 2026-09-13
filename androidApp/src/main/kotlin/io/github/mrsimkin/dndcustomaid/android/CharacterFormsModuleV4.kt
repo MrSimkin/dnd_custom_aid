@@ -24,7 +24,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -700,7 +699,7 @@ private fun FormEditorFieldsH1(
     onActionsChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
 ) {
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = name,
         onValueChange = onNameChange,
         modifier = Modifier.fillMaxWidth(),
@@ -712,14 +711,14 @@ private fun FormEditorFieldsH1(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = source,
             onValueChange = onSourceChange,
             modifier = Modifier.weight(1.6f),
             label = { Text("Fuente / procedencia") },
             singleLine = true,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = cr,
             onValueChange = onCrChange,
             modifier = Modifier.weight(1f),
@@ -731,7 +730,7 @@ private fun FormEditorFieldsH1(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = armorClass,
             onValueChange = onArmorClassChange,
             modifier = Modifier.weight(1f),
@@ -739,7 +738,7 @@ private fun FormEditorFieldsH1(
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = hitPoints,
             onValueChange = onHitPointsChange,
             modifier = Modifier.weight(1f),
@@ -748,14 +747,14 @@ private fun FormEditorFieldsH1(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
     }
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = movement,
         onValueChange = onMovementChange,
         modifier = Modifier.fillMaxWidth(),
         label = { Text("Movimiento") },
         singleLine = true,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = senses,
         onValueChange = onSensesChange,
         modifier = Modifier.fillMaxWidth(),
@@ -763,7 +762,7 @@ private fun FormEditorFieldsH1(
         minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 4,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = actions,
         onValueChange = onActionsChange,
         modifier = Modifier.fillMaxWidth(),
@@ -771,7 +770,7 @@ private fun FormEditorFieldsH1(
         minLines = characterCompactTextAreaMinLinesV4(3),
         maxLines = 10,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = notes,
         onValueChange = onNotesChange,
         modifier = Modifier.fillMaxWidth(),

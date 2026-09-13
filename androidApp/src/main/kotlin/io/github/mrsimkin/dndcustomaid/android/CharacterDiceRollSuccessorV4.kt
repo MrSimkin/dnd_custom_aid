@@ -16,7 +16,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -174,7 +173,7 @@ internal fun CharacterDiceRollSuccessorTabV4(
                 }
 
                 if (selected?.category == CharacterDiceTargetCategory.CUSTOM) {
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = customModifierText,
                         onValueChange = { customModifierText = sanitizeSignedIntegerInputV4(it) },
                         modifier = Modifier.fillMaxWidth(),

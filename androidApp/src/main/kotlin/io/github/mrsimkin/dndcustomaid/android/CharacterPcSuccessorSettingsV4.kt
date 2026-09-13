@@ -11,7 +11,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -450,19 +449,19 @@ private fun CustomAttributeEditorDialogV4(
         },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 abbreviation,
                 { abbreviation = it.take(8) },
                 label = { Text("Abreviatura") },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 scoreText,
                 { raw -> scoreText = raw.filter(Char::isDigit) },
                 label = { Text("Puntuación") },
@@ -474,7 +473,7 @@ private fun CustomAttributeEditorDialogV4(
         SettingsSwitchRowV4("Tirada de salvación", saveEnabled) { saveEnabled = it }
         if (saveEnabled) {
             SettingsSwitchRowV4("Competencia en salvación", saveProficient) { saveProficient = it }
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 adjustmentText,
                 { adjustmentText = sanitizeSignedSettingsIntV4(it) },
                 label = { Text("Ajuste adicional de salvación") },
@@ -483,7 +482,7 @@ private fun CustomAttributeEditorDialogV4(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -527,7 +526,7 @@ private fun CustomSkillSettingsEditorDialogV4(
         },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         SettingsChoiceDropdownV4(
             label = "Característica",
             current = abilityReferenceLabelV4(reference, customAttributes),
@@ -545,7 +544,7 @@ private fun CustomSkillSettingsEditorDialogV4(
             options = SkillTraining.entries.map { it.name to trainingLabelSettingsV4(it) },
             onSelect = { trainingName = it },
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             adjustmentText,
             { adjustmentText = sanitizeSignedSettingsIntV4(it) },
             label = { Text("Ajuste adicional") },
@@ -553,7 +552,7 @@ private fun CustomSkillSettingsEditorDialogV4(
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -612,7 +611,7 @@ private fun CustomMarkerEditorDialogV4(
         },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         SettingsChoiceDropdownV4(
             label = "Tipo",
             current = markerKindLabelV4(kind),
@@ -620,7 +619,7 @@ private fun CustomMarkerEditorDialogV4(
             onSelect = { kindName = it },
         )
         if (kind == CharacterTrackableValueKind.CURRENT_MAX) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 maxText,
                 { raw -> maxText = raw.filter(Char::isDigit) },
                 label = { Text("Máximo") },
@@ -642,7 +641,7 @@ private fun CustomMarkerEditorDialogV4(
             onSelect = { amountModeName = it },
         )
         if (amountMode == CharacterRecoveryAmountMode.FIXED) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 fixedText,
                 { raw -> fixedText = raw.filter(Char::isDigit) },
                 label = { Text("Cantidad fija") },
@@ -651,7 +650,7 @@ private fun CustomMarkerEditorDialogV4(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

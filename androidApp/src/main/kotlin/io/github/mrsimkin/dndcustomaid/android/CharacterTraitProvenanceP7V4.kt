@@ -6,7 +6,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -374,7 +373,7 @@ internal fun CharacterTraitProvenanceEditorP7V4(
                 )
             }
         } else {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = provenance.freeText.orEmpty(),
                 onValueChange = { value ->
                     onChange(provenance.copy(targetId = null, freeText = value))

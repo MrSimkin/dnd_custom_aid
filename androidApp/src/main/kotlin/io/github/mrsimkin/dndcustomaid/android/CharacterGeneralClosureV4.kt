@@ -21,7 +21,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -415,9 +414,9 @@ private fun DefenseEditorDialogV4(
         saveEnabled = name.trim().isNotEmpty(),
     ) {
         EnumDropdownV4("Tipo", defenseTypeLabelV4(type), CharacterDefenseType.entries.map { it.name to defenseTypeLabelV4(it) }) { typeName = it }
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Daño / efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(value = name, onValueChange = { name = it }, label = { Text("Daño / efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -438,14 +437,14 @@ private fun SenseEditorDialogV4(existing: CharacterSense?, onDismiss: () -> Unit
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Sentido") },
                 modifier = Modifier.weight(1.25f),
                 singleLine = true,
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = range,
                 onValueChange = { range = it.filter(Char::isDigit) },
                 label = { Text("Alcance (pies)") },
@@ -453,7 +452,7 @@ private fun SenseEditorDialogV4(existing: CharacterSense?, onDismiss: () -> Unit
                 singleLine = true,
             )
         }
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -477,14 +476,14 @@ private fun MovementEditorDialogV4(existing: CharacterMovement?, onDismiss: () -
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nombre") },
                 modifier = Modifier.weight(1.25f),
                 singleLine = true,
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = speed,
                 onValueChange = { speed = it.filter(Char::isDigit) },
                 label = { Text("Velocidad (pies)") },
@@ -492,7 +491,7 @@ private fun MovementEditorDialogV4(existing: CharacterMovement?, onDismiss: () -
                 singleLine = true,
             )
         }
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
+        CharacterCompactOutlinedTextFieldV4(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

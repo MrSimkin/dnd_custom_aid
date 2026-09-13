@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -200,7 +199,7 @@ internal fun CharacterNotesTabV4(
                     ) {
                         Text("Notas generales", style = MaterialTheme.typography.titleSmall)
                         CharacterHelpV4("Espacio libre para cualquier información que quieras conservar en la ficha.")
-                        OutlinedTextField(
+                        CharacterCompactOutlinedTextFieldV4(
                             value = draft.generalNotes,
                             onValueChange = { onDraftChange(draft.copy(generalNotes = it)) },
                             enabled = structuralEditingEnabled,
@@ -445,7 +444,7 @@ private fun CharacterNoteEditorDialogV4(
         saveLabel = "Guardar",
         saveEnabled = valid,
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = noteTitle,
             onValueChange = onTitleChange,
             label = { Text("Título") },
@@ -455,7 +454,7 @@ private fun CharacterNoteEditorDialogV4(
         CharacterInlineValidationMessage(
             if (noteTitle.isNotEmpty() && noteTitle.trim().isEmpty()) "Escribe un título para guardar la nota." else null,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = content,
             onValueChange = onContentChange,
             label = { Text("Contenido") },

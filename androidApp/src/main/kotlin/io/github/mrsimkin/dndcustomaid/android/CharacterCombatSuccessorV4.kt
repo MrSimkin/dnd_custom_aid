@@ -24,7 +24,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -319,7 +318,7 @@ internal fun CharacterCombatSuccessorTabV4(
             },
             saveEnabled = valid,
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = editorName,
                 onValueChange = { editorName = it },
                 modifier = Modifier.fillMaxWidth(),
@@ -336,7 +335,7 @@ internal fun CharacterCombatSuccessorTabV4(
                     onSelected = { editorType = it.name },
                     modifier = Modifier.weight(1f),
                 )
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = editorAttackModifier,
                     onValueChange = { editorAttackModifier = sanitizeSignedIntegerInputV4(it) },
                     modifier = Modifier.weight(1f),
@@ -344,7 +343,7 @@ internal fun CharacterCombatSuccessorTabV4(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = editorRange,
                     onValueChange = { editorRange = it },
                     modifier = Modifier.weight(1.2f),
@@ -404,7 +403,7 @@ internal fun CharacterCombatSuccessorTabV4(
                     else -> null
                 },
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = editorNotes,
                 onValueChange = { editorNotes = it },
                 modifier = Modifier.fillMaxWidth(),
@@ -637,7 +636,7 @@ private fun CharacterDamageComponentEditorRowV4(
             when (component.kind) {
                 CharacterDamageComponentKind.DICE -> DiceDamageFieldsV4(component = component, onChange = onChange)
                 CharacterDamageComponentKind.FLAT -> FlatDamageFieldsV4(component = component, onChange = onChange)
-                CharacterDamageComponentKind.TEXT -> OutlinedTextField(
+                CharacterDamageComponentKind.TEXT -> CharacterCompactOutlinedTextFieldV4(
                     value = component.expression,
                     onValueChange = { onChange(component.copy(expression = it)) },
                     modifier = Modifier.fillMaxWidth(),
@@ -712,9 +711,11 @@ private fun DiceDamageFieldsV4(
     ) {
         var signExpanded by remember { mutableStateOf(false) }
         Box(modifier = Modifier.weight(0.55f)) {
-            OutlinedButton(onClick = { signExpanded = true }, modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()), contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)) {
-                Text(if (parsed.negativeDice) "−" else "+")
-            }
+            CharacterCompactGlyphSelectorV4(
+                glyph = if (parsed.negativeDice) "−" else "+",
+                onClick = { signExpanded = true },
+                modifier = Modifier.fillMaxWidth(),
+            )
             DropdownMenu(expanded = signExpanded, onDismissRequest = { signExpanded = false }) {
                 listOf(false to "+", true to "−").forEach { (negative, label) ->
                     DropdownMenuItem(

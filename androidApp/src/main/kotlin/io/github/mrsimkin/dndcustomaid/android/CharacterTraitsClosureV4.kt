@@ -25,7 +25,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -809,7 +808,7 @@ private fun TraitEditorDialogG1(
         onSave = onApply,
         saveEnabled = valid,
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = name,
             onValueChange = onNameChange,
             label = { Text("Nombre") },
@@ -848,7 +847,7 @@ private fun TraitEditorDialogG1(
                 }
             }
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = description,
             onValueChange = onDescriptionChange,
             label = { Text("Descripción") },
@@ -856,7 +855,7 @@ private fun TraitEditorDialogG1(
             minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 7,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = onNotesChange,
             label = { Text("Notas") },
@@ -865,7 +864,7 @@ private fun TraitEditorDialogG1(
             maxLines = 5,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = maxUses,
                 onValueChange = onMaxUsesChange,
                 label = { Text("Usos máximos") },
@@ -873,7 +872,7 @@ private fun TraitEditorDialogG1(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = spentUses,
                 onValueChange = onSpentUsesChange,
                 label = { Text("Gastados") },
@@ -883,7 +882,7 @@ private fun TraitEditorDialogG1(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = recovery,
             onValueChange = onRecoveryChange,
             label = { Text("Recuperación") },

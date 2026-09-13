@@ -28,7 +28,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -796,7 +795,7 @@ private fun CompanionEditorFieldsH3(
     onNotesChange: (String) -> Unit,
     onActiveChange: (Boolean) -> Unit,
 ) {
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = name,
         onValueChange = onNameChange,
         modifier = Modifier.fillMaxWidth(),
@@ -813,7 +812,7 @@ private fun CompanionEditorFieldsH3(
         onSelectedClassIdChange = onLinkedClassIdChange,
     )
 
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = kind,
         onValueChange = onKindChange,
         modifier = Modifier.fillMaxWidth(),
@@ -821,7 +820,7 @@ private fun CompanionEditorFieldsH3(
         supportingText = { Text("Libre: bestia, constructo, espíritu, familiar, etc.") },
         singleLine = true,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = source,
         onValueChange = onSourceChange,
         modifier = Modifier.fillMaxWidth(),
@@ -862,14 +861,14 @@ private fun CompanionEditorFieldsH3(
         )
     }
 
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = speed,
         onValueChange = onSpeedChange,
         modifier = Modifier.fillMaxWidth(),
         label = { Text("Velocidad / movimiento") },
         singleLine = true,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = abilitySummary,
         onValueChange = onAbilitySummaryChange,
         modifier = Modifier.fillMaxWidth(),
@@ -877,7 +876,7 @@ private fun CompanionEditorFieldsH3(
         minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 6,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = sensesProficiencies,
         onValueChange = onSensesProficienciesChange,
         modifier = Modifier.fillMaxWidth(),
@@ -885,7 +884,7 @@ private fun CompanionEditorFieldsH3(
         minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 6,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = traitsActions,
         onValueChange = onTraitsActionsChange,
         modifier = Modifier.fillMaxWidth(),
@@ -893,7 +892,7 @@ private fun CompanionEditorFieldsH3(
         minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 9,
     )
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = notes,
         onValueChange = onNotesChange,
         modifier = Modifier.fillMaxWidth(),
@@ -916,7 +915,7 @@ private fun CompanionNumericFieldH3(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
