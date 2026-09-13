@@ -572,39 +572,71 @@ private fun CharacterCombatTypeSelectorV4(
     }
 }
 
+private enum class CharacterDiceModifierSignV4(
+    val token: String,
+    val glyph: String,
+) {
+    NONE("", "±"),
+    PLUS("+", "+"),
+    MINUS("-", "−"),
+}
+
 private data class CharacterDiceComponentDraftV4(
-    val negativeDice: Boolean,
     val quantity: String,
     val sides: String,
-    val modifier: String,
+    val modifierSign: CharacterDiceModifierSignV4,
+    val modifierMagnitude: String,
 )
 
-// Deliberately accepts incomplete editing tokens such as `1d`, `d8` and `1d8-`.
+// Deliberately accepts incomplete editing tokens such as `1d`, `d8`, `1d8+` and `1d8-`.
 // Save-time validation remains strict; this parser only prevents recomposition from erasing
 // neighboring structured controls while the owner is still editing one part.
-private val DICE_COMPONENT_DRAFT_REGEX_V4 = Regex("^([+-]?)([0-9]*)[dD]([0-9]*)([+-][0-9]*)?$")
+private val DICE_COMPONENT_DRAFT_REGEX_V4 = Regex("^([0-9]*)[dD]([0-9]*)(?:([+-])([0-9]*))?$")
 
 private fun parseDiceComponentDraftV4(expression: String): CharacterDiceComponentDraftV4 {
     val match = DICE_COMPONENT_DRAFT_REGEX_V4.matchEntire(expression.trim())
     return if (match == null) {
-        CharacterDiceComponentDraftV4(false, "", "", "")
+        CharacterDiceComponentDraftV4("", "", CharacterDiceModifierSignV4.NONE, "")
     } else {
+        val sign = when (match.groupValues[3]) {
+            "+" -> CharacterDiceModifierSignV4.PLUS
+            "-" -> CharacterDiceModifierSignV4.MINUS
+            else -> CharacterDiceModifierSignV4.NONE
+        }
         CharacterDiceComponentDraftV4(
-            negativeDice = match.groupValues[1] == "-",
-            quantity = match.groupValues[2],
-            sides = match.groupValues[3],
-            modifier = match.groupValues[4],
+            quantity = match.groupValues[1],
+            sides = match.groupValues[2],
+            modifierSign = sign,
+            modifierMagnitude = match.groupValues[4],
         )
     }
 }
 
 private fun buildDiceComponentExpressionV4(draft: CharacterDiceComponentDraftV4): String = buildString {
-    if (draft.negativeDice) append('-')
     append(draft.quantity)
     append('d')
     append(draft.sides)
-    append(draft.modifier)
+    if (draft.modifierSign != CharacterDiceModifierSignV4.NONE) {
+        append(draft.modifierSign.token)
+        append(draft.modifierMagnitude)
+    }
 }
+
+private fun nextDiceModifierSignV4(draft: CharacterDiceComponentDraftV4): CharacterDiceModifierSignV4 =
+    if (draft.modifierMagnitude.isNotEmpty()) {
+        when (draft.modifierSign) {
+            CharacterDiceModifierSignV4.MINUS -> CharacterDiceModifierSignV4.PLUS
+            CharacterDiceModifierSignV4.NONE,
+            CharacterDiceModifierSignV4.PLUS,
+            -> CharacterDiceModifierSignV4.MINUS
+        }
+    } else {
+        when (draft.modifierSign) {
+            CharacterDiceModifierSignV4.NONE -> CharacterDiceModifierSignV4.PLUS
+            CharacterDiceModifierSignV4.PLUS -> CharacterDiceModifierSignV4.MINUS
+            CharacterDiceModifierSignV4.MINUS -> CharacterDiceModifierSignV4.NONE
+        }
+    }
 
 @Composable
 private fun CharacterDamageComponentEditorRowV4(
@@ -709,25 +741,13 @@ private fun DiceDamageFieldsV4(
         horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        var signExpanded by remember { mutableStateOf(false) }
-        Box(modifier = Modifier.weight(0.55f)) {
-            CharacterCompactGlyphSelectorV4(
-                glyph = if (parsed.negativeDice) "−" else "+",
-                onClick = { signExpanded = true },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            DropdownMenu(expanded = signExpanded, onDismissRequest = { signExpanded = false }) {
-                listOf(false to "+", true to "−").forEach { (negative, label) ->
-                    DropdownMenuItem(
-                        text = { Text(label) },
-                        onClick = {
-                            updateDraft(parsed.copy(negativeDice = negative))
-                            signExpanded = false
-                        },
-                    )
-                }
-            }
-        }
+        CharacterCompactGlyphSelectorV4(
+            glyph = parsed.modifierSign.glyph,
+            onClick = {
+                updateDraft(parsed.copy(modifierSign = nextDiceModifierSignV4(parsed)))
+            },
+            modifier = Modifier.weight(0.55f),
+        )
         CompactDamageFieldV4(
             label = "Cant.",
             value = parsed.quantity,
@@ -765,8 +785,16 @@ private fun DiceDamageFieldsV4(
         }
         CompactDamageFieldV4(
             label = "Mod.",
-            value = parsed.modifier,
-            onValueChange = { value -> updateDraft(parsed.copy(modifier = sanitizeSignedIntegerInputV4(value))) },
+            value = parsed.modifierMagnitude,
+            onValueChange = { value ->
+                val magnitude = normalizeCharacterUnsignedIntegerInput(value)
+                val sign = when {
+                    magnitude.isEmpty() -> CharacterDiceModifierSignV4.NONE
+                    parsed.modifierSign == CharacterDiceModifierSignV4.NONE -> CharacterDiceModifierSignV4.PLUS
+                    else -> parsed.modifierSign
+                }
+                updateDraft(parsed.copy(modifierSign = sign, modifierMagnitude = magnitude))
+            },
             modifier = Modifier.weight(1f),
             keyboardType = KeyboardType.Number,
         )
@@ -860,7 +888,12 @@ private fun characterDamageComponentValidV4(component: CharacterDamageComponent)
         val parsed = parseDiceComponentDraftV4(component.expression)
         val quantity = parsed.quantity.toIntOrNull()
         val sides = parsed.sides.toIntOrNull()
-        val modifierValid = parsed.modifier.isEmpty() || parsed.modifier.toIntOrNull() != null
+        val modifierValid = when (parsed.modifierSign) {
+            CharacterDiceModifierSignV4.NONE -> parsed.modifierMagnitude.isEmpty()
+            CharacterDiceModifierSignV4.PLUS,
+            CharacterDiceModifierSignV4.MINUS,
+            -> parsed.modifierMagnitude.toIntOrNull() != null
+        }
         quantity != null && quantity > 0 && sides != null && sides > 0 && modifierValid
     }
     CharacterDamageComponentKind.FLAT -> component.expression.trim().toIntOrNull() != null
