@@ -1,14 +1,17 @@
 # Phase 4A — preqa.12 owner phone QA PASS
 
+> **SUPERSEDED STATUS NOTE — 2026-09-13:** This checkpoint remains historical evidence of the earlier bounded `5/5` geometry recheck and `7/7` broad regression report, but its conclusion that the complete phone gate was `CLOSED / PASS` is superseded by the owner's later, more detailed 23-check pass on the same candidate. See `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md`. Individual PASS evidence below remains valid where not contradicted; do not discard or rerun it mechanically.
+
 **Date:** 2026-09-13  
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Candidate:** `0.4.0-preqa.12 / 41200`  
 **Exact candidate commit:** `abfc7e4a1519a27117f194721a425d75cb5df68a`  
-**Status:** OWNER PHONE QA PASS / P17 TABLET QA PENDING
+**Historical status at time recorded:** OWNER PHONE QA PASS / P17 TABLET QA PENDING  
+**Current interpretation:** SUPERSEDED BY LATER EXPANDED PHONE FINDINGS
 
-## Result
+## Result originally recorded
 
-The owner physically tested the exact `preqa.12 / 41200` candidate and reported both required post-repair phone boundaries as PASS.
+The owner physically tested the exact `preqa.12 / 41200` candidate and reported both then-requested post-repair phone boundaries as PASS.
 
 ### Affected transversal geometry recheck — 5/5 PASS
 
@@ -20,11 +23,11 @@ The owner reported **all 5 PASS** for the bounded repair recheck:
 4. representative text/numeric editability, with multiline sanity where applicable;
 5. short Save/Cancel sanity in an affected editor.
 
-This physically closes the `preqa.11` check-8 defect boundary repaired by `preqa.12`.
+This physically closed the specific `preqa.11` check-8 geometry boundary repaired by `preqa.12`.
 
 ### Remaining phone-wide regression gate — 7/7 PASS
 
-After the affected geometry boundary passed, the owner performed the remaining phone regression gate on the same exact candidate and reported **all 7 PASS**:
+After the affected geometry boundary passed, the owner performed the then-requested broad phone regression gate on the same exact candidate and reported **all 7 PASS**:
 
 1. character lifecycle: ordinary change/save/leave/reopen persistence;
 2. main Player navigation reachability/scrollability sanity;
@@ -40,11 +43,11 @@ This gate deliberately did not repeat already-valid focused checks whose behavio
 
 - `preqa.10` R1–R3: PASS;
 - `preqa.11` checks 1–7 and 9: PASS;
-- `preqa.11` check 8: FAIL, now physically closed by the `preqa.12` 5/5 affected-boundary PASS;
+- `preqa.11` check 8: FAIL, physically closed for its geometry boundary by the `preqa.12` 5/5 affected-boundary PASS;
 - `preqa.12` affected transversal geometry recheck: **5/5 PASS**;
-- `preqa.12` remaining phone-wide regression gate: **7/7 PASS**.
+- `preqa.12` broad phone-wide regression gate as then phrased: **7/7 PASS**.
 
-The phone QA gate for Phase 4A is therefore **CLOSED / PASS** on the exact `preqa.12 / 41200` candidate.
+These PASS results remain evidence. However, the later 23-check pass found additional structured-damage and checkbox/responsive-layout defects, so this checkpoint no longer controls the current gate status.
 
 ## Candidate automation evidence remains unchanged
 
@@ -54,10 +57,8 @@ The phone QA gate for Phase 4A is therefore **CLOSED / PASS** on the exact `preq
 - ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
 - APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
 
-No product code, version, artifact, or candidate identity is changed by this checkpoint.
+No product code, version, artifact, or candidate identity is changed by this documentation correction.
 
-## Exact next gate
+## Current route
 
-Proceed to **P17 tablet QA** using the controlling Phase 4A tablet/physical-validation contract. Do not restart phone QA from zero absent contradictory evidence or a later change that directly affects already-tested behavior.
-
-Phase 4A remains **OPEN** until P17 is resolved and the owner explicitly accepts/closes Phase 4A. No P18 exists. DM implementation remains blocked until that explicit closure.
+Use `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` for current status. P17 tablet QA may proceed on the same candidate because the known phone findings do not constitute a hard shared/systemic failure that makes tablet evidence meaningless. Phase 4A remains OPEN; DM implementation remains blocked until explicit Phase 4A closure.
