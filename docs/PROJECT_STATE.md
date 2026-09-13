@@ -4,8 +4,8 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Previous physical candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7` — FAILED SHARED HP/UX ACCEPTANCE BOUNDARY  
-**Current repaired physical-QA candidate:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` — AUTOMATION GREEN / READY FOR FOCUSED OWNER PHONE RETEST  
-**Current phase:** R1–R3 repaired, regression-locked and automation-green; focused repaired phone QA is next  
+**Current repaired physical-QA candidate:** `0.4.0-preqa.10 / 41000` at `a0d7dbd8f0069c87690c8fa54da780da8ffd15e3` — AUTOMATION GREEN / REOPENED R1–R3 PHONE BOUNDARY PHYSICALLY PASSED  
+**Current phase:** remaining targeted phone regression on preqa.10, then representative P17 tablet QA if no hard shared/systemic failure emerges  
 **Release status:** development/debug; NOT owner-accepted and NOT release-ready
 
 ## Branch authority and authorization
@@ -63,12 +63,30 @@ Authoritative candidate evidence: `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_Q
 
 The only product delta between the already-green regression boundary `ddd9d01d…` and candidate `a0d7dbd8…` is the Android version identity; intervening non-product changes are continuity documentation.
 
+## Physical preqa.10 evidence
+
+The owner physically reported **`1–7 OK`** for the exact focused repaired boundary defined by the candidate checkpoint.
+
+Therefore direct owner/device PASS now covers:
+
+- General HP → Combate canonical propagation without an extra global `Guardar` merely to cross tabs;
+- max-HP reduction clamp with no invalid `current > max` projection;
+- Temp-only, PV-only and spillover affected-state feedback behavior as accepted in P2;
+- working Combate `Establecer PV` exact correction and canonical projection;
+- coherent `Daño | cantidad | Curar` sizing/proportion/padding relative to the Combat HUD.
+
+The specific `preqa.9` R1–R3 failure boundary is now physically cleared on `preqa.10`; do not re-run those seven points absent contradictory new evidence.
+
 ## Current gate
 
-Resume focused owner phone QA on `preqa.10` at the reopened P1/P2/presentation failures. Do not restart every previously passed check first. If the focused repair boundary passes, continue the remaining targeted phone regression and then representative P17 tablet QA, provided no hard shared/systemic failure remains.
+Continue remaining targeted phone regression on the same `preqa.10` candidate. The next coherent boundary is the compact/fixed Combat HUD under constrained vertical space and phone landscape behavior, followed by representative P6 reorder persistence, P9 editor/IME reachability, Application/PC settings, P14 Table Mode, P15 Supercompact, P16 vertical-space behavior, Conjuros sticky/source context, and final persistence/reopen/canonical-state sanity.
 
-P3–P16 remain historically implemented/automation-qualified unless later physical evidence specifically reopens them. P17 tablet QA remains paused until the focused phone repair boundary is cleared. Phase 4A remains open. DM implementation remains blocked until explicit owner acceptance/closure.
+Representative P17 tablet QA may proceed after phone testing if no hard shared/systemic failure emerges. A bounded/local phone defect does not automatically block unrelated tablet evidence; a hard shared/systemic failure can.
+
+P3–P16 remain historically implemented/automation-qualified unless later physical evidence specifically reopens them. Phase 4A remains open. DM implementation remains blocked until explicit owner acceptance/closure.
 
 ## Exact continuation point
 
-Read `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md`, then `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_OWNER_QA_PROGRESS.md`, then `docs/checkpoints/LATEST.md`. Next action is physical focused phone QA on the exact `preqa.10 / 41000` artifact. Do not restart R1–R3 or invent unrelated Player work.
+Read `docs/checkpoints/2026-09-12_PHASE4A_PREQA10_QA_CANDIDATE.md`, then `docs/checkpoints/LATEST.md`.
+
+The repaired R1–R3 physical recheck is complete and passed. Next action is remaining targeted phone QA, beginning with the compact/fixed Combat HUD and constrained-height/landscape boundary. Do not restart R1–R3 or invent unrelated Player work.
