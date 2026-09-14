@@ -2,54 +2,63 @@
 
 ## Current status
 
-Phases 0–3 are complete. Phase 4A Player repair implementation is complete through P1–P16 and automation-qualified. The project is currently at the **physical owner/device QA gate** for `0.4.0-preqa.9 / 40900`.
+The current Player runtime/QA authority remains `implementation/phase4a-successor-cycle`.
 
-Current testing position:
+Its 2026-09-14 frozen candidate is:
 
-- current Player QA candidate: `0.4.0-preqa.9 / 40900`;
-- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- normal Scaffold run `34726572588`: **SUCCESS**;
-- artifact ID `10307444450` / `dnd-custom-aid-debug-apk`;
-- artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`;
-- P1–P16 repair implementation: **COMPLETE / AUTOMATION-QUALIFIED**;
-- P17 design decision: **CLOSED AS PHYSICAL TABLET-QA GATE POLICY**;
-- physical owner/device acceptance of `preqa.9`: **NOT YET PERFORMED/ACCEPTED**;
-- Phase 4A owner closure: **NOT COMPLETE**;
-- DM implementation: **BLOCKED UNTIL PHASE 4A EXPLICIT OWNER CLOSURE**.
+- version `0.4.0-preqa.13`;
+- versionCode/build `41300`;
+- commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- Scaffold `34801612526` / #1630 — **SUCCESS**;
+- targeted cross-device physical revalidation — pending on that branch.
 
-The current detailed QA candidate checkpoint is:
+This evidence is preserved. Automation is not physical owner acceptance.
 
-`docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`
+D-0071 changes the **next product-cycle acceptance strategy**: the next major owner-facing QA target is the integrated MVP across Player + Server/shared services + DM tablet/Desktop rather than a tiny isolated server/DM slice treated as a separate product milestone.
 
-Green CI is technical evidence, not owner acceptance. Branch location is repository state, not a test result.
+This does not mean `do not test until the end`. Engineering tests and integration proofs must run continuously while the MVP is built.
 
-## 1. Core rule
+## 1. Core verification rule
 
-Never claim a test passed unless it was actually executed successfully against the relevant revision.
+Never claim a test passed unless it was actually executed successfully against the relevant revision/environment.
 
-Every meaningful implementation or QA batch should state:
+Every meaningful implementation or QA batch should record:
 
+- exact revision/build;
 - what was tested;
 - how;
 - what passed/failed;
-- what was not tested when material;
-- relevant device/environment information when material.
+- what was not tested and why when material;
+- relevant device/environment;
+- whether evidence is automated, local integration, emulator/simulator or physical owner/device evidence.
 
-Automated verification and manual real-device acceptance are separate gates.
+Historical evidence remains evidence only for the exact behavior/build boundary it exercised.
 
-A defect first observed on one device may still require cross-device repair when the root cause is a shared state authority, shared component, shared layout primitive, shared spacing policy, shared interaction primitive or shared product concept. That does **not** convert inference into physical evidence on another device.
+## 2. Current Player evidence must not be discarded
 
-## 2. Standard automated verification
+Before integrated implementation begins, read the current successor-branch `docs/checkpoints/LATEST.md` and its frozen-candidate checkpoint.
+
+Do not replay all historical Player discovery/QA as if it never happened.
+
+The architecture discussion also retained four bounded planning labels (A10, B1, J1, J2). Before coding/retesting, reconcile those labels against the then-current successor source/evidence rather than allowing a conversational label to overwrite exact branch proof.
+
+A Player defect whose root cause is local persistence, shared state, layout primitive or other cross-system behavior may require broader integrated retesting, but inference is not physical evidence.
+
+## 3. Standard automated verification surfaces
 
 ### Kotlin / Android / Desktop / SQLDelight
+
+Representative aggregate gate remains conceptually:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-Current CI uses JDK 17, Gradle 9.5 and Android SDK platform 36.
+Use focused tests as appropriate before/alongside the aggregate gate.
 
 ### Backend
+
+Representative backend check remains conceptually:
 
 ```bash
 cd backend
@@ -57,120 +66,165 @@ npm install --no-package-lock
 npm run check
 ```
 
-The established normal Scaffold gate covers backend install/type-check, stable CI debug keystore preparation, Kotlin/shared/Android/Desktop build-and-test surfaces and Android debug APK upload.
+As real backend/database/object-storage/auth/sync features are implemented, add proportionate automated tests for material failure modes rather than chasing coverage percentages.
 
-## 3. Current QA candidate identity
+### Database/migrations
 
-Current Player physical-QA candidate:
+Test explicit PostgreSQL and SQLDelight migrations where data-preservation risk exists. Do not describe an untested migration as safe.
 
-- version `0.4.0-preqa.9`;
-- versionCode/build `40900`;
-- candidate commit `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- candidate commit message: `build: advance repaired QA candidate to preqa.9`;
-- workflow `34726572588` — **SUCCESS**;
-- artifact ID `10307444450`;
-- artifact name `dnd-custom-aid-debug-apk`;
-- artifact size `13,608,921` bytes;
-- GitHub Actions artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
+## 4. Integrated MVP engineering test priorities
 
-The digest above is the GitHub Actions artifact digest; do not relabel it as an independently computed APK-file SHA-256.
+D-0071 identifies the following high-value automated/integration areas as implementation becomes real:
 
-The accepted repaired product behavior was already present at `d630270f2f3d8fab94f3c1290963c2da7afaf06d`; the `preqa.9` identity commit exists to provide a monotonic, unambiguous owner-QA package after the earlier `preqa.8 / 40800` build generated the repair backlog.
+- shared domain model/contract serialization;
+- authentication identity mapping and remembered-login boundary behavior;
+- campaign membership/role authorization;
+- PC ownership vs current control;
+- minimum campaign-visible PC identity vs restricted mechanical sheet data;
+- revision/stale-write handling;
+- idempotent mutations;
+- tombstone deletion/non-resurrection;
+- local Save independent from network;
+- Desktop explicit Sync semantics;
+- Android opportunistic/manual Sync behavior;
+- conflict detection and non-silent overwrite behavior;
+- sync scope/campaign isolation;
+- object-asset authorization/reference/integrity;
+- grouped PC audit/history and compensating correction behavior;
+- recovery restore-as-new-version semantics;
+- saved encounter -> independent live encounter copy;
+- reusable personal DM content -> independent campaign copy;
+- active DM combat sequence/authority;
+- public Player combat projection filtering;
+- stale authority-generation rejection after device resume/handoff;
+- offline/reconnect behavior;
+- full server backup/export completeness/integrity;
+- SRD provenance/retrieval grounding and correct source-version identification.
 
-## 4. Historical `preqa.8 / 40800` owner evidence
+## 5. Intended-device/manual testing
 
-The earlier `preqa.8 / 40800` build received real physical phone QA and generated the accepted repair cycle.
+C-0010 remains controlling: test a feature first on the form factor where its real use matters.
 
-Preserve its evidence; do not replay it mechanically as though no QA had occurred.
+Current/expanded examples:
 
-Key historical checkpoints include:
+- Player sheet/reconciliation: phone first, tablet sanity/coverage where relevant;
+- DM live Desks/combat: tablet first **and Desktop fallback path must also be exercised**;
+- DM preparation/Creator/Manager/Admin workflows: Desktop first;
+- explicit combat authority resume: at least two real DM-capable clients/devices in a realistic handoff/recovery scenario;
+- public combat projection: Player device plus authoritative DM device;
+- offline/reconnect: actual connectivity interruption where practical;
+- remembered login: close/reopen/reboot/reconnect scenarios proportionate to implementation;
+- backup export: actual exported artifact and integrity/metadata verification.
 
-- `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`;
-- the accepted P1–P17 repair decision/authorization records;
-- individual P implementation/audit/closure checkpoints.
+Desktop and tablet need not share identical UI, so visual acceptance is form-factor-specific even when domain behavior is shared.
 
-The repaired `preqa.9` candidate is a new physical-QA boundary. Historical `40800` PASS evidence remains valid only for the exact behavior/build boundary it actually exercised.
+## 6. Integrated MVP final owner-facing QA
 
-## 5. Current physical owner-QA sequence
+The next major product acceptance candidate should support an end-to-end route approximately like:
 
-Use `preqa.9 / 40900`.
+```text
+Player authenticates / remembered login works
+-> joins/switches campaign
+-> edits/reconciles PC and saves locally
+-> synchronizes PC + asset + history
+-> DM synchronizes/downloads authorized PC
+-> DM audits/views/corrects within authority
+-> DM uses Desktop Creator/Manager surfaces for campaign content
+-> saved encounter creates independent live encounter
+-> authoritative DM device runs combat locally
+-> Players receive only allowed public projection
+-> connectivity loss does not stop authoritative DM play
+-> reconnect resumes safe synchronization
+-> Desktop can explicitly resume latest synchronized combat if tablet is unavailable
+-> stale old-authority writes are rejected
+-> participants perform explicit post-play bookkeeping rather than automatic VTT reconciliation
+-> durable current/history/recovery state is coherent
+-> full server backup/export succeeds
+-> Player and DM can ask official-SRD questions and receive grounded source-identified answers
+```
 
-### Targeted phone regression / acceptance
+This route should be complemented by bounded negative/error scenarios, especially:
 
-Prioritize representative repaired shared boundaries rather than replaying every historical screen:
+- stale revisions;
+- duplicate/retried idempotent mutation;
+- authorization denial;
+- membership removal;
+- frozen PC read-only behavior;
+- conflict handling;
+- failed/pending Sync;
+- tombstone non-resurrection;
+- missing/stale public combat projection;
+- stale old combat authority after resume;
+- object asset missing/unauthorized/corrupt case where practical;
+- backup failure/incomplete-manifest detection.
 
-- canonical HP across General/Combate, including damage/heal/temp HP;
-- compact Combat HUD footprint and constrained-height behavior;
-- representative P6 reorder interaction/persistence;
-- representative P9 editor sizing and keyboard Save/Cancel reachability;
-- Application Settings density/theme/help behavior;
-- PC Settings information architecture;
-- P14 Table Mode;
-- P15 Supercompact;
-- P16 phone landscape / vertical-space / sticky-region behavior;
-- Conjuros sticky/source-context behavior;
-- persistence/reopen and at least one cross-surface state sanity check.
+## 7. Combat authority testing
 
-### P17 physical Player-tablet QA
+Combat is local-first and one DM device is authoritative at a time.
 
-Proceed to representative tablet portrait/landscape QA when the phone result does not expose a hard shared/systemic failure that would make tablet evidence meaningless.
+Test at minimum:
 
-Representative tablet coverage includes:
+- monotonically increasing sequence/revision inside one authority generation;
+- older hosted state cannot replace newer authoritative local state;
+- offline DM actions continue locally;
+- Player projection may become stale rather than blocking DM play;
+- explicit resume on another DM device begins from the latest actually synchronized state;
+- new authority generation invalidates stale writes from the old device;
+- simultaneous authoritative editing is not accidentally permitted;
+- unsynchronized state from a lost device is not falsely claimed as recovered.
 
-- portrait and landscape navigation/adaptive layout;
-- Combate / P5 / P16;
-- Conjuros sticky behavior;
-- representative P9 editor/IME behavior;
-- P6 reorder;
-- PC Settings and Application Settings responsiveness;
-- P15 Supercompact;
-- P14 Table Mode;
-- representative larger text/density;
-- persistence/reopen;
-- at least one canonical shared-state sanity check such as HP.
+This does not require WebSockets/Durable Objects/realtime infrastructure merely for testing convenience.
 
-A bounded/local phone defect does not automatically block tablet QA. Actual tablet PASS/FAIL requires actual tablet evidence.
+## 8. Backup/export testing
 
-## 6. Failure handling
+Because full backup/export is an early MVP foundation, verification must prove more than `download succeeded`.
 
-If physical QA finds a defect:
+At minimum verify that the export identifies:
 
-1. classify whether it is local, shared/systemic, persistence/domain, responsive/layout, or interaction-specific;
-2. reopen only the relevant accepted repair boundary;
-3. repair on `implementation/phase4a-successor-cycle`;
-4. preserve storage/import/export/migration and canonical-state contracts unless the approved defect resolution explicitly requires a change;
-5. run the appropriate focused tests plus the normal aggregate gate when required;
-6. produce a new monotonic QA identity if the physical candidate changes materially;
-7. checkpoint the exact new evidence before another owner pass.
+- schema/data format/application version;
+- durable relational data scope;
+- relevant object-storage asset manifest/reference/integrity information;
+- checksum/integrity metadata;
+- obvious failure/incomplete-generation cases.
 
-Do not invent an unrelated Player feature or a new numbered repair item merely because the project is waiting at a manual gate.
+A polished restore UI is not required in this cycle merely to test backup export, but the backup format must be credible as a future recovery source rather than a cosmetic JSON dump with missing domains.
 
-## 7. Phase 4A closure rule
+## 9. SRD clarification testing
 
-Phase 4A may be marked accepted/closed only after:
+SRD retrieval + AI is implemented late in the MVP cycle but must still receive focused tests before integrated acceptance.
 
-- the repaired candidate has sufficient physical phone evidence;
-- Player tablet portrait/landscape QA has actually been performed under P17;
-- blocking defects have been repaired/revalidated as needed;
-- the owner explicitly accepts/closes Phase 4A.
+Verify:
 
-No CI result may substitute for that explicit owner closure.
+- SRD 5.1 vs SRD 5.2.1 provenance is preserved;
+- retrieval returns relevant supported official chunks;
+- answers are grounded in retrieved material rather than unsupported model memory;
+- Spanish answer/source presentation identifies D&D 5e / D&D 5.5e correctly;
+- unsupported/insufficient evidence is handled honestly;
+- Homebrew Rules records are **not** silently injected into the MVP official-only clarification corpus.
 
-## 8. Historical frozen candidates
+## 10. Failure handling during the MVP build
 
-Historical frozen QA refs remain immutable evidence and are not active QA targets:
+A failing internal slice does not require restarting the entire MVP.
 
-- `tmp/phase4-l-frozen-qa-candidate` at `5cc034d3fdf4c25d935bd698aeaf2a3f9e427f27`;
-- `tmp/phase4-m5-frozen-qa-candidate` at `adc286b3e1305ed706c2ed04d478a43652f6b365`.
+1. identify the responsible boundary/domain;
+2. preserve unrelated proven evidence;
+3. repair the smallest real root cause;
+4. run focused checks;
+5. run broader integration/aggregate checks when the touched boundary warrants them;
+6. update operative memory and candidate identity when a testable package changes materially.
 
-Use `docs/BRANCH_STATUS.md` for lifecycle interpretation and the archive for deliberately removed historical refs.
+Do not hide uncertainty or failing tests behind a broad `in progress` label.
 
-## 9. Authority and resume rule
+## 11. Current exact resume rule
 
-Current branch roles are controlled by `docs/BRANCH_STATUS.md`.
+This documentation checkpoint did **not** start implementation.
 
-For Player testing/repair, use `implementation/phase4a-successor-cycle` and its `docs/checkpoints/LATEST.md`.
+Before coding:
 
-For current global/DM discovery state, use `main` and its `docs/checkpoints/LATEST.md`.
+1. finish 7D — detailed DM Desktop App product definition;
+2. finish 7E — exact expanded-MVP/post-MVP boundary;
+3. derive final Git/development topology and concrete implementation gates;
+4. obtain explicit coding authorization;
+5. reconcile the then-current Player successor evidence with the integration plan.
 
-DM feature implementation remains blocked until explicit Phase 4A owner closure.
+Until then, this file defines the planned testing architecture, not a claim that the integrated MVP currently exists or has passed.
