@@ -17,7 +17,7 @@
 6. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md` — complete P17 tablet discovery evidence.
 7. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — controlling detailed phone findings.
 8. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact preqa.12 candidate/run/artifact/digest evidence.
-9. `docs/TESTING.md` — physical-QA and failure-handling policy.
+9. `docs/TESTING.md` — synchronized current testing position, physical-QA/failure-handling policy and targeted revalidation route.
 
 ## Completed repair rounds
 
@@ -33,7 +33,7 @@ Product/test HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`; authoritative Scaf
 
 Both active reorder engines now target against stable drag-start geometry and canonical order rather than animated preview bounds, use hysteresis around slot boundaries, explicitly translate stable targets during actual viewport scrolling, and are protected by focused common tests plus a durable CI guard.
 
-T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Reuse the existing owner video as the failure baseline; do not ask for it again.
+T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Reuse the existing owner video as the failure baseline; do not ask for it again. Physical closure of T1 requires targeted evidence for **both one-column and multi-column/spatial reorder**, because the failure family was physically observed across layout scenarios and the repair covers both active reorder models. Also revalidate no target-chasing preview reflow, applicable drag auto-scroll and final order persistence after leave/reopen.
 
 ## Next round — shared compact checkbox + responsive grouping
 
@@ -48,7 +48,7 @@ Required approach:
 - repair responsive grouping so portrait items share a row when they fit and wider/landscape layouts exploit width instead of preserving unnecessary two-row groups;
 - specifically cover Equipment `Equipado` / `Equipo especial` and spell-editor V/S/M, Concentración/Ritual, source/prepared groups;
 - add focused tests/guards and run normal Scaffold;
-- update durable round checkpoint + `PROJECT_STATE.md` + this file before proceeding.
+- update **all four** durable continuity surfaces before proceeding: the dedicated round checkpoint, `docs/PROJECT_STATE.md`, this file, and `docs/TESTING.md` current testing status/route.
 
 ## Owner decisions controlling later rounds
 
@@ -74,8 +74,8 @@ Do not replay unrelated accepted evidence.
 
 ## Exact route
 
-1. Round 3 shared compact checkbox + responsive grouping audit/repair + focused automation + status update.
-2. Continue remaining dependency-aware repair rounds, updating durable status after each.
+1. Round 3 shared compact checkbox + responsive grouping audit/repair + focused automation + synchronized status update.
+2. Continue remaining dependency-aware repair rounds, updating the dedicated round checkpoint + `PROJECT_STATE.md` + `LATEST.md` + `TESTING.md` after each bounded round.
 3. Run aggregate Scaffold over the completed consolidated repair.
 4. Freeze a new monotonic physical-QA candidate.
 5. Perform targeted cross-device revalidation only for failed/touched/affected families plus phone 21/affected phone 22 and tablet 18 after T5.
