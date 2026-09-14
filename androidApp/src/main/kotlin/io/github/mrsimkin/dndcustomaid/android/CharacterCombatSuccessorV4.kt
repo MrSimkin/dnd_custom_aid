@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -134,28 +135,47 @@ internal fun CharacterCombatSuccessorTabV4(
     val canonicalEntryIds = entries.map { it.id.toString() }
     val entryById = entries.associateBy { it.id.toString() }
     val reorderEnabled = structuralEditingEnabled && entries.size > 1
+    val narrowReorderEnabled = reorderEnabled && !wide
+    val wideReorderEnabled = reorderEnabled && wide
+
+    fun commitEntryOrder(proposedIds: List<String>) {
+        val finalIds = applyCharacterReorderResult(canonicalEntryIds, proposedIds)
+        if (finalIds != canonicalEntryIds) {
+            val reordered = finalIds.mapNotNull(entryById::get)
+            if (reordered.size == entries.size) {
+                onEntriesChange(reordered.mapIndexed { order, entry -> entry.copy(sortOrder = order) })
+            }
+        }
+    }
+
     val reorderSession = rememberCharacterReorderSessionV4(
         sessionKey = "combat-entries",
         canonicalOrder = canonicalEntryIds,
-        enabled = reorderEnabled,
+        enabled = narrowReorderEnabled,
         coordinator = reorderCoordinator,
-        onCommitOrder = { proposedIds ->
-            val finalIds = applyCharacterReorderResult(canonicalEntryIds, proposedIds)
-            if (finalIds != canonicalEntryIds) {
-                val reordered = finalIds.mapNotNull(entryById::get)
-                if (reordered.size == entries.size) {
-                    onEntriesChange(reordered.mapIndexed { order, entry -> entry.copy(sortOrder = order) })
-                }
-            }
-        },
+        onCommitOrder = ::commitEntryOrder,
+        onHaptic = haptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+    )
+    val spatialReorderState = rememberCharacterSpatialReorderStateV4(
+        canonicalOrder = canonicalEntryIds,
+        onCommitOrder = ::commitEntryOrder,
         onHaptic = haptic,
         autoScrollBy = { delta -> listState.scrollBy(delta) },
     )
     CharacterReorderSessionAutoScrollEffectV4(reorderSession)
-    val layoutEntries = if (reorderEnabled) {
+    CharacterSpatialReorderAutoScrollEffectV4(spatialReorderState)
+
+    val narrowLayoutEntries = if (narrowReorderEnabled) {
         reorderSession.previewOrder.mapNotNull(entryById::get)
     } else {
         entries
+    }
+    val wideLayoutIds = if (wideReorderEnabled) spatialReorderState.previewOrder else canonicalEntryIds
+    val wideCombatColumnsV4 = if (wide) {
+        constrainedCardColumnsV4(wide = true, phoneMax = 1, wideMax = 3)
+    } else {
+        1
     }
 
     Column(
@@ -168,46 +188,36 @@ internal fun CharacterCombatSuccessorTabV4(
                 end = appSpacingV4(if (wide) 8.dp else 5.dp),
                 top = appSpacingV4(4.dp),
             ),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            CharacterCombatOperationalCardV4(
-                armorClass = armorClass,
-                initiative = initiative,
-                speed = speed,
-                sheet = sheet,
-                onSheetChange = onOperationalSheetChange,
-                hapticsEnabled = hapticsEnabled,
-            )
+            Box(
+                modifier = if (wide) {
+                    Modifier.widthIn(max = 840.dp).fillMaxWidth()
+                } else {
+                    Modifier.fillMaxWidth()
+                },
+            ) {
+                CharacterCombatOperationalCardV4(
+                    armorClass = armorClass,
+                    initiative = initiative,
+                    speed = speed,
+                    sheet = sheet,
+                    onSheetChange = onOperationalSheetChange,
+                    hapticsEnabled = hapticsEnabled,
+                )
+            }
         }
 
-        CharacterReorderOverlayHostV4(
-            session = reorderSession,
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            liftedContent = { draggedId ->
-                entryById[draggedId]?.let { entry ->
-                    CharacterCombatSuccessorCardV4(
-                        entry = entry,
-                        damageComponents = damageFor(entry.id),
-                        favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
-                        favoriteEnabled = false,
-                        reorderSession = null,
-                        structuralEditingEnabled = false,
-                        onFavoriteChange = {},
-                        onEdit = {},
-                        onDelete = {},
-                        lifted = true,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            },
-        ) {
+        if (wide) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .characterReorderSessionViewportV4(reorderSession),
+                    .weight(1f)
+                    .characterSpatialReorderViewportV4(spatialReorderState),
                 contentPadding = PaddingValues(
-                    start = appSpacingV4(if (wide) 8.dp else 5.dp),
-                    end = appSpacingV4(if (wide) 8.dp else 5.dp),
+                    start = appSpacingV4(8.dp),
+                    end = appSpacingV4(8.dp),
                     bottom = appSpacingV4(88.dp),
                 ),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
@@ -244,29 +254,130 @@ internal fun CharacterCombatSuccessorTabV4(
                         )
                     }
                 } else {
-                    itemsIndexed(layoutEntries, key = { _, entry -> entry.id.toString() }) { _, entry ->
+                    item(key = "combat-entries-spatial-grid") {
+                        CharacterSpatialGridV4(
+                            ids = wideLayoutIds,
+                            columns = wideCombatColumnsV4,
+                            reorderState = spatialReorderState,
+                            reorderEnabled = wideReorderEnabled,
+                        ) { id, pickupModifier ->
+                            val entry = entryById[id] ?: return@CharacterSpatialGridV4
+                            CharacterCombatSuccessorCardV4(
+                                entry = entry,
+                                damageComponents = damageFor(entry.id),
+                                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
+                                favoriteEnabled = structuralEditingEnabled && entry.id in persistedEntryIds,
+                                reorderSession = null,
+                                spatialPickupModifier = pickupModifier,
+                                spatialDragging = spatialReorderState.draggedId == id,
+                                structuralEditingEnabled = structuralEditingEnabled,
+                                onFavoriteChange = { enabled ->
+                                    onClosureStateChange(
+                                        closureState.withQuickAccess(
+                                            CharacterQuickAccessKind.COMBAT_ENTRY,
+                                            entry.id,
+                                            enabled,
+                                        ),
+                                    )
+                                },
+                                onEdit = { beginEdit(entry) },
+                                onDelete = { deleteId = entry.id.toString() },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            CharacterReorderOverlayHostV4(
+                session = reorderSession,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                liftedContent = { draggedId ->
+                    entryById[draggedId]?.let { entry ->
                         CharacterCombatSuccessorCardV4(
                             entry = entry,
                             damageComponents = damageFor(entry.id),
                             favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
-                            favoriteEnabled = structuralEditingEnabled && entry.id in persistedEntryIds,
-                            reorderSession = reorderSession.takeIf { reorderEnabled },
-                            structuralEditingEnabled = structuralEditingEnabled,
-                            onFavoriteChange = { enabled ->
-                                onClosureStateChange(
-                                    closureState.withQuickAccess(
-                                        CharacterQuickAccessKind.COMBAT_ENTRY,
-                                        entry.id,
-                                        enabled,
-                                    ),
-                                )
-                            },
-                            onEdit = { beginEdit(entry) },
-                            onDelete = { deleteId = entry.id.toString() },
-                            modifier = Modifier
-                                .animateItem()
-                                .fillMaxWidth(),
+                            favoriteEnabled = false,
+                            reorderSession = null,
+                            structuralEditingEnabled = false,
+                            onFavoriteChange = {},
+                            onEdit = {},
+                            onDelete = {},
+                            lifted = true,
+                            modifier = Modifier.fillMaxSize(),
                         )
+                    }
+                },
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .characterReorderSessionViewportV4(reorderSession),
+                    contentPadding = PaddingValues(
+                        start = appSpacingV4(5.dp),
+                        end = appSpacingV4(5.dp),
+                        bottom = appSpacingV4(88.dp),
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                ) {
+                    if (sheet.currentHp <= 0) {
+                        item(key = "combat-death-saves") {
+                            CharacterCombatDeathSavesSectionV4(
+                                sheet = sheet,
+                                onSheetChange = onOperationalSheetChange,
+                                hapticsEnabled = hapticsEnabled,
+                            )
+                        }
+                    }
+
+                    item(key = "combat-entries-header") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("Ataques y acciones", style = MaterialTheme.typography.titleSmall)
+                            if (structuralEditingEnabled) {
+                                TextButton(onClick = ::beginAdd) { Text("Añadir") }
+                            }
+                        }
+                    }
+
+                    if (entries.isEmpty()) {
+                        item(key = "combat-empty") {
+                            CharacterUsefulEmptyState(
+                                title = "Sin ataques o acciones",
+                                message = "Añade ataques, acciones, reacciones o referencias de combate.",
+                                onAdd = if (structuralEditingEnabled) ::beginAdd else null,
+                            )
+                        }
+                    } else {
+                        itemsIndexed(narrowLayoutEntries, key = { _, entry -> entry.id.toString() }) { _, entry ->
+                            CharacterCombatSuccessorCardV4(
+                                entry = entry,
+                                damageComponents = damageFor(entry.id),
+                                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
+                                favoriteEnabled = structuralEditingEnabled && entry.id in persistedEntryIds,
+                                reorderSession = reorderSession.takeIf { narrowReorderEnabled },
+                                structuralEditingEnabled = structuralEditingEnabled,
+                                onFavoriteChange = { enabled ->
+                                    onClosureStateChange(
+                                        closureState.withQuickAccess(
+                                            CharacterQuickAccessKind.COMBAT_ENTRY,
+                                            entry.id,
+                                            enabled,
+                                        ),
+                                    )
+                                },
+                                onEdit = { beginEdit(entry) },
+                                onDelete = { deleteId = entry.id.toString() },
+                                modifier = Modifier
+                                    .animateItem()
+                                    .fillMaxWidth(),
+                            )
+                        }
                     }
                 }
             }
@@ -443,6 +554,8 @@ private fun CharacterCombatSuccessorCardV4(
     favorite: Boolean,
     favoriteEnabled: Boolean,
     reorderSession: CharacterReorderSessionV4?,
+    spatialPickupModifier: Modifier = Modifier,
+    spatialDragging: Boolean = false,
     structuralEditingEnabled: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onEdit: () -> Unit,
@@ -463,9 +576,10 @@ private fun CharacterCombatSuccessorCardV4(
     val pickupModifier = if (reorderSession != null && !lifted) {
         Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
     } else {
-        Modifier
+        spatialPickupModifier
     }
     val activePlaceholder = reorderSession?.draggedId == id
+    val interactionBlocked = lifted || activePlaceholder || spatialDragging
 
     Surface(
         modifier = modifier.then(geometryModifier),
@@ -484,7 +598,7 @@ private fun CharacterCombatSuccessorCardV4(
                     .fillMaxWidth()
                     .then(pickupModifier)
                     .clickable(
-                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        enabled = structuralEditingEnabled && !interactionBlocked,
                         onClick = onEdit,
                     ),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
@@ -536,11 +650,11 @@ private fun CharacterCombatSuccessorCardV4(
                 StableFavoriteIconButton(
                     selected = favorite,
                     onClick = { onFavoriteChange(!favorite) },
-                    enabled = !lifted && favoriteEnabled,
+                    enabled = favoriteEnabled && !interactionBlocked,
                 )
                 if (structuralEditingEnabled && !lifted) {
-                    TextButton(onClick = onEdit) { Text("Editar") }
-                    TextButton(onClick = onDelete) { Text("Eliminar") }
+                    TextButton(onClick = onEdit, enabled = !interactionBlocked) { Text("Editar") }
+                    TextButton(onClick = onDelete, enabled = !interactionBlocked) { Text("Eliminar") }
                 }
             }
         }
