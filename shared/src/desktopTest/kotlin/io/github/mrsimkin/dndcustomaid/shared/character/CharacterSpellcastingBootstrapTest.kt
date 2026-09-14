@@ -73,6 +73,7 @@ class CharacterSpellcastingBootstrapTest {
 
         assertEquals(listOf(linked, manual), result.sources)
         assertEquals(listOf(configured, manualProfile), result.profiles)
+        assertFalse(needsCharacterSpellcastingBootstrap(listOf(wizard), result.sources))
     }
 
     @Test
@@ -120,7 +121,7 @@ class CharacterSpellcastingBootstrapTest {
             hitDieSides = 8,
             hitDiceRemaining = 5,
             sortOrder = 1,
-            rulesFamily = CharacterRulesFamily.OTHER,
+            rulesFamily = CharacterRulesFamily.CUSTOM,
             catalogKey = CharacterClassCatalog.CUSTOM_KEY,
         )
 
@@ -131,8 +132,15 @@ class CharacterSpellcastingBootstrapTest {
         )
 
         assertFalse(result.hasCanonicalSpellcastingClass)
+        assertFalse(needsCharacterSpellcastingBootstrap(listOf(barbarian, custom), emptyList()))
         assertTrue(result.sources.isEmpty())
         assertTrue(result.profiles.isEmpty())
+    }
+
+    @Test
+    fun missingWizardSourceRequiresBootstrap() {
+        val wizard = canonicalClass(Uuid.random(), "Mago", "wizard-2024")
+        assertTrue(needsCharacterSpellcastingBootstrap(listOf(wizard), emptyList()))
     }
 
     @Test
