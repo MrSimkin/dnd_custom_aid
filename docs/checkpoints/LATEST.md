@@ -4,20 +4,21 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative Player implementation/repair line  
 **Current exact frozen physical candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — PHONE + TABLET DISCOVERY COMPLETE WITH OPEN FINDINGS  
-**Current implementation gate:** consolidated post-P17 repair IN PROGRESS; **Rounds 1–2 COMPLETE / AUTOMATION GREEN**; next = **Round 3 shared compact checkbox + responsive grouping**  
+**Current implementation gate:** consolidated post-P17 repair IN PROGRESS; **Rounds 1–3 COMPLETE / AUTOMATION GREEN**; next = **T5 spell-source/bootstrap/source-context compatibility**  
 **Release status:** debug/development; Phase 4A OPEN; DM implementation blocked pending explicit owner closure
 
 ## Resume here
 
-1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md` — **latest completed implementation round; T1 repair + exact green automation evidence**.
-2. `docs/PROJECT_STATE.md` — live Player authority/current implementation state and next round.
-3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md` — completed structured-dice/signed-modifier round.
-4. `docs/checkpoints/2026-09-13_PHASE4A_OWNER_REPAIR_DECISIONS_IMPLEMENTATION_GO.md` — owner decisions + explicit implementation authorization.
-5. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit + repair-family contracts + targeted revalidation matrix.
-6. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md` — complete P17 tablet discovery evidence.
-7. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — controlling detailed phone findings.
-8. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact preqa.12 candidate/run/artifact/digest evidence.
-9. `docs/TESTING.md` — synchronized current testing position, physical-QA/failure-handling policy and targeted revalidation route.
+1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND3_COMPACT_CHECKBOX_RESPONSIVE_GROUPING.md` — **latest completed implementation round; systemic checkbox/responsive repair + exact green steady-state automation evidence**.
+2. `docs/PROJECT_STATE.md` — live Player authority/current implementation state and next repair family.
+3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md` — completed T1 repair + exact green automation evidence.
+4. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md` — completed structured-dice/signed-modifier round.
+5. `docs/checkpoints/2026-09-13_PHASE4A_OWNER_REPAIR_DECISIONS_IMPLEMENTATION_GO.md` — owner decisions + explicit implementation authorization.
+6. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit + repair-family contracts + targeted revalidation matrix.
+7. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_P17_TABLET_QA_PROGRESS.md` — complete P17 tablet discovery evidence.
+8. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_PHONE_FINDINGS_P17_ROUTE.md` — controlling detailed phone findings.
+9. `docs/checkpoints/2026-09-13_PHASE4A_PREQA12_QA_CANDIDATE.md` — exact preqa.12 candidate/run/artifact/digest evidence.
+10. `docs/TESTING.md` — synchronized current testing position, physical-QA/failure-handling policy and targeted revalidation route.
 
 ## Completed repair rounds
 
@@ -35,32 +36,42 @@ Both active reorder engines now target against stable drag-start geometry and ca
 
 T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Reuse the existing owner video as the failure baseline; do not ask for it again. Physical closure of T1 requires targeted evidence for **both one-column and multi-column/spatial reorder**, because the failure family was physically observed across layout scenarios and the repair covers both active reorder models. Also revalidate no target-chasing preview reflow, applicable drag auto-scroll and final order persistence after leave/reopen.
 
-## Next round — shared compact checkbox + responsive grouping
+### Round 3 — compact checkbox + responsive grouping: COMPLETE / GREEN
 
-This round addresses phone 17.1–17.3 and the tablet reproduction.
+Product/test HEAD `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c`; authoritative steady-state Scaffold `34793215805` / run `1536` — **SUCCESS**.
 
-Required approach:
+The repair establishes shared compact/touch-safe Player checkbox primitives and responsive grouping, migrates the source-complete baseline of **19 raw Material Checkbox calls across seven Player files**, keeps source/prepared controls semantically paired, and makes Equipment and Conjuros groups wrap only when width requires it. `Switch` controls remain unchanged because the audit did not establish them as defective.
 
-- audit all Android Player `Checkbox`, `TriStateCheckbox`, `Switch` and associated row/wrap/container sites;
-- classify legitimate exceptions rather than blindly restyling every toggle;
-- establish a shared compact/touch-safe checkbox primitive if the systemic audit confirms it;
-- normalize control size, label typography, internal spacing and outer spacing;
-- repair responsive grouping so portrait items share a row when they fit and wider/landscape layouts exploit width instead of preserving unnecessary two-row groups;
-- specifically cover Equipment `Equipado` / `Equipo especial` and spell-editor V/S/M, Concentración/Ritual, source/prepared groups;
+The permanent source guard now requires zero raw Material Checkbox sites outside the shared primitive plus the expected Equipment/Conjuros responsive contract. The temporary CI migration writer and helper were retired after the verified source conversion, so normal Scaffold is read-only again.
+
+Phone 17.1–17.3 and the tablet checkbox-family reproduction are **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. They are not physically PASS yet.
+
+## Next repair family — T5 spell source/bootstrap/source context
+
+The next bounded round must repair the cross-device T5 source-model mismatch without turning Conjuros into a broad spell-legality engine.
+
+Required contract:
+
+- canonical character origins/classes drive spell-source availability analogously to Rasgos provenance;
+- retain the existing spellcasting source/profile layer for source-specific ability / save DC / attack modifier configuration;
+- preserve compatible existing source IDs, spell associations and saved characters rather than destructively recreating records;
+- preserve persistence/import/export and manual/homebrew `Other` source behavior;
+- cover new and existing characters, especially a canonical Mago/Mage that should expose a usable source without manual bootstrap;
+- after repair, targeted Conjuros revalidation must include add/save/reopen plus tablet portrait/landscape sticky/source-context behavior that was blocked in P17 check 18;
 - add focused tests/guards and run normal Scaffold;
-- update **all four** durable continuity surfaces before proceeding: the dedicated round checkpoint, `docs/PROJECT_STATE.md`, this file, and `docs/TESTING.md` current testing status/route.
+- update all four durable continuity surfaces before proceeding.
 
 ## Owner decisions controlling later rounds
 
 - **T3:** separate Portrait/Landscape adaptive card-distribution preferences (`Comfortable / Balanced / Compact / Dense`; `Balanced` normal default). Runtime computes safe effective columns from width, orientation preference, text/UI density and minimum card width. Legacy exact-count prefs map compatibly.
 - **T9:** explicit haptics `None`; existing users retain their prior non-none choice across upgrade.
-- **T4:** main text-size scale should be symmetric around 100; preferred normal range `50,60,70,80,90,100,110,120,130,140,150` with compatibility-safe mapping.
+- **T4:** the target is specifically the **text-size** control. Main text size should be symmetric around 100 with preferred normal range `50,60,70,80,90,100,110,120,130,140,150` and compatibility-safe mapping. Spacing density is already symmetric and must not be unnecessarily redesigned as part of T4.
 
 ## Physical evidence preserved
 
-Phone exact preqa.12: 1–6 PASS; 7–8 OPEN/implemented pending revalidation; 9 functional PASS + implemented direct-toggle refinement pending revalidation; 10–16 PASS; 17.1–17.3 OPEN; 18–20 PASS; 21 UNASSESSED; 22 PARTIAL/AMBIGUOUS; 23 PASS.
+Phone exact preqa.12: 1–6 PASS; 7–8 OPEN/implemented Round 1 pending revalidation; 9 functional PASS + implemented direct-toggle refinement pending revalidation; 10–16 PASS; 17.1–17.3 OPEN/implemented Round 3 pending revalidation; 18–20 PASS; 21 UNASSESSED; 22 PARTIAL/AMBIGUOUS; 23 PASS.
 
-Tablet exact preqa.12: 1–6 PASS; 7 FAIL/T7; 8 PASS; 9–10 FAIL/T5; 11 PASS + checkbox family; 12–14 PASS; 15 FAIL/T8; 16–17 PASS; 18 BLOCKED BY T5.
+Tablet exact preqa.12: 1–6 PASS; 7 FAIL/T7; 8 PASS; 9–10 FAIL/T5; 11 PASS + checkbox-family reproduction now implemented in Round 3 pending revalidation; 12–14 PASS; 15 FAIL/T8; 16–17 PASS; 18 BLOCKED BY T5.
 
 Do not replay unrelated accepted evidence.
 
@@ -74,7 +85,7 @@ Do not replay unrelated accepted evidence.
 
 ## Exact route
 
-1. Round 3 shared compact checkbox + responsive grouping audit/repair + focused automation + synchronized status update.
+1. T5 spell-source/bootstrap/source-context compatibility audit/repair + focused automation + synchronized status update.
 2. Continue remaining dependency-aware repair rounds, updating the dedicated round checkpoint + `PROJECT_STATE.md` + `LATEST.md` + `TESTING.md` after each bounded round.
 3. Run aggregate Scaffold over the completed consolidated repair.
 4. Freeze a new monotonic physical-QA candidate.
