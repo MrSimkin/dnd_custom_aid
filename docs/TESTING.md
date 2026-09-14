@@ -21,7 +21,8 @@ Current position:
 - T6 class-editor numeric/hit-die controls: **COMPLETE / AUTOMATION GREEN**;
 - Application Settings T3/T4/T9: **COMPLETE / AUTOMATION GREEN**;
 - T7 wide Combat adaptive composition: **COMPLETE / AUTOMATION GREEN**;
-- next implementation family: **T8 Table Mode structural-affordance enforcement**;
+- T8 Table Mode structural-affordance enforcement: **COMPLETE / AUTOMATION GREEN**;
+- next implementation family: **remaining T2 dice-result / Custom Throw / Dice display-mode integration**;
 - no new repaired physical-QA candidate has been frozen yet;
 - Phase 4A owner closure: **NOT COMPLETE**;
 - DM implementation: **BLOCKED UNTIL EXPLICIT PHASE 4A OWNER CLOSURE**.
@@ -94,7 +95,7 @@ Later repair commits are not yet a frozen physical candidate.
 - 9–10 FAIL / T5 → T5 implemented/green, targeted revalidation pending;
 - 11 PASS plus checkbox-family reproduction → Round 3 implemented/green, targeted revalidation pending;
 - 12–14 PASS;
-- 15 FAIL / T8;
+- 15 FAIL / T8 → T8 implemented/green, targeted revalidation pending;
 - 16–17 PASS;
 - 18 was BLOCKED BY T5; T5 is repaired, so this is future targeted physical revalidation.
 
@@ -176,33 +177,61 @@ T7 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**
 
 Future physical coverage: tablet-landscape Combat width use, bounded HUD, adaptive card packing under representative density/text settings, multi-column reorder stability/auto-scroll, final persisted order after leave/reopen, normal favorite/Edit/Delete behavior, no accidental child action during drag, plus one narrow-phone Combat sanity check. Do not replay the full tablet/phone suites.
 
-## 6. Current implementation route — T8 Table Mode
+### T8 — Table Mode structural-affordance enforcement
 
-The shared `CharacterTableModePolicy` already defines the intended product behavior:
+Product commit `2734d08a72e183ca213cd9213ff47a4db588cbf6`; steady-state HEAD `d6c13819a49e1cb7c71dffcad98b53c250d4d9d4`; authoritative Scaffold `34799667822` / #1611 — **SUCCESS**.
 
-- structural character/configuration editing is disallowed in Table Mode;
-- operational/session interactions remain enabled.
+T8 aligns the visible interaction surface with the existing `CharacterTableModePolicy` rather than changing its semantics.
 
-The physical defect is affordance leakage: structural Edit/Add/Delete/reorder controls can still be visible/openable even when the structural persistence boundary correctly rejects their changes.
+Implemented/guarded behavior:
 
-T8 contract:
+- Overview explicitly receives and propagates `structuralEditingEnabled`;
+- character name, class identity, ability scores and structural Combat/general references become read-only or non-opening in Table Mode;
+- class Add/Edit/Delete and associated dialogs are gated;
+- portrait/token, defense, sense and special-movement structural actions/editors are gated;
+- Skills keeps its presentation-only layout selector usable while ability-score, saving-throw proficiency/adjustment and standard skill training/adjustment controls are gated;
+- live HP is routed through `CharacterCombatOperationalCardV4` and operational persistence rather than the structural no-op path;
+- inspiration and current resource values remain operational;
+- specialized collection modules and PC Settings already honored the relevant structural policy and were not churned;
+- permanent `check_player_table_mode_affordances.py` verifies both structural gating and operational-state preservation;
+- no storage/schema/import/export redesign.
 
-- audit each major Player tab boundary for correct `structuralEditingEnabled` propagation and honoring;
-- hide or clearly disable structural Edit/Add/Delete/reorder affordances while Table Mode is active;
-- present structural values as visible read-only content where appropriate rather than opening no-op editors;
-- keep genuine operational/session controls enabled, including HP and allowed current/spent resource state;
-- preserve existing shared merge/policy semantics;
-- extend shared policy tests and add focused UI/source guards around structural-affordance visibility/enabled state;
-- pass the normal read-only Scaffold before marking T8 automation green.
+Writable validation Scaffold `34799065695` / #1607 passed the corrected full-scope migration, every permanent guard, backend, shared tests, Android/Desktop builds, APK upload and verified product commit. Earlier failed attempts landed no product code and are not counted as evidence.
 
-T8 is an implementation/affordance repair, not a product-design choice.
+The temporary T8 migration writers were then removed and normal Scaffold restored to `contents: read` before authoritative steady-state validation.
+
+Authoritative run `34799667822` / #1611 passed backend, every permanent Player guard including T8, shared tests, Android/Desktop builds and APK upload.
+
+Artifact `10330822191`, size `13,662,998` bytes, digest `sha256:bf90762e36177735bd948524c37552b143ec1bbf1ddd7bdb292511b7a7255715`.
+
+T8 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**.
+
+Future physical coverage: tablet Table Mode structural name/class/ability/reference controls must no longer appear genuinely editable; class/general structural dialogs must not open; Skills structural score/save/training/adjustment controls must be read-only/non-opening while the presentation selector remains usable; HP, inspiration and current resource values must remain operational and persist; leave/reopen must confirm structural values unchanged and operational values retained; include one representative narrow-phone sanity check. Do not replay the full historical suites.
+
+## 6. Current implementation route — remaining T2 integration
+
+Round 1 already established the shared structured dice foundation:
+
+- structured `NdS±M` parsing/rolling;
+- independent quantity/sides/modifier state;
+- explicit signed serialization;
+- direct compact sign handling.
+
+T2 remains partial. The next bounded family must complete the remaining integration without introducing a second dice-expression model:
+
+- die-specific result silhouettes/presentation;
+- Custom Throw standard-die selection;
+- Custom Throw custom sides;
+- Custom Throw signed modifier UX using the Round 1 sign/parser foundation;
+- Dice-tab ownership of result/display mode;
+- focused tests/guards for the resulting presentation and Custom Throw contracts;
+- normal read-only Scaffold before T2 is marked automation green.
 
 ## 7. Remaining repair order
 
-After T8:
+After T2:
 
-1. remaining T2 die-result silhouettes + Custom Throw die/custom sides/signed modifier + Dice-tab display-mode ownership;
-2. optional phone-16 compact-density refinement only if safe and materially beneficial.
+1. optional phone-16 compact-density refinement only if safe and materially beneficial.
 
 After material consolidated repair completion:
 
