@@ -1,25 +1,35 @@
 # Testing and Verification
 
+**Last synchronized:** 2026-09-13  
+**Branch:** `implementation/phase4a-successor-cycle`
+
 ## Current status
 
-Phases 0–3 are complete. Phase 4A Player repair implementation is complete through P1–P16 and automation-qualified. The project is currently at the **physical owner/device QA gate** for `0.4.0-preqa.9 / 40900`.
+Phases 0–3 are complete. Phase 4A Player physical discovery on the current frozen candidate is complete, and the project is now inside the **consolidated post-P17 repair cycle**.
 
 Current testing position:
 
-- current Player QA candidate: `0.4.0-preqa.9 / 40900`;
-- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- normal Scaffold run `34726572588`: **SUCCESS**;
-- artifact ID `10307444450` / `dnd-custom-aid-debug-apk`;
-- artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`;
-- P1–P16 repair implementation: **COMPLETE / AUTOMATION-QUALIFIED**;
-- P17 design decision: **CLOSED AS PHYSICAL TABLET-QA GATE POLICY**;
-- physical owner/device acceptance of `preqa.9`: **NOT YET PERFORMED/ACCEPTED**;
+- current exact frozen physical-QA candidate: `0.4.0-preqa.12 / 41200`;
+- candidate commit: `abfc7e4a1519a27117f194721a425d75cb5df68a`;
+- candidate Scaffold run `34776627282`: **SUCCESS**;
+- artifact ID `10323602038` / `dnd-custom-aid-debug-apk`;
+- ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
+- APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`;
+- phone detailed discovery on `preqa.12`: **COMPLETE WITH OPEN FINDINGS**;
+- P17 tablet portrait/landscape discovery on the same exact candidate: **COMPLETE WITH OPEN FINDINGS**;
+- Repair Round 1 structured dice: **COMPLETE / AUTOMATION GREEN**;
+- Repair Round 2 T1 reorder stability: **COMPLETE / AUTOMATION GREEN**;
+- next implementation round: **Round 3 shared compact checkbox + responsive grouping**;
+- no new repaired physical-QA candidate has been frozen yet;
 - Phase 4A owner closure: **NOT COMPLETE**;
-- DM implementation: **BLOCKED UNTIL PHASE 4A EXPLICIT OWNER CLOSURE**.
+- DM implementation: **BLOCKED UNTIL EXPLICIT PHASE 4A OWNER CLOSURE**.
 
-The current detailed QA candidate checkpoint is:
+The current live status authorities are:
 
-`docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`
+1. `docs/PROJECT_STATE.md`;
+2. `docs/checkpoints/LATEST.md`;
+3. the latest completed bounded repair-round checkpoint;
+4. this file for testing policy, current testing position and revalidation route.
 
 Green CI is technical evidence, not owner acceptance. Branch location is repository state, not a test result.
 
@@ -39,6 +49,8 @@ Automated verification and manual real-device acceptance are separate gates.
 
 A defect first observed on one device may still require cross-device repair when the root cause is a shared state authority, shared component, shared layout primitive, shared spacing policy, shared interaction primitive or shared product concept. That does **not** convert inference into physical evidence on another device.
 
+Accepted physical evidence must be preserved. Do not replay complete phone/tablet suites merely because a later repair round touches another family.
+
 ## 2. Standard automated verification
 
 ### Kotlin / Android / Desktop / SQLDelight
@@ -57,120 +69,161 @@ npm install --no-package-lock
 npm run check
 ```
 
-The established normal Scaffold gate covers backend install/type-check, stable CI debug keystore preparation, Kotlin/shared/Android/Desktop build-and-test surfaces and Android debug APK upload.
+The established normal Scaffold gate covers backend install/type-check, stable CI debug-keystore preparation, Kotlin/shared/Android/Desktop build-and-test surfaces and Android debug APK upload.
 
-## 3. Current QA candidate identity
+Every bounded repair round should run focused tests/guards appropriate to that repair plus the normal Scaffold gate before it is marked automation green.
 
-Current Player physical-QA candidate:
+## 3. Current frozen physical-QA candidate
 
-- version `0.4.0-preqa.9`;
-- versionCode/build `40900`;
-- candidate commit `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- candidate commit message: `build: advance repaired QA candidate to preqa.9`;
-- workflow `34726572588` — **SUCCESS**;
-- artifact ID `10307444450`;
-- artifact name `dnd-custom-aid-debug-apk`;
-- artifact size `13,608,921` bytes;
-- GitHub Actions artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
+The exact physical discovery baseline remains:
 
-The digest above is the GitHub Actions artifact digest; do not relabel it as an independently computed APK-file SHA-256.
+- versionName `0.4.0-preqa.12`;
+- versionCode/build `41200`;
+- candidate commit `abfc7e4a1519a27117f194721a425d75cb5df68a`;
+- Scaffold `34776627282` — **SUCCESS**;
+- artifact ID `10323602038` / `dnd-custom-aid-debug-apk`;
+- ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
+- APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
 
-The accepted repaired product behavior was already present at `d630270f2f3d8fab94f3c1290963c2da7afaf06d`; the `preqa.9` identity commit exists to provide a monotonic, unambiguous owner-QA package after the earlier `preqa.8 / 40800` build generated the repair backlog.
+This candidate is immutable evidence. Repair Rounds 1–2 exist on later commits and are **not yet a frozen physical-QA candidate**.
 
-## 4. Historical `preqa.8 / 40800` owner evidence
+## 4. Physical discovery already completed on `preqa.12`
 
-The earlier `preqa.8 / 40800` build received real physical phone QA and generated the accepted repair cycle.
+### Phone
 
-Preserve its evidence; do not replay it mechanically as though no QA had occurred.
+The later detailed 23-check phone pass supersedes any earlier broad interpretation that the complete phone gate was closed, while preserving valid individual PASS evidence:
 
-Key historical checkpoints include:
+- checks 1–6 PASS;
+- 7–8 OPEN structured-damage defects; Round 1 implementation now complete, targeted physical revalidation pending;
+- 9 PASS + direct sign-toggle refinement; Round 1 implementation complete, targeted physical revalidation pending;
+- 10–16 PASS, with 16 only an optional compact-density refinement;
+- 17.1–17.3 OPEN systemic checkbox/responsive grouping family;
+- 18–20 PASS;
+- 21 UNASSESSED;
+- 22 PARTIAL/AMBIGUOUS;
+- 23 PASS.
 
-- `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_OWNER_PHONE_QA_CONSOLIDATED.md`;
-- the accepted P1–P17 repair decision/authorization records;
-- individual P implementation/audit/closure checkpoints.
+### Tablet P17
 
-The repaired `preqa.9` candidate is a new physical-QA boundary. Historical `40800` PASS evidence remains valid only for the exact behavior/build boundary it actually exercised.
+P17 physical discovery on the exact same `preqa.12` APK is complete:
 
-## 5. Current physical owner-QA sequence
+1. install/update + launch PASS;
+2. campaign baseline PASS;
+3. portrait navigation/adaptive shell PASS;
+4. landscape navigation/adaptive shell PASS;
+5. rotation/state sanity PASS;
+6. Combat portrait PASS;
+7. Combat landscape FAIL / T7;
+8. canonical HP synchronization PASS;
+9. Conjuros portrait FAIL / T5;
+10. Conjuros landscape FAIL / same T5;
+11. representative non-spell editor/IME PASS + reproduction of phone 17.1 checkbox family;
+12. PC Settings PASS;
+13. Application Settings responsiveness PASS;
+14. Supercompact PASS;
+15. Table Mode FAIL / T8;
+16. larger text/density PASS;
+17. cold persistence/reopen PASS;
+18. Conjuros sticky BLOCKED BY T5, not a separate failure.
 
-Use `preqa.9 / 40900`.
+There is no further broad phone or tablet discovery pass required on `preqa.12`.
 
-### Targeted phone regression / acceptance
+## 5. Current repair automation status
 
-Prioritize representative repaired shared boundaries rather than replaying every historical screen:
+### Round 1 — structured dice / signed modifier foundation
 
-- canonical HP across General/Combate, including damage/heal/temp HP;
-- compact Combat HUD footprint and constrained-height behavior;
-- representative P6 reorder interaction/persistence;
-- representative P9 editor sizing and keyboard Save/Cancel reachability;
-- Application Settings density/theme/help behavior;
-- PC Settings information architecture;
-- P14 Table Mode;
-- P15 Supercompact;
-- P16 phone landscape / vertical-space / sticky-region behavior;
-- Conjuros sticky/source-context behavior;
-- persistence/reopen and at least one cross-surface state sanity check.
+Product/test HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`.
 
-### P17 physical Player-tablet QA
+Authoritative Scaffold `34787688776` / run `1508` — **SUCCESS**.
 
-Proceed to representative tablet portrait/landscape QA when the phone result does not expose a hard shared/systemic failure that would make tablet evidence meaningless.
+Phone 7–9 implementation basis is repaired and automation-protected. Physical revalidation waits for the consolidated new candidate. T2 remains partial because die-result silhouettes, Custom Throw die/custom-sides/signed-modifier UX and Dice-tab ownership of display mode remain.
 
-Representative tablet coverage includes:
+### Round 2 — T1 reorder target stability
 
-- portrait and landscape navigation/adaptive layout;
-- Combate / P5 / P16;
-- Conjuros sticky behavior;
-- representative P9 editor/IME behavior;
-- P6 reorder;
-- PC Settings and Application Settings responsiveness;
-- P15 Supercompact;
-- P14 Table Mode;
-- representative larger text/density;
-- persistence/reopen;
-- at least one canonical shared-state sanity check such as HP.
+Product/test HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`.
 
-A bounded/local phone defect does not automatically block tablet QA. Actual tablet PASS/FAIL requires actual tablet evidence.
+Authoritative Scaffold `34788409987` / run `1519` — **SUCCESS**.
 
-## 6. Failure handling
+The repair covers **both active reorder models**: one-dimensional/one-column reorder and spatial/multi-column reorder. It uses stable drag-start target geometry, canonical-order preview generation, hysteresis around boundaries, explicit translation during real viewport scrolling and one-time capture of newly revealed lazy targets.
+
+T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**.
+
+The existing owner video is the failure baseline and must not be requested again. Future T1 physical revalidation on the consolidated candidate must cover, at minimum:
+
+- one-column reorder;
+- multi-column/spatial reorder on a wide layout;
+- no target chasing animated preview reflow;
+- auto-scroll while dragging where applicable;
+- final order persistence after leave/reopen.
+
+A PASS in only one-column or only multi-column mode is insufficient to close T1 because the original physical evidence showed the failure family across layout scenarios and the repair changes shared behavior used by both engines.
+
+## 6. Current implementation route
+
+Next is **Round 3 — shared compact checkbox + responsive grouping**, covering phone 17.1–17.3 and the tablet reproduction.
+
+After Round 3, continue the remaining repair families in dependency-aware order:
+
+- T5 spell-source/bootstrap/source-context compatibility repair;
+- T6 class-editor numeric/die controls;
+- T3 adaptive Portrait/Landscape card-distribution semantics + T4 symmetric text scale + T9 explicit haptics `None`;
+- T7 wide Combat adaptive composition;
+- T8 Table Mode structural-affordance enforcement;
+- remaining T2 die-result silhouettes, Custom Throw parity and Dice-tab display-mode ownership;
+- optional phone-16 compact-density refinement only if safe and materially beneficial.
+
+After the consolidated material repair is complete:
+
+1. run the aggregate Scaffold gate;
+2. create/freeze a new monotonic physical-QA candidate;
+3. perform **targeted** phone/tablet revalidation only for failed/touched/affected families, phone 21/affected phone 22, and tablet 18 after T5;
+4. preserve unrelated accepted PASS evidence;
+5. require explicit owner acceptance before Phase 4A closure.
+
+## 7. Failure handling
 
 If physical QA finds a defect:
 
 1. classify whether it is local, shared/systemic, persistence/domain, responsive/layout, or interaction-specific;
-2. reopen only the relevant accepted repair boundary;
-3. repair on `implementation/phase4a-successor-cycle`;
-4. preserve storage/import/export/migration and canonical-state contracts unless the approved defect resolution explicitly requires a change;
-5. run the appropriate focused tests plus the normal aggregate gate when required;
-6. produce a new monotonic QA identity if the physical candidate changes materially;
-7. checkpoint the exact new evidence before another owner pass.
+2. audit source before asserting a shared root cause;
+3. reopen only the relevant accepted repair boundary;
+4. repair on `implementation/phase4a-successor-cycle`;
+5. preserve storage/import/export/migration, IDs/associations where applicable, canonical-state authority and accepted evidence unless the approved repair explicitly requires a change;
+6. run focused tests/guards plus the normal aggregate gate when required;
+7. produce a new monotonic QA identity if the frozen physical candidate changes materially;
+8. checkpoint exact evidence before another owner pass.
 
 Do not invent an unrelated Player feature or a new numbered repair item merely because the project is waiting at a manual gate.
 
-## 7. Phase 4A closure rule
+## 8. Status synchronization rule
+
+At the end of **every bounded implementation/test round**, before proceeding to the next repair family, update all four durable continuity surfaces:
+
+1. the dedicated round checkpoint under `docs/checkpoints/`;
+2. `docs/PROJECT_STATE.md`;
+3. `docs/checkpoints/LATEST.md`;
+4. this `docs/TESTING.md` file, including its **Current status**, current repair automation status and revalidation route whenever affected.
+
+These four surfaces must agree on the latest completed round, automation evidence, next action and physical-revalidation status. Do not allow `TESTING.md` to remain on an older QA candidate or implementation gate after a round advances.
+
+## 9. Phase 4A closure rule
 
 Phase 4A may be marked accepted/closed only after:
 
-- the repaired candidate has sufficient physical phone evidence;
-- Player tablet portrait/landscape QA has actually been performed under P17;
+- the consolidated repaired candidate has sufficient targeted phone evidence;
+- Player tablet portrait/landscape evidence exists for the relevant repaired/touched families;
 - blocking defects have been repaired/revalidated as needed;
+- unresolved/blocked evidence has been addressed as required;
 - the owner explicitly accepts/closes Phase 4A.
 
-No CI result may substitute for that explicit owner closure.
+No CI result may substitute for explicit owner closure.
 
-## 8. Historical frozen candidates
+No P18 exists. DM implementation remains blocked until explicit Phase 4A owner closure.
 
-Historical frozen QA refs remain immutable evidence and are not active QA targets:
-
-- `tmp/phase4-l-frozen-qa-candidate` at `5cc034d3fdf4c25d935bd698aeaf2a3f9e427f27`;
-- `tmp/phase4-m5-frozen-qa-candidate` at `adc286b3e1305ed706c2ed04d478a43652f6b365`.
-
-Use `docs/BRANCH_STATUS.md` for lifecycle interpretation and the archive for deliberately removed historical refs.
-
-## 9. Authority and resume rule
+## 10. Authority and resume rule
 
 Current branch roles are controlled by `docs/BRANCH_STATUS.md`.
 
-For Player testing/repair, use `implementation/phase4a-successor-cycle` and its `docs/checkpoints/LATEST.md`.
+For Player testing/repair, use `implementation/phase4a-successor-cycle`, `docs/PROJECT_STATE.md`, and `docs/checkpoints/LATEST.md`.
 
 For current global/DM discovery state, use `main` and its `docs/checkpoints/LATEST.md`.
-
-DM feature implementation remains blocked until explicit Phase 4A owner closure.
