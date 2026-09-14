@@ -42,8 +42,8 @@ def main() -> None:
     )
     text = replace_once(
         text,
-        """                        onDraftChange = onDraftChange,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
-        """                        onDraftChange = onDraftChange,\n                        structuralEditingEnabled = structuralEditingEnabled,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
+        """                    SaveRowV4(\n                        ability = ability,\n                        draft = draft,\n                        onDraftChange = onDraftChange,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
+        """                    SaveRowV4(\n                        ability = ability,\n                        draft = draft,\n                        onDraftChange = onDraftChange,\n                        structuralEditingEnabled = structuralEditingEnabled,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
         "Save row structural propagation",
     )
 
@@ -119,8 +119,8 @@ def main() -> None:
     )
     text = replace_once(
         text,
-        """        OutlinedButton(\n            onClick = { expanded = true },\n""",
-        """        OutlinedButton(\n            onClick = { expanded = true },\n            enabled = enabled,\n""",
+        """        OutlinedButton(\n            onClick = { expanded = true },\n            modifier = Modifier\n                .width(44.dp)\n""",
+        """        OutlinedButton(\n            onClick = { expanded = true },\n            enabled = enabled,\n            modifier = Modifier\n                .width(44.dp)\n""",
         "Training selector gate",
     )
     text = replace_once(
@@ -138,8 +138,8 @@ def main() -> None:
     )
     text = replace_once(
         text,
-        """                        successorState = successorState,\n                        onDraftChange = onDraftChange,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
-        """                        successorState = successorState,\n                        onDraftChange = onDraftChange,\n                        structuralEditingEnabled = structuralEditingEnabled,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
+        """                    AbilityGroupV4(\n                        ability = ability,\n                        draft = draft,\n                        relatedSkills = rows.filter { it.ability.builtIn == ability },\n                        customSkills = customSkills,\n                        calculationSheet = calculationSheet,\n                        successorState = successorState,\n                        onDraftChange = onDraftChange,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
+        """                    AbilityGroupV4(\n                        ability = ability,\n                        draft = draft,\n                        relatedSkills = rows.filter { it.ability.builtIn == ability },\n                        customSkills = customSkills,\n                        calculationSheet = calculationSheet,\n                        successorState = successorState,\n                        onDraftChange = onDraftChange,\n                        structuralEditingEnabled = structuralEditingEnabled,\n                        modifier = Modifier.weight(1f),\n                    )\n""",
         "Ability group structural propagation",
     )
 
