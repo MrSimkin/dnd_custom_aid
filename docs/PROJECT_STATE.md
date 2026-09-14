@@ -1,129 +1,133 @@
 # Project State — Player / Phase 4A successor line
 
-**Last verified:** 2026-09-13  
+**Last verified:** 2026-09-14  
 **Branch:** `implementation/phase4a-successor-cycle`  
-**Role:** authoritative current Player runtime / Phase 4A repair line  
-**Current exact frozen physical candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; CROSS-DEVICE PHYSICAL DISCOVERY COMPLETE WITH OPEN FINDINGS  
-**Current implementation state:** consolidated material post-P17 repair **COMPLETE / AUTOMATION GREEN**; Rounds 1–3 + T5 + T6 + T3/T4/T9 + T7 + T8 + T2 complete; aggregate steady-state Scaffold #1625 SUCCESS; next = **freeze one new monotonic physical-QA candidate**  
-**Release status:** development/debug; Phase 4A OPEN; DM implementation blocked pending explicit Phase 4A closure
+**Role:** authoritative current Player runtime / Phase 4A repair + physical-revalidation line  
+**Current exact frozen physical candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4` — **AUTOMATION GREEN / TARGETED CROSS-DEVICE PHYSICAL REVALIDATION PENDING**  
+**Current implementation state:** consolidated material post-P17 repair **COMPLETE / AUTOMATION GREEN**; Rounds 1–3 + T5 + T6 + T3/T4/T9 + T7 + T8 + T2 complete; aggregate Scaffold #1625 SUCCESS; exact versioned candidate Scaffold #1630 SUCCESS  
+**Release status:** debug/development; Phase 4A OPEN; DM implementation blocked pending explicit Phase 4A owner closure
 
 ## Authority / continuity
 
-This branch remains authoritative for current Player runtime and Phase 4A repairs. `main` remains intentionally divergent for global/Phase5A/DM discovery and is not the latest Player runtime. No P18 exists.
+This branch remains authoritative for current Player runtime and Phase 4A physical revalidation. `main` remains intentionally divergent for global/Phase5A/DM discovery and is not the latest Player runtime. No P18 exists.
 
 Resume in this order:
 
-1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T2_DICE_PRESENTATION_CUSTOM_THROW.md` — latest completed bounded repair, aggregate automation evidence and exact next gate;
-2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T8_TABLE_MODE.md`;
-3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T7_WIDE_COMBAT.md`;
-4. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_APPLICATION_SETTINGS_T3_T4_T9.md`;
-5. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T6_CLASS_EDITOR_CONTROLS.md`;
-6. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T5_SPELL_SOURCE_BOOTSTRAP.md`;
-7. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND3_COMPACT_CHECKBOX_RESPONSIVE_GROUPING.md`;
-8. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md`;
-9. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md`;
-10. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit / repair contracts / targeted revalidation matrix;
-11. `docs/TESTING.md` — synchronized testing policy and route.
+1. `docs/checkpoints/2026-09-14_PHASE4A_PREQA13_CONSOLIDATED_REPAIR_CANDIDATE.md` — exact frozen candidate, artifact evidence and targeted revalidation matrix;
+2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T2_DICE_PRESENTATION_CUSTOM_THROW.md` — latest completed bounded material repair + aggregate automation proof;
+3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T8_TABLE_MODE.md`;
+4. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T7_WIDE_COMBAT.md`;
+5. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_APPLICATION_SETTINGS_T3_T4_T9.md`;
+6. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T6_CLASS_EDITOR_CONTROLS.md`;
+7. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T5_SPELL_SOURCE_BOOTSTRAP.md`;
+8. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND3_COMPACT_CHECKBOX_RESPONSIVE_GROUPING.md`;
+9. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md`;
+10. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md`;
+11. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — original source audit / repair contracts / revalidation matrix;
+12. `docs/TESTING.md` — synchronized testing policy and current manual gate.
 
-Supporting physical evidence remains the preqa.12 phone findings, tablet P17 progress and exact candidate checkpoint. Accepted PASS evidence must not be replayed merely because later repair rounds advance.
+The prior `preqa.12` phone/tablet discovery remains historical evidence. Accepted PASS evidence from that candidate must not be replayed merely because the repaired candidate advanced to `preqa.13`.
 
 ## Completed repair families
 
-### Round 1 — structured dice / signed modifier: COMPLETE / GREEN
+### Round 1 — structured dice / signed modifier
 
-HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`; Scaffold `34787688776` / #1508 — **SUCCESS**. Phone 7–9 implementation basis repaired; physical revalidation waits for the consolidated candidate. The remaining T2 integration is now also complete.
+HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`; Scaffold `34787688776` / #1508 — **SUCCESS**. Shared `NdS±M` parsing/rolling and direct sign foundation are implemented. Physical revalidation is folded into the targeted Round 1/T2 dice-family pass on `preqa.13`.
 
-### Round 2 — T1 reorder stability: COMPLETE / GREEN
+### Round 2 — T1 reorder stability
 
-HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`; Scaffold `34788409987` / #1519 — **SUCCESS**. Stable drag-start geometry, canonical preview, hysteresis, real-scroll translation and lazy-target capture cover one-dimensional and spatial reorder. T1 remains **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Reuse the existing owner failure video; do not request it again.
+HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`; Scaffold `34788409987` / #1519 — **SUCCESS**. Stable drag-start geometry, canonical preview, hysteresis, real-scroll translation and lazy-target capture cover one-dimensional and spatial reorder. T1 remains **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Reuse the existing owner failure video as historical baseline; do not request it again.
 
-### Round 3 — compact checkbox + responsive grouping: COMPLETE / GREEN
+### Round 3 — compact checkbox + responsive grouping
 
-HEAD `1d1c476ddaeb045c8a1b186267f452010cad7681`; Scaffold `34793253151` / #1537 — **SUCCESS**. Nineteen raw Material Checkbox calls across seven Player files migrated to shared compact/touch-safe controls; responsive Equipment/Conjuros grouping guarded. Phone 17.1–17.3 and tablet checkbox reproduction remain targeted-physical-revalidation pending.
+HEAD `1d1c476ddaeb045c8a1b186267f452010cad7681`; Scaffold `34793253151` / #1537 — **SUCCESS**. Nineteen raw Material Checkbox sites were migrated to shared compact/touch-safe controls; responsive Equipment/Conjuros grouping is guarded. Phone 17.1–17.3 and the tablet checkbox reproduction remain targeted-revalidation pending.
 
-### T5 — spell-source bootstrap / source context: COMPLETE / GREEN
+### T5 — spell-source bootstrap / source context
 
-Core integration `2e7fda2852425594971f7df47b433d642eb2119a`; steady-state HEAD `3774c53f5189ebd535cc1b73ec18493e268e5d9f`; Scaffold `34794589758` / #1560 — **SUCCESS**. Canonical base caster classes reconcile into the existing source/profile overlay while preserving compatible source IDs, associations, configured profiles and manual/homebrew sources. T5 remains targeted-physical-revalidation pending; tablet check 18 is no longer blocked.
+Core `2e7fda2852425594971f7df47b433d642eb2119a`; steady-state `3774c53f5189ebd535cc1b73ec18493e268e5d9f`; Scaffold `34794589758` / #1560 — **SUCCESS**. Canonical caster sources reconcile into the existing source/profile overlay while preserving compatible IDs, associations, configured profiles and manual/homebrew sources. Former tablet check 18 is now testable on `preqa.13`.
 
-### T6 — class-editor numeric / hit-die controls: COMPLETE / GREEN
+### T6 — class-editor numeric / hit-die controls
 
-Product `c98121e50f347f64898c9e31d077e53cad31685f`; steady-state HEAD `6ba73b22b07a4c5a92d69425a7372d2695fbc30a`; Scaffold `34795355116` / #1571 — **SUCCESS**. Numeric keypad behavior plus `d4/d6/d8/d10/d12/d20 + Otro…` implemented with catalog/custom preservation. Artifact `10329671667`, digest `sha256:6391210567ff4964b7077e1cc6e9c3c38bd862b62aba19a01e929ef6bfe4db4d`. T6 remains targeted-physical-revalidation pending.
+Product `c98121e50f347f64898c9e31d077e53cad31685f`; steady-state `6ba73b22b07a4c5a92d69425a7372d2695fbc30a`; Scaffold `34795355116` / #1571 — **SUCCESS**. Numeric keypad behavior plus `d4/d6/d8/d10/d12/d20 + Otro…` are implemented with catalog/custom preservation.
 
-### T3/T4/T9 — Application Settings semantics: COMPLETE / GREEN
+### T3/T4/T9 — Application Settings semantics
 
-Product commit `1dcd320417e7e3b45ec02ec6aa7cbb616c84e473`; steady-state HEAD `5db7bc3a48f1e640fc80770dd07d68a7ffaa02f7`; authoritative Scaffold `34796452617` / #1583 — **SUCCESS**.
+Product `1dcd320417e7e3b45ec02ec6aa7cbb616c84e473`; steady-state `5db7bc3a48f1e640fc80770dd07d68a7ffaa02f7`; Scaffold `34796452617` / #1583 — **SUCCESS**. Separate adaptive Vertical/Horizontal card-density preferences, symmetric `50..150` text-size options, compatibility migration and real haptics `Ninguna` are implemented and guarded.
 
-Implemented separate adaptive Vertical/Horizontal card-density preferences (`Cómodo / Equilibrado / Compacto / Denso`), safe runtime column derivation from real width/text/spacing pressure, compatibility mapping from legacy exact-count preferences, symmetric `50..150` text-size options with nearest-value migration, and real dispatch-level haptics `Ninguna`. Permanent `check_player_application_settings_semantics.py` guards these semantics.
+### T7 — wide Combat adaptive composition
 
-Artifact `10329772684`, size `13,644,492` bytes, digest `sha256:74249a197c21572743165927c9330f38ceafd2db7f78267872f36e2edfd2f1af`.
+Product `5f00bc006a26600a5d03582fbfbdf2e266259673`; steady-state `e567750a529238a2b45722b6f5ed726dd9123d88`; Scaffold `34797403737` / #1592 — **SUCCESS**. Narrow one-column Combat is preserved; wide/tablet Combat uses a bounded HUD, T3-driven adaptive attack/action grid and stabilized spatial reorder with one canonical persisted-order path.
 
-T3/T4/T9 are **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. They are not physically PASS.
+### T8 — Table Mode structural-affordance enforcement
 
-### T7 — wide Combat adaptive composition: COMPLETE / GREEN
+Product `2734d08a72e183ca213cd9213ff47a4db588cbf6`; steady-state `d6c13819a49e1cb7c71dffcad98b53c250d4d9d4`; Scaffold `34799667822` / #1611 — **SUCCESS**. Structural name/class/ability/save/skill/general-reference editing is visibly gated in Table Mode while HP, inspiration and current resource state remain operational.
 
-Product commit `5f00bc006a26600a5d03582fbfbdf2e266259673`; steady-state HEAD `e567750a529238a2b45722b6f5ed726dd9123d88`; authoritative Scaffold `34797403737` / #1592 — **SUCCESS**.
+### T2 — dice-result / Custom Throw / display-mode integration
 
-T7 preserves the narrow one-column Combat path while changing wide/tablet Combat to a deliberately bounded operational HUD plus T3-driven adaptive attack/action grid. Wide cards reuse the stabilized spatial reorder foundation, including stable target geometry and auto-scroll; both narrow and wide reorder converge on one canonical persisted-order commit path. Favorite/Edit/Delete are suppressed during an active spatial drag. No storage/schema/import/export model changed.
+Product `8131dd13f4373148503b854b1448f9d081556847`; final migration-free steady-state `4d09e9eca648e5ca82af896dab8d16b986faae5b`; authoritative Scaffold `34801201294` / #1625 — **SUCCESS**.
 
-Permanent `check_player_wide_combat.py` guards the active successor path, narrow-path preservation, adaptive columns, bounded HUD, spatial reorder wiring and persisted ordering.
+T2 adds die-specific d4/d6/d8/d10/d12/d20 result silhouettes plus neutral fallback, standard/custom-side Custom Throw, signed modifier UX, shared arbitrary-die resolution reused by damage, and Dice-tab ownership of the existing `dice_result_mode` preference. Permanent `check_player_dice_t2.py` remains in normal read-only Scaffold.
 
-Artifact `10330505672`, size `13,651,587` bytes, digest `sha256:582d455aea9dad0f0898fa43368d6bd69e6ed8994914522008ada85abe46c4c9`.
+T2 remains **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING** until owner/device evidence is collected on `preqa.13`.
 
-T7 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. It is not physically PASS.
+## Consolidated automation proof
 
-### T8 — Table Mode structural-affordance enforcement: COMPLETE / GREEN
+All material post-P17 repair families are implemented and automation green.
 
-Product commit `2734d08a72e183ca213cd9213ff47a4db588cbf6`; steady-state HEAD `d6c13819a49e1cb7c71dffcad98b53c250d4d9d4`; authoritative Scaffold `34799667822` / #1611 — **SUCCESS**.
+Final migration-free aggregate proof before candidate versioning:
 
-T8 aligns the visible UI with the existing `CharacterTableModePolicy`: structural name/class/ability/save/skill/general-reference editing is hidden, disabled or read-only while Table Mode is active, while genuine operational HP, inspiration and current resource state remain usable. The repair covers Overview, Skills, class identity and general structural references; already-correct specialized collection modules and PC Settings were left unchanged.
+- HEAD `4d09e9eca648e5ca82af896dab8d16b986faae5b`;
+- Scaffold `34801201294` / #1625 — **SUCCESS**;
+- every permanent Player guard PASS;
+- backend PASS;
+- shared tests PASS;
+- Android build PASS;
+- Desktop build PASS;
+- APK upload PASS.
 
-Permanent `check_player_table_mode_affordances.py` guards both sides of the contract: structural affordances remain gated and operational current/session values remain routed through operational persistence. No storage/schema/import/export model changed.
+The optional phone-16 compact-field refinement is **NOT TAKEN**. Phone check 16 was already PASS and no later evidence demonstrated a safe material benefit sufficient to justify visual churn before the physical candidate.
 
-Artifact `10330822191`, size `13,662,998` bytes, digest `sha256:bf90762e36177735bd948524c37552b143ec1bbf1ddd7bdb292511b7a7255715`.
+## Frozen physical candidate — preqa.13
 
-T8 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. It is not physically PASS.
+Exact immutable candidate for the next owner/device pass:
 
-### T2 — dice-result / Custom Throw / display-mode integration: COMPLETE / GREEN
+- versionName `0.4.0-preqa.13`;
+- versionCode `41300`;
+- candidate commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- candidate Scaffold `34801612526` / #1630 — **SUCCESS**;
+- artifact `10331503478` / `dnd-custom-aid-debug-apk`;
+- artifact/archive size `13,693,984` bytes;
+- GitHub artifact digest `sha256:13b72f8a7e797e40009f548bd45d1c538a41cfe52ecf9796110e75498e359893`;
+- independently downloaded ZIP SHA-256 `13b72f8a7e797e40009f548bd45d1c538a41cfe52ecf9796110e75498e359893` — exact match;
+- APK size `39,094,384` bytes;
+- independent APK SHA-256 `81fbc20525221d791e6a0f786dec4b05709505e052e0e5ffba4ebfa5eb02391e`.
 
-Product commit `8131dd13f4373148503b854b1448f9d081556847`; final migration-free steady-state HEAD `4d09e9eca648e5ca82af896dab8d16b986faae5b`; authoritative Scaffold `34801201294` / #1625 — **SUCCESS**.
+`preqa.13` is automation green but **not physically PASS**.
 
-T2 completes the Round-1 dice foundation with die-specific result silhouettes for d4/d6/d8/d10/d12/d20 plus neutral circular fallback, real Custom Throw standard/custom-side selection and signed modifier UX, shared arbitrary-die resolution reused by damage rolling, and Dice-tab ownership of the existing persisted result-display preference. No preference key, storage/schema/import/export model changed.
+## Current gate — targeted physical revalidation
 
-Permanent `check_player_dice_t2.py` guards the active successor Dice path, custom throw semantics, shared resolver reuse, die-result visual contract and preference ownership.
+Do **not** replay the full historical phone/tablet suites. The next work is owner/device evidence on this exact `preqa.13 / 41300` candidate for failed/touched/affected families only.
 
-Artifact `10331846822`, size `13,693,976` bytes, digest `sha256:4ceeba64f31ab3ee4436f2ee1cc71ce324154d84cb99a551cbb1ef3ba28cb7f0`.
+Required coverage:
 
-T2 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. It is not physically PASS.
+1. Round 1 + T2 dice family — phone 7–9, ordinary visible d20 sanity, non-d20 Custom Throw, `Otro…` bounds, signed modifiers, damage/flat visuals and Dice-tab display-mode persistence;
+2. T1 reorder — one-column + spatial/multi-column + applicable auto-scroll + leave/reopen persisted order;
+3. Round 3 checkbox/responsive grouping — representative Equipment/other migrated checkbox plus Conjuros groups/source-prepared packing across relevant orientations;
+4. T5 — canonical caster source/bootstrap, associations, save/reopen, manual-source coexistence and tablet 18;
+5. T6 — numeric keyboard, standard/custom hit die and persistence;
+6. T3/T4/T9 — Vertical/Horizontal density, text-size behavior/migration and haptics `Ninguna`/non-none;
+7. T7 — tablet-landscape Combat width/packing/reorder/persistence plus one narrow-phone sanity;
+8. T8 — structural controls genuinely non-editable/non-opening while operational HP/inspiration/resources remain usable/persistent, plus one narrow-phone sanity;
+9. unresolved phone 21;
+10. affected slice of phone 22;
+11. tablet 18, formerly blocked by T5.
 
-## Consolidated material repair status
+Preserve all unrelated accepted PASS evidence.
 
-All material post-P17 repair families identified for this cycle are now implemented and automation green. Normal read-only Scaffold #1625 ran after T2 temporary migration cleanup and passed every permanent Player guard plus shared tests, Android/Desktop builds, backend type-check and APK upload. It therefore serves as the aggregate automation proof for the completed consolidated repair set.
+## Failure / closure rules
 
-The optional phone-16 compact-field refinement is **not taken** before the next candidate. Phone check 16 was already PASS, and no new evidence demonstrates a safe material benefit that would justify introducing visual churn into an accepted surface.
+If targeted physical QA finds a material defect, reopen only the relevant bounded repair family after source audit; rerun focused + aggregate automation; advance to another monotonic candidate identity if the frozen candidate changes materially; checkpoint the new evidence before another owner pass.
 
-This does not convert any automation-green repair into physical PASS.
-
-## Physical evidence / candidate policy
-
-The frozen physical candidate remains unchanged until a new candidate is explicitly versioned/frozen:
-
-- versionName `0.4.0-preqa.12`;
-- versionCode `41200`;
-- commit `abfc7e4a1519a27117f194721a425d75cb5df68a`;
-- Scaffold `34776627282` — SUCCESS;
-- artifact `10323602038`;
-- ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
-- APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
-
-Do not physically revalidate intermediate rounds independently. The next step is to freeze one new monotonic physical-QA candidate from the consolidated repaired line, then perform targeted cross-device revalidation for failed/touched/affected families plus unresolved phone 21/affected phone 22 and tablet 18. Preserve unrelated accepted evidence.
-
-## Exact route
-
-1. **Freeze one new monotonic physical-QA candidate** from the consolidated repaired Player line. Do not reuse `preqa.12` identity.
-2. Record exact versionName/versionCode, commit, Scaffold run and artifact/digests for that candidate.
-3. Perform the already-defined targeted cross-device revalidation only; do not replay complete phone/tablet discovery.
-4. Reopen only a relevant bounded repair if targeted physical evidence finds a material defect.
-5. Phase 4A closes only after sufficient repaired evidence and explicit owner acceptance.
-6. DM implementation remains blocked until that explicit Phase 4A owner closure.
+Phase 4A closes only after sufficient targeted repaired evidence and **explicit owner acceptance**. CI cannot substitute for physical evidence or owner closure. DM implementation remains blocked until that explicit Phase 4A closure.
 
 Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change. No P18 exists.
