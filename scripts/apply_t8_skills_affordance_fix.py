@@ -125,8 +125,8 @@ def main() -> None:
     )
     text = replace_once(
         text,
-        """        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {\n""",
-        """        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {\n""",
+        """        ) {\n            TrainingGlyphV4(training)\n        }\n        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {\n            SkillTraining.entries.forEach { option ->\n""",
+        """        ) {\n            TrainingGlyphV4(training)\n        }\n        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {\n            SkillTraining.entries.forEach { option ->\n""",
         "Training dropdown gate",
     )
 
