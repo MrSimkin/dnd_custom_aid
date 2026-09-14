@@ -42,6 +42,19 @@ data class CharacterSpellcastingBootstrapResult(
     val hasCanonicalSpellcastingClass: Boolean,
 )
 
+fun needsCharacterSpellcastingBootstrap(
+    classes: List<CharacterClassLevel>,
+    existingSources: List<CharacterSpellcastingSource>,
+): Boolean {
+    val linkedClassIds = existingSources.asSequence()
+        .filter { it.originKind == CharacterSpellcastingOriginKind.CLASS }
+        .mapNotNull { it.linkedClassId }
+        .toSet()
+    return classes.any { classLevel ->
+        CharacterSpellcastingCatalog.isCanonicalSpellcaster(classLevel) && classLevel.id !in linkedClassIds
+    }
+}
+
 /**
  * Reconciles canonical spellcasting class ownership with the richer spell-source/profile overlay.
  *
