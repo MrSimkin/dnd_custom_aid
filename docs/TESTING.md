@@ -7,63 +7,44 @@
 
 Phases 0–3 are complete. Phase 4A Player physical discovery on the current frozen candidate is complete, and the project is inside the **consolidated post-P17 repair cycle**.
 
-Current testing position:
+Current position:
 
-- current exact frozen physical-QA candidate: `0.4.0-preqa.12 / 41200`;
-- candidate commit: `abfc7e4a1519a27117f194721a425d75cb5df68a`;
-- candidate Scaffold run `34776627282`: **SUCCESS**;
-- artifact ID `10323602038` / `dnd-custom-aid-debug-apk`;
-- ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
-- APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`;
-- phone detailed discovery on `preqa.12`: **COMPLETE WITH OPEN FINDINGS**;
-- P17 tablet portrait/landscape discovery on the same exact candidate: **COMPLETE WITH OPEN FINDINGS**;
-- Repair Round 1 structured dice: **COMPLETE / AUTOMATION GREEN**;
-- Repair Round 2 T1 reorder stability: **COMPLETE / AUTOMATION GREEN**;
-- Repair Round 3 compact checkbox + responsive grouping: **COMPLETE / AUTOMATION GREEN**;
-- T5 spell-source/bootstrap/source-context compatibility: **COMPLETE / AUTOMATION GREEN**;
-- next implementation family: **T6 class-editor numeric keyboard + standard die / `Otro…` selector**;
+- frozen physical-QA candidate: `0.4.0-preqa.12 / 41200`;
+- candidate commit `abfc7e4a1519a27117f194721a425d75cb5df68a`;
+- candidate Scaffold `34776627282`: **SUCCESS**;
+- artifact `10323602038` / `dnd-custom-aid-debug-apk`;
+- phone + tablet discovery: **COMPLETE WITH OPEN FINDINGS**;
+- Round 1 structured dice: **COMPLETE / AUTOMATION GREEN**;
+- Round 2 T1 reorder stability: **COMPLETE / AUTOMATION GREEN**;
+- Round 3 compact checkbox + responsive grouping: **COMPLETE / AUTOMATION GREEN**;
+- T5 spell-source/bootstrap/source-context: **COMPLETE / AUTOMATION GREEN**;
+- T6 class-editor numeric/hit-die controls: **COMPLETE / AUTOMATION GREEN**;
+- next implementation family: **Application Settings T3/T4/T9**;
 - no new repaired physical-QA candidate has been frozen yet;
 - Phase 4A owner closure: **NOT COMPLETE**;
 - DM implementation: **BLOCKED UNTIL EXPLICIT PHASE 4A OWNER CLOSURE**.
 
-The current live status authorities are:
+Live status authorities, in order: `docs/PROJECT_STATE.md`, `docs/checkpoints/LATEST.md`, latest completed repair checkpoint, then this file for testing policy/route.
 
-1. `docs/PROJECT_STATE.md`;
-2. `docs/checkpoints/LATEST.md`;
-3. the latest completed bounded repair checkpoint;
-4. this file for testing policy, current testing position and revalidation route.
+Green CI is technical evidence, not physical evidence or owner acceptance.
 
-Green CI is technical evidence, not owner acceptance. Branch location is repository state, not a test result.
+## 1. Core testing rules
 
-## 1. Core rule
+Never claim a test passed unless it was actually executed successfully against the relevant revision. Every meaningful implementation/QA batch records what was tested, result, material omissions and device/environment where relevant.
 
-Never claim a test passed unless it was actually executed successfully against the relevant revision.
+Automated verification and physical acceptance are separate gates. A defect seen on one device can justify a shared repair when source audit proves a shared cause, but inference is not physical evidence on another device.
 
-Every meaningful implementation or QA batch should state:
-
-- what was tested;
-- how;
-- what passed/failed;
-- what was not tested when material;
-- relevant device/environment information when material.
-
-Automated verification and manual real-device acceptance are separate gates.
-
-A defect first observed on one device may still require cross-device repair when the root cause is a shared state authority, shared component, shared layout primitive, shared spacing policy, shared interaction primitive or shared product concept. That does **not** convert inference into physical evidence on another device.
-
-Accepted physical evidence must be preserved. Do not replay complete phone/tablet suites merely because a later repair round touches another family.
+Preserve accepted physical evidence. Do not replay complete phone/tablet suites merely because a later bounded family changes.
 
 ## 2. Standard automated verification
 
-### Kotlin / Android / Desktop / SQLDelight
+Kotlin / Android / Desktop / SQLDelight:
 
 ```bash
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-Current CI uses JDK 17, Gradle 9.5 and Android SDK platform 36.
-
-### Backend
+Backend:
 
 ```bash
 cd backend
@@ -71,35 +52,33 @@ npm install --no-package-lock
 npm run check
 ```
 
-The normal Scaffold gate covers backend install/type-check, stable CI debug-keystore preparation, Player source guards, Kotlin/shared/Android/Desktop build-and-test surfaces and Android debug APK upload.
+Current CI uses JDK 17, Gradle 9.5 and Android SDK platform 36. Normal Scaffold covers backend type-check, stable debug-keystore preparation, all permanent Player source guards, shared tests, Android/Desktop builds and Android debug APK upload.
 
-Every bounded repair round should run focused tests/guards appropriate to that repair plus the normal Scaffold gate before it is marked automation green.
+Every bounded repair needs focused guard/tests plus the normal read-only Scaffold before being marked automation green.
 
-## 3. Current frozen physical-QA candidate
+## 3. Frozen physical baseline
 
-The exact physical discovery baseline remains:
+Exact immutable discovery baseline:
 
 - versionName `0.4.0-preqa.12`;
-- versionCode/build `41200`;
-- candidate commit `abfc7e4a1519a27117f194721a425d75cb5df68a`;
+- versionCode `41200`;
+- commit `abfc7e4a1519a27117f194721a425d75cb5df68a`;
 - Scaffold `34776627282` — **SUCCESS**;
-- artifact ID `10323602038` / `dnd-custom-aid-debug-apk`;
+- artifact `10323602038`;
 - ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
 - APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
 
-This candidate is immutable evidence. Repair Rounds 1–3 and T5 exist on later commits and are **not yet a frozen physical-QA candidate**.
+Later repair commits are not yet a frozen physical candidate.
 
-## 4. Physical discovery already completed on `preqa.12`
+## 4. Preserved physical discovery
 
 ### Phone
 
-The detailed 23-check phone pass supersedes any earlier broad interpretation that the complete phone gate was closed, while preserving valid individual PASS evidence:
-
-- checks 1–6 PASS;
-- 7–8 OPEN structured-damage defects; Round 1 implementation complete / automation green, targeted physical revalidation pending;
-- 9 PASS + direct sign-toggle refinement; Round 1 implementation complete / automation green, targeted physical revalidation pending;
-- 10–16 PASS, with 16 only an optional compact-density refinement;
-- 17.1–17.3 OPEN systemic checkbox/responsive grouping family; Round 3 implementation complete / automation green, targeted physical revalidation pending;
+- 1–6 PASS;
+- 7–8 structured-damage findings → Round 1 implemented/green, targeted revalidation pending;
+- 9 functional PASS plus direct-sign refinement → Round 1 implemented/green, targeted revalidation pending;
+- 10–16 PASS; 16 only optional compact-density refinement;
+- 17.1–17.3 checkbox/responsive grouping → Round 3 implemented/green, targeted revalidation pending;
 - 18–20 PASS;
 - 21 UNASSESSED;
 - 22 PARTIAL/AMBIGUOUS;
@@ -107,203 +86,132 @@ The detailed 23-check phone pass supersedes any earlier broad interpretation tha
 
 ### Tablet P17
 
-P17 physical discovery on the exact same `preqa.12` APK is complete:
+- 1–6 PASS;
+- 7 FAIL / T7;
+- 8 PASS;
+- 9–10 FAIL / T5 → T5 implemented/green, targeted revalidation pending;
+- 11 PASS plus checkbox-family reproduction → Round 3 implemented/green, targeted revalidation pending;
+- 12–14 PASS;
+- 15 FAIL / T8;
+- 16–17 PASS;
+- 18 was BLOCKED BY T5; T5 is now repaired, so this is future targeted physical revalidation.
 
-1. install/update + launch PASS;
-2. campaign baseline PASS;
-3. portrait navigation/adaptive shell PASS;
-4. landscape navigation/adaptive shell PASS;
-5. rotation/state sanity PASS;
-6. Combat portrait PASS;
-7. Combat landscape FAIL / T7;
-8. canonical HP synchronization PASS;
-9. Conjuros portrait FAIL / T5 — **T5 implementation complete / automation green; targeted physical revalidation pending**;
-10. Conjuros landscape FAIL / same T5 — **implementation complete / automation green; targeted physical revalidation pending**;
-11. representative non-spell editor/IME PASS + reproduction of phone 17.1 checkbox family; Round 3 implementation complete / automation green, targeted physical revalidation pending;
-12. PC Settings PASS;
-13. Application Settings responsiveness PASS;
-14. Supercompact PASS;
-15. Table Mode FAIL / T8;
-16. larger text/density PASS;
-17. cold persistence/reopen PASS;
-18. Conjuros sticky was BLOCKED BY T5 on `preqa.12`; T5 is now implementation/automation complete, so this becomes future targeted physical revalidation rather than a new implementation defect.
+No further broad discovery pass is required on preqa.12.
 
-There is no further broad phone or tablet discovery pass required on `preqa.12`.
+## 5. Repair automation evidence
 
-## 5. Current repair automation status
+### Round 1 — structured dice / signed modifier
 
-### Round 1 — structured dice / signed modifier foundation
+HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`; Scaffold `34787688776` / #1508 — **SUCCESS**. Physical revalidation waits for the consolidated candidate. Remaining T2 integration is tracked separately.
 
-Product/test HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`.  
-Authoritative Scaffold `34787688776` / run `1508` — **SUCCESS**.
+### Round 2 — T1 reorder stability
 
-Phone 7–9 implementation basis is repaired and automation-protected. Physical revalidation waits for the consolidated candidate. T2 remains partial because die-result silhouettes, Custom Throw die/custom-sides/signed-modifier UX and Dice-tab ownership of display mode remain.
+HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`; Scaffold `34788409987` / #1519 — **SUCCESS**. Both one-dimensional and spatial reorder are covered by stable drag geometry/hysteresis/scroll translation. T1 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**.
 
-### Round 2 — T1 reorder target stability
-
-Product/test HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`.  
-Authoritative Scaffold `34788409987` / run `1519` — **SUCCESS**.
-
-The repair covers **both active reorder models**: one-dimensional/one-column reorder and spatial/multi-column reorder. It uses stable drag-start target geometry, canonical-order preview generation, hysteresis around boundaries, explicit translation during real viewport scrolling and one-time capture of newly revealed lazy targets.
-
-T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**.
-
-The existing owner video is the failure baseline and must not be requested again. Future T1 physical revalidation on the consolidated candidate must cover, at minimum:
-
-- one-column reorder;
-- multi-column/spatial reorder on a wide layout;
-- no target chasing animated preview reflow;
-- auto-scroll while dragging where applicable;
-- final order persistence after leave/reopen.
-
-A PASS in only one-column or only multi-column mode is insufficient to close T1 because the original physical evidence showed the failure family across layout scenarios and the repair changes shared behavior used by both engines.
+Future T1 physical coverage: one-column, multi-column/spatial, no preview-target chasing, applicable auto-scroll, final persisted order after leave/reopen. Reuse the existing owner failure video; do not request it again.
 
 ### Round 3 — compact checkbox + responsive grouping
 
-Migrated product commit `582a809bafbc4d7d38836283ed0eb5fe33d94624`.  
-Final product/test HEAD `1d1c476ddaeb045c8a1b186267f452010cad7681`.  
-Authoritative final Scaffold `34793253151` / run `1537` — **SUCCESS**.
+HEAD `1d1c476ddaeb045c8a1b186267f452010cad7681`; Scaffold `34793253151` / #1537 — **SUCCESS**. Nineteen raw Material Checkbox sites across seven Player files migrated to shared compact/touch-safe controls; responsive Equipment/Conjuros packing and source/prepared pairing are guarded. Eleven legitimate Material `Switch` sites remain; zero `TriStateCheckbox` sites.
 
-Round 3 establishes shared compact/touch-safe checkbox primitives, responsive `FlowRow` grouping, semantic source/prepared pairing and a durable source guard.
+Future physical coverage: representative Equipment + another migrated checkbox surface; Conjuros V/S/M + Concentración/Ritual; source/prepared packing; phone/tablet portrait/landscape where applicable.
 
-Source-complete result: **19 raw Material Checkbox calls across seven Player files → 0 outside the shared primitive**. Equipment and Conjuros share lines when controls fit and wrap only when required by width. The related-toggle audit retained 11 legitimate Material `Switch` sites and found 0 `TriStateCheckbox` sites.
+### T5 — spell-source bootstrap / source context
 
-Run `1537` passed compact-control guard, reorder-stability guard, checkbox guard, backend/type-check, Kotlin/shared tests, Android build, Desktop build and APK upload. Artifact `10328739208`; GitHub Actions artifact digest `sha256:03f529acfde7ad18e2aa08752a28822d3d7f9c45916e02ddf65932714d52b1bf`.
+Core integration `2e7fda2852425594971f7df47b433d642eb2119a`; steady-state HEAD `3774c53f5189ebd535cc1b73ec18493e268e5d9f`; Scaffold `34794589758` / #1560 — **SUCCESS**.
 
-Phone 17.1–17.3 and the tablet checkbox-family reproduction are **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. No physical PASS is inferred from CI.
+Canonical base caster sources are reconciled by exact linked class identity; existing IDs/associations/configured profiles and manual/homebrew sources are preserved. Missing canonical profiles receive only bounded default casting ability. T5 deliberately does not implement spell legality/subclass/multiclass rules.
 
-Targeted Round 3 physical revalidation on the future consolidated candidate should include representative Equipment checkbox scale/spacing/touch behavior, a second migrated surface, and Conjuros V/S/M + Concentración/Ritual plus source/prepared responsive packing in phone/tablet portrait and landscape where applicable.
+Future physical coverage: canonical Mago/Mage source availability, default INT unless existing configuration overrides it, add/associate/save/leave/reopen, stable source identity, manual source coexistence, tablet portrait/landscape and former P17 check 18 sticky/source-context behavior.
 
-### T5 — spell-source bootstrap / source-context compatibility
+### T6 — class-editor numeric / hit-die controls
 
-Core editor integration `2e7fda2852425594971f7df47b433d642eb2119a`.  
-Final product/test HEAD `3774c53f5189ebd535cc1b73ec18493e268e5d9f`.  
-Authoritative steady-state Scaffold `34794589758` / run `1560` — **SUCCESS**.
+Product commit `c98121e50f347f64898c9e31d077e53cad31685f`; steady-state HEAD `6ba73b22b07a4c5a92d69425a7372d2695fbc30a`; authoritative Scaffold `34795355116` / #1571 — **SUCCESS**.
 
-T5 resolves the shared class/source-model disconnect that caused canonical Mago/Mage characters to reach Conjuros without a usable source context.
+T6 implements:
 
-The bounded compatibility model now:
+- numeric keyboard for `Nivel`;
+- numeric keyboard for `DG restantes`;
+- standard hit-die selector `d4/d6/d8/d10/d12/d20`;
+- `Otro…` + numeric custom-sides field;
+- catalog hit-die preselection preservation;
+- existing nonstandard/custom value preservation;
+- permanent `check_player_class_editor_controls.py` guard;
+- no schema/storage/class-rules redesign.
 
-- maps known canonical base caster catalog keys to their default casting ability;
-- matches/reuses an existing class source by exact `linkedClassId`;
-- creates only genuinely missing canonical sources;
-- preserves existing configured source profiles;
-- fills only missing/unconfigured canonical casting ability while retaining profile adjustments/legacy overrides;
-- preserves manual/homebrew `OTHER` sources;
-- is idempotent;
-- projects missing canonical source/profile context for old saved characters without immediately mutating storage;
-- reconciles class changes from the existing domain `settingsSheet.classes` projection;
-- exposes Conjuros while the persisted canonical source is missing;
-- persists reconciled source/profile data through the normal Save path.
+The temporary migration writer/helper was removed before the steady-state run. Run #1571 passed backend, all existing guards including T5, the T6 guard, shared tests, Android/Desktop builds and APK upload.
 
-Bounded metadata covers Artificer (2025/5e), Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock and Wizard/Mago. T5 deliberately does **not** implement Fighter/Rogue subclass casting, spell-list legality, subclass progression or multiclass spell rules.
+Artifact `10329671667`, size `13,645,969` bytes, digest `sha256:6391210567ff4964b7077e1cc6e9c3c38bd862b62aba19a01e929ef6bfe4db4d`.
 
-Focused `CharacterSpellcastingBootstrapTest` coverage includes Mago source+INT bootstrap, source-ID/configured-profile preservation, unconfigured Cleric profile fill without adjustment loss, noncaster/custom no-op behavior, missing-source detection, and idempotent multi-source/manual-source reconciliation.
+T6 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**.
 
-Permanent `check_player_spellcasting_bootstrap.py` guards the bounded catalog, class-ID matching, profile preservation, projected-domain editor reconciliation, one-time Conjuros availability and save-path persistence.
+Future physical coverage: numeric keyboard behavior for Nivel/DG, catalog die preselection, representative standard die selection, `Otro…` custom sides, and save/leave/reopen persistence.
 
-Run `1560` is the authoritative read-only steady-state proof after the temporary migration writer/helper were removed. It passed:
+## 6. Current implementation route — Application Settings T3/T4/T9
 
-- backend/type-check;
-- compact Player geometry guard;
-- Player reorder stability guard;
-- Player checkbox consistency guard;
-- Player spellcasting bootstrap guard;
-- Kotlin/shared tests;
-- Android build;
-- Desktop build;
-- Android debug APK upload.
+Implement the already-approved owner contract as one bounded compatibility-safe family:
 
-Artifact `10329072751` / `dnd-custom-aid-debug-apk`, size `13,639,065` bytes, GitHub Actions artifact digest `sha256:26fe76650eb90a56ac2b5b239a3fd75ccb1b70bc2faf41003fac316ed5a04aae`.
+### T3 adaptive card distribution
 
-T5 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. No physical PASS is inferred from CI.
+- replace exact-count UI semantics with separate Portrait/Landscape density preferences;
+- concepts: `Comfortable / Balanced / Compact / Dense`;
+- `Balanced` default for new/unmapped state;
+- derive safe effective columns from actual available content width, orientation preference, text/UI-density pressure and a minimum usable card width;
+- runtime may reduce effective columns to preserve readability;
+- map legacy four exact-count preferences to the closest adaptive density intent without unnecessary reset.
 
-Targeted T5 physical revalidation on the future consolidated candidate should include:
+### T4 text-size symmetry
 
-- canonical Mago/Mage exposes usable Conjuros/source context without manually creating a second source;
-- expected default INT profile unless a prior configured profile must be preserved;
-- add spell, associate, save, leave and reopen;
-- source identity/associations remain stable across reopen;
-- a representative manual/homebrew source continues to coexist correctly;
-- tablet portrait and landscape source context;
-- P17 tablet check 18 sticky/source-context behavior now that T5 no longer blocks it.
+- normal text-size options: `50,60,70,80,90,100,110,120,130,140,150`;
+- 100 is semantic/visual center;
+- map old persisted values to nearest valid option rather than resetting;
+- spacing density is already symmetric and is explicitly not part of T4.
 
-Combine the source/prepared responsive check from Round 3 with T5 revalidation where practical. Do not replay the complete 23-phone / 18-tablet suites.
+### T9 haptics None
 
-## 6. Current implementation route
+- add explicit `None` device haptic choice;
+- `None` suppresses app-generated haptic feedback;
+- existing users retain their prior non-none preference on upgrade;
+- preserve existing per-character haptics-enabled semantics unless the approved repair requires otherwise.
 
-Next is **T6 — class-editor numeric keyboard + standard die / `Otro…` selector**.
+Add focused compatibility/semantics tests or source guards and pass the normal read-only Scaffold. Then synchronize the four continuity surfaces before moving on.
 
-T6 should remain bounded to the audited class-editor control family:
+## 7. Remaining repair order
 
-- use numeric keyboard options for numeric fields that were physically observed with inappropriate input behavior;
-- provide standard hit-die choices plus `Otro…` for custom/nonstandard values;
-- preserve an existing nonstandard value safely rather than coercing or losing it;
-- preserve class IDs/catalog provenance and unrelated class/subclass data;
-- do not broaden T6 into class-rules validation or a class-builder redesign;
-- add focused tests/guards plus normal Scaffold;
-- synchronize the dedicated checkpoint + `PROJECT_STATE.md` + `LATEST.md` + this file before proceeding.
+After settings:
 
-After T6, continue the remaining repair families in dependency-aware order:
+1. T7 wide Combat adaptive composition;
+2. T8 Table Mode structural-affordance enforcement;
+3. remaining T2 die-result silhouettes + Custom Throw die/custom sides/signed modifier + Dice-tab display-mode ownership;
+4. optional phone-16 compact-density refinement only if safe and materially beneficial.
 
-- T3 adaptive Portrait/Landscape card-distribution semantics + **T4 text-size** symmetric around 100 + T9 explicit haptics `None`; spacing density is already symmetric and is not a T4 repair target;
-- T7 wide Combat adaptive composition;
-- T8 Table Mode structural-affordance enforcement;
-- remaining T2 die-result silhouettes, Custom Throw parity and Dice-tab display-mode ownership;
-- optional phone-16 compact-density refinement only if safe and materially beneficial.
+After material consolidated repair completion:
 
-After the consolidated material repair is complete:
-
-1. run the aggregate Scaffold gate;
-2. create/freeze a new monotonic physical-QA candidate;
-3. perform **targeted** phone/tablet revalidation only for failed/touched/affected families, phone 21/affected phone 22, and tablet 18 now that T5 is repaired;
+1. run aggregate Scaffold;
+2. freeze a new monotonic physical-QA candidate;
+3. perform targeted phone/tablet revalidation only for failed/touched/affected families plus phone 21/affected phone 22 and tablet 18;
 4. preserve unrelated accepted PASS evidence;
 5. require explicit owner acceptance before Phase 4A closure.
 
-## 7. Failure handling
+## 8. Failure handling
 
-If physical QA finds a defect:
+If physical QA finds a defect: classify it; audit source before asserting shared cause; reopen only the relevant repair boundary; preserve storage/import/export, IDs/associations and accepted evidence unless the approved repair requires change; rerun focused + aggregate automation; create a new monotonic candidate identity if the frozen candidate materially changes; checkpoint exact evidence before another owner pass.
 
-1. classify whether it is local, shared/systemic, persistence/domain, responsive/layout, or interaction-specific;
-2. audit source before asserting a shared root cause;
-3. reopen only the relevant accepted repair boundary;
-4. repair on `implementation/phase4a-successor-cycle`;
-5. preserve storage/import/export/migration, IDs/associations where applicable, canonical-state authority and accepted evidence unless the approved repair explicitly requires a change;
-6. run focused tests/guards plus the normal aggregate gate when required;
-7. produce a new monotonic QA identity if the frozen physical candidate changes materially;
-8. checkpoint exact evidence before another owner pass.
+Do not invent a new numbered repair merely because the project is waiting at a manual gate.
 
-Do not invent an unrelated Player feature or a new numbered repair item merely because the project is waiting at a manual gate.
+## 9. Status synchronization rule
 
-## 8. Status synchronization rule
+At the end of every bounded implementation/test family, update all four surfaces before proceeding:
 
-At the end of **every bounded implementation/test round**, before proceeding to the next repair family, update all four durable continuity surfaces:
-
-1. the dedicated round checkpoint under `docs/checkpoints/`;
+1. dedicated checkpoint under `docs/checkpoints/`;
 2. `docs/PROJECT_STATE.md`;
 3. `docs/checkpoints/LATEST.md`;
-4. this `docs/TESTING.md` file, including its **Current status**, current repair automation status and revalidation route whenever affected.
+4. this `docs/TESTING.md`.
 
-These four surfaces must agree on the latest completed round, automation evidence, next action and physical-revalidation status. Do not allow `TESTING.md` to remain on an older QA candidate or implementation gate after a round advances.
+They must agree on completed family, automation evidence, next action and physical status.
 
-## 9. Phase 4A closure rule
+## 10. Phase 4A closure
 
-Phase 4A may be marked accepted/closed only after:
-
-- the consolidated repaired candidate has sufficient targeted phone evidence;
-- Player tablet portrait/landscape evidence exists for the relevant repaired/touched families;
-- blocking defects have been repaired/revalidated as needed;
-- unresolved/blocked evidence has been addressed as required;
-- the owner explicitly accepts/closes Phase 4A.
-
-No CI result may substitute for explicit owner closure.
+Phase 4A closes only after the consolidated repaired candidate has sufficient targeted phone/tablet evidence for relevant repaired/touched families, blocking/previously unresolved evidence is addressed as required, and the owner explicitly accepts/closes Phase 4A. CI cannot substitute for owner closure.
 
 No P18 exists. DM implementation remains blocked until explicit Phase 4A owner closure.
-
-## 10. Authority and resume rule
-
-Current branch roles are controlled by `docs/BRANCH_STATUS.md`.
-
-For Player testing/repair, use `implementation/phase4a-successor-cycle`, `docs/PROJECT_STATE.md`, and `docs/checkpoints/LATEST.md`.
-
-For current global/DM discovery state, use `main` and its `docs/checkpoints/LATEST.md`.
