@@ -56,7 +56,8 @@ jobs:
             androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCompanionsModuleV4.kt \
             androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterClassOptionModulesV4.kt \
             androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterArtificeModuleV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterManagementSuccessorV4.kt
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterManagementSuccessorV4.kt \
+            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterManagementTabV4.kt
           git commit -m "fix: migrate Player checkbox controls"
           git push origin HEAD:implementation/phase4a-successor-cycle
 
