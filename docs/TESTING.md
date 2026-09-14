@@ -19,7 +19,8 @@ Current position:
 - Round 3 compact checkbox + responsive grouping: **COMPLETE / AUTOMATION GREEN**;
 - T5 spell-source/bootstrap/source-context: **COMPLETE / AUTOMATION GREEN**;
 - T6 class-editor numeric/hit-die controls: **COMPLETE / AUTOMATION GREEN**;
-- next implementation family: **Application Settings T3/T4/T9**;
+- Application Settings T3/T4/T9: **COMPLETE / AUTOMATION GREEN**;
+- next implementation family: **T7 wide Combat adaptive composition**;
 - no new repaired physical-QA candidate has been frozen yet;
 - Phase 4A owner closure: **NOT COMPLETE**;
 - DM implementation: **BLOCKED UNTIL EXPLICIT PHASE 4A OWNER CLOSURE**.
@@ -128,18 +129,7 @@ Future physical coverage: canonical Mago/Mage source availability, default INT u
 
 Product commit `c98121e50f347f64898c9e31d077e53cad31685f`; steady-state HEAD `6ba73b22b07a4c5a92d69425a7372d2695fbc30a`; authoritative Scaffold `34795355116` / #1571 — **SUCCESS**.
 
-T6 implements:
-
-- numeric keyboard for `Nivel`;
-- numeric keyboard for `DG restantes`;
-- standard hit-die selector `d4/d6/d8/d10/d12/d20`;
-- `Otro…` + numeric custom-sides field;
-- catalog hit-die preselection preservation;
-- existing nonstandard/custom value preservation;
-- permanent `check_player_class_editor_controls.py` guard;
-- no schema/storage/class-rules redesign.
-
-The temporary migration writer/helper was removed before the steady-state run. Run #1571 passed backend, all existing guards including T5, the T6 guard, shared tests, Android/Desktop builds and APK upload.
+T6 implements numeric keyboard behavior for `Nivel`, `DG restantes` and custom hit-die sides; the standard `d4/d6/d8/d10/d12/d20 + Otro…` selector; catalog preselection and existing custom values; and permanent `check_player_class_editor_controls.py`. No schema/storage/class-rules redesign was introduced.
 
 Artifact `10329671667`, size `13,645,969` bytes, digest `sha256:6391210567ff4964b7077e1cc6e9c3c38bd862b62aba19a01e929ef6bfe4db4d`.
 
@@ -147,43 +137,46 @@ T6 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**
 
 Future physical coverage: numeric keyboard behavior for Nivel/DG, catalog die preselection, representative standard die selection, `Otro…` custom sides, and save/leave/reopen persistence.
 
-## 6. Current implementation route — Application Settings T3/T4/T9
+### Application Settings — T3 / T4 / T9
 
-Implement the already-approved owner contract as one bounded compatibility-safe family:
+Product commit `1dcd320417e7e3b45ec02ec6aa7cbb616c84e473`; steady-state HEAD `5db7bc3a48f1e640fc80770dd07d68a7ffaa02f7`; authoritative Scaffold `34796452617` / #1583 — **SUCCESS**.
 
-### T3 adaptive card distribution
+This family implements:
 
-- replace exact-count UI semantics with separate Portrait/Landscape density preferences;
-- concepts: `Comfortable / Balanced / Compact / Dense`;
-- `Balanced` default for new/unmapped state;
-- derive safe effective columns from actual available content width, orientation preference, text/UI-density pressure and a minimum usable card width;
-- runtime may reduce effective columns to preserve readability;
-- map legacy four exact-count preferences to the closest adaptive density intent without unnecessary reset.
+- T3 adaptive `Vertical` / `Horizontal` card-density preferences with `Cómodo / Equilibrado / Compacto / Denso`, runtime width/text/spacing safety and compatibility migration from the four legacy exact-count keys;
+- T4 symmetric normal text-size scale `50..150` by 10 around 100, with nearest-value migration;
+- T9 explicit haptics `Ninguna`, enforced at the shared dispatch point before both vibrator and fallback platform haptic paths;
+- permanent `check_player_application_settings_semantics.py` guard;
+- removal of the temporary migration and diagnostic helpers before the authoritative run.
 
-### T4 text-size symmetry
+Artifact `10329772684`, size `13,644,492` bytes, digest `sha256:74249a197c21572743165927c9330f38ceafd2db7f78267872f36e2edfd2f1af`.
 
-- normal text-size options: `50,60,70,80,90,100,110,120,130,140,150`;
-- 100 is semantic/visual center;
-- map old persisted values to nearest valid option rather than resetting;
-- spacing density is already symmetric and is explicitly not part of T4.
+T3/T4/T9 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**.
 
-### T9 haptics None
+Future physical coverage: persistence/understandability of Vertical/Horizontal density choices; safe column reduction under text pressure; symmetric text-size behavior and representative migrated value; `Ninguna` versus non-none haptic behavior; and preservation of an existing non-none installation after upgrade.
 
-- add explicit `None` device haptic choice;
-- `None` suppresses app-generated haptic feedback;
-- existing users retain their prior non-none preference on upgrade;
-- preserve existing per-character haptics-enabled semantics unless the approved repair requires otherwise.
+## 6. Current implementation route — T7 wide Combat
 
-Add focused compatibility/semantics tests or source guards and pass the normal read-only Scaffold. Then synchronize the four continuity surfaces before moving on.
+The active audited path is `CharacterCombatSuccessorV4.kt`. The current one-dimensional `LazyColumn` composition stretches each attack/action card to full width in tablet landscape.
+
+T7 contract:
+
+- preserve the existing narrow-phone composition and operational semantics;
+- keep the operational Combat HUD deliberately bounded/compact on wide layouts;
+- use an adaptive multi-column/card composition for wide/tablet layouts, driven by the repaired T3 responsive preference/runtime calculation rather than a hard-coded promised count;
+- reuse the stabilized Round 2 spatial reorder foundation for multi-column reorder;
+- preserve structural edit, favorite, delete, persisted ordering and operational controls;
+- add focused T7 guard/tests and pass the normal read-only Scaffold before marking T7 automation green.
+
+T7 is not physically PASS until the future consolidated candidate receives targeted tablet-landscape revalidation.
 
 ## 7. Remaining repair order
 
-After settings:
+After T7:
 
-1. T7 wide Combat adaptive composition;
-2. T8 Table Mode structural-affordance enforcement;
-3. remaining T2 die-result silhouettes + Custom Throw die/custom sides/signed modifier + Dice-tab display-mode ownership;
-4. optional phone-16 compact-density refinement only if safe and materially beneficial.
+1. T8 Table Mode structural-affordance enforcement;
+2. remaining T2 die-result silhouettes + Custom Throw die/custom sides/signed modifier + Dice-tab display-mode ownership;
+3. optional phone-16 compact-density refinement only if safe and materially beneficial.
 
 After material consolidated repair completion:
 
