@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Current exact frozen physical candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; CROSS-DEVICE PHYSICAL DISCOVERY COMPLETE WITH OPEN FINDINGS  
-**Current implementation state:** consolidated repair IN PROGRESS; **Rounds 1–3 + T5 + T6 + T3/T4/T9 COMPLETE / AUTOMATION GREEN**; next = **T7 wide Combat adaptive composition**  
+**Current implementation state:** consolidated repair IN PROGRESS; **Rounds 1–3 + T5 + T6 + T3/T4/T9 + T7 COMPLETE / AUTOMATION GREEN**; next = **T8 Table Mode structural-affordance enforcement**  
 **Release status:** development/debug; Phase 4A OPEN; DM implementation blocked pending explicit Phase 4A closure
 
 ## Authority / continuity
@@ -13,14 +13,15 @@ This branch remains authoritative for current Player runtime and Phase 4A repair
 
 Resume in this order:
 
-1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_APPLICATION_SETTINGS_T3_T4_T9.md` — latest completed bounded repair and exact clean automation evidence;
-2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T6_CLASS_EDITOR_CONTROLS.md`;
-3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T5_SPELL_SOURCE_BOOTSTRAP.md`;
-4. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND3_COMPACT_CHECKBOX_RESPONSIVE_GROUPING.md`;
-5. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md`;
-6. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md`;
-7. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit / remaining repair contracts / revalidation matrix;
-8. `docs/TESTING.md` — synchronized testing policy and route.
+1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T7_WIDE_COMBAT.md` — latest completed bounded repair and exact clean automation evidence;
+2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_APPLICATION_SETTINGS_T3_T4_T9.md`;
+3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T6_CLASS_EDITOR_CONTROLS.md`;
+4. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T5_SPELL_SOURCE_BOOTSTRAP.md`;
+5. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND3_COMPACT_CHECKBOX_RESPONSIVE_GROUPING.md`;
+6. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md`;
+7. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md`;
+8. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit / remaining repair contracts / revalidation matrix;
+9. `docs/TESTING.md` — synchronized testing policy and route.
 
 Supporting physical evidence remains the preqa.12 phone findings, tablet P17 progress and exact candidate checkpoint. Accepted PASS evidence must not be replayed merely because later repair rounds advance.
 
@@ -50,38 +51,35 @@ Product `c98121e50f347f64898c9e31d077e53cad31685f`; steady-state HEAD `6ba73b22b
 
 Product commit `1dcd320417e7e3b45ec02ec6aa7cbb616c84e473`; steady-state HEAD `5db7bc3a48f1e640fc80770dd07d68a7ffaa02f7`; authoritative Scaffold `34796452617` / #1583 — **SUCCESS**.
 
-Implemented:
-
-- T3 separate adaptive Vertical/Horizontal card-density preferences (`Cómodo / Equilibrado / Compacto / Denso`) with `Equilibrado` default;
-- live runtime derives safe columns from actual available width, orientation density, effective font scale, spacing pressure and minimum usable card width instead of consuming legacy exact-count preferences;
-- old exact-count keys remain migration/rollback shadows only and map compatibly to adaptive intent;
-- T4 normal text-size scale is symmetric `50..150` step 10 with nearest-value migration; spacing density remains unchanged;
-- T9 adds `Ninguna` and short-circuits the shared haptic dispatch before both Android vibrator and fallback platform haptic paths;
-- existing users retain MEDIUM as missing/legacy non-none fallback;
-- permanent `check_player_application_settings_semantics.py` guards these semantics.
-
-The temporary migration helper and haptic diagnostic were removed. The normal Scaffold is read-only again.
+Implemented separate adaptive Vertical/Horizontal card-density preferences (`Cómodo / Equilibrado / Compacto / Denso`), safe runtime column derivation from real width/text/spacing pressure, compatibility mapping from legacy exact-count preferences, symmetric `50..150` text-size options with nearest-value migration, and real dispatch-level haptics `Ninguna`. Permanent `check_player_application_settings_semantics.py` guards these semantics.
 
 Artifact `10329772684`, size `13,644,492` bytes, digest `sha256:74249a197c21572743165927c9330f38ceafd2db7f78267872f36e2edfd2f1af`.
 
 T3/T4/T9 are **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. They are not physically PASS.
 
-## Current next family — T7 wide Combat adaptive composition
+### T7 — wide Combat adaptive composition: COMPLETE / GREEN
 
-The active path is `CharacterCombatSuccessorV4.kt`. The audited tablet-landscape cause remains current: the operational composition and attack/action list are one-dimensional, and cards use full available width.
+Product commit `5f00bc006a26600a5d03582fbfbdf2e266259673`; steady-state HEAD `e567750a529238a2b45722b6f5ed726dd9123d88`; authoritative Scaffold `34797403737` / #1592 — **SUCCESS**.
 
-T7 contract:
+T7 preserves the narrow one-column Combat path while changing wide/tablet Combat to a deliberately bounded operational HUD plus T3-driven adaptive attack/action grid. Wide cards reuse the stabilized spatial reorder foundation, including stable target geometry and auto-scroll; both narrow and wide reorder converge on one canonical persisted-order commit path. Favorite/Edit/Delete are suppressed during an active spatial drag. No storage/schema/import/export model changed.
 
-- preserve narrow-phone behavior;
-- keep the operational HUD deliberately compact/bounded on wide layouts;
-- use adaptive multi-column attack/action cards on wide/tablet layouts and consume the repaired T3 density semantics;
-- reuse Round 2's stabilized spatial reorder foundation for wide multi-column reorder rather than inventing another drag engine;
-- preserve favorite/edit/delete semantics and persisted ordering;
-- add focused guard/tests and run the normal read-only Scaffold.
+Permanent `check_player_wide_combat.py` guards the active successor path, narrow-path preservation, adaptive columns, bounded HUD, spatial reorder wiring and persisted ordering.
 
-## Remaining after T7
+Artifact `10330505672`, size `13,651,587` bytes, digest `sha256:582d455aea9dad0f0898fa43368d6bd69e6ed8994914522008ada85abe46c4c9`.
 
-- **T8 Table Mode:** structural affordances hidden/disabled while operational controls remain enabled.
+T7 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. It is not physically PASS.
+
+## Current next family — T8 Table Mode structural-affordance enforcement
+
+The shared `CharacterTableModePolicy` already defines the product contract:
+
+- structural character/configuration editing is disabled in Table Mode;
+- genuine operational/session actions remain enabled.
+
+The audited defect is UI affordance leakage: structural Edit/Add/Delete/reorder controls can still be shown/opened even though structural updates are blocked. T8 must audit major Player tab boundaries, hide or clearly disable structural affordances, present structural values as read-only where needed, and preserve allowed HP/current/spent/session controls. Add focused policy/UI guards/tests and pass the normal read-only Scaffold before checkpointing.
+
+## Remaining after T8
+
 - **T2 remaining integration:** die-specific result silhouettes, Custom Throw die/custom sides/signed modifier, Dice-tab ownership of display mode.
 - **Optional phone-16 compact-field refinement:** only if visual comparison proves safe material benefit.
 
@@ -101,12 +99,13 @@ Do not physically revalidate intermediate rounds independently. Complete the con
 
 ## Exact route
 
-1. Execute **T7 wide Combat adaptive composition** on the active successor path.
-2. Update the dedicated T7 checkpoint + this file + `LATEST.md` + `TESTING.md` after focused/aggregate automation is green.
-3. Continue T8 and remaining T2 in dependency-aware order.
-4. Run aggregate Scaffold over the completed consolidated repair.
-5. Freeze a new monotonic physical-QA candidate.
-6. Perform targeted cross-device revalidation only; preserve unrelated accepted evidence.
-7. Phase 4A closes only after sufficient repaired evidence and explicit owner acceptance.
+1. Execute **T8 Table Mode structural-affordance enforcement** across the active Player successor boundaries while preserving operational controls.
+2. Update the dedicated T8 checkpoint + this file + `LATEST.md` + `TESTING.md` after focused/aggregate automation is green.
+3. Complete remaining T2 integration.
+4. Decide the optional phone-16 compact-field refinement only if a safe material benefit is demonstrated.
+5. Run aggregate Scaffold over the completed consolidated repair.
+6. Freeze a new monotonic physical-QA candidate.
+7. Perform targeted cross-device revalidation only; preserve unrelated accepted evidence.
+8. Phase 4A closes only after sufficient repaired evidence and explicit owner acceptance.
 
 Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change. DM implementation remains blocked until explicit Phase 4A owner closure.
