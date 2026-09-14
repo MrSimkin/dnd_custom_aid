@@ -9,17 +9,24 @@ ROOT = pathlib.Path('androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/
 PRIMITIVE = 'CharacterCheckboxPrimitivesV4.kt'
 RAW_IMPORT = 'import androidx.compose.material3.Checkbox'
 RAW_CALL = re.compile(r'(?<![A-Za-z0-9_])Checkbox\s*\(')
+SWITCH_CALL = re.compile(r'(?<![A-Za-z0-9_])Switch\s*\(')
+TRISTATE_CALL = re.compile(r'(?<![A-Za-z0-9_])TriStateCheckbox\s*\(')
 
 raw_imports: list[str] = []
 raw_calls: list[str] = []
+switch_calls: list[str] = []
+tristate_calls: list[str] = []
 for path in sorted(ROOT.glob('*.kt')):
-    if path.name == PRIMITIVE:
-        continue
     text = path.read_text(encoding='utf-8')
-    if RAW_IMPORT in text:
-        raw_imports.append(path.name)
-    for match in RAW_CALL.finditer(text):
-        raw_calls.append(f'{path.name}:{text.count(chr(10), 0, match.start()) + 1}')
+    if path.name != PRIMITIVE:
+        if RAW_IMPORT in text:
+            raw_imports.append(path.name)
+        for match in RAW_CALL.finditer(text):
+            raw_calls.append(f'{path.name}:{text.count(chr(10), 0, match.start()) + 1}')
+    for match in SWITCH_CALL.finditer(text):
+        switch_calls.append(f'{path.name}:{text.count(chr(10), 0, match.start()) + 1}')
+    for match in TRISTATE_CALL.finditer(text):
+        tristate_calls.append(f'{path.name}:{text.count(chr(10), 0, match.start()) + 1}')
 
 errors: list[str] = []
 if raw_imports:
@@ -74,4 +81,9 @@ print(
     'Player checkbox consistency guard PASS: '
     f'rawMaterialCheckboxes=0; sharedItemReferences={shared_item_calls}; '
     'spellPacking=responsive; equipmentPacking=responsive; managementRestSelectors=shared'
+)
+print(
+    'Related toggle audit (informational; Switch/TriState are not blanket-migrated): '
+    f'Switch={len(switch_calls)} [{", ".join(switch_calls) or "none"}]; '
+    f'TriStateCheckbox={len(tristate_calls)} [{", ".join(tristate_calls) or "none"}]'
 )
