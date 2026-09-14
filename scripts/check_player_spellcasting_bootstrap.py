@@ -38,7 +38,8 @@ require(helper, "if (!current.ability.configured)", "configured profile preserva
 require(helper, "profiles[profileIndex] = current.copy(ability = defaultAbility)", "unconfigured profile ability fill")
 
 require(editor, "val storedSpellcastingBootstrap = remember(", "stored bootstrap projection")
-require(editor, "LaunchedEffect(draft.classes)", "class-change bootstrap")
+require(editor, "LaunchedEffect(settingsSheet.classes)", "projected-domain class-change bootstrap")
+require(editor, "classes = settingsSheet.classes", "domain class reconciliation")
 require(editor, "needsCharacterSpellcastingBootstrap(settingsSheet.classes, stored.spellcastingSources)", "one-time UI availability")
 require(editor, "val effectiveSpellcasterEnabled = stored.spellcasterEnabled || canonicalSpellcastingBootstrapNeeded", "effective spellcaster visibility")
 require(editor, "val reconciledSpellcasting = reconcileCharacterSpellcastingBootstrap(", "save-path reconciliation")
@@ -52,5 +53,5 @@ if errors:
 print(
     "Player spellcasting bootstrap guard PASS: canonical base-caster metadata present; "
     "linked source identities reused; configured profiles preserved; Mago/class bootstrap wired "
-    "through draft visibility and save persistence."
+    "through projected domain classes, draft visibility, and save persistence."
 )
