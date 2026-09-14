@@ -4,9 +4,6 @@ on:
   push:
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
   kotlin:
     runs-on: ubuntu-latest
@@ -23,8 +20,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
-      - name: Apply bounded T3 T4 T9 application-settings migration
-        run: python3 scripts/apply_t3_t4_t9_application_settings.py
       - name: Guard compact Player control geometry
         run: python3 scripts/check_player_control_geometry.py
       - name: Guard Player reorder target stability
@@ -47,26 +42,6 @@ jobs:
           name: dnd-custom-aid-debug-apk
           path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
           if-no-files-found: error
-      - name: Commit verified T3 T4 T9 application-settings migration
-        if: github.event_name == 'push' && github.ref == 'refs/heads/implementation/phase4a-successor-cycle'
-        run: |
-          if git diff --quiet -- \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterResponsivePreferencesV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHapticPreferencesV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCollectionPrimitivesV4.kt; then
-            echo "No T3/T4/T9 product migration diff to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterResponsivePreferencesV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterHapticPreferencesV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCollectionPrimitivesV4.kt
-          git commit -m "fix: repair adaptive application settings semantics"
-          git push origin HEAD:implementation/phase4a-successor-cycle
 
   backend:
     runs-on: ubuntu-latest
