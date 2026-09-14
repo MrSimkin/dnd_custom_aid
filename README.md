@@ -13,7 +13,7 @@ Read in this order:
 3. `docs/PROJECT_STATE.md` — authoritative current global state/navigation;
 4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
 5. `docs/BRANCH_STATUS.md` — current branch lifecycle map;
-6. `docs/DECISIONS.md` **plus relevant later detailed records under `docs/decisions/`**;
+6. `docs/DECISIONS.md` plus `docs/DECISIONS_RECENT.md` and the relevant detailed records under `docs/decisions/`;
 7. `docs/CONVENTIONS.md`;
 8. `docs/PRODUCT.md`;
 9. `docs/ROADMAP.md`;
