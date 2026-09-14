@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -23,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassCatalog
@@ -235,12 +237,19 @@ private fun CharacterClassIdentitySuccessorEditorV4(
                 },
                 modifier = Modifier.weight(1f),
             )
+            CompactClassHitDieSelectorV4(
+                value = draft.hitDieSides,
+                onValueChange = { value -> draft = draft.copy(hitDieSides = value) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        val customHitDieSides = draft.hitDieSides.toIntOrNull()
+        if (customHitDieSides == null || customHitDieSides !in standardClassHitDieSidesV4) {
             CompactLabeledNumberInputSuccessorV4(
-                label = "Dado",
+                label = "Caras del dado",
                 value = draft.hitDieSides,
                 onValueChange = { value -> draft = draft.copy(hitDieSides = value.filter(Char::isDigit)) },
                 prefix = "d",
-                modifier = Modifier.weight(1f),
             )
         }
         CharacterHelpV4("Los DG máximos se derivan del nivel de esta clase; solo se guarda cuántos quedan disponibles y el tipo de dado.")
@@ -435,6 +444,44 @@ private fun CompactLabeledTextInputSuccessorV4(
     }
 }
 
+private val standardClassHitDieSidesV4 = listOf(4, 6, 8, 10, 12, 20)
+
+@Composable
+private fun CompactClassHitDieSelectorV4(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val sides = value.toIntOrNull()
+    val display = sides?.takeIf { it in standardClassHitDieSidesV4 }?.let { "d$it" } ?: "Otro…"
+
+    Column(modifier = modifier) {
+        Text("Dado", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+        Box {
+            CompactClassMenuV4(display) { expanded = true }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                standardClassHitDieSidesV4.forEach { standardSides ->
+                    DropdownMenuItem(
+                        text = { Text("d$standardSides") },
+                        onClick = {
+                            onValueChange(standardSides.toString())
+                            expanded = false
+                        },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("Otro…") },
+                    onClick = {
+                        if (sides != null && sides in standardClassHitDieSidesV4) onValueChange("")
+                        expanded = false
+                    },
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun CompactLabeledNumberInputSuccessorV4(
     label: String,
@@ -450,6 +497,7 @@ private fun CompactLabeledNumberInputSuccessorV4(
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             prefix = if (prefix.isBlank()) null else ({ Text(prefix) }),
         )
     }
