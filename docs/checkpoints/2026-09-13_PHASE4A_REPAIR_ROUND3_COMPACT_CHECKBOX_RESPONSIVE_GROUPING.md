@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Round source baseline:** `473dab45850dae20b8b5360bf5d6ea226171d292`  
 **Committed migrated product source:** `582a809bafbc4d7d38836283ed0eb5fe33d94624`  
-**Round product/test HEAD:** `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c`  
+**Round product/test HEAD:** `1d1c476ddaeb045c8a1b186267f452010cad7681`  
 **Physical baseline remains:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a`  
 **Status:** ROUND 3 COMPLETE / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING
 
@@ -12,47 +12,97 @@
 
 Round 3 repairs the systemic Player checkbox/control-density and responsive-grouping family from phone findings 17.1–17.3 plus the tablet reproduction.
 
-The round is intentionally UI/control/layout-only. Existing domain callbacks, persistence, source associations and other character-state contracts remain unchanged. Material `Switch` controls were audited as a related toggle family but were not mechanically replaced because the source/physical evidence did not establish them as defective.
+The round is intentionally UI/control/layout-only. Existing domain callbacks, persistence, source associations and other character-state contracts remain unchanged.
 
-## 2. Source-complete audit
+The agreed related-toggle audit also covered Material `Switch` and `TriStateCheckbox` sites. Those controls were to be classified rather than blindly restyled.
 
-The earlier post-P17 audit identified 18 active raw Material `Checkbox` call sites across six Player files. The implementation-time source-complete scan found one additional legacy Gestión rest-preview selector, yielding the complete migration baseline of **19 raw Material Checkbox calls across seven Player files**:
+## 2. Source-complete audit correction
 
-- `CharacterEquipmentClosureV4.kt`;
-- `CharacterSpellListClosureV4.kt`;
-- `CharacterCompanionsModuleV4.kt`;
-- `CharacterClassOptionModulesV4.kt`;
-- `CharacterArtificeModuleV4.kt`;
-- `CharacterManagementSuccessorV4.kt`;
-- `CharacterManagementTabV4.kt`.
+The earlier post-P17 audit identified **at least 18** active raw Material `Checkbox` calls across six Player files. During implementation, the new package-wide guard found one additional active raw checkbox in `CharacterManagementTabV4.kt`, inside the legacy Gestión rest-preview selection flow.
 
-This is additional coverage of the same approved systemic family, not expanded product scope.
+Source inspection established that this seventh site has the same checkbox-selection semantics as the already-audited successor Gestión rest-preview selector; it is not a legitimate Switch/settings exception.
+
+Therefore the source-complete Round 3 baseline is:
+
+- **19 raw Material `Checkbox` calls**;
+- across **7 Player Kotlin files**.
+
+The seven migrated files are:
+
+1. `CharacterEquipmentClosureV4.kt`;
+2. `CharacterSpellListClosureV4.kt`;
+3. `CharacterCompanionsModuleV4.kt`;
+4. `CharacterClassOptionModulesV4.kt`;
+5. `CharacterArtificeModuleV4.kt`;
+6. `CharacterManagementSuccessorV4.kt`;
+7. `CharacterManagementTabV4.kt`.
+
+All 19 were migrated. Final package-wide automation reports **0 raw Material `Checkbox` calls outside the shared primitive**.
+
+This is additional coverage of the same owner-approved systemic family, not expanded product scope and not a new product decision.
 
 ## 3. Shared repair contract
 
-`CharacterCheckboxPrimitivesV4.kt` provides the shared Player control language:
+Commit `f392f92b1591d8f917be42ccc82f565c2b8797cb` introduced `CharacterCheckboxPrimitivesV4.kt` with:
 
 - `CharacterCompactCheckboxItemV4` — compact labelled checkbox with whole-row toggle semantics;
 - `CharacterCompactCheckboxV4` — compact icon-only form for rows whose adjacent content already supplies the label;
 - `CharacterCompactCheckboxPairV4` — keeps semantically coupled checkbox pairs together;
 - `CharacterResponsiveCheckboxGroupV4` — `FlowRow`-based responsive packing.
 
-The visual Material checkbox is 24dp while interactive wrappers preserve at least a 48dp touch envelope. Labels use the shared compact typography/spacing language. Enabled/read-only behavior remains explicit.
+The visual Material checkbox is 24 dp while interactive wrappers preserve at least a 48 dp touch envelope. Labels use the shared compact typography/spacing language. Enabled/read-only behavior remains explicit.
+
+Compact appearance therefore does **not** reduce the safe interaction target.
 
 ## 4. Responsive repair
 
-Equipment editor checkbox rows now use the shared responsive group for `Equipado` + `Especial` / `Equipo especial`, with `Sintonizado` using the same compact item primitive.
+Core migration commit:
+
+`582a809bafbc4d7d38836283ed0eb5fe33d94624` — `fix: migrate Player checkbox controls`
+
+### Equipment
+
+Both active Equipment editor presentations now use the shared control language. `Equipado` + `Especial` / `Equipo especial` use the responsive group and `Sintonizado` uses the same compact labelled primitive.
+
+### Conjuros
 
 Conjuros now:
 
 - keeps each source + `Preparado` pair semantically together;
 - allows multiple source/prepared pairs to occupy one row when width permits;
 - wraps only when required by available width;
-- places V / S / M / Concentración / Ritual in one responsive group rather than rigidly forcing two rows.
+- places V / S / M / Concentración / Ritual in one responsive group rather than rigidly forcing two rows;
+- uses the shared compact primitive for the list-row `Prep.` control.
 
-The same component language is applied to the remaining audited Player checkbox sites, including both Gestión rest-preview paths.
+This directly implements phone 17.2/17.3: use one row when controls fit, exploit wider layouts, and wrap only when necessary rather than preserving hard-coded two-row/full-width grouping.
 
-## 5. Durable guard / steady-state CI
+### Other Player checkbox sites
+
+The same component language is applied to Companions, class options, artifice, and both Gestión rest-preview paths.
+
+## 5. Related toggle audit — deliberate exceptions
+
+The final package-wide audit reports:
+
+- raw Material `Checkbox` outside the shared primitive: **0**;
+- Material `Switch`: **11 sites**;
+- `TriStateCheckbox`: **0 sites**.
+
+The 11 remaining `Switch` sites were source-inspected. They are legitimate binary on/off state or settings controls, including:
+
+- current binary resource state;
+- Inspiration operational state;
+- temporary-effect active state and its editor;
+- spellcaster enablement;
+- PC/settings visibility toggles;
+- haptic-profile enablement;
+- shared settings-switch rows.
+
+They express binary state rather than checkbox membership/selection, so they are **intentional exceptions and remain `Switch` controls**. Converting them to checkboxes would weaken the semantic distinction rather than repair it.
+
+There are no active `TriStateCheckbox` sites to migrate or exempt.
+
+## 6. Durable guard / steady-state CI
 
 `scripts/check_player_checkbox_consistency.py` is the permanent regression boundary. It fails if any raw Material `Checkbox` import/call exists outside the shared primitive in active Android Player Kotlin sources.
 
@@ -64,45 +114,49 @@ The guard also requires:
 - expected V/S/M/Concentración/Ritual and Equipment labels;
 - shared icon-only rest selectors in both current and legacy Gestión paths.
 
-The temporary migration writer used to land the seven-file source conversion was retired after the migration was committed. The normal Scaffold no longer has source-write permission, no longer applies a migration during CI, and no longer self-commits. The one-off migration helper was also removed. Only the read-only durable guard remains.
+It also reports `Switch` / `TriStateCheckbox` locations informationally so the related-toggle audit remains visible without incorrectly treating legitimate switches as defects.
 
-## 6. Automation evidence
+The temporary migration writer used to land the seven-file source conversion was retired after migration. The normal Scaffold no longer has source-write permission, no longer applies a migration during CI, and no longer self-commits. The one-off migration helper was removed. Only the read-only durable guard remains.
+
+## 7. Automation evidence
+
+### Useful superseded guard discovery
+
+Scaffold `34792818885` / run `1529` stopped before Kotlin compilation because the first package-wide guard detected the previously unaudited `CharacterManagementTabV4.kt` raw checkbox. That run is retained as useful evidence of the source-audit expansion and is superseded by the corrected source-complete runs.
 
 ### Migration/workspace proof
 
-Scaffold `34792939962` / run `1532` at setup HEAD `6f179ac6b6486606338038bef5b33fee23a84b16` completed **SUCCESS** after applying the bounded migration in its workspace and committing verified migrated source as `582a809bafbc4d7d38836283ed0eb5fe33d94624`.
+Scaffold `34792939962` / run `1532` successfully applied the bounded **19 → 0** migration in its workspace, passed the guards and Kotlin/Android/Desktop build/tests, uploaded an APK, and only then committed the seven migrated source files as `582a809bafbc4d7d38836283ed0eb5fe33d94624`.
 
-### Exact committed-source proof
+### Steady-state proof after migration machinery removal
 
-Scaffold `34793141844` / run `1533` at `0a4d06b225fffed053565c43ad2fc385a6e7d898` completed **SUCCESS** against already-committed migrated source.
+Scaffold `34793215805` / run `1536` at `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c` completed **SUCCESS** after the temporary source writer/helper had been removed and the normal read-only workflow restored.
 
-Its logs explicitly prove:
+### Authoritative final toggle-audited proof
 
-- migration helper reported `Round 3 checkbox migration already applied; no changes required.`;
-- compact Player geometry guard: PASS;
-- reorder stability guard: PASS;
-- checkbox consistency guard: PASS with `rawMaterialCheckboxes=0`, `sharedItemReferences=18`, responsive spell/equipment packing and shared Gestión selectors;
-- Kotlin/shared tests + Android/Desktop build: `BUILD SUCCESSFUL`;
-- Android debug APK upload: SUCCESS;
-- migration commit step found `No source migration diff to commit.`
+Final authoritative Round 3 run:
 
-### Authoritative steady-state proof
-
-After retiring the temporary writer/helper, normal Scaffold `34793215805` / run `1536` at **Round product/test HEAD `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c`** completed **SUCCESS**.
-
-- backend/type-check: SUCCESS;
-- compact Player geometry guard: SUCCESS;
-- reorder stability guard: SUCCESS;
-- permanent Player checkbox consistency guard: SUCCESS;
-- Kotlin/shared tests + Android/Desktop build: SUCCESS;
-- Android debug APK upload: SUCCESS;
-- artifact ID `10327879251` / `dnd-custom-aid-debug-apk`;
+- Workflow: `Scaffold checks`;
+- Run ID: `34793253151`;
+- Run number: `1537`;
+- Head SHA: `1d1c476ddaeb045c8a1b186267f452010cad7681`;
+- Conclusion: **SUCCESS**;
+- Backend/type-check: **SUCCESS**;
+- Compact Player geometry guard: **SUCCESS**;
+- Player reorder stability guard: **SUCCESS**;
+- Player checkbox consistency guard: **SUCCESS**;
+- checkbox guard result: `rawMaterialCheckboxes=0`, responsive spell/equipment packing present, shared Gestión selectors present;
+- related-toggle audit: `Switch=11`, `TriStateCheckbox=0`;
+- Kotlin/shared tests + Android/Desktop build: **SUCCESS**;
+- Gradle result: `BUILD SUCCESSFUL`;
+- Android debug APK upload: **SUCCESS**;
+- artifact ID `10328739208` / `dnd-custom-aid-debug-apk`;
 - artifact size `13,629,448` bytes;
-- GitHub Actions artifact digest `sha256:2af0eed7f7cb1de625d670beb6ddc2b4681dbf57d63b3e1a541f13d2a94c7b34`.
+- GitHub Actions artifact digest `sha256:03f529acfde7ad18e2aa08752a28822d3d7f9c45916e02ddf65932714d52b1bf`.
 
-The artifact digest above is the GitHub Actions artifact digest; it is not relabeled as an independently computed APK-file SHA-256.
+The artifact digest above is the GitHub Actions artifact digest; it is not relabelled as an independently computed APK-file SHA-256.
 
-## 7. QA status after Round 3
+## 8. QA status after Round 3
 
 Automation supports the intended systemic repair, but no new consolidated physical candidate has been frozen yet. Therefore:
 
@@ -111,9 +165,37 @@ Automation supports the intended systemic repair, but no new consolidated physic
 - these findings are not physically PASS yet;
 - accepted unrelated phone/tablet PASS evidence remains preserved and must not be replayed.
 
-Targeted physical revalidation on the future consolidated candidate should include representative Equipment checkbox styling/spacing and Conjuros responsive grouping in portrait and landscape/wide layout, including source/prepared pairs and V/S/M + Concentración/Ritual.
+Targeted physical revalidation on the future consolidated candidate should include:
 
-## 8. Project gate / next round
+### Phone
+
+- representative Equipment `Equipado` / `Equipo especial` / `Sintonizado` scale, label spacing and touch behavior;
+- a second representative migrated checkbox surface, preferably Gestión rest selection or another migrated editor;
+- Conjuros V/S/M + Concentración/Ritual packing in portrait and landscape;
+- Conjuros source/prepared packing when T5 makes the required source context available.
+
+### Tablet
+
+- one representative migrated checkbox surface for 17.1 parity;
+- Conjuros responsive packing in portrait and landscape, including source/prepared groups after T5 is repaired.
+
+Do **not** replay the complete 23-phone / 18-tablet discovery suites.
+
+## 9. Compatibility / non-goals
+
+Round 3 changes UI control composition only. It does not intentionally alter:
+
+- checkbox-backed domain values;
+- storage/import/export/migration contracts;
+- canonical state authority;
+- existing source IDs/associations;
+- legitimate Switch semantics;
+- Table Mode policy;
+- T5 spell-source/bootstrap behavior.
+
+The repair does not claim every toggle should look identical. `Switch` remains the appropriate binary state/settings control where its semantics fit.
+
+## 10. Project gate / next round
 
 Phase 4A remains **OPEN**. The exact frozen physical candidate remains `preqa.12` until the consolidated repair receives a new monotonic QA identity. DM implementation remains blocked pending explicit owner Phase 4A closure. No P18 exists.
 
