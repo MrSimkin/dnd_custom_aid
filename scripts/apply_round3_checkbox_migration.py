@@ -11,7 +11,8 @@ FILES = {
     'companions': ROOT / 'CharacterCompanionsModuleV4.kt',
     'class_options': ROOT / 'CharacterClassOptionModulesV4.kt',
     'artifice': ROOT / 'CharacterArtificeModuleV4.kt',
-    'management': ROOT / 'CharacterManagementSuccessorV4.kt',
+    'management_successor': ROOT / 'CharacterManagementSuccessorV4.kt',
+    'management_legacy': ROOT / 'CharacterManagementTabV4.kt',
 }
 RAW_IMPORT = 'import androidx.compose.material3.Checkbox\n'
 RAW_CALL = re.compile(r'(?<![A-Za-z0-9_])Checkbox\s*\(')
@@ -33,7 +34,7 @@ def migrate_equipment(text: str) -> str:
 [ \t]*Checkbox\(checked = special, onCheckedChange = onSpecialChange\)\s*
 [ \t]*Text\("(?P<special_label>Especial|Equipo especial)"\)\s*
 [ \t]*\}''',
-        '''\g<indent>CharacterResponsiveCheckboxGroupV4 {
+        r'''\g<indent>CharacterResponsiveCheckboxGroupV4 {
 \g<indent>    CharacterCompactCheckboxItemV4(
 \g<indent>        checked = equipped,
 \g<indent>        onCheckedChange = onEquippedChange,
@@ -53,7 +54,7 @@ def migrate_equipment(text: str) -> str:
 [ \t]*Checkbox\(checked = attuned, onCheckedChange = onAttunedChange\)\s*
 [ \t]*Text\("Sintonizado"\)\s*
 [ \t]*\}''',
-        '''\g<indent>CharacterCompactCheckboxItemV4(
+        r'''\g<indent>CharacterCompactCheckboxItemV4(
 \g<indent>    checked = attuned,
 \g<indent>    onCheckedChange = onAttunedChange,
 \g<indent>    label = "Sintonizado",
@@ -75,7 +76,6 @@ def migrate_spells(text: str) -> str:
                         )''',
         1,
     )
-
     text = sub_required(
         text,
         r'''sources\.forEach \{ source ->\s*
@@ -105,7 +105,6 @@ def migrate_spells(text: str) -> str:
     }''',
         1,
     )
-
     text = sub_required(
         text,
         r'''Row\(verticalAlignment = Alignment\.CenterVertically\) \{\s*
@@ -136,23 +135,22 @@ def migrate_spells(text: str) -> str:
 
 def migrate_active_row(text: str, label: str) -> str:
     escaped = re.escape(label)
-    return sub_required(
-        text,
-        rf'''(?P<indent>^[ \t]*)Row\(\s*(?:modifier = Modifier\.fillMaxWidth\(\),\s*)?verticalAlignment = Alignment\.CenterVertically,?\s*\) \{{\s*
+    pattern = rf'''(?P<indent>^[ \t]*)Row\(\s*(?:modifier = Modifier\.fillMaxWidth\(\),\s*)?verticalAlignment = Alignment\.CenterVertically,?\s*\) \{{\s*
 [ \t]*Checkbox\(checked = active, onCheckedChange = onActiveChange\)\s*
 [ \t]*Text\("{escaped}"\)\s*
-[ \t]*\}}''',
-        f'''\\g<indent>CharacterCompactCheckboxItemV4(
-\\g<indent>    checked = active,
-\\g<indent>    onCheckedChange = onActiveChange,
-\\g<indent>    label = "{label}",
-\\g<indent>    modifier = Modifier.fillMaxWidth(),
-\\g<indent>)''',
-        1,
+[ \t]*\}}'''
+    replacement = (
+        r'''\g<indent>CharacterCompactCheckboxItemV4(''' + '\n' +
+        r'''\g<indent>    checked = active,'''+ '\n' +
+        r'''\g<indent>    onCheckedChange = onActiveChange,'''+ '\n' +
+        rf'''\g<indent>    label = "{label}",'''+ '\n' +
+        r'''\g<indent>    modifier = Modifier.fillMaxWidth(),'''+ '\n' +
+        r'''\g<indent>)'''
     )
+    return sub_required(text, pattern, replacement, 1)
 
 
-def migrate_management(text: str) -> str:
+def migrate_management_successor(text: str) -> str:
     return sub_required(
         text,
         r'''Checkbox\(\s*checked = key in selectedKeys,\s*onCheckedChange = \{ checked ->\s*onSelectedKeysChange\(if \(checked\) selectedKeys \+ key else selectedKeys - key\)\s*\},\s*\)''',
@@ -166,14 +164,28 @@ def migrate_management(text: str) -> str:
     )
 
 
+def migrate_management_legacy(text: str) -> str:
+    return sub_required(
+        text,
+        r'''Checkbox\(\s*checked = item\.resourceId\.toString\(\) in selected,\s*onCheckedChange = \{ checked ->\s*selected = if \(checked\) selected \+ item\.resourceId\.toString\(\) else selected - item\.resourceId\.toString\(\)\s*\},\s*\)''',
+        '''CharacterCompactCheckboxV4(
+                            checked = item.resourceId.toString() in selected,
+                            onCheckedChange = { checked ->
+                                selected = if (checked) selected + item.resourceId.toString() else selected - item.resourceId.toString()
+                            },
+                        )''',
+        1,
+    )
+
+
 def main() -> None:
     original = {name: path.read_text(encoding='utf-8') for name, path in FILES.items()}
     raw_before = sum(len(RAW_CALL.findall(text)) for text in original.values())
     if raw_before == 0:
         print('Round 3 checkbox migration already applied; no changes required.')
         return
-    if raw_before != 18:
-        raise RuntimeError(f'expected audited baseline of 18 raw Checkbox calls, observed {raw_before}')
+    if raw_before != 19:
+        raise RuntimeError(f'expected source-complete baseline of 19 raw Checkbox calls, observed {raw_before}')
 
     for name, text in original.items():
         if RAW_IMPORT not in text:
@@ -186,7 +198,8 @@ def main() -> None:
     updated['companions'] = migrate_active_row(updated['companions'], 'Activo / disponible')
     updated['class_options'] = migrate_active_row(updated['class_options'], 'Activo / disponible')
     updated['artifice'] = migrate_active_row(updated['artifice'], 'Activo / creado / disponible')
-    updated['management'] = migrate_management(updated['management'])
+    updated['management_successor'] = migrate_management_successor(updated['management_successor'])
+    updated['management_legacy'] = migrate_management_legacy(updated['management_legacy'])
 
     raw_after = sum(len(RAW_CALL.findall(text)) for text in updated.values())
     imports_after = [name for name, text in updated.items() if RAW_IMPORT.strip() in text]
@@ -196,7 +209,7 @@ def main() -> None:
     for name, path in FILES.items():
         path.write_text(updated[name], encoding='utf-8')
 
-    print('Round 3 checkbox migration applied: rawMaterialCheckboxes 18 -> 0 across six audited Player files.')
+    print('Round 3 checkbox migration applied: rawMaterialCheckboxes 19 -> 0 across seven Player files.')
 
 
 if __name__ == '__main__':
