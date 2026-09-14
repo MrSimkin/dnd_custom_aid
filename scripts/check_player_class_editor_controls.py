@@ -20,7 +20,9 @@ require("private fun CompactClassHitDieSelectorV4(", "shared local hit die selec
 require('val display = sides?.takeIf { it in standardClassHitDieSidesV4 }?.let { "d$it" } ?: "Otro…"', "standard/custom selector display")
 require('text = { Text("Otro…") }', "custom die menu option")
 require('label = "Caras del dado"', "custom sides numeric field")
-require("if (draft.hitDieSides.toIntOrNull() !in standardClassHitDieSidesV4)", "nonstandard preservation gate")
+require("val customHitDieSides = draft.hitDieSides.toIntOrNull()", "custom die parse")
+require("if (customHitDieSides == null || customHitDieSides !in standardClassHitDieSidesV4)", "nonstandard preservation gate")
+require("if (sides != null && sides in standardClassHitDieSidesV4) onValueChange(\"\")", "safe switch-to-custom behavior")
 require("hitDieSides = hitDie?.toString() ?: draft.hitDieSides", "catalog hit die preselection preservation")
 
 if 'label = "Dado",\n                value = draft.hitDieSides' in text:
