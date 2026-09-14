@@ -10,7 +10,7 @@ This roadmap defines development stages and current integration direction. Produ
 
 ## Phase 1 — Product Discovery and Design
 
-**Status:** Foundational pass complete; targeted product design continues where the expanded MVP requires it.
+**Status:** Current integrated-MVP product-design pass complete through D-0073. Future targeted product design occurs only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
 
 ---
 
@@ -21,6 +21,8 @@ This roadmap defines development stages and current integration direction. Produ
 Approved base remains Kotlin/Compose Android, Kotlin + Compose Multiplatform Desktop, genuinely shared Kotlin logic/data where useful, SQLDelight/SQLite local persistence, TypeScript Cloudflare Worker/API, Neon PostgreSQL and Descope authentication.
 
 C-0009 remains controlling: add complexity only for concrete requirements.
+
+Low-level technical choices are delegated to the technical assistant/Worker unless they materially alter product behavior, security/privacy, cost, lock-in or approved scope.
 
 ---
 
@@ -38,97 +40,129 @@ Authoritative Player branch:
 
 `implementation/phase4a-successor-cycle`
 
-Current frozen physical candidate according to that branch's 2026-09-14 checkpoint:
+Current frozen physical candidate known at the 2026-09-14 consolidation:
 
 - `0.4.0-preqa.13 / 41300`;
 - commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
 - Scaffold `34801612526` / #1630 — SUCCESS;
+- artifact `10331503478` / `dnd-custom-aid-debug-apk`;
 - targeted cross-device physical revalidation pending.
 
-Existing Player evidence remains valid for the exact tested boundaries. Do not restart completed repair history or discard useful QA merely because the next build becomes broader.
-
-The 2026-09-14 architecture discussion also retained four bounded defect labels as planning input (A10, B1, J1, J2). Before implementation, reconcile those labels against the then-current authoritative successor checkpoint rather than treating chat labels as stronger evidence than the branch.
+Existing Player evidence remains valid for the exact tested boundaries. Before implementation/convergence, refresh the successor branch's current checkpoint and reconcile older planning labels against branch evidence.
 
 ---
 
 ## Phase 4B — Integrated MVP Build
 
-**Status:** architecture/product scope being finalized; implementation not yet authorized by D-0071 alone.
+**Status:** product scope and implementation governance defined; coding has not begun from this checkpoint.
 
-D-0071 changes the next-cycle philosophy. The project will not treat a tiny server slice or isolated local DM prototype as the next major product milestone.
+Controlling records:
 
-The target is the first coherent integrated MVP:
+- D-0071 — integrated Player + Server + DM architecture;
+- D-0072 — DM Desktop product and authoring/management surfaces;
+- D-0073 — exact MVP boundary, implementation governance and Git convergence.
+
+Target:
 
 ```text
-Player Android <-> hosted/shared services <-> DM tablet/Desktop
+Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
-Implementation is organized through internal dependency waves and parallel workstreams, with continuous engineering integration. These are not separate owner-acceptance products.
+The build is one integrated product cycle. Internal waves/packages are engineering controls, not separate owner-acceptance products.
 
 ### Workstream A — shared MVP spine/contracts
 
-Define/stabilize common domain meaning, IDs, revisions, network/API semantics, permissions, asset references and local-vs-hosted state.
+Establish common semantic meaning for identity, campaigns/membership/roles, PC ownership/control, stable IDs, revisions, tombstones, scope/provenance and other shared invariants without pre-modeling the entire application.
 
 ### Workstream B — Player stabilization and hosted integration
 
-Preserve the mature Player foundation, close/reconcile remaining bounded defects, and add remembered authentication, campaign selection, hosted PC sync, assets, audit/history/conflicts and public combat projection without gratuitous Player rewrites.
+Preserve the mature Player foundation, close/reconcile remaining bounded defects and integrate remembered authentication, campaigns, hosted PC sync, assets, audit/history/conflicts and public combat projection without gratuitous Player rewrites.
 
 ### Workstream C — hosted foundation
 
-Implement PostgreSQL migrations/schema, Cloudflare API, Descope identity mapping/verification, domain authorization, sync endpoints, object storage, audit/recovery and full backup/export. Begin SRD storage/provenance foundations early.
+Implement PostgreSQL migrations/schema, Cloudflare API, Descope identity mapping/verification, domain authorization, sync endpoints, object storage, audit/recovery and full backup/export. Begin SRD storage/provenance foundations early enough to avoid later architectural rework.
 
 ### Workstream D — shared Kotlin data/sync
 
-Evolve SQLDelight/local persistence, outbox/pending mutations, revisions, tombstones, idempotency, conflict handling, asset references and reconciliation logic genuinely shared by Android/Desktop.
+Implement genuinely reusable local/shared data and sync behavior across Android/Desktop where appropriate, including revisions, pending mutations, tombstones, conflicts and asset references.
 
-### Workstream E — DM tablet/Desktop product
+### Workstream E — DM Desktop / DM Android product
 
-Implement the approved DM Workspace/Desk family and the expanded DM Desktop App.
-
-Current live Desk family remains:
+Live Workspace/Desks:
 
 1. DM Screen;
 2. Stage Desk;
 3. Dungeon Desk;
 4. Combat Desk.
 
-Desktop must provide functional equivalents of all four Desks so a laptop can replace the tablet operationally when needed.
+Desktop uses the same game/domain semantics as Android/tablet and can replace the tablet operationally.
 
-Desktop also provides richer authoring/management, explicitly including Monster Creator/Manager, NPC Creator/Manager, Homebrew Rules Input/Manager, Zone Creator/Manager, Encounter Creator/Manager, PC Manager/Audit, campaign administration and a distinct system-administration area.
+Prepare/Manage includes:
+
+- Monster Manager + Creature Creator Assistant + import/export;
+- NPC Manager + Quick/Developed NPC helper + optional mechanics + import/export;
+- Homebrew & Rules Manager including structured races/sub-races, classes/subclasses, backgrounds, feats, spells, items/magic items and other justified custom content;
+- Stage/Place/Scene Spine preparation;
+- Dungeon/Zone preparation, Encounter Readiness, clocks/advisory triggers;
+- Encounter Manager;
+- PC Manager/Audit;
+- Media & Handouts.
+
+Administration includes Campaign Manager and separate System Administration.
 
 ### Workstream F — live-play exchange and combat authority
 
 Implement local-first authoritative DM combat, hosted opportunistic sync, Player public projection, stale-update rejection, reconnect behavior and explicit resume/handoff to another DM device from the latest synchronized state.
 
-Exactly one DM device remains authoritative at a time. Simultaneous authoritative multi-device editing is not an MVP requirement.
+Exactly one DM device remains authoritative at a time. Simultaneous authoritative multi-device/co-DM editing is not required.
 
 ### Workstream G — SRD retrieval + AI clarification
 
-SRD schema/provenance/loading foundation begins earlier in hosted work. The actual PostgreSQL retrieval -> grounded LLM -> Spanish Player/DM answer feature is deliberately the **last substantial user-facing feature implemented in this cycle**.
+SRD schema/provenance/loading foundation begins earlier in hosted work. The actual PostgreSQL retrieval -> grounded LLM -> Player/DM answer feature remains a late substantial user-facing feature of the cycle.
 
-MVP AI remains official SRD 5.1 / 5.2.1 only even though Homebrew Rules input/storage exists in the Desktop App.
+MVP AI remains official SRD 5.1 / SRD 5.2.1 only even though homebrew content is authored/stored in the application.
 
-### Cross-cutting MVP foundations
+---
 
-- remembered login/trusted-device behavior;
-- campaign-scoped roles and multicampaign selection;
-- project-specific sync/revisions/idempotency/tombstones;
-- visible sync/freshness/conflict state;
-- object storage — required, provider still Pending;
-- meaningful audit/history and object-appropriate recovery;
-- full server backup/export early enough to protect valuable hosted state;
-- scoped offline/local-first behavior where required;
-- ordinary HTTP/request-response and polling before generalized realtime.
+## Implementation waves
 
-### Internal implementation waves
+The implementation should be dependency-driven and integrated frequently. Exact low-level package boundaries remain delegated engineering decisions.
 
-- **Wave 0:** protect/reconcile current Player state; backend/Desktop scaffolding may start in parallel;
-- **Wave 1:** establish shared semantic/data/API spine;
-- **Wave 2:** heavy parallel Player/Server/Desktop/shared implementation with frequent real integration;
-- **Wave 3:** combat/public-projection/device-authority integration;
-- **Wave 4:** finish administration/recovery edges and SRD retrieval/AI, then create the full integrated QA candidate.
+Broad direction:
 
-The workstreams/waves are development organization, not separate MVP scope gates.
+1. documentation/continuity protection and repository-state verification;
+2. deliberate `main` + Player-successor convergence;
+3. shared MVP semantic spine;
+4. hosted foundation;
+5. Player <-> Server end-to-end integration;
+6. Desktop shell + campaign administration;
+7. reusable/persistent DM content architecture;
+8. Desktop authoring Managers;
+9. DM Live Workspace on shared semantics;
+10. combat/public-projection/device-authority integration;
+11. SRD retrieval + grounded clarification;
+12. backup/recovery/operator-console completion;
+13. integrated owner-facing QA candidate.
+
+Parallelism is encouraged after shared semantics exist. Parallel streams may share contracts; they must not independently redefine them.
+
+---
+
+## Git convergence gate before normal integrated coding
+
+Current authority remains split:
+
+- `main` = global product/architecture/documentation truth;
+- `implementation/phase4a-successor-cycle` = current Player runtime/QA truth.
+
+Before ordinary integrated-MVP coding, create a dedicated convergence branch from current `main`, deliberately reconcile the authoritative Player successor runtime, validate the result and merge the coherent baseline into `main`.
+
+Semantic precedence during reconciliation:
+
+- Player implementation/evidence -> successor branch;
+- later global product/architecture/documentation -> current `main`.
+
+After successful convergence, `main` becomes the integrated trunk. Prefer short-lived outcome-oriented branches and frequent reintegration; avoid permanent Player/Server/Desktop silos and avoid a months-long catch-all integration branch.
 
 ---
 
@@ -141,75 +175,100 @@ Representative end-to-end coverage should include:
 - remembered login, campaign membership/switching and role behavior;
 - Player local Save and PC/assets/history synchronization;
 - authorized DM PC retrieval/audit/correction without ownership confusion;
-- DM preparation/content/campaign-copy workflows;
+- Personal -> Campaign content-copy workflows;
+- Monster/NPC/Homebrew/Stage/Dungeon/Encounter preparation;
 - saved encounter -> independent live encounter;
 - local-first combat and public Player projection;
 - offline/reconnect behavior;
 - stale revision/conflict/tombstone behavior;
 - explicit DM-device combat resume from the latest synchronized state;
+- Media/Handout use where applicable;
 - full server backup/export;
 - official-SRD grounded rules clarification for Player and DM.
 
-Internal automated/integration checks still run throughout implementation. This final integrated gate does not mean deferring testing until the end.
+Internal automated/integration checks run throughout implementation. This final integrated gate does not mean deferring testing until the end.
 
 ---
 
-## Current product-design substage before coding
+## Integrated MVP boundary — closed
 
-The project is intentionally paused after the 2026-09-14 consolidation.
+Approved in-scope items must not later be silently demoted to stretch goals merely to make implementation appear complete sooner. This includes Desktop live parity, combat authority resume/handoff, the approved authoring Managers, structured homebrew, import/export, object storage/media, PC audit, Campaign/System Administration, backup/export and official-SRD clarification.
 
-Current resume point:
+Explicitly deferred/generalized unless concrete evidence requires otherwise:
 
-### 7D — DM Desktop App detailed product definition
+- full VTT/grid/token/LOS/fog-of-war behavior;
+- comprehensive automatic character building/legality enforcement;
+- simultaneous authoritative co-DM combat;
+- always-live formal game-session server;
+- generalized realtime/WebSockets as a product requirement;
+- Durable Objects/queues by default;
+- generic arbitrary ACL/RBAC framework;
+- generalized sync platform;
+- automatic encounter-balance authority/combat simulation;
+- executable homebrew/rules engine;
+- homebrew-aware AI clarification;
+- arbitrary non-SRD rules corpus;
+- public/community marketplace/social network;
+- mandatory support for every third-party import ecosystem;
+- polished one-click catastrophic whole-server restore;
+- every-keystroke/universal event sourcing;
+- enterprise observability;
+- vector infrastructure without demonstrated need;
+- autonomous campaign-management agents;
+- generic RPG-system framework.
 
-Define the Desktop App's overall navigation/structure and then walk area-by-area through:
-
-- all live DM Desks;
-- Monster/NPC/Homebrew Rules/Zone/Encounter authoring/management;
-- Stage/Dungeon data authoring counterparts as required;
-- PC Manager/Audit;
-- campaign/member/permission administration;
-- Sync/recovery/backup/system-administration surfaces.
-
-Do not reopen generic Desk taxonomy: D-0068/D-0069 already define the current family.
-
-Then:
-
-### 7E — exact outside-MVP boundary
-
-Only after the expanded Desktop/MVP product is sufficiently defined should the owner/assistant draw the complete post-MVP boundary.
-
-After 7E, derive the final Git/development topology, concrete implementation gates and explicit coding authorization.
+Deferred technologies remain permissible if they prove the simplest safe/proportional implementation of an already-approved requirement.
 
 ---
 
-## Explicitly deferred/generalized directions unless a concrete need changes them
+## Owner/technical collaboration rule
 
-Current MVP does not automatically require:
+The owner decides:
 
-- always-online play or a formal technical Session object;
-- generalized realtime/WebSockets infrastructure;
-- Durable Objects/equivalent server-room coordination;
-- queues without a real long-running/asynchronous job;
-- arbitrary/general ACL framework;
-- generalized synchronization platform;
-- simultaneous authoritative multi-device DM combat editing;
-- public/community homebrew publishing;
-- house-rule-aware AI clarification;
-- VTT/rules-engine behavior;
-- Player desktop application/full Player UI parity;
-- elaborate history-retention/cold-storage machinery.
+- what the product should do;
+- workflows and user-facing behavior;
+- visibility/privacy;
+- MVP vs later scope;
+- destructive/safety behavior;
+- meaningful convenience/cost/risk tradeoffs.
 
-This list is not the final 7E boundary.
+The technical assistant/Worker normally decides:
+
+- exact schema/table design;
+- class/type decomposition;
+- endpoint shapes;
+- internal sync data structures;
+- migration mechanics;
+- canonical import serialization format;
+- testing architecture;
+- detailed implementation package granularity.
+
+Do not ask the owner to rubber-stamp routine technical matters. Escalate technical choices only when they materially change behavior, security/privacy, cost, irreversible lock-in or approved scope.
+
+---
+
+## Current pause / resume point
+
+The owner intentionally requested a security/continuity consolidation after closing:
+
+- 7D — Desktop product definition;
+- 7E — exact MVP boundary;
+- 8A — implementation-wave strategy;
+- 8B — Git convergence strategy;
+- 8C — first shared-spine package direction.
+
+Discussion pauses before expanding the next hosted-foundation technical package.
+
+When resuming, refresh `main` and the Player successor branch, preserve D-0071/D-0072/D-0073 as controlling, and do not turn low-level technical package design into an owner approval exercise.
+
+No product coding was authorized or performed by this documentation checkpoint.
 
 ---
 
 ## Post-MVP evolution
 
-Future evolution remains evidence/priority driven. Candidate areas may include broader sharing/delegation, co-DMs, richer restore tooling, house-rule-aware clarification, realtime transport if polling proves inadequate, broader desktop/Player parity, Journey-specific behavior if Dungeon mode proves insufficient, and other owner-approved expansions.
+Future evolution remains evidence/priority driven. Candidates may include co-DMs, richer restore tooling, homebrew-aware clarification, realtime transport if polling proves inadequate, external import adapters, broader sharing/delegation, Journey-specific behavior if Dungeon mode proves insufficient and other owner-approved expansions.
 
 ## Branch/continuity rule
 
 `docs/BRANCH_STATUS.md` controls branch authority/lifecycle. `docs/checkpoints/LATEST.md` controls the practical global resume point.
-
-Current Player runtime remains on `implementation/phase4a-successor-cycle`; current integrated-MVP/DM design truth belongs on `main` after this documentation checkpoint is merged. Future integration must preserve both lines and requires explicit planning/authorization.

@@ -1,4 +1,4 @@
-# Recent Decision Index — D-0068 through D-0071
+# Recent Decision Index — D-0068 through D-0073
 
 This file closes the indexing gap between the historical chronological `docs/DECISIONS.md` master log and the later detailed Approved decision records already stored under `docs/decisions/`.
 
@@ -42,33 +42,36 @@ Confirms that natural-language rules clarification is one shared capability avai
 **Detailed record:** `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md`  
 **Checkpoint:** `docs/checkpoints/2026-09-14_MVP_INTEGRATION_ARCHITECTURE_CONSOLIDATION.md`
 
-Consolidates the expanded integrated-MVP direction. Important consequences include:
+Consolidates the expanded integrated-MVP direction: Player + hosted/shared + DM as one product, paper/local/server authority, bounded project-specific sync, full DM Desktop operational fallback, explicit combat authority resume/handoff, object storage, meaningful history/recovery, full backup/export, and official-SRD clarification inside the integrated MVP.
 
-- next build targets the real Player + Server/shared + DM MVP, not an isolated DM/server mini-product;
-- paper/local/server authority model is explicit and no formal technical Game Session object is required;
-- synchronization/revisions/idempotency/tombstones/conflicts/freshness are consolidated;
-- remembered login, campaign-scoped role switching and practical permissions are defined;
-- PC default campaign-visible identity is limited to name + portrait/avatar + current controlling Player/display identity;
-- object storage is required but provider remains Pending;
-- meaningful history/recovery and full server backup/export are MVP foundations;
-- explicit DM combat authority resume/handoff to another device is now MVP because Desktop must replace an unavailable tablet;
-- DM Desktop App becomes both a full operational DM client containing all approved Desks and the richer authoring/management/system-administration client;
-- required Desktop authoring includes at least Monster, NPC, Homebrew Rules, Zone and Encounter creator/manager surfaces;
-- SRD storage/provenance foundations begin early, while the official-SRD retrieval + grounded AI feature is implemented last among the substantial user-facing features of the cycle;
-- work is organized through coordinated Player/Server/shared/Desktop/live-exchange/SRD workstreams and dependency waves;
-- the next major owner-facing QA is intended to exercise the complete integrated MVP.
+D-0071 supersedes older wording where it conflicts about desktop combat/fallback, explicit DM-device handoff/resume, and the next-cycle integrated implementation philosophy. It does not supersede paper-first play, the assistant/non-VTT boundary, local-first DM combat authority, proportionality, or official-SRD-only MVP AI clarification.
 
-D-0071 explicitly supersedes older MVP wording where it conflicts about desktop combat/fallback, explicit DM-device handoff/resume, and the next-cycle integrated implementation philosophy. It does not supersede paper-first play, the assistant/non-VTT boundary, local-first DM combat authority, proportionality, or official-SRD-only MVP AI clarification.
+## D-0072 — DM Desktop App product definition and authoring/management surfaces
+
+**Status:** Approved  
+**Date:** 2026-09-14  
+**Detailed record:** `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`
+
+Closes the detailed 7D Desktop product-design pass. Defines one Desktop workbench with Live/Workspace, Prepare/Manage and Administration; full live Desk parity with DM Android/tablet; common Personal -> Campaign -> Live content semantics; Monster Manager plus Creature Creator Assistant/import-export; Quick/Developed NPC helper; expanded Homebrew & Rules Manager including races/classes/backgrounds/feats/spells/items; Stage/Place/Scene Spine and Dungeon/Zone authoring; Encounter Manager; PC Manager/Audit; Campaign Manager; sole-admin System Administration; Media & Handouts; and cross-cutting search/sync/navigation facilities.
+
+## D-0073 — Integrated MVP boundary, implementation governance and branch convergence direction
+
+**Status:** Approved product/scope and implementation-governance direction  
+**Date:** 2026-09-14  
+**Detailed record:** `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`  
+**Checkpoint:** `docs/checkpoints/2026-09-14_DM_DESKTOP_MVP_SCOPE_AND_IMPLEMENTATION_GOVERNANCE_CONSOLIDATION.md`
+
+Closes 7E and the current implementation-planning pass. Protects the substantial integrated-MVP scope from later accidental trimming, records explicit deferred/generalized directions, establishes dependency-driven integration waves, defines the planned `main` + Player-successor convergence strategy, and records the owner-vs-technical responsibility boundary: the owner decides product/scope/user-facing risk; routine low-level implementation design is delegated unless it materially changes behavior, security/privacy, cost, lock-in or approved scope.
 
 ## Current exact continuation
 
 Read `docs/checkpoints/LATEST.md`.
 
-The current discussion resume point is:
+Current resume point:
 
-1. **7D — detailed DM Desktop App product definition**;
-2. **7E — exact outside-MVP boundary**;
-3. derive final Git/development topology and implementation gates;
-4. obtain explicit coding authorization.
-
-No code implementation was authorized merely by the D-0071 documentation checkpoint.
+1. the 7D Desktop product definition is closed;
+2. the 7E integrated-MVP boundary is closed;
+3. 8A implementation-wave strategy, 8B Git convergence strategy and 8C first shared-spine technical package direction are closed;
+4. discussion intentionally pauses before expanding the next hosted-foundation technical package;
+5. before product coding, verify branch state and execute the planned convergence under explicit coding authorization;
+6. low-level technical package design is delegated and should not be repeatedly pushed to the owner for rubber-stamp approval.

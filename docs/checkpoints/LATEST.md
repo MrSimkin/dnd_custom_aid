@@ -1,38 +1,44 @@
 # Latest project checkpoint — global resume map
 
 **Updated:** 2026-09-14  
-**Branch:** `main`  
+**Branch:** `main` after this consolidation is merged  
 **Role:** canonical global navigation + current DM/MVP product/architecture decisions  
-**Player code authority:** `implementation/phase4a-successor-cycle`  
+**Player code authority:** `implementation/phase4a-successor-cycle` until the planned convergence is explicitly executed  
 **Current Player frozen physical candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`  
-**Current global design decision:** D-0071 — integrated Player + Server + DM MVP  
-**Implementation authorization:** not granted by this documentation checkpoint
+**Current global decisions:** D-0071 + D-0072 + D-0073  
+**Implementation authorization:** documentation/design consolidation only at this checkpoint; no product code changed
 
 ## Read first
 
-1. `docs/checkpoints/2026-09-14_MVP_INTEGRATION_ARCHITECTURE_CONSOLIDATION.md` — exact current architecture/product resume point;
-2. `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md` — detailed controlling integrated-MVP decision;
-3. `docs/PROJECT_STATE.md` — global state and execution rules;
-4. `docs/BRANCH_STATUS.md` — branch roles/history;
-5. D-0068 / D-0069 / D-0070 — existing DM Workspace/Desk family and shared rules-question direction;
-6. for current Player code/QA, switch to `implementation/phase4a-successor-cycle` and read that branch's `docs/checkpoints/LATEST.md`.
+1. `docs/checkpoints/2026-09-14_DM_DESKTOP_MVP_SCOPE_AND_IMPLEMENTATION_GOVERNANCE_CONSOLIDATION.md` — exact current resume point;
+2. `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md` — MVP boundary, implementation governance and Git convergence direction;
+3. `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md` — closed Desktop product/Manager definition;
+4. `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md` — controlling integrated-MVP architecture;
+5. `docs/PROJECT_STATE.md` — global state and execution rules;
+6. `docs/BRANCH_STATUS.md` — branch roles/history;
+7. D-0068 / D-0069 / D-0070 — live Workspace/Desk family and shared rules-question direction;
+8. for exact Player code/QA, switch to `implementation/phase4a-successor-cycle` and read that branch's `docs/checkpoints/LATEST.md`.
 
 ## Current branch topology
 
-`main` and `implementation/phase4a-successor-cycle` remain intentionally divergent authoritative lines until a future explicitly designed integration.
+Two authoritative lines still exist until the planned integration is deliberately executed:
 
-- `main` = global navigation, product/design/architecture truth, including D-0068 through D-0071;
+- `main` = global product/design/architecture/documentation truth;
 - `implementation/phase4a-successor-cycle` = current Player runtime/QA authority.
 
-Do not overwrite either line with the other. Future integration must preserve both the current Player runtime work and the later main-only DM/MVP decisions.
+Do not mechanically overwrite one with the other.
+
+D-0073 now defines the intended convergence: create a dedicated convergence branch from current `main`, reconcile the authoritative Player successor runtime into it, preserve successor authority for Player implementation/evidence and `main` authority for later global product/architecture decisions, validate, then merge the coherent baseline to `main`.
+
+After successful convergence, `main` becomes the normal integrated-MVP trunk and the Player successor branch becomes frozen historical evidence rather than the ongoing Player development home.
 
 ## Current Player source/evidence
 
-Authoritative branch:
+Authoritative branch remains:
 
 `implementation/phase4a-successor-cycle`
 
-Current frozen candidate according to that branch's 2026-09-14 `LATEST.md`:
+Known frozen candidate at this checkpoint:
 
 - `0.4.0-preqa.13 / 41300`;
 - commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
@@ -41,87 +47,91 @@ Current frozen candidate according to that branch's 2026-09-14 `LATEST.md`:
 - targeted cross-device physical revalidation — **pending**;
 - Phase 4A — formally **OPEN** on that branch.
 
-Do not infer physical PASS from green automation.
+Do not infer physical PASS from green automation. Before implementation/convergence, refresh the successor branch's own checkpoint and reconcile any older chat defect labels against branch evidence.
 
-The architecture discussion also carried four bounded Player defect labels (A10, B1, J1, J2). Preserve those as planning input in D-0071, but reconcile against the then-current successor-branch checkpoint before implementation instead of replacing exact branch evidence with chat recollection.
+## 7D — DM Desktop product definition — CLOSED
 
-## Current integrated-MVP direction
-
-The owner explicitly changed the next-cycle philosophy:
-
-> The next implementation build should aim for the real integrated MVP, not stop at an isolated DM prototype or a tiny server slice.
-
-The next major owner-facing acceptance QA is intended to exercise:
+Desktop is one workbench with:
 
 ```text
-Player Android <-> hosted/shared services <-> DM tablet/Desktop
+LIVE / WORKSPACE
+PREPARE / MANAGE
+ADMINISTRATION
 ```
 
-Internal slices/waves/tests remain necessary, but they are engineering controls rather than separate product acceptance milestones.
-
-In-scope foundations/directions include Player completion, authentication/multicampaign roles, server/API/database, synchronization/conflicts, object storage, PC sharing/audit, DM reusable/campaign content, saved/live encounters, combat/public projection, full DM Desktop capability, backup/export, SRD foundations and final official-SRD AI clarification.
-
-## Desktop DM App — do not resume from old companion-only model
-
-Desktop is now both:
-
-1. rich DM authoring/preparation/campaign/system administration;
-2. a complete operational DM fallback/client if the tablet is unavailable.
-
-All approved live DM Desks must therefore function on Desktop:
+Live/Workspace provides the same DM game/domain semantics as Android/tablet for:
 
 - DM Screen;
 - Stage Desk;
 - Dungeon Desk;
 - Combat Desk.
 
-Desktop additionally requires deliberate authoring/manager surfaces including at minimum:
+Prepare/Manage now has approved product definitions for:
 
-- Monster Creator/Manager;
-- NPC Creator/Manager;
-- Homebrew Rules Input/Manager;
-- Zone Creator/Manager;
-- Encounter Creator/Manager;
+- Monster Manager + Creature Creator Assistant + import/export;
+- NPC Manager with Quick/Developed NPC flow, helper and optional mechanics;
+- Homebrew & Rules Manager including rules plus races/sub-races, classes/subclasses, backgrounds, feats, spells, items/magic items and other justified structured custom content;
+- Stage/Place/Scene Spine preparation;
+- Dungeon/Zone preparation, Encounter Readiness, clocks/advisory triggers;
+- Encounter Manager;
 - PC Manager/Audit;
-- Campaign/member/permission management;
-- permission-gated System Administration.
+- Media & Handouts.
 
-Every persistent/content-oriented Desk capability needs enough Desktop authoring support to create/maintain its data, without forcing identical tablet/Desktop UI.
+Administration includes Campaign Manager plus permission-gated System Administration.
 
-## Combat authority fallback
+The owner intends to be the sole global system administrator. Desktop may therefore act as a practical operator console, using backend-mediated operations by preference and direct provider APIs/local securely stored scoped credentials where that concretely improves convenience.
 
-Because Desktop must be able to replace the tablet operationally, explicit combat authority resume/handoff is now part of the MVP direction.
+## 7E — exact integrated-MVP boundary — CLOSED
 
-Only one DM device remains authoritative at a time. Resume uses the latest synchronized hosted state and must invalidate stale old-authority writes, conceptually through an authority generation/epoch plus increasing combat sequence/version. Simultaneous authoritative multi-device combat is not required.
+The next cycle remains the substantial real integrated MVP:
 
-## Hosted infrastructure summary
+```text
+Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
+```
 
-Required in this MVP in bounded form:
+Do not silently trim already-approved items such as Desktop live parity, combat handoff/resume, full authoring Managers, structured homebrew, import/export, object storage/media, PC audit, Campaign/System Admin, backup/export or official-SRD clarification into post-MVP stretch goals.
 
-- domain-specific auth/authorization;
-- project-specific sync/revisions/idempotency/tombstones;
-- PostgreSQL/API implementation;
-- object storage (provider Pending; not necessarily R2);
-- meaningful audit/history/recovery;
-- full server backup/export;
-- SRD schema/provenance/loading foundation;
-- ordinary HTTP/polling sufficient for approved flows.
+Explicitly deferred/generalized unless a concrete implementation need proves otherwise include full VTT behavior, comprehensive automatic legality/character building, simultaneous authoritative co-DM combat, generic realtime/WebSockets requirement, Durable Objects/queues by default, generic ACL/sync platforms, executable homebrew engine, homebrew-aware AI, public marketplace/community features, every third-party import format, polished one-click catastrophic restore, exhaustive event sourcing, enterprise observability and a generic RPG framework.
 
-Deferred unless evidence requires them: generalized realtime/WebSockets, Durable Objects, queues, generic ACL platform, generalized sync platform, elaborate retention system, public homebrew publishing.
+Deferred technologies remain permitted if implementation evidence shows one is the simplest safe/proportional way to satisfy an approved requirement.
 
-SRD retrieval + grounded AI remains in this MVP, but its user-facing implementation is deliberately the **last substantial feature of the cycle** after the foundations and core Player/Server/DM path exist.
+## Implementation planning state
+
+### 8A — implementation strategy — CLOSED
+
+Use dependency-driven integration waves and frequent cross-client integration rather than completing isolated Player/Server/Desktop products and integrating at the end.
+
+The next major owner-facing QA remains integrated Player + Server + DM.
+
+### 8B — Git/repository strategy — CLOSED
+
+First converge current `main` + authoritative Player successor through a dedicated validated convergence branch. After that, use `main` as the integrated trunk with short-lived outcome-oriented branches. Avoid permanent app silos and avoid a months-long integration branch.
+
+### 8C — first implementation-package direction — CLOSED / delegated technical scope
+
+The first technical package is the minimum shared integrated-MVP semantic spine: identity, campaign membership/role, PC owner/controller distinction, stable IDs, revisions, tombstones, scope vocabulary and independent-copy provenance.
+
+Exact schema/classes/endpoints/tests are delegated engineering decisions, not owner product decisions.
+
+## Owner-vs-technical decision rule
+
+Ask the owner to decide product behavior, workflow, visibility/privacy, MVP/later scope, user-facing destructive/safety behavior and meaningful cost/risk/convenience tradeoffs.
+
+Do **not** repeatedly ask the owner to rubber-stamp routine low-level implementation matters such as schema layout, endpoint shapes, class decomposition, serialization format, migration mechanics or test architecture.
+
+Escalate technical choices only when they materially change product behavior, security/privacy, cost, irreversible lock-in or approved scope.
 
 ## Exact resume point
 
-The owner intentionally paused after requesting this consolidation.
+The owner intentionally requested a safety/continuity pause here.
 
-When discussion resumes:
+When work resumes:
 
-1. continue **7D — DM Desktop App detailed product definition**;
-2. define overall Desktop navigation/structure;
-3. walk area-by-area through live Desks plus Creator/Manager/Campaign/Admin surfaces;
-4. preserve D-0068/D-0069 rather than reopening generic Desk taxonomy;
-5. once 7D is sufficiently defined, continue to **7E — exact outside-MVP boundary**;
-6. only then derive final Git/development topology, implementation gates and explicit coding authorization.
+1. refresh `main` and the Player successor branch to ensure neither has drifted;
+2. keep D-0071/D-0072/D-0073 as controlling post-Phase-4A product/architecture decisions;
+3. do not reopen closed 7D/7E design without a deliberate owner scope change;
+4. do not expand low-level technical package design as an owner approval exercise;
+5. before product coding, execute the planned branch convergence only under explicit coding authorization;
+6. after convergence, the technical assistant/Worker should carry implementation detail within the approved architecture and escalate only material product/scope/security/cost decisions.
 
 No application implementation was performed by this checkpoint.
