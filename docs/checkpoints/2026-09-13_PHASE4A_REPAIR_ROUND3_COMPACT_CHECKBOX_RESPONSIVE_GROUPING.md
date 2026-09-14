@@ -4,15 +4,15 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Round source baseline:** `473dab45850dae20b8b5360bf5d6ea226171d292`  
 **Committed migrated product source:** `582a809bafbc4d7d38836283ed0eb5fe33d94624`  
-**Exact-source verification trigger:** `0a4d06b225fffed053565c43ad2fc385a6e7d898`  
+**Round product/test HEAD:** `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c`  
 **Physical baseline remains:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a`  
-**Status:** IMPLEMENTATION COMMITTED / MIGRATED-WORKSPACE AUTOMATION GREEN / EXACT COMMITTED-SOURCE SCAFFOLD PENDING
+**Status:** ROUND 3 COMPLETE / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING
 
 ## 1. Scope
 
 Round 3 repairs the systemic Player checkbox/control-density and responsive-grouping family from phone findings 17.1–17.3 plus the tablet reproduction.
 
-The round is intentionally UI/control/layout-only. Existing domain callbacks, persistence, source associations and other character state contracts remain unchanged. Material `Switch` controls are not mechanically replaced because the audit did not establish them as defective.
+The round is intentionally UI/control/layout-only. Existing domain callbacks, persistence, source associations and other character-state contracts remain unchanged. Material `Switch` controls were audited as a related toggle family but were not mechanically replaced because the source/physical evidence did not establish them as defective.
 
 ## 2. Source-complete audit
 
@@ -50,11 +50,11 @@ Conjuros now:
 - wraps only when required by available width;
 - places V / S / M / Concentración / Ritual in one responsive group rather than rigidly forcing two rows.
 
-The same component language is applied to the remaining audited Player checkbox sites. Existing `Switch` sites are left untouched absent evidence that they share the defect.
+The same component language is applied to the remaining audited Player checkbox sites, including both Gestión rest-preview paths.
 
-## 5. Durable guard
+## 5. Durable guard / steady-state CI
 
-`scripts/check_player_checkbox_consistency.py` now fails if any raw Material `Checkbox` import/call exists outside the shared primitive in active Android Player Kotlin sources.
+`scripts/check_player_checkbox_consistency.py` is the permanent regression boundary. It fails if any raw Material `Checkbox` import/call exists outside the shared primitive in active Android Player Kotlin sources.
 
 The guard also requires:
 
@@ -64,37 +64,59 @@ The guard also requires:
 - expected V/S/M/Concentración/Ritual and Equipment labels;
 - shared icon-only rest selectors in both current and legacy Gestión paths.
 
-`scripts/apply_round3_checkbox_migration.py` is bounded to the exact audited 19-call baseline and becomes a no-op once migration is present.
+The temporary migration writer used to land the seven-file source conversion was retired after the migration was committed. The normal Scaffold no longer has source-write permission, no longer applies a migration during CI, and no longer self-commits. The one-off migration helper was also removed. Only the read-only durable guard remains.
 
-## 6. Automation evidence so far
+## 6. Automation evidence
 
-Scaffold run `34792939962` / run `1532` at setup HEAD `6f179ac6b6486606338038bef5b33fee23a84b16` completed **SUCCESS** after applying the bounded migration in its workspace:
+### Migration/workspace proof
 
-- backend checks: SUCCESS;
-- Round 3 migration: SUCCESS;
+Scaffold `34792939962` / run `1532` at setup HEAD `6f179ac6b6486606338038bef5b33fee23a84b16` completed **SUCCESS** after applying the bounded migration in its workspace and committing verified migrated source as `582a809bafbc4d7d38836283ed0eb5fe33d94624`.
+
+### Exact committed-source proof
+
+Scaffold `34793141844` / run `1533` at `0a4d06b225fffed053565c43ad2fc385a6e7d898` completed **SUCCESS** against already-committed migrated source.
+
+Its logs explicitly prove:
+
+- migration helper reported `Round 3 checkbox migration already applied; no changes required.`;
+- compact Player geometry guard: PASS;
+- reorder stability guard: PASS;
+- checkbox consistency guard: PASS with `rawMaterialCheckboxes=0`, `sharedItemReferences=18`, responsive spell/equipment packing and shared Gestión selectors;
+- Kotlin/shared tests + Android/Desktop build: `BUILD SUCCESSFUL`;
+- Android debug APK upload: SUCCESS;
+- migration commit step found `No source migration diff to commit.`
+
+### Authoritative steady-state proof
+
+After retiring the temporary writer/helper, normal Scaffold `34793215805` / run `1536` at **Round product/test HEAD `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c`** completed **SUCCESS**.
+
+- backend/type-check: SUCCESS;
 - compact Player geometry guard: SUCCESS;
 - reorder stability guard: SUCCESS;
-- Player checkbox consistency guard: SUCCESS;
-- Kotlin/shared build and tests: SUCCESS;
-- Android build: SUCCESS;
-- debug APK upload: SUCCESS;
-- verified migration commit step: SUCCESS, producing `582a809bafbc4d7d38836283ed0eb5fe33d94624`.
+- permanent Player checkbox consistency guard: SUCCESS;
+- Kotlin/shared tests + Android/Desktop build: SUCCESS;
+- Android debug APK upload: SUCCESS;
+- artifact ID `10327879251` / `dnd-custom-aid-debug-apk`;
+- artifact size `13,629,448` bytes;
+- GitHub Actions artifact digest `sha256:2af0eed7f7cb1de625d670beb6ddc2b4681dbf57d63b3e1a541f13d2a94c7b34`.
 
-Because that run applied the migration inside the workflow before committing it, this checkpoint does **not yet** call Round 3 fully automation-green against the already-committed migrated source. A normal Scaffold run against a descendant whose checkout already contains the migration is required before final Round 3 closure.
+The artifact digest above is the GitHub Actions artifact digest; it is not relabeled as an independently computed APK-file SHA-256.
 
-## 7. QA status
+## 7. QA status after Round 3
 
-Phone 17.1–17.3 and the tablet checkbox reproduction are **IMPLEMENTED / TARGETED PHYSICAL REVALIDATION PENDING**. They are not physically PASS yet.
+Automation supports the intended systemic repair, but no new consolidated physical candidate has been frozen yet. Therefore:
 
-No new physical candidate is frozen by this round. Accepted unrelated phone/tablet PASS evidence remains preserved and must not be replayed.
+- phone 17.1–17.3 are **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**;
+- the tablet reproduction of the checkbox family is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**;
+- these findings are not physically PASS yet;
+- accepted unrelated phone/tablet PASS evidence remains preserved and must not be replayed.
 
-## 8. Next action
+Targeted physical revalidation on the future consolidated candidate should include representative Equipment checkbox styling/spacing and Conjuros responsive grouping in portrait and landscape/wide layout, including source/prepared pairs and V/S/M + Concentración/Ritual.
 
-Run normal Scaffold against the committed migrated source with the migration step proving no-op. If green:
+## 8. Project gate / next round
 
-1. record the exact run/product HEAD here;
-2. mark Round 3 COMPLETE / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING;
-3. synchronize `docs/PROJECT_STATE.md`, `docs/checkpoints/LATEST.md`, and `docs/TESTING.md`;
-4. proceed to the next dependency-aware repair family: T5 spell-source/bootstrap/source-context compatibility.
+Phase 4A remains **OPEN**. The exact frozen physical candidate remains `preqa.12` until the consolidated repair receives a new monotonic QA identity. DM implementation remains blocked pending explicit owner Phase 4A closure. No P18 exists.
 
-Phase 4A remains OPEN. No P18 exists. DM implementation remains blocked until explicit owner Phase 4A closure.
+**Next repair family: T5 spell-source/bootstrap/source-context compatibility.**
+
+Canonical character origins should drive source availability while preserving compatible spellcasting source/profile overlays, existing IDs/associations, persistence/import/export and manual/homebrew source behavior. After that bounded round, update the dedicated checkpoint + `PROJECT_STATE.md` + `LATEST.md` + `TESTING.md` before proceeding.
