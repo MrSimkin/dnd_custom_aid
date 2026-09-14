@@ -4,9 +4,6 @@ on:
   push:
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
   kotlin:
     runs-on: ubuntu-latest
@@ -23,8 +20,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
-      - name: Apply bounded Round 3 checkbox migration
-        run: python3 scripts/apply_round3_checkbox_migration.py
       - name: Guard compact Player control geometry
         run: python3 scripts/check_player_control_geometry.py
       - name: Guard Player reorder target stability
@@ -41,25 +36,6 @@ jobs:
           name: dnd-custom-aid-debug-apk
           path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
           if-no-files-found: error
-      - name: Commit verified Round 3 checkbox migration
-        if: github.event_name == 'push' && github.ref == 'refs/heads/implementation/phase4a-successor-cycle'
-        run: |
-          if git diff --quiet -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android; then
-            echo "No source migration diff to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEquipmentClosureV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterSpellListClosureV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCompanionsModuleV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterClassOptionModulesV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterArtificeModuleV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterManagementSuccessorV4.kt \
-            androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterManagementTabV4.kt
-          git commit -m "fix: migrate Player checkbox controls"
-          git push origin HEAD:implementation/phase4a-successor-cycle
 
   backend:
     runs-on: ubuntu-latest
