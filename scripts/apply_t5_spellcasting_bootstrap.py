@@ -75,12 +75,12 @@ def main() -> None:
 
     text = replace_once(
         text,
-        "    val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }\n"
-        "    val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }\n",
-        "    val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }\n"
-        "    LaunchedEffect(draft.classes) {\n"
+        "    val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored\n"
+        "    val overviewProjectionSheet = settingsSheet.copy(\n",
+        "    val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored\n"
+        "    LaunchedEffect(settingsSheet.classes) {\n"
         "        val reconciled = reconcileCharacterSpellcastingBootstrap(\n"
-        "            classes = draft.classes,\n"
+        "            classes = settingsSheet.classes,\n"
         "            existingSources = spellcastingDraft.sources,\n"
         "            existingProfiles = spellcastingProfiles,\n"
         "        )\n"
@@ -95,21 +95,12 @@ def main() -> None:
         "            savedMessage = null\n"
         "        }\n"
         "    }\n"
-        "    val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }\n",
-        "class-change bootstrap effect",
-    )
-
-    text = replace_once(
-        text,
-        "    val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored\n"
-        "    val overviewProjectionSheet = settingsSheet.copy(\n",
-        "    val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored\n"
         "    val canonicalSpellcastingBootstrapNeeded = remember(settingsSheet.classes, stored.spellcastingSources) {\n"
         "        needsCharacterSpellcastingBootstrap(settingsSheet.classes, stored.spellcastingSources)\n"
         "    }\n"
         "    val effectiveSpellcasterEnabled = stored.spellcasterEnabled || canonicalSpellcastingBootstrapNeeded\n"
         "    val overviewProjectionSheet = settingsSheet.copy(\n",
-        "effective spellcaster availability",
+        "class projection bootstrap and effective spellcaster availability",
     )
 
     text = replace_once(
@@ -200,7 +191,8 @@ def main() -> None:
     PATH.write_text(text, encoding="utf-8")
     print(
         "T5 spellcasting bootstrap editor migration applied: canonical source/profile projection, "
-        "class-change reconciliation, one-time Conjuros enablement, and save-path persistence."
+        "class-change reconciliation from projected domain classes, one-time Conjuros enablement, "
+        "and save-path persistence."
     )
 
 
