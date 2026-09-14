@@ -27,6 +27,7 @@ jobs:
         run: |
           python3 scripts/apply_t8_table_mode_affordances.py
           python3 scripts/apply_t8_table_mode_compile_fix.py
+          python3 scripts/apply_t8_skills_affordance_fix.py
       - name: Guard compact Player control geometry
         run: python3 scripts/check_player_control_geometry.py
       - name: Guard Player reorder target stability
