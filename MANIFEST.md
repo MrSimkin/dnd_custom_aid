@@ -62,13 +62,16 @@ As of the 2026-09-14 consolidation, that record identifies:
 - targeted cross-device physical revalidation pending.
 
 ### `docs/DECISIONS.md`
-Master historical decision log. The master file is not yet reconciled through all later detailed decision numbers. **Later detailed Approved records under `docs/decisions/` remain controlling even when absent from the chronological master.** D-0068 through D-0071 must not be ignored because of that indexing gap.
+Historical chronological master decision log through its existing older sequence.
+
+### `docs/DECISIONS_RECENT.md`
+Navigation/index bridge for the later Approved D-0068 through D-0071 records. The detailed decision files remain authoritative; this index prevents a future reader from missing them because the older chronological master has not been rewritten wholesale.
 
 ### `docs/CONVENTIONS.md`
 Approved recurring project conventions.
 
 ### `docs/PRODUCT.md`
-Broad approved product scope. **Specific older Desktop/DM-stage MVP exclusions in this file are superseded where D-0071 explicitly changes them**, especially desktop combat/fallback, Homebrew Rules authoring, and the integrated-MVP sequencing direction. Do not mechanically apply stale `desktop combat outside MVP` prose over D-0071.
+Current approved product scope aligned with D-0071, including full DM Desktop operational fallback, Desktop creator/manager surfaces, Homebrew Rules authoring, object storage, backup/export and explicit combat-device resume.
 
 ### `docs/ROADMAP.md`
 Current integrated-MVP roadmap and exact pre-coding 7D/7E design continuation.
