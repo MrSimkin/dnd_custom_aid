@@ -5,7 +5,7 @@
 
 ## Current status
 
-Phases 0–3 are complete. Phase 4A Player physical discovery on the current frozen candidate is complete, and the project is now inside the **consolidated post-P17 repair cycle**.
+Phases 0–3 are complete. Phase 4A Player physical discovery on the current frozen candidate is complete, and the project is inside the **consolidated post-P17 repair cycle**.
 
 Current testing position:
 
@@ -70,7 +70,7 @@ npm install --no-package-lock
 npm run check
 ```
 
-The established normal Scaffold gate covers backend install/type-check, stable CI debug-keystore preparation, Kotlin/shared/Android/Desktop build-and-test surfaces and Android debug APK upload.
+The normal Scaffold gate covers backend install/type-check, stable CI debug-keystore preparation, Player source guards, Kotlin/shared/Android/Desktop build-and-test surfaces and Android debug APK upload.
 
 Every bounded repair round should run focused tests/guards appropriate to that repair plus the normal Scaffold gate before it is marked automation green.
 
@@ -133,16 +133,14 @@ There is no further broad phone or tablet discovery pass required on `preqa.12`.
 
 ### Round 1 — structured dice / signed modifier foundation
 
-Product/test HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`.
-
+Product/test HEAD `6fa8f7b1611648d49b1e839f0ac9cc7214e651f0`.  
 Authoritative Scaffold `34787688776` / run `1508` — **SUCCESS**.
 
-Phone 7–9 implementation basis is repaired and automation-protected. Physical revalidation waits for the consolidated new candidate. T2 remains partial because die-result silhouettes, Custom Throw die/custom-sides/signed-modifier UX and Dice-tab ownership of display mode remain.
+Phone 7–9 implementation basis is repaired and automation-protected. Physical revalidation waits for the consolidated candidate. T2 remains partial because die-result silhouettes, Custom Throw die/custom-sides/signed-modifier UX and Dice-tab ownership of display mode remain.
 
 ### Round 2 — T1 reorder target stability
 
-Product/test HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`.
-
+Product/test HEAD `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb`.  
 Authoritative Scaffold `34788409987` / run `1519` — **SUCCESS**.
 
 The repair covers **both active reorder models**: one-dimensional/one-column reorder and spatial/multi-column reorder. It uses stable drag-start target geometry, canonical-order preview generation, hysteresis around boundaries, explicit translation during real viewport scrolling and one-time capture of newly revealed lazy targets.
@@ -161,25 +159,50 @@ A PASS in only one-column or only multi-column mode is insufficient to close T1 
 
 ### Round 3 — compact checkbox + responsive grouping
 
-Product/test HEAD `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c`.
+Migrated product commit `582a809bafbc4d7d38836283ed0eb5fe33d94624`.  
+Final product/test HEAD `1d1c476ddaeb045c8a1b186267f452010cad7681`.  
+Authoritative final Scaffold `34793253151` / run `1537` — **SUCCESS**.
 
-Authoritative steady-state Scaffold `34793215805` / run `1536` — **SUCCESS**.
+Round 3 establishes shared compact/touch-safe checkbox primitives, responsive `FlowRow` grouping, semantic source/prepared pairing and a durable source guard.
 
-Round 3 establishes shared compact/touch-safe checkbox primitives, responsive `FlowRow` grouping, semantic source/prepared pairing and a durable source guard. The source-complete migration removed **19 raw Material Checkbox calls across seven Player files** while leaving `Switch` controls unchanged because the audit did not establish them as defective.
+Source-complete result:
 
-The shared visual checkbox is 24dp with >=48dp interaction envelopes, compact shared label typography/spacing and whole-row toggle semantics where appropriate. Equipment and Conjuros now share lines when controls fit and wrap only when required by width.
+- pre-round audit had documented at least 18 raw Material Checkbox calls across six files;
+- package-wide implementation guard found one additional same-family legacy Gestión rest selector;
+- complete baseline = **19 raw Material Checkbox calls across seven Player files**;
+- final raw Material Checkbox use outside the shared primitive = **0**.
 
-The permanent checkbox guard proves:
+The shared visual checkbox is 24 dp with >=48 dp interaction envelopes, compact shared label typography/spacing and whole-row toggle semantics where appropriate. Equipment and Conjuros now share lines when controls fit and wrap only when required by width. Conjuros source/prepared controls remain semantically paired.
+
+Related-toggle audit on the final source:
+
+- Material `Switch`: **11 sites**;
+- `TriStateCheckbox`: **0 sites**.
+
+All 11 switches were source-inspected and are legitimate binary state/settings controls (for example current binary resources, Inspiration, active temporary effects, spellcaster/visibility/haptic/settings toggles). They are deliberate exceptions and remain switches; they were not blindly restyled as checkboxes.
+
+Permanent checkbox guard proves:
 
 - zero raw Material Checkbox imports/calls outside the shared primitive;
-- shared primitive touch-size contract remains present;
+- shared compact/touch-size contract remains present;
 - responsive Equipment and Conjuros packing remains present;
-- source/prepared controls remain semantically paired;
-- current and legacy Gestión rest selectors use the shared checkbox primitive.
+- source/prepared controls remain paired;
+- current and legacy Gestión rest selectors use the shared primitive;
+- related `Switch` / `TriStateCheckbox` inventory remains visible informationally.
 
-The temporary migration writer/helper was retired after source conversion. Normal Scaffold remains read-only with the permanent guard.
+Run `1537` also passed the existing compact-control guard, reorder-stability guard, backend/type-check, Kotlin/shared tests, Android build, Desktop build and APK upload. Artifact `10328739208`; GitHub Actions artifact digest `sha256:03f529acfde7ad18e2aa08752a28822d3d7f9c45916e02ddf65932714d52b1bf`.
 
 Phone 17.1–17.3 and the tablet checkbox-family reproduction are **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. No physical PASS is inferred from CI.
+
+Targeted physical revalidation on the future consolidated candidate should include:
+
+- representative Equipment checkbox scale/spacing/touch behavior;
+- a second representative migrated checkbox surface;
+- Conjuros V/S/M + Concentración/Ritual in portrait and landscape;
+- Conjuros source/prepared responsive packing after T5 makes the required source context available;
+- representative tablet checkbox parity and Conjuros wide/portrait packing.
+
+Do not replay the full 23-phone / 18-tablet discovery suites.
 
 ## 6. Current implementation route
 
