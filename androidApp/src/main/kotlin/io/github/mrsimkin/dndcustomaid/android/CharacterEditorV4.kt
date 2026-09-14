@@ -979,6 +979,8 @@ internal fun CharacterEditorScreenV4(
                             closureState = closureState,
                             combatEntries = combatEntries,
                             successorState = successorState.copy(combatDamage = combatDamageProfiles),
+                            preferences = preferences,
+                            onPreferencesChange = onPreferencesChange,
                         )
                         CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(
                             sheet = stored,

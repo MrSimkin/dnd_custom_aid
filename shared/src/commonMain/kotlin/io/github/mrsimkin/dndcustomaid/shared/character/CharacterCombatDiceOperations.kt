@@ -222,6 +222,31 @@ fun parseCharacterDiceExpression(raw: String): CharacterDiceExpression? {
     return CharacterDiceExpression(count = count, sides = sides, modifier = modifier)
 }
 
+data class CharacterResolvedDiceExpressionRoll(
+    val expression: CharacterDiceExpression,
+    val diceResults: List<Int>,
+) {
+    val diceTotal: Int
+        get() = diceResults.sum()
+
+    val total: Int
+        get() = diceTotal + expression.modifier
+}
+
+fun resolveCharacterDiceExpressionRoll(
+    expression: CharacterDiceExpression,
+    dieRoller: (sides: Int) -> Int,
+): CharacterResolvedDiceExpressionRoll {
+    val results = List(expression.count) {
+        dieRoller(expression.sides).also { result ->
+            require(result in 1..expression.sides) {
+                "Die roller returned $result for d${expression.sides}."
+            }
+        }
+    }
+    return CharacterResolvedDiceExpressionRoll(expression = expression, diceResults = results)
+}
+
 data class CharacterDamageRolledComponent(
     val component: CharacterDamageComponent,
     val diceResults: List<Int> = emptyList(),
@@ -249,17 +274,11 @@ fun resolveCharacterDamageRoll(
                 if (expression == null) {
                     CharacterDamageRolledComponent(component)
                 } else {
-                    val results = List(expression.count) {
-                        dieRoller(expression.sides).also { result ->
-                            require(result in 1..expression.sides) {
-                                "Die roller returned $result for d${expression.sides}."
-                            }
-                        }
-                    }
+                    val roll = resolveCharacterDiceExpressionRoll(expression, dieRoller)
                     CharacterDamageRolledComponent(
                         component = component,
-                        diceResults = results,
-                        numericValue = results.sum() + expression.modifier,
+                        diceResults = roll.diceResults,
+                        numericValue = roll.total,
                     )
                 }
             }

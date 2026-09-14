@@ -82,6 +82,19 @@ class CharacterCombatDiceOperationsTest {
     }
 
     @Test
+    fun arbitraryDiceExpressionRollUsesSidesAndSignedModifier() {
+        val expression = requireNotNull(parseCharacterDiceExpression("1d12-2"))
+        val result = resolveCharacterDiceExpressionRoll(expression) { sides ->
+            assertEquals(12, sides)
+            9
+        }
+
+        assertEquals(listOf(9), result.diceResults)
+        assertEquals(9, result.diceTotal)
+        assertEquals(7, result.total)
+    }
+
+    @Test
     fun malformedDiceComponentRemainsNonNumericAtRollTime() {
         val component = CharacterDamageComponent(CharacterDamageComponentKind.DICE, "1d8-")
         val result = resolveCharacterDamageRoll(listOf(component)) { error("Malformed dice must not roll") }

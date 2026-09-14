@@ -799,22 +799,6 @@ internal fun AppSettingsScreen(
                 }
                 item { HapticDeviceSettingsV4() }
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
-                        SettingSelector(
-                            label = "Resultados de dados",
-                            value = preferences.diceResultMode.label,
-                            options = DiceResultModeChoice.entries,
-                            optionLabel = { it.label },
-                            onSelect = { onPreferencesChange(preferences.copy(diceResultMode = it)) },
-                        )
-                        Text(
-                            "Compacto prioriza densidad. Dados visibles destaca los d20; ambos conservan la misma matemática.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                item {
                     FontChoicePicker(
                         selected = preferences.fontChoice,
                         onSelect = { onPreferencesChange(preferences.copy(fontChoice = it)) },
@@ -1093,7 +1077,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                 )
 
                 Text(
-                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · Ayuda ${preferences.helpMode.label} · Dados ${preferences.diceResultMode.label}",
+                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · Ayuda ${preferences.helpMode.label}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
