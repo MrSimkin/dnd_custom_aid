@@ -6,6 +6,7 @@ on:
       - implementation/phase4a-successor-cycle
     paths:
       - scripts/migrate_phase4a_t2.py
+      - scripts/migrate_phase4a_t2_retry.py
 
 permissions:
   contents: write
@@ -22,7 +23,12 @@ jobs:
         with:
           python-version: "3.13"
       - name: Apply bounded T2 migration
-        run: python3 scripts/migrate_phase4a_t2.py
+        run: |
+          if [ -f scripts/migrate_phase4a_t2_retry.py ]; then
+            python3 scripts/migrate_phase4a_t2_retry.py
+          else
+            python3 scripts/migrate_phase4a_t2.py
+          fi
       - name: Verify migration diff
         run: git diff --check
       - name: Commit T2 product changes
