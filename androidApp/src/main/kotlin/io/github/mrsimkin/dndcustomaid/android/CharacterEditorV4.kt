@@ -93,6 +93,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSkills
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
 import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalState
+import io.github.mrsimkin.dndcustomaid.shared.character.needsCharacterSpellcastingBootstrap
+import io.github.mrsimkin.dndcustomaid.shared.character.reconcileCharacterSpellcastingBootstrap
 import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterHitPoints
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
@@ -124,6 +126,17 @@ internal fun CharacterEditorScreenV4(
     }
     val pcSettingsContext = LocalCharacterPcSettingsContextV4.current
     val successorState = pcSettingsContext?.successorState ?: CharacterSuccessorState()
+    val storedSpellcastingBootstrap = remember(
+        stored.classes,
+        stored.spellcastingSources,
+        successorState.spellcastingProfiles,
+    ) {
+        reconcileCharacterSpellcastingBootstrap(
+            classes = stored.classes,
+            existingSources = stored.spellcastingSources,
+            existingProfiles = successorState.spellcastingProfiles,
+        )
+    }
     var draft by rememberSaveable(
         characterId.toString(),
         stateSaver = CharacterEditorDraftV4.Saver,
@@ -137,7 +150,7 @@ internal fun CharacterEditorScreenV4(
         mutableStateOf(characterCombatDamageProfilesToJsonV4(successorState.combatDamage))
     }
     var spellcastingProfilesDraftJson by rememberSaveable(characterId.toString(), "spellcasting-profiles") {
-        mutableStateOf(characterSpellcastingProfilesToJsonV4(successorState.spellcastingProfiles))
+        mutableStateOf(characterSpellcastingProfilesToJsonV4(storedSpellcastingBootstrap.profiles))
     }
     var equipmentDraftJson by rememberSaveable(characterId.toString()) {
         mutableStateOf(
@@ -170,7 +183,7 @@ internal fun CharacterEditorScreenV4(
         mutableStateOf(
             characterSpellcastingDraftToJsonV4(
                 CharacterSpellcastingDraftV4(
-                    sources = stored.spellcastingSources,
+                    sources = storedSpellcastingBootstrap.sources,
                     spells = stored.spells,
                 ),
             ),
@@ -265,6 +278,27 @@ internal fun CharacterEditorScreenV4(
     val h1ModuleDraft = remember(h1ModuleDraftJson) { characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson) }
     val proficiencyDraft = remember(proficiencyDraftJson) { characterProficienciesFromJsonV4(proficiencyDraftJson) }
     val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored
+    LaunchedEffect(settingsSheet.classes) {
+        val reconciled = reconcileCharacterSpellcastingBootstrap(
+            classes = settingsSheet.classes,
+            existingSources = spellcastingDraft.sources,
+            existingProfiles = spellcastingProfiles,
+        )
+        if (reconciled.sources != spellcastingDraft.sources) {
+            spellcastingDraftJson = characterSpellcastingDraftToJsonV4(
+                spellcastingDraft.copy(sources = reconciled.sources),
+            )
+            savedMessage = null
+        }
+        if (reconciled.profiles != spellcastingProfiles) {
+            spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(reconciled.profiles)
+            savedMessage = null
+        }
+    }
+    val canonicalSpellcastingBootstrapNeeded = remember(settingsSheet.classes, stored.spellcastingSources) {
+        needsCharacterSpellcastingBootstrap(settingsSheet.classes, stored.spellcastingSources)
+    }
+    val effectiveSpellcasterEnabled = stored.spellcasterEnabled || canonicalSpellcastingBootstrapNeeded
     val overviewProjectionSheet = settingsSheet.copy(
         background = backgroundDraft,
         inventoryItems = equipmentDraft.items,
@@ -277,7 +311,7 @@ internal fun CharacterEditorScreenV4(
     val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
     val selectedTab = resolvedCharacterTabV4(
         savedTabName = selectedTabName,
-        spellcasterEnabled = stored.spellcasterEnabled,
+        spellcasterEnabled = effectiveSpellcasterEnabled,
         visibleModules = visibleModules,
     )
     LaunchedEffect(characterId, selectedTab.name) {
@@ -292,8 +326,8 @@ internal fun CharacterEditorScreenV4(
     val storedCombatDamageDraftJson = remember(successorState.combatDamage) {
         characterCombatDamageProfilesToJsonV4(successorState.combatDamage)
     }
-    val storedSpellcastingProfilesDraftJson = remember(successorState.spellcastingProfiles) {
-        characterSpellcastingProfilesToJsonV4(successorState.spellcastingProfiles)
+    val storedSpellcastingProfilesDraftJson = remember(storedSpellcastingBootstrap.profiles) {
+        characterSpellcastingProfilesToJsonV4(storedSpellcastingBootstrap.profiles)
     }
     val storedEquipmentDraftJson = remember(stored, closureState.inventoryUsage) {
         equipmentDraftToJsonV4(
@@ -318,10 +352,10 @@ internal fun CharacterEditorScreenV4(
             CharacterCanonicalOriginsDraftP7V4.from(successorState),
         )
     }
-    val storedSpellcastingDraftJson = remember(stored) {
+    val storedSpellcastingDraftJson = remember(storedSpellcastingBootstrap.sources, stored.spells) {
         characterSpellcastingDraftToJsonV4(
             CharacterSpellcastingDraftV4(
-                sources = stored.spellcastingSources,
+                sources = storedSpellcastingBootstrap.sources,
                 spells = stored.spells,
             ),
         )
@@ -417,7 +451,7 @@ internal fun CharacterEditorScreenV4(
         showPcSettings = false
         selectedTabName = resolvedCharacterTabV4(
             savedTabName = selectedTabName,
-            spellcasterEnabled = stored.spellcasterEnabled,
+            spellcasterEnabled = effectiveSpellcasterEnabled,
             visibleModules = visibleModules,
         ).name
     }
@@ -535,14 +569,24 @@ internal fun CharacterEditorScreenV4(
             currentHp = candidate.currentHp,
             maxHp = candidate.maxHp,
         ).copy(tempHp = candidate.tempHp.coerceAtLeast(0))
+        val bootstrapNeededBeforePersist = needsCharacterSpellcastingBootstrap(
+            classes = normalizedCandidate.classes,
+            existingSources = stored.spellcastingSources,
+        )
+        val reconciledSpellcasting = reconcileCharacterSpellcastingBootstrap(
+            classes = normalizedCandidate.classes,
+            existingSources = spellcasting.sources,
+            existingProfiles = characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson),
+        )
         val integrated = normalizedCandidate.copy(
             combatEntries = combatEntriesFromJsonV4(combatDraftJson),
             inventoryItems = equipment.items,
             currencies = equipment.currencies,
             background = characterBackgroundFromJsonV4(backgroundDraftJson),
             traits = characterTraitsFromJsonV4(traitsDraftJson),
-            spellcastingSources = spellcasting.sources,
+            spellcastingSources = reconciledSpellcasting.sources,
             spells = spellcasting.spells,
+            spellcasterEnabled = normalizedCandidate.spellcasterEnabled || bootstrapNeededBeforePersist,
             generalNotes = notes.generalNotes,
             noteCards = notes.cards,
             proficiencies = proficiencies,
@@ -555,7 +599,7 @@ internal fun CharacterEditorScreenV4(
         val savedDamageProfiles = characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson)
             .filter { it.combatEntryId in liveCombatEntryIds }
         val liveSpellSourceIds = stored.spellcastingSources.mapTo(mutableSetOf()) { it.id }
-        val savedSpellcastingProfiles = characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
+        val savedSpellcastingProfiles = reconciledSpellcasting.profiles
             .filter { it.sourceId in liveSpellSourceIds }
         val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
         val savedCanonicalOrigins = characterCanonicalOriginsDraftFromJsonP7V4(canonicalOriginsDraftJson).normalized()
@@ -813,7 +857,7 @@ internal fun CharacterEditorScreenV4(
         CharacterPcSettingsClosureV4(
             characterName = draft.name,
             status = draft.status,
-            spellcasterEnabled = stored.spellcasterEnabled,
+            spellcasterEnabled = effectiveSpellcasterEnabled,
             closureState = closureState,
             suggestedModules = suggestedModules,
             tableModeCanEnable = !hasUnsavedChanges || closureState.tableModeEnabled,
@@ -821,7 +865,7 @@ internal fun CharacterEditorScreenV4(
                 showPcSettings = false
                 selectedTabName = resolvedCharacterTabV4(
                     savedTabName = selectedTabName,
-                    spellcasterEnabled = stored.spellcasterEnabled,
+                    spellcasterEnabled = effectiveSpellcasterEnabled,
                     visibleModules = visibleModules,
                 ).name
             },
@@ -864,7 +908,7 @@ internal fun CharacterEditorScreenV4(
                     layoutContext = layoutContext,
                     navigationPresentation = navigationPresentation,
                     selectedTab = selectedTab,
-                    spellcasterEnabled = stored.spellcasterEnabled,
+                    spellcasterEnabled = effectiveSpellcasterEnabled,
                     visibleModules = visibleModules,
                     onSelect = { targetTab ->
                         if (selectedTab == CharacterTabV4.OVERVIEW && targetTab != CharacterTabV4.OVERVIEW) {
