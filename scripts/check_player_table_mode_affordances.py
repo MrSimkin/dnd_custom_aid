@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android")
 EDITOR = ROOT / "CharacterEditorV4.kt"
+CLASS_WRAPPER = ROOT / "CharacterClassIdentityV4.kt"
 CLASS_IDENTITY = ROOT / "CharacterClassIdentitySuccessorV4.kt"
 GENERAL_CLOSURE = ROOT / "CharacterGeneralClosureV4.kt"
 POLICY_TEST = Path("shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterTableModePolicyTest.kt")
@@ -17,16 +18,16 @@ def require(text: str, needle: str, label: str) -> None:
 
 def main() -> None:
     editor = EDITOR.read_text(encoding="utf-8")
+    class_wrapper = CLASS_WRAPPER.read_text(encoding="utf-8")
     class_identity = CLASS_IDENTITY.read_text(encoding="utf-8")
     general_closure = GENERAL_CLOSURE.read_text(encoding="utf-8")
     policy_test = POLICY_TEST.read_text(encoding="utf-8")
 
     require(editor, "T8_TABLE_MODE_AFFORDANCES_V4", "T8 editor marker")
-    require(editor, "structuralEditingEnabled = structuralEditingEnabled", "Overview structural policy propagation")
     require(editor, "IdentityCardV4(draft, stored, onDraftChange, structuralEditingEnabled)", "read-only identity routing")
     require(editor, "AbilitiesCardV4(draft, onDraftChange, structuralEditingEnabled)", "read-only ability routing")
+    require(editor, "structuralEditingEnabled: Boolean = true,\n) {\n    Row(", "ability-row compatibility default")
     require(editor, "CharacterClassIdentityCardV4(", "class identity card")
-    require(editor, "structuralEditingEnabled = structuralEditingEnabled,", "class/general structural policy propagation")
     require(editor, "if (!structuralEditingEnabled) {\n        SectionCardV4(\"Referencia de combate\")", "Table Mode Combat branch")
     require(editor, "CharacterCombatOperationalCardV4(", "operational HP surface in Table Mode Overview")
     require(editor, "onSheetChange = onOperationalSheetChange", "operational HP persistence route")
@@ -36,6 +37,8 @@ def main() -> None:
     require(editor, "onInspirationChange = { enabled ->", "operational inspiration retained")
     require(editor, "onResourceValueChange = { resourceId, value ->", "operational resource current values retained")
 
+    require(class_wrapper, "structuralEditingEnabled: Boolean = true", "class wrapper structural flag")
+    require(class_wrapper, "structuralEditingEnabled = structuralEditingEnabled", "class wrapper forwarding")
     require(class_identity, "structuralEditingEnabled: Boolean = true", "class structural flag")
     require(class_identity, "if (structuralEditingEnabled) {\n                    CompactClassActionV4(\"+ Clase\")", "class add gate")
     require(class_identity, "if (structuralEditingEnabled && editorOpen)", "class editor dialog gate")
