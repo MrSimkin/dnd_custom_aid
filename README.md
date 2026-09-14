@@ -59,29 +59,18 @@ See `docs/ARCHITECTURE.md` for the full record.
 
 ## Current Player / Phase 4A reality
 
-Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open, but its accepted Player repair implementation is no longer an unfinished coding backlog.
+Phases 0–3 are complete and Phase 4A remains open. The Player line has already passed through physical phone/tablet discovery and is currently executing the authorized consolidated repair/revalidation cycle on `implementation/phase4a-successor-cycle`.
 
-The accepted P1–P16 repair set is implemented and automation-qualified on `implementation/phase4a-successor-cycle`.
+**Do not duplicate a volatile QA candidate/build/run snapshot in this README.** The live Player state changes during bounded repair rounds and is maintained in the synchronized authority set:
 
-Current physical owner-QA candidate:
+1. `docs/PROJECT_STATE.md` — exact current implementation state, frozen physical baseline and next action;
+2. `docs/checkpoints/LATEST.md` — practical resume pointer;
+3. latest bounded repair checkpoint under `docs/checkpoints/` — exact repair evidence;
+4. `docs/TESTING.md` — current test evidence, policy and targeted revalidation route.
 
-- version: `0.4.0-preqa.9`;
-- versionCode/build: `40900`;
-- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- Scaffold workflow run: `34726572588` — **SUCCESS**;
-- artifact ID: `10307444450`;
-- artifact name: `dnd-custom-aid-debug-apk`;
-- artifact digest: `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
+For Player work, remain on `implementation/phase4a-successor-cycle` and read those files before touching code. Historical candidate checkpoints remain evidence, not live navigation.
 
-P17 is the already-defined physical tablet-QA gate policy, not another hidden implementation increment. Physical owner/device acceptance has **not** yet occurred, and Phase 4A is **not** explicitly closed.
-
-For exact Player continuation, remain on `implementation/phase4a-successor-cycle` and read:
-
-1. `docs/checkpoints/LATEST.md`;
-2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`;
-3. `docs/PROJECT_STATE.md`.
-
-Do not restart P1–P16 absent actual physical QA evidence that reopens a specific repair boundary.
+Green CI, a newer branch HEAD or a repair commit does **not** equal physical owner acceptance. Phase 4A remains open until required targeted real-device evidence exists and the owner explicitly closes it.
 
 ## Current DM / Phase 5A reality
 
@@ -101,7 +90,7 @@ The owner's 2026-09-12 instruction additionally authorizes continuity correction
 
 That does **not** authorize:
 
-- unrelated Player feature invention while the project is at the owner-QA gate;
+- unrelated Player feature invention during the repair/QA cycle;
 - self-awarded physical owner acceptance from CI;
 - destructive history rewriting;
 - DM feature implementation before explicit Phase 4A closure.
