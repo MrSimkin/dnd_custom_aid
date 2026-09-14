@@ -20,6 +20,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
+      - name: Temporary diagnostic - locate haptic hook
+        run: |
+          python3 scripts/inspect_character_haptic_hook.py
+          exit 1
       - name: Guard compact Player control geometry
         run: python3 scripts/check_player_control_geometry.py
       - name: Guard Player reorder target stability
