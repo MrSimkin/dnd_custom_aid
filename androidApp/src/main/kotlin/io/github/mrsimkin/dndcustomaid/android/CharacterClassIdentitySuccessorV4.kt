@@ -37,6 +37,7 @@ import kotlin.uuid.Uuid
 internal fun CharacterClassIdentitySuccessorCardV4(
     classes: List<ClassLevelDraftV4>,
     onClassesChange: (List<ClassLevelDraftV4>) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     var editorId by rememberSaveable { mutableStateOf<String?>(null) }
     var editorOpen by rememberSaveable { mutableStateOf(false) }
@@ -53,9 +54,11 @@ internal fun CharacterClassIdentitySuccessorCardV4(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Clases", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                CompactClassActionV4("+ Clase") {
-                    editorId = null
-                    editorOpen = true
+                if (structuralEditingEnabled) {
+                    CompactClassActionV4("+ Clase") {
+                        editorId = null
+                        editorOpen = true
+                    }
                 }
             }
 
@@ -84,18 +87,20 @@ internal fun CharacterClassIdentitySuccessorCardV4(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        CompactClassActionV4("Editar") {
-                            editorId = item.id.toString()
-                            editorOpen = true
+                        if (structuralEditingEnabled) {
+                            CompactClassActionV4("Editar") {
+                                editorId = item.id.toString()
+                                editorOpen = true
+                            }
+                            CompactClassActionV4("Quitar") { deleteId = item.id.toString() }
                         }
-                        CompactClassActionV4("Quitar") { deleteId = item.id.toString() }
                     }
                 }
             }
         }
     }
 
-    if (editorOpen) {
+    if (structuralEditingEnabled && editorOpen) {
         val existing = editorId?.let { id -> classes.firstOrNull { it.id.toString() == id } }
         CharacterClassIdentitySuccessorEditorV4(
             existing = existing,
@@ -113,7 +118,7 @@ internal fun CharacterClassIdentitySuccessorCardV4(
         )
     }
 
-    deleteId?.let { id ->
+    if (structuralEditingEnabled) deleteId?.let { id ->
         val target = classes.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null

@@ -937,6 +937,7 @@ internal fun CharacterEditorScreenV4(
                             projectionSheet = overviewProjectionSheet,
                             closureState = closureState,
                             wide = wide,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             onDraftChange = ::updateStructuralDraft,
                             onOperationalSheetChange = ::persistOperationalSheet,
                             onClosureStateChange = ::persistStructuralClosureState,
@@ -1362,10 +1363,12 @@ private fun OverviewTabV4(
     projectionSheet: CharacterSheet,
     closureState: CharacterClosureState,
     wide: Boolean,
+    structuralEditingEnabled: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
     onOperationalSheetChange: (CharacterSheet) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
 ) {
+    // T8_TABLE_MODE_AFFORDANCES_V4: structural references become visibly read-only; live state stays operational.
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -1380,19 +1383,28 @@ private fun OverviewTabV4(
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         item {
-            IdentityCardV4(draft, stored, onDraftChange)
+            IdentityCardV4(draft, stored, onDraftChange, structuralEditingEnabled)
         }
         item {
             CharacterClassIdentityCardV4(
                 classes = draft.classes,
                 onClassesChange = { onDraftChange(draft.copy(classes = it)) },
+                structuralEditingEnabled = structuralEditingEnabled,
             )
         }
         item {
-            AbilitiesCardV4(draft, onDraftChange)
+            AbilitiesCardV4(draft, onDraftChange, structuralEditingEnabled)
         }
         item {
-            CombatCardV4(draft, wide, onDraftChange)
+            CombatCardV4(
+                draft = draft,
+                stored = stored,
+                wide = wide,
+                structuralEditingEnabled = structuralEditingEnabled,
+                hapticsEnabled = closureState.hapticsEnabled,
+                onDraftChange = onDraftChange,
+                onOperationalSheetChange = onOperationalSheetChange,
+            )
         }
         item {
             CharacterGeneralSuccessorCardsV4(
@@ -1416,6 +1428,7 @@ private fun OverviewTabV4(
                 state = closureState,
                 onStateChange = onClosureStateChange,
                 wide = wide,
+                structuralEditingEnabled = structuralEditingEnabled,
             )
         }
     }
@@ -1426,14 +1439,19 @@ private fun IdentityCardV4(
     draft: CharacterEditorDraftV4,
     stored: CharacterSheet,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
 ) {
     SectionCardV4("Personaje") {
         Text("Nombre", style = MaterialTheme.typography.labelSmall)
-        CompactTextFieldV4(
-            value = draft.name,
-            onValueChange = { onDraftChange(draft.copy(name = characterProperNameInput(it))) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (structuralEditingEnabled) {
+            CompactTextFieldV4(
+                value = draft.name,
+                onValueChange = { onDraftChange(draft.copy(name = characterProperNameInput(it))) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        } else {
+            Text(draft.name.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium)
+        }
         Text(
             "Nivel total ${draft.totalLevel()} · Último guardado ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
             style = MaterialTheme.typography.labelSmall,
@@ -1445,9 +1463,10 @@ private fun IdentityCardV4(
 private fun AbilitiesCardV4(
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
 ) {
     SectionCardV4("Características") {
-        AbilitiesRowV4(draft, onDraftChange)
+        AbilitiesRowV4(draft, onDraftChange, structuralEditingEnabled)
     }
 }
 
@@ -1455,6 +1474,7 @@ private fun AbilitiesCardV4(
 private fun AbilitiesRowV4(
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1466,11 +1486,19 @@ private fun AbilitiesRowV4(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelSmall, maxLines = 1)
-                CompactIntInputV4(
-                    value = draft.abilityValue(ability),
-                    onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                if (structuralEditingEnabled) {
+                    CompactIntInputV4(
+                        value = draft.abilityValue(ability),
+                        onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    Text(
+                        draft.abilityValue(ability).ifBlank { "—" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                    )
+                }
                 Text(
                     draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—",
                     style = MaterialTheme.typography.titleMedium,
@@ -1484,9 +1512,40 @@ private fun AbilitiesRowV4(
 @Composable
 private fun CombatCardV4(
     draft: CharacterEditorDraftV4,
+    stored: CharacterSheet,
     wide: Boolean,
+    structuralEditingEnabled: Boolean,
+    hapticsEnabled: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    onOperationalSheetChange: (CharacterSheet) -> Unit,
 ) {
+    if (!structuralEditingEnabled) {
+        SectionCardV4("Referencia de combate") {
+            CharacterCombatOperationalCardV4(
+                armorClass = draft.armorClass,
+                initiative = draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(),
+                speed = draft.speed,
+                sheet = stored,
+                onSheetChange = onOperationalSheetChange,
+                hapticsEnabled = hapticsEnabled,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Bono competencia", style = MaterialTheme.typography.labelSmall)
+                    Text(draft.finalProficiencyBonus()?.let(::formatSignedV4) ?: "—", style = MaterialTheme.typography.bodyMedium)
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Percepción pasiva", style = MaterialTheme.typography.labelSmall)
+                    Text(draft.passivePerceptionTotal()?.toString() ?: "—", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+        return
+    }
+
     SectionCardV4("Referencia de combate") {
         if (wide) {
             Row(
@@ -1899,6 +1958,7 @@ private fun DerivedTotalControlV4(
     breakdownLines: List<String>,
     onAdjustmentChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     var dialogOpen by remember { mutableStateOf(false) }
     val adjustmentValue = parseOptionalAdjustmentV4(adjustment) ?: 0
@@ -1906,7 +1966,7 @@ private fun DerivedTotalControlV4(
     Surface(
         modifier = modifier
             .heightIn(min = 34.dp)
-            .clickable { dialogOpen = true },
+            .clickable(enabled = enabled) { dialogOpen = true },
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -1932,7 +1992,7 @@ private fun DerivedTotalControlV4(
         }
     }
 
-    if (dialogOpen) {
+    if (enabled && dialogOpen) {
         var pendingAdjustment by remember(dialogOpen, adjustment) { mutableStateOf(adjustment) }
         CharacterImeSafeEditorDialog(
             title = dialogTitle,
@@ -2008,8 +2068,9 @@ private fun SkillsTabV4(
         ) {
             when (skillLayoutChoice) {
                 SkillLayoutChoice.BY_SKILLS -> {
-                    item { AbilitiesCardV4(draft, onDraftChange) }
-                    item { SavesCardV4(draft, wide, onDraftChange) }
+                    // T8_SKILLS_TABLE_MODE_AFFORDANCES_V4: preserve projection while gating structural controls.
+                    item { AbilitiesCardV4(draft, onDraftChange, structuralEditingEnabled) }
+                    item { SavesCardV4(draft, wide, onDraftChange, structuralEditingEnabled) }
                     item {
                         SkillsListCardV4(
                             draft = draft,
@@ -2018,6 +2079,7 @@ private fun SkillsTabV4(
                             customSkills = closureState.customSkills,
                             calculationSheet = calculationSheet,
                             successorState = successorState,
+                            structuralEditingEnabled = structuralEditingEnabled,
                         )
                     }
                 }
@@ -2030,6 +2092,7 @@ private fun SkillsTabV4(
                             customSkills = closureState.customSkills,
                             calculationSheet = calculationSheet,
                             successorState = successorState,
+                            structuralEditingEnabled = structuralEditingEnabled,
                         )
                     }
                 }
@@ -2082,6 +2145,7 @@ private fun SavesCardV4(
     draft: CharacterEditorDraftV4,
     wide: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     SectionCardV4("Tiradas de salvación") {
         CharacterHelpV4(
@@ -2099,6 +2163,7 @@ private fun SavesCardV4(
                         ability = ability,
                         draft = draft,
                         onDraftChange = onDraftChange,
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -2113,6 +2178,7 @@ private fun SaveRowV4(
     ability: CharacterAbility,
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val save = draft.saveFor(ability)
@@ -2142,10 +2208,12 @@ private fun SaveRowV4(
                     },
                 ),
                 onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
+                enabled = structuralEditingEnabled,
                 modifier = Modifier.weight(1f),
             )
             SaveProficiencyToggleV4(
                 proficient = save.proficient,
+                enabled = structuralEditingEnabled,
                 onToggle = {
                     onDraftChange(draft.withSave(save.copy(proficient = !save.proficient)))
                 },
@@ -2158,12 +2226,13 @@ private fun SaveRowV4(
 private fun SaveProficiencyToggleV4(
     proficient: Boolean,
     onToggle: () -> Unit,
+    enabled: Boolean = true,
 ) {
     val color = if (proficient) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     Surface(
         modifier = Modifier
             .size(36.dp)
-            .clickable(onClick = onToggle),
+            .clickable(enabled = enabled, onClick = onToggle),
         shape = CircleShape,
         border = BorderStroke(1.5.dp, color),
         color = if (proficient) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
@@ -2198,6 +2267,7 @@ private fun SkillsListCardV4(
     customSkills: List<CharacterCustomSkill>,
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val rows = presentCharacterSkills(
         builtInSkills = calculationSheet.skills,
@@ -2217,21 +2287,21 @@ private fun SkillsListCardV4(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     rows.take(midpoint).forEachIndexed { index, row ->
-                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
                         if (index < midpoint - 1) HorizontalDivider()
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     val second = rows.drop(midpoint)
                     second.forEachIndexed { index, row ->
-                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
                         if (index < second.lastIndex) HorizontalDivider()
                     }
                 }
             }
         } else {
             rows.forEachIndexed { index, row ->
-                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
                 if (index < rows.lastIndex) HorizontalDivider()
             }
         }
@@ -2246,11 +2316,12 @@ private fun UnifiedSkillRowV4(
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val builtInKey = row.builtInKey
     if (builtInKey != null) {
         val skill = draft.skills.firstOrNull { it.key == builtInKey } ?: return
-        SkillRowV4(skill, draft, onDraftChange)
+        SkillRowV4(skill, draft, onDraftChange, structuralEditingEnabled)
         return
     }
     val customSkill = row.customSkillId?.let { id -> customSkills.firstOrNull { it.id == id } } ?: return
@@ -2320,6 +2391,7 @@ private fun SkillRowV4(
     skill: SkillDraftV4,
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val abilityModifier = draft.abilityModifier(skill.key.ability)
     val proficiency = draft.finalProficiencyBonus()
@@ -2352,10 +2424,12 @@ private fun SkillRowV4(
                 "${trainingLabelV4(skill.training)} ${proficiencyContribution?.let(::formatSignedV4) ?: "—"}",
             ),
             onAdjustmentChange = { onDraftChange(draft.withSkill(skill.copy(adjustment = it))) },
+            enabled = structuralEditingEnabled,
             modifier = Modifier.width(58.dp),
         )
         TrainingSelectorV4(
             training = skill.training,
+            enabled = structuralEditingEnabled,
             onTrainingChange = { onDraftChange(draft.withSkill(skill.copy(training = it))) },
         )
     }
@@ -2365,11 +2439,13 @@ private fun SkillRowV4(
 private fun TrainingSelectorV4(
     training: SkillTraining,
     onTrainingChange: (SkillTraining) -> Unit,
+    enabled: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(
             onClick = { expanded = true },
+            enabled = enabled,
             modifier = Modifier
                 .width(44.dp)
                 .heightIn(min = 34.dp),
@@ -2377,7 +2453,7 @@ private fun TrainingSelectorV4(
         ) {
             TrainingGlyphV4(training)
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
             SkillTraining.entries.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(trainingLabelV4(option)) },
@@ -2435,6 +2511,7 @@ private fun AbilityGroupsCardV4(
     customSkills: List<CharacterCustomSkill>,
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val rows = presentCharacterSkills(
         builtInSkills = calculationSheet.skills,
@@ -2458,6 +2535,7 @@ private fun AbilityGroupsCardV4(
                         calculationSheet = calculationSheet,
                         successorState = successorState,
                         onDraftChange = onDraftChange,
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -2502,6 +2580,7 @@ private fun AbilityGroupV4(
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val save = draft.saveFor(ability)
@@ -2525,11 +2604,15 @@ private fun AbilityGroupV4(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(abbreviation, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                CompactIntInputV4(
-                    value = draft.abilityValue(ability),
-                    onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
-                    modifier = Modifier.width(52.dp),
-                )
+                if (structuralEditingEnabled) {
+                    CompactIntInputV4(
+                        value = draft.abilityValue(ability),
+                        onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
+                        modifier = Modifier.width(52.dp),
+                    )
+                } else {
+                    Text(draft.abilityValue(ability).ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium)
+                }
                 Text(
                     "Mod ${abilityModifier?.let(::formatSignedV4) ?: "—"}",
                     style = MaterialTheme.typography.labelMedium,
@@ -2555,17 +2638,19 @@ private fun AbilityGroupV4(
                         },
                     ),
                     onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
+                    enabled = structuralEditingEnabled,
                     modifier = Modifier.weight(1f),
                 )
                 SaveProficiencyToggleV4(
                     proficient = save.proficient,
+                    enabled = structuralEditingEnabled,
                     onToggle = {
                         onDraftChange(draft.withSave(save.copy(proficient = !save.proficient)))
                     },
                 )
             }
             relatedSkills.forEach { row ->
-                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
             }
         }
     }
