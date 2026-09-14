@@ -1,104 +1,166 @@
 # Project State — global repository navigation
 
-**Last verified:** 2026-09-12  
+**Last verified:** 2026-09-14  
 **Canonical navigation/discovery branch:** `main`  
 **Authoritative current Player implementation branch:** `implementation/phase4a-successor-cycle`  
-**Current Player QA candidate:** `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`  
-**Phase 4A Player state:** P1–P16 repaired/automation-qualified; physical owner/device QA pending under P17  
-**DM implementation:** blocked until Phase 4A owner acceptance and explicit closure
+**Current Player frozen physical candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`  
+**Current Player evidence:** automation green; targeted cross-device physical revalidation pending on the successor branch  
+**Current global design state:** integrated Player + Server + DM MVP architecture consolidated under D-0071  
+**Implementation authorization:** not granted by the 2026-09-14 consolidation itself; detailed MVP/Desktop design continues before coding authorization
 
-## 1. `main` is not the latest Player runtime
+## 1. Two authoritative lines still exist
 
-`main` remains the canonical place for global repository navigation and later Phase 5A/DM product-discovery decisions, but it is intentionally divergent from the active Player implementation branch.
+`main` remains the canonical place for global repository navigation and DM/product/architecture decisions. It intentionally does not contain the latest Player runtime implementation.
 
-The Player successor branch contains extensive Phase 4A implementation/repair work not on `main`. `main` contains later DM/Phase 5A discovery documentation not on the Player branch.
-
-Do not use `main` as current Player source merely because it is the default branch, and do not overwrite `main` with the Player branch because doing so would lose valid later discovery history.
-
-See:
-
-- `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md`;
-- `docs/BRANCH_STATUS.md`.
-
-## 2. Current Player / Phase 4A state
-
-Authoritative code branch:
+Current Player code/QA authority remains:
 
 `implementation/phase4a-successor-cycle`
 
-Repaired P1–P16 source boundary:
+That branch's current `docs/checkpoints/LATEST.md` identifies `0.4.0-preqa.13 / 41300` at `92aa9b6...` as the exact frozen automation-green physical candidate. Do not replace that branch's evidence with old `preqa.9` global summaries or with chat memory.
 
-`d630270f2f3d8fab94f3c1290963c2da7afaf06d`
+The two lines must not be mechanically force-moved over one another. Future integration must preserve both current Player runtime work and later `main`-only DM/MVP design truth.
 
-Current uniquely identifiable QA candidate:
+## 2. Current Player state
 
-- version: `0.4.0-preqa.9`;
-- build/versionCode: `40900`;
-- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- Scaffold run `34726572588`: **SUCCESS**;
-- artifact ID `10307444450`;
-- artifact name `dnd-custom-aid-debug-apk`;
-- artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
+Authoritative source:
 
-Current interpretation:
+`implementation/phase4a-successor-cycle`
 
-- P1–P16 accepted repair implementation is present and automation-qualified;
-- P17 is the physical tablet-QA gate policy, not another code repair;
-- physical owner/device acceptance remains pending;
-- no CI result may be promoted to owner acceptance;
-- Phase 4A is not yet explicitly owner-closed.
+Current frozen candidate:
 
-The next Player evidence is physical QA of `preqa.9 / 40900`. Any real-device failure may reopen only the relevant accepted repair boundary.
+- version: `0.4.0-preqa.13`;
+- build/versionCode: `41300`;
+- commit: `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- Scaffold `34801612526` / #1630: **SUCCESS**;
+- artifact `10331503478` / `dnd-custom-aid-debug-apk`;
+- targeted physical revalidation: **pending**;
+- Phase 4A on that branch: formally **OPEN**.
 
-## 3. Current DM / Phase 5A discovery line on `main`
+The 2026-09-14 architecture discussion also used a four-item bounded Player defect planning vocabulary: A10 narrow custom-dice overflow, B1 narrow/micro reorder moved-row visual inconsistency, J1 primary Save persistence/reload failure, and J2 collection-filter hit-count/behavior inconsistency. Preserve that discussion input, but before implementation reconcile it against the then-current authoritative successor checkpoint rather than silently overriding branch evidence.
 
-The later valid discovery/decision work on `main` must be preserved. Current important records include:
+Existing QA evidence remains valuable for the exact boundaries it exercised. Do not restart Player design or replay all historical QA merely because the next product cycle is broader.
 
-- D-0068 — DM live Workspace/Desk direction and DM Attention Budget foundations;
-- D-0069 — approved DM Desk family, including DM Screen, Stage Desk, Dungeon Desk and Combat Desk;
-- D-0070 — shared Player/DM rules-question capability and its scope/naming clarification;
-- associated checkpoints preserving those decisions.
+## 3. Current global product/architecture direction — D-0071
 
-These are product/design decisions and continuity records. They do **not** authorize DM feature implementation before Phase 4A closes.
+The controlling new record is:
 
-If DM discovery resumes, continue from the accepted records on `main` rather than reconstructing them from the Player branch.
+`docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md`
 
-## 4. Authorization state
+Checkpoint:
 
-Historical 2026-09-11 authorization on the Player branch permitted the accepted P1–P17 Phase 4A repair/validation cycle, but explicitly did not authorize DM implementation or self-awarded owner acceptance.
+`docs/checkpoints/2026-09-14_MVP_INTEGRATION_ARCHITECTURE_CONSOLIDATION.md`
 
-On 2026-09-12 the owner explicitly authorized continuity files to be corrected on all appropriate development branches, including `main`, so no development line remains unclear, and asked development to continue within the real existing authorizations.
+Core direction:
 
-This does not:
+- the next implementation cycle targets the **integrated MVP**, not an isolated DM prototype or a tiny server milestone;
+- Player, hosted/shared services and DM clients are one coherent product/data ecosystem;
+- internal slices/waves/parallel workstreams are engineering organization, not separate owner acceptance products;
+- the next major owner-facing QA is intended to exercise Player + Server + DM end-to-end;
+- local/paper-first authority, non-VTT scope and proportional architecture remain controlling;
+- object storage is required this MVP cycle, provider still Pending;
+- full server backup/export is required early in the hosted foundation even before a polished restore UI;
+- SRD storage/provenance foundations begin early; the actual official-SRD retrieval + grounded AI feature is implemented last among the substantial MVP features;
+- generic realtime/WebSockets/Durable Objects/queues/general ACL/general sync platforms remain deferred unless a concrete requirement proves them necessary.
 
-- retroactively alter the historical authorization checkpoint;
-- authorize DM implementation;
-- waive physical Player QA;
-- authorize claiming owner acceptance;
-- authorize destructive history rewrite or loss of either branch's valid work.
+## 4. DM product direction — existing Desks preserved, Desktop expanded
 
-## 5. Exact continuation rules
+D-0068, D-0069 and D-0070 remain controlling for the DM live Workspace/Desk concepts and shared rules-question capability.
 
-### Player implementation / QA
+Approved live Desk family remains:
 
-Use `implementation/phase4a-successor-cycle` and its own `docs/checkpoints/LATEST.md`.
+1. DM Screen;
+2. Stage Desk;
+3. Dungeon Desk;
+4. Combat Desk.
 
-The current technical packaging step is complete. Do not restart older A–I increments or P1–P16 repairs and do not invent a new repair merely to continue coding. The next required evidence is physical owner/device QA of `0.4.0-preqa.9 / 40900`.
+D-0071 adds the following MVP Desktop direction:
 
-If that QA finds a defect, reopen the relevant accepted repair boundary and repair it on the successor branch.
+- the Desktop program is now a **DM Desktop App**, not merely a small preparation/administration companion;
+- all approved DM Desks must be functionally usable on Desktop so the laptop can replace the tablet operationally if needed;
+- Desktop UI remains purpose-built for keyboard/mouse/large-screen use and need not mirror tablet layout;
+- Desktop additionally provides rich authoring/management surfaces, explicitly including Monster Creator/Manager, NPC Creator/Manager, Homebrew Rules Input/Manager, Zone Creator/Manager and Encounter Creator/Manager;
+- every persistent/content-oriented Desk capability needs sufficient Desktop authoring/management support for the data it consumes;
+- PCs use a DM PC Manager/Audit model rather than implying a Player desktop application;
+- the same Desktop App includes a permission-gated System Administration area distinct from campaign-DM authority.
 
-### DM / Phase 5A discovery
+## 5. Combat-device fallback now belongs to MVP
 
-Use `main` and preserve D-0068/D-0069/D-0070 plus subsequent accepted discovery decisions.
+The previous `same authoritative device only; handoff later` MVP limitation is superseded.
 
-Discovery may continue when explicitly requested. DM implementation remains blocked until Phase 4A is explicitly owner-closed.
+Because Desktop must serve as a real DM fallback, the MVP must support explicit resume/handoff of an active encounter to another DM device from the latest synchronized state.
 
-### Cross-line integration
+Controlling safety behavior:
 
-Do not force-push or mechanically fast-forward one divergent line over the other. Any future integration must explicitly preserve both the current Player implementation and later main-only discovery records.
+- exactly one authoritative DM device at a time;
+- resume is explicit;
+- authority generation/epoch distinguishes the new authority from stale old-device writes;
+- increasing combat sequence/version still orders changes within the authority;
+- no simultaneous authoritative tablet/Desktop editing;
+- no realtime/distributed-lock platform is required simply for this bounded recovery;
+- unsynchronized state present only on a lost device cannot be reconstructed magically.
 
-## 6. Release/acceptance status
+## 6. Server/sync/recovery direction
+
+The server is the durable shared home/exchange point, not an always-live technical Game Session engine.
+
+There is no required technical Session object.
+
+Local Save remains network-independent. Desktop uses explicit Sync; Android may opportunistically retry while retaining manual Sync. Synchronization is scoped and its state is visible. Rare conflicts are surfaced to humans rather than hidden by generalized auto-merge.
+
+PC digital freshness and sync freshness are different facts because paper may be newer than a perfectly synchronized digital copy.
+
+Important durable records use meaningful grouped history/recovery rather than exhaustive telemetry. Restoring an older state creates a new current version; it does not erase later history.
+
+Full server backup/export through the backend is part of the MVP foundation. Native clients never receive direct Neon/PostgreSQL credentials.
+
+## 7. Identity/permission direction
+
+- global persistent identity;
+- campaign-scoped roles;
+- same user may be DM and own/control a PC in the same campaign;
+- remembered login/device behavior is required;
+- DM/Player surface switching does not blur action authority;
+- PC ownership and current control remain distinct;
+- DM audit/correction authority does not imply ownership;
+- other campaign Players see only PC name + portrait/avatar + current controlling Player/display identity by default;
+- frozen PC remains visible read-only to its owner/controller;
+- loss of campaign membership stops future hosted access but does not instantly erase local cached data;
+- campaign moderation and global system administration remain separate.
+
+## 8. Current implementation organization
+
+D-0071 approves the technical organization around seven coordinated workstreams:
+
+1. shared MVP spine/contracts;
+2. Player stabilization/integration;
+3. hosted foundation;
+4. shared Kotlin data/sync;
+5. DM Desktop product;
+6. cross-client live-play exchange;
+7. SRD retrieval/AI.
+
+The work may proceed in dependency waves and in parallel where safe, but Player/Server/Desktop must integrate frequently. The main risk is semantic drift among independently evolving implementations.
+
+No implementation has been started by this documentation checkpoint.
+
+## 9. Exact continuation
+
+The discussion is intentionally paused after the 2026-09-14 consolidation.
+
+When the owner returns, continue on `main` from:
+
+> **7D — detailed DM Desktop App product definition:** overall navigation/structure and then area-by-area Desk/live-use plus Creator/Manager/Admin behavior.
+
+Do not restart generic Desk taxonomy; D-0068/D-0069 already define the current family.
+
+After 7D is sufficiently defined, continue to:
+
+> **7E — define exactly what remains outside the expanded MVP.**
+
+Then derive final Git/development topology, implementation roadmap/gates and obtain explicit authorization before coding.
+
+## 10. Release/acceptance status
 
 The project remains development/debug and is not release-ready.
 
-Phase 4A cannot be marked accepted/closed until the repaired `preqa.9 / 40900` candidate receives the required physical owner/device exercise and explicit owner closure.
+The current Player candidate is not physically owner-accepted merely because automation is green. The integrated-MVP design decision changes the planned next product cycle/acceptance strategy; it does not retroactively fabricate Player QA evidence or owner acceptance.
