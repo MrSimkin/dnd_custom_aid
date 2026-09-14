@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -792,7 +791,7 @@ private fun RestPreviewRowV4(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (item.hasAutomaticChange) {
-            Checkbox(
+            CharacterCompactCheckboxV4(
                 checked = key in selectedKeys,
                 onCheckedChange = { checked ->
                     onSelectedKeysChange(if (checked) selectedKeys + key else selectedKeys - key)

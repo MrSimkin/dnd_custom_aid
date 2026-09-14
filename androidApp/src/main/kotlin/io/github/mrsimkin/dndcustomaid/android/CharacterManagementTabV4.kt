@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -961,7 +960,7 @@ private fun RestPreviewDialogV4(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (item.hasAutomaticChange) {
-                        Checkbox(
+                        CharacterCompactCheckboxV4(
                             checked = item.resourceId.toString() in selected,
                             onCheckedChange = { checked ->
                                 selected = if (checked) selected + item.resourceId.toString() else selected - item.resourceId.toString()

@@ -27,7 +27,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -876,12 +875,12 @@ private fun SpellRowG2(
                 )
                 if (selectedAssociation != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
+                        CharacterCompactCheckboxItemV4(
                             checked = selectedAssociation.prepared,
                             enabled = structuralEditingEnabled && !lifted,
                             onCheckedChange = onPreparedChange,
+                            label = "Prep.",
                         )
-                        Text("Prep.", style = MaterialTheme.typography.labelSmall)
                     }
                 }
                 StableFavoriteIconButton(
@@ -1039,24 +1038,27 @@ private fun SpellEditorFieldsG2(
     if (sources.isEmpty()) {
         Text("Crea al menos una fuente antes de guardar un conjuro.", style = MaterialTheme.typography.bodySmall)
     }
-    sources.forEach { source ->
-        val key = source.id.toString()
-        val included = key in associatedSourceIds
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = included, onCheckedChange = { onAssociationChange(source.id, it) })
-            Text(source.name, modifier = Modifier.weight(1f))
-            Checkbox(
-                checked = key in preparedSourceIds,
-                enabled = included,
-                onCheckedChange = { onPreparedChange(source.id, it) },
+    CharacterResponsiveCheckboxGroupV4(modifier = Modifier.fillMaxWidth()) {
+        sources.forEach { source ->
+            val key = source.id.toString()
+            val included = key in associatedSourceIds
+            CharacterCompactCheckboxPairV4(
+                firstChecked = included,
+                firstOnCheckedChange = { onAssociationChange(source.id, it) },
+                firstLabel = source.name,
+                secondChecked = key in preparedSourceIds,
+                secondOnCheckedChange = { onPreparedChange(source.id, it) },
+                secondLabel = "Preparado",
+                secondEnabled = included,
             )
-            Text("Preparado", style = MaterialTheme.typography.labelSmall)
         }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(verbal, onVerbalChange); Text("V")
-        Checkbox(somatic, onSomaticChange); Text("S")
-        Checkbox(material, onMaterialChange); Text("M")
+    CharacterResponsiveCheckboxGroupV4(modifier = Modifier.fillMaxWidth()) {
+        CharacterCompactCheckboxItemV4(verbal, onVerbalChange, "V")
+        CharacterCompactCheckboxItemV4(somatic, onSomaticChange, "S")
+        CharacterCompactCheckboxItemV4(material, onMaterialChange, "M")
+        CharacterCompactCheckboxItemV4(concentration, onConcentrationChange, "Concentración")
+        CharacterCompactCheckboxItemV4(ritual, onRitualChange, "Ritual")
     }
     if (material) {
         CharacterCompactOutlinedTextFieldV4(
@@ -1068,11 +1070,7 @@ private fun SpellEditorFieldsG2(
             maxLines = 4,
         )
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Checkbox(concentration, onConcentrationChange); Text("Concentración")
-        Checkbox(ritual, onRitualChange); Text("Ritual")
-    }
-    CharacterCompactOutlinedTextFieldV4(
+CharacterCompactOutlinedTextFieldV4(
         value = description,
         onValueChange = onDescriptionChange,
         label = { Text("Descripción") },

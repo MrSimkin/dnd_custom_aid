@@ -25,7 +25,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -759,11 +758,17 @@ private fun EquipmentEditorPanelF3(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = equipped, onCheckedChange = onEquippedChange)
-                    Text("Equipado")
-                    Checkbox(checked = special, onCheckedChange = onSpecialChange)
-                    Text("Especial")
+                CharacterResponsiveCheckboxGroupV4 {
+                    CharacterCompactCheckboxItemV4(
+                        checked = equipped,
+                        onCheckedChange = onEquippedChange,
+                        label = "Equipado",
+                    )
+                    CharacterCompactCheckboxItemV4(
+                        checked = special,
+                        onCheckedChange = onSpecialChange,
+                        label = "Especial",
+                    )
                 }
                 CharacterCompactOutlinedTextFieldV4(
                     value = location,
@@ -796,10 +801,11 @@ private fun EquipmentEditorPanelF3(
                     )
                 }
                 if (special) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
-                        Text("Sintonizado")
-                    }
+                    CharacterCompactCheckboxItemV4(
+                        checked = attuned,
+                        onCheckedChange = onAttunedChange,
+                        label = "Sintonizado",
+                    )
                     CharacterCompactOutlinedTextFieldV4(
                         value = description,
                         onValueChange = onDescriptionChange,
@@ -894,11 +900,17 @@ private fun EquipmentEditorF2(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = equipped, onCheckedChange = onEquippedChange)
-            Text("Equipado")
-            Checkbox(checked = special, onCheckedChange = onSpecialChange)
-            Text("Equipo especial")
+        CharacterResponsiveCheckboxGroupV4 {
+            CharacterCompactCheckboxItemV4(
+                checked = equipped,
+                onCheckedChange = onEquippedChange,
+                label = "Equipado",
+            )
+            CharacterCompactCheckboxItemV4(
+                checked = special,
+                onCheckedChange = onSpecialChange,
+                label = "Equipo especial",
+            )
         }
         CharacterCompactOutlinedTextFieldV4(
             value = location,
@@ -932,10 +944,11 @@ private fun EquipmentEditorF2(
             )
         }
         if (special) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
-                Text("Sintonizado")
-            }
+            CharacterCompactCheckboxItemV4(
+                checked = attuned,
+                onCheckedChange = onAttunedChange,
+                label = "Sintonizado",
+            )
             CharacterCompactOutlinedTextFieldV4(
                 value = description,
                 onValueChange = onDescriptionChange,

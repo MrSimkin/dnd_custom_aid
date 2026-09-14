@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -810,13 +809,12 @@ private fun ArtificeEditorFieldsH1(
         minLines = characterCompactTextAreaMinLinesV4(2),
         maxLines = 7,
     )
-    Row(
+    CharacterCompactCheckboxItemV4(
+        checked = active,
+        onCheckedChange = onActiveChange,
+        label = "Activo / creado / disponible",
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Checkbox(checked = active, onCheckedChange = onActiveChange)
-        Text("Activo / creado / disponible")
-    }
+    )
 }
 
 @Composable
