@@ -41,7 +41,7 @@ for marker in (
         errors.append(f'shared checkbox primitive lost required marker: {marker}')
 
 spell = (ROOT / 'CharacterSpellListClosureV4.kt').read_text(encoding='utf-8')
-if spell.count('CharacterResponsiveCheckboxGroupV4(') < 2:
+if spell.count('CharacterResponsiveCheckboxGroupV4') < 2:
     errors.append('spell editor no longer proves responsive checkbox packing for source/component groups')
 if 'CharacterCompactCheckboxPairV4(' not in spell:
     errors.append('spell source/prepared controls are no longer kept as a semantic checkbox pair')
@@ -50,11 +50,16 @@ for label in ('"V"', '"S"', '"M"', '"Concentración"', '"Ritual"'):
         errors.append(f'spell editor lost expected checkbox label {label}')
 
 equipment = (ROOT / 'CharacterEquipmentClosureV4.kt').read_text(encoding='utf-8')
-if equipment.count('CharacterResponsiveCheckboxGroupV4(') < 2:
+if equipment.count('CharacterResponsiveCheckboxGroupV4') < 2:
     errors.append('equipment editor no longer proves responsive checkbox grouping in both editor presentations')
 for label in ('"Equipado"', '"Equipo especial"', '"Sintonizado"'):
     if label not in equipment:
         errors.append(f'equipment editor lost expected checkbox label {label}')
+
+for filename in ('CharacterManagementSuccessorV4.kt', 'CharacterManagementTabV4.kt'):
+    management = (ROOT / filename).read_text(encoding='utf-8')
+    if 'CharacterCompactCheckboxV4(' not in management:
+        errors.append(f'{filename} rest preview is not using the shared icon-only checkbox primitive')
 
 if errors:
     for error in errors:
@@ -68,5 +73,5 @@ shared_item_calls = sum(
 print(
     'Player checkbox consistency guard PASS: '
     f'rawMaterialCheckboxes=0; sharedItemReferences={shared_item_calls}; '
-    'spellPacking=responsive; equipmentPacking=responsive'
+    'spellPacking=responsive; equipmentPacking=responsive; managementRestSelectors=shared'
 )
