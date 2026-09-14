@@ -4,9 +4,6 @@ on:
   push:
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
   kotlin:
     runs-on: ubuntu-latest
@@ -23,8 +20,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
-      - name: Apply bounded T7 wide Combat migration
-        run: python3 scripts/apply_t7_wide_combat.py
       - name: Guard compact Player control geometry
         run: python3 scripts/check_player_control_geometry.py
       - name: Guard Player reorder target stability
@@ -49,18 +44,6 @@ jobs:
           name: dnd-custom-aid-debug-apk
           path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
           if-no-files-found: error
-      - name: Commit verified T7 wide Combat migration
-        if: github.event_name == 'push' && github.ref == 'refs/heads/implementation/phase4a-successor-cycle'
-        run: |
-          if git diff --quiet -- androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCombatSuccessorV4.kt; then
-            echo "No T7 wide Combat migration diff to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterCombatSuccessorV4.kt
-          git commit -m "fix: adapt Combat composition for wide layouts"
-          git push origin HEAD:implementation/phase4a-successor-cycle
 
   backend:
     runs-on: ubuntu-latest
