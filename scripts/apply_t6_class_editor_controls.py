@@ -57,7 +57,8 @@ def main() -> None:
         CharacterHelpV4("Los DG máximos se derivan del nivel de esta clase; solo se guarda cuántos quedan disponibles y el tipo de dado.")
 '''
     help_replacement = '''        }
-        if (draft.hitDieSides.toIntOrNull() !in standardClassHitDieSidesV4) {
+        val customHitDieSides = draft.hitDieSides.toIntOrNull()
+        if (customHitDieSides == null || customHitDieSides !in standardClassHitDieSidesV4) {
             CompactLabeledNumberInputSuccessorV4(
                 label = "Caras del dado",
                 value = draft.hitDieSides,
@@ -101,7 +102,7 @@ private fun CompactClassHitDieSelectorV4(
                 DropdownMenuItem(
                     text = { Text("Otro…") },
                     onClick = {
-                        if (sides in standardClassHitDieSidesV4) onValueChange("")
+                        if (sides != null && sides in standardClassHitDieSidesV4) onValueChange("")
                         expanded = false
                     },
                 )
