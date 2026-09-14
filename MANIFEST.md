@@ -16,10 +16,10 @@ These refs are intentionally divergent and contain different valid work. `main` 
 ## Root control files
 
 ### `README.md`
-Project entry point, mandatory read sequence, current dual-line authority model, QA candidate and authorization boundary.
+Project entry point, mandatory read sequence, dual-line authority model and authorization boundary. Volatile Player candidate/run details intentionally live in the synchronized state files rather than being duplicated here.
 
 ### `AGENTS.md`
-Mandatory operating rules for humans and AI/coding agents. It explicitly distinguishes the two active authoritative lines and the owner-QA gate.
+Mandatory operating rules for humans and AI/coding agents. It distinguishes the two active authoritative lines, owner authority and the Phase 4A closure boundary.
 
 ### `MANIFEST.md`
 This inventory.
@@ -27,10 +27,13 @@ This inventory.
 ## Core `docs/` truth
 
 ### `docs/PROJECT_STATE.md`
-Authoritative current implementation/QA state and exact continuation rules for the branch on which it is read.
+Authoritative current implementation/QA state, frozen physical baseline and exact continuation rules for the branch on which it is read.
 
 ### `docs/checkpoints/LATEST.md`
 Stable practical resume pointer on each active authoritative line.
+
+### latest bounded repair checkpoint under `docs/checkpoints/`
+Exact implementation, automation and remaining physical-revalidation evidence for the most recently completed repair round. Follow `LATEST.md` rather than hard-coding a dated filename here.
 
 ### `docs/BRANCH_STATUS.md`
 Canonical branch-lifecycle map: active lines, historical milestones, audit evidence, frozen QA refs and exact resume rules.
@@ -38,14 +41,11 @@ Canonical branch-lifecycle map: active lines, historical milestones, audit evide
 ### `docs/checkpoints/2026-09-12_REPOSITORY_CONTINUITY_RECONCILED.md`
 Canonical cross-branch reconciliation explaining why `main` and the Player successor intentionally diverge and how both valid lines must be preserved.
 
-### `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`
-Current Player QA candidate identity, automated evidence, physical owner-QA boundary and exact continuation point.
-
 ### `docs/checkpoints/2026-09-11_PHASE4A_REPAIR_IMPLEMENTATION_AUTHORIZED.md`
 Durable owner authorization for the accepted Player P1–P17 repair/validation cycle.
 
 ### `docs/checkpoints/2026-09-11_PHASE4A_PREQA8_P17_TABLET_QA_GATE_CLOSED.md`
-Durable P17 physical tablet-QA gate policy.
+Historical durable P17 physical tablet-QA gate policy. Later physical discovery/repair checkpoints control the current state.
 
 ### `docs/DECISIONS.md`
 Master decision log. Later detailed approved decisions under `docs/decisions/` remain authoritative even if the master log has not yet been reconciled through the newest decision number.
@@ -57,7 +57,7 @@ Approved recurring project conventions.
 Approved product scope and boundaries.
 
 ### `docs/ROADMAP.md`
-Current phase/exit-gate view. Phase 4A is at owner/device QA, not mid-successor implementation.
+Phase/exit-gate view. Use `PROJECT_STATE.md` and `LATEST.md` for the exact live repair-round position when roadmap prose is more general.
 
 ### `docs/WORKFLOW.md`
 Approved design/implementation/verification/checkpoint/review workflow.
@@ -66,32 +66,23 @@ Approved design/implementation/verification/checkpoint/review workflow.
 Current approved architecture and implementation consequences.
 
 ### `docs/TESTING.md`
-Current automated/physical-QA evidence and verification policy.
+Synchronized current automated/physical-QA evidence, testing policy and targeted revalidation route.
 
 ### `docs/TEST_DEVICES.md`
 Owner-confirmed physical test devices.
 
 ## Current Player / Phase 4A boundary
 
-Phases 0–3 are complete. Phase 4A remains open pending physical owner/device acceptance and explicit closure.
+Phases 0–3 are complete. Phase 4A remains open. Physical phone/tablet discovery has already produced a consolidated repair cycle, and the Player successor branch is the active implementation/automation line for that work.
 
-Accepted repair implementation:
+This manifest deliberately does **not** duplicate an exact current candidate SHA, Scaffold run or repair-round number because those values change during bounded repairs. For the current Player state, always use:
 
-- P1–P16 implemented / automation-qualified;
-- P17 design decision closed as the physical tablet-QA gate policy;
-- physical owner/device acceptance still pending.
+1. `docs/PROJECT_STATE.md`;
+2. `docs/checkpoints/LATEST.md`;
+3. the latest repair checkpoint they reference;
+4. `docs/TESTING.md`.
 
-Current QA candidate:
-
-- version `0.4.0-preqa.9`;
-- versionCode/build `40900`;
-- candidate commit `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- Scaffold run `34726572588` — **SUCCESS**;
-- artifact ID `10307444450`;
-- artifact name `dnd-custom-aid-debug-apk`;
-- artifact digest `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
-
-This is automation-qualified development/debug evidence, **not owner acceptance**.
+Automation-qualified repair work is **not owner acceptance**. The frozen physical baseline remains immutable evidence until a new monotonic candidate is explicitly created, and Phase 4A closes only after sufficient real-device revalidation and explicit owner closure.
 
 ## Current DM / Phase 5A boundary
 
@@ -109,7 +100,7 @@ Kotlin Multiplatform shared domain/persistence module using SQLDelight. Current 
 ### `androidApp/`
 Native Kotlin + Jetpack Compose Android app, `minSdk 30`, targeting phone/tablet portrait and landscape. The current Player implementation includes General, Habilidades, Combate, Gestión, Equipo/Monedas, Trasfondo, Rasgos, conditional Conjuros, Notas, PC Settings, Application Settings, Supercompact, Table Mode and approved conditional module families.
 
-The repaired implementation is automation-qualified but still awaits physical owner/device acceptance.
+Current acceptance level must be read from `PROJECT_STATE.md` / `TESTING.md`; implementation or green CI alone does not imply physical acceptance.
 
 ### `desktopApp/`
 Compose Multiplatform Desktop DM preparation/administration shell. Full Android parity is not required.
@@ -121,7 +112,7 @@ TypeScript Cloudflare Worker/API area with current automated checks.
 Hosted PostgreSQL schema/migration/data-loading area. Local Android character persistence lives under `shared/` SQLDelight/SQLite.
 
 ### `.github/workflows/scaffold-check.yml`
-Current normal automated gate: backend install/type-check, stable CI debug keystore preparation, Kotlin/shared/Android/Desktop build-and-test surface and Android debug APK artifact upload.
+Normal automated gate: backend install/type-check, stable CI debug-keystore preparation, durable Player source guards, Kotlin/shared/Android/Desktop build-and-test surface and Android debug APK artifact upload.
 
 ## Historical/discovery material
 
