@@ -1,19 +1,19 @@
 # dnd_custom_aid
 
-Personal tabletop RPG assistant project beginning with D&D, with Android phone/tablet live use and a native desktop DM preparation/administration workflow.
+Personal/small-scale tabletop RPG assistant beginning with D&D, with Android Player/DM live use and a native Desktop DM application for both rich preparation/administration and operational fallback.
 
 ## Start here
 
-This repository is designed so a new human collaborator, ChatGPT conversation, coding agent, or other AI can resume the project from Git alone.
+This repository is designed so a new human collaborator, ChatGPT conversation, coding agent or other AI can resume from Git alone.
 
 Read in this order:
 
 1. `AGENTS.md` — mandatory operating rules;
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented areas;
-3. `docs/PROJECT_STATE.md` — authoritative current state and next action for the branch you are on;
-4. `docs/checkpoints/LATEST.md` — exact practical resume pointer for that branch;
-5. `docs/BRANCH_STATUS.md` — canonical lifecycle map for every surviving branch/ref;
-6. `docs/DECISIONS.md` plus relevant detailed records under `docs/decisions/`;
+3. `docs/PROJECT_STATE.md` — authoritative current global state/navigation;
+4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
+5. `docs/BRANCH_STATUS.md` — current branch lifecycle map;
+6. `docs/DECISIONS.md` **plus relevant later detailed records under `docs/decisions/`**;
 7. `docs/CONVENTIONS.md`;
 8. `docs/PRODUCT.md`;
 9. `docs/ROADMAP.md`;
@@ -22,89 +22,134 @@ Read in this order:
 12. `docs/TESTING.md`;
 13. relevant current checkpoints/feature files.
 
+The most important current detailed decision is:
+
+`docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md`
+
+Current pause/resume checkpoint:
+
+`docs/checkpoints/2026-09-14_MVP_INTEGRATION_ARCHITECTURE_CONSOLIDATION.md`
+
 ## Current repository authority
 
 There are currently **two active authoritative lines**:
 
-- `main` — canonical global navigation plus current Phase 5A/DM product-discovery decisions;
-- `implementation/phase4a-successor-cycle` — authoritative current Player/Phase 4A runtime, repair and QA line.
+- `main` — canonical global navigation plus current DM/integrated-MVP product/design/architecture truth;
+- `implementation/phase4a-successor-cycle` — authoritative current Player runtime/repair/QA line.
 
-These branches intentionally contain different valid work. `main` is **not** currently the latest Player runtime, and the Player successor branch must not overwrite later DM/Phase 5A discovery records on `main`.
+These branches intentionally contain different valid work. `main` is **not** the latest Player runtime, and the Player successor branch must not overwrite later DM/MVP design records on `main`.
 
-Use `docs/BRANCH_STATUS.md` rather than reconstructing authority from branch names or commit chronology.
-
-All other surviving implementation/discovery/architecture/foundation branches are historical milestone/audit refs unless that file explicitly says otherwise. Frozen QA refs remain immutable evidence.
+Use `docs/BRANCH_STATUS.md`, `docs/PROJECT_STATE.md` and the active branch's `docs/checkpoints/LATEST.md` rather than reconstructing authority from branch names or commit chronology.
 
 ## Working relationship
 
 AI/coding agents perform the heavy technical execution. The owner remains the decision owner for consequential product/UX/game-semantic/data/privacy/service/compatibility choices.
 
-Meaningful work must be explained and persisted in Git. C-0009 remains controlling: this is a personal/small-scale project, so use the simplest safe implementation that satisfies real requirements and do not import enterprise machinery without a concrete reason.
+Meaningful work must be explained and persisted in Git. C-0009 remains controlling: use the simplest safe implementation that satisfies real approved requirements and do not import enterprise machinery without a concrete reason.
 
 ## Approved architecture snapshot
 
 - Android: **Kotlin + Jetpack Compose**, minimum Android 11 / API 30.
-- Android targets **phone and tablet**, portrait and landscape.
-- Desktop DM administration: **Kotlin + Compose Multiplatform Desktop**.
-- Local persistence: **SQLite + SQLDelight** where offline/local behavior provides real value.
-- Desktop MVP direction: **Save locally + explicit Sync** when hosted sync is implemented.
-- Hosted database: **Neon PostgreSQL**.
+- Android phone/tablet are first-class live surfaces.
+- DM Desktop App: **Kotlin + Compose Multiplatform Desktop**.
+- Local persistence: **SQLite + SQLDelight** where local/offline behavior provides real value.
+- Desktop synchronization: **Save locally + explicit Sync**.
+- Hosted relational database: **Neon PostgreSQL**.
 - Backend/API: **Cloudflare Worker**, TypeScript.
 - Authentication: **Descope**; application/domain authorization remains project-owned.
 - Native clients never connect directly to Neon or hold DB credentials.
-- HTTP/request-response and simple polling/refresh come before realtime infrastructure.
-- Provider replaceability means sensible code locality, not provider-abstraction frameworks.
+- Object storage is required for this MVP, but the provider is **not yet selected**.
+- Ordinary HTTP/request-response and refresh/polling remain preferred before generalized realtime infrastructure.
+- Full server backup/export is part of the MVP hosted foundation.
+- SRD clarification remains PostgreSQL full-text retrieval + grounded replaceable LLM, implemented late in this MVP cycle after foundations are in place.
 
-See `docs/ARCHITECTURE.md` for the full record.
+See `docs/ARCHITECTURE.md` and D-0071 for the full record.
 
-## Current Player / Phase 4A reality
+## Current Player reality
 
-Phases 0–3 are complete. Phase 4A Character Foundation Closure remains open, but its accepted Player repair implementation is no longer an unfinished coding backlog.
+Current Player runtime authority:
 
-The accepted P1–P16 repair set is implemented and automation-qualified on `implementation/phase4a-successor-cycle`.
+`implementation/phase4a-successor-cycle`
 
-Current physical owner-QA candidate:
+According to that branch's 2026-09-14 `LATEST.md`, the current frozen physical candidate is:
 
-- version: `0.4.0-preqa.9`;
-- versionCode/build: `40900`;
-- candidate commit: `cd0c203d337c062fa388010d300e875f2f54ced7`;
-- Scaffold workflow run: `34726572588` — **SUCCESS**;
-- artifact ID: `10307444450`;
-- artifact name: `dnd-custom-aid-debug-apk`;
-- artifact digest: `sha256:2e8c7e3b2a3b11096eaeed3179b707a61b0d24e241c3fb5c31e9a5d99251ba7e`.
+- version `0.4.0-preqa.13`;
+- versionCode/build `41300`;
+- commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- Scaffold `34801612526` / #1630 — **SUCCESS**;
+- artifact `10331503478` / `dnd-custom-aid-debug-apk`;
+- targeted cross-device physical revalidation pending;
+- Phase 4A still formally open on that branch.
 
-P17 is the already-defined physical tablet-QA gate policy, not another hidden implementation increment. Physical owner/device acceptance has **not** yet occurred, and Phase 4A is **not** explicitly closed.
+Automation is not physical owner acceptance.
 
-For exact Player continuation, switch to `implementation/phase4a-successor-cycle` and read:
+Do not use the older `preqa.9` global summaries as the current Player source. Switch to the successor branch and read its own `docs/checkpoints/LATEST.md` for exact evidence.
 
-1. `docs/checkpoints/LATEST.md`;
-2. `docs/checkpoints/2026-09-12_PHASE4A_PREQA9_QA_CANDIDATE.md`;
-3. `docs/PROJECT_STATE.md`.
+The 2026-09-14 architecture discussion also preserved four bounded planning labels (A10, B1, J1, J2). Before implementation, reconcile those discussion labels against the then-current authoritative successor evidence rather than silently replacing exact branch facts with chat memory.
 
-Do not restart P1–P16 absent actual physical QA evidence that reopens a specific repair boundary.
+## Current integrated-MVP / DM direction
 
-## Current DM / Phase 5A reality
+D-0071 changes the next-cycle philosophy:
 
-`main` contains later accepted Phase 5A/DM product-discovery/design records, including the current Desk-family and shared Player/DM rules-question direction.
+> The next implementation cycle is intended to reach the real integrated MVP across Player + Server/shared services + DM, rather than stop at an isolated DM prototype or tiny server milestone.
 
-This is an active **discovery/design** line, not an implementation authorization.
+This **does not mean coding is authorized yet**. The owner deliberately paused after architecture consolidation so the DM Desktop product and exact outer MVP boundary can be finished first.
 
-**DM feature implementation remains blocked until Phase 4A receives physical owner/device acceptance and explicit owner closure.**
+Current live DM Desk family remains:
 
-For DM/product discovery, remain on `main` and follow its `docs/checkpoints/LATEST.md`.
+1. DM Screen;
+2. Stage Desk;
+3. Dungeon Desk;
+4. Combat Desk.
 
-## Current authorization boundary
+The DM Desktop App now has two MVP roles:
 
-The durable Player authorization covers the accepted P1–P17 Phase 4A repair/validation cycle, QA packaging/checkpoints, and repairs reopened by real QA evidence.
+1. rich Creator/Manager/Campaign/System-Administration surface;
+2. complete operational DM fallback/client if the tablet is unavailable.
 
-The owner's 2026-09-12 instruction additionally authorizes continuity correction on all appropriate branches, including `main`, and continuation within the real existing authorizations.
+Therefore all approved DM Desks must be functionally available on Desktop, with Desktop-specific keyboard/mouse/large-screen UX rather than copied tablet layouts.
 
-That does **not** authorize:
+Desktop authoring/management includes at minimum:
 
-- unrelated Player feature invention while the project is at the owner-QA gate;
-- self-awarded physical owner acceptance from CI;
-- destructive history rewriting;
-- DM feature implementation before explicit Phase 4A closure.
+- Monster Creator/Manager;
+- NPC Creator/Manager;
+- Homebrew Rules Input/Manager;
+- Zone Creator/Manager;
+- Encounter Creator/Manager;
+- PC Manager/Audit;
+- campaign/member/permission administration;
+- permission-gated System Administration including full server backup/export.
+
+Because Desktop can replace the tablet operationally, explicit combat-authority resume/handoff from the latest synchronized state is now part of the MVP direction. Only one DM device remains authoritative at a time; simultaneous authoritative editing is not required.
+
+## Current implementation-cycle direction
+
+The future integrated build is organized through coordinated workstreams for:
+
+- shared MVP/domain/API spine;
+- Player stabilization/integration;
+- hosted foundation;
+- shared Kotlin sync/data;
+- DM Desktop product;
+- cross-client live-play exchange;
+- SRD retrieval/AI.
+
+Internal slices/waves/tests are engineering controls, not separate product acceptance milestones.
+
+The next major owner-facing QA is intended to test the complete integrated Player + Server + DM MVP while preserving all valid historical Player evidence.
+
+## Current authorization boundary and exact resume
+
+The 2026-09-14 consolidation is **documentation/design authorization only**. It does not itself authorize implementation code.
+
+Resume on `main` from:
+
+1. **7D — detailed DM Desktop App product definition:** overall navigation/structure and area-by-area live Desk + Creator/Manager/Campaign/Admin behavior;
+2. **7E — exact outside-MVP boundary**;
+3. final Git/development topology and implementation gates;
+4. explicit coding authorization.
+
+Do not restart generic DM Desk taxonomy; D-0068/D-0069 already define the current family.
 
 ## Build and verification commands
 
@@ -122,9 +167,7 @@ npm install --no-package-lock
 npm run check
 ```
 
-Current CI uses JDK 17, Gradle 9.5, Android SDK platform 36 and Node.js 22.
-
-See `docs/TESTING.md` for verification rules.
+See `docs/TESTING.md` for current verification strategy and integrated-MVP QA direction.
 
 ## Development signing note
 
