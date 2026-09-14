@@ -10,19 +10,35 @@ This roadmap defines development stages and current integration direction. Produ
 
 ## Phase 1 — Product Discovery and Design
 
-**Status:** Current integrated-MVP product-design pass complete through D-0073. Future targeted product design occurs only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
+**Status:** Current integrated-MVP product-design pass complete through D-0073.
+
+Future targeted product design occurs only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
 
 ---
 
 ## Phase 2 — Technical Foundation
 
-**Status:** Foundational architecture selected; hosted implementation not yet fully activated.
+**Status:** Foundational architecture selected; technical-readiness review complete; hosted implementation not yet activated.
 
 Approved base remains Kotlin/Compose Android, Kotlin + Compose Multiplatform Desktop, genuinely shared Kotlin logic/data where useful, SQLDelight/SQLite local persistence, TypeScript Cloudflare Worker/API, Neon PostgreSQL and Descope authentication.
 
-C-0009 remains controlling: add complexity only for concrete requirements.
+The 2026-09-14 technical-readiness review additionally establishes the preferred delegated implementation direction:
 
-Low-level technical choices are delegated to the technical assistant/Worker unless they materially alter product behavior, security/privacy, cost, lock-in or approved scope.
+- Ktor Client for shared native HTTP networking;
+- small versioned HTTP/JSON API;
+- optimistic revisions + idempotent client mutation IDs;
+- SQLDelight local outbox + scoped project-specific sync;
+- Neon serverless driver initially from the Worker;
+- explicit hosted SQL migrations;
+- versioned JSONB PC snapshot plus relational authorization/index metadata;
+- Descope client authentication plus backend token validation;
+- R2 Standard as preferred first object storage, pending owner/service activation;
+- versioned JSON import/export family;
+- on-demand versioned backup archive with manifest/integrity information.
+
+These are technical implementation choices under D-0073 unless later evidence creates a material owner-level tradeoff.
+
+C-0009 remains controlling: add complexity only for concrete requirements.
 
 ---
 
@@ -34,33 +50,40 @@ Low-level technical choices are delegated to the technical assistant/Worker unle
 
 ## Phase 4A — Player Character Foundation
 
-**Status:** substantial implementation complete / automation-green candidate exists / physical revalidation and final integration reconciliation remain.
+**Status:** substantial implementation complete / automation-green candidate exists / targeted physical revalidation pending / integration convergence not yet executed.
 
-Authoritative Player branch:
+Authoritative Player branch before convergence:
 
 `implementation/phase4a-successor-cycle`
 
-Current frozen physical candidate known at the 2026-09-14 consolidation:
+Observed branch HEAD during technical readiness:
+
+`b9dea8ad6b17dcf3feeabba263eff1ee498f1536`
+
+Frozen physical candidate:
 
 - `0.4.0-preqa.13 / 41300`;
-- commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- candidate commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
 - Scaffold `34801612526` / #1630 — SUCCESS;
 - artifact `10331503478` / `dnd-custom-aid-debug-apk`;
 - targeted cross-device physical revalidation pending.
 
-Existing Player evidence remains valid for the exact tested boundaries. Before implementation/convergence, refresh the successor branch's current checkpoint and reconcile older planning labels against branch evidence.
+The Actions run was independently rechecked during technical readiness and is successful against the exact candidate SHA.
+
+Existing Player evidence remains valid for the exact tested boundaries. Do not restart historical repair work absent new evidence.
 
 ---
 
 ## Phase 4B — Integrated MVP Build
 
-**Status:** product scope and implementation governance defined; coding has not begun from this checkpoint.
+**Status:** product scope + implementation governance + technical readiness complete; **waiting for explicit owner implementation authorization**.
 
 Controlling records:
 
 - D-0071 — integrated Player + Server + DM architecture;
 - D-0072 — DM Desktop product and authoring/management surfaces;
-- D-0073 — exact MVP boundary, implementation governance and Git convergence.
+- D-0073 — exact MVP boundary, implementation governance and Git convergence;
+- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` — technical implementation recommendations/readiness.
 
 Target:
 
@@ -76,7 +99,7 @@ Establish common semantic meaning for identity, campaigns/membership/roles, PC o
 
 ### Workstream B — Player stabilization and hosted integration
 
-Preserve the mature Player foundation, close/reconcile remaining bounded defects and integrate remembered authentication, campaigns, hosted PC sync, assets, audit/history/conflicts and public combat projection without gratuitous Player rewrites.
+Preserve the mature Player foundation and integrate remembered authentication, campaigns, hosted PC sync, assets, audit/history/conflicts and public combat projection without gratuitous Player rewrites.
 
 ### Workstream C — hosted foundation
 
@@ -126,12 +149,10 @@ MVP AI remains official SRD 5.1 / SRD 5.2.1 only even though homebrew content is
 
 ## Implementation waves
 
-The implementation should be dependency-driven and integrated frequently. Exact low-level package boundaries remain delegated engineering decisions.
+Broad dependency direction:
 
-Broad direction:
-
-1. documentation/continuity protection and repository-state verification;
-2. deliberate `main` + Player-successor convergence;
+1. continuity protection and repository-state verification — **COMPLETE for planning/readiness**;
+2. deliberate `main` + Player-successor convergence — **NEXT, after owner authorization**;
 3. shared MVP semantic spine;
 4. hosted foundation;
 5. Player <-> Server end-to-end integration;
@@ -144,25 +165,32 @@ Broad direction:
 12. backup/recovery/operator-console completion;
 13. integrated owner-facing QA candidate.
 
-Parallelism is encouraged after shared semantics exist. Parallel streams may share contracts; they must not independently redefine them.
+Exact low-level package boundaries remain delegated engineering decisions. Parallelism is encouraged after shared semantics exist, but parallel streams must not independently redefine shared contracts.
 
 ---
 
-## Git convergence gate before normal integrated coding
+## Git convergence gate — next implementation activity
 
 Current authority remains split:
 
-- `main` = global product/architecture/documentation truth;
+- `main` = global product/architecture/governance truth;
 - `implementation/phase4a-successor-cycle` = current Player runtime/QA truth.
 
-Before ordinary integrated-MVP coding, create a dedicated convergence branch from current `main`, deliberately reconcile the authoritative Player successor runtime, validate the result and merge the coherent baseline into `main`.
+The technical-readiness review observed the refs as diverged (successor substantially ahead in Player runtime commits; `main` ahead in later integrated documentation) and confirmed there is no competing mature backend/Desktop implementation to reconcile.
 
-Semantic precedence during reconciliation:
+After explicit owner implementation authorization:
 
-- Player implementation/evidence -> successor branch;
-- later global product/architecture/documentation -> current `main`.
+1. refresh both refs;
+2. create a dedicated convergence branch from current `main`;
+3. deliberately reconcile the Player successor runtime;
+4. preserve successor Player runtime, SQLDelight migrations, tests/guards and evidence;
+5. preserve current integrated product/architecture/governance from `main`;
+6. reconcile CI/navigation intentionally;
+7. run all Player guards + aggregate shared/Android/Desktop build/tests + backend check;
+8. inspect for semantic loss;
+9. merge to `main` only when coherent/buildable.
 
-After successful convergence, `main` becomes the integrated trunk. Prefer short-lived outcome-oriented branches and frequent reintegration; avoid permanent Player/Server/Desktop silos and avoid a months-long catch-all integration branch.
+After successful convergence, `main` becomes the integrated trunk. Prefer short-lived outcome-oriented branches and frequent reintegration; avoid permanent Player/Server/Desktop silos and months-long catch-all integration branches.
 
 ---
 
@@ -186,7 +214,7 @@ Representative end-to-end coverage should include:
 - full server backup/export;
 - official-SRD grounded rules clarification for Player and DM.
 
-Internal automated/integration checks run throughout implementation. This final integrated gate does not mean deferring testing until the end.
+Internal automated/integration checks run throughout implementation.
 
 ---
 
@@ -223,45 +251,25 @@ Deferred technologies remain permissible if they prove the simplest safe/proport
 
 ## Owner/technical collaboration rule
 
-The owner decides:
+The owner decides product behavior/workflow, visibility/privacy, MVP vs later scope, user-facing destructive/safety behavior and meaningful convenience/cost/security/lock-in tradeoffs.
 
-- what the product should do;
-- workflows and user-facing behavior;
-- visibility/privacy;
-- MVP vs later scope;
-- destructive/safety behavior;
-- meaningful convenience/cost/risk tradeoffs.
+The technical assistant/Worker normally decides exact schema/table design, class/type decomposition, endpoint shapes, internal sync structures, migration mechanics, canonical import serialization, testing architecture and detailed technical package granularity.
 
-The technical assistant/Worker normally decides:
-
-- exact schema/table design;
-- class/type decomposition;
-- endpoint shapes;
-- internal sync data structures;
-- migration mechanics;
-- canonical import serialization format;
-- testing architecture;
-- detailed implementation package granularity.
-
-Do not ask the owner to rubber-stamp routine technical matters. Escalate technical choices only when they materially change behavior, security/privacy, cost, irreversible lock-in or approved scope.
+Do not ask the owner to rubber-stamp routine technical matters.
 
 ---
 
-## Current pause / resume point
+## Current owner intervention
 
-The owner intentionally requested a security/continuity consolidation after closing:
+Technical readiness is complete. No unresolved low-level technical question currently requires owner selection.
 
-- 7D — Desktop product definition;
-- 7E — exact MVP boundary;
-- 8A — implementation-wave strategy;
-- 8B — Git convergence strategy;
-- 8C — first shared-spine package direction.
+The next meaningful owner decision is:
 
-Discussion pauses before expanding the next hosted-foundation technical package.
+> **Authorize beginning the integrated-MVP implementation, starting with protected branch convergence.**
 
-When resuming, refresh `main` and the Player successor branch, preserve D-0071/D-0072/D-0073 as controlling, and do not turn low-level technical package design into an owner approval exercise.
+After that authorization, routine technical work proceeds under D-0073. Return to the owner only for material product/scope/security/cost choices, external account/service setup (for example enabling R2 or configuring provider secrets) and manual/physical QA gates.
 
-No product coding was authorized or performed by this documentation checkpoint.
+No product coding has been performed by the technical-readiness documentation pass.
 
 ---
 

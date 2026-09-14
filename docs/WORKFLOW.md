@@ -1,254 +1,257 @@
 # Development and Review Workflow
 
-This file defines the approved operating workflow for AI-led implementation with owner-controlled decisions and Git-based operative memory.
+This file defines the approved operating workflow for AI-led implementation with owner-controlled product decisions and Git-based operative memory.
 
 ## 1. Guiding principle
 
-The repository must always make a clear distinction between:
+The repository must always distinguish:
 
 - approved/accepted project state;
 - implemented but not owner-accepted state;
 - work in progress;
-- proposed decisions;
+- proposed/recommended decisions;
 - unresolved questions;
-- approved conventions;
 - verification actually performed;
 - branch role/lifecycle.
 
-The goal is to prevent a future agent from confusing an experiment, chat suggestion, historical checkpoint, branch name, green CI result or remembered discussion with current approved project truth.
+The goal is to prevent a future agent from confusing an experiment, chat suggestion, historical checkpoint, branch name, green CI result or remembered discussion with current project truth.
 
 ## 2. Current branch model
 
-Current branch lifecycle is controlled by `docs/BRANCH_STATUS.md`.
+Current lifecycle is controlled by `docs/BRANCH_STATUS.md`.
 
-There are presently **two active authoritative lines**:
+Before the planned convergence there are two active authoritative lines:
 
-- `main` — canonical global navigation plus Phase 5A/DM product discovery/design;
-- `implementation/phase4a-successor-cycle` — authoritative Player/Phase 4A runtime, QA and defect-repair line.
+- `main` — global integrated-MVP product/design/architecture/governance truth;
+- `implementation/phase4a-successor-cycle` — current Player runtime/QA authority.
 
-They intentionally contain different valid work and must not be mechanically collapsed.
+D-0073 defines the approved convergence direction. After explicit owner implementation authorization:
 
-Rules:
+1. create a dedicated convergence branch from current `main`;
+2. deliberately reconcile the Player successor runtime;
+3. preserve valid Player runtime/migrations/tests/evidence from the successor;
+4. preserve later integrated product/architecture/governance truth from `main`;
+5. reconcile shared CI/navigation intentionally;
+6. validate;
+7. merge the coherent baseline to `main`;
+8. use `main` as the normal integrated trunk thereafter.
 
-- do not assume `main` contains the latest Player runtime;
-- do not assume the Player successor supersedes later `main`-only DM discovery;
-- do not force-move either active ref over the other;
-- all other surviving branches are historical/audit/frozen evidence unless `docs/BRANCH_STATUS.md` explicitly changes their lifecycle;
-- frozen QA refs remain immutable;
-- any future integration of the two active lines requires explicit owner authorization and must preserve both sets of valid work.
+Do not force-move either current line or merge merely for cosmetic linearity.
 
-D-0007 remains the historical general branching decision. D-0066 remains part of the repository-ordering history. Later explicit continuity records control the current dual-line topology.
+## 3. Owner vs technical responsibility
 
-## 3. Communication model
+D-0073 is controlling.
 
-The agent is responsible for the technical heavy lifting, but meaningful work must remain understandable to the owner.
+### Ask the owner to decide
 
-During development, explain:
+- product behavior and workflow;
+- UX/game semantics;
+- visibility/privacy expectations;
+- MVP vs later scope;
+- user-facing destructive/safety behavior;
+- meaningful cost, security/privacy, compatibility or irreversible-lock-in tradeoffs.
 
-- what is being done;
-- why it is needed;
-- the important technical approach;
-- meaningful alternatives when they exist;
-- consequences or trade-offs the owner should know about.
+### Technical agents normally decide and document
 
-The owner understands programming concepts but is not expected to operate as a professional software developer. Explanations should therefore be technically useful without assuming specialist experience and without oversimplifying unnecessarily.
+- database/table layout;
+- class/type decomposition;
+- endpoint/request shapes;
+- migration mechanics;
+- internal sync structures;
+- canonical import serialization;
+- testing architecture;
+- branch/package granularity;
+- reversible implementation conventions;
+- provider-specific mechanics inside already-approved service/cost/security boundaries.
 
-## 4. Product/design before stack
+Do **not** ask the owner to rubber-stamp low-level engineering choices they cannot meaningfully evaluate.
 
-Do not begin by choosing a framework, language, UI toolkit, database, sync model, or similar foundational technology.
+Escalate only when a technical choice materially changes product behavior, cost, risk, privacy/security, irreversible lock-in or approved scope.
 
-The project sequence is:
+## 4. Communication model
 
-1. understand the product purpose and users;
-2. explore realistic feature/workflow/interaction alternatives with the owner;
-3. design intended behavior and experience collaboratively;
-4. record approved design decisions, rejected alternatives where useful, and unresolved questions in Git;
-5. only then evaluate technical stack and architecture options against those requirements;
-6. explain technical alternatives, trade-offs, and recommendation;
-7. obtain owner approval before consequential technical choices become project truth.
+Agents perform the technical heavy lifting, but meaningful work must remain understandable to the owner.
 
-See D-0011.
+Explain in practical terms:
 
-## 5. Work item lifecycle
+- what changed;
+- why it matters;
+- the important approach;
+- owner-relevant consequences/tradeoffs;
+- what was actually verified;
+- known limitations and the next action.
 
-### Step A — Establish authority
+Avoid dumping implementation alternatives on the owner when the alternatives do not require an owner decision.
+
+## 5. Product/design before consequential architecture
+
+The product/design and integrated-MVP boundary are now closed under D-0071/D-0072/D-0073.
+
+Future work should not reopen foundational product questions merely because implementation begins.
+
+For a genuinely new owner-consequential choice:
+
+1. identify the product need;
+2. explain realistic owner-relevant alternatives;
+3. recommend one;
+4. obtain owner choice;
+5. record it in Git.
+
+For routine technical decisions, choose/document them without creating ceremonial approval work.
+
+## 6. Work item lifecycle
+
+### Step A — establish authority
 
 Before implementation:
 
-1. read the mandatory continuity files;
-2. identify the correct active authoritative branch from `docs/BRANCH_STATUS.md`;
-3. read that branch's `docs/PROJECT_STATE.md` and `docs/checkpoints/LATEST.md`;
-4. identify the owner's actual authorization boundary;
-5. identify what is already approved/implemented/accepted;
-6. identify applicable conventions and material unknowns.
+1. read mandatory continuity files;
+2. identify active branch/topology from `docs/BRANCH_STATUS.md`;
+3. read `docs/PROJECT_STATE.md`, `docs/checkpoints/LATEST.md` and applicable decisions/checkpoints;
+4. identify the actual authorization boundary;
+5. identify existing approved/implemented/accepted evidence;
+6. identify material unknowns.
 
-Do not begin from a historical branch or stale checkpoint merely because its old prose says “next.”
+Do not start from historical branch/checkpoint prose merely because it says `next`.
 
-### Step B — Explore alternatives
+### Step B — technical design
 
-When a product, interaction, technical, or convention choice matters:
+For low-level engineering:
 
-1. identify realistic alternatives;
-2. explain practical differences and consequences;
-3. make a recommendation when justified;
-4. ask the owner when approval is required;
-5. record the result in Git.
+1. choose the simplest safe design satisfying approved behavior;
+2. reuse proven project patterns where they fit;
+3. avoid generalized infrastructure without measured need;
+4. record durable technical conventions/assumptions when future contributors need them;
+5. escalate only owner-consequential tradeoffs.
 
-For conventions, once a choice is approved and recorded in `docs/CONVENTIONS.md`, do not repeatedly ask the same question unless there is a reason to change it.
+### Step C — implement
 
-### Step C — Specify/design
+After authorization is clear, the coding agent may:
 
-For a user-visible feature, record as appropriate:
-
-- purpose;
-- user role(s);
-- expected behavior;
-- interaction/flow;
-- phone/tablet considerations;
-- acceptance criteria;
-- important edge cases;
-- out-of-scope items;
-- pending decisions.
-
-A lightweight feature-spec template lives under `docs/templates/`.
-
-### Step D — Implement
-
-Only after the required behavior/design decisions are sufficiently approved and the active branch/authorization are clear, the coding agent may:
-
-- write the code;
+- write/refactor code within approved behavior;
 - create/update tests;
-- refactor as needed within approved behavior and conventions;
-- update build/configuration files;
+- update build/configuration;
 - execute available checks;
-- diagnose and repair failures.
+- diagnose and repair failures;
+- update technical documentation.
 
-Do not bundle unrelated behavior into the same change without a clear reason.
+Keep batches coherent and outcome-oriented. Do not bundle unrelated behavior merely to reduce commit count.
 
-Do not invent work merely because an owner/manual gate temporarily blocks further implementation.
+### Step D — verify
 
-### Step E — Verify
+Record:
 
-Run the checks appropriate to the change. Record:
-
+- exact revision/build;
 - commands/checks executed;
-- exact revision/build tested;
 - what passed;
 - what failed;
 - what was not tested and why;
-- whether evidence is automated, emulator/simulator, or physical owner/device evidence.
+- environment/device type;
+- whether evidence is automated, local integration, emulator/simulator or physical owner/device.
 
-Do not describe unexecuted tests as passed. Do not infer owner acceptance from CI.
+Never describe unexecuted tests as passed or infer owner acceptance from CI.
 
-### Step F — Update operative memory
+### Step E — update operative memory
 
-Before presenting meaningful work as complete, update all applicable repository truth:
+Before meaningful work is complete, update applicable truth:
 
 - `docs/PROJECT_STATE.md`;
-- `docs/checkpoints/LATEST.md` when the practical resume point changes;
-- `docs/BRANCH_STATUS.md` when branch lifecycle/authority changes;
-- `docs/DECISIONS.md` or detailed decision records if a decision changed;
-- `docs/CONVENTIONS.md` if a convention was approved/changed;
-- `docs/PRODUCT.md` if approved scope/design changed;
-- roadmap/architecture/testing docs when applicable;
-- feature-specific documentation/checkpoints when applicable;
-- known issues, rationale, unresolved questions, and next action.
+- `docs/checkpoints/LATEST.md` when resume changes;
+- `docs/BRANCH_STATUS.md` when topology/lifecycle changes;
+- decision records only when a genuine decision changes;
+- `docs/CONVENTIONS.md` for durable conventions where useful;
+- product/roadmap/architecture/testing docs when operational truth changes;
+- feature/checkpoint evidence as appropriate.
 
-A meaningful fact needed for continuation must not be left only in chat.
+A fact needed for continuation must not remain only in chat.
 
-### Step G — Owner review
+### Step F — owner review
 
-Explain the result clearly, including:
+Explain:
 
-- what changed;
-- why it was done that way;
-- what the owner can now do or what changed in project understanding;
+- what now works or what project understanding changed;
 - what was tested;
 - known limitations;
-- any pending decision/manual gate;
-- which active branch contains the work;
-- whether cross-line integration is needed or intentionally deferred.
+- any genuine owner decision/manual gate;
+- branch/revision containing the work;
+- exact next action.
 
-### Step H — Publish/integrate
+Do not ask the owner to review internal technical minutiae merely to complete a process checkbox.
 
-Publish commits to the correct active authoritative line for the work.
+### Step G — publish/integrate
 
-- Player/Phase 4A runtime, QA packaging and QA-reopened defect repairs belong on `implementation/phase4a-successor-cycle` unless a later explicit decision changes that authority.
-- Global navigation and Phase 5A/DM discovery/design belong on `main`.
-- A continuity/governance correction that affects both active lines may be committed to both when explicitly authorized.
-- Do **not** merge one active line into the other merely for cosmetic linearity.
-- Cross-line integration requires explicit owner authorization and an evidence-based reconciliation that preserves both valid histories.
+Before convergence:
 
-## 6. Significant decision workflow
+- current Player runtime fixes/evidence belong on the Player successor only within its valid authority;
+- global readiness/governance belongs on `main`;
+- convergence itself requires explicit implementation authorization.
 
-When a significant decision is required:
+After successful convergence:
 
-1. add or update a `Pending` decision entry when appropriate;
-2. present the owner with realistic options;
-3. explain practical trade-offs;
-4. give a recommendation when justified;
-5. let the owner choose;
-6. record the chosen option as `Approved` before relying on it as project truth.
+- `main` becomes the integrated trunk;
+- use short-lived outcome-oriented branches;
+- integrate shared foundations early;
+- avoid permanent Player/Desktop/Server silos;
+- keep normal `main` merge points coherent/buildable.
 
-Do not use implementation momentum as a reason to bypass this process.
+## 7. Current technical implementation direction
 
-## 7. Routine implementation choices
+`docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` records the delegated technical recommendations established before implementation, including:
 
-Agents may make reversible, low-impact implementation details that do not alter approved behavior and do not establish a new durable convention.
+- Ktor Client for shared native networking;
+- small versioned HTTP/JSON API;
+- client mutation IDs + optimistic revisions;
+- SQLDelight outbox + scoped project-specific sync;
+- Neon serverless driver initially from Cloudflare Worker;
+- explicit hosted SQL migrations;
+- versioned JSONB PC snapshot + relational authorization/index metadata;
+- Descope client authentication plus server-side token validation;
+- R2 Standard as the preferred first object storage, pending owner/service activation;
+- versioned JSON canonical import/export documents;
+- on-demand versioned full backup archive with manifest/integrity information.
 
-However:
+These remain engineering choices unless later evidence creates a material owner-level consequence.
 
-- meaningful technical approaches must still be explained;
-- new durable conventions must be owner-reviewed;
-- choices creating meaningful future cost, lock-in, maintenance burden, privacy implications, compatibility limits, or migration risk are not routine and must be surfaced.
+## 8. Current verification posture
 
-See D-0008 and `docs/CONVENTIONS.md`.
+The authoritative Player successor CI includes permanent guard scripts plus aggregate shared tests, Android build, Desktop build and backend type-check.
 
-## 8. Commit quality
+The integrated baseline must preserve those guards.
 
-Commit messages should describe the outcome, not the chat history.
+As hosted implementation becomes real, add focused tests for migrations, authorization, revisions/idempotency/tombstones, sync, backup, assets and later combat authority rather than chasing generic coverage percentages.
 
-A review/checkpoint summary should contain:
-
-- purpose;
-- important changes;
-- decisions/conventions involved;
-- verification performed;
-- documentation updated;
-- known issues;
-- owner action/manual evidence required;
-- active branch and exact continuation point.
+See `docs/TESTING.md`.
 
 ## 9. Failed or partial work
 
 Partial work is acceptable if clearly recorded.
 
-If work cannot be completed in a session, operative-memory docs must say:
+If work cannot be completed:
 
-- what was completed;
-- what remains;
-- exact failure/blocker if known;
-- relevant branch/commit;
-- next recommended action.
+- state what completed;
+- state what remains;
+- record exact failure/blocker;
+- preserve relevant branch/commit;
+- give exact next action.
 
-Never hide an unfinished migration, failing test, uncertain behavior, or unresolved manual gate behind a generic “in progress” note.
+Never hide an unfinished migration, failing test, uncertain behavior or unresolved manual gate behind a generic `in progress` label.
 
-## 10. Current Phase 4A gate
+## 10. Current authorization gate
 
-The current Player candidate is `0.4.0-preqa.9 / 40900` at `cd0c203d337c062fa388010d300e875f2f54ced7`, automation-green under Scaffold run `34726572588`.
+Product design, exact MVP scope, implementation governance and technical readiness are complete enough to start the integrated build.
 
-P1–P16 are implemented/automation-qualified. P17 is the physical Player-tablet QA gate policy.
+The owner has **not yet authorized product-code implementation** merely by requesting technical review.
 
-Until physical owner/device QA produces new evidence:
+The next genuine owner decision is:
 
-- do not restart P1–P16;
-- do not invent unrelated Player features;
-- a real QA defect may reopen only the relevant accepted repair boundary on the Player successor branch;
-- DM discovery/design may continue on `main` when requested;
-- DM feature implementation remains blocked until explicit Phase 4A owner closure.
+> authorize the integrated-MVP implementation, starting with the protected `main` + Player successor convergence.
+
+Once authorized, routine low-level technical packages proceed without owner rubber-stamping. Return to the owner only for material product/scope/security/cost choices or required external account/service actions.
 
 ## 11. Secrets and credentials
 
-Never commit passwords, tokens, API keys, production/release signing keys, private certificates, or other credentials.
+Never commit passwords, tokens, API keys, database credentials, production/release signing keys, private certificates or other secrets.
 
-If future development needs secrets, document setup using placeholders and secure local/CI secret storage rather than putting real values in tracked files.
+Use placeholders in docs/config and secure local/CI secret storage.
+
+The sole-admin Desktop may later keep scoped provider credentials locally when useful, but only using suitable OS/local protected credential storage; never plaintext tracked files.

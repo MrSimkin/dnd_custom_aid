@@ -1,191 +1,219 @@
 # Project State — global repository navigation
 
 **Last verified:** 2026-09-14  
-**Canonical navigation/discovery branch:** `main`  
-**Authoritative current Player implementation branch:** `implementation/phase4a-successor-cycle` until planned convergence  
-**Current Player frozen physical candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`  
-**Current Player evidence:** automation green; targeted cross-device physical revalidation pending on the successor branch  
-**Current global design state:** integrated MVP architecture + DM Desktop product definition + exact MVP boundary consolidated under D-0071/D-0072/D-0073  
-**Implementation authorization:** not granted by this documentation consolidation; no product code changed
+**Canonical global branch:** `main`  
+**Authoritative Player implementation branch before convergence:** `implementation/phase4a-successor-cycle`  
+**Observed Player branch HEAD:** `b9dea8ad6b17dcf3feeabba263eff1ee498f1536`  
+**Frozen Player candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`  
+**Current global design state:** D-0071/D-0072/D-0073 closed  
+**Technical readiness:** COMPLETE  
+**Implementation authorization:** PENDING — no product-code/convergence work authorized by the review itself
 
-## 1. Two authoritative lines still exist
+## 1. Current authority/topology
 
-`main` remains the canonical place for global repository navigation and DM/product/architecture decisions. It intentionally does not yet contain the latest Player runtime implementation.
+Until the planned convergence is executed there are two valid active lines:
 
-Current Player code/QA authority remains:
+- `main` — current integrated-MVP product/design/architecture/governance truth;
+- `implementation/phase4a-successor-cycle` — current Player runtime/local-migration/test/QA authority.
 
-`implementation/phase4a-successor-cycle`
+Do not mechanically overwrite one with the other.
 
-That branch's current known `docs/checkpoints/LATEST.md` identifies `0.4.0-preqa.13 / 41300` at `92aa9b6...` as the frozen automation-green physical candidate. Refresh the branch before implementation rather than assuming this checkpoint can never drift.
-
-The two lines must not be mechanically force-moved over one another. D-0073 now defines the future convergence: dedicated convergence branch from `main`, deliberate reconciliation of the authoritative Player successor runtime, validation, then merge into `main` so `main` becomes the ongoing integrated-MVP trunk.
+D-0073 defines the transition. After explicit owner implementation authorization, create a dedicated convergence branch from current `main`, reconcile the Player successor deliberately, validate it, and merge the coherent baseline to `main`. After successful convergence, `main` becomes the normal integrated trunk and the Player successor becomes historical evidence.
 
 ## 2. Current Player state
 
-Authoritative source:
+Current frozen Player candidate:
 
-`implementation/phase4a-successor-cycle`
-
-Known frozen candidate at this checkpoint:
-
-- version: `0.4.0-preqa.13`;
-- build/versionCode: `41300`;
-- commit: `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
-- Scaffold `34801612526` / #1630: **SUCCESS**;
+- version `0.4.0-preqa.13`;
+- versionCode/build `41300`;
+- candidate commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- Scaffold `34801612526` / #1630 — **SUCCESS**;
 - artifact `10331503478` / `dnd-custom-aid-debug-apk`;
-- targeted physical revalidation: **pending**;
-- Phase 4A on that branch: formally **OPEN**.
+- targeted cross-device physical revalidation pending;
+- Phase 4A formally open on the historical Player line.
 
-Older chat defect labels A10/B1/J1/J2 remain planning input only. Before convergence/implementation, reconcile them against the then-current successor-branch evidence rather than overriding the branch from memory.
+The Actions run was independently rechecked during technical readiness and is successful on the exact candidate SHA.
 
-Existing QA evidence remains valuable for the boundaries actually exercised. Do not restart Player design or replay all historical QA merely because the next product cycle is broader.
+Observed successor branch HEAD `b9dea8ad...` is later documentation, not a different frozen APK candidate.
 
-## 3. Controlling global decisions
+Automation is not physical owner acceptance. Preserve the existing evidence and do not restart historical Player repair work without new evidence.
+
+## 3. Controlling integrated-MVP decisions
 
 ### D-0071 — integrated Player + Server + DM architecture
 
-`docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md`
+Controls the one-product ecosystem, paper/local/server authority, project-specific sync, revisions/idempotency/tombstones/conflicts, hosted foundation, object storage, audit/recovery/backup, full DM Desktop operational capability, combat authority fallback and official-SRD clarification direction.
 
-Controls the one-product ecosystem, paper/local/server authority, project-specific synchronization, revisions/conflicts/tombstones, hosted foundation, object storage requirement, audit/recovery, backup/export, full DM Desktop operational capability, combat authority fallback and official-SRD clarification direction.
+### D-0072 — DM Desktop product/Managers
 
-### D-0072 — DM Desktop product and authoring Managers
-
-`docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`
-
-Closes the detailed 7D product pass.
+Closes the detailed Desktop product definition.
 
 Desktop is one workbench with:
 
 1. **Live / Workspace** — DM Screen, Stage Desk, Dungeon Desk, Combat Desk;
-2. **Prepare / Manage** — PCs, NPCs, Monsters, Homebrew & Rules, Stages/Places, Dungeons/Zones, Encounters, Media/Handouts;
-3. **Administration** — Campaign Administration plus distinct System Administration.
+2. **Prepare / Manage** — PCs, NPCs, Monsters, Homebrew & Rules, Stage/Places, Dungeon/Zones, Encounters, Media/Handouts;
+3. **Administration** — Campaign Manager plus System Administration.
 
-Desktop Live uses the same DM game/domain semantics as Android/tablet. The difference is desktop-appropriate UX/presentation.
+Desktop Live uses the same game/domain semantics as Android/tablet; UX/presentation is desktop-specific.
 
 ### D-0073 — exact MVP boundary and implementation governance
 
-`docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`
+Closes the exact MVP/post-MVP boundary, dependency-driven implementation strategy, planned branch convergence and owner-vs-technical responsibility rule.
 
-Closes 7E and the current implementation-planning pass. It protects the substantial integrated-MVP scope from accidental later trimming, records deferred/generalized directions, establishes dependency-driven implementation waves, defines the planned Git convergence and records the owner-vs-technical responsibility boundary.
+Routine low-level engineering is delegated to technical agents. The owner is not to be used as a rubber stamp for schema/API/migration/sync/test minutiae.
 
-## 4. Approved Desktop Prepare/Manage direction
+## 4. Approved Desktop Prepare/Manage scope
 
 ### Monster Manager
 
-Includes full human-usable editing, Personal/Campaign/Official scope, explicit independent copies with provenance, dirty-improvisation cleanup, simple Packages, import/export and a Creature Creator Assistant. Balance guidance is advisory rather than mathematical authority.
+Full human-usable editor, Personal/Campaign/Official scope, independent copies/provenance, dirty-improvisation cleanup, simple Packages, import/export and advisory Creature Creator Assistant. No false mathematical balance authority.
 
 ### NPC Manager
 
-Supports Quick NPC -> Developed NPC -> optional mechanics/full stat block. NPCs do not require combat mechanics. A helper may guide ideation/identify useful missing questions without completeness scoring. Import/export applies.
+Quick NPC -> Developed NPC -> optional mechanics/stat block, with ideation/helper support and import/export. NPCs do not require combat statistics.
 
-### Homebrew & Rules Manager
+### Homebrew & Rules
 
-Includes rules/variants/rulings/custom subsystems plus structured custom races/sub-races, classes/subclasses, backgrounds, feats, spells, items/magic items and other justified game-content families. Campaign custom content integrates with relevant Player/DM surfaces without becoming an automatic legality/rules engine. Homebrew-aware AI remains post-MVP.
+Rules plus structured custom races/sub-races, classes/subclasses, backgrounds, feats, spells, items/magic items and other justified content families. Integrates with relevant Player/DM surfaces without becoming an automatic legality/rules engine. Homebrew-aware AI remains outside this MVP.
 
 ### Stage / Dungeon preparation
 
-Stage Manager handles Places/Shops/NPC links, multiple retrieval paths and Scene Spine. Dungeon Manager handles topology, rich Zone Briefs, Encounter Readiness, clocks and advisory triggers. Partial/paper-backed preparation remains valid; no VTT behavior is introduced.
+Stage/Place/Shop/NPC relationships, Scene Spine, Dungeon topology, rich Zone Briefs, Encounter Readiness, clocks and advisory triggers. Partial/paper-backed preparation remains valid; no VTT geometry/simulation.
 
 ### Encounter Manager
 
-Saved Encounter remains distinct from Live Encounter. Expected/Reserve/Conditional participants, environment/guidance, encounter-specific overrides, archive/save-as-new-template, import/export and Personal reusable encounters are in scope. Personal Encounter dependencies may be copied into a campaign together.
+Personal reusable encounters, campaign copies, expected/reserve/conditional participants, encounter guidance, saved vs live lifecycle, archive vs save-as-new-template and import/export.
 
-### PC Manager / Audit
+### PC Manager/Audit
 
-DM Desktop supports complete PC inspection, meaningful grouped audit/history, compensating corrections, owner/controller administration, freeze/lifecycle, duplication and approved PDF export concepts. It is not a Desktop Player character-builder.
+Complete authorized PC inspection, grouped audit/history, compensating corrections, owner/controller administration, freeze/lifecycle, duplication and approved PDF export concepts. Not a Desktop Player character builder.
 
 ### Media & Handouts
 
-Object-storage-backed images/maps/documents/handouts can be linked to multiple entities, replaced without breaking logical references, marked DM-only vs Player-safe and explicitly revealed where appropriate. Uploading directly from consuming Managers is allowed.
+Object-storage-backed images/maps/documents/handouts with stable logical references, DM-only vs Player-safe distinction, explicit reveal and direct upload from consuming Managers.
 
 ## 5. Campaign/System Administration
 
-Campaign Manager covers campaign identity/lifecycle, members, simple campaign roles, reusable invitations, kick/ban, PC assignment shortcuts and campaign-wide status/navigation. Campaign membership, role, PC ownership and PC control remain separate concepts.
+Campaign Manager covers lifecycle, membership, roles, invites, kick/ban, PC assignment shortcuts and campaign-wide status/navigation.
 
-System Administration is designed for the owner as sole global administrator. The Desktop App may serve as a practical operator console. Prefer project/backend APIs where sensible, but direct provider API operations and locally protected scoped administrative credentials are permitted when they materially improve convenience. Secrets must not be hard-coded, committed or casually stored in plaintext.
+System Administration is designed for the owner as sole global administrator. Desktop may be a practical operator console; prefer backend/project APIs, but scoped provider integrations and locally protected admin credentials are allowed when genuinely useful.
 
-Full server backup/export remains MVP. Polished destructive whole-server restore may come later; normal mistakes should use object-level recovery/history instead.
+Secrets must never be hard-coded, committed or stored casually in plaintext.
 
-## 6. Exact integrated-MVP boundary
+Full server backup/export remains MVP. Polished destructive whole-server restore is later; normal mistakes use object-level recovery/history.
 
-The next cycle remains the full integrated MVP:
+## 6. Integrated-MVP boundary
+
+The next cycle targets:
 
 ```text
 Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
-In-scope items that must not be silently demoted to stretch goals include:
+In-scope items must not be silently demoted merely to make the MVP appear finished sooner: Player hosted integration, full DM live Android/Desktop capability, combat authority resume, all approved Managers, structured homebrew/import/export, object storage/media, PC audit, Campaign/System Admin, audit/recovery/backup and official-SRD clarification.
 
-- Player hosted integration;
-- complete DM live capability on Android/Desktop;
-- combat authority resume/handoff;
-- Monster/NPC/Homebrew/Stage/Dungeon/Encounter/PC/Media Managers;
-- structured homebrew and import/export;
-- object storage;
-- Campaign/System Administration;
-- audit/recovery/backup;
-- official-SRD storage/retrieval/grounded clarification.
+Explicitly deferred/generalized unless evidence requires otherwise: full VTT, comprehensive automatic character/legality engine, simultaneous authoritative co-DM combat, generic realtime/WebSockets requirement, Durable Objects/queues by default, generic ACL/sync platforms, executable homebrew engine, homebrew-aware AI, public marketplace/community, every external import format, polished one-click catastrophic restore, exhaustive event sourcing, enterprise observability and generic RPG framework.
 
-Deferred/generalized unless evidence requires them include full VTT functionality, comprehensive automatic legality/character-building, simultaneous authoritative co-DM combat, generic realtime/WebSockets requirement, Durable Objects/queues by default, generic ACL/sync platforms, automatic encounter-balance authority, executable homebrew engine, homebrew-aware AI, public marketplace/community features, every external import ecosystem, polished one-click catastrophic restore, exhaustive event sourcing, enterprise observability and generic RPG architecture.
+## 7. Technical-readiness findings
 
-Deferred technologies are not prohibited if a concrete approved requirement makes one the simplest safe/proportional implementation.
+Current checkpoint:
 
-## 7. Implementation organization
+`docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`
+
+Key findings:
+
+- backend is currently only a `/health` scaffold;
+- hosted PostgreSQL migrations are not yet implemented;
+- Desktop is a placeholder shell;
+- the mature technical asset to preserve is the Player/shared Kotlin + SQLDelight implementation;
+- current branch divergence is substantial in commit count but technically reconcilable because `main` has not built a competing backend/Desktop/Player runtime;
+- the successor's versioned Player backup serialization is a strong basis for hosted current-PC snapshots;
+- do not mirror the entire local SQLDelight character graph into hosted PostgreSQL merely for symmetry;
+- preserve current local migrations and Player CI guards during convergence;
+- stale mandatory entry/governance documents found during review are repaired by the technical-readiness documentation pass.
+
+## 8. Delegated technical direction
+
+Current preferred technical implementation choices:
+
+- **Ktor Client** in shared Kotlin for Android/Desktop HTTP networking;
+- small versioned HTTP/JSON API with stable machine-readable errors;
+- client mutation UUIDs + optimistic expected/base revisions;
+- SQLDelight local outbox + scoped project-specific push/pull sync;
+- Neon **serverless driver** from Cloudflare Worker initially;
+- no Hyperdrive unless measured need later demonstrates value;
+- explicit SQL migrations under `database/migrations/`;
+- hosted PC current state as versioned JSONB snapshot plus relational authorization/index/public-projection metadata;
+- Descope native Android authentication, standards-based Desktop OIDC/native flow and server-side token validation;
+- Cloudflare **R2 Standard** as the preferred first object-storage provider, pending owner/service activation;
+- versioned application-owned JSON document family for canonical imports/exports;
+- versioned on-demand full backup archive with manifest and integrity information, no queue infrastructure by default.
+
+These are technical recommendations/delegated engineering choices, not new owner product decisions unless later evidence creates a material cost/security/product consequence.
+
+## 9. Implementation organization
 
 ### 8A — dependency-driven waves — CLOSED
 
-Implementation should proceed through integrated dependency waves rather than isolated app silos. Parallel work is allowed after shared semantics exist, but workstreams must not independently redefine shared contracts.
-
-The next major owner-facing QA remains Player + Server + DM end-to-end.
+Use integrated dependency waves and frequent cross-client integration. Parallel work is allowed after shared semantics exist, but streams must not redefine contracts independently.
 
 ### 8B — Git convergence — CLOSED
 
-Before normal integrated implementation, deliberately reconcile current `main` and `implementation/phase4a-successor-cycle` through a dedicated convergence branch. Player runtime/evidence is authoritative for Player implementation; current `main` decisions/docs are authoritative for later integrated product/architecture truth. Validate, merge to `main`, then use short-lived outcome-oriented branches and frequent reintegration.
+Deliberately reconcile `main` and the Player successor through a dedicated convergence branch. After validation, merge to `main`; then use short-lived outcome-oriented branches and frequent reintegration.
 
-### 8C — first technical package direction — CLOSED / delegated
+### 8C — first shared-spine direction — CLOSED / delegated
 
-The first technical package is the minimum shared semantic spine for already-approved concepts: identity, campaigns/membership/role, PC owner/controller, stable IDs, revisions, tombstones, Personal/Campaign/System scope where applicable and provenance for independent copies.
+The first foundation covers identity, campaigns/membership/role, PC owner/controller, stable IDs, revisions, tombstones, scope and copy provenance. Exact schema/classes/API/migrations/tests are technical responsibilities.
 
-Exact schema/classes/API/migrations/tests are technical responsibilities and should not be presented to the owner for routine rubber-stamp approval.
-
-## 8. Owner-vs-technical responsibility rule
+## 10. Owner-vs-technical responsibility
 
 Owner decisions:
 
 - product behavior/workflow;
-- visibility/privacy expectations;
+- visibility/privacy;
 - MVP vs later scope;
 - user-facing destructive/safety behavior;
-- meaningful convenience/cost/risk tradeoffs.
+- meaningful cost/security/convenience/lock-in tradeoffs.
 
-Delegated technical decisions unless materially consequential:
+Delegated technical decisions:
 
-- exact database/table layout;
+- schema/table layout;
 - class/type decomposition;
 - endpoint/request shapes;
 - migration mechanics;
-- internal sync data structures;
-- canonical import serialization format;
+- internal sync structures;
+- canonical serialization;
 - testing architecture;
-- detailed technical package granularity.
+- technical package/branch granularity.
 
-Escalate when a technical decision materially changes product behavior, security/privacy, cost, irreversible lock-in or approved scope.
+Escalate only when a technical choice materially changes product behavior, security/privacy, cost, irreversible lock-in or approved scope.
 
-## 9. Exact continuation
+## 11. Exact continuation — owner authorization gate
 
-The owner intentionally requested a safety/continuity pause after closing 7D, 7E, 8A, 8B and the 8C direction.
+Technical readiness is complete. No unresolved low-level engineering question currently requires owner choice.
 
-When resuming:
+The next genuine owner intervention is:
 
-1. verify `main` and Player successor have not drifted;
-2. read D-0071/D-0072/D-0073 plus the latest checkpoint;
-3. do not reopen already-closed product design unless scope deliberately changes;
-4. do not make the owner approve low-level technical package design;
-5. before product coding, execute the planned branch convergence only under explicit coding authorization;
-6. then let the technical assistant/Worker carry technical implementation within the approved architecture and escalate only material product/scope/security/cost decisions.
+> **Authorize beginning the integrated-MVP implementation, starting with the protected `main` + Player-successor convergence.**
 
-## 10. Release/acceptance status
+Until explicit authorization:
+
+- documentation/readiness corrections are allowed;
+- do not execute the product-code convergence;
+- do not begin hosted/DM implementation.
+
+After authorization:
+
+1. refresh both refs;
+2. execute/validate the dedicated convergence branch;
+3. merge coherent baseline to `main`;
+4. proceed with delegated technical packages;
+5. return to the owner only for material product/scope/security/cost decisions, required external account/service setup, or physical/manual acceptance gates.
+
+A likely early external action is enabling R2 if needed and securely configuring Cloudflare/Neon/Descope project secrets; this is an account/service task, not a request to decide technical schema/API design.
+
+## 12. Release/acceptance status
 
 The project remains development/debug and is not release-ready.
 
-The current Player candidate is not physically owner-accepted merely because automation is green. The integrated-MVP product scope and implementation strategy do not retroactively fabricate Player QA evidence or owner acceptance.
+The integrated-MVP strategy and technical readiness do not retroactively fabricate Player physical acceptance. Historical evidence remains preserved at its actual scope.

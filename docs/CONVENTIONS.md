@@ -1,52 +1,73 @@
 # Project Conventions
 
-This file records durable working conventions approved by the project owner.
+This file records durable working conventions used consistently across the project.
 
 A convention is different from a product decision: it defines **how the project is worked on or expressed consistently**, rather than what the product does.
 
 ## 1. Authority
 
-- New conventions must be discussed with the owner when they first become relevant.
-- The agent should explain realistic alternatives, practical consequences, and its recommendation.
-- Once the owner approves a convention and it is recorded here, agents should follow it without repeatedly asking the same question.
-- A convention may be changed later, but the reason and replacement must be recorded.
-- If a convention conflicts with an approved decision in `docs/DECISIONS.md`, the approved decision takes precedence.
+D-0073 clarifies the owner-vs-technical boundary and supersedes older process wording that required the owner to approve every new low-level implementation convention.
+
+Current rule:
+
+- owner approval is required for conventions that materially affect product behavior, UX, game semantics, privacy/security, compatibility, cost, irreversible lock-in or approved scope;
+- routine low-level coding/naming/package/testing/serialization conventions may be selected and recorded by the technical assistant/Worker when needed;
+- technical agents should explain meaningful approaches in practical terms, but should not ask the owner to rubber-stamp implementation minutiae;
+- once a convention is recorded, follow it consistently unless a concrete reason justifies changing it;
+- a convention never overrides a later specific Approved product/architecture decision.
 
 ## 2. Approved conventions
 
 ### C-0001 — Canonical accepted branch
 
-**Status:** Approved  
-**Date:** 2026-08-28
+**Status:** Approved / currently transitioning under D-0073  
+**Date:** 2026-08-28  
+**Clarified:** 2026-09-14
 
-`main` represents the latest accepted project state. Substantial work normally occurs on a focused branch and is merged after owner approval.
+Historically, `main` represents the canonical accepted/integrated project state and substantial work normally occurs on focused branches.
 
-Source decision: D-0007.
+Current temporary exception: before D-0073's planned convergence, `main` is global integrated-MVP product/architecture truth while `implementation/phase4a-successor-cycle` remains authoritative Player runtime/QA truth.
+
+After successful validated convergence, `main` again becomes the normal single integrated-MVP trunk. See `docs/BRANCH_STATUS.md`.
+
+Source decisions: D-0007, D-0073.
 
 ### C-0002 — Meaningful technical work is explained
 
 **Status:** Approved  
-**Date:** 2026-08-28
+**Date:** 2026-08-28  
+**Clarified:** 2026-09-14
 
-The agent performing technical work explains what it is doing, why it is doing it, and important consequences or alternatives. The owner is not required to approve every line-level detail, but meaningful technical approaches must not be hidden.
+The agent performing technical work explains what it is doing, why it is doing it, and important owner-relevant consequences. The owner is not required to approve line-level or routine low-level implementation details.
 
-Source decision: D-0008.
+Transparency does not mean transferring engineering responsibility back to the owner.
 
-### C-0003 — First-use convention discussion
+Source decisions: D-0008, D-0073.
 
-**Status:** Approved  
-**Date:** 2026-08-28
+### C-0003 — First-use convention handling
 
-When a new durable coding, naming, structure, formatting, testing, documentation, or similar convention becomes relevant, the agent presents the realistic alternatives and a recommendation to the owner before establishing the convention. Once approved and recorded, the convention is reused without repeated approval unless a change is justified.
+**Status:** Approved / clarified  
+**Date:** 2026-08-28  
+**Clarified:** 2026-09-14
 
-Source decision: D-0008.
+Original rule required presenting every new durable coding/naming/structure/testing/documentation convention to the owner before establishing it.
+
+D-0073 narrows that requirement:
+
+- if a convention has meaningful product, UX, privacy/security, cost, compatibility, irreversible-lock-in or scope consequences, explain realistic alternatives/recommendation and obtain owner approval;
+- if it is a routine reversible engineering convention, the technical assistant/Worker may choose and record it without owner rubber-stamping;
+- once established and recorded, reuse it consistently unless evidence justifies changing it.
+
+Source decisions: D-0008, D-0073.
 
 ### C-0004 — Design precedes stack selection
 
 **Status:** Approved  
 **Date:** 2026-08-28
 
-Product and interaction design is explored and discussed before the Android technology stack is selected. Architecture must be evaluated against approved design needs rather than chosen in advance.
+Product and interaction design is explored before consequential technology choices. Architecture is evaluated against approved design needs rather than chosen in advance.
+
+Current integrated-MVP product design and architecture are already substantially closed under D-0071/D-0072/D-0073, so implementation should not reopen them without a concrete reason.
 
 Source decision: D-0011.
 
@@ -69,116 +90,101 @@ All end-user-facing application UI, labels, messages, help/rules responses, expo
 
 Source code, identifiers, technical repository documentation, architecture/testing notes, development instructions, commit/PR technical prose, and agent-oriented project documentation should be English.
 
-Technical working conversations between the project owner and ChatGPT/coding agents should also be conducted in English by default. Spanish end-user UI labels and product text may be quoted verbatim inside those English technical conversations when useful.
-
-The purpose is to keep the user experience fully accessible to the intended Spanish-speaking users while keeping development and technical collaboration aligned with the predominantly English Android/software ecosystem and reference material.
+Technical working conversations between the owner and technical assistants/coding agents should also be conducted in English by default. Spanish end-user UI labels/product text may be quoted verbatim inside those English technical conversations when useful.
 
 ### C-0007 — SRD source provenance and user-facing D&D edition labels
 
 **Status:** Approved  
 **Date:** 2026-08-29
 
-Technical/project material, data provenance and rules-source identity must use the official document versions:
+Technical/project material, data provenance and rules-source identity use official document versions:
 
-- **SRD 5.1** — the earlier/2014-era fifth-edition rules foundation;
-- **SRD 5.2.1** — the revised/2024-era fifth-edition rules foundation.
+- **SRD 5.1** — earlier/2014-era fifth-edition foundation;
+- **SRD 5.2.1** — revised/2024-era fifth-edition foundation.
 
-End-user Spanish UI and rules answers should use the familiar generation labels:
+End-user Spanish UI/rules answers use familiar generation labels:
 
 - **D&D 5e** for the earlier/2014-era generation;
 - **D&D 5.5e** for the revised/2024-era generation.
 
-The user-facing label must not erase source provenance. Internally, the exact SRD document/version remains identifiable for retrieval, attribution, comparison and rules-assistance logic.
+The user-facing label must not erase exact SRD source/version provenance.
 
-In technical discussion with the owner, agents may mention both forms when useful, for example `D&D 5.5e (SRD 5.2.1)`.
-
-Source decisions: D-0017 and D-0023.
+Source decisions: D-0017, D-0023.
 
 ### C-0008 — Explain relational/data-model decisions with SQL when useful
 
 **Status:** Approved  
-**Date:** 2026-08-30
+**Date:** 2026-08-30  
+**Clarified:** 2026-09-14
 
-When discussing database schemas, queries, migrations, synchronization metadata or other relational/data-model behavior with the owner, agents should show concise representative SQL whenever it materially improves understanding.
+When discussing database schemas, queries, migrations, synchronization metadata or other relational/data-model behavior with the owner, show concise representative SQL when it materially improves understanding.
 
-Framework annotations, ORM abstractions or implementation terminology should not be used as the only explanation when the same idea can be made clearer through SQL. SQL examples are explanatory unless an approved schema/migration explicitly makes them authoritative implementation artifacts.
+D-0073 does **not** require the owner to approve routine schema/table details. SQL remains a useful explanatory language when a data-model choice has owner-relevant consequences or the owner asks to understand it.
 
-This convention exists because SQL is a useful technical communication language for the owner and helps them review architecture decisions directly.
+Framework annotations/ORM abstractions should not be the only explanation when representative SQL would be clearer.
 
-Source decision: D-0038 and explicit owner instruction during its approval.
+Source decisions: D-0038, D-0073 and explicit owner instruction.
 
 ### C-0009 — Personal-scale proportionality; avoid enterprise overengineering
 
 **Status:** Approved  
 **Date:** 2026-08-30  
-**Clarified:** 2026-08-30 by the pre-main architecture proportionality audit
+**Clarified:** 2026-08-30
 
 The project is a personal, deliberately limited tool. Architecture, security, observability, administration, deployment and data-management mechanisms should be the **simplest approach that safely satisfies approved requirements**.
 
-Do not add enterprise-grade layers, generalized infrastructure, elaborate role hierarchies, duplicated safeguards, speculative scale machinery or operational processes merely because they are common in commercial SaaS systems. Add complexity only when a concrete requirement, measurable risk or real implementation problem justifies it.
+Do not add enterprise-grade layers, generalized infrastructure, elaborate role hierarchies, duplicated safeguards, speculative scale machinery or operational processes merely because they are common in commercial SaaS systems.
 
-Concrete consequences for implementation include:
+Concrete consequences include:
 
-- selecting a provider or platform does **not** authorize scaffolding all of its available services;
-- start with ordinary HTTP/request-response behavior and simple polling/refresh before realtime infrastructure;
-- do not create provider-abstraction factories/frameworks merely to make a hypothetical future migration elegant; localize vendor-specific code sensibly instead;
-- do not build a generalized synchronization platform when small application-specific Save/Sync/outbox/revision behavior is sufficient;
-- offline capability is selective and should exist where it materially benefits real workflows, not as a universal requirement for every feature;
-- prefer simple human conflict handling for rare genuine concurrent edits over speculative automatic merge systems;
-- project documentation should remain sufficient for continuity but should not grow into ceremony for routine reversible implementation choices.
+- selecting a provider does not authorize scaffolding all its services;
+- start with ordinary HTTP/request-response/polling before generalized realtime;
+- do not create speculative provider-abstraction factories;
+- do not build a generalized sync platform when application-specific outbox/revision behavior is sufficient;
+- offline capability is selective where workflows benefit;
+- prefer simple human conflict handling for rare genuine concurrent edits over speculative auto-merge;
+- documentation must preserve continuity without becoming ceremony for routine reversible implementation choices.
 
-When presenting technical decisions to the owner, prioritize the materially relevant trade-offs and avoid exhaustive treatment of enterprise-only concerns unless they could realistically affect this project.
-
-Source decisions: D-0038, D-0039, D-0043 and repeated explicit owner instruction during Phase 2.
+Source decisions: D-0038, D-0039, D-0043 and repeated owner instruction.
 
 ### C-0010 — Intended-device acceptance and repeatable post-build QA
 
 **Status:** Approved  
 **Date:** 2026-08-30
 
-Manual feature acceptance should be performed first on the device/form factor for which that feature is primarily intended. A secondary form factor may receive a proportional sanity check when useful, but it does not replace testing on the intended device.
+Manual feature acceptance should be performed first on the device/form factor where its real use matters. A secondary form factor may receive proportional sanity checking but does not replace testing on the intended device.
 
-After a build reaches a manual-testable state, the project should use a **defined, repeatable QA checklist/test suite** rather than inventing acceptance checks ad hoc each time. The suite should combine:
+After a build reaches a manual-testable state, use a defined repeatable QA checklist rather than inventing acceptance checks ad hoc each time. Combine:
 
 - a small persistent regression core for already accepted behavior;
-- feature-specific checks for the current build/slice;
-- persistence/restart or migration checks when the build changes durable data;
-- intended-device usability checks appropriate to the feature;
-- explicit recording of pass/fail, concrete defects and non-blocking observations.
+- feature-specific checks;
+- persistence/restart/migration checks when durable data changes;
+- intended-device usability checks;
+- explicit pass/fail/defect/non-blocking observations.
 
-The QA suite should remain proportional under C-0009: it is a practical repeatable acceptance tool, not an enterprise test-management process. As accepted features accumulate, the persistent regression core should grow only where regression would materially matter.
+Keep the suite proportional under C-0009.
 
-Examples of intended-device priority:
+Examples:
 
-- player character-sheet workflows: phone first;
-- DM combat tracker/live DM board: tablet first;
-- DM preparation/administration workflows: desktop first.
+- Player character-sheet workflows: phone first;
+- DM combat/live board: tablet first, with Desktop fallback also exercised where relevant;
+- DM preparation/administration: Desktop first.
 
-A build should not be described as manually accepted until the relevant intended-device QA suite has been executed successfully or any deviations are explicitly recorded and approved.
+A build is not manually accepted until relevant intended-device QA is executed successfully or deviations are explicitly recorded/accepted.
 
-Source: explicit owner instruction during Phase 4 character-foundation testing.
+Source: explicit owner instruction during Phase 4 testing; expanded integrated context under D-0071/D-0073.
 
-## 3. Conventions intentionally not chosen yet
+## 3. Technical conventions intentionally chosen only when needed
 
-No convention has yet been approved for:
+Do not invent a giant style guide up front.
 
-- programming language style;
-- identifier/naming style beyond whatever a chosen language strongly requires;
-- detailed package/module naming beyond the few high-level areas approved by D-0043;
-- UI/component naming;
-- formatting tool;
-- linting tool;
-- test naming;
-- commit-message format beyond being descriptive;
-- branch naming pattern beyond using focused non-`main` branches for substantial work;
-- dependency-management style;
-- detailed application presentation architecture pattern.
+Items such as detailed identifier naming, presentation architecture, linting/formatting choices, test naming or package layout may be selected by technical agents when implementation makes them relevant, provided they remain consistent with D-0073/C-0009 and are recorded if future contributors need the convention.
 
-These should be discussed only when they first become materially relevant rather than invented prematurely.
+Escalate only when the convention creates an owner-consequential tradeoff.
 
 ## 4. Adding a convention
 
-Use this compact format:
+For owner-consequential conventions:
 
 ```text
 ### C-NNNN — Name
@@ -186,7 +192,8 @@ Status: Approved
 Date: YYYY-MM-DD
 
 Convention statement.
-
 Why / consequences if useful.
 Source decision: D-NNNN, if applicable.
 ```
+
+For routine technical conventions, record them in the most proportionate technical documentation/location rather than manufacturing an `Approved` owner decision when no owner decision was required.
