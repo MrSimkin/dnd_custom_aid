@@ -4,7 +4,7 @@
 **Branch:** `implementation/phase4a-successor-cycle`  
 **Role:** authoritative current Player runtime / Phase 4A repair line  
 **Current exact frozen physical candidate:** `0.4.0-preqa.12 / 41200` at `abfc7e4a1519a27117f194721a425d75cb5df68a` — AUTOMATION GREEN; CROSS-DEVICE PHYSICAL DISCOVERY COMPLETE WITH OPEN FINDINGS  
-**Current implementation state:** consolidated repair IN PROGRESS; **Rounds 1–3 + T5 + T6 + T3/T4/T9 + T7 COMPLETE / AUTOMATION GREEN**; next = **T8 Table Mode structural-affordance enforcement**  
+**Current implementation state:** consolidated repair IN PROGRESS; **Rounds 1–3 + T5 + T6 + T3/T4/T9 + T7 + T8 COMPLETE / AUTOMATION GREEN**; next = **remaining T2 dice-result / Custom Throw / Dice display-mode integration**  
 **Release status:** development/debug; Phase 4A OPEN; DM implementation blocked pending explicit Phase 4A closure
 
 ## Authority / continuity
@@ -13,15 +13,16 @@ This branch remains authoritative for current Player runtime and Phase 4A repair
 
 Resume in this order:
 
-1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T7_WIDE_COMBAT.md` — latest completed bounded repair and exact clean automation evidence;
-2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_APPLICATION_SETTINGS_T3_T4_T9.md`;
-3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T6_CLASS_EDITOR_CONTROLS.md`;
-4. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T5_SPELL_SOURCE_BOOTSTRAP.md`;
-5. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND3_COMPACT_CHECKBOX_RESPONSIVE_GROUPING.md`;
-6. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md`;
-7. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md`;
-8. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit / remaining repair contracts / revalidation matrix;
-9. `docs/TESTING.md` — synchronized testing policy and route.
+1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T8_TABLE_MODE.md` — latest completed bounded repair and exact clean automation evidence;
+2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T7_WIDE_COMBAT.md`;
+3. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_APPLICATION_SETTINGS_T3_T4_T9.md`;
+4. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T6_CLASS_EDITOR_CONTROLS.md`;
+5. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_T5_SPELL_SOURCE_BOOTSTRAP.md`;
+6. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND3_COMPACT_CHECKBOX_RESPONSIVE_GROUPING.md`;
+7. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md`;
+8. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md`;
+9. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — controlling source audit / remaining repair contracts / revalidation matrix;
+10. `docs/TESTING.md` — synchronized testing policy and route.
 
 Supporting physical evidence remains the preqa.12 phone findings, tablet P17 progress and exact candidate checkpoint. Accepted PASS evidence must not be replayed merely because later repair rounds advance.
 
@@ -69,18 +70,32 @@ Artifact `10330505672`, size `13,651,587` bytes, digest `sha256:582d455aea9dad0f
 
 T7 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. It is not physically PASS.
 
-## Current next family — T8 Table Mode structural-affordance enforcement
+### T8 — Table Mode structural-affordance enforcement: COMPLETE / GREEN
 
-The shared `CharacterTableModePolicy` already defines the product contract:
+Product commit `2734d08a72e183ca213cd9213ff47a4db588cbf6`; steady-state HEAD `d6c13819a49e1cb7c71dffcad98b53c250d4d9d4`; authoritative Scaffold `34799667822` / #1611 — **SUCCESS**.
 
-- structural character/configuration editing is disabled in Table Mode;
-- genuine operational/session actions remain enabled.
+T8 aligns the visible UI with the existing `CharacterTableModePolicy`: structural name/class/ability/save/skill/general-reference editing is hidden, disabled or read-only while Table Mode is active, while genuine operational HP, inspiration and current resource state remain usable. The repair covers Overview, Skills, class identity and general structural references; already-correct specialized collection modules and PC Settings were left unchanged.
 
-The audited defect is UI affordance leakage: structural Edit/Add/Delete/reorder controls can still be shown/opened even though structural updates are blocked. T8 must audit major Player tab boundaries, hide or clearly disable structural affordances, present structural values as read-only where needed, and preserve allowed HP/current/spent/session controls. Add focused policy/UI guards/tests and pass the normal read-only Scaffold before checkpointing.
+Permanent `check_player_table_mode_affordances.py` guards both sides of the contract: structural affordances remain gated and operational current/session values remain routed through operational persistence. No storage/schema/import/export model changed.
 
-## Remaining after T8
+Artifact `10330822191`, size `13,662,998` bytes, digest `sha256:bf90762e36177735bd948524c37552b143ec1bbf1ddd7bdb292511b7a7255715`.
 
-- **T2 remaining integration:** die-specific result silhouettes, Custom Throw die/custom sides/signed modifier, Dice-tab ownership of display mode.
+T8 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. It is not physically PASS.
+
+## Current next family — remaining T2 integration
+
+Round 1 already repaired shared structured `NdS±M` parsing/rolling and direct sign handling. T2 remains partial and now becomes the next bounded implementation family.
+
+Required remaining integration:
+
+- die-specific result silhouettes rather than generic result presentation;
+- Custom Throw support for standard die selection plus custom sides and signed modifier UX;
+- Dice-tab ownership of result/display mode so presentation choice lives with the dice surface that consumes it;
+- preserve the Round 1 parser/roller/sign foundation rather than introducing a parallel expression model;
+- add focused tests/guards and pass normal read-only Scaffold before checkpointing.
+
+## Remaining after T2
+
 - **Optional phone-16 compact-field refinement:** only if visual comparison proves safe material benefit.
 
 ## Physical evidence / candidate policy
@@ -99,13 +114,12 @@ Do not physically revalidate intermediate rounds independently. Complete the con
 
 ## Exact route
 
-1. Execute **T8 Table Mode structural-affordance enforcement** across the active Player successor boundaries while preserving operational controls.
-2. Update the dedicated T8 checkpoint + this file + `LATEST.md` + `TESTING.md` after focused/aggregate automation is green.
-3. Complete remaining T2 integration.
-4. Decide the optional phone-16 compact-field refinement only if a safe material benefit is demonstrated.
-5. Run aggregate Scaffold over the completed consolidated repair.
-6. Freeze a new monotonic physical-QA candidate.
-7. Perform targeted cross-device revalidation only; preserve unrelated accepted evidence.
-8. Phase 4A closes only after sufficient repaired evidence and explicit owner acceptance.
+1. Execute **remaining T2 dice-result / Custom Throw / Dice display-mode integration** on top of the existing Round 1 structured-dice foundation.
+2. Update the dedicated T2 checkpoint + this file + `LATEST.md` + `TESTING.md` after focused/aggregate automation is green.
+3. Decide the optional phone-16 compact-field refinement only if a safe material benefit is demonstrated.
+4. Run aggregate Scaffold over the completed consolidated repair.
+5. Freeze a new monotonic physical-QA candidate.
+6. Perform targeted cross-device revalidation only; preserve unrelated accepted evidence.
+7. Phase 4A closes only after sufficient repaired evidence and explicit owner acceptance.
 
 Portrait relocation of long-card action buttons remains only a prior consideration, not an approved automatic change. DM implementation remains blocked until explicit Phase 4A owner closure.
