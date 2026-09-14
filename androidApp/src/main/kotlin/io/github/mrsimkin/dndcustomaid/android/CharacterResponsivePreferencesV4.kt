@@ -6,13 +6,14 @@ import androidx.compose.ui.platform.LocalDensity
 @Composable
 internal fun requestedCardColumnsV4(): Int {
     val layoutContext = characterLayoutContextV4()
-    val preferences = LocalUiPreferencesV4.current
-    return when (layoutContext.formFactor) {
-        CharacterFormFactorV4.PHONE_PORTRAIT -> preferences.phonePortraitColumns
-        CharacterFormFactorV4.PHONE_LANDSCAPE -> preferences.phoneLandscapeColumns
-        CharacterFormFactorV4.TABLET_PORTRAIT -> preferences.tabletPortraitColumns
-        CharacterFormFactorV4.TABLET_LANDSCAPE -> preferences.tabletLandscapeColumns
-    }
+    return adaptiveCardColumnsV4(
+        preferences = LocalUiPreferencesV4.current,
+        layoutContext = layoutContext,
+        wide = layoutContext.isTablet,
+        phoneMax = 4,
+        wideMax = 6,
+        effectiveFontScale = LocalDensity.current.fontScale,
+    )
 }
 
 @Composable
@@ -20,28 +21,35 @@ internal fun constrainedCardColumnsV4(
     wide: Boolean,
     phoneMax: Int = 2,
     wideMax: Int = 4,
-): Int {
-    val layoutContext = characterLayoutContextV4()
-    val requested = requestedCardColumnsV4()
-    val baseMax = if (layoutContext.isTablet && wide) wideMax else phoneMax
-    if (!layoutContext.isTablet || !wide) {
-        return requested.coerceIn(1, baseMax.coerceAtLeast(1))
-    }
+): Int = adaptiveCardColumnsV4(
+    preferences = LocalUiPreferencesV4.current,
+    layoutContext = characterLayoutContextV4(),
+    wide = wide,
+    phoneMax = phoneMax,
+    wideMax = wideMax,
+    effectiveFontScale = LocalDensity.current.fontScale,
+)
 
-    val fontScale = LocalDensity.current.fontScale
-    val tabletReadableMax = when (layoutContext.formFactor) {
-        CharacterFormFactorV4.TABLET_PORTRAIT -> when {
-            fontScale >= 1.60f -> 1
-            fontScale >= 1.35f -> minOf(2, baseMax)
-            else -> baseMax
-        }
-        CharacterFormFactorV4.TABLET_LANDSCAPE -> when {
-            fontScale >= 1.80f -> 1
-            fontScale >= 1.50f -> minOf(2, baseMax)
-            fontScale >= 1.30f -> minOf(3, baseMax)
-            else -> baseMax
-        }
-        else -> baseMax
+internal fun adaptiveCardColumnsV4(
+    preferences: UiPreferences,
+    layoutContext: CharacterLayoutContextV4,
+    wide: Boolean,
+    phoneMax: Int,
+    wideMax: Int,
+    effectiveFontScale: Float,
+): Int {
+    val density = if (layoutContext.isLandscape) {
+        preferences.landscapeCardDensity
+    } else {
+        preferences.portraitCardDensity
     }
-    return requested.coerceIn(1, tabletReadableMax.coerceAtLeast(1))
+    val baseMax = if (layoutContext.isTablet && wide) wideMax else phoneMax
+    val textPressure = effectiveFontScale.coerceIn(0.75f, 1.80f)
+    val spacingPressure = preferences.spacingScalePercent.coerceIn(50, 150) / 100f
+    val uiPressure = 0.90f + (0.10f * spacingPressure)
+    val minimumUsableCardWidthDp = density.minCardWidthDp * textPressure * uiPressure
+    val widthBound = (layoutContext.availableWidthDp.coerceAtLeast(1) / minimumUsableCardWidthDp)
+        .toInt()
+        .coerceAtLeast(1)
+    return widthBound.coerceIn(1, baseMax.coerceAtLeast(1))
 }

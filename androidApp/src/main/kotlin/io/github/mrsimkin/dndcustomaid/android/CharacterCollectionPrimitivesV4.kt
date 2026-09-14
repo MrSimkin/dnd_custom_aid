@@ -83,7 +83,7 @@ internal fun rememberCharacterHapticHookV4(
     val hapticPreferences = LocalCharacterHapticSettingsV4.current.preferences
     return remember(enabled, context, view, hapticPreferences) {
         { event ->
-            if (enabled) {
+            if (enabled && hapticPreferences.strength != CharacterHapticStrengthV4.NONE) {
                 val vibrator = characterVibratorV4(context)
                 if (vibrator != null && vibrator.hasVibrator()) {
                     val eventScale = when (event) {
