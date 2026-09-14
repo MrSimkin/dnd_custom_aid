@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Retry trigger 2: product commit excludes workflow edits by design.
 source_path = Path("scripts/migrate_phase4a_t2.py")
 source = source_path.read_text(encoding="utf-8")
 old = '''# Reset all dice-result channels when target/category changes.
