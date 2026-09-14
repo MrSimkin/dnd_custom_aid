@@ -20,7 +20,8 @@ Resume in this order:
 1. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND2_REORDER_STABILITY.md` — latest completed implementation round and exact automation evidence;
 2. `docs/checkpoints/2026-09-13_PHASE4A_REPAIR_ROUND1_STRUCTURED_DICE.md` — prior completed structured-dice round;
 3. `docs/checkpoints/2026-09-13_PHASE4A_OWNER_REPAIR_DECISIONS_IMPLEMENTATION_GO.md` — owner decisions + implementation authorization;
-4. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — complete source/root-cause audit, repair-family contracts and targeted physical revalidation matrix.
+4. `docs/checkpoints/2026-09-13_PHASE4A_POST_P17_CROSS_DEVICE_AUDIT_REPAIR_PLAN.md` — complete source/root-cause audit, repair-family contracts and targeted physical revalidation matrix;
+5. `docs/TESTING.md` — synchronized current testing position, testing policy and targeted revalidation route.
 
 Supporting physical evidence remains:
 
@@ -95,7 +96,7 @@ Implemented:
 
 Authoritative Scaffold run `34788409987` / run number `1519` at `5b06056e9e8ed5cf05a767dd1da3d6f4f48363eb` — **SUCCESS**. Backend, compact geometry guard, reorder stability guard, Kotlin/shared tests, Android build and debug APK upload all passed.
 
-T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Existing physical video remains the failure baseline; do not ask the owner to repeat or reattach it.
+T1 is **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. Existing physical video remains the failure baseline; do not ask the owner to repeat or reattach it. T1 may not be physically closed from one-column evidence alone: targeted revalidation must cover **both one-column and multi-column/spatial reorder**, with no target-chasing reflow, plus applicable auto-scroll and final persisted order after leave/reopen.
 
 ### Remaining repair families
 
@@ -125,7 +126,7 @@ Do not physically revalidate each intermediate round independently unless a repa
 ## Exact route / next action
 
 1. Execute **Round 3: shared compact checkbox + responsive grouping family** with an app-wide Android Player site audit, focused tests/guards and responsive packing repair.
-2. At the end of every bounded implementation/test round, update a durable round checkpoint, this `PROJECT_STATE.md`, and `docs/checkpoints/LATEST.md` before proceeding.
+2. At the end of every bounded implementation/test round, update **all four** durable continuity surfaces before proceeding: the dedicated round checkpoint, this `PROJECT_STATE.md`, `docs/checkpoints/LATEST.md`, and `docs/TESTING.md` current testing status/route.
 3. Continue remaining repair families in dependency-aware order, preserving accepted physical evidence.
 4. Run the normal aggregate Scaffold gate over the completed consolidated repair.
 5. Create/freeze a new monotonic physical-QA candidate after material product changes.
