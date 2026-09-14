@@ -45,7 +45,6 @@ jobs:
             androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/UiPreferences.kt \
             shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterCombatDiceOperations.kt \
             shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/CharacterCombatDiceOperationsTest.kt \
-            scripts/check_player_dice_t2.py \
-            .github/workflows/scaffold-check.yml
+            scripts/check_player_dice_t2.py
           git commit -m "fix: complete T2 dice presentation and custom throw"
           git push origin HEAD:implementation/phase4a-successor-cycle
