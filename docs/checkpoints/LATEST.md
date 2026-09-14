@@ -1,8 +1,7 @@
 # Latest project checkpoint — global resume map
 
 **Updated:** 2026-09-14  
-**Branch authority after integration:** `main`  
-**Current documentation work branch:** `docs/mvp-integration-consolidation-2026-09-14` until this checkpoint is merged  
+**Branch:** `main`  
 **Role:** canonical global navigation + current DM/MVP product/architecture decisions  
 **Player code authority:** `implementation/phase4a-successor-cycle`  
 **Current Player frozen physical candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`  
@@ -22,7 +21,7 @@
 
 `main` and `implementation/phase4a-successor-cycle` remain intentionally divergent authoritative lines until a future explicitly designed integration.
 
-- `main` = global navigation, product/design/architecture truth, including D-0068 through D-0071 after this documentation checkpoint is integrated;
+- `main` = global navigation, product/design/architecture truth, including D-0068 through D-0071;
 - `implementation/phase4a-successor-cycle` = current Player runtime/QA authority.
 
 Do not overwrite either line with the other. Future integration must preserve both the current Player runtime work and the later main-only DM/MVP decisions.
