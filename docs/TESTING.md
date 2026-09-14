@@ -19,7 +19,8 @@ Current testing position:
 - P17 tablet portrait/landscape discovery on the same exact candidate: **COMPLETE WITH OPEN FINDINGS**;
 - Repair Round 1 structured dice: **COMPLETE / AUTOMATION GREEN**;
 - Repair Round 2 T1 reorder stability: **COMPLETE / AUTOMATION GREEN**;
-- next implementation round: **Round 3 shared compact checkbox + responsive grouping**;
+- Repair Round 3 compact checkbox + responsive grouping: **COMPLETE / AUTOMATION GREEN**;
+- next implementation family: **T5 spell-source/bootstrap/source-context compatibility**;
 - no new repaired physical-QA candidate has been frozen yet;
 - Phase 4A owner closure: **NOT COMPLETE**;
 - DM implementation: **BLOCKED UNTIL EXPLICIT PHASE 4A OWNER CLOSURE**.
@@ -85,7 +86,7 @@ The exact physical discovery baseline remains:
 - ZIP SHA-256 `0c2ee37cac5be74e8a63e2e636147dbf890448ecad0d45f240e03a6c65a1a3c7`;
 - APK SHA-256 `5f28785d02cf663a5a3626b2ce328f48eb0cd2de74946b1403cdb5afc0dfbcce`.
 
-This candidate is immutable evidence. Repair Rounds 1–2 exist on later commits and are **not yet a frozen physical-QA candidate**.
+This candidate is immutable evidence. Repair Rounds 1–3 exist on later commits and are **not yet a frozen physical-QA candidate**.
 
 ## 4. Physical discovery already completed on `preqa.12`
 
@@ -94,10 +95,10 @@ This candidate is immutable evidence. Repair Rounds 1–2 exist on later commits
 The later detailed 23-check phone pass supersedes any earlier broad interpretation that the complete phone gate was closed, while preserving valid individual PASS evidence:
 
 - checks 1–6 PASS;
-- 7–8 OPEN structured-damage defects; Round 1 implementation now complete, targeted physical revalidation pending;
-- 9 PASS + direct sign-toggle refinement; Round 1 implementation complete, targeted physical revalidation pending;
+- 7–8 OPEN structured-damage defects; Round 1 implementation complete / automation green, targeted physical revalidation pending;
+- 9 PASS + direct sign-toggle refinement; Round 1 implementation complete / automation green, targeted physical revalidation pending;
 - 10–16 PASS, with 16 only an optional compact-density refinement;
-- 17.1–17.3 OPEN systemic checkbox/responsive grouping family;
+- 17.1–17.3 OPEN systemic checkbox/responsive grouping family; Round 3 implementation complete / automation green, targeted physical revalidation pending;
 - 18–20 PASS;
 - 21 UNASSESSED;
 - 22 PARTIAL/AMBIGUOUS;
@@ -117,7 +118,7 @@ P17 physical discovery on the exact same `preqa.12` APK is complete:
 8. canonical HP synchronization PASS;
 9. Conjuros portrait FAIL / T5;
 10. Conjuros landscape FAIL / same T5;
-11. representative non-spell editor/IME PASS + reproduction of phone 17.1 checkbox family;
+11. representative non-spell editor/IME PASS + reproduction of phone 17.1 checkbox family; Round 3 implementation complete / automation green, targeted physical revalidation pending;
 12. PC Settings PASS;
 13. Application Settings responsiveness PASS;
 14. Supercompact PASS;
@@ -158,15 +159,46 @@ The existing owner video is the failure baseline and must not be requested again
 
 A PASS in only one-column or only multi-column mode is insufficient to close T1 because the original physical evidence showed the failure family across layout scenarios and the repair changes shared behavior used by both engines.
 
+### Round 3 — compact checkbox + responsive grouping
+
+Product/test HEAD `8455d8015e0bc6f7b4a6f813e56b03c5f9a2915c`.
+
+Authoritative steady-state Scaffold `34793215805` / run `1536` — **SUCCESS**.
+
+Round 3 establishes shared compact/touch-safe checkbox primitives, responsive `FlowRow` grouping, semantic source/prepared pairing and a durable source guard. The source-complete migration removed **19 raw Material Checkbox calls across seven Player files** while leaving `Switch` controls unchanged because the audit did not establish them as defective.
+
+The shared visual checkbox is 24dp with >=48dp interaction envelopes, compact shared label typography/spacing and whole-row toggle semantics where appropriate. Equipment and Conjuros now share lines when controls fit and wrap only when required by width.
+
+The permanent checkbox guard proves:
+
+- zero raw Material Checkbox imports/calls outside the shared primitive;
+- shared primitive touch-size contract remains present;
+- responsive Equipment and Conjuros packing remains present;
+- source/prepared controls remain semantically paired;
+- current and legacy Gestión rest selectors use the shared checkbox primitive.
+
+The temporary migration writer/helper was retired after source conversion. Normal Scaffold remains read-only with the permanent guard.
+
+Phone 17.1–17.3 and the tablet checkbox-family reproduction are **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**. No physical PASS is inferred from CI.
+
 ## 6. Current implementation route
 
-Next is **Round 3 — shared compact checkbox + responsive grouping**, covering phone 17.1–17.3 and the tablet reproduction.
+Next is **T5 — spell-source/bootstrap/source-context compatibility**.
 
-After Round 3, continue the remaining repair families in dependency-aware order:
+T5 repair must preserve the audited compatible model:
 
-- T5 spell-source/bootstrap/source-context compatibility repair;
+- canonical character origins/classes drive source availability, analogously to Rasgos provenance;
+- spellcasting source/profile records remain configuration overlays for source-specific casting ability / save DC / spell attack modifier;
+- preserve compatible existing IDs, spell associations, persistence/import/export and existing saved characters;
+- retain manual/homebrew `Other` source behavior;
+- cover new and existing characters, including canonical Mago/Mage bootstrap;
+- do not expand the repair into a broad spell-legality/subclass rules engine;
+- after repair, targeted Conjuros physical revalidation includes add/save/reopen and tablet portrait/landscape sticky/source-context behavior previously blocked by T5.
+
+After T5, continue the remaining repair families in dependency-aware order:
+
 - T6 class-editor numeric/die controls;
-- T3 adaptive Portrait/Landscape card-distribution semantics + T4 symmetric text scale + T9 explicit haptics `None`;
+- T3 adaptive Portrait/Landscape card-distribution semantics + **T4 text-size** symmetric around 100 + T9 explicit haptics `None`; spacing density is already symmetric and is not a T4 repair target;
 - T7 wide Combat adaptive composition;
 - T8 Table Mode structural-affordance enforcement;
 - remaining T2 die-result silhouettes, Custom Throw parity and Dice-tab display-mode ownership;
