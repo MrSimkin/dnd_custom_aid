@@ -20,7 +20,8 @@ Current position:
 - T5 spell-source/bootstrap/source-context: **COMPLETE / AUTOMATION GREEN**;
 - T6 class-editor numeric/hit-die controls: **COMPLETE / AUTOMATION GREEN**;
 - Application Settings T3/T4/T9: **COMPLETE / AUTOMATION GREEN**;
-- next implementation family: **T7 wide Combat adaptive composition**;
+- T7 wide Combat adaptive composition: **COMPLETE / AUTOMATION GREEN**;
+- next implementation family: **T8 Table Mode structural-affordance enforcement**;
 - no new repaired physical-QA candidate has been frozen yet;
 - Phase 4A owner closure: **NOT COMPLETE**;
 - DM implementation: **BLOCKED UNTIL EXPLICIT PHASE 4A OWNER CLOSURE**.
@@ -88,14 +89,14 @@ Later repair commits are not yet a frozen physical candidate.
 ### Tablet P17
 
 - 1–6 PASS;
-- 7 FAIL / T7;
+- 7 FAIL / T7 → T7 implemented/green, targeted revalidation pending;
 - 8 PASS;
 - 9–10 FAIL / T5 → T5 implemented/green, targeted revalidation pending;
 - 11 PASS plus checkbox-family reproduction → Round 3 implemented/green, targeted revalidation pending;
 - 12–14 PASS;
 - 15 FAIL / T8;
 - 16–17 PASS;
-- 18 was BLOCKED BY T5; T5 is now repaired, so this is future targeted physical revalidation.
+- 18 was BLOCKED BY T5; T5 is repaired, so this is future targeted physical revalidation.
 
 No further broad discovery pass is required on preqa.12.
 
@@ -141,13 +142,7 @@ Future physical coverage: numeric keyboard behavior for Nivel/DG, catalog die pr
 
 Product commit `1dcd320417e7e3b45ec02ec6aa7cbb616c84e473`; steady-state HEAD `5db7bc3a48f1e640fc80770dd07d68a7ffaa02f7`; authoritative Scaffold `34796452617` / #1583 — **SUCCESS**.
 
-This family implements:
-
-- T3 adaptive `Vertical` / `Horizontal` card-density preferences with `Cómodo / Equilibrado / Compacto / Denso`, runtime width/text/spacing safety and compatibility migration from the four legacy exact-count keys;
-- T4 symmetric normal text-size scale `50..150` by 10 around 100, with nearest-value migration;
-- T9 explicit haptics `Ninguna`, enforced at the shared dispatch point before both vibrator and fallback platform haptic paths;
-- permanent `check_player_application_settings_semantics.py` guard;
-- removal of the temporary migration and diagnostic helpers before the authoritative run.
+This family implements adaptive `Vertical` / `Horizontal` card-density preferences, symmetric normal text-size `50..150` around 100, compatible migration from legacy values and explicit haptics `Ninguna` enforced at the real dispatch point. Permanent `check_player_application_settings_semantics.py` remains in normal Scaffold.
 
 Artifact `10329772684`, size `13,644,492` bytes, digest `sha256:74249a197c21572743165927c9330f38ceafd2db7f78267872f36e2edfd2f1af`.
 
@@ -155,28 +150,59 @@ T3/T4/T9 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PEN
 
 Future physical coverage: persistence/understandability of Vertical/Horizontal density choices; safe column reduction under text pressure; symmetric text-size behavior and representative migrated value; `Ninguna` versus non-none haptic behavior; and preservation of an existing non-none installation after upgrade.
 
-## 6. Current implementation route — T7 wide Combat
+### T7 — wide Combat adaptive composition
 
-The active audited path is `CharacterCombatSuccessorV4.kt`. The current one-dimensional `LazyColumn` composition stretches each attack/action card to full width in tablet landscape.
+Product commit `5f00bc006a26600a5d03582fbfbdf2e266259673`; steady-state HEAD `e567750a529238a2b45722b6f5ed726dd9123d88`; authoritative Scaffold `34797403737` / #1592 — **SUCCESS**.
 
-T7 contract:
+T7 implements:
 
-- preserve the existing narrow-phone composition and operational semantics;
-- keep the operational Combat HUD deliberately bounded/compact on wide layouts;
-- use an adaptive multi-column/card composition for wide/tablet layouts, driven by the repaired T3 responsive preference/runtime calculation rather than a hard-coded promised count;
-- reuse the stabilized Round 2 spatial reorder foundation for multi-column reorder;
-- preserve structural edit, favorite, delete, persisted ordering and operational controls;
-- add focused T7 guard/tests and pass the normal read-only Scaffold before marking T7 automation green.
+- preserved narrow-phone `LazyColumn` + one-dimensional reorder path;
+- bounded wide/tablet operational Combat HUD (`840.dp` maximum width);
+- T3-driven adaptive attack/action columns with Combat safe maximum 3;
+- wide `CharacterSpatialGridV4` composition rather than stretched full-width cards;
+- stabilized spatial reorder/auto-scroll from Round 2;
+- one shared canonical persisted-order commit path for narrow and wide;
+- suppression of card body/favorite/Edit/Delete interactions during active spatial drag;
+- permanent `check_player_wide_combat.py` guard;
+- no storage/schema/import/export redesign.
 
-T7 is not physically PASS until the future consolidated candidate receives targeted tablet-landscape revalidation.
+Writable validation Scaffold `34797216805` / #1590 passed migration, all guards, full builds, APK upload and verified product commit. The migration writer was then removed and normal Scaffold restored read-only before the authoritative run.
+
+Authoritative run #1592 passed backend, every permanent Player guard including T7, shared tests, Android/Desktop builds and APK upload.
+
+Artifact `10330505672`, size `13,651,587` bytes, digest `sha256:582d455aea9dad0f0898fa43368d6bd69e6ed8994914522008ada85abe46c4c9`.
+
+T7 = **IMPLEMENTED / AUTOMATION GREEN / TARGETED PHYSICAL REVALIDATION PENDING**.
+
+Future physical coverage: tablet-landscape Combat width use, bounded HUD, adaptive card packing under representative density/text settings, multi-column reorder stability/auto-scroll, final persisted order after leave/reopen, normal favorite/Edit/Delete behavior, no accidental child action during drag, plus one narrow-phone Combat sanity check. Do not replay the full tablet/phone suites.
+
+## 6. Current implementation route — T8 Table Mode
+
+The shared `CharacterTableModePolicy` already defines the intended product behavior:
+
+- structural character/configuration editing is disallowed in Table Mode;
+- operational/session interactions remain enabled.
+
+The physical defect is affordance leakage: structural Edit/Add/Delete/reorder controls can still be visible/openable even when the structural persistence boundary correctly rejects their changes.
+
+T8 contract:
+
+- audit each major Player tab boundary for correct `structuralEditingEnabled` propagation and honoring;
+- hide or clearly disable structural Edit/Add/Delete/reorder affordances while Table Mode is active;
+- present structural values as visible read-only content where appropriate rather than opening no-op editors;
+- keep genuine operational/session controls enabled, including HP and allowed current/spent resource state;
+- preserve existing shared merge/policy semantics;
+- extend shared policy tests and add focused UI/source guards around structural-affordance visibility/enabled state;
+- pass the normal read-only Scaffold before marking T8 automation green.
+
+T8 is an implementation/affordance repair, not a product-design choice.
 
 ## 7. Remaining repair order
 
-After T7:
+After T8:
 
-1. T8 Table Mode structural-affordance enforcement;
-2. remaining T2 die-result silhouettes + Custom Throw die/custom sides/signed modifier + Dice-tab display-mode ownership;
-3. optional phone-16 compact-density refinement only if safe and materially beneficial.
+1. remaining T2 die-result silhouettes + Custom Throw die/custom sides/signed modifier + Dice-tab display-mode ownership;
+2. optional phone-16 compact-density refinement only if safe and materially beneficial.
 
 After material consolidated repair completion:
 
