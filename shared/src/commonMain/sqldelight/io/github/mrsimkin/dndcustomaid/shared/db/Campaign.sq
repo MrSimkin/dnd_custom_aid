@@ -12,6 +12,11 @@ insertCampaign:
 INSERT INTO campaign(id, name)
 VALUES (?, ?);
 
+updateCampaignName:
+UPDATE campaign
+SET name = ?
+WHERE id = ?;
+
 selectAllCampaigns:
 SELECT id, name
 FROM campaign
