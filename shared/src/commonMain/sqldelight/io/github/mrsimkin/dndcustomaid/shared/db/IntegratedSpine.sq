@@ -26,8 +26,8 @@ CREATE TABLE object_sync_state (
     PRIMARY KEY(object_type, object_id)
 );
 
-insertAccountIfAbsent:
-INSERT OR IGNORE INTO app_account(id, external_subject, display_name)
+insertAccount:
+INSERT INTO app_account(id, external_subject, display_name)
 VALUES (?, ?, ?);
 
 updateAccount:
