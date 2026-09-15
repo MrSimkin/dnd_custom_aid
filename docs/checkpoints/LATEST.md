@@ -6,20 +6,22 @@
 **Player code authority:** `implementation/phase4a-successor-cycle` until planned convergence is executed  
 **Observed Player branch HEAD:** `b9dea8ad6b17dcf3feeabba263eff1ee498f1536`  
 **Frozen Player candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`  
-**Current decisions:** D-0071 + D-0072 + D-0073  
-**Technical readiness:** COMPLETE  
-**Implementation authorization:** PENDING — no product-code/convergence work authorized by this documentation review alone
+**Current decisions:** D-0071 + D-0072 + D-0073 + D-0074  
+**Technical readiness:** COMPLETE, including post-review PDF-export alignment  
+**Implementation authorization:** PENDING — no product-code/convergence work authorized by this documentation pass
 
 ## Read first
 
-1. `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` — current technical readiness, recommendations, risks and next owner action;
-2. `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md` — exact MVP boundary, implementation governance and Git convergence;
-3. `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md` — closed Desktop product/Manager definition;
-4. `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md` — controlling integrated architecture;
-5. `docs/PROJECT_STATE.md` — global state and execution rules;
-6. `docs/BRANCH_STATUS.md` — branch roles and planned transition;
-7. D-0068 / D-0069 / D-0070 — live Workspace/Desk family and shared rules-question direction;
-8. for exact Player code/QA before convergence, switch to `implementation/phase4a-successor-cycle` and read that branch's `docs/checkpoints/LATEST.md`.
+1. `docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md` — latest product closure and post-readiness alignment;
+2. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md` — exact cross-surface PC Sheet PDF-export contract;
+3. `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` — technical readiness, recommendations and risks;
+4. `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md` — exact MVP boundary, implementation governance and Git convergence;
+5. `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md` — closed Desktop product/Manager definition;
+6. `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md` — controlling integrated architecture;
+7. `docs/PROJECT_STATE.md` — global state and execution rules;
+8. `docs/BRANCH_STATUS.md` — branch roles and planned transition;
+9. D-0068 / D-0069 / D-0070 — live Workspace/Desk family and shared rules-question direction;
+10. for exact Player code/QA before convergence, switch to `implementation/phase4a-successor-cycle` and read that branch's `docs/checkpoints/LATEST.md`.
 
 ## Current branch topology
 
@@ -83,9 +85,28 @@ The next cycle remains the substantial real integrated MVP:
 Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
-Do not silently trim approved Desktop live parity, combat handoff/resume, Managers, structured homebrew/import/export, object storage/media, PC audit, Campaign/System Admin, backup/export or official-SRD clarification.
+Do not silently trim approved Desktop live parity, combat handoff/resume, Managers, structured homebrew/import/export, object storage/media, PC audit, Campaign/System Admin, backup/export, official-SRD clarification **or PC Sheet PDF export**.
 
 Generalized VTT/realtime/ACL/sync/event-sourcing/marketplace/homebrew-AI/etc. directions remain outside MVP unless concrete evidence shows one is the simplest safe way to satisfy an approved requirement.
+
+### D-0074 — PC Sheet PDF export — CLOSED
+
+The post-readiness product gap is now closed.
+
+Protected behavior includes:
+
+- Player Android + DM Android/tablet + DM Desktop export surfaces;
+- Classic D&D-style, Custom v1, Custom v2-per-Attribute and Custom v2-per-Ability visual families;
+- mandatory custom-Attribute/custom-Ability completeness;
+- Extended Page, App Modified Sheet, and Modified Sheet + complete Extended Page custom-stat modes;
+- design-specific Extended-page families;
+- portrait Crop/Fit choice;
+- Permanent vs Current Snapshot;
+- local/offline static PDF generation, Save/Share only;
+- preserved writable blank space, readability floor and visible overflow cues;
+- optional complete Spellbook appendix.
+
+The two existing custom PDFs under `assets/character-sheets/templates/` remain the authoritative v1/v2 visual references.
 
 ## Implementation planning state
 
@@ -112,7 +133,7 @@ The review confirmed:
 - Desktop is a placeholder shell;
 - the mature technical asset to protect is the Player/shared Kotlin + SQLDelight implementation;
 - branch divergence is technically reconcilable under D-0073;
-- stale mandatory governance/navigation instructions were found and repaired by this documentation pass;
+- stale mandatory governance/navigation instructions were found and repaired by the readiness pass;
 - existing versioned Player backup serialization is a strong basis for hosted PC snapshots;
 - Ktor Client is the preferred shared native networking layer;
 - Neon serverless driver is the preferred initial Worker->PostgreSQL path;
@@ -120,19 +141,19 @@ The review confirmed:
 - Cloudflare R2 Standard is the preferred first object-storage provider, pending owner/service activation;
 - no unresolved low-level technical question currently requires owner choice.
 
-See the technical-readiness checkpoint for detail.
+The PDF-export closure does not invalidate these findings. Its additional technical alignment is bounded: use one canonical PC/export snapshot and shared export semantics across clients, with platform PDF rendering capable of faithful template overlay plus generated Modified/Extended/Spellbook pages. Exact renderer/library/layout mechanics remain delegated.
 
 ## Owner-vs-technical rule
 
 The owner decides product behavior/workflow, visibility/privacy, MVP/later scope, user-facing destructive/safety behavior and meaningful cost/security/convenience tradeoffs.
 
-Technical agents decide routine schema/API/class/migration/sync/serialization/test/package details and document them.
+Technical agents decide routine schema/API/class/migration/sync/serialization/test/package/rendering details and document them.
 
 Do not ask the owner to rubber-stamp implementation minutiae. Escalate only when a technical choice materially changes product behavior, security/privacy, cost, irreversible lock-in or approved scope.
 
 ## Exact next action — OWNER INTERVENTION REQUIRED
 
-The technical review is complete. The architecture is coherent enough to begin implementation.
+The product definition and technical readiness are now coherent enough to begin implementation, including the newly closed PDF-export capability.
 
 The next meaningful owner action is a single project-level decision:
 
@@ -141,7 +162,7 @@ The next meaningful owner action is a single project-level decision:
 Until that authorization is explicit:
 
 - do not create/execute the product-code convergence;
-- do not begin hosted/DM feature implementation;
+- do not begin hosted/DM/PDF feature implementation;
 - documentation/readiness corrections are allowed.
 
 After authorization:
@@ -150,6 +171,7 @@ After authorization:
 2. execute and validate the dedicated convergence branch;
 3. merge the coherent baseline to `main`;
 4. proceed through delegated technical implementation packages without owner rubber-stamping;
-5. return to the owner only for material product/scope/security/cost decisions, required external account/service actions, or manual/physical QA gates.
+5. place PC Sheet PDF export after the shared PC/domain state is coherent enough for one canonical export snapshot, then expose the same semantics on all approved surfaces;
+6. return to the owner only for material product/scope/security/cost decisions, required external account/service actions, or manual/physical QA gates.
 
 A likely early external owner action after implementation begins is enabling Cloudflare R2 if it is not already enabled, plus securely configuring required Cloudflare/Neon/Descope project secrets. Those are account/service actions, not engineering-design approvals.

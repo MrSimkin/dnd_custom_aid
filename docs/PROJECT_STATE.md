@@ -5,9 +5,9 @@
 **Authoritative Player implementation branch before convergence:** `implementation/phase4a-successor-cycle`  
 **Observed Player branch HEAD:** `b9dea8ad6b17dcf3feeabba263eff1ee498f1536`  
 **Frozen Player candidate:** `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`  
-**Current global design state:** D-0071/D-0072/D-0073 closed  
-**Technical readiness:** COMPLETE  
-**Implementation authorization:** PENDING — no product-code/convergence work authorized by the review itself
+**Current global design state:** D-0071/D-0072/D-0073/D-0074 closed  
+**Technical readiness:** COMPLETE, including PDF-export post-review alignment  
+**Implementation authorization:** PENDING — no product-code/convergence work authorized by the review/documentation closures themselves
 
 ## 1. Current authority/topology
 
@@ -62,6 +62,14 @@ Closes the exact MVP/post-MVP boundary, dependency-driven implementation strateg
 
 Routine low-level engineering is delegated to technical agents. The owner is not to be used as a rubber stamp for schema/API/migration/sync/test minutiae.
 
+### D-0074 — PC Sheet PDF export product definition
+
+Closes the PDF-export product gap discovered after technical readiness and before coding authorization.
+
+It protects one cross-surface PC Sheet export capability on Player Android, DM Android/tablet and DM Desktop, with Classic/v1/v2 visual choices, custom-stat completeness, design-specific Extended pages, portrait handling, Permanent vs Current Snapshot, offline/static Save/Share behavior and optional complete Spellbook output.
+
+D-0074 expands D-0040 and supersedes its narrower overlay/layout assumptions where App Modified/Extended behavior requires generated geometry. Exact renderer/library mechanics remain delegated engineering decisions.
+
 ## 4. Approved Desktop Prepare/Manage scope
 
 ### Monster Manager
@@ -86,7 +94,9 @@ Personal reusable encounters, campaign copies, expected/reserve/conditional part
 
 ### PC Manager/Audit
 
-Complete authorized PC inspection, grouped audit/history, compensating corrections, owner/controller administration, freeze/lifecycle, duplication and approved PDF export concepts. Not a Desktop Player character builder.
+Complete authorized PC inspection, grouped audit/history, compensating corrections, owner/controller administration, freeze/lifecycle, duplication and the D-0074 PC Sheet PDF export capability. It is not a Desktop Player character builder.
+
+The DM-facing export generates the same Player-facing PC Sheet for recovery/reprint/share purposes rather than adding audit/admin metadata to the sheet.
 
 ### Media & Handouts
 
@@ -110,15 +120,21 @@ The next cycle targets:
 Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
-In-scope items must not be silently demoted merely to make the MVP appear finished sooner: Player hosted integration, full DM live Android/Desktop capability, combat authority resume, all approved Managers, structured homebrew/import/export, object storage/media, PC audit, Campaign/System Admin, audit/recovery/backup and official-SRD clarification.
+In-scope items must not be silently demoted merely to make the MVP appear finished sooner: Player hosted integration, full DM live Android/Desktop capability, combat authority resume, all approved Managers, structured homebrew/import/export, object storage/media, PC audit, **PC Sheet PDF export**, Campaign/System Admin, audit/recovery/backup and official-SRD clarification.
+
+PC Sheet PDF export is not a cosmetic report: it supports the paper-first recovery path where the DM/app can regenerate and share a Player's sheet if the physical copy is unavailable or lost.
 
 Explicitly deferred/generalized unless evidence requires otherwise: full VTT, comprehensive automatic character/legality engine, simultaneous authoritative co-DM combat, generic realtime/WebSockets requirement, Durable Objects/queues by default, generic ACL/sync platforms, executable homebrew engine, homebrew-aware AI, public marketplace/community, every external import format, polished one-click catastrophic restore, exhaustive event sourcing, enterprise observability and generic RPG framework.
 
 ## 7. Technical-readiness findings
 
-Current checkpoint:
+Current readiness checkpoint:
 
 `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`
+
+Latest product-alignment checkpoint:
+
+`docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md`
 
 Key findings:
 
@@ -130,7 +146,8 @@ Key findings:
 - the successor's versioned Player backup serialization is a strong basis for hosted current-PC snapshots;
 - do not mirror the entire local SQLDelight character graph into hosted PostgreSQL merely for symmetry;
 - preserve current local migrations and Player CI guards during convergence;
-- stale mandatory entry/governance documents found during review are repaired by the technical-readiness documentation pass.
+- stale mandatory entry/governance documents found during review were repaired by the technical-readiness documentation pass;
+- the later D-0074 PDF closure does not invalidate readiness and does not introduce an owner-level technical blocker.
 
 ## 8. Delegated technical direction
 
@@ -147,7 +164,10 @@ Current preferred technical implementation choices:
 - Descope native Android authentication, standards-based Desktop OIDC/native flow and server-side token validation;
 - Cloudflare **R2 Standard** as the preferred first object-storage provider, pending owner/service activation;
 - versioned application-owned JSON document family for canonical imports/exports;
-- versioned on-demand full backup archive with manifest and integrity information, no queue infrastructure by default.
+- versioned on-demand full backup archive with manifest and integrity information, no queue infrastructure by default;
+- one canonical PC/export snapshot plus shared PDF-export semantics/render planning across Player Android, DM Android and Desktop, with platform rendering capable of static-template overlay and generated Modified/Extended/Spellbook pages.
+
+The exact PDF library, coordinates, font handling, pagination/readability thresholds and renderer decomposition are technical responsibilities under D-0073/D-0074.
 
 These are technical recommendations/delegated engineering choices, not new owner product decisions unless later evidence creates a material cost/security/product consequence.
 
@@ -164,6 +184,10 @@ Deliberately reconcile `main` and the Player successor through a dedicated conve
 ### 8C — first shared-spine direction — CLOSED / delegated
 
 The first foundation covers identity, campaigns/membership/role, PC owner/controller, stable IDs, revisions, tombstones, scope and copy provenance. Exact schema/classes/API/migrations/tests are technical responsibilities.
+
+### PDF-export placement — delegated
+
+Do not build three unrelated exporters. After the shared PC/domain state is coherent enough to produce one canonical export snapshot, implement the shared export semantics and then expose them on Player Android, DM Android/tablet and Desktop. Exact package/wave splitting is a technical decision.
 
 ## 10. Owner-vs-technical responsibility
 
@@ -183,6 +207,7 @@ Delegated technical decisions:
 - migration mechanics;
 - internal sync structures;
 - canonical serialization;
+- PDF rendering/library/layout algorithms within D-0074;
 - testing architecture;
 - technical package/branch granularity.
 
@@ -190,7 +215,7 @@ Escalate only when a technical choice materially changes product behavior, secur
 
 ## 11. Exact continuation — owner authorization gate
 
-Technical readiness is complete. No unresolved low-level engineering question currently requires owner choice.
+Product definition and technical readiness are complete, including the reopened-and-closed PC Sheet PDF-export definition. No unresolved low-level engineering question currently requires owner choice.
 
 The next genuine owner intervention is:
 
@@ -200,7 +225,7 @@ Until explicit authorization:
 
 - documentation/readiness corrections are allowed;
 - do not execute the product-code convergence;
-- do not begin hosted/DM implementation.
+- do not begin hosted/DM/PDF implementation.
 
 After authorization:
 
@@ -208,7 +233,8 @@ After authorization:
 2. execute/validate the dedicated convergence branch;
 3. merge coherent baseline to `main`;
 4. proceed with delegated technical packages;
-5. return to the owner only for material product/scope/security/cost decisions, required external account/service setup, or physical/manual acceptance gates.
+5. include D-0074's PDF-export capability in the integrated work rather than demoting it to post-MVP;
+6. return to the owner only for material product/scope/security/cost decisions, required external account/service setup, or physical/manual acceptance gates.
 
 A likely early external action is enabling R2 if needed and securely configuring Cloudflare/Neon/Descope project secrets; this is an account/service task, not a request to decide technical schema/API design.
 

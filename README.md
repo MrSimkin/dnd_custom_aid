@@ -27,7 +27,9 @@ Current controlling records:
 - `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md`;
 - `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`;
 - `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`;
-- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`.
+- `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`;
+- `docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md`.
 
 ## Current repository authority
 
@@ -67,8 +69,9 @@ C-0009 remains controlling: use the simplest safe implementation that satisfies 
 - Ordinary HTTP/request-response and polling remain preferred before generalized realtime infrastructure.
 - Full verifiable server backup/export is part of the MVP.
 - Official SRD clarification remains PostgreSQL full-text retrieval + grounded replaceable LLM, implemented late in the MVP cycle after foundations are real.
+- PC Sheet PDF export is local/offline and cross-surface: Player Android, DM Android/tablet and DM Desktop share one canonical export semantics/render-plan direction under D-0074.
 
-See `docs/ARCHITECTURE.md`, D-0071 and the technical-readiness checkpoint for full detail.
+See `docs/ARCHITECTURE.md`, D-0071/D-0074 and the technical-readiness/PDF-closure checkpoints for full detail.
 
 ## Current Player reality
 
@@ -116,7 +119,9 @@ The Desktop App is both:
 
 Desktop Prepare/Manage includes Monsters, NPCs, Homebrew & Rules, Stage/Places, Dungeon/Zones, Encounters, PCs/Audit and Media/Handouts. Administration includes Campaign Manager plus the sole-admin System Administration/operator console.
 
-See D-0072 for the full product definition.
+PC Sheet PDF export is explicitly protected in the integrated MVP. The user can generate a static local/offline sheet from Player Android or an authorized DM surface, choosing the D-0074 visual family/state/custom-stat/portrait options, with matching Extended pages and an optional complete Spellbook appendix.
+
+See D-0072/D-0074 for the detailed product definition.
 
 ## Technical readiness
 
@@ -127,18 +132,20 @@ The 2026-09-14 technical review found:
 - Desktop = basic placeholder shell;
 - the substantial existing technical asset is the mature Player/shared Kotlin + SQLDelight implementation;
 - Player and `main` are divergent but technically reconcilable under D-0073's semantic precedence;
-- mandatory governance/navigation files had stale pre-D-0073 wording and are being reconciled by the technical-readiness documentation pass;
+- mandatory governance/navigation files had stale pre-D-0073 wording and were reconciled by the technical-readiness documentation pass;
 - the existing versioned Player backup/serialization model is a strong basis for hosted PC snapshots rather than duplicating the entire local SQLDelight graph in PostgreSQL;
 - Ktor Client is the preferred shared Android/Desktop HTTP layer;
 - Neon serverless driver is the preferred initial Worker->PostgreSQL access path;
 - R2 Standard is the preferred first object-storage provider, pending owner/service activation;
 - no unresolved low-level engineering choice currently needs owner approval.
 
+After that review, the owner reopened PC Sheet PDF-export product definition, closed it through D-0074, and the technical baseline was aligned without discovering a new owner-level blocker. The PDF implementation should share canonical export semantics across clients while allowing platform-specific rendering.
+
 ## Current authorization boundary and exact next action
 
-Product design, MVP boundary and technical readiness are complete enough to start implementation **once explicitly authorized**.
+Product design, MVP boundary and technical readiness — including the reopened-and-closed D-0074 PDF-export definition — are complete enough to start implementation **once explicitly authorized**.
 
-No product-code implementation was authorized merely by the technical review.
+No product-code implementation was authorized merely by the technical review or PDF documentation closure.
 
 The next meaningful owner decision is:
 
