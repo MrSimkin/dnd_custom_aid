@@ -1,67 +1,204 @@
 # Hosted provider activation gate — development environment handoff
 
-**Status:** PREPARED / OWNER ACTION REQUIRED BEFORE ACTIVATION  
+**Status:** COMPLETE / VERIFIED  
 **Prepared:** 2026-09-15  
+**Completed:** 2026-09-15  
 **Controlling owner policy:** `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`  
-**Implementation checkpoint:** `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
+**Provider-neutral implementation checkpoint:** `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`  
+**Completion checkpoint:** `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
 
-This document defines the first external-service activation boundary for the integrated MVP. It is a handoff/checklist, not authorization to create accounts, billing commitments or production resources.
+This document originally defined the first external-service activation boundary for the integrated MVP. That boundary has now been crossed successfully for the DEV environment. It remains as the compact activation/operational record; the completion checkpoint contains the detailed evidence.
 
-## 1. Hard budget gate
+## 1. Hard budget gate — satisfied for current DEV activation
 
-The project external-service operating budget is **USD $0** unless the owner explicitly changes it.
+The project external-service operating budget remains **USD $0** unless the owner explicitly changes it.
 
-Do not interpret "free tier" as automatically acceptable. Immediately before activation, verify current official provider information for:
+The first development activation completed without authorizing paid plans, paid add-ons, billing commitments or overage-enabled resources.
 
-- whether a payment method is required;
-- whether free usage can automatically become billable overage;
-- whether quota exhaustion fails, suspends or requires explicit upgrade;
-- relevant compute/request/storage/network/auth-user quotas;
-- region/data-location implications;
-- meaningful vendor lock-in and migration/exit path.
+Current DEV stack:
 
-Prefer a hard stop/suspension/explicit-upgrade gate over any configuration capable of producing an automatic invoice.
+- Cloudflare Workers Free;
+- Neon Free development project;
+- Descope Free development project;
+- Cloudflare Observability within the Free allowance.
 
-Do **not** enable paid plans, paid add-ons, billing commitments or overage-enabled resources without explicit owner approval.
+This does not pre-authorize future paid services. Any new provider/resource must still be checked against D-0075 immediately before activation.
 
-## 2. Revalidated first development providers
+## 2. Activated development providers
 
-The September 2026 full-product review retained the original first hosted-development direction:
+The real DEV path is now:
 
-1. **Cloudflare Workers** — development Worker/API runtime; KEEP, conditional on an early representative free-tier CPU/runtime proof;
-2. **Neon PostgreSQL** — development relational database; KEEP;
-3. **Descope** — development authentication/identity; KEEP, conditional on current Free-plan payment-method/region confirmation.
+```text
+Android / Desktop
+      |
+      v
+Cloudflare Worker/API <---- Descope identity proof
+      |
+      v
+Neon PostgreSQL
+```
 
-Workers AI remains the approved later SRD clarification provider while its relevant path remains safely usable at `$0`.
+Current resources:
 
-Object storage is deliberately **not selected/activated here**. R2 remains only a candidate and must receive a separate zero-spend review when Media/Handouts/assets reach implementation.
+### Neon
 
-## 3. Already ready before activation
+- project: `dnd-custom-aid-dev`;
+- project ID: `holy-meadow-19010740`;
+- region: `aws-sa-east-1`;
+- database: `dnd-custom-aid-dev`;
+- PostgreSQL 17.
+
+### Descope
+
+- project: `dnd-custom-aid-dev`;
+- project ID: `P3JNKAUazZAxRXF4uM7nKzaAiy7Y`;
+- DEV base URL: `https://api.descope.com`;
+- public discovery: `https://api.descope.com/P3JNKAUazZAxRXF4uM7nKzaAiy7Y/.well-known/openid-configuration`;
+- public JWKS: `https://api.descope.com/P3JNKAUazZAxRXF4uM7nKzaAiy7Y/.well-known/jwks.json`.
+
+### Cloudflare
+
+- Worker: `dnd-custom-aid-api`;
+- DEV URL: `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`;
+- health: `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/health`.
+
+Object storage remains deliberately unactivated. R2 is still only a candidate for later Media/Handouts work and must receive a fresh `$0` review at that time.
+
+## 3. Existing provider-neutral foundation remains authoritative
 
 Repository code already provides:
 
 - Worker `/v1` request/auth/domain handling;
 - application-owned authorization;
-- provider-neutral token-verifier seam and local-only static auth mode;
-- Descope/JWKS verifier path;
-- explicit PostgreSQL migrations/contracts and PostgreSQL CI tests;
+- Descope/JWKS verification path;
+- explicit PostgreSQL migrations/contracts;
 - campaign/membership lifecycle contracts;
 - hosted PC snapshot contracts and authorization;
 - shared Ktor hosted client;
 - `HostedAccessTokenProvider` seam;
-- local-first durable outbox, idempotency and retry classification;
-- campaign reconciliation and PC snapshot reconciliation/conflict rules.
+- durable local hosted outbox;
+- idempotency/retry classification;
+- campaign reconciliation;
+- PC snapshot reconciliation/conflict handling.
 
-Do not duplicate or replace these systems merely to postpone external activation.
+Do not duplicate or replace these systems merely because the providers are now real.
 
-## 4. Owner guidance contract during setup
+## 4. Current Worker configuration contract
 
-The owner is technically oriented and capable of substantial hands-on work, but is not a professional developer. Setup instructions must teach while guiding.
+The current deployed `backend/src/index.ts` contract is:
 
-For each provider/action, explain:
+- `DATABASE_URL` — required, **secret**;
+- `DESCOPE_PROJECT_ID` — required, non-secret identifier currently stored via Worker secret configuration for operational simplicity;
+- `DESCOPE_BASE_URL` — optional; current DEV deployment omits it because code defaults to `https://api.descope.com`.
+
+Older pre-activation text referencing `APP_ENV`, `AUTH_MODE` or `DESCOPE_JWKS_URL` as required deployed bindings is superseded by the actual current code.
+
+Native Android/Desktop clients must never receive `DATABASE_URL` or other database credentials.
+
+## 5. Secret handling
+
+Never commit or place in durable public documentation:
+
+- database passwords/connection credentials;
+- access/refresh/session tokens;
+- OTP values;
+- private keys;
+- provider API/admin/deployment tokens.
+
+Use provider/runtime secret storage or ignored local configuration.
+
+The repository is intentionally public under D-0075. Public visibility is expected and does not weaken secret-handling rules.
+
+## 6. Activation verification — completed
+
+Verified against the real DEV environment:
+
+1. Neon migration `database/migrations/0001_integrated_mvp_spine.sql` applied successfully;
+2. hosted PostgreSQL contract tests 0001–0004 passed against real Neon inside a transaction and were rolled back;
+3. real Descope email OTP authentication succeeded;
+4. public Worker `/health` returned HTTP 200;
+5. protected `/v1/me` without auth returned HTTP 401 `UNAUTHENTICATED`;
+6. `/v1/me` with a real Descope session JWT returned HTTP 200;
+7. the authenticated identity resolved/persisted through real Neon;
+8. repeated authenticated `/v1/me` invocations showed about 1 ms Worker CPU per visible request with no observed benchmark errors.
+
+The representative Cloudflare Workers Free CPU/runtime gate therefore **PASSED** for the tested authenticated path.
+
+Future materially heavier routes must still be profiled rather than inheriting this result automatically.
+
+## 7. Local owner workflow
+
+Known owner paths:
+
+- project root: `D:\DnD_Aid`;
+- clone: `D:\DnD_Aid\repo\dnd_custom_aid`;
+- development credential file: `D:\DnD_Aid\dnd_custom_aid_dev_credentials.md`.
+
+The credential file is intentionally outside Git and plaintext by explicit owner decision. Do not read/copy/commit its contents and do not force a vault/password-manager migration unless requested.
+
+Known local tooling during activation:
+
+- Node.js 22.22.2;
+- npm 10.9.7;
+- Neon CLI;
+- Wrangler 4.127.1.
+
+Known Windows caveat: PowerShell `Invoke-RestMethod` and Windows `curl.exe` failed TLS negotiation to the workers.dev endpoint through SChannel, while Node `fetch()` and Vivaldi worked. Treat Node/browser as the known-good local endpoint-test path unless Windows TLS is separately investigated.
+
+## 8. Security residuals after activation
+
+Activation success is not a completed security audit. Carry forward:
+
+- JWT/fail-closed verification review;
+- object-level authorization regression coverage;
+- SQL/query safety;
+- error/log leakage prevention;
+- replay/idempotency authorization;
+- request/API hardening;
+- dependency-audit investigation;
+- least-privilege Neon runtime-role evaluation;
+- production Descope region/configuration review;
+- continued tracked/generated-file secret hygiene.
+
+Known concrete items:
+
+- local backend install reported **3 high severity npm vulnerabilities**; no `npm audit fix --force` was run;
+- the current Worker database credential is associated with the Neon project owner role; a dedicated least-privilege runtime role should be evaluated later.
+
+Do not rotate live credentials or alter live database privileges casually; perform such changes only through a deliberate security-hardening package.
+
+## 9. Next package after activation
+
+The next primary package is now:
+
+**real authenticated Player <-> Server development integration**
+
+Proceed using the existing DEV environment and existing provider-neutral contracts:
 
 ```text
-WHAT this component does
+remembered Android Descope session/token
+        |
+        v
+HostedAccessTokenProvider
+        |
+        v
+hosted campaign bootstrap/create/select
+        |
+        v
+PC snapshot push/pull
+        |
+        v
+second-device + offline/reconnect + revoke validation
+```
+
+Do not repeat provider account creation. Do not activate R2. Do not silently move to a paid Worker plan if later heavier routes exceed Free limits; reassess architecture under D-0075 instead.
+
+## 10. Owner guidance contract remains active
+
+When a future external/provider/manual action is needed, explain:
+
+```text
+WHAT this component/action does
         |
 WHY the project needs it
         |
@@ -72,94 +209,4 @@ WHAT the owner should expect to see
 WHAT must remain secret / when to STOP
 ```
 
-Use real technical terminology, but explain it in plain language. Use small ASCII flows/wireframes when they improve understanding. Do not reduce instructions to unexplained command dumps, and do not push routine engineering design decisions back to the owner.
-
-## 5. Owner-controlled activation sequence
-
-Before asking the owner to create anything, re-check the then-current official provider documentation and confirm D-0075 compliance.
-
-Recommended development/test sequence:
-
-1. Neon development PostgreSQL project/database;
-2. Descope development project/application;
-3. Cloudflare development Worker environment/project.
-
-The ordering is operational convenience, not architecture. Native clients still talk to the Worker/API and must not receive Neon credentials.
-
-If a signup/dashboard unexpectedly requests payment, paid-plan selection, an overage commitment or another material billing/security choice, **stop before accepting it** and return to the owner with a plain-language explanation and alternatives.
-
-## 6. Configuration mapping
-
-The Worker currently expects the established configuration/binding family:
-
-- `APP_ENV` — environment classification;
-- `DATABASE_URL` — Neon PostgreSQL connection string; **secret**;
-- `AUTH_MODE` — hosted auth mode;
-- `DESCOPE_PROJECT_ID` — normally non-secret project identifier, subject to current provider guidance;
-- `DESCOPE_JWKS_URL` — verifier/JWKS endpoint configuration;
-- local static-auth values only for the explicitly local development path.
-
-Inspect current code at activation time in case later work changes configuration names.
-
-## 7. Secret-handling rules
-
-Never commit or place in durable public documentation:
-
-- database passwords/connection credentials;
-- access/refresh/session tokens;
-- private keys;
-- provider API/admin/deployment tokens;
-- local static bearer tokens used for testing.
-
-Use provider/runtime secret stores or ignored local configuration. Native Android/Desktop clients must never receive Neon/database credentials.
-
-The GitHub repository is intentionally **public**. Public visibility is expected, not a discrepancy. Secret hygiene is mandatory precisely regardless of repository visibility.
-
-Any older wording that treats `private: false` as unexpected is superseded by D-0075.
-
-## 8. Early Cloudflare free-tier proof
-
-Before deep owner-facing Android hosted integration, deploy/exercise representative authenticated API requests and verify that normal endpoints fit the then-current Cloudflare Workers Free runtime/CPU limits.
-
-Representative proof should include at least:
-
-- token verification;
-- a normal authenticated account/campaign read;
-- a representative campaign or PC mutation;
-- normal Neon database access.
-
-If the actual workload does not fit the free runtime reliably, do not silently upgrade to a paid Worker plan. Reassess the API host under the `$0` policy.
-
-## 9. First real validation after activation
-
-The activation package is complete only after the development environment proves, in order:
-
-1. Worker health/configuration against the real development environment;
-2. SQL migrations applied and compatible with development Neon;
-3. valid Descope-authenticated request resolves to the application-owned user identity;
-4. representative Worker CPU/runtime behavior is acceptable on the free plan;
-5. campaign list/bootstrap works through the deployed Worker;
-6. local campaign creation survives offline-first persistence and later hosted delivery;
-7. hosted PC snapshot upload/download works through the existing shared sync path;
-8. stale revision and authorization failures remain explicit/non-destructive;
-9. second-device observation and reconnect/convergence are demonstrated before calling Player↔Server end-to-end complete.
-
-## 10. Android auth/session package after activation
-
-The first owner-facing Android hosted package should add remembered authentication/session acquisition at the platform edge and feed access tokens into the existing shared `HostedAccessTokenProvider` contract.
-
-Keep provider-specific Android/session logic outside common domain logic. Do not rewrite the Player runtime or replace shared sync/transport solely because a provider SDK is introduced.
-
-## 11. Stop conditions
-
-Return to the owner before proceeding if activation requires a material choice involving:
-
-- any payment, paid plan, billing commitment or realistic automatic-charge risk;
-- region/data residency with meaningful consequences;
-- account ownership/recovery policy;
-- security/privacy tradeoff;
-- meaningful vendor lock-in;
-- production rather than development resources;
-- destructive/manual action outside ordinary reversible setup.
-
-Routine project naming, migration commands, code wiring and test mechanics remain delegated technical work once the owner-controlled free development resources exist.
+Routine engineering remains delegated and should not be pushed back to the owner for ceremonial approval.

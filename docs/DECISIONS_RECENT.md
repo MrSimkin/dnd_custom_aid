@@ -73,6 +73,8 @@ D-0075 supersedes older wording that merely says to "consider cost" without reco
 
 ## Current exact continuation
 
-Read `docs/checkpoints/LATEST.md`.
+Read `docs/checkpoints/LATEST.md` and the current checkpoint it references.
 
-If no later decision/checkpoint supersedes it, the project is at the owner-controlled free-development-provider activation boundary preceding the first real authenticated Player↔Server integration.
+The first Cloudflare + Neon + Descope DEV activation has been completed and verified. If no later decision/checkpoint supersedes the current state, the next primary implementation package is **real authenticated Player <-> Server development integration** using the already active DEV environment.
+
+Do not repeat provider activation, do not silently enable paid infrastructure, and do not infer that activation success closes later security hardening or physical owner acceptance gates.

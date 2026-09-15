@@ -12,17 +12,18 @@ Read in this order:
 2. `MANIFEST.md` — map of authoritative/project-memory files;
 3. `docs/PROJECT_STATE.md` — global state/navigation;
 4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0` provider/budget rule and owner-guidance contract;
-6. `docs/BRANCH_STATUS.md` — branch lifecycle map;
-7. `docs/DECISIONS_RECENT.md` + relevant detailed decisions;
-8. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`;
-9. relevant checkpoints/feature files.
+5. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — current real hosted DEV environment and verification;
+6. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0` provider/budget rule and owner-guidance contract;
+7. `docs/BRANCH_STATUS.md` — branch lifecycle map;
+8. `docs/DECISIONS_RECENT.md` + relevant detailed decisions;
+9. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`;
+10. relevant checkpoints/feature files.
 
 Reusable lost-chat/fresh-chat recovery prompt:
 
 `docs/recovery/PROJECT_RECOVERY_PROMPT.md`
 
-Current provider activation handoff:
+Hosted-provider activation record:
 
 `docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md`
 
@@ -30,11 +31,13 @@ Current provider activation handoff:
 
 The owner has authorized integrated-MVP implementation. **`main` is the normal integrated-MVP development trunk.** Historical Player/convergence branches remain evidence, not normal resume points.
 
-Current verified implementation checkpoint:
+Provider-neutral implementation checkpoint:
 
 `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
 
-Actions `34985799585` completed SUCCESS across Player guards, shared/Kotlin tests, Android, Desktop, backend, hosted PostgreSQL contracts and APK upload. PR #26 later consolidated the provider boundary; post-merge run `34986965813` was SUCCESS.
+Actions `34985799585` completed SUCCESS across Player guards, shared/Kotlin tests, Android, Desktop, backend, hosted PostgreSQL contracts and APK upload.
+
+The last pre-activation consolidated `main` was `a6bb965cf08a14878150a74d41191023dd70d552`; Actions `34993181692` completed SUCCESS.
 
 ## Working relationship
 
@@ -56,7 +59,7 @@ Do not patronize the owner and do not assume professional-developer fluency.
 
 External-service operating budget is **USD $0** unless the owner explicitly changes it.
 
-A headline free tier is not enough. Before activation, current official provider information must be checked for payment-method requirements, automatic overage/billing behavior, hard quota/failure behavior, region/data-location consequences and migration/lock-in.
+A headline free tier is not enough. Before any new provider/resource activation, current official provider information must be checked for payment-method requirements, automatic overage/billing behavior, hard quota/failure behavior, region/data-location consequences and migration/lock-in.
 
 Prefer free services that fail/suspend/require explicit upgrade when exhausted. Never enable paid plans, paid add-ons, billing commitments or overage-enabled resources without explicit owner approval.
 
@@ -64,9 +67,7 @@ Prefer free services that fail/suspend/require explicit upgrade when exhausted. 
 
 The GitHub repository is intentionally **public**. `private: false` is expected and is not a security discrepancy.
 
-Any older wording that says otherwise is superseded by D-0075.
-
-Never commit database credentials, provider API/admin/deployment tokens, access/refresh/session tokens, private keys or other confidentiality-dependent material. Public repository visibility makes disciplined secret handling especially important, but the same rule would apply even in a private repository.
+Never commit database credentials, provider API/admin/deployment tokens, access/refresh/session tokens, private keys or other confidentiality-dependent material.
 
 ## Approved architecture snapshot
 
@@ -81,7 +82,7 @@ Never commit database credentials, provider API/admin/deployment tokens, access/
 - Project-specific sync: stable IDs, revisions, idempotent mutations, durable outbox, tombstones, scoped pull/push and explicit conflict handling.
 - Hosted PC current state: versioned application-owned JSONB snapshot plus relational authorization/revision/lifecycle metadata.
 - Workers AI remains the approved official-SRD clarification direction while safely usable under the `$0` policy.
-- Object storage is MVP but the provider decision is **deferred** until Media/Handouts/assets reach integration; R2 is a candidate, not an assumption.
+- Object storage is MVP but provider selection remains **deferred** until Media/Handouts/assets reach integration.
 - Full verifiable server backup/export is MVP.
 - PC Sheet PDF export is local/offline and cross-surface with one canonical semantic export path.
 
@@ -91,39 +92,48 @@ Wave 2 — Shared Integrated-MVP Spine — is complete.
 
 Provider-neutral hosted work is integrated through PR #25, including hosted API/database contracts, native hosted transport, provider-neutral token boundary, durable hosted outbox, local-first campaign delivery, membership lifecycle reconciliation, hosted PC current-state snapshot persistence/authorization, optimistic revision/idempotency/conflict/tombstone handling and safe same-identity reconciliation.
 
-## Revalidated provider direction
+The first real DEV provider activation is also **COMPLETE / VERIFIED**:
 
-The completed MVP design was re-reviewed in September 2026 against the hard `$0` constraint rather than simply preserving old provider choices:
+```text
+Neon PostgreSQL      ✅
+Descope identity     ✅
+Cloudflare Worker    ✅
+Real JWT-auth /v1/me ✅
+Real Neon persistence✅
+Workers Free CPU gate✅
+```
 
-- **Cloudflare Workers — KEEP**, conditional on an early representative free-tier CPU/runtime proof;
-- **Neon PostgreSQL — KEEP**;
-- **Descope — KEEP**, conditional on current Free-plan payment-method/region confirmation at activation;
-- **Workers AI — KEEP** while safely usable at `$0`;
-- **object storage — DEFER provider selection**.
+The representative authenticated `/v1/me` path showed about 1 ms Worker CPU per visible invocation with no observed benchmark errors.
+
+See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for exact public provider identifiers, evidence, local caveats and security residuals.
 
 ## Exact current continuation
 
-If no later checkpoint supersedes it, the next meaningful package is **real authenticated Player↔Server development integration**.
+If no later checkpoint supersedes it, the next primary package is **real authenticated Player <-> Server development integration**.
 
-Provider-neutral prerequisites are sufficiently complete. Before owner-facing hosted wiring, owner-controlled free development/test resources are needed for Cloudflare + Neon + Descope. Use current official provider information immediately before setup.
+Provider activation prerequisites are already satisfied. Do not repeat account setup or invent another auth/network/sync stack.
 
-The expected path is:
+Expected path:
 
 ```text
-Android / Desktop
-      |
-      v
-Cloudflare Worker/API <---- Descope identity proof
-      |
-      v
-Neon PostgreSQL
+remembered Android Descope session/token
+        |
+        v
+existing HostedAccessTokenProvider
+        |
+        v
+hosted campaign bootstrap/create/select
+        |
+        v
+PC snapshot push/pull
+        |
+        v
+second-device + offline/reconnect + revoke tests
 ```
 
-Then: remembered Android auth/session -> hosted campaign bootstrap/create/select -> PC snapshot push/pull -> second-device/offline/reconnect/revoke validation.
+Future materially heavier Worker routes should still be profiled. The current CPU PASS applies to the representative authenticated path already tested.
 
-Run an early representative Cloudflare free-tier CPU/runtime proof before deepening client integration. If it does not fit reliably at `$0`, reassess the API host rather than silently moving to paid infrastructure.
-
-R2/object storage is not part of the first activation gate.
+R2/object storage is not part of this next package.
 
 ## Integrated MVP scope
 
