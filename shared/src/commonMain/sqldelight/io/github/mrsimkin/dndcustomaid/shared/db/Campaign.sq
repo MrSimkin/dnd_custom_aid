@@ -12,11 +12,10 @@ insertCampaign:
 INSERT INTO campaign(id, name)
 VALUES (?, ?);
 
-upsertCampaign:
-INSERT INTO campaign(id, name)
-VALUES (?, ?)
-ON CONFLICT(id) DO UPDATE SET
-    name = excluded.name;
+updateCampaignName:
+UPDATE campaign
+SET name = ?
+WHERE id = ?;
 
 selectAllCampaigns:
 SELECT id, name
