@@ -100,4 +100,6 @@ jobs:
       - name: Apply hosted database migrations
         run: psql -v ON_ERROR_STOP=1 -f database/migrations/0001_integrated_mvp_spine.sql
       - name: Verify hosted database contracts
-        run: psql -v ON_ERROR_STOP=1 -f database/tests/0001_integrated_mvp_spine_contract.sql
+        run: |
+          psql -v ON_ERROR_STOP=1 -f database/tests/0001_integrated_mvp_spine_contract.sql
+          psql -v ON_ERROR_STOP=1 -f database/tests/0002_campaign_membership_lifecycle_contract.sql
