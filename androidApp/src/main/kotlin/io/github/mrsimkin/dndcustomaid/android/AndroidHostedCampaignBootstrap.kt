@@ -30,6 +30,14 @@ internal enum class AndroidHostedMutationState {
     BLOCKED,
 }
 
+internal data class AndroidHostedOutboxStatus(
+    val readyCount: Int,
+    val blockedCount: Int,
+) {
+    val totalCount: Int
+        get() = readyCount + blockedCount
+}
+
 internal data class AndroidQueuedHostedCampaignCreation(
     val campaign: Campaign,
     val mutationId: Uuid,
@@ -98,6 +106,14 @@ internal class AndroidHostedCampaignBootstrapController(
         Descope.sessionManager.session?.refreshToken?.isExpired == false
 
     fun pendingMutationCount(): Int = outbox.allMutations().size
+
+    fun outboxStatus(): AndroidHostedOutboxStatus {
+        val mutations = outbox.allMutations()
+        return AndroidHostedOutboxStatus(
+            readyCount = mutations.count { it.retryState == HostedRetryState.READY },
+            blockedCount = mutations.count { it.retryState == HostedRetryState.BLOCKED },
+        )
+    }
 
     fun mutationState(mutationId: Uuid): AndroidHostedMutationState {
         val mutation = outbox.mutation(mutationId)
