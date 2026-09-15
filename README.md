@@ -10,23 +10,18 @@ Read in this order:
 
 1. `AGENTS.md` — mandatory operating rules;
 2. `MANIFEST.md` — map of authoritative/project-memory files;
-3. `docs/PROJECT_STATE.md` — global state/navigation;
-4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — current Wave 4 checkpoint and exact continuation;
-6. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — real hosted DEV environment/provider evidence;
-7. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0` provider/budget rule and owner-guidance contract;
-8. `docs/BRANCH_STATUS.md` — branch lifecycle map;
-9. `docs/DECISIONS_RECENT.md` + relevant detailed decisions;
-10. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`;
-11. relevant checkpoints/feature files.
+3. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
+4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_HANDOFF.md` — current Wave 4 handoff, physical evidence correction and exact continuation;
+5. `docs/PROJECT_STATE.md` — current global state/navigation;
+6. `docs/BRANCH_STATUS.md` — branch lifecycle map;
+7. `docs/ROADMAP.md` — integrated implementation-wave sequence;
+8. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — real hosted DEV provider/environment evidence when needed;
+9. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0` provider/budget rule and owner-guidance contract;
+10. relevant decisions, architecture/testing/workflow docs and older checkpoints as needed.
 
-Reusable lost-chat/fresh-chat recovery prompt:
+Reusable fresh-chat recovery prompt:
 
 `docs/recovery/PROJECT_RECOVERY_PROMPT.md`
-
-Hosted-provider activation record:
-
-`docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md`
 
 ## Current repository authority
 
@@ -38,27 +33,19 @@ Provider-neutral implementation checkpoint:
 
 Actions `34985799585` completed SUCCESS across Player guards, shared/Kotlin tests, Android, Desktop, backend, hosted PostgreSQL contracts and APK upload.
 
-The Android hosted-session package was integrated through PR #30 at:
+The latest integrated Player <-> hosted batch is PR #34:
 
-`bf5f843066a7c2f8674a4577918156e8a8d2c139`
+`75d5acf354b41185255ff7d1a5eb4a689f300721`
 
-Post-merge Actions `35020281492` / #1898 completed SUCCESS.
+with exact-head Actions `35027987125` / #1939 SUCCESS and post-merge Actions `35028893643` / #1940 SUCCESS.
 
 ## Working relationship
 
 AI/coding agents perform heavy technical execution. The owner decides actual product/workflow/UX/game-semantic/privacy/scope choices, external account/resource activation and meaningful cost/security/convenience/lock-in tradeoffs. Routine engineering must not be pushed back to the owner for ceremonial approval.
 
-The owner is technically oriented and a heavy/power user, understands programming concepts and can perform substantial hands-on work, but is **not a professional software developer**. Owner-facing instructions must therefore teach while guiding:
+The owner is technically oriented and a heavy/power user, understands programming concepts and can perform substantial hands-on work, but is **not a professional software developer**. Owner-facing instructions should explain what/why, use real terminology with plain explanations, give ordered actions and expected results, and clearly mark meaningful security/billing/destructive risks.
 
-- plain-language `what` and `why` first;
-- real technical terminology explained rather than hidden;
-- explicit ordered actions;
-- what to expect to see after important steps;
-- clear secret/billing/security stop conditions;
-- ASCII diagrams, flows or wireframes when they improve understanding;
-- clear separation between owner actions and implementation handled by the technical agent.
-
-Do not patronize the owner and do not assume professional-developer fluency.
+The owner explicitly prefers **batched development/testing**: accumulate several closely related implementation steps behind automated CI, then stop at one natural physical Android gate rather than demanding an APK install after every small change.
 
 ## Hard external-service budget
 
@@ -66,7 +53,7 @@ External-service operating budget is **USD $0** unless the owner explicitly chan
 
 A headline free tier is not enough. Before any new provider/resource activation, current official provider information must be checked for payment-method requirements, automatic overage/billing behavior, hard quota/failure behavior, region/data-location consequences and migration/lock-in.
 
-Prefer free services that fail/suspend/require explicit upgrade when exhausted. Never enable paid plans, paid add-ons, billing commitments or overage-enabled resources without explicit owner approval.
+Never enable paid plans, paid add-ons, billing commitments or overage-enabled resources without explicit owner approval.
 
 ## Repository visibility and security
 
@@ -86,77 +73,60 @@ Never commit database credentials, provider API/admin/deployment tokens, access/
 - Shared native HTTP: Ktor Client.
 - Project-specific sync: stable IDs, revisions, idempotent mutations, durable outbox, tombstones, scoped pull/push and explicit conflict handling.
 - Hosted PC current state: versioned application-owned JSONB snapshot plus relational authorization/revision/lifecycle metadata.
-- Workers AI remains the approved official-SRD clarification direction while safely usable under the `$0` policy.
-- Object storage is MVP but provider selection remains **deferred** until Media/Handouts/assets reach integration.
-- Full verifiable server backup/export is MVP.
-- PC Sheet PDF export is local/offline and cross-surface with one canonical semantic export path.
+- Object storage is MVP but provider selection remains deferred until Media/Handouts/assets reach integration.
+- Workers AI remains later/conditional under the `$0` policy.
+- Full verifiable server backup/export remains MVP.
+- PC Sheet PDF export remains local/offline and cross-surface with one canonical semantic export path.
 
 ## Current implementation state
 
-Wave 2 — Shared Integrated-MVP Spine — is complete.
-
-Provider-neutral hosted work is integrated through PR #25, including hosted API/database contracts, native hosted transport, provider-neutral token boundary, durable hosted outbox, local-first campaign delivery, membership lifecycle reconciliation, hosted PC current-state snapshot persistence/authorization, optimistic revision/idempotency/conflict/tombstone handling and safe same-identity reconciliation.
-
-The first real DEV provider activation is **COMPLETE / VERIFIED**:
+Completed and integrated:
 
 ```text
-Neon PostgreSQL       ✅
-Descope identity      ✅
-Cloudflare Worker     ✅
-Real JWT-auth /v1/me  ✅
-Real Neon persistence ✅
-Workers Free CPU gate ✅
+Shared Integrated-MVP Spine                    ✅
+Provider-neutral hosted foundation             ✅
+Real Neon + Descope + Cloudflare DEV           ✅
+Android remembered hosted session              ✅ owner physical pass
+Ordinary Player hosted campaign bootstrap      ✅ owner physical pass
+Campaign local-first hosted delivery           ✅ owner physical pass
+PC snapshot push/pull + blocked retry recovery ✅ owner physical pass
 ```
 
-The representative authenticated `/v1/me` path showed about 1 ms Worker CPU per visible invocation with no observed benchmark errors.
+A real Android PC snapshot defect was found during the batched PR #34 gate: one durable outbox row became `PC_SNAPSHOT_PUT | BLOCKED | error=VALIDATION_FAILED` because default-valued character-backup `format`/`version` fields could be omitted from the Ktor JSON wire payload. The serializer was repaired, regression coverage added, the **same preserved mutation** retried, and the owner confirmed the outbox became empty.
 
-The first Android hosted-session edge is also **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**:
-
-```text
-Descope Android SDK       ✅
-Remembered session        ✅
-HostedAccessTokenProvider ✅
-Real Android -> Worker    ✅
-Restart/session reuse     ✅
-Logout/session cleared    ✅
-```
-
-The separate `DnD Aid - Hosted DEV Auth` launcher is debug-only verification infrastructure. It is not the final product login UX and the ordinary Player launcher is not yet product-login-gated.
-
-See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` for exact implementation/manual evidence and `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for provider/environment evidence.
+One exact physical observation is intentionally carried forward rather than overclaimed: an unchanged repeat Player sync followed by another empty-outbox diagnostic was requested but not separately reported before consolidation. Include it in the next batched physical gate.
 
 ## Exact current continuation
 
-Wave 4 — Player <-> Server end-to-end — is active.
+Wave 4 — Player <-> Server end-to-end — remains active.
 
-The remembered Android Descope session/token and existing `HostedAccessTokenProvider` integration are complete. The next primary package is:
+The next primary implementation batch is:
 
-**owner-facing hosted account/campaign bootstrap**
-
-Expected path:
+**multi-client PC convergence safety**
 
 ```text
-remembered Android Descope session/token       ✅
-existing HostedAccessTokenProvider             ✅
+current hosted Player path                     ✅
         |
         v
-hosted account/campaign bootstrap              NEXT
+last-synchronized PC baseline knowledge        NEXT
+        +
+second-client observation                      NEXT BATCH
+        +
+offline edit / reconnect safety                NEXT BATCH
+        +
+remote-newer vs local-edit conflict handling   NEXT BATCH
         |
         v
-campaign create/select + durable hosted delivery
-        |
-        v
-PC snapshot push/pull
-        |
-        v
-second-device + offline/reconnect + revoke tests
+membership revoke + Player/DM authorization    FOLLOWING BOUNDARY
 ```
 
-Provider activation prerequisites are already satisfied. Do not repeat account setup or invent another auth/network/sync stack.
+Key correctness rule:
 
-Future materially heavier Worker routes should still be profiled. The current CPU PASS applies to the representative authenticated path already tested.
+> A server-newer PC revision must not silently overwrite an unsent local edit on another client.
 
-R2/object storage is not part of this next package.
+Do not restart provider activation, Android session acquisition, campaign bootstrap or first campaign/PC delivery. Do not invent another auth/network/sync stack.
+
+The debug-only `DnD Aid - Hosted DEV Auth` launcher remains verification infrastructure, not final product login UX.
 
 ## Integrated MVP scope
 
