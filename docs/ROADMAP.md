@@ -14,11 +14,11 @@ The DM Desktop/Manager scope, exact MVP boundary, implementation governance and 
 
 ## Phase 2 — Technical Foundation
 
-**Status:** Architecture/readiness complete; implementation authorized; baseline convergence validated.
+**Status:** Architecture/readiness complete; implementation authorized; integrated trunk established.
 
 Approved foundation remains Kotlin/Compose Android, Kotlin + Compose Multiplatform Desktop, SQLDelight/SQLite local persistence, TypeScript Cloudflare Worker/API, Neon PostgreSQL and Descope authentication.
 
-Preferred delegated technical direction remains Ktor Client, versioned HTTP/JSON API, optimistic revisions + mutation IDs, project-specific SQLDelight outbox/push-pull sync, Neon serverless driver, explicit SQL migrations, hosted PC JSONB snapshots plus relational auth/index metadata, versioned app-owned import/export, on-demand versioned backups and one canonical PC/export snapshot for cross-surface PDF generation.
+Preferred delegated technical direction remains Ktor Client, versioned HTTP/JSON API, optimistic revisions + mutation IDs, project-specific SQLDelight outbox/push-pull sync, explicit SQL migrations, hosted PC JSONB snapshots plus relational auth/index metadata, versioned app-owned import/export, on-demand versioned backups and one canonical PC/export snapshot for cross-surface PDF generation.
 
 Cloudflare R2 Standard remains the current object-storage recommendation but has not been activated.
 
@@ -28,7 +28,7 @@ Cloudflare R2 Standard remains the current object-storage recommendation but has
 
 ## Phase 4A — Player Character Foundation
 
-**Status:** Mature runtime integrated into the new baseline; historical physical evidence remains bounded.
+**Status:** Mature runtime integrated into the current baseline; historical physical evidence remains bounded.
 
 The former Player successor head at convergence was `b9dea8ad6b17dcf3feeabba263eff1ee498f1536`.
 
@@ -40,19 +40,19 @@ Historical frozen candidate:
 - artifact `10331503478`;
 - targeted physical cross-device revalidation was still pending at that old boundary.
 
-Its runtime/migrations/tests/guard scripts are now present in the integrated convergence baseline. Do not restart historical repair cycles without new evidence.
+Its runtime/migrations/tests/guard scripts are integrated into `main`. Do not restart historical repair cycles without new evidence.
 
 ## Phase 4B — Integrated MVP Build
 
 **Status:** **IN PROGRESS — owner implementation authorization granted.**
 
-Validated convergence commit:
+Current verified hosted/sync checkpoint:
 
-`5bed85cbb3e86ae63eac79149fadc5e56e61b256`
+`734477b4e276810de1581dbc2d0a8458ad953f85`
 
 Validation run:
 
-`34917259324` / #1694 — **SUCCESS**.
+`34979121449` — **SUCCESS**.
 
 The build targets one coherent product:
 
@@ -64,15 +64,15 @@ Internal waves are engineering controls, not separate products.
 
 ### Wave 1 — integrated baseline convergence
 
-**Status:** VALIDATED / promotion to `main` in progress.
+**Status:** COMPLETE / INTEGRATED.
 
-The semantic merge preserves authoritative Player runtime/migrations/tests/guards/evidence and current integrated product/architecture/governance. After promotion, `main` becomes the normal trunk and the old Player successor remains historical evidence.
+The semantic convergence was promoted to `main`; the former Player successor and convergence branch are historical evidence only. `main` is the normal integrated trunk.
 
 ### Wave 2 — Shared Integrated-MVP Spine
 
-**Status:** NEXT.
+**Status:** COMPLETE / INTEGRATED.
 
-Implement the minimum common semantics needed by later clients/services:
+Implemented shared semantics include:
 
 - global account/identity;
 - Campaign;
@@ -83,13 +83,37 @@ Implement the minimum common semantics needed by later clients/services:
 - tombstones/non-resurrection;
 - Personal/Campaign/System-or-Official scopes where valid;
 - independent-copy provenance;
-- basic audit/sync metadata and invariant tests.
+- basic sync metadata and invariant tests.
 
-Do not pre-model every future domain entity or build a giant generic sync abstraction.
+The implementation deliberately avoided pre-modeling every future domain entity or creating a giant universal `SyncEntity` abstraction.
 
 ### Wave 3 — Hosted foundation
 
-Implement PostgreSQL migrations, Cloudflare API structure, Descope identity mapping/token validation, application-owned domain authorization, mutation idempotency/revision handling, scoped sync foundation, object-storage integration when reached, audit/recovery and backup foundations. Begin SRD provenance/storage groundwork early enough to avoid later rework.
+**Status:** **IN PROGRESS.**
+
+Already integrated through PR #21:
+
+- shared spine contracts used by hosted/client work;
+- `/v1` hosted API/auth/domain foundation;
+- hosted PostgreSQL migrations/contracts + CI validation;
+- shared Android/Desktop HTTP transport;
+- durable SQLDelight hosted outbox;
+- local-first campaign creation + idempotent hosted delivery;
+- authenticated account/campaign bootstrap into local state with revision/tombstone/conflict protection.
+
+**Next package:** explicit hosted campaign/membership lifecycle and scoped change semantics so clients consume real lifecycle/removal events rather than infer them from absence in a list/bootstrap response.
+
+After that, continue toward hosted PC current-state/snapshot sync, application-owned authorization completion, audit/recovery/backup foundations, and other hosted dependencies in the order they become necessary.
+
+Do not introduce generalized event sourcing, CRDTs, a generic sync platform, queues or realtime infrastructure by default.
+
+#### Provider activation gate
+
+No external provider resource needs to be created yet.
+
+Activate the first real hosted development environment only after the remaining local campaign/membership change semantics are stable and before Wave 4 remembered-auth/real-hosted-PC integration reaches the owner-facing Player flow.
+
+At that gate activate Cloudflare Worker/API runtime, Neon PostgreSQL and Descope authentication. Start with development/test resources and keep credentials outside Git. R2 remains deferred until Media/Handouts/assets actually require object storage.
 
 ### Wave 4 — Player ↔ Server end-to-end
 
@@ -139,7 +163,7 @@ Still deferred unless concrete evidence requires them: full VTT/grid/LOS/fog, au
 
 ## Git/development rule
 
-After convergence promotion, `main` is the integrated trunk. Use short-lived outcome-oriented branches and frequent reintegration. Shared contracts merge early. Durable decisions live in documentation; branches are temporary implementation vehicles.
+`main` is the integrated trunk. Use short-lived outcome-oriented branches and frequent reintegration. Shared contracts merge early. Durable decisions live in documentation; branches are temporary implementation vehicles.
 
 ## Collaboration rule
 
