@@ -104,3 +104,4 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f database/tests/0001_integrated_mvp_spine_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0002_campaign_membership_lifecycle_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0003_pc_snapshot_contract.sql
+          psql -v ON_ERROR_STOP=1 -f database/tests/0004_pc_dm_authority_contract.sql
