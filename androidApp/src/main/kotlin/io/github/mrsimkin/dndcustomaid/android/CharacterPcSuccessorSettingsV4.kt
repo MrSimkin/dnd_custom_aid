@@ -11,7 +11,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,7 +34,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkillAbilityConfiguration
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
-import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheetTabKey
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableRecovery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
@@ -62,50 +60,6 @@ internal fun CharacterInspirationVisibilitySettingsV4() {
                     )
                 },
             )
-        }
-    }
-}
-
-@Composable
-internal fun CharacterTabOrderSettingsV4() {
-    val context = LocalCharacterPcSettingsContextV4.current ?: return
-    val order = context.successorState.preferences.tabOrder
-    SuccessorSettingCardV4(
-        title = "Orden de pestañas",
-        description = "Define el orden de la ficha. Las pestañas condicionales conservan su posición aunque estén ocultas.",
-    ) {
-        order.forEachIndexed { index, key ->
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(characterSheetTabLabelV4(key), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                TextButton(
-                    onClick = {
-                        context.onSuccessorStateChange(
-                            context.successorState.copy(
-                                preferences = context.successorState.preferences.copy(
-                                    tabOrder = order.moveItemV4(index, index - 1),
-                                ),
-                            ),
-                        )
-                    },
-                    enabled = index > 0,
-                ) { Text("↑") }
-                TextButton(
-                    onClick = {
-                        context.onSuccessorStateChange(
-                            context.successorState.copy(
-                                preferences = context.successorState.preferences.copy(
-                                    tabOrder = order.moveItemV4(index, index + 1),
-                                ),
-                            ),
-                        )
-                    },
-                    enabled = index < order.lastIndex,
-                ) { Text("↓") }
-            }
         }
     }
 }
@@ -219,34 +173,74 @@ internal fun CharacterCustomSkillsSettingsV4(
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var deleteId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    val orderedSkills = closureState.customSkills.sortedBy { it.sortOrder }
+    val skillById = remember(orderedSkills) { orderedSkills.associateBy { it.id.toString() } }
+    val canonicalIds = orderedSkills.map { it.id.toString() }
+    val coordinator = rememberCharacterReorderCoordinatorV4()
+    val haptic = rememberCharacterHapticHookV4(closureState.hapticsEnabled)
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "pc-custom-skills",
+        canonicalOrder = canonicalIds,
+        enabled = !closureState.tableModeEnabled,
+        coordinator = coordinator,
+        onCommitOrder = { committedIds ->
+            val currentById = closureState.customSkills.associateBy { it.id.toString() }
+            val reordered = committedIds.mapIndexedNotNull { index, id ->
+                currentById[id]?.copy(sortOrder = index)
+            }
+            if (reordered.size == closureState.customSkills.size) {
+                onClosureStateChange(closureState.copy(customSkills = reordered))
+            }
+        },
+        onHaptic = haptic,
+    )
+    val previewSkills = reorderSession.previewOrder.mapNotNull(skillById::get)
+
     SuccessorSettingCardV4(
         title = "Habilidades personalizadas",
         description = "Administra habilidades homebrew y asígnalas a una característica estándar o personalizada.",
     ) {
-        SettingsCardHeaderActionV4(
-            empty = closureState.customSkills.isEmpty(),
-            emptyText = "Sin habilidades personalizadas.",
-            onAdd = { editorId = null; editorOpen = true },
-        )
-        closureState.customSkills.sortedBy { it.sortOrder }.forEach { skill ->
-            val reference = successorState.customSkillAbilities
-                .firstOrNull { it.customSkillId == skill.id }
-                ?.ability
-                ?: CharacterAbilityReference.builtIn(skill.ability)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(skill.name, style = MaterialTheme.typography.bodySmall)
-                    Text(
-                        "${abilityReferenceLabelV4(reference, successorState.customAttributes)} · ${trainingLabelSettingsV4(skill.training)}",
-                        style = MaterialTheme.typography.labelSmall,
-                    )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .characterReorderSessionViewportV4(reorderSession),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+        ) {
+            SettingsCardHeaderActionV4(
+                empty = closureState.customSkills.isEmpty(),
+                emptyText = "Sin habilidades personalizadas.",
+                onAdd = { editorId = null; editorOpen = true },
+            )
+            previewSkills.forEach { skill ->
+                val id = skill.id.toString()
+                val reference = successorState.customSkillAbilities
+                    .firstOrNull { it.customSkillId == skill.id }
+                    ?.ability
+                    ?: CharacterAbilityReference.builtIn(skill.ability)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .characterReorderSessionBoundsV4(reorderSession, id)
+                        .characterReorderSessionSemanticsV4(reorderSession, id)
+                        .characterReorderSessionVisualV4(reorderSession, id)
+                        .padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .characterReorderSessionDragHandleV4(reorderSession, id),
+                    ) {
+                        Text(skill.name, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            "${abilityReferenceLabelV4(reference, successorState.customAttributes)} · ${trainingLabelSettingsV4(skill.training)}",
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                    TextButton(onClick = { editorId = id; editorOpen = true }) { Text("Editar") }
+                    TextButton(onClick = { deleteId = id }) { Text("Eliminar") }
                 }
-                TextButton(onClick = { editorId = skill.id.toString(); editorOpen = true }) { Text("Editar") }
-                TextButton(onClick = { deleteId = skill.id.toString() }) { Text("Eliminar") }
             }
         }
     }
@@ -392,12 +386,10 @@ internal fun CharacterHapticProfileSettingsV4(
     onClosureStateChange: (CharacterClosureState) -> Unit,
 ) {
     val hapticContext = LocalCharacterHapticSettingsV4.current
-    var strengthMenuOpen by remember { mutableStateOf(false) }
-    var durationMenuOpen by remember { mutableStateOf(false) }
 
     SuccessorSettingCardV4(
         title = "Respuesta háptica",
-        description = "La activación pertenece a esta ficha; intensidad y duración son preferencias de este dispositivo. El hardware puede limitar la diferencia entre niveles.",
+        description = "La activación pertenece a esta ficha. La intensidad y la duración son preferencias del dispositivo y se cambian en Configuración de la aplicación.",
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -412,53 +404,11 @@ internal fun CharacterHapticProfileSettingsV4(
                 },
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Intensidad", style = MaterialTheme.typography.labelSmall)
-                Box {
-                    OutlinedButton(
-                        onClick = { strengthMenuOpen = true },
-                        enabled = closureState.hapticsEnabled,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(hapticContext.preferences.strength.label) }
-                    DropdownMenu(expanded = strengthMenuOpen, onDismissRequest = { strengthMenuOpen = false }) {
-                        CharacterHapticStrengthV4.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option.label) },
-                                onClick = {
-                                    hapticContext.onChange(hapticContext.preferences.copy(strength = option))
-                                    strengthMenuOpen = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Duración", style = MaterialTheme.typography.labelSmall)
-                Box {
-                    OutlinedButton(
-                        onClick = { durationMenuOpen = true },
-                        enabled = closureState.hapticsEnabled,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) { Text(hapticContext.preferences.duration.label) }
-                    DropdownMenu(expanded = durationMenuOpen, onDismissRequest = { durationMenuOpen = false }) {
-                        CharacterHapticDurationV4.entries.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option.label) },
-                                onClick = {
-                                    hapticContext.onChange(hapticContext.preferences.copy(duration = option))
-                                    durationMenuOpen = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        Text(
+            "Perfil del dispositivo · Intensidad ${hapticContext.preferences.strength.label} · Duración ${hapticContext.preferences.duration.label}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -499,20 +449,31 @@ private fun CustomAttributeEditorDialogV4(
         },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(abbreviation, { abbreviation = it.take(8) }, label = { Text("Abreviatura") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(
-            scoreText,
-            { raw -> scoreText = raw.filter(Char::isDigit) },
-            label = { Text("Puntuación") },
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            CharacterCompactOutlinedTextFieldV4(
+                abbreviation,
+                { abbreviation = it.take(8) },
+                label = { Text("Abreviatura") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            CharacterCompactOutlinedTextFieldV4(
+                scoreText,
+                { raw -> scoreText = raw.filter(Char::isDigit) },
+                label = { Text("Puntuación") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+        }
         SettingsSwitchRowV4("Tirada de salvación", saveEnabled) { saveEnabled = it }
         if (saveEnabled) {
             SettingsSwitchRowV4("Competencia en salvación", saveProficient) { saveProficient = it }
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 adjustmentText,
                 { adjustmentText = sanitizeSignedSettingsIntV4(it) },
                 label = { Text("Ajuste adicional de salvación") },
@@ -521,7 +482,7 @@ private fun CustomAttributeEditorDialogV4(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -565,7 +526,7 @@ private fun CustomSkillSettingsEditorDialogV4(
         },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         SettingsChoiceDropdownV4(
             label = "Característica",
             current = abilityReferenceLabelV4(reference, customAttributes),
@@ -583,7 +544,7 @@ private fun CustomSkillSettingsEditorDialogV4(
             options = SkillTraining.entries.map { it.name to trainingLabelSettingsV4(it) },
             onSelect = { trainingName = it },
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             adjustmentText,
             { adjustmentText = sanitizeSignedSettingsIntV4(it) },
             label = { Text("Ajuste adicional") },
@@ -591,7 +552,7 @@ private fun CustomSkillSettingsEditorDialogV4(
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -650,7 +611,7 @@ private fun CustomMarkerEditorDialogV4(
         },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(name, { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         SettingsChoiceDropdownV4(
             label = "Tipo",
             current = markerKindLabelV4(kind),
@@ -658,7 +619,7 @@ private fun CustomMarkerEditorDialogV4(
             onSelect = { kindName = it },
         )
         if (kind == CharacterTrackableValueKind.CURRENT_MAX) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 maxText,
                 { raw -> maxText = raw.filter(Char::isDigit) },
                 label = { Text("Máximo") },
@@ -680,7 +641,7 @@ private fun CustomMarkerEditorDialogV4(
             onSelect = { amountModeName = it },
         )
         if (amountMode == CharacterRecoveryAmountMode.FIXED) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 fixedText,
                 { raw -> fixedText = raw.filter(Char::isDigit) },
                 label = { Text("Cantidad fija") },
@@ -689,7 +650,7 @@ private fun CustomMarkerEditorDialogV4(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
-        OutlinedTextField(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        CharacterCompactOutlinedTextFieldV4(notes, { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -746,7 +707,7 @@ private fun SettingsCardHeaderActionV4(
     ) {
         if (empty) Text(emptyText, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall)
         else Text("", modifier = Modifier.weight(1f))
-        TextButton(onClick = onAdd) { Text("+ Añadir") }
+        TextButton(onClick = onAdd) { Text("Añadir") }
     }
 }
 
@@ -758,7 +719,7 @@ private fun SuccessorSettingCardV4(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(5.dp)),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.titleSmall)
@@ -766,33 +727,6 @@ private fun SuccessorSettingCardV4(
             content()
         }
     }
-}
-
-private fun <T> List<T>.moveItemV4(from: Int, to: Int): List<T> {
-    if (from !in indices || to !in indices || from == to) return this
-    val mutable = toMutableList()
-    val item = mutable.removeAt(from)
-    mutable.add(to, item)
-    return mutable
-}
-
-private fun characterSheetTabLabelV4(key: CharacterSheetTabKey): String = when (key) {
-    CharacterSheetTabKey.OVERVIEW -> "General"
-    CharacterSheetTabKey.SKILLS -> "Habilidades"
-    CharacterSheetTabKey.COMBAT -> "Combate"
-    CharacterSheetTabKey.DICE -> "Dados"
-    CharacterSheetTabKey.MANAGEMENT -> "Gestión"
-    CharacterSheetTabKey.EQUIPMENT -> "Equipo"
-    CharacterSheetTabKey.BACKGROUND -> "Trasfondo"
-    CharacterSheetTabKey.TRAITS -> "Rasgos"
-    CharacterSheetTabKey.SPELLS -> "Conjuros"
-    CharacterSheetTabKey.ARTIFICER -> "Artífice"
-    CharacterSheetTabKey.FORMS -> "Formas"
-    CharacterSheetTabKey.TECHNIQUES -> "Técnicas"
-    CharacterSheetTabKey.METAMAGIC -> "Metamagia"
-    CharacterSheetTabKey.PACTS -> "Pactos"
-    CharacterSheetTabKey.COMPANIONS -> "Compañeros"
-    CharacterSheetTabKey.NOTES -> "Notas"
 }
 
 private fun abilitySettingsLabelV4(ability: CharacterAbility): String = when (ability) {

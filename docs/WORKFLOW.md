@@ -1,257 +1,179 @@
 # Development and Review Workflow
 
-This file defines the approved operating workflow for AI-led implementation with owner-controlled product decisions and Git-based operative memory.
+This file defines the approved AI-led implementation workflow with owner-controlled product decisions and Git-based operative memory.
 
 ## 1. Guiding principle
 
-The repository must always distinguish:
+The repository must distinguish approved product state, implemented state, accepted/manual state, work in progress, recommendations, unresolved questions, verification actually performed and branch lifecycle.
 
-- approved/accepted project state;
-- implemented but not owner-accepted state;
-- work in progress;
-- proposed/recommended decisions;
-- unresolved questions;
-- verification actually performed;
-- branch role/lifecycle.
-
-The goal is to prevent a future agent from confusing an experiment, chat suggestion, historical checkpoint, branch name, green CI result or remembered discussion with current project truth.
+Never confuse a chat suggestion, old checkpoint, branch name or green CI result with current project truth.
 
 ## 2. Current branch model
 
-Current lifecycle is controlled by `docs/BRANCH_STATUS.md`.
+Lifecycle is controlled by `docs/BRANCH_STATUS.md`.
 
-Before the planned convergence there are two active authoritative lines:
+The owner has authorized integrated-MVP implementation. The former `main` + Player-successor split has been semantically converged and validated at:
 
-- `main` — global integrated-MVP product/design/architecture/governance truth;
-- `implementation/phase4a-successor-cycle` — current Player runtime/QA authority.
+`5bed85cbb3e86ae63eac79149fadc5e56e61b256`
 
-D-0073 defines the approved convergence direction. After explicit owner implementation authorization:
+Actions `34917259324` / #1694 — **SUCCESS**.
 
-1. create a dedicated convergence branch from current `main`;
-2. deliberately reconcile the Player successor runtime;
-3. preserve valid Player runtime/migrations/tests/evidence from the successor;
-4. preserve later integrated product/architecture/governance truth from `main`;
-5. reconcile shared CI/navigation intentionally;
-6. validate;
-7. merge the coherent baseline to `main`;
-8. use `main` as the normal integrated trunk thereafter.
+After promotion, `main` is the normal integrated trunk. The old Player successor remains historical/frozen evidence.
 
-Do not force-move either current line or merge merely for cosmetic linearity.
+Normal work thereafter uses short-lived outcome-oriented branches from current `main`; shared foundations integrate early; permanent Player/Desktop/Server silos are prohibited unless a later concrete need changes that direction.
 
 ## 3. Owner vs technical responsibility
 
-D-0073 is controlling.
+Ask the owner to decide:
 
-### Ask the owner to decide
-
-- product behavior and workflow;
+- product behavior/workflow;
 - UX/game semantics;
-- visibility/privacy expectations;
+- visibility/privacy;
 - MVP vs later scope;
-- user-facing destructive/safety behavior;
+- destructive/safety behavior;
 - meaningful cost, security/privacy, compatibility or irreversible-lock-in tradeoffs.
 
-### Technical agents normally decide and document
+Technical agents normally decide and document:
 
 - database/table layout;
 - class/type decomposition;
 - endpoint/request shapes;
 - migration mechanics;
 - internal sync structures;
-- canonical import serialization;
+- canonical serialization;
+- PDF-rendering internals inside approved behavior;
 - testing architecture;
 - branch/package granularity;
-- reversible implementation conventions;
-- provider-specific mechanics inside already-approved service/cost/security boundaries.
+- reversible implementation conventions/provider mechanics inside approved boundaries.
 
 Do **not** ask the owner to rubber-stamp low-level engineering choices they cannot meaningfully evaluate.
 
-Escalate only when a technical choice materially changes product behavior, cost, risk, privacy/security, irreversible lock-in or approved scope.
-
 ## 4. Communication model
 
-Agents perform the technical heavy lifting, but meaningful work must remain understandable to the owner.
-
-Explain in practical terms:
+Agents perform technical heavy lifting but explain meaningful work in practical terms:
 
 - what changed;
 - why it matters;
-- the important approach;
+- important approach;
 - owner-relevant consequences/tradeoffs;
-- what was actually verified;
-- known limitations and the next action.
+- what was verified;
+- known limitations and next action.
 
-Avoid dumping implementation alternatives on the owner when the alternatives do not require an owner decision.
+Avoid dumping implementation alternatives on the owner when no owner decision is required.
 
-## 5. Product/design before consequential architecture
+## 5. Product/design state
 
-The product/design and integrated-MVP boundary are now closed under D-0071/D-0072/D-0073.
-
-Future work should not reopen foundational product questions merely because implementation begins.
+Current integrated-MVP product definition is closed enough for implementation. Do not reopen foundational product questions merely because coding has begun.
 
 For a genuinely new owner-consequential choice:
 
-1. identify the product need;
+1. identify the real product need;
 2. explain realistic owner-relevant alternatives;
 3. recommend one;
 4. obtain owner choice;
 5. record it in Git.
 
-For routine technical decisions, choose/document them without creating ceremonial approval work.
+For routine technical choices, decide/document without creating ceremonial approval work.
 
 ## 6. Work item lifecycle
 
-### Step A — establish authority
+### A — establish authority
 
 Before implementation:
 
 1. read mandatory continuity files;
-2. identify active branch/topology from `docs/BRANCH_STATUS.md`;
-3. read `docs/PROJECT_STATE.md`, `docs/checkpoints/LATEST.md` and applicable decisions/checkpoints;
-4. identify the actual authorization boundary;
-5. identify existing approved/implemented/accepted evidence;
-6. identify material unknowns.
+2. identify current branch/topology;
+3. read `PROJECT_STATE`, `LATEST` and applicable decisions/checkpoints;
+4. identify any real owner-action boundary;
+5. identify existing implemented/accepted evidence and material unknowns.
 
-Do not start from historical branch/checkpoint prose merely because it says `next`.
+Do not resume from historical `next` prose when current docs supersede it.
 
-### Step B — technical design
+### B — technical design
 
-For low-level engineering:
+Choose the simplest safe design satisfying approved behavior. Reuse proven project patterns, avoid generalized infrastructure without measured need, record durable conventions that later contributors need, and escalate only owner-consequential tradeoffs.
 
-1. choose the simplest safe design satisfying approved behavior;
-2. reuse proven project patterns where they fit;
-3. avoid generalized infrastructure without measured need;
-4. record durable technical conventions/assumptions when future contributors need them;
-5. escalate only owner-consequential tradeoffs.
+### C — implement
 
-### Step C — implement
+Within current authorization, agents may write/refactor code, create/update tests, change build/configuration, execute checks, diagnose/repair failures and update technical documentation.
 
-After authorization is clear, the coding agent may:
+Keep batches coherent and outcome-oriented.
 
-- write/refactor code within approved behavior;
-- create/update tests;
-- update build/configuration;
-- execute available checks;
-- diagnose and repair failures;
-- update technical documentation.
+### D — verify
 
-Keep batches coherent and outcome-oriented. Do not bundle unrelated behavior merely to reduce commit count.
-
-### Step D — verify
-
-Record:
-
-- exact revision/build;
-- commands/checks executed;
-- what passed;
-- what failed;
-- what was not tested and why;
-- environment/device type;
-- whether evidence is automated, local integration, emulator/simulator or physical owner/device.
+Record exact revision/build, commands/checks, passes/failures, untested areas, environment/device type and evidence type (automated/local/emulator/physical owner).
 
 Never describe unexecuted tests as passed or infer owner acceptance from CI.
 
-### Step E — update operative memory
+### E — update operative memory
 
 Before meaningful work is complete, update applicable truth:
 
 - `docs/PROJECT_STATE.md`;
 - `docs/checkpoints/LATEST.md` when resume changes;
-- `docs/BRANCH_STATUS.md` when topology/lifecycle changes;
-- decision records only when a genuine decision changes;
-- `docs/CONVENTIONS.md` for durable conventions where useful;
+- `docs/BRANCH_STATUS.md` when topology changes;
+- decisions only for genuine product/architecture decisions;
+- conventions when durable;
 - product/roadmap/architecture/testing docs when operational truth changes;
-- feature/checkpoint evidence as appropriate.
+- checkpoints/evidence as appropriate.
 
-A fact needed for continuation must not remain only in chat.
+A continuation-critical fact must not remain only in chat.
 
-### Step F — owner review
+### F — owner communication
 
-Explain:
+Explain what now works/changed, what was tested, known limitations, any genuine owner/manual gate, branch/revision and exact next action.
 
-- what now works or what project understanding changed;
-- what was tested;
-- known limitations;
-- any genuine owner decision/manual gate;
-- branch/revision containing the work;
-- exact next action.
+Do not ask the owner to review internal minutiae merely to complete a process checkbox.
 
-Do not ask the owner to review internal technical minutiae merely to complete a process checkbox.
+### G — integrate
 
-### Step G — publish/integrate
+Use short-lived outcome branches from current `main`, integrate shared contracts early, preserve coherent/buildable normal merge points, and leave durable evidence at meaningful milestones.
 
-Before convergence:
+## 7. Current technical direction
 
-- current Player runtime fixes/evidence belong on the Player successor only within its valid authority;
-- global readiness/governance belongs on `main`;
-- convergence itself requires explicit implementation authorization.
+The active technical handoff is `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`.
 
-After successful convergence:
+Current direction includes Ktor shared networking, versioned HTTP/JSON, mutation IDs + revisions, SQLDelight outbox/scoped sync, Neon serverless driver, explicit hosted SQL migrations, JSONB PC snapshots + relational auth/index metadata, Descope token validation + app-owned authorization, R2 recommendation pending activation, versioned JSON import/export, versioned full backup archive and one canonical PC/PDF-export semantic path.
 
-- `main` becomes the integrated trunk;
-- use short-lived outcome-oriented branches;
-- integrate shared foundations early;
-- avoid permanent Player/Desktop/Server silos;
-- keep normal `main` merge points coherent/buildable.
-
-## 7. Current technical implementation direction
-
-`docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` records the delegated technical recommendations established before implementation, including:
-
-- Ktor Client for shared native networking;
-- small versioned HTTP/JSON API;
-- client mutation IDs + optimistic revisions;
-- SQLDelight outbox + scoped project-specific sync;
-- Neon serverless driver initially from Cloudflare Worker;
-- explicit hosted SQL migrations;
-- versioned JSONB PC snapshot + relational authorization/index metadata;
-- Descope client authentication plus server-side token validation;
-- R2 Standard as the preferred first object storage, pending owner/service activation;
-- versioned JSON canonical import/export documents;
-- on-demand versioned full backup archive with manifest/integrity information.
-
-These remain engineering choices unless later evidence creates a material owner-level consequence.
+These are engineering choices unless later evidence creates a material owner-level consequence.
 
 ## 8. Current verification posture
 
-The authoritative Player successor CI includes permanent guard scripts plus aggregate shared tests, Android build, Desktop build and backend type-check.
+The integrated convergence baseline has already passed the successor Player guard suite plus aggregate shared tests, Android build, Desktop build and backend type-check.
 
-The integrated baseline must preserve those guards.
-
-As hosted implementation becomes real, add focused tests for migrations, authorization, revisions/idempotency/tombstones, sync, backup, assets and later combat authority rather than chasing generic coverage percentages.
+As hosted implementation becomes real, add focused tests for migrations, authorization, revisions/idempotency/tombstones, sync, assets, backup, PDF completeness and later combat authority. Prefer invariant tests over arbitrary coverage targets.
 
 See `docs/TESTING.md`.
 
 ## 9. Failed or partial work
 
-Partial work is acceptable if clearly recorded.
+Partial work is acceptable if clearly recorded. State what completed, what remains, exact failure/blocker, relevant branch/commit and exact next action.
 
-If work cannot be completed:
+Never hide an unfinished migration, failing test or unresolved manual gate behind a generic `in progress` label.
 
-- state what completed;
-- state what remains;
-- record exact failure/blocker;
-- preserve relevant branch/commit;
-- give exact next action.
+## 10. Current implementation sequence
 
-Never hide an unfinished migration, failing test, uncertain behavior or unresolved manual gate behind a generic `in progress` label.
+Implementation is **AUTHORIZED and IN PROGRESS**.
 
-## 10. Current authorization gate
+Current sequence:
 
-Product design, exact MVP scope, implementation governance and technical readiness are complete enough to start the integrated build.
+```text
+validated baseline convergence
+-> promote to main
+-> Shared Integrated-MVP Spine
+-> hosted foundation
+-> Player <-> hosted end-to-end
+-> Desktop/admin/content/live waves
+-> combat exchange/handoff
+-> SRD clarification
+-> backup/operator completion
+-> integrated owner QA
+```
 
-The owner has **not yet authorized product-code implementation** merely by requesting technical review.
-
-The next genuine owner decision is:
-
-> authorize the integrated-MVP implementation, starting with the protected `main` + Player successor convergence.
-
-Once authorized, routine low-level technical packages proceed without owner rubber-stamping. Return to the owner only for material product/scope/security/cost choices or required external account/service actions.
+Routine packages proceed without owner rubber-stamping. Return to the owner only for material product/scope/security/privacy/cost/lock-in/destructive-behavior decisions, required external account/service actions or manual/physical QA gates.
 
 ## 11. Secrets and credentials
 
 Never commit passwords, tokens, API keys, database credentials, production/release signing keys, private certificates or other secrets.
 
-Use placeholders in docs/config and secure local/CI secret storage.
-
-The sole-admin Desktop may later keep scoped provider credentials locally when useful, but only using suitable OS/local protected credential storage; never plaintext tracked files.
+Use secure local/CI/provider secret storage. The sole-admin Desktop may later hold scoped provider credentials locally when useful, but only through suitable OS/protected credential storage, never plaintext tracked files.

@@ -13,9 +13,11 @@ import androidx.compose.runtime.Composable
 internal fun CharacterClassIdentityCardV4(
     classes: List<ClassLevelDraftV4>,
     onClassesChange: (List<ClassLevelDraftV4>) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     CharacterClassIdentitySuccessorCardV4(
         classes = classes,
         onClassesChange = onClassesChange,
+        structuralEditingEnabled = structuralEditingEnabled,
     )
 }

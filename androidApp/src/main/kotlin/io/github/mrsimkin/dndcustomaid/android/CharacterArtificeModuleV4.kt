@@ -3,7 +3,7 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,14 +19,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,8 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_ARTIFICE_ACTIVE_FILTER_KEY
@@ -54,18 +51,17 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPresentationOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterReorderedSubsetResult
 import io.github.mrsimkin.dndcustomaid.shared.character.characterArtificeOptionKindDisplayLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterClassOption
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.isArtificeCharacterOption
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterArtificeOptionManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterClassOptionSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterClassOptionOrders
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterArtificeOptions
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 private const val ARTIFICE_FILTER_SEPARATOR_H1 = "\u001E"
@@ -206,6 +202,23 @@ internal fun CharacterArtificeModuleV4(
         editorOpen = false
     }
 
+    fun commitArtificeReorder(proposedIds: List<String>) {
+        if (!canReorder) return
+        val normalized = normalizeCharacterClassOptionOrders(options)
+        val allIds = normalized.map { it.id.toString() }
+        val currentArtificeIds = normalized.filter(::isArtificeCharacterOption).map { it.id.toString() }
+        val mergedIds = applyCharacterReorderedSubsetResult(
+            allIds = allIds,
+            currentSubsetIds = currentArtificeIds,
+            proposedSubsetIds = proposedIds,
+        )
+        if (mergedIds == allIds) return
+        val byId = normalized.associateBy { it.id.toString() }
+        val reordered = mergedIds.mapNotNull(byId::get)
+        if (reordered.size != normalized.size) return
+        onOptionsChange(reordered.mapIndexed { index, option -> option.copy(sortOrder = index) })
+    }
+
     val collection: @Composable (Modifier) -> Unit = { modifier ->
         ArtificeCollectionH1(
             modifier = modifier,
@@ -226,20 +239,7 @@ internal fun CharacterArtificeModuleV4(
             onEdit = ::beginEdit,
             onDuplicate = ::duplicate,
             onDelete = { deleteId = it.id.toString() },
-            onMove = { option, offset ->
-                if (!canReorder) {
-                    false
-                } else {
-                    val before = normalizeCharacterClassOptionOrders(options)
-                    val moved = moveCharacterArtificeOptionManual(options, option.id, offset)
-                    if (moved == before) {
-                        false
-                    } else {
-                        onOptionsChange(moved)
-                        true
-                    }
-                }
-            },
+            onCommitReorder = ::commitArtificeReorder,
             onFavoriteChange = { option, enabled ->
                 onClosureStateChange(
                     closureState.withQuickAccess(
@@ -253,7 +253,10 @@ internal fun CharacterArtificeModuleV4(
         )
     }
 
-    if (wide) {
+    val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
+        characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
+
+    if (sideEditorVisible) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -334,7 +337,7 @@ internal fun CharacterArtificeModuleV4(
                     ) {
                         Text("Editor de Artífice", style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Selecciona un plan o dispositivo. La lista conserva búsqueda, filtros y orden mientras editas.",
+                            "Selecciona un plan o dispositivo.",
                             style = MaterialTheme.typography.bodySmall,
                         )
                         TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir registro") }
@@ -417,11 +420,15 @@ private fun ArtificeCollectionH1(
     onEdit: (CharacterClassOption) -> Unit,
     onDuplicate: (CharacterClassOption) -> Unit,
     onDelete: (CharacterClassOption) -> Unit,
-    onMove: (CharacterClassOption, Int) -> Boolean,
+    onCommitReorder: (List<String>) -> Unit,
     onFavoriteChange: (CharacterClassOption, Boolean) -> Unit,
     onHaptic: (CharacterHapticEventV4) -> Unit,
 ) {
     val classById = remember(classes) { classes.associateBy { it.id } }
+    val listState = rememberLazyListState()
+    val keepCollectionToolsSticky =
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
     val favoriteCount = artificeOptions.count { option ->
         closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id)
     }
@@ -448,48 +455,91 @@ private fun ArtificeCollectionH1(
         ),
     )
 
-    LazyColumn(
+    val normalizedOptions = normalizeCharacterClassOptionOrders(options)
+    val canonicalArtifice = normalizedOptions.filter(::isArtificeCharacterOption)
+    val canonicalIds = canonicalArtifice.map { it.id.toString() }
+    val optionById = artificeOptions.associateBy { it.id.toString() }
+    val sessionEnabled = canReorder && canonicalIds.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "artifice",
+        canonicalOrder = canonicalIds,
+        enabled = sessionEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = onCommitReorder,
+        onHaptic = onHaptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+
+    val layoutOptions = if (canReorder) {
+        reorderSession.previewOrder.mapNotNull(optionById::get)
+    } else {
+        visible
+    }
+
+    CharacterReorderOverlayHostV4(
+        session = reorderSession,
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = appSpacingV4(6.dp),
-            end = appSpacingV4(6.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        liftedContent = { draggedId ->
+            optionById[draggedId]?.let { option ->
+                ArtificeRowH1(
+                    option = option,
+                    linkedClass = option.linkedClassId?.let(classById::get),
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
+                    favoriteEnabled = false,
+                    reorderSession = null,
+                    structuralEditingEnabled = false,
+                    selected = selectedEditingId == option.id.toString(),
+                    onFavoriteChange = {},
+                    onEdit = {},
+                    onDuplicate = {},
+                    onDelete = {},
+                    lifted = true,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        },
     ) {
-        stickyHeader(key = "h1-artifice-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Artífice", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "Planes y dispositivos persistentes. Recursos, conjuros, equipo y compañeros mantienen sus propios datos.",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        TextButton(onClick = onAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-                    CharacterCollectionToolbarV4(
-                        itemCount = visible.size,
-                        query = query,
-                        onQueryChange = onQueryChange,
-                        order = order,
-                        onOrderChange = onOrderChange,
-                        filters = filters,
-                        searchLabel = "Buscar en Artífice",
-                    )
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .characterReorderSessionViewportV4(reorderSession),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(6.dp),
+                end = appSpacingV4(6.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "h1-artifice-tools") {
+                CharacterCollectionToolbarV4(
+                    itemCount = visible.size,
+                    query = query,
+                    onQueryChange = onQueryChange,
+                    order = order,
+                    onOrderChange = onOrderChange,
+                    filters = filters,
+                    searchLabel = "Buscar en Artífice",
+                    collapsibleSearch = true,
+                    showItemCount = false,
+                    compactOrderControl = true,
+                    contextContent = {
+                        Text(
+                            "Artífice",
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
+                    onAdd = if (structuralEditingEnabled) onAdd else null,
+                )
+            }
+
+            item(key = "h1-artifice-help") {
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                    CharacterHelpV4("Planes y dispositivos persistentes. Recursos, conjuros, equipo y compañeros mantienen sus propios datos.")
                     if (!canReorder && visible.isNotEmpty()) {
                         Text(
                             if (order == CharacterPresentationOrder.ALPHABETICAL) {
@@ -502,49 +552,50 @@ private fun ArtificeCollectionH1(
                     }
                 }
             }
-        }
 
-        if (artificeOptions.isEmpty()) {
-            item {
-                CharacterUsefulEmptyState(
-                    title = "Sin registros de Artífice",
-                    message = "Añade un plan, invención o dispositivo persistente. Los recursos y objetos reales siguen en Gestión y Equipo.",
-                    onAdd = if (structuralEditingEnabled) onAdd else null,
-                    addLabel = "Añadir registro",
-                )
-            }
-        } else if (visible.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No hay registros que coincidan con esta búsqueda y filtros.",
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.bodySmall,
+            if (artificeOptions.isEmpty()) {
+                item {
+                    CharacterUsefulEmptyState(
+                        title = "Sin registros de Artífice",
+                        message = "Añade un plan, invención o dispositivo persistente. Los recursos y objetos reales siguen en Gestión y Equipo.",
+                        onAdd = if (structuralEditingEnabled) onAdd else null,
+                        addLabel = "Añadir registro",
                     )
                 }
+            } else if (visible.isEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "No hay registros que coincidan con esta búsqueda y filtros.",
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
             }
-        }
 
-        items(
-            count = visible.size,
-            key = { index -> "h1-artifice-${visible[index].id}" },
-        ) { index ->
-            val option = visible[index]
-            ArtificeRowH1(
-                option = option,
-                linkedClass = option.linkedClassId?.let(classById::get),
-                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
-                favoriteEnabled = structuralEditingEnabled && option.id in persistedOptionIds,
-                reorderEnabled = canReorder && artificeOptions.size > 1,
-                structuralEditingEnabled = structuralEditingEnabled,
-                selected = selectedEditingId == option.id.toString(),
-                onFavoriteChange = { onFavoriteChange(option, it) },
-                onMove = { offset -> onMove(option, offset) },
-                onEdit = { onEdit(option) },
-                onDuplicate = { onDuplicate(option) },
-                onDelete = { onDelete(option) },
-                onHaptic = onHaptic,
-            )
+            items(
+                count = layoutOptions.size,
+                key = { index -> "h1-artifice-${layoutOptions[index].id}" },
+            ) { index ->
+                val option = layoutOptions[index]
+                ArtificeRowH1(
+                    option = option,
+                    linkedClass = option.linkedClassId?.let(classById::get),
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.CLASS_OPTION, option.id),
+                    favoriteEnabled = structuralEditingEnabled && option.id in persistedOptionIds,
+                    reorderSession = reorderSession.takeIf { sessionEnabled },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    selected = selectedEditingId == option.id.toString(),
+                    onFavoriteChange = { onFavoriteChange(option, it) },
+                    onEdit = { onEdit(option) },
+                    onDuplicate = { onDuplicate(option) },
+                    onDelete = { onDelete(option) },
+                    modifier = Modifier
+                        .animateItem()
+                        .fillMaxWidth(),
+                )
+            }
         }
     }
 }
@@ -555,150 +606,118 @@ private fun ArtificeRowH1(
     linkedClass: CharacterClassLevel?,
     favorite: Boolean,
     favoriteEnabled: Boolean,
-    reorderEnabled: Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     structuralEditingEnabled: Boolean,
     selected: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
-    onMove: (Int) -> Boolean,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(option.id) { mutableStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 44.dp.toPx() }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    val id = option.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(
-                width = if (selected) 2.dp else 1.dp,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            ),
-            color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    Surface(
+        modifier = modifier.then(geometryModifier),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(pickupModifier)
+                    .clickable(
+                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        onClick = onEdit,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
             ) {
-                if (reorderEnabled) {
-                    StableDragHandle(
-                        modifier = Modifier.pointerInput(option.id) {
-                            detectDragGesturesAfterLongPress(
-                                onDragStart = {
-                                    accumulatedDrag = 0f
-                                    dragging = true
-                                    onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
-                                },
-                                onDragEnd = {
-                                    if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
-                                onDragCancel = {
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    accumulatedDrag += dragAmount.y
-                                    while (abs(accumulatedDrag) >= reorderStepPx) {
-                                        val direction = if (accumulatedDrag > 0f) 1 else -1
-                                        if (onMove(direction)) {
-                                            onHaptic(CharacterHapticEventV4.DRAG_STEP)
-                                            accumulatedDrag -= direction * reorderStepPx
-                                        } else {
-                                            accumulatedDrag = 0f
-                                            break
-                                        }
-                                    }
-                                },
-                            )
-                        },
-                        active = dragging,
-                        contentDescription = "Mantén pulsado y arrastra para reordenar ${option.name}",
+                Text(
+                    option.name.ifBlank { "Registro sin nombre" },
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                    ModuleBadgeH1(characterArtificeOptionKindDisplayLabel(option.kind))
+                    ModuleBadgeH1(if (option.active) "Activo" else "Inactivo")
+                }
+                val provenance = listOfNotNull(
+                    linkedClass?.let { classLevel ->
+                        buildString {
+                            append(classLevel.name)
+                            classLevel.subclassName?.takeIf(String::isNotBlank)?.let { append(" · $it") }
+                        }
+                    },
+                    option.source?.takeIf(String::isNotBlank),
+                ).joinToString(" · ")
+                if (provenance.isNotBlank()) {
+                    Text(
+                        provenance,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                ) {
+                option.costText?.takeIf(String::isNotBlank)?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                if (option.effectSummary.isNotBlank()) {
                     Text(
-                        option.name.ifBlank { "Registro sin nombre" },
-                        style = MaterialTheme.typography.labelLarge,
+                        option.effectSummary,
+                        style = MaterialTheme.typography.bodySmall,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
-                        ModuleBadgeH1(characterArtificeOptionKindDisplayLabel(option.kind))
-                        ModuleBadgeH1(if (option.active) "Activo" else "Inactivo")
-                    }
-                    val provenance = listOfNotNull(
-                        linkedClass?.let { classLevel ->
-                            buildString {
-                                append(classLevel.name)
-                                classLevel.subclassName?.takeIf(String::isNotBlank)?.let { append(" · $it") }
-                            }
-                        },
-                        option.source?.takeIf(String::isNotBlank),
-                    ).joinToString(" · ")
-                    if (provenance.isNotBlank()) {
-                        Text(
-                            provenance,
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    option.costText?.takeIf(String::isNotBlank)?.let {
-                        Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (option.effectSummary.isNotBlank()) {
-                        Text(
-                            option.effectSummary,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(
-                            onClick = { onFavoriteChange(!favorite) },
-                            enabled = favoriteEnabled,
-                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                        ) { Text(if (favorite) "★" else "☆") }
-                        if (structuralEditingEnabled) {
-                            StableRemoveIconButton(
-                                onClick = onDelete,
-                                contentDescription = "Eliminar ${option.name}",
-                            )
-                        }
-                    }
-                    if (structuralEditingEnabled) {
-                        TextButton(
-                            onClick = onDuplicate,
-                            contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                        ) { Text("Duplicar") }
-                    }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                StableFavoriteIconButton(
+                    selected = favorite,
+                    onClick = { onFavoriteChange(!favorite) },
+                    enabled = !lifted && structuralEditingEnabled && favoriteEnabled,
+                    contentDescription = if (favorite) {
+                        "Quitar ${option.name} de Favoritos"
+                    } else {
+                        "Añadir ${option.name} a Favoritos"
+                    },
+                )
+                if (structuralEditingEnabled && !lifted) {
+                    StableDuplicateIconButton(
+                        onClick = onDuplicate,
+                        contentDescription = "Duplicar ${option.name}",
+                    )
+                    StableRemoveIconButton(
+                        onClick = onDelete,
+                        contentDescription = "Eliminar ${option.name}",
+                    )
                 }
             }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
@@ -723,7 +742,7 @@ private fun ArtificeEditorFieldsH1(
     onNotesChange: (String) -> Unit,
     onActiveChange: (Boolean) -> Unit,
 ) {
-    OutlinedTextField(
+    CharacterCompactOutlinedTextFieldV4(
         value = name,
         onValueChange = onNameChange,
         modifier = Modifier.fillMaxWidth(),
@@ -755,43 +774,47 @@ private fun ArtificeEditorFieldsH1(
         onSelectedClassIdChange = onLinkedClassIdChange,
     )
 
-    OutlinedTextField(
-        value = source,
-        onValueChange = onSourceChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("Fuente / procedencia") },
-        singleLine = true,
-    )
-    OutlinedTextField(
-        value = cost,
-        onValueChange = onCostChange,
-        modifier = Modifier.fillMaxWidth(),
-        label = { Text("Coste / referencia") },
-        singleLine = true,
-    )
-    OutlinedTextField(
-        value = effect,
-        onValueChange = onEffectChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 110.dp, max = 220.dp),
-        label = { Text("Resumen de efecto") },
-        minLines = 3,
-        maxLines = 8,
-    )
-    OutlinedTextField(
-        value = notes,
-        onValueChange = onNotesChange,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 90.dp, max = 200.dp),
-        label = { Text("Notas") },
-        minLines = 2,
-        maxLines = 7,
-    )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
     ) {
-        Checkbox(checked = active, onCheckedChange = onActiveChange)
-        Text("Activo / creado / disponible")
+        CharacterCompactOutlinedTextFieldV4(
+            value = source,
+            onValueChange = onSourceChange,
+            modifier = Modifier.weight(1f),
+            label = { Text("Fuente / procedencia") },
+            singleLine = true,
+        )
+        CharacterCompactOutlinedTextFieldV4(
+            value = cost,
+            onValueChange = onCostChange,
+            modifier = Modifier.weight(1f),
+            label = { Text("Coste / referencia") },
+            singleLine = true,
+        )
     }
+    CharacterCompactOutlinedTextFieldV4(
+        value = effect,
+        onValueChange = onEffectChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text("Resumen de efecto") },
+        minLines = characterCompactTextAreaMinLinesV4(2),
+        maxLines = 8,
+    )
+    CharacterCompactOutlinedTextFieldV4(
+        value = notes,
+        onValueChange = onNotesChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text("Notas") },
+        minLines = characterCompactTextAreaMinLinesV4(2),
+        maxLines = 7,
+    )
+    CharacterCompactCheckboxItemV4(
+        checked = active,
+        onCheckedChange = onActiveChange,
+        label = "Activo / creado / disponible",
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable

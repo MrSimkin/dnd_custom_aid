@@ -21,7 +21,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -52,13 +51,24 @@ internal fun CharacterGeneralClosureCardsV4(
     state: CharacterClosureState,
     onStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
+    structuralEditingEnabled: Boolean = true,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        CharacterMediaCardV4(state = state, onStateChange = onStateChange, wide = wide)
-        CharacterDefensesSensesMovementCardV4(state = state, onStateChange = onStateChange, wide = wide)
+        CharacterMediaCardV4(
+            state = state,
+            onStateChange = onStateChange,
+            wide = wide,
+            structuralEditingEnabled = structuralEditingEnabled,
+        )
+        CharacterDefensesSensesMovementCardV4(
+            state = state,
+            onStateChange = onStateChange,
+            wide = wide,
+            structuralEditingEnabled = structuralEditingEnabled,
+        )
     }
 }
 
@@ -67,6 +77,7 @@ private fun CharacterMediaCardV4(
     state: CharacterClosureState,
     onStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
+    structuralEditingEnabled: Boolean,
 ) {
     val context = LocalContext.current
     fun persistReadPermission(uri: Uri) {
@@ -103,6 +114,7 @@ private fun CharacterMediaCardV4(
                         onClear = { onStateChange(state.copy(portraitRef = null)) },
                         round = false,
                         imageSize = 56.dp,
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                     CharacterImageReferenceV4(
@@ -112,6 +124,7 @@ private fun CharacterMediaCardV4(
                         onClear = { onStateChange(state.copy(tokenRef = null)) },
                         round = true,
                         imageSize = 56.dp,
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -123,6 +136,7 @@ private fun CharacterMediaCardV4(
                     onClear = { onStateChange(state.copy(portraitRef = null)) },
                     round = false,
                     imageSize = 44.dp,
+                    structuralEditingEnabled = structuralEditingEnabled,
                 )
                 CharacterImageReferenceV4(
                     title = "Token",
@@ -131,6 +145,7 @@ private fun CharacterMediaCardV4(
                     onClear = { onStateChange(state.copy(tokenRef = null)) },
                     round = true,
                     imageSize = 44.dp,
+                    structuralEditingEnabled = structuralEditingEnabled,
                 )
             }
         }
@@ -145,6 +160,7 @@ private fun CharacterImageReferenceV4(
     onClear: () -> Unit,
     round: Boolean,
     imageSize: androidx.compose.ui.unit.Dp,
+    structuralEditingEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -186,12 +202,14 @@ private fun CharacterImageReferenceV4(
                 }
             }
             Text(title, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
-            TextButton(
-                onClick = onChoose,
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 5.dp, vertical = 1.dp),
-            ) { Text(if (uriRef == null) "Elegir" else "Cambiar", style = MaterialTheme.typography.labelSmall) }
-            if (uriRef != null) {
-                StableRemoveIconButton(onClick = onClear, contentDescription = "Quitar $title")
+            if (structuralEditingEnabled) {
+                TextButton(
+                    onClick = onChoose,
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 5.dp, vertical = 1.dp),
+                ) { Text(if (uriRef == null) "Elegir" else "Cambiar", style = MaterialTheme.typography.labelSmall) }
+                if (uriRef != null) {
+                    StableRemoveIconButton(onClick = onClear, contentDescription = "Quitar $title")
+                }
             }
         }
     }
@@ -202,6 +220,7 @@ private fun CharacterDefensesSensesMovementCardV4(
     state: CharacterClosureState,
     onStateChange: (CharacterClosureState) -> Unit,
     wide: Boolean,
+    structuralEditingEnabled: Boolean,
 ) {
     var defenseEditorId by rememberSaveable { mutableStateOf<String?>(null) }
     var defenseEditorOpen by rememberSaveable { mutableStateOf(false) }
@@ -234,6 +253,7 @@ private fun CharacterDefensesSensesMovementCardV4(
                         onDelete = { defenseDeleteId = it.id.toString() },
                         onAdd = { defenseEditorId = null; defenseEditorOpen = true },
                         addLabel = "Añadir defensa",
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                     GeneralReferenceGroupV4(
@@ -245,6 +265,7 @@ private fun CharacterDefensesSensesMovementCardV4(
                         onDelete = { senseDeleteId = it.id.toString() },
                         onAdd = { senseEditorId = null; senseEditorOpen = true },
                         addLabel = "Añadir sentido",
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                     GeneralReferenceGroupV4(
@@ -256,6 +277,7 @@ private fun CharacterDefensesSensesMovementCardV4(
                         onDelete = { movementDeleteId = it.id.toString() },
                         onAdd = { movementEditorId = null; movementEditorOpen = true },
                         addLabel = "Añadir movimiento",
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -269,6 +291,7 @@ private fun CharacterDefensesSensesMovementCardV4(
                     onDelete = { defenseDeleteId = it.id.toString() },
                     onAdd = { defenseEditorId = null; defenseEditorOpen = true },
                     addLabel = "Añadir defensa",
+                    structuralEditingEnabled = structuralEditingEnabled,
                 )
                 GeneralReferenceGroupV4(
                     title = "Sentidos",
@@ -279,6 +302,7 @@ private fun CharacterDefensesSensesMovementCardV4(
                     onDelete = { senseDeleteId = it.id.toString() },
                     onAdd = { senseEditorId = null; senseEditorOpen = true },
                     addLabel = "Añadir sentido",
+                    structuralEditingEnabled = structuralEditingEnabled,
                 )
                 GeneralReferenceGroupV4(
                     title = "Movimiento",
@@ -289,12 +313,13 @@ private fun CharacterDefensesSensesMovementCardV4(
                     onDelete = { movementDeleteId = it.id.toString() },
                     onAdd = { movementEditorId = null; movementEditorOpen = true },
                     addLabel = "Añadir movimiento",
+                    structuralEditingEnabled = structuralEditingEnabled,
                 )
             }
         }
     }
 
-    if (defenseEditorOpen) {
+    if (structuralEditingEnabled && defenseEditorOpen) {
         val existing = defenseEditorId?.let { id -> state.defenses.firstOrNull { it.id.toString() == id } }
         DefenseEditorDialogV4(existing, { defenseEditorOpen = false }) { saved ->
             val updated = if (existing == null) state.defenses + saved.copy(sortOrder = state.defenses.size)
@@ -303,7 +328,7 @@ private fun CharacterDefensesSensesMovementCardV4(
             defenseEditorOpen = false
         }
     }
-    defenseDeleteId?.let { id ->
+    if (structuralEditingEnabled) defenseDeleteId?.let { id ->
         val target = state.defenses.firstOrNull { it.id.toString() == id }
         if (target == null) defenseDeleteId = null else CharacterNamedDeleteConfirmationDialog(
             itemName = target.name,
@@ -316,7 +341,7 @@ private fun CharacterDefensesSensesMovementCardV4(
         )
     }
 
-    if (senseEditorOpen) {
+    if (structuralEditingEnabled && senseEditorOpen) {
         val existing = senseEditorId?.let { id -> state.senses.firstOrNull { it.id.toString() == id } }
         SenseEditorDialogV4(existing, { senseEditorOpen = false }) { saved ->
             val updated = if (existing == null) state.senses + saved.copy(sortOrder = state.senses.size)
@@ -325,7 +350,7 @@ private fun CharacterDefensesSensesMovementCardV4(
             senseEditorOpen = false
         }
     }
-    senseDeleteId?.let { id ->
+    if (structuralEditingEnabled) senseDeleteId?.let { id ->
         val target = state.senses.firstOrNull { it.id.toString() == id }
         if (target == null) senseDeleteId = null else CharacterNamedDeleteConfirmationDialog(
             itemName = target.name,
@@ -338,7 +363,7 @@ private fun CharacterDefensesSensesMovementCardV4(
         )
     }
 
-    if (movementEditorOpen) {
+    if (structuralEditingEnabled && movementEditorOpen) {
         val existing = movementEditorId?.let { id -> state.movements.firstOrNull { it.id.toString() == id } }
         MovementEditorDialogV4(existing, { movementEditorOpen = false }) { saved ->
             val updated = if (existing == null) state.movements + saved.copy(sortOrder = state.movements.size)
@@ -347,7 +372,7 @@ private fun CharacterDefensesSensesMovementCardV4(
             movementEditorOpen = false
         }
     }
-    movementDeleteId?.let { id ->
+    if (structuralEditingEnabled) movementDeleteId?.let { id ->
         val target = state.movements.firstOrNull { it.id.toString() == id }
         if (target == null) movementDeleteId = null else CharacterNamedDeleteConfirmationDialog(
             itemName = target.name,
@@ -371,6 +396,7 @@ private fun <T> GeneralReferenceGroupV4(
     onDelete: (T) -> Unit,
     onAdd: () -> Unit,
     addLabel: String,
+    structuralEditingEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Surface(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.small, tonalElevation = 1.dp) {
@@ -384,15 +410,22 @@ private fun <T> GeneralReferenceGroupV4(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f).clickable { onOpen(entry) }.padding(vertical = 4.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(enabled = structuralEditingEnabled) { onOpen(entry) }
+                            .padding(vertical = 4.dp),
                     ) {
                         Text(label(entry), style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         detail(entry)?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 1) }
                     }
-                    StableRemoveIconButton(onClick = { onDelete(entry) }, contentDescription = "Eliminar ${label(entry)}")
+                    if (structuralEditingEnabled) {
+                        StableRemoveIconButton(onClick = { onDelete(entry) }, contentDescription = "Eliminar ${label(entry)}")
+                    }
                 }
             }
-            TextButton(onClick = onAdd) { Text("+ $addLabel") }
+            if (structuralEditingEnabled) {
+                TextButton(onClick = onAdd) { Text("+ $addLabel") }
+            }
         }
     }
 }
@@ -415,9 +448,9 @@ private fun DefenseEditorDialogV4(
         saveEnabled = name.trim().isNotEmpty(),
     ) {
         EnumDropdownV4("Tipo", defenseTypeLabelV4(type), CharacterDefenseType.entries.map { it.name to defenseTypeLabelV4(it) }) { typeName = it }
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Daño / efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        CharacterCompactOutlinedTextFieldV4(value = name, onValueChange = { name = it }, label = { Text("Daño / efecto") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -434,9 +467,26 @@ private fun SenseEditorDialogV4(existing: CharacterSense?, onDismiss: () -> Unit
         onSave = { onSave(CharacterSense(existing?.id ?: Uuid.random(), name.trim(), parsedRange, notes.trim().takeIf { it.isNotEmpty() }, existing?.sortOrder ?: 0)) },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Sentido") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = range, onValueChange = { range = it.filter(Char::isDigit) }, label = { Text("Alcance en pies (opcional)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            CharacterCompactOutlinedTextFieldV4(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Sentido") },
+                modifier = Modifier.weight(1.25f),
+                singleLine = true,
+            )
+            CharacterCompactOutlinedTextFieldV4(
+                value = range,
+                onValueChange = { range = it.filter(Char::isDigit) },
+                label = { Text("Alcance (pies)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+        CharacterCompactOutlinedTextFieldV4(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
@@ -456,9 +506,26 @@ private fun MovementEditorDialogV4(existing: CharacterMovement?, onDismiss: () -
         saveEnabled = valid,
     ) {
         EnumDropdownV4("Tipo", movementTypeLabelV4(type), CharacterMovementType.entries.map { it.name to movementTypeLabelV4(it) }) { typeName = it }
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = speed, onValueChange = { speed = it.filter(Char::isDigit) }, label = { Text("Velocidad en pies (opcional)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            CharacterCompactOutlinedTextFieldV4(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.weight(1.25f),
+                singleLine = true,
+            )
+            CharacterCompactOutlinedTextFieldV4(
+                value = speed,
+                onValueChange = { speed = it.filter(Char::isDigit) },
+                label = { Text("Velocidad (pies)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+        CharacterCompactOutlinedTextFieldV4(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 

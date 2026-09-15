@@ -23,7 +23,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,7 +46,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 @Composable
@@ -305,7 +303,7 @@ private fun CombatQuickReferenceCardV4(
             ) {
                 ReadOnlyReferenceV4("CA", armorClass, Modifier.weight(1f))
                 ReadOnlyReferenceV4("Iniciativa", initiative.ifBlank { "—" }, Modifier.weight(1f))
-                ReadOnlyReferenceV4("Velocidad", formatSpeedCombatV4(speed), Modifier.weight(1f))
+                ReadOnlyReferenceV4("Velocidad", formatCharacterDistanceFeetV4(speed), Modifier.weight(1f))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -316,10 +314,6 @@ private fun CombatQuickReferenceCardV4(
                 ReadOnlyReferenceV4("PG máximos", maxHp, Modifier.weight(1f))
                 ReadOnlyReferenceV4("PG temporales", tempHp, Modifier.weight(1f))
             }
-            Text(
-                "Estos valores son referencias de la misma ficha; no son copias independientes.",
-                style = MaterialTheme.typography.labelSmall,
-            )
         }
     }
 }
@@ -361,7 +355,6 @@ private fun CombatEntryCardV4(
 ) {
     var accumulatedDrag by remember(entry.id) { mutableStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 66.dp.toPx() }
     val dragState = CharacterDragVisualStateV4(
         active = dragging,
         offsetY = accumulatedDrag,
@@ -380,6 +373,15 @@ private fun CombatEntryCardV4(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
+                .characterMeasuredReorderDragV4(
+                    enabled = structuralEditingEnabled,
+                    onHaptic = onHaptic,
+                    onMove = onMove,
+                    onVisualStateChange = { state ->
+                        dragging = state.active
+                        accumulatedDrag = state.offsetY
+                    },
+                )
                 .characterDragFeedbackV4(dragState)
                 .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
             shape = MaterialTheme.shapes.small,
@@ -394,42 +396,6 @@ private fun CombatEntryCardV4(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    StableDragHandle(
-                        modifier = Modifier.pointerInput(entry.id) {
-                            detectDragGesturesAfterLongPress(
-                            onDragStart = {
-                                accumulatedDrag = 0f
-                                dragging = true
-                                onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
-                            },
-                            onDragEnd = {
-                                if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
-                                accumulatedDrag = 0f
-                                dragging = false
-                            },
-                                onDragCancel = {
-                                    accumulatedDrag = 0f
-                                    dragging = false
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    accumulatedDrag += dragAmount.y
-                                    while (abs(accumulatedDrag) >= reorderStepPx) {
-                                        val direction = if (accumulatedDrag > 0f) 1 else -1
-                                    if (onMove(direction)) {
-                                        onHaptic(CharacterHapticEventV4.DRAG_STEP)
-                                        accumulatedDrag -= direction * reorderStepPx
-                                        } else {
-                                            accumulatedDrag = 0f
-                                            break
-                                        }
-                                    }
-                                },
-                            )
-                        },
-                        active = dragging,
-                        contentDescription = "Mantén pulsado y arrastra para reordenar ${entry.name}",
-                    )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(entry.name, style = MaterialTheme.typography.labelLarge)
                         Text(
@@ -439,13 +405,11 @@ private fun CombatEntryCardV4(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    TextButton(
+                    StableFavoriteIconButton(
+                        selected = favorite,
                         onClick = { onFavoriteChange(!favorite) },
                         enabled = favoriteEnabled,
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
-                    ) {
-                        Text(if (favorite) "★" else "☆")
-                    }
+                    )
                     if (structuralEditingEnabled) {
                         StableRemoveIconButton(
                             onClick = onDelete,
@@ -489,7 +453,7 @@ private fun CombatEntryEditorDialogV4(
         onSave = onApply,
         saveEnabled = valid,
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = name,
             onValueChange = onNameChange,
             label = { Text("Nombre") },
@@ -521,35 +485,40 @@ private fun CombatEntryEditorDialogV4(
                 }
             }
         }
-        OutlinedTextField(
-            value = attackModifier,
-            onValueChange = onAttackModifierChange,
-            label = { Text("Modificador de ataque (opcional)") },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
-        OutlinedTextField(
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            CharacterCompactOutlinedTextFieldV4(
+                value = attackModifier,
+                onValueChange = onAttackModifierChange,
+                label = { Text("Ataque (opcional)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+            CharacterCompactOutlinedTextFieldV4(
+                value = range,
+                onValueChange = onRangeChange,
+                label = { Text("Alcance (opcional)") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+        CharacterCompactOutlinedTextFieldV4(
             value = damageEffect,
             onValueChange = onDamageEffectChange,
             label = { Text("Daño / efecto") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 4,
         )
-        OutlinedTextField(
-            value = range,
-            onValueChange = onRangeChange,
-            label = { Text("Alcance (opcional)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = onNotesChange,
             label = { Text("Notas (opcional)") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 5,
         )
         CharacterInlineValidationMessage(
@@ -577,17 +546,5 @@ private fun sanitizeSignedIntV4(raw: String): String {
     return sign + digits
 }
 
-private fun formatSpeedCombatV4(raw: String): String {
-    val feet = raw.trim().toIntOrNull() ?: return raw.ifBlank { "—" }
-    val metricTenths = feet * 3
-    val wholeMeters = metricTenths / 10
-    val remainder = abs(metricTenths % 10)
-    val metric = if (remainder == 0) {
-        wholeMeters.toString()
-    } else {
-        "$wholeMeters,$remainder"
-    }
-    return "$feet ft ($metric m)"
-}
 
 private fun formatSignedCombatV4(value: Int): String = if (value >= 0) "+$value" else value.toString()

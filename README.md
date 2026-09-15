@@ -12,45 +12,43 @@ Read in this order:
 2. `MANIFEST.md` — map of authoritative/project-memory files and implemented areas;
 3. `docs/PROJECT_STATE.md` — authoritative current global state/navigation;
 4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/BRANCH_STATUS.md` — current branch lifecycle map;
-6. `docs/DECISIONS.md` plus `docs/DECISIONS_RECENT.md` and relevant detailed records under `docs/decisions/`;
+5. `docs/BRANCH_STATUS.md` — branch lifecycle map;
+6. `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` + relevant detailed records under `docs/decisions/`;
 7. `docs/CONVENTIONS.md`;
 8. `docs/PRODUCT.md`;
 9. `docs/ROADMAP.md`;
 10. `docs/WORKFLOW.md`;
 11. `docs/ARCHITECTURE.md`;
 12. `docs/TESTING.md`;
-13. relevant current checkpoints/feature files.
+13. relevant checkpoints/feature files.
 
-Current controlling records:
+Current implementation checkpoint:
 
-- `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md`;
-- `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`;
-- `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`;
-- `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`;
-- `docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md`.
+`docs/checkpoints/2026-09-14_INTEGRATED_MVP_BASELINE_CONVERGENCE.md`
 
 ## Current repository authority
 
-Until the planned convergence is executed there are **two active authoritative lines**:
+The owner explicitly authorized beginning the integrated-MVP implementation on 2026-09-14 (Chile local time).
 
-- `main` — canonical global integrated-MVP product/design/architecture/governance truth;
-- `implementation/phase4a-successor-cycle` — authoritative current Player runtime/repair/QA line.
+The former split between `main` product/governance and `implementation/phase4a-successor-cycle` Player runtime has been semantically reconciled on `integration/mvp-baseline-convergence`.
 
-These branches contain different valid work. `main` is not yet the latest Player runtime, and the Player successor must not overwrite later integrated-MVP decisions on `main`.
+Validated convergence commit:
 
-D-0073 defines the intended transition: after explicit implementation authorization, reconcile both lines on a dedicated convergence branch, validate, then merge the coherent baseline to `main`. After that successful convergence, `main` becomes the normal integrated-MVP trunk and the old Player successor becomes historical evidence.
+`5bed85cbb3e86ae63eac79149fadc5e56e61b256`
 
-Use `docs/BRANCH_STATUS.md`, `docs/PROJECT_STATE.md` and the relevant `docs/checkpoints/LATEST.md` rather than reconstructing authority from branch names or chronology.
+GitHub Actions run `34917259324` / #1694 completed **SUCCESS**, including all Player guard scripts, shared tests, Android debug build, Desktop build, backend type-check and APK artifact upload.
+
+After promotion of this validated branch, **`main` is the normal integrated-MVP development trunk**. The old Player successor remains historical/frozen QA evidence and is not the normal resume point.
+
+Use short-lived outcome-oriented branches from current `main`; do not recreate permanent Player/Server/Desktop silos.
 
 ## Working relationship
 
 AI/coding agents perform the heavy technical execution.
 
-The owner decides actual product/workflow/UX/game-semantic/privacy/scope decisions and meaningful cost/security/convenience tradeoffs. Routine low-level engineering is delegated under D-0073 and must **not** be pushed back to the owner for ceremonial rubber-stamping.
+The owner decides actual product/workflow/UX/game-semantic/privacy/scope decisions and meaningful cost/security/convenience/lock-in tradeoffs. Routine low-level engineering is delegated and must not be pushed back to the owner for ceremonial approval.
 
-Escalate a technical choice only when it materially changes product behavior, cost, privacy/security, irreversible lock-in or approved scope.
+Escalate a technical choice only when it materially changes product behavior, cost, privacy/security, irreversible lock-in, destructive behavior or approved scope.
 
 C-0009 remains controlling: use the simplest safe implementation that satisfies real approved requirements and do not import enterprise machinery without a concrete reason.
 
@@ -58,102 +56,75 @@ C-0009 remains controlling: use the simplest safe implementation that satisfies 
 
 - Android: **Kotlin + Jetpack Compose**, minimum Android 11 / API 30.
 - Android phone/tablet are first-class live surfaces.
-- DM Desktop App: **Kotlin + Compose Multiplatform Desktop**.
+- DM Desktop: **Kotlin + Compose Multiplatform Desktop**.
 - Local persistence: **SQLite + SQLDelight** where local/offline behavior matters.
 - Desktop: local Save + explicit Sync.
 - Hosted relational database: **Neon PostgreSQL**.
 - Backend/API: **Cloudflare Worker**, TypeScript.
 - Authentication proof: **Descope**; application/domain authorization remains project-owned.
-- Native clients never connect directly to Neon or hold database credentials.
-- Object storage is required; **Cloudflare R2 Standard is the current technical recommendation**, but enabling its subscription/account relationship is still an owner/service action before use.
-- Ordinary HTTP/request-response and polling remain preferred before generalized realtime infrastructure.
-- Full verifiable server backup/export is part of the MVP.
-- Official SRD clarification remains PostgreSQL full-text retrieval + grounded replaceable LLM, implemented late in the MVP cycle after foundations are real.
-- PC Sheet PDF export is local/offline and cross-surface: Player Android, DM Android/tablet and DM Desktop share one canonical export semantics/render-plan direction under D-0074.
+- Native clients do not connect directly to Neon or hold DB credentials.
+- Project-specific sync: stable IDs, revisions, idempotent mutations, outbox, tombstones, scoped pull/push, explicit conflict handling.
+- Object storage is MVP; **Cloudflare R2 Standard is the current technical recommendation**, but it has not been activated.
+- Ordinary HTTP/request-response and polling are preferred before generalized realtime infrastructure.
+- Full verifiable server backup/export is MVP.
+- Official SRD clarification uses PostgreSQL FTS + grounded replaceable LLM and remains official-SRD-only for MVP.
+- PC Sheet PDF export is local/offline and cross-surface with one canonical semantic export path.
 
-See `docs/ARCHITECTURE.md`, D-0071/D-0074 and the technical-readiness/PDF-closure checkpoints for full detail.
+See `docs/ARCHITECTURE.md`, `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` and the current checkpoint for detail.
 
-## Current Player reality
+## Historical Player evidence
 
-Authoritative Player runtime/evidence before convergence:
+The mature Player runtime from `implementation/phase4a-successor-cycle` has been integrated into the new baseline.
 
-`implementation/phase4a-successor-cycle`
+Historical frozen candidate remains evidence only:
 
-Observed branch HEAD during the 2026-09-14 technical-readiness review:
-
-`b9dea8ad6b17dcf3feeabba263eff1ee498f1536`
-
-Current frozen physical candidate:
-
-- version `0.4.0-preqa.13`;
-- versionCode/build `41300`;
-- commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
-- Scaffold `34801612526` / #1630 — **SUCCESS**;
+- version `0.4.0-preqa.13` / build `41300`;
+- candidate commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- Scaffold `34801612526` / #1630 — SUCCESS;
 - artifact `10331503478` / `dnd-custom-aid-debug-apk`;
-- targeted cross-device physical revalidation pending;
-- Phase 4A formally open on the historical Player line.
+- targeted physical cross-device revalidation was pending at that historical boundary.
 
-The Scaffold run was independently rechecked during technical readiness and is completed/successful on the exact candidate SHA.
-
-Automation is not physical owner acceptance. Preserve the evidence; do not restart historical Player repair work without new evidence.
+New integrated CI success does not retroactively claim physical acceptance of that old candidate.
 
 ## Integrated MVP scope
 
-The next implementation cycle targets one coherent product:
+The current build targets:
 
 ```text
 Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
-Approved live DM Desk family:
+Approved live DM Desks:
 
 1. DM Screen;
 2. Stage Desk;
 3. Dungeon Desk;
 4. Combat Desk.
 
-The Desktop App is both:
+Desktop is both a rich authoring/admin workbench and complete operational DM fallback. Prepare/Manage includes Monsters, NPCs, Homebrew & Rules, Stage/Places, Dungeon/Zones, Encounters, PCs/Audit and Media/Handouts. Administration includes Campaign Manager and System Administration.
 
-1. a full operational DM client/fallback with the same game/domain semantics as DM Android;
-2. the richer authoring/management/administration workbench.
+PC Sheet PDF export is protected in MVP across Player Android, authorized DM Android/tablet and DM Desktop, including Classic/custom visual families, custom-stat completeness, matching Extended pages, portrait handling, Permanent vs Current Snapshot and optional Spellbook.
 
-Desktop Prepare/Manage includes Monsters, NPCs, Homebrew & Rules, Stage/Places, Dungeon/Zones, Encounters, PCs/Audit and Media/Handouts. Administration includes Campaign Manager plus the sole-admin System Administration/operator console.
+## Current implementation step
 
-PC Sheet PDF export is explicitly protected in the integrated MVP. The user can generate a static local/offline sheet from Player Android or an authorized DM surface, choosing the D-0074 visual family/state/custom-stat/portrait options, with matching Extended pages and an optional complete Spellbook appendix.
+Baseline convergence is validated and being promoted to `main`.
 
-See D-0072/D-0074 for the detailed product definition.
+The next package is the **Shared Integrated-MVP Spine**:
 
-## Technical readiness
+- account/identity;
+- campaign + membership + role;
+- PC owner/controller;
+- stable IDs;
+- revisions/stale-write rejection;
+- tombstones/non-resurrection;
+- scope/provenance semantics;
+- basic audit/sync metadata and invariant tests.
 
-The 2026-09-14 technical review found:
+Then proceed to the hosted foundation and Player↔Server integration in dependency order.
 
-- backend = health-only scaffold;
-- hosted PostgreSQL migrations = scaffold only;
-- Desktop = basic placeholder shell;
-- the substantial existing technical asset is the mature Player/shared Kotlin + SQLDelight implementation;
-- Player and `main` are divergent but technically reconcilable under D-0073's semantic precedence;
-- mandatory governance/navigation files had stale pre-D-0073 wording and were reconciled by the technical-readiness documentation pass;
-- the existing versioned Player backup/serialization model is a strong basis for hosted PC snapshots rather than duplicating the entire local SQLDelight graph in PostgreSQL;
-- Ktor Client is the preferred shared Android/Desktop HTTP layer;
-- Neon serverless driver is the preferred initial Worker->PostgreSQL access path;
-- R2 Standard is the preferred first object-storage provider, pending owner/service activation;
-- no unresolved low-level engineering choice currently needs owner approval.
+No additional owner approval is needed for routine implementation details.
 
-After that review, the owner reopened PC Sheet PDF-export product definition, closed it through D-0074, and the technical baseline was aligned without discovering a new owner-level blocker. The PDF implementation should share canonical export semantics across clients while allowing platform-specific rendering.
-
-## Current authorization boundary and exact next action
-
-Product design, MVP boundary and technical readiness — including the reopened-and-closed D-0074 PDF-export definition — are complete enough to start implementation **once explicitly authorized**.
-
-No product-code implementation was authorized merely by the technical review or PDF documentation closure.
-
-The next meaningful owner decision is:
-
-> authorize beginning the integrated-MVP implementation, starting with the protected `main` + Player-successor convergence.
-
-After that authorization, technical agents should carry the engineering details and return to the owner only for material product/scope/security/cost choices or external account/service actions.
-
-## Build and verification commands
+## Build and verification
 
 Kotlin / Android / Desktop / SQLDelight:
 
@@ -161,7 +132,7 @@ Kotlin / Android / Desktop / SQLDelight:
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-Before convergence, also preserve/run the permanent Player guard scripts from the successor workflow.
+Permanent Player guard scripts are also part of the Scaffold workflow.
 
 Backend:
 
@@ -173,6 +144,10 @@ npm run check
 
 See `docs/TESTING.md` for the verification strategy.
 
+## External-service note
+
+No provider activation occurred during convergence. R2 and provider secrets should be requested/configured only when implementation reaches those dependencies. Secrets must remain outside Git.
+
 ## Development signing note
 
-Development CI uses a stable **debug-only** Android signing identity so successive QA APKs can update one another in place and exercise real migrations. It is not a production/release identity and must never be reused for a real release.
+Development CI uses a stable **debug-only** Android signing identity so successive QA APKs can update one another in place and exercise migrations. It is not a production/release identity.

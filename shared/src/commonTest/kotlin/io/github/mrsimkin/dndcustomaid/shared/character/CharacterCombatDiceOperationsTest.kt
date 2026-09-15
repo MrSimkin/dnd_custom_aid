@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
@@ -40,6 +41,67 @@ class CharacterCombatDiceOperationsTest {
         assertEquals(10, result.numericTotal)
         assertTrue(result.hasNumericDamage)
         assertEquals("enciende al objetivo", result.components.last().component.expression)
+    }
+
+    @Test
+    fun structuredDiceParserAcceptsBarePositiveAndNegativeModifiers() {
+        assertEquals(CharacterDiceExpression(count = 1, sides = 8, modifier = 0), parseCharacterDiceExpression("1d8"))
+        assertEquals(CharacterDiceExpression(count = 1, sides = 8, modifier = 2), parseCharacterDiceExpression("1d8+2"))
+        assertEquals(CharacterDiceExpression(count = 2, sides = 6, modifier = -1), parseCharacterDiceExpression("2d6-1"))
+        assertEquals(CharacterDiceExpression(count = 1, sides = 12, modifier = 0), parseCharacterDiceExpression("d12"))
+    }
+
+    @Test
+    fun structuredDiceParserRejectsIncompleteOrMalformedExpressions() {
+        assertNull(parseCharacterDiceExpression("1d8+"))
+        assertNull(parseCharacterDiceExpression("1d8-"))
+        assertNull(parseCharacterDiceExpression("1d"))
+        assertNull(parseCharacterDiceExpression("1d8+two"))
+        assertNull(parseCharacterDiceExpression("0d8"))
+    }
+
+    @Test
+    fun structuredDamageRollAppliesSignedDiceModifiers() {
+        val components = listOf(
+            CharacterDamageComponent(CharacterDamageComponentKind.DICE, "1d8+2"),
+            CharacterDamageComponent(CharacterDamageComponentKind.DICE, "2d6-1"),
+        )
+        val rolls = ArrayDeque(listOf(4, 3, 5))
+        val result = resolveCharacterDamageRoll(components) { sides ->
+            val value = rolls.removeFirst()
+            assertTrue(value in 1..sides)
+            value
+        }
+
+        assertEquals(listOf(4), result.components[0].diceResults)
+        assertEquals(6, result.components[0].numericValue)
+        assertEquals(listOf(3, 5), result.components[1].diceResults)
+        assertEquals(7, result.components[1].numericValue)
+        assertEquals(13, result.numericTotal)
+        assertTrue(result.hasNumericDamage)
+    }
+
+    @Test
+    fun arbitraryDiceExpressionRollUsesSidesAndSignedModifier() {
+        val expression = requireNotNull(parseCharacterDiceExpression("1d12-2"))
+        val result = resolveCharacterDiceExpressionRoll(expression) { sides ->
+            assertEquals(12, sides)
+            9
+        }
+
+        assertEquals(listOf(9), result.diceResults)
+        assertEquals(9, result.diceTotal)
+        assertEquals(7, result.total)
+    }
+
+    @Test
+    fun malformedDiceComponentRemainsNonNumericAtRollTime() {
+        val component = CharacterDamageComponent(CharacterDamageComponentKind.DICE, "1d8-")
+        val result = resolveCharacterDamageRoll(listOf(component)) { error("Malformed dice must not roll") }
+
+        assertFalse(result.hasNumericDamage)
+        assertNull(result.components.single().numericValue)
+        assertTrue(result.components.single().diceResults.isEmpty())
     }
 
     @Test

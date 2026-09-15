@@ -30,8 +30,8 @@ class CharacterFollowupFoundationTest {
         val first = characters.createCharacter(campaign.id, "Primero")
         val second = characters.createCharacter(campaign.id, "Segundo")
 
-        assertEquals(listOf("Cobre", "Plata", "Electro", "Oro", "Platino"), first.currencies.map { it.name })
-        assertEquals(listOf("Cobre", "Plata", "Electro", "Oro", "Platino"), second.currencies.map { it.name })
+        assertEquals(listOf("Cobre", "Plata", "Electrum", "Oro", "Platino"), first.currencies.map { it.name })
+        assertEquals(listOf("Cobre", "Plata", "Electrum", "Oro", "Platino"), second.currencies.map { it.name })
         assertTrue(first.currencies.all { it.isDefault && it.amount == 0 })
     }
 

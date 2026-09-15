@@ -169,6 +169,8 @@ CREATE TABLE character_spell_source (
     name TEXT NOT NULL,
     linked_class_id TEXT,
     sort_order INTEGER NOT NULL,
+    origin_kind TEXT NOT NULL DEFAULT 'OTHER',
+    origin_reference_id TEXT,
     UNIQUE(character_id, sort_order)
 );
 
@@ -491,11 +493,13 @@ DELETE FROM character_note
 WHERE character_id = ?;
 
 insertCharacterSpellSource:
-INSERT INTO character_spell_source(id, character_id, name, linked_class_id, sort_order)
-VALUES (?, ?, ?, ?, ?);
+INSERT INTO character_spell_source(
+    id, character_id, name, linked_class_id, sort_order, origin_kind, origin_reference_id
+)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 selectCharacterSpellSources:
-SELECT id, character_id, name, linked_class_id, sort_order
+SELECT id, character_id, name, linked_class_id, sort_order, origin_kind, origin_reference_id
 FROM character_spell_source
 WHERE character_id = ?
 ORDER BY sort_order, id;

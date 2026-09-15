@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 
 @Composable
 internal fun CompactFieldLabelV4(
@@ -33,6 +34,13 @@ internal fun CompactFieldLabelV4(
         style = MaterialTheme.typography.labelSmall,
         maxLines = 2,
     )
+}
+
+@Composable
+internal fun characterCompactTextAreaMinLinesV4(preferredLines: Int = 2): Int {
+    val preferred = preferredLines.coerceAtLeast(1)
+    val spacingFraction = LocalUiPreferencesV4.current.spacingScalePercent.coerceIn(40, 100) / 100f
+    return (preferred * spacingFraction).roundToInt().coerceIn(1, preferred)
 }
 
 @Composable

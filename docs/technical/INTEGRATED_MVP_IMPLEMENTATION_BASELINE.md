@@ -1,41 +1,50 @@
 # Integrated MVP implementation baseline — technical handoff
 
 **Date:** 2026-09-14  
-**Status:** Technical recommendation / handoff; implementation not yet authorized  
-**Controlling product/architecture:** D-0071, D-0072, D-0073, D-0074  
-**Readiness evidence:** `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` + `docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md`
+**Status:** ACTIVE implementation handoff  
+**Owner implementation authorization:** GRANTED  
+**Validated convergence commit:** `5bed85cbb3e86ae63eac79149fadc5e56e61b256`  
+**Convergence validation:** Actions `34917259324` / #1694 — SUCCESS
 
-This file is a compact engineering handoff for the first implementation Workers. It deliberately avoids owner-facing approval gates for low-level technical matters.
+This file is the compact engineering handoff for implementation Workers. It deliberately avoids owner-facing approval gates for routine low-level technical matters.
 
-## 1. First operation after owner implementation authorization
+## 1. Repository baseline
 
-Do **not** start backend/DM feature coding directly on either current authority line.
+The former `main` + Player-successor split has been semantically reconciled.
 
-1. refresh `main` and `implementation/phase4a-successor-cycle`;
-2. create a focused convergence branch from current `main`;
-3. reconcile the Player successor deliberately;
-4. preserve successor Player runtime, SQLDelight migrations, tests, guard scripts and evidence;
-5. preserve current `main` product/architecture/governance, including D-0074;
-6. reconcile CI/navigation manually;
-7. run convergence gates;
-8. merge coherent baseline to `main`;
-9. update branch status so `main` is the integrated trunk.
+The convergence preserves:
 
-## 2. Convergence verification
+- authoritative Player runtime, SQLDelight migrations, tests, permanent guard scripts and historical Player evidence from `implementation/phase4a-successor-cycle`;
+- current integrated product/architecture/governance and PDF-export direction from `main`.
 
-Required technical gate before merge:
+After promotion, use current `main` as the normal integrated trunk. Keep the old Player successor as historical evidence rather than continuing ordinary development there.
+
+Convergence CI passed all Player guards, `:shared:desktopTest`, `:androidApp:assembleDebug`, `:desktopApp:build`, backend `npm run check` and APK artifact upload.
+
+## 2. Next package — Shared Integrated-MVP Spine
+
+Implement the minimum common semantics needed by later Player/Server/Desktop/DM work.
+
+Required concepts/invariants:
 
 ```text
-all permanent Player guard scripts
-+ :shared:desktopTest
-+ :androidApp:assembleDebug
-+ :desktopApp:build
-+ backend npm check
-+ local SQLDelight migration-history audit
-+ documentation/authority audit
+Account / global identity
+Campaign
+CampaignMembership + campaign Role
+PC owner != PC controller
+stable object IDs
+monotonic revisions / stale-write rejection
+deletion tombstones / stale non-resurrection
+Personal / Campaign / System-or-Official scope where valid
+independent-copy provenance
+basic audit/sync metadata
 ```
 
-Do not infer semantic safety from a conflict-free Git merge.
+Do not pre-model the entire future product and do not force every entity into one giant universal `SyncEntity`.
+
+A Personal -> Campaign copy receives a new object ID and independent revision lifecycle while retaining provenance. Later Personal edits never silently update the Campaign copy.
+
+Tests should prove the invariants, not merely class construction.
 
 ## 3. Native shared networking
 
@@ -50,15 +59,15 @@ shared/commonMain
   sync client logic
 
 androidMain
-  Android/JVM-supported Ktor engine
+  Android/JVM Ktor engine
   Android auth/session integration
 
 desktopMain
-  JVM-supported Ktor engine
+  JVM Ktor engine
   Desktop auth/session integration
 ```
 
-Keep UI/platform session acquisition outside common domain logic.
+Keep platform UI/session acquisition outside common domain logic.
 
 ## 4. API contract
 
@@ -70,17 +79,17 @@ Initial API family:
 
 Use JSON request/response contracts.
 
-Mutation requests that update synchronizable durable state should normally carry:
+Durable synchronizable mutations should normally carry:
 
 ```text
-mutationId       stable client-generated UUID
-expectedRevision revision the client believes current
-payload           domain mutation/current-state data as appropriate
+mutationId        stable client-generated UUID
+expectedRevision  revision the client believes current
+payload           domain mutation/current-state data
 ```
 
-Server response should include authoritative resulting revision/state metadata.
+Server advances authoritative revision and returns resulting state/metadata.
 
-Minimum machine-readable error families:
+Machine-readable error families should include at least:
 
 ```text
 UNAUTHENTICATED
@@ -97,7 +106,7 @@ Display strings are not protocol semantics.
 
 ## 5. Hosted identity/authorization spine
 
-Conceptual relational foundation — exact names may change during implementation:
+Conceptual relational foundation — exact names are delegated:
 
 ```text
 app_user
@@ -105,23 +114,23 @@ campaign
 campaign_membership
 campaign_invite / moderation state
 pc
-mutation_receipt / idempotency record
-sync_change / scoped change cursor mechanism
+mutation_receipt / idempotency
+sync_change / scoped cursor
 ```
 
 Important invariants:
 
-- Descope subject maps to stable internal application user;
+- Descope subject maps to stable internal user;
 - campaign role is not global identity;
-- DM != PC owner;
-- PC owner != current controller;
-- authorization is checked server-side for every protected operation;
+- DM authority does not imply PC ownership;
+- PC owner and controller may differ;
+- authorization is server-side on every protected operation;
 - membership removal stops future hosted access;
-- global account freeze is separate from campaign kick/ban.
+- global account freeze is distinct from campaign kick/ban.
 
 ## 6. PC hosted persistence
 
-Do not reproduce the complete local SQLDelight character table graph in hosted PostgreSQL for symmetry.
+Do not mirror the entire local SQLDelight character graph into hosted PostgreSQL merely for symmetry.
 
 Preferred current-state representation:
 
@@ -129,22 +138,20 @@ Preferred current-state representation:
 pc relational metadata
   id
   campaign id
-  owner user id nullable as allowed
-  controller user id nullable as allowed
+  owner user id nullable where allowed
+  controller user id nullable where allowed
   revision
-  status/frozen/deleted metadata
-  public identity metadata / portrait asset reference
+  lifecycle/frozen/deleted metadata
+  public identity / portrait asset reference
   reconciled-data timestamp
   created/updated timestamps
   snapshot format/version
   snapshot JSONB
 ```
 
-Snapshot content should use/evolve the existing application-owned versioned Player serialization family (`CharacterBackupDocument` aggregates) rather than creating a second complete character model.
+Snapshot content should evolve the existing versioned application-owned Player serialization family rather than creating a second complete character model.
 
-Keep grouped audit/history/recovery records separate from current snapshot.
-
-Never return the full snapshot through the tiny Player-to-Player public identity projection.
+Keep grouped audit/history/recovery separate from current snapshot. Never expose the full snapshot through the tiny Player-to-Player public identity projection.
 
 ## 7. Synchronization
 
@@ -154,15 +161,14 @@ Client:
 
 ```text
 local Save
--> local state committed
--> pending mutation/outbox record
+-> local transaction commits state + pending mutation
 -> later Sync
 ```
 
 Push:
 
 ```text
-mutationId + objectId + expectedRevision + mutation/payload
+mutationId + objectId + expectedRevision + payload
 ```
 
 Server:
@@ -180,59 +186,45 @@ return authoritative result
 Pull:
 
 ```text
-scope + afterCursor/changeSequence
+scope + afterCursor
 -> ordered relevant changes/tombstones
 -> transactional local application
 ```
 
-Desktop sends on explicit Sync. Android may opportunistically retry while retaining manual Sync.
-
-Do not build generalized CRDT/merge infrastructure.
+Desktop transmits on explicit Sync. Android may opportunistically retry while retaining manual Sync. No generalized CRDT/auto-merge platform.
 
 ## 8. PostgreSQL / Neon
 
-Initial Worker database access:
+Initial Worker database access: `@neondatabase/serverless`.
 
-`@neondatabase/serverless`
-
-Prefer the simplest HTTP/serverless path appropriate to the operation. Add more connection infrastructure only if measured behavior requires it.
-
-Do not introduce Hyperdrive initially merely because it is available.
+Prefer the simplest serverless path. Do not introduce Hyperdrive until measured behavior demonstrates a real need.
 
 Hosted schema is owned by explicit SQL migrations under `database/migrations/`.
 
 ## 9. Authentication
 
-Android:
+Android: Descope Kotlin/Android integration.
 
-- Descope Kotlin/Android integration.
-
-Desktop:
-
-- standards-based native OIDC flow, preferably Authorization Code + PKCE using the system browser/local callback rather than embedded credentials.
+Desktop: standards-based native OIDC, preferably Authorization Code + PKCE using system browser/local callback.
 
 Backend:
 
-- validate session/access token on protected requests;
-- validate relevant audience/issuer/signature/expiry;
+- validate session/access token;
+- validate issuer/audience/signature/expiry as appropriate;
 - map external subject to internal user;
 - apply application-owned campaign/domain authorization.
 
-Perform a bounded Worker-runtime compatibility spike before committing broadly to a specific Descope backend package. Standards-based JWT/JWKS validation is acceptable if it is cleaner in the Worker runtime.
+Perform a bounded Worker-runtime compatibility spike before spreading a specific Descope backend package. JWT/JWKS validation is acceptable if cleaner in Worker runtime.
 
 ## 10. Object storage
 
-Preferred first provider:
+Preferred first provider: **Cloudflare R2 Standard**, pending owner account/subscription activation.
 
-**Cloudflare R2 Standard**, pending owner account/subscription activation.
+Application records store stable logical asset identity; provider keys stay infrastructure-specific. Native clients never receive durable R2 credentials.
 
-Reason: direct Worker integration, current free included tier appropriate to personal scale, and free egress.
+Choose Worker-proxy vs short-lived authorized direct upload only when concrete asset-size/workflow evidence makes the tradeoff real. Do not pre-build multipart complexity.
 
-Domain model stores stable application asset identity; provider key is infrastructure metadata.
-
-Native clients must not receive durable R2 credentials.
-
-Choose Worker-proxy vs temporary direct/presigned upload only when actual file-size/media requirements make the tradeoff concrete.
+No R2 activation occurred during convergence.
 
 ## 11. Import/export
 
@@ -251,41 +243,37 @@ records/payload
 Import flow:
 
 ```text
-parse
--> validate
--> preview recognized/warning/error state
--> explicit destination scope
--> commit
+parse -> validate -> preview warnings/errors -> explicit destination scope -> commit
 ```
 
-No overwrite-by-name. Bulk arrays/packages where useful. CSV/plain text may be adapters later.
+No overwrite-by-name. Bulk arrays/packages where useful. CSV/plain text may be convenience adapters later.
 
 ## 12. Backup/export
 
-First complete server backup should be an on-demand versioned archive, e.g. ZIP-like packaging with:
+First complete server backup should be an on-demand versioned archive, for example:
 
 ```text
 manifest.json
 relational data JSON/NDJSON
 asset manifest
-assets or sufficient complete recovery material according to final storage design
+assets or sufficient recovery material
 checksums/integrity data
 ```
 
-Do not require a queue platform unless real generation time/limits prove it necessary.
+Do not require queues unless real generation time/runtime limits prove a need.
 
 ## 13. PC Sheet PDF export
 
-D-0074 turns PDF export into an explicit cross-surface integrated-MVP capability. Do not implement three independent semantic exporters.
+Treat PDF export as one semantic capability across Player Android, DM Android/tablet and Desktop.
 
-Preferred technical decomposition:
+Preferred decomposition:
 
 ```text
 PC/domain state
 -> canonical export snapshot
 -> shared export semantics/render plan
    - selected family/variant
-   - permanent vs current snapshot
+   - Permanent vs Current Snapshot
    - custom-stat mode
    - portrait mode
    - overflow/extension decisions
@@ -293,46 +281,53 @@ PC/domain state
 -> platform renderer
 ```
 
-Renderers must support two kinds of output:
+Renderers must support:
 
-1. **faithful template overlay** for owner v1/v2 base pages where geometry remains fixed;
-2. **generated/adapted drawing** for Classic, App Modified sheets, design-specific Extended pages and the application-designed Spellbook.
+1. faithful template overlay for owner v1/v2 fixed pages where appropriate;
+2. generated/adapted drawing for Classic, App Modified, design-specific Extended pages and the application-designed Spellbook.
 
-The existing source PDFs under `assets/character-sheets/templates/` are visual authorities for v1/v2.
+The source PDFs under `assets/character-sheets/templates/` are visual authorities for v1/v2.
 
-The semantic layer should be shared enough that Player Android, DM Android/tablet and Desktop make the same content/completeness decisions. Platform-specific PDF APIs, font/image primitives and file/share integration may differ.
+Exact PDF library, coordinate model, font/image primitives and pagination are delegated. Existing PdfBox-Android / Apache PDFBox may remain if technically suitable, but local/offline static export and approved visual behavior are the invariant.
 
-D-0040's local/offline principle remains controlling. No server-side PDF service is required.
-
-Exact library choice is delegated. Existing PdfBox-Android / Apache PDFBox direction may be retained if it supports the approved behavior cleanly, but D-0074 permits technical replacement/evolution without owner approval if the old choice becomes unnecessarily restrictive. Preserve static PDF output, local/offline generation and approved visual behavior.
-
-Implementation should include deterministic layout/overflow tests where practical plus rendered golden/reference checks for representative sheets. Do not use a fixed tiny font to avoid overflow; enforce a readability floor and explicit continuation.
+Use deterministic layout/overflow tests plus rendered references where practical. Do not shrink text below a readability floor merely to avoid continuation pages.
 
 ## 14. CI evolution
 
-Preserve successor Player guards.
+The integrated baseline already preserves and passes successor Player guards.
 
-Add tests incrementally for:
+Add invariant-focused tests incrementally for:
 
 - shared serialization/contracts;
-- PostgreSQL migrations;
+- hosted SQL migrations;
 - auth/authorization;
-- stale revisions;
+- stale revision rejection;
 - idempotent retry;
 - tombstone non-resurrection;
-- sync round-trip and conflict;
+- sync round-trip/conflict;
 - asset authorization/integrity;
 - backup completeness;
-- PDF export semantic completeness/overflow across representative template families;
+- PDF export completeness/overflow;
 - later combat authority generation/sequence.
 
-Avoid generic coverage targets as substitutes for invariant tests.
+Avoid generic coverage targets as substitutes for behavior tests.
 
-## 15. Escalation rule
+## 15. Branch/package strategy
 
-Do not ask the owner to approve the implementation details in this file.
+After baseline promotion:
 
-Escalate only if implementation discovers a choice that materially changes:
+- branch from current `main`;
+- use short-lived outcome-oriented branches;
+- merge shared contracts early when downstream work depends on them;
+- keep `main` coherent/buildable at normal integration points;
+- do not maintain permanent Player/Server/Desktop silos;
+- update durable docs/checkpoints when operational truth materially changes.
+
+## 16. Escalation rule
+
+Do not ask the owner to approve routine implementation details in this file.
+
+Escalate only choices that materially change:
 
 - product behavior/workflow;
 - security/privacy;
@@ -341,4 +336,4 @@ Escalate only if implementation discovers a choice that materially changes:
 - user-visible destructive behavior;
 - approved MVP scope.
 
-External account actions (for example enabling R2 or configuring provider secrets) may require owner action even when the technical design does not.
+External account actions such as enabling R2 or configuring provider secrets may still require owner action even when the engineering choice is delegated.

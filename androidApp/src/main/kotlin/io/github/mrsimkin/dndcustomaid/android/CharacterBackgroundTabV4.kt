@@ -1,9 +1,18 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.provider.OpenableColumns
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,31 +20,41 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackgroundImage
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackgroundImageSlot
+import java.io.ByteArrayOutputStream
+import kotlin.math.max
+import kotlin.math.roundToInt
+import kotlin.uuid.Uuid
+
+private const val BACKGROUND_IMAGE_MAX_EDGE_G4 = 1600
+private const val BACKGROUND_IMAGE_JPEG_QUALITY_G4 = 86
 
 private enum class BackgroundNarrativeFieldV4(val label: String) {
     PERSONALITY("Rasgos de personalidad"),
@@ -47,13 +66,49 @@ private enum class BackgroundNarrativeFieldV4(val label: String) {
 @Composable
 internal fun CharacterBackgroundTabV4(
     background: CharacterBackground,
+    canonicalOrigins: CharacterCanonicalOriginsDraftP7V4,
     onBackgroundChange: (CharacterBackground) -> Unit,
+    onCanonicalOriginsChange: (CharacterCanonicalOriginsDraftP7V4) -> Unit,
     structuralEditingEnabled: Boolean,
     wide: Boolean,
 ) {
     var editingFieldName by rememberSaveable { mutableStateOf<String?>(null) }
     var editorText by rememberSaveable { mutableStateOf("") }
     var storyExpanded by rememberSaveable("background-story-expanded") { mutableStateOf(false) }
+    var imageErrorMessage by rememberSaveable("background-image-error") { mutableStateOf<String?>(null) }
+    val androidContext = LocalContext.current
+    val settingsContext = LocalCharacterPcSettingsContextV4.current
+    val successorState = settingsContext?.successorState
+    val primaryImage = successorState?.backgroundImages?.firstOrNull { it.slot == CharacterBackgroundImageSlot.PRIMARY }
+    val secondaryImage = successorState?.backgroundImages?.firstOrNull { it.slot == CharacterBackgroundImageSlot.SECONDARY }
+    val imageEditingEnabled = structuralEditingEnabled && settingsContext != null
+
+    fun updateImage(slot: CharacterBackgroundImageSlot, image: CharacterBackgroundImage?) {
+        val currentContext = settingsContext ?: return
+        val current = currentContext.successorState
+        val updatedImages = buildList {
+            addAll(current.backgroundImages.filterNot { it.slot == slot })
+            image?.let(::add)
+        }.sortedBy { it.slot.ordinal }
+        currentContext.onSuccessorStateChange(current.copy(backgroundImages = updatedImages))
+    }
+
+    fun importImage(slot: CharacterBackgroundImageSlot, uri: Uri) {
+        val result = runCatching { characterBackgroundImageFromUriV4(androidContext, uri, slot) }
+        result.onSuccess { image ->
+            updateImage(slot, image)
+            imageErrorMessage = null
+        }.onFailure {
+            imageErrorMessage = "No se pudo importar la imagen seleccionada. Prueba con otra imagen compatible."
+        }
+    }
+
+    val primaryImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { importImage(CharacterBackgroundImageSlot.PRIMARY, it) }
+    }
+    val secondaryImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { importImage(CharacterBackgroundImageSlot.SECONDARY, it) }
+    }
 
     fun fieldValue(field: BackgroundNarrativeFieldV4): String = when (field) {
         BackgroundNarrativeFieldV4.PERSONALITY -> background.personalityTraits
@@ -85,9 +140,9 @@ internal fun CharacterBackgroundTabV4(
             .imePadding()
             .navigationBarsPadding(),
         contentPadding = PaddingValues(
-            start = if (wide) 10.dp else 5.dp,
-            end = if (wide) 10.dp else 5.dp,
-            top = 5.dp,
+            start = appSpacingV4(if (wide) 10.dp else 5.dp),
+            end = appSpacingV4(if (wide) 10.dp else 5.dp),
+            top = appSpacingV4(5.dp),
             bottom = 88.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
@@ -97,86 +152,99 @@ internal fun CharacterBackgroundTabV4(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 7.dp),
+                        .padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(5.dp)),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                 ) {
                     Text("Trasfondo", style = MaterialTheme.typography.titleSmall)
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = background.name,
-                        onValueChange = { onBackgroundChange(background.copy(name = it)) },
+                        onValueChange = { value ->
+                            onBackgroundChange(background.copy(name = value))
+                            onCanonicalOriginsChange(canonicalOrigins.withBackgroundName(value))
+                        },
                         enabled = structuralEditingEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Nombre del trasfondo") },
                         singleLine = true,
                     )
-                    if (wide) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
-                        ) {
-                            OutlinedTextField(
-                                value = background.race,
-                                onValueChange = { onBackgroundChange(background.copy(race = it)) },
-                                enabled = structuralEditingEnabled,
-                                modifier = Modifier.weight(1f),
-                                label = { Text("Raza") },
-                                singleLine = true,
-                            )
-                            OutlinedTextField(
-                                value = background.religionFaith,
-                                onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
-                                enabled = structuralEditingEnabled,
-                                modifier = Modifier.weight(1f),
-                                label = { Text("Religión / Fe") },
-                                singleLine = true,
-                            )
-                        }
-                    } else {
-                        OutlinedTextField(
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                    ) {
+                        CharacterCompactOutlinedTextFieldV4(
                             value = background.race,
-                            onValueChange = { onBackgroundChange(background.copy(race = it)) },
+                            onValueChange = { value ->
+                                onBackgroundChange(background.copy(race = value))
+                                onCanonicalOriginsChange(canonicalOrigins.withSpeciesName(value))
+                            },
                             enabled = structuralEditingEnabled,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.weight(1f),
                             label = { Text("Raza") },
                             singleLine = true,
                         )
-                        OutlinedTextField(
-                            value = background.religionFaith,
-                            onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
-                            enabled = structuralEditingEnabled,
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Religión / Fe") },
+                        CharacterCompactOutlinedTextFieldV4(
+                            value = canonicalOrigins.subraceIdentity?.name.orEmpty(),
+                            onValueChange = { value ->
+                                onCanonicalOriginsChange(canonicalOrigins.withSubraceName(value))
+                            },
+                            enabled = structuralEditingEnabled && canonicalOrigins.speciesIdentity?.name?.isNotBlank() == true,
+                            modifier = Modifier.weight(1f),
+                            label = { Text("Subraza") },
                             singleLine = true,
+                            supportingText = if (canonicalOrigins.speciesIdentity?.name?.isBlank() != false) {
+                                { Text("Configura primero la Raza") }
+                            } else {
+                                null
+                            },
                         )
                     }
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
+                        value = background.religionFaith,
+                        onValueChange = { onBackgroundChange(background.copy(religionFaith = it)) },
+                        enabled = structuralEditingEnabled,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Religión / Fe") },
+                        singleLine = true,
+                    )
+                    CharacterCompactOutlinedTextFieldV4(
                         value = background.summary,
                         onValueChange = { onBackgroundChange(background.copy(summary = it)) },
                         enabled = structuralEditingEnabled,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("Descripción / resumen") },
-                        minLines = 2,
+                        minLines = characterCompactTextAreaMinLinesV4(2),
                     )
                 }
             }
         }
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
-                verticalAlignment = Alignment.Top,
-            ) {
-                CharacterImagePlaceholderV4(
-                    title = "Imagen principal",
-                    contentDescription = "Espacio reservado para imagen principal del personaje; función aún no disponible",
-                    modifier = Modifier.weight(1f),
-                )
-                CharacterImagePlaceholderV4(
-                    title = "Imagen secundaria",
-                    contentDescription = "Espacio reservado para segunda imagen del personaje; función aún no disponible",
-                    modifier = Modifier.weight(1f),
-                )
+        item(key = "background-images") {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    CharacterBackgroundImageCardV4(
+                        title = "Imagen principal",
+                        image = primaryImage,
+                        editingEnabled = imageEditingEnabled,
+                        onPick = { primaryImageLauncher.launch("image/*") },
+                        onRemove = { updateImage(CharacterBackgroundImageSlot.PRIMARY, null) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    CharacterBackgroundImageCardV4(
+                        title = "Imagen secundaria",
+                        image = secondaryImage,
+                        editingEnabled = imageEditingEnabled,
+                        onPick = { secondaryImageLauncher.launch("image/*") },
+                        onRemove = { updateImage(CharacterBackgroundImageSlot.SECONDARY, null) },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                imageErrorMessage?.let { message ->
+                    Text(message, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                }
             }
         }
 
@@ -185,7 +253,7 @@ internal fun CharacterBackgroundTabV4(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 7.dp, vertical = 6.dp),
+                        .padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Text("Perfil narrativo", style = MaterialTheme.typography.titleSmall)
@@ -206,9 +274,7 @@ internal fun CharacterBackgroundTabV4(
                                         modifier = Modifier.weight(1f),
                                     )
                                 }
-                                repeat(2 - rowFields.size) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                }
+                                repeat(2 - rowFields.size) { Spacer(modifier = Modifier.weight(1f)) }
                             }
                         }
                     } else {
@@ -230,7 +296,7 @@ internal fun CharacterBackgroundTabV4(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 7.dp),
+                        .padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(5.dp)),
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                 ) {
                     Row(
@@ -238,76 +304,42 @@ internal fun CharacterBackgroundTabV4(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Historia del personaje", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "Historia larga, disponible completa al expandir.",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
+                        Text("Historia del personaje", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
                         TextButton(onClick = { storyExpanded = !storyExpanded }) {
                             Text(
-                                if (storyExpanded) {
-                                    "Ocultar"
-                                } else if (background.story.isBlank() && structuralEditingEnabled) {
-                                    "Añadir"
-                                } else {
-                                    "Mostrar"
-                                },
+                                if (storyExpanded) "Ocultar"
+                                else if (background.story.isBlank() && structuralEditingEnabled) "Añadir"
+                                else "Mostrar",
                             )
                         }
                     }
                     if (storyExpanded) {
-                        OutlinedTextField(
+                        CharacterCompactOutlinedTextFieldV4(
                             value = background.story,
                             onValueChange = { onBackgroundChange(background.copy(story = it)) },
                             enabled = structuralEditingEnabled,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(
-                                    min = if (wide) 260.dp else 220.dp,
-                                    max = if (wide) 420.dp else 360.dp,
-                                ),
+                            modifier = Modifier.fillMaxWidth(),
                             label = { Text("Historia") },
-                            minLines = if (wide) 10 else 8,
-                            maxLines = if (wide) 20 else 16,
-                            supportingText = {
-                                if (background.story.length > 500) {
-                                    Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
-                                }
-                            },
+                            minLines = characterCompactTextAreaMinLinesV4(3),
+                            maxLines = 10,
                         )
                     } else {
                         Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { storyExpanded = true },
+                            modifier = Modifier.fillMaxWidth().clickable { storyExpanded = true },
                             shape = MaterialTheme.shapes.small,
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                             color = MaterialTheme.colorScheme.surfaceVariant,
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 7.dp, vertical = 6.dp),
-                                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                            ) {
-                                Text(
-                                    background.story.ifBlank { "Sin historia registrada" },
-                                    style = if (background.story.isBlank()) {
-                                        MaterialTheme.typography.labelSmall
-                                    } else {
-                                        MaterialTheme.typography.bodySmall
-                                    },
-                                    maxLines = 3,
-                                )
-                                Text(
-                                    when {
-                                        !structuralEditingEnabled -> "Toca para expandir · Modo Mesa solo lectura"
-                                        background.story.isBlank() -> "Toca para añadir"
-                                        else -> "Toca para expandir y editar"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
+                            Text(
+                                background.story.ifBlank { "Sin historia registrada" },
+                                modifier = Modifier.fillMaxWidth().padding(
+                                    horizontal = appSpacingV4(7.dp),
+                                    vertical = appSpacingV4(5.dp),
+                                ),
+                                style = if (background.story.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
@@ -327,112 +359,229 @@ internal fun CharacterBackgroundTabV4(
                 editingFieldName = null
             },
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = editorText,
                 onValueChange = { editorText = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(editingField.label) },
-                minLines = 7,
-                maxLines = 14,
+                minLines = characterCompactTextAreaMinLinesV4(3),
+                maxLines = 8,
             )
         }
     }
 }
 
 @Composable
-private fun CharacterImagePlaceholderV4(
+private fun CharacterBackgroundImageCardV4(
     title: String,
-    contentDescription: String,
+    image: CharacterBackgroundImage?,
+    editingEnabled: Boolean,
+    onPick: () -> Unit,
+    onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.aspectRatio(4f / 5f),
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+    var viewerOpen by rememberSaveable(image?.id?.toString(), "viewer") { mutableStateOf(false) }
+    val bitmap = remember(image?.id, image?.encodedData) { image?.let(::decodeCharacterBackgroundImageV4) }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
     ) {
-        Column(
+        Text(title, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Surface(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+                .fillMaxWidth()
+                .aspectRatio(4f / 5f)
+                .clickable(
+                    enabled = image != null || editingEnabled,
+                    onClick = {
+                        if (image != null) viewerOpen = true else if (editingEnabled) onPick()
+                    },
+                ),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            color = MaterialTheme.colorScheme.surfaceVariant,
         ) {
-            CharacterImagePlaceholderIconV4(contentDescription)
-            Text(title, style = MaterialTheme.typography.labelLarge)
-            Text(
-                "Próximamente · sin almacenamiento de imágenes",
-                style = MaterialTheme.typography.labelSmall,
-            )
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(appSpacingV4(8.dp)),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(if (image == null) "Sin imagen" else "Imagen no disponible", style = MaterialTheme.typography.bodySmall)
+                    if (editingEnabled && image == null) {
+                        Text("Toca para seleccionar", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
         }
+    }
+
+    if (viewerOpen && image != null && bitmap != null) {
+        CharacterBackgroundImageViewerV4(
+            title = title,
+            bitmap = bitmap,
+            editingEnabled = editingEnabled,
+            onDismiss = { viewerOpen = false },
+            onChange = {
+                viewerOpen = false
+                onPick()
+            },
+            onRemove = {
+                viewerOpen = false
+                onRemove()
+            },
+        )
     }
 }
 
 @Composable
-private fun CharacterImagePlaceholderIconV4(contentDescription: String) {
-    val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
-    Canvas(
-        modifier = Modifier
-            .size(48.dp)
-            .semantics { this.contentDescription = contentDescription },
+private fun CharacterBackgroundImageViewerV4(
+    title: String,
+    bitmap: ImageBitmap,
+    editingEnabled: Boolean,
+    onDismiss: () -> Unit,
+    onChange: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        val stroke = size.minDimension * 0.055f
-        drawLine(
-            color = lineColor,
-            start = Offset(size.width * 0.15f, size.height * 0.15f),
-            end = Offset(size.width * 0.85f, size.height * 0.15f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = lineColor,
-            start = Offset(size.width * 0.85f, size.height * 0.15f),
-            end = Offset(size.width * 0.85f, size.height * 0.85f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = lineColor,
-            start = Offset(size.width * 0.85f, size.height * 0.85f),
-            end = Offset(size.width * 0.15f, size.height * 0.85f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = lineColor,
-            start = Offset(size.width * 0.15f, size.height * 0.85f),
-            end = Offset(size.width * 0.15f, size.height * 0.15f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-        drawCircle(
-            color = lineColor,
-            radius = size.minDimension * 0.08f,
-            center = Offset(size.width * 0.68f, size.height * 0.34f),
-        )
-        drawLine(
-            color = lineColor,
-            start = Offset(size.width * 0.24f, size.height * 0.70f),
-            end = Offset(size.width * 0.44f, size.height * 0.48f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = lineColor,
-            start = Offset(size.width * 0.44f, size.height * 0.48f),
-            end = Offset(size.width * 0.60f, size.height * 0.65f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
-        drawLine(
-            color = lineColor,
-            start = Offset(size.width * 0.60f, size.height * 0.65f),
-            end = Offset(size.width * 0.72f, size.height * 0.54f),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round,
-        )
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .padding(appSpacingV4(8.dp)),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(appSpacingV4(8.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+                Surface(
+                    modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                    tonalElevation = 3.dp,
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp)),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        TextButton(onClick = onDismiss) { Text("Cerrar") }
+                    }
+                }
+                if (editingEnabled) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                        tonalElevation = 3.dp,
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(onClick = onChange) { Text("Cambiar") }
+                            TextButton(onClick = onRemove) { Text("Eliminar") }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+
+private fun characterBackgroundImageFromUriV4(
+    context: Context,
+    uri: Uri,
+    slot: CharacterBackgroundImageSlot,
+): CharacterBackgroundImage {
+    val decoded = decodeSampledBackgroundBitmapV4(context, uri)
+    val longestEdge = max(decoded.width, decoded.height)
+    val prepared = if (longestEdge > BACKGROUND_IMAGE_MAX_EDGE_G4) {
+        val scale = BACKGROUND_IMAGE_MAX_EDGE_G4.toFloat() / longestEdge.toFloat()
+        Bitmap.createScaledBitmap(
+            decoded,
+            (decoded.width * scale).roundToInt().coerceAtLeast(1),
+            (decoded.height * scale).roundToInt().coerceAtLeast(1),
+            true,
+        )
+    } else {
+        decoded
+    }
+    val hasAlpha = prepared.hasAlpha()
+    val format = if (hasAlpha) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
+    val mimeType = if (hasAlpha) "image/png" else "image/jpeg"
+    val encoded = ByteArrayOutputStream().use { output ->
+        check(prepared.compress(format, if (hasAlpha) 100 else BACKGROUND_IMAGE_JPEG_QUALITY_G4, output)) {
+            "Image compression failed."
+        }
+        Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+    }
+    if (prepared !== decoded) decoded.recycle()
+    prepared.recycle()
+    return CharacterBackgroundImage(
+        id = Uuid.random(),
+        slot = slot,
+        mimeType = mimeType,
+        encodedData = encoded,
+        originalName = characterBackgroundImageOriginalNameV4(context, uri),
+    )
+}
+
+private fun decodeSampledBackgroundBitmapV4(context: Context, uri: Uri): Bitmap {
+    val resolver = context.contentResolver
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    resolver.openInputStream(uri).use { input ->
+        BitmapFactory.decodeStream(requireNotNull(input) { "Unable to open image." }, null, bounds)
+    }
+    require(bounds.outWidth > 0 && bounds.outHeight > 0) { "Unsupported image." }
+
+    var sampleSize = 1
+    val decodeTarget = BACKGROUND_IMAGE_MAX_EDGE_G4 * 2
+    while (max(bounds.outWidth, bounds.outHeight) / sampleSize > decodeTarget) {
+        sampleSize *= 2
+    }
+    val options = BitmapFactory.Options().apply {
+        inSampleSize = sampleSize
+        inPreferredConfig = Bitmap.Config.ARGB_8888
+    }
+    return resolver.openInputStream(uri).use { input ->
+        requireNotNull(
+            BitmapFactory.decodeStream(requireNotNull(input) { "Unable to reopen image." }, null, options),
+        ) { "Unable to decode image." }
+    }
+}
+
+private fun decodeCharacterBackgroundImageV4(image: CharacterBackgroundImage): ImageBitmap? = runCatching {
+    val bytes = Base64.decode(image.encodedData, Base64.DEFAULT)
+    requireNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size)).asImageBitmap()
+}.getOrNull()
+
+private fun characterBackgroundImageOriginalNameV4(context: Context, uri: Uri): String? = runCatching {
+    context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        if (cursor.moveToFirst()) cursor.getString(0) else null
+    }
+}.getOrNull()?.trim()?.takeIf(String::isNotEmpty)
 
 @Composable
 private fun BackgroundNarrativePreviewCardV4(
@@ -452,22 +601,14 @@ private fun BackgroundNarrativePreviewCardV4(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 7.dp, vertical = 6.dp),
+                .padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
             verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
         ) {
             Text(title, style = MaterialTheme.typography.labelLarge)
             Text(
                 value.ifBlank { "Sin contenido" },
-                style = if (value.isBlank()) {
-                    MaterialTheme.typography.labelSmall
-                } else {
-                    MaterialTheme.typography.bodySmall
-                },
+                style = if (value.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
                 maxLines = 2,
-            )
-            Text(
-                if (editingEnabled) "Toca para editar" else "Modo Mesa · solo lectura",
-                style = MaterialTheme.typography.labelSmall,
             )
         }
     }

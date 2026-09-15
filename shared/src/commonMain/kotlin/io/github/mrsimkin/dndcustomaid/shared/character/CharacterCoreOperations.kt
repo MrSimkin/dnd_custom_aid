@@ -18,6 +18,32 @@ fun CharacterSheet.customSkillTotal(skill: CharacterCustomSkill): Int {
     return abilityModifier(skill.ability) + proficiencyContribution + skill.adjustment
 }
 
+/**
+ * Apply an exact current/max HP correction while preserving the canonical invariant that current HP
+ * can never exceed maximum HP. This is an administrative/set operation, not damage or healing.
+ */
+fun setCharacterHitPoints(
+    sheet: CharacterSheet,
+    currentHp: Int,
+    maxHp: Int,
+): CharacterSheet {
+    val normalizedMax = maxHp.coerceAtLeast(0)
+    return sheet.copy(
+        maxHp = normalizedMax,
+        currentHp = currentHp.coerceIn(0, normalizedMax),
+    )
+}
+
+/** Exact current-HP correction against the character's existing maximum. */
+fun setCharacterCurrentHp(sheet: CharacterSheet, currentHp: Int): CharacterSheet =
+    setCharacterHitPoints(sheet = sheet, currentHp = currentHp, maxHp = sheet.maxHp)
+
+/**
+ * Exact maximum-HP correction. Increasing the maximum does not heal; reducing it clamps current HP.
+ */
+fun setCharacterMaxHp(sheet: CharacterSheet, maxHp: Int): CharacterSheet =
+    setCharacterHitPoints(sheet = sheet, currentHp = sheet.currentHp, maxHp = maxHp)
+
 fun applyCharacterDamage(sheet: CharacterSheet, amount: Int): CharacterSheet {
     require(amount >= 0) { "Damage amount must not be negative." }
     if (amount == 0) return sheet
@@ -40,6 +66,42 @@ fun setCharacterTemporaryHp(sheet: CharacterSheet, amount: Int): CharacterSheet 
     require(amount >= 0) { "Temporary HP must not be negative." }
     return sheet.copy(tempHp = amount)
 }
+
+/** Which canonical HP projection(s) actually changed across one operation. */
+enum class CharacterHpChangeImpact {
+    NONE,
+    HIT_POINTS,
+    TEMPORARY_HP,
+    BOTH,
+}
+
+fun characterHpChangeImpact(
+    beforeCurrentHp: Int,
+    beforeMaxHp: Int,
+    beforeTempHp: Int,
+    afterCurrentHp: Int,
+    afterMaxHp: Int,
+    afterTempHp: Int,
+): CharacterHpChangeImpact {
+    val hitPointsChanged = beforeCurrentHp != afterCurrentHp || beforeMaxHp != afterMaxHp
+    val temporaryHpChanged = beforeTempHp != afterTempHp
+    return when {
+        hitPointsChanged && temporaryHpChanged -> CharacterHpChangeImpact.BOTH
+        hitPointsChanged -> CharacterHpChangeImpact.HIT_POINTS
+        temporaryHpChanged -> CharacterHpChangeImpact.TEMPORARY_HP
+        else -> CharacterHpChangeImpact.NONE
+    }
+}
+
+fun characterHpChangeImpact(before: CharacterSheet, after: CharacterSheet): CharacterHpChangeImpact =
+    characterHpChangeImpact(
+        beforeCurrentHp = before.currentHp,
+        beforeMaxHp = before.maxHp,
+        beforeTempHp = before.tempHp,
+        afterCurrentHp = after.currentHp,
+        afterMaxHp = after.maxHp,
+        afterTempHp = after.tempHp,
+    )
 
 fun CharacterClosureState.hasQuickAccess(kind: CharacterQuickAccessKind, targetId: Uuid): Boolean =
     quickAccess.any { it.kind == kind && it.targetId == targetId }

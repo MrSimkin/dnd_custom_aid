@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
@@ -139,6 +140,50 @@ internal fun StableEditIconButton(
     }
 }
 
+@Composable
+internal fun StableFavoriteIconButton(
+    selected: Boolean,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    contentDescription: String = if (selected) "Quitar de Favoritos" else "Añadir a Favoritos",
+) {
+    val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.size(36.dp),
+    ) {
+        Canvas(
+            modifier = Modifier
+                .size(22.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val center = Offset(size.width / 2f, size.height / 2f)
+            val outerRadius = size.minDimension * 0.45f
+            val innerRadius = outerRadius * 0.46f
+            val path = Path()
+            repeat(10) { index ->
+                val angle = -Math.PI / 2.0 + index * Math.PI / 5.0
+                val radius = if (index % 2 == 0) outerRadius else innerRadius
+                val point = Offset(
+                    center.x + cos(angle).toFloat() * radius,
+                    center.y + sin(angle).toFloat() * radius,
+                )
+                if (index == 0) path.moveTo(point.x, point.y) else path.lineTo(point.x, point.y)
+            }
+            path.close()
+            if (selected) {
+                drawPath(path = path, color = color)
+            } else {
+                drawPath(
+                    path = path,
+                    color = color,
+                    style = Stroke(width = 1.8.dp.toPx(), cap = StrokeCap.Round),
+                )
+            }
+        }
+    }
+}
 
 @Composable
 internal fun StableDuplicateIconButton(
@@ -232,12 +277,36 @@ internal fun StableDropdownIconButton(
 }
 
 @Composable
+internal fun StableSortIconButton(
+    onClick: () -> Unit,
+    contentDescription: String = "Ordenar",
+) {
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+        Canvas(
+            modifier = Modifier
+                .size(22.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val stroke = 1.9.dp.toPx()
+            drawLine(color, Offset(size.width * 0.12f, size.height * 0.28f), Offset(size.width * 0.58f, size.height * 0.28f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.12f, size.height * 0.50f), Offset(size.width * 0.46f, size.height * 0.50f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.12f, size.height * 0.72f), Offset(size.width * 0.34f, size.height * 0.72f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.76f, size.height * 0.22f), Offset(size.width * 0.76f, size.height * 0.76f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.63f, size.height * 0.64f), Offset(size.width * 0.76f, size.height * 0.78f), stroke, StrokeCap.Round)
+            drawLine(color, Offset(size.width * 0.89f, size.height * 0.64f), Offset(size.width * 0.76f, size.height * 0.78f), stroke, StrokeCap.Round)
+        }
+    }
+}
+
+@Composable
 internal fun StableAddIcon(
+    modifier: Modifier = Modifier,
     contentDescription: String = "Añadir",
 ) {
     val color = MaterialTheme.colorScheme.onPrimaryContainer
     Canvas(
-        modifier = Modifier
+        modifier = modifier
             .size(24.dp)
             .semantics { this.contentDescription = contentDescription },
     ) {

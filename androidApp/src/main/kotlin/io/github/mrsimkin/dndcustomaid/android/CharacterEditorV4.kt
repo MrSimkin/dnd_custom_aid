@@ -6,6 +6,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -34,7 +36,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -73,6 +74,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingProfile
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomAttribute
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
@@ -86,8 +88,14 @@ import io.github.mrsimkin.dndcustomaid.shared.character.abilityModifierForScore
 import io.github.mrsimkin.dndcustomaid.shared.character.characterAbilityReferenceAbbreviation
 import io.github.mrsimkin.dndcustomaid.shared.character.customSavingThrowTotal
 import io.github.mrsimkin.dndcustomaid.shared.character.customSkillTotal
+import io.github.mrsimkin.dndcustomaid.shared.character.generalSpellcastingRows
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSkills
 import io.github.mrsimkin.dndcustomaid.shared.character.isCharacterStructuralEditingEnabled
+import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalClosureState
+import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalState
+import io.github.mrsimkin.dndcustomaid.shared.character.needsCharacterSpellcastingBootstrap
+import io.github.mrsimkin.dndcustomaid.shared.character.reconcileCharacterSpellcastingBootstrap
+import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterHitPoints
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.visibleCharacterModules
@@ -118,6 +126,17 @@ internal fun CharacterEditorScreenV4(
     }
     val pcSettingsContext = LocalCharacterPcSettingsContextV4.current
     val successorState = pcSettingsContext?.successorState ?: CharacterSuccessorState()
+    val storedSpellcastingBootstrap = remember(
+        stored.classes,
+        stored.spellcastingSources,
+        successorState.spellcastingProfiles,
+    ) {
+        reconcileCharacterSpellcastingBootstrap(
+            classes = stored.classes,
+            existingSources = stored.spellcastingSources,
+            existingProfiles = successorState.spellcastingProfiles,
+        )
+    }
     var draft by rememberSaveable(
         characterId.toString(),
         stateSaver = CharacterEditorDraftV4.Saver,
@@ -129,6 +148,9 @@ internal fun CharacterEditorScreenV4(
     }
     var combatDamageDraftJson by rememberSaveable(characterId.toString(), "combat-damage") {
         mutableStateOf(characterCombatDamageProfilesToJsonV4(successorState.combatDamage))
+    }
+    var spellcastingProfilesDraftJson by rememberSaveable(characterId.toString(), "spellcasting-profiles") {
+        mutableStateOf(characterSpellcastingProfilesToJsonV4(storedSpellcastingBootstrap.profiles))
     }
     var equipmentDraftJson by rememberSaveable(characterId.toString()) {
         mutableStateOf(
@@ -147,11 +169,21 @@ internal fun CharacterEditorScreenV4(
     var traitsDraftJson by rememberSaveable(characterId.toString(), "traits") {
         mutableStateOf(characterTraitsToJsonV4(stored.traits))
     }
+    var traitProvenanceDraftJson by rememberSaveable(characterId.toString(), "trait-provenance-p7") {
+        mutableStateOf(characterTraitProvenanceToJsonP7V4(successorState.traitProvenance))
+    }
+    var canonicalOriginsDraftJson by rememberSaveable(characterId.toString(), "canonical-origins-p7") {
+        mutableStateOf(
+            characterCanonicalOriginsDraftToJsonP7V4(
+                CharacterCanonicalOriginsDraftP7V4.from(successorState),
+            ),
+        )
+    }
     var spellcastingDraftJson by rememberSaveable(characterId.toString(), "spellcasting") {
         mutableStateOf(
             characterSpellcastingDraftToJsonV4(
                 CharacterSpellcastingDraftV4(
-                    sources = stored.spellcastingSources,
+                    sources = storedSpellcastingBootstrap.sources,
                     spells = stored.spells,
                 ),
             ),
@@ -189,6 +221,8 @@ internal fun CharacterEditorScreenV4(
         )
     }
     var confirmBlankNumbers by rememberSaveable(characterId.toString()) { mutableStateOf(false) }
+    var confirmTableModeTransition by rememberSaveable(characterId.toString(), "table-mode-transition") { mutableStateOf(false) }
+    var activateTableModeAfterBlankSave by rememberSaveable(characterId.toString(), "table-mode-after-blank-save") { mutableStateOf(false) }
     var showPcSettings by rememberSaveable(characterId.toString(), "pc-settings") { mutableStateOf(false) }
     var showSupercompact by rememberSaveable(characterId.toString(), "supercompact") { mutableStateOf(false) }
     var confirmDisableSpellcasting by rememberSaveable(characterId.toString(), "disable-spellcasting") { mutableStateOf(false) }
@@ -221,14 +255,50 @@ internal fun CharacterEditorScreenV4(
     val combatDamageProfiles = remember(combatDamageDraftJson) {
         characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson)
     }
+    val spellcastingProfiles = remember(spellcastingProfilesDraftJson) {
+        characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
+    }
+    val canonicalOriginsDraft = remember(canonicalOriginsDraftJson) {
+        characterCanonicalOriginsDraftFromJsonP7V4(canonicalOriginsDraftJson)
+    }
+    val provenanceDraftSuccessorState = remember(successorState, canonicalOriginsDraft) {
+        canonicalOriginsDraft.projectOnto(successorState)
+    }
+    val projectedSuccessorState = remember(provenanceDraftSuccessorState, spellcastingProfiles) {
+        provenanceDraftSuccessorState.copy(spellcastingProfiles = spellcastingProfiles)
+    }
     val equipmentDraft = remember(equipmentDraftJson) { equipmentDraftFromJsonV4(equipmentDraftJson) }
     val backgroundDraft = remember(backgroundDraftJson) { characterBackgroundFromJsonV4(backgroundDraftJson) }
     val traitsDraft = remember(traitsDraftJson) { characterTraitsFromJsonV4(traitsDraftJson) }
+    val traitProvenanceDraft = remember(traitProvenanceDraftJson) {
+        characterTraitProvenanceFromJsonP7V4(traitProvenanceDraftJson)
+    }
     val spellcastingDraft = remember(spellcastingDraftJson) { characterSpellcastingDraftFromJsonV4(spellcastingDraftJson) }
     val notesDraft = remember(notesDraftJson) { characterNotesDraftFromJsonV4(notesDraftJson) }
     val h1ModuleDraft = remember(h1ModuleDraftJson) { characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson) }
     val proficiencyDraft = remember(proficiencyDraftJson) { characterProficienciesFromJsonV4(proficiencyDraftJson) }
     val settingsSheet = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: stored
+    LaunchedEffect(settingsSheet.classes) {
+        val reconciled = reconcileCharacterSpellcastingBootstrap(
+            classes = settingsSheet.classes,
+            existingSources = spellcastingDraft.sources,
+            existingProfiles = spellcastingProfiles,
+        )
+        if (reconciled.sources != spellcastingDraft.sources) {
+            spellcastingDraftJson = characterSpellcastingDraftToJsonV4(
+                spellcastingDraft.copy(sources = reconciled.sources),
+            )
+            savedMessage = null
+        }
+        if (reconciled.profiles != spellcastingProfiles) {
+            spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(reconciled.profiles)
+            savedMessage = null
+        }
+    }
+    val canonicalSpellcastingBootstrapNeeded = remember(settingsSheet.classes, stored.spellcastingSources) {
+        needsCharacterSpellcastingBootstrap(settingsSheet.classes, stored.spellcastingSources)
+    }
+    val effectiveSpellcasterEnabled = stored.spellcasterEnabled || canonicalSpellcastingBootstrapNeeded
     val overviewProjectionSheet = settingsSheet.copy(
         background = backgroundDraft,
         inventoryItems = equipmentDraft.items,
@@ -241,7 +311,7 @@ internal fun CharacterEditorScreenV4(
     val structuralEditingEnabled = isCharacterStructuralEditingEnabled(closureState.tableModeEnabled)
     val selectedTab = resolvedCharacterTabV4(
         savedTabName = selectedTabName,
-        spellcasterEnabled = stored.spellcasterEnabled,
+        spellcasterEnabled = effectiveSpellcasterEnabled,
         visibleModules = visibleModules,
     )
     LaunchedEffect(characterId, selectedTab.name) {
@@ -256,6 +326,9 @@ internal fun CharacterEditorScreenV4(
     val storedCombatDamageDraftJson = remember(successorState.combatDamage) {
         characterCombatDamageProfilesToJsonV4(successorState.combatDamage)
     }
+    val storedSpellcastingProfilesDraftJson = remember(storedSpellcastingBootstrap.profiles) {
+        characterSpellcastingProfilesToJsonV4(storedSpellcastingBootstrap.profiles)
+    }
     val storedEquipmentDraftJson = remember(stored, closureState.inventoryUsage) {
         equipmentDraftToJsonV4(
             CharacterEquipmentDraftV4(
@@ -267,10 +340,22 @@ internal fun CharacterEditorScreenV4(
     }
     val storedBackgroundDraftJson = remember(stored) { characterBackgroundToJsonV4(stored.background) }
     val storedTraitsDraftJson = remember(stored) { characterTraitsToJsonV4(stored.traits) }
-    val storedSpellcastingDraftJson = remember(stored) {
+    val storedTraitProvenanceDraftJson = remember(successorState.traitProvenance) {
+        characterTraitProvenanceToJsonP7V4(successorState.traitProvenance)
+    }
+    val storedCanonicalOriginsDraftJson = remember(
+        successorState.speciesIdentity,
+        successorState.subraceIdentity,
+        successorState.backgroundIdentity,
+    ) {
+        characterCanonicalOriginsDraftToJsonP7V4(
+            CharacterCanonicalOriginsDraftP7V4.from(successorState),
+        )
+    }
+    val storedSpellcastingDraftJson = remember(storedSpellcastingBootstrap.sources, stored.spells) {
         characterSpellcastingDraftToJsonV4(
             CharacterSpellcastingDraftV4(
-                sources = stored.spellcastingSources,
+                sources = storedSpellcastingBootstrap.sources,
                 spells = stored.spells,
             ),
         )
@@ -299,13 +384,57 @@ internal fun CharacterEditorScreenV4(
         draft.toJson() != storedDraftJson ||
             combatDraftJson != storedCombatDraftJson ||
             combatDamageDraftJson != storedCombatDamageDraftJson ||
+            spellcastingProfilesDraftJson != storedSpellcastingProfilesDraftJson ||
             equipmentDraftJson != storedEquipmentDraftJson ||
             backgroundDraftJson != storedBackgroundDraftJson ||
             traitsDraftJson != storedTraitsDraftJson ||
+            traitProvenanceDraftJson != storedTraitProvenanceDraftJson ||
+            canonicalOriginsDraftJson != storedCanonicalOriginsDraftJson ||
             spellcastingDraftJson != storedSpellcastingDraftJson ||
             notesDraftJson != storedNotesDraftJson ||
             h1ModuleDraftJson != storedH1ModuleDraftJson ||
             proficiencyDraftJson != storedProficiencyDraftJson
+    val tableModePendingChanges = buildList {
+        val persistedDraft = CharacterEditorDraftV4.from(stored)
+        fun addScalar(label: String, before: String, after: String) {
+            if (before != after) add("$label: ${before.ifBlank { "—" }} → ${after.ifBlank { "—" }}")
+        }
+        addScalar("Nombre", persistedDraft.name, draft.name)
+        addScalar("Estado", persistedDraft.status.name, draft.status.name)
+        addScalar("FUE", persistedDraft.strength, draft.strength)
+        addScalar("DES", persistedDraft.dexterity, draft.dexterity)
+        addScalar("CON", persistedDraft.constitution, draft.constitution)
+        addScalar("INT", persistedDraft.intelligence, draft.intelligence)
+        addScalar("SAB", persistedDraft.wisdom, draft.wisdom)
+        addScalar("CAR", persistedDraft.charisma, draft.charisma)
+        addScalar("CA", persistedDraft.armorClass, draft.armorClass)
+        addScalar("PG máximos", persistedDraft.maxHp, draft.maxHp)
+        addScalar("PG actuales", persistedDraft.currentHp, draft.currentHp)
+        addScalar("PG temporales", persistedDraft.tempHp, draft.tempHp)
+        addScalar("Ajuste iniciativa", persistedDraft.initiativeAdjustment, draft.initiativeAdjustment)
+        addScalar("Velocidad", persistedDraft.speed, draft.speed)
+        addScalar("Ajuste competencia", persistedDraft.proficiencyBonusAdjustment, draft.proficiencyBonusAdjustment)
+        addScalar("Ajuste Percepción pasiva", persistedDraft.passivePerceptionAdjustment, draft.passivePerceptionAdjustment)
+        addScalar("CD de conjuros", persistedDraft.spellSaveDc, draft.spellSaveDc)
+        addScalar("Ataque de conjuros", persistedDraft.spellAttackModifier, draft.spellAttackModifier)
+        addScalar("Característica de conjuros", persistedDraft.spellcastingAbility.name, draft.spellcastingAbility.name)
+        if (persistedDraft.classes != draft.classes) add("Clases y niveles: cambios pendientes")
+        if (persistedDraft.saves != draft.saves) add("Tiradas de salvación: cambios pendientes")
+        if (persistedDraft.skills != draft.skills) add("Habilidades: cambios pendientes")
+        if (persistedDraft.spellSlots.map { it.level to it.total } != draft.spellSlots.map { it.level to it.total }) add("Espacios de conjuro: configuración pendiente")
+        if (combatDraftJson != storedCombatDraftJson) add("Combate: acciones / ataques pendientes")
+        if (combatDamageDraftJson != storedCombatDamageDraftJson) add("Combate: daño estructurado pendiente")
+        if (spellcastingProfilesDraftJson != storedSpellcastingProfilesDraftJson) add("Conjuros: perfiles de lanzamiento pendientes")
+        if (equipmentDraftJson != storedEquipmentDraftJson) add("Equipo y monedas: cambios pendientes")
+        if (backgroundDraftJson != storedBackgroundDraftJson) add("Trasfondo: cambios pendientes")
+        if (traitsDraftJson != storedTraitsDraftJson) add("Rasgos: cambios pendientes")
+        if (traitProvenanceDraftJson != storedTraitProvenanceDraftJson) add("Rasgos: procedencia pendiente")
+        if (canonicalOriginsDraftJson != storedCanonicalOriginsDraftJson) add("Identidad de raza / trasfondo: cambios pendientes")
+        if (spellcastingDraftJson != storedSpellcastingDraftJson) add("Conjuros: fuentes o conjuros pendientes")
+        if (notesDraftJson != storedNotesDraftJson) add("Notas: cambios pendientes")
+        if (h1ModuleDraftJson != storedH1ModuleDraftJson) add("Módulos de clase / formas / compañeros: cambios pendientes")
+        if (proficiencyDraftJson != storedProficiencyDraftJson) add("Competencias: cambios pendientes")
+    }.distinct()
 
     fun requestBack() {
         if (hasUnsavedChanges) {
@@ -318,16 +447,16 @@ internal fun CharacterEditorScreenV4(
     BackHandler(enabled = showSupercompact) {
         showSupercompact = false
     }
-    BackHandler(enabled = !showSupercompact && showPcSettings) {
+    BackHandler(enabled = !showSupercompact && showPcSettings && !confirmTableModeTransition) {
         showPcSettings = false
         selectedTabName = resolvedCharacterTabV4(
             savedTabName = selectedTabName,
-            spellcasterEnabled = stored.spellcasterEnabled,
+            spellcasterEnabled = effectiveSpellcasterEnabled,
             visibleModules = visibleModules,
         ).name
     }
     BackHandler(
-        enabled = !showSupercompact && !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting,
+        enabled = !showSupercompact && !showPcSettings && !confirmUnsavedLeave && !confirmBlankNumbers && !confirmDisableSpellcasting && !confirmTableModeTransition,
     ) {
         requestBack()
     }
@@ -354,17 +483,26 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateSpellcastingProfiles(updated: List<CharacterSpellcastingProfile>) {
+        if (!structuralEditingEnabled) return
+        spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(updated)
+        savedMessage = null
+    }
+
     fun updateEquipmentItems(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>) {
+        if (!structuralEditingEnabled) return
         equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(items = updated))
         savedMessage = null
     }
 
     fun updateCurrencies(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>) {
+        if (!structuralEditingEnabled) return
         equipmentDraftJson = equipmentDraftToJsonV4(equipmentDraft.copy(currencies = updated))
         savedMessage = null
     }
 
     fun updateEquipmentDraft(updated: CharacterEquipmentDraftV4) {
+        if (!structuralEditingEnabled) return
         equipmentDraftJson = equipmentDraftToJsonV4(updated)
         savedMessage = null
     }
@@ -375,8 +513,23 @@ internal fun CharacterEditorScreenV4(
         savedMessage = null
     }
 
+    fun updateCanonicalOrigins(updated: CharacterCanonicalOriginsDraftP7V4) {
+        if (!structuralEditingEnabled) return
+        canonicalOriginsDraftJson = characterCanonicalOriginsDraftToJsonP7V4(updated)
+        savedMessage = null
+    }
+
     fun updateTraits(updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>) {
+        if (!structuralEditingEnabled) return
         traitsDraftJson = characterTraitsToJsonV4(updated)
+        savedMessage = null
+    }
+
+    fun updateTraitProvenance(
+        updated: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitProvenance>,
+    ) {
+        if (!structuralEditingEnabled) return
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(updated)
         savedMessage = null
     }
 
@@ -411,14 +564,29 @@ internal fun CharacterEditorScreenV4(
         val notes = characterNotesDraftFromJsonV4(notesDraftJson)
         val h1Modules = characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson)
         val proficiencies = characterProficienciesFromJsonV4(proficiencyDraftJson)
-        val integrated = candidate.copy(
+        val normalizedCandidate = setCharacterHitPoints(
+            sheet = candidate,
+            currentHp = candidate.currentHp,
+            maxHp = candidate.maxHp,
+        ).copy(tempHp = candidate.tempHp.coerceAtLeast(0))
+        val bootstrapNeededBeforePersist = needsCharacterSpellcastingBootstrap(
+            classes = normalizedCandidate.classes,
+            existingSources = stored.spellcastingSources,
+        )
+        val reconciledSpellcasting = reconcileCharacterSpellcastingBootstrap(
+            classes = normalizedCandidate.classes,
+            existingSources = spellcasting.sources,
+            existingProfiles = characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson),
+        )
+        val integrated = normalizedCandidate.copy(
             combatEntries = combatEntriesFromJsonV4(combatDraftJson),
             inventoryItems = equipment.items,
             currencies = equipment.currencies,
             background = characterBackgroundFromJsonV4(backgroundDraftJson),
             traits = characterTraitsFromJsonV4(traitsDraftJson),
-            spellcastingSources = spellcasting.sources,
+            spellcastingSources = reconciledSpellcasting.sources,
             spells = spellcasting.spells,
+            spellcasterEnabled = normalizedCandidate.spellcasterEnabled || bootstrapNeededBeforePersist,
             generalNotes = notes.generalNotes,
             noteCards = notes.cards,
             proficiencies = proficiencies,
@@ -430,11 +598,29 @@ internal fun CharacterEditorScreenV4(
         val liveCombatEntryIds = stored.combatEntries.mapTo(mutableSetOf()) { it.id }
         val savedDamageProfiles = characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson)
             .filter { it.combatEntryId in liveCombatEntryIds }
+        val liveSpellSourceIds = stored.spellcastingSources.mapTo(mutableSetOf()) { it.id }
+        val savedSpellcastingProfiles = reconciledSpellcasting.profiles
+            .filter { it.sourceId in liveSpellSourceIds }
+        val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
+        val savedCanonicalOrigins = characterCanonicalOriginsDraftFromJsonP7V4(canonicalOriginsDraftJson).normalized()
+        val provenanceSaveState = savedCanonicalOrigins.projectOnto(successorState)
+        val savedTraitProvenance = refreshResolvedTraitProvenanceLabelsP7V4(
+            items = characterTraitProvenanceFromJsonP7V4(traitProvenanceDraftJson)
+                .filter { it.traitId in liveTraitIds },
+            classes = stored.classes,
+            successorState = provenanceSaveState,
+        )
         pcSettingsContext?.onSuccessorStateChange?.invoke(
-            successorState.copy(combatDamage = savedDamageProfiles),
+            provenanceSaveState.copy(
+                combatDamage = savedDamageProfiles,
+                spellcastingProfiles = savedSpellcastingProfiles,
+                traitProvenance = savedTraitProvenance,
+            ),
         )
         combatDamageDraftJson = characterCombatDamageProfilesToJsonV4(savedDamageProfiles)
-        val liveTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id }
+        spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(savedSpellcastingProfiles)
+        canonicalOriginsDraftJson = characterCanonicalOriginsDraftToJsonP7V4(savedCanonicalOrigins)
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(savedTraitProvenance)
         val liveSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id }
         val liveClassOptionIds = stored.classOptions.mapTo(mutableSetOf()) { it.id }
         val liveFormIds = stored.forms.mapTo(mutableSetOf()) { it.id }
@@ -470,12 +656,15 @@ internal fun CharacterEditorScreenV4(
         )
         backgroundDraftJson = characterBackgroundToJsonV4(stored.background)
         traitsDraftJson = characterTraitsToJsonV4(stored.traits)
+        traitProvenanceDraftJson = characterTraitProvenanceToJsonP7V4(savedTraitProvenance)
+        canonicalOriginsDraftJson = characterCanonicalOriginsDraftToJsonP7V4(savedCanonicalOrigins)
         spellcastingDraftJson = characterSpellcastingDraftToJsonV4(
             CharacterSpellcastingDraftV4(
                 sources = stored.spellcastingSources,
                 spells = stored.spells,
             ),
         )
+        spellcastingProfilesDraftJson = characterSpellcastingProfilesToJsonV4(savedSpellcastingProfiles)
         notesDraftJson = characterNotesDraftToJsonV4(
             CharacterNotesDraftV4(
                 generalNotes = stored.generalNotes,
@@ -497,6 +686,44 @@ internal fun CharacterEditorScreenV4(
         }
     }
 
+    fun enableTableModeNow() {
+        if (closureState.tableModeEnabled) return
+        closureState = closureRepository.saveState(
+            characterId,
+            closureState.copy(tableModeEnabled = true),
+        )
+        savedMessage = "Guardado"
+    }
+
+    fun saveAndActivateTableMode() {
+        if (!structuralEditingEnabled) return
+        if (draft.missingRequiredNumberLabels().isNotEmpty()) {
+            activateTableModeAfterBlankSave = true
+            confirmBlankNumbers = true
+            return
+        }
+        val candidate = draft.toSheetOrNull(stored) ?: return
+        persist(candidate)
+        enableTableModeNow()
+    }
+
+    fun discardDraftsAndActivateTableMode() {
+        draft = CharacterEditorDraftV4.from(stored)
+        combatDraftJson = storedCombatDraftJson
+        combatDamageDraftJson = storedCombatDamageDraftJson
+        spellcastingProfilesDraftJson = storedSpellcastingProfilesDraftJson
+        equipmentDraftJson = storedEquipmentDraftJson
+        backgroundDraftJson = storedBackgroundDraftJson
+        traitsDraftJson = storedTraitsDraftJson
+        traitProvenanceDraftJson = storedTraitProvenanceDraftJson
+        canonicalOriginsDraftJson = storedCanonicalOriginsDraftJson
+        spellcastingDraftJson = storedSpellcastingDraftJson
+        notesDraftJson = storedNotesDraftJson
+        h1ModuleDraftJson = storedH1ModuleDraftJson
+        proficiencyDraftJson = storedProficiencyDraftJson
+        enableTableModeNow()
+    }
+
     fun save() {
         if (!structuralEditingEnabled) return
         if (draft.missingRequiredNumberLabels().isNotEmpty()) {
@@ -512,9 +739,14 @@ internal fun CharacterEditorScreenV4(
         val candidate = draft.toSheetOrNull(stored, blankRequiredAsZero = true) ?: return
         confirmBlankNumbers = false
         persist(candidate)
+        if (activateTableModeAfterBlankSave) {
+            activateTableModeAfterBlankSave = false
+            enableTableModeNow()
+        }
     }
 
     fun persistSpellcasterEnabled(enabled: Boolean) {
+        if (!structuralEditingEnabled) return
         if (enabled == stored.spellcasterEnabled) return
         stored = repository.saveCharacter(stored.copy(spellcasterEnabled = enabled))
         if (!enabled && selectedTabName == CharacterTabV4.SPELLS.name) {
@@ -524,6 +756,7 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun persistStatus(status: CharacterStatus) {
+        if (!structuralEditingEnabled) return
         if (status == stored.status && status == draft.status) return
         stored = repository.saveCharacter(stored.copy(status = status))
         draft = draft.copy(status = status)
@@ -531,9 +764,17 @@ internal fun CharacterEditorScreenV4(
     }
 
     fun persistClosureState(updated: CharacterClosureState) {
-        if (!closureState.tableModeEnabled && updated.tableModeEnabled && hasUnsavedChanges) return
-        if (updated == closureState) return
-        closureState = closureRepository.saveState(characterId, updated)
+        if (!closureState.tableModeEnabled && updated.tableModeEnabled && hasUnsavedChanges) {
+            confirmTableModeTransition = true
+            return
+        }
+        val effective = if (closureState.tableModeEnabled) {
+            mergeCharacterOperationalClosureState(closureState, updated)
+        } else {
+            updated
+        }
+        if (effective == closureState) return
+        closureState = closureRepository.saveState(characterId, effective)
         savedMessage = "Guardado"
     }
 
@@ -543,50 +784,65 @@ internal fun CharacterEditorScreenV4(
     }
 
 
+    fun syncOperationalDraftsFromStored() {
+        val persistedSlots = stored.spellSlots.associateBy { it.level }
+        draft = draft.copy(
+            maxHp = stored.maxHp.toString(),
+            currentHp = stored.currentHp.toString(),
+            tempHp = stored.tempHp.toString(),
+            spellSlots = draft.spellSlots.map { slot ->
+                slot.copy(spent = persistedSlots[slot.level]?.spentSlots ?: 0)
+            },
+        )
+        val currentEquipment = equipmentDraftFromJsonV4(equipmentDraftJson)
+        val persistedItems = stored.inventoryItems.associateBy { it.id }
+        equipmentDraftJson = equipmentDraftToJsonV4(
+            currentEquipment.copy(
+                items = currentEquipment.items.map { item ->
+                    persistedItems[item.id]?.let { persisted -> item.copy(quantity = persisted.quantity) } ?: item
+                },
+            ),
+        )
+        val persistedTraits = stored.traits.associateBy { it.id }
+        traitsDraftJson = characterTraitsToJsonV4(
+            characterTraitsFromJsonV4(traitsDraftJson).map { trait ->
+                persistedTraits[trait.id]?.let { persisted -> trait.copy(spentUses = persisted.spentUses) } ?: trait
+            },
+        )
+    }
+
     fun persistOperationalSheet(updated: CharacterSheet) {
-        if (updated == stored) return
+        val effective = mergeCharacterOperationalState(stored, updated)
+        if (effective == stored) return
+        stored = repository.saveCharacter(effective)
+        syncOperationalDraftsFromStored()
+        savedMessage = "Guardado"
+    }
+
+    fun persistGeneralHitPointsFromDraft() {
+        val currentHp = draft.currentHp.trim().toIntOrNull() ?: return
+        val maxHp = draft.maxHp.trim().toIntOrNull() ?: return
+        val tempHp = draft.tempHp.trim().toIntOrNull() ?: return
+        val updated = setCharacterHitPoints(
+            sheet = stored,
+            currentHp = currentHp,
+            maxHp = maxHp,
+        ).copy(tempHp = tempHp.coerceAtLeast(0))
+        persistOperationalSheet(updated)
+    }
+
+    fun persistStructuralSheet(updated: CharacterSheet) {
+        if (!structuralEditingEnabled || updated == stored) return
         stored = repository.saveCharacter(updated)
         savedMessage = "Guardado"
     }
 
     fun persistCombatOperationalSheet(updated: CharacterSheet) {
-        if (updated == stored) return
-        val previous = stored
-        stored = repository.saveCharacter(updated)
-        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
-            draft = draft.copy(
-                currentHp = stored.currentHp.toString(),
-                tempHp = stored.tempHp.toString(),
-            )
-        }
-        savedMessage = "Guardado"
+        persistOperationalSheet(updated)
     }
 
     fun persistSupercompactSheet(updated: CharacterSheet) {
-        if (updated == stored) return
-        val previous = stored
-        stored = repository.saveCharacter(updated)
-        var syncedDraft = draft
-        if (stored.currentHp != previous.currentHp || stored.tempHp != previous.tempHp) {
-            syncedDraft = syncedDraft.copy(
-                currentHp = stored.currentHp.toString(),
-                tempHp = stored.tempHp.toString(),
-            )
-        }
-        if (stored.spellSlots != previous.spellSlots) {
-            val persistedByLevel = stored.spellSlots.associateBy { it.level }
-            syncedDraft = syncedDraft.copy(
-                spellSlots = syncedDraft.spellSlots.map { slot ->
-                    val persisted = persistedByLevel[slot.level]
-                    slot.copy(
-                        total = persisted?.totalSlots?.toString() ?: "0",
-                        spent = persisted?.spentSlots ?: 0,
-                    )
-                },
-            )
-        }
-        draft = syncedDraft
-        savedMessage = "Guardado"
+        persistOperationalSheet(updated)
     }
 
     if (showSupercompact) {
@@ -601,7 +857,7 @@ internal fun CharacterEditorScreenV4(
         CharacterPcSettingsClosureV4(
             characterName = draft.name,
             status = draft.status,
-            spellcasterEnabled = stored.spellcasterEnabled,
+            spellcasterEnabled = effectiveSpellcasterEnabled,
             closureState = closureState,
             suggestedModules = suggestedModules,
             tableModeCanEnable = !hasUnsavedChanges || closureState.tableModeEnabled,
@@ -609,7 +865,7 @@ internal fun CharacterEditorScreenV4(
                 showPcSettings = false
                 selectedTabName = resolvedCharacterTabV4(
                     savedTabName = selectedTabName,
-                    spellcasterEnabled = stored.spellcasterEnabled,
+                    spellcasterEnabled = effectiveSpellcasterEnabled,
                     visibleModules = visibleModules,
                 ).name
             },
@@ -642,15 +898,24 @@ internal fun CharacterEditorScreenV4(
                     .fillMaxSize()
                     .padding(scaffoldPadding),
             ) {
-                val layoutContext = characterLayoutContextV4()
+                val layoutContext = characterLayoutContextForAvailableSizeV4(
+                    availableWidthDp = maxWidth.value.toInt(),
+                    availableHeightDp = maxHeight.value.toInt(),
+                )
                 val navigationPresentation = characterNavigationPresentationForLayoutV4(layoutContext)
                 val wide = layoutContext.isTablet
                 CharacterAdaptiveShellV4(
+                    layoutContext = layoutContext,
                     navigationPresentation = navigationPresentation,
                     selectedTab = selectedTab,
-                    spellcasterEnabled = stored.spellcasterEnabled,
+                    spellcasterEnabled = effectiveSpellcasterEnabled,
                     visibleModules = visibleModules,
-                    onSelect = { selectedTabName = it.name },
+                    onSelect = { targetTab ->
+                        if (selectedTab == CharacterTabV4.OVERVIEW && targetTab != CharacterTabV4.OVERVIEW) {
+                            persistGeneralHitPointsFromDraft()
+                        }
+                        selectedTabName = targetTab.name
+                    },
                     header = {
                         EditorHeaderV4(
                             characterName = draft.name,
@@ -672,6 +937,7 @@ internal fun CharacterEditorScreenV4(
                             projectionSheet = overviewProjectionSheet,
                             closureState = closureState,
                             wide = wide,
+                            structuralEditingEnabled = structuralEditingEnabled,
                             onDraftChange = ::updateStructuralDraft,
                             onOperationalSheetChange = ::persistOperationalSheet,
                             onClosureStateChange = ::persistStructuralClosureState,
@@ -713,12 +979,15 @@ internal fun CharacterEditorScreenV4(
                             closureState = closureState,
                             combatEntries = combatEntries,
                             successorState = successorState.copy(combatDamage = combatDamageProfiles),
+                            preferences = preferences,
+                            onPreferencesChange = onPreferencesChange,
                         )
                         CharacterTabV4.MANAGEMENT -> CharacterManagementSuccessorTabV4(
                             sheet = stored,
                             generalDraftSheet = settingsSheet,
                             closureState = closureState,
                             onSheetChange = ::persistOperationalSheet,
+                            onStructuralSheetChange = ::persistStructuralSheet,
                             onClosureStateChange = ::persistClosureState,
                             structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
@@ -727,28 +996,82 @@ internal fun CharacterEditorScreenV4(
                         CharacterTabV4.EQUIPMENT -> CharacterEquipmentClosureTabV4(
                             draft = equipmentDraft,
                             onDraftChange = ::updateEquipmentDraft,
+                            onOperationalItemsChange = { updatedItems ->
+                                persistOperationalSheet(stored.copy(inventoryItems = updatedItems))
+                            },
+                            armorClass = stored.armorClass,
+                            resources = stored.resources,
+                            onResourceValueChange = { resourceId, value ->
+                                stored.resources.firstOrNull { it.id == resourceId }?.let { resource ->
+                                    val normalized = resource.maxValue?.let { value.coerceIn(0, it) } ?: value.coerceAtLeast(0)
+                                    if (normalized != resource.currentValue) {
+                                        persistOperationalSheet(
+                                            stored.copy(
+                                                resources = stored.resources.map { item ->
+                                                    if (item.id == resourceId) item.copy(currentValue = normalized) else item
+                                                },
+                                            ),
+                                        )
+                                    }
+                                }
+                            },
                             structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
                         CharacterTabV4.BACKGROUND -> CharacterBackgroundTabV4(
                             background = backgroundDraft,
+                            canonicalOrigins = canonicalOriginsDraft,
                             onBackgroundChange = ::updateBackground,
+                            onCanonicalOriginsChange = ::updateCanonicalOrigins,
                             structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                         )
                         CharacterTabV4.TRAITS -> CharacterTraitsClosureTabV4(
                             traits = traitsDraft,
+                            classes = settingsSheet.classes,
+                            background = backgroundDraft,
+                            successorState = provenanceDraftSuccessorState,
+                            traitProvenance = traitProvenanceDraft,
                             closureState = closureState,
                             persistedTraitIds = stored.traits.mapTo(mutableSetOf()) { it.id },
+                            resources = stored.resources,
                             onTraitsChange = ::updateTraits,
+                            onTraitProvenanceChange = ::updateTraitProvenance,
+                            onSpentUsesChange = { traitId, spentUses ->
+                                persistOperationalSheet(
+                                    stored.copy(
+                                        traits = stored.traits.map { trait ->
+                                            if (trait.id == traitId) trait.copy(spentUses = spentUses) else trait
+                                        },
+                                    ),
+                                )
+                            },
                             onClosureStateChange = ::persistStructuralClosureState,
+                            onResourceValueChange = { resourceId, value ->
+                                stored.resources.firstOrNull { it.id == resourceId }?.let { resource ->
+                                    val normalized = resource.maxValue?.let { value.coerceIn(0, it) } ?: value.coerceAtLeast(0)
+                                    if (normalized != resource.currentValue) {
+                                        persistOperationalSheet(
+                                            stored.copy(
+                                                resources = stored.resources.map { item ->
+                                                    if (item.id == resourceId) item.copy(currentValue = normalized) else item
+                                                },
+                                            ),
+                                        )
+                                    }
+                                }
+                            },
                             structuralEditingEnabled = structuralEditingEnabled,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
                         CharacterTabV4.SPELLS -> CharacterSpellsTabV4(
                             draft = spellcastingDraft,
+                            spellcastingRows = overviewProjectionSheet.generalSpellcastingRows(projectedSuccessorState),
+                            successorState = projectedSuccessorState,
+                            projectionSheet = overviewProjectionSheet,
+                            spellcastingProfiles = spellcastingProfiles,
                             slotStates = draft.spellSlots.map { slot ->
                                 val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
                                 CharacterSpellSlotUiV4(
@@ -758,18 +1081,25 @@ internal fun CharacterEditorScreenV4(
                                 )
                             },
                             classOptions = draft.classes.map { SpellSourceClassOptionV4(it.id, it.name) },
+                            traits = traitsDraft,
+                            inventoryItems = equipmentDraft.items,
+                            background = backgroundDraft,
                             closureState = closureState,
                             persistedSpellIds = stored.spells.mapTo(mutableSetOf()) { it.id },
                             onDraftChange = ::updateSpellcasting,
+                            onSpellcastingProfilesChange = ::updateSpellcastingProfiles,
                             structuralEditingEnabled = structuralEditingEnabled,
                             onSlotSpentChange = { level, spent ->
-                                val slot = draft.spellSlotFor(level)
-                                val total = slot.total.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                                updateDraft(
-                                    draft.withSpellSlot(
-                                        slot.copy(spent = spent.coerceIn(0, total)),
-                                    ),
-                                )
+                                val persistedSlot = stored.spellSlots.firstOrNull { it.level == level }
+                                if (persistedSlot != null) {
+                                    persistOperationalSheet(
+                                        stored.copy(
+                                            spellSlots = stored.spellSlots.map { slot ->
+                                                if (slot.level == level) slot.copy(spentSlots = spent.coerceIn(0, slot.totalSlots.coerceAtLeast(0))) else slot
+                                            },
+                                        ),
+                                    )
+                                }
                             },
                             onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
@@ -783,7 +1113,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -794,7 +1124,7 @@ internal fun CharacterEditorScreenV4(
                             onFormsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(forms = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -806,7 +1136,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -818,7 +1148,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -830,7 +1160,7 @@ internal fun CharacterEditorScreenV4(
                             onOptionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(classOptions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -842,7 +1172,7 @@ internal fun CharacterEditorScreenV4(
                             onCompanionsChange = { updated ->
                                 updateH1Modules(h1ModuleDraft.copy(companions = updated))
                             },
-                            onClosureStateChange = ::persistClosureState,
+                            onClosureStateChange = ::persistStructuralClosureState,
                             wide = wide,
                             hapticsEnabled = closureState.hapticsEnabled,
                         )
@@ -891,12 +1221,52 @@ internal fun CharacterEditorScreenV4(
         )
     }
 
+    if (confirmTableModeTransition) {
+        AlertDialog(
+            onDismissRequest = { confirmTableModeTransition = false },
+            title = { Text("Activar Modo Mesa") },
+            text = {
+                Column(
+                    modifier = Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                ) {
+                    Text("Hay cambios de edición pendientes. Revísalos antes de entrar en Modo Mesa.")
+                    tableModePendingChanges.forEach { change ->
+                        Text("• $change", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmTableModeTransition = false
+                        saveAndActivateTableMode()
+                    },
+                ) { Text("Guardar y activar") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(
+                        onClick = {
+                            confirmTableModeTransition = false
+                            discardDraftsAndActivateTableMode()
+                        },
+                    ) { Text("Descartar y activar") }
+                    TextButton(onClick = { confirmTableModeTransition = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            },
+        )
+    }
+
     if (confirmBlankNumbers) {
         val missing = draft.missingRequiredNumberLabels()
         AlertDialog(
             onDismissRequest = {
                 confirmBlankNumbers = false
                 leaveAfterSave = false
+                activateTableModeAfterBlankSave = false
             },
             title = { Text("Guardar campos vacíos como 0") },
             text = {
@@ -919,6 +1289,7 @@ internal fun CharacterEditorScreenV4(
                     onClick = {
                         confirmBlankNumbers = false
                         leaveAfterSave = false
+                        activateTableModeAfterBlankSave = false
                     },
                 ) { Text("Cancelar") }
             },
@@ -994,10 +1365,12 @@ private fun OverviewTabV4(
     projectionSheet: CharacterSheet,
     closureState: CharacterClosureState,
     wide: Boolean,
+    structuralEditingEnabled: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
     onOperationalSheetChange: (CharacterSheet) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
 ) {
+    // T8_TABLE_MODE_AFFORDANCES_V4: structural references become visibly read-only; live state stays operational.
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -1012,19 +1385,28 @@ private fun OverviewTabV4(
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
         item {
-            IdentityCardV4(draft, stored, onDraftChange)
+            IdentityCardV4(draft, stored, onDraftChange, structuralEditingEnabled)
         }
         item {
             CharacterClassIdentityCardV4(
                 classes = draft.classes,
                 onClassesChange = { onDraftChange(draft.copy(classes = it)) },
+                structuralEditingEnabled = structuralEditingEnabled,
             )
         }
         item {
-            AbilitiesCardV4(draft, onDraftChange)
+            AbilitiesCardV4(draft, onDraftChange, structuralEditingEnabled)
         }
         item {
-            CombatCardV4(draft, wide, onDraftChange)
+            CombatCardV4(
+                draft = draft,
+                stored = stored,
+                wide = wide,
+                structuralEditingEnabled = structuralEditingEnabled,
+                hapticsEnabled = closureState.hapticsEnabled,
+                onDraftChange = onDraftChange,
+                onOperationalSheetChange = onOperationalSheetChange,
+            )
         }
         item {
             CharacterGeneralSuccessorCardsV4(
@@ -1048,6 +1430,7 @@ private fun OverviewTabV4(
                 state = closureState,
                 onStateChange = onClosureStateChange,
                 wide = wide,
+                structuralEditingEnabled = structuralEditingEnabled,
             )
         }
     }
@@ -1058,14 +1441,19 @@ private fun IdentityCardV4(
     draft: CharacterEditorDraftV4,
     stored: CharacterSheet,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
 ) {
     SectionCardV4("Personaje") {
         Text("Nombre", style = MaterialTheme.typography.labelSmall)
-        CompactTextFieldV4(
-            value = draft.name,
-            onValueChange = { onDraftChange(draft.copy(name = characterProperNameInput(it))) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (structuralEditingEnabled) {
+            CompactTextFieldV4(
+                value = draft.name,
+                onValueChange = { onDraftChange(draft.copy(name = characterProperNameInput(it))) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        } else {
+            Text(draft.name.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium)
+        }
         Text(
             "Nivel total ${draft.totalLevel()} · Último guardado ${formatSavedAtV4(stored.updatedAtEpochSeconds)}",
             style = MaterialTheme.typography.labelSmall,
@@ -1077,9 +1465,10 @@ private fun IdentityCardV4(
 private fun AbilitiesCardV4(
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean,
 ) {
     SectionCardV4("Características") {
-        AbilitiesRowV4(draft, onDraftChange)
+        AbilitiesRowV4(draft, onDraftChange, structuralEditingEnabled)
     }
 }
 
@@ -1087,6 +1476,7 @@ private fun AbilitiesCardV4(
 private fun AbilitiesRowV4(
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1098,11 +1488,19 @@ private fun AbilitiesRowV4(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(abilityAbbreviationV4(ability), style = MaterialTheme.typography.labelSmall, maxLines = 1)
-                CompactIntInputV4(
-                    value = draft.abilityValue(ability),
-                    onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                if (structuralEditingEnabled) {
+                    CompactIntInputV4(
+                        value = draft.abilityValue(ability),
+                        onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    Text(
+                        draft.abilityValue(ability).ifBlank { "—" },
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                    )
+                }
                 Text(
                     draft.abilityModifier(ability)?.let(::formatSignedV4) ?: "—",
                     style = MaterialTheme.typography.titleMedium,
@@ -1116,9 +1514,40 @@ private fun AbilitiesRowV4(
 @Composable
 private fun CombatCardV4(
     draft: CharacterEditorDraftV4,
+    stored: CharacterSheet,
     wide: Boolean,
+    structuralEditingEnabled: Boolean,
+    hapticsEnabled: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    onOperationalSheetChange: (CharacterSheet) -> Unit,
 ) {
+    if (!structuralEditingEnabled) {
+        SectionCardV4("Referencia de combate") {
+            CharacterCombatOperationalCardV4(
+                armorClass = draft.armorClass,
+                initiative = draft.initiativeTotal()?.let(::formatSignedV4).orEmpty(),
+                speed = draft.speed,
+                sheet = stored,
+                onSheetChange = onOperationalSheetChange,
+                hapticsEnabled = hapticsEnabled,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Bono competencia", style = MaterialTheme.typography.labelSmall)
+                    Text(draft.finalProficiencyBonus()?.let(::formatSignedV4) ?: "—", style = MaterialTheme.typography.bodyMedium)
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Percepción pasiva", style = MaterialTheme.typography.labelSmall)
+                    Text(draft.passivePerceptionTotal()?.toString() ?: "—", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+        return
+    }
+
     SectionCardV4("Referencia de combate") {
         if (wide) {
             Row(
@@ -1229,7 +1658,7 @@ private fun SpeedFieldV4(
                 modifier = Modifier.padding(horizontal = 3.dp, vertical = 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(formatSpeedV4(value), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+                Text(formatCharacterDistanceFeetV4(value), style = MaterialTheme.typography.bodyMedium, maxLines = 1)
             }
         }
     }
@@ -1252,7 +1681,7 @@ private fun SpeedFieldV4(
                 placeholder = "0",
             )
             Text(
-                "Vista: ${formatSpeedV4(pending)}",
+                "Vista: ${formatCharacterDistanceFeetV4(pending)}",
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -1531,6 +1960,7 @@ private fun DerivedTotalControlV4(
     breakdownLines: List<String>,
     onAdjustmentChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     var dialogOpen by remember { mutableStateOf(false) }
     val adjustmentValue = parseOptionalAdjustmentV4(adjustment) ?: 0
@@ -1538,7 +1968,7 @@ private fun DerivedTotalControlV4(
     Surface(
         modifier = modifier
             .heightIn(min = 34.dp)
-            .clickable { dialogOpen = true },
+            .clickable(enabled = enabled) { dialogOpen = true },
         shape = MaterialTheme.shapes.small,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         color = MaterialTheme.colorScheme.surfaceVariant,
@@ -1564,7 +1994,7 @@ private fun DerivedTotalControlV4(
         }
     }
 
-    if (dialogOpen) {
+    if (enabled && dialogOpen) {
         var pendingAdjustment by remember(dialogOpen, adjustment) { mutableStateOf(adjustment) }
         CharacterImeSafeEditorDialog(
             title = dialogTitle,
@@ -1640,8 +2070,9 @@ private fun SkillsTabV4(
         ) {
             when (skillLayoutChoice) {
                 SkillLayoutChoice.BY_SKILLS -> {
-                    item { AbilitiesCardV4(draft, onDraftChange) }
-                    item { SavesCardV4(draft, wide, onDraftChange) }
+                    // T8_SKILLS_TABLE_MODE_AFFORDANCES_V4: preserve projection while gating structural controls.
+                    item { AbilitiesCardV4(draft, onDraftChange, structuralEditingEnabled) }
+                    item { SavesCardV4(draft, wide, onDraftChange, structuralEditingEnabled) }
                     item {
                         SkillsListCardV4(
                             draft = draft,
@@ -1650,6 +2081,7 @@ private fun SkillsTabV4(
                             customSkills = closureState.customSkills,
                             calculationSheet = calculationSheet,
                             successorState = successorState,
+                            structuralEditingEnabled = structuralEditingEnabled,
                         )
                     }
                 }
@@ -1662,6 +2094,7 @@ private fun SkillsTabV4(
                             customSkills = closureState.customSkills,
                             calculationSheet = calculationSheet,
                             successorState = successorState,
+                            structuralEditingEnabled = structuralEditingEnabled,
                         )
                     }
                 }
@@ -1714,11 +2147,11 @@ private fun SavesCardV4(
     draft: CharacterEditorDraftV4,
     wide: Boolean,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     SectionCardV4("Tiradas de salvación") {
-        Text(
+        CharacterHelpV4(
             "Marca competencia cuando corresponda. Toca el total para ver el cálculo y editar Ajuste adicional.",
-            style = MaterialTheme.typography.labelSmall,
         )
         val columns = if (wide) 3 else 2
         CharacterAbility.entries.chunked(columns).forEach { abilities ->
@@ -1732,6 +2165,7 @@ private fun SavesCardV4(
                         ability = ability,
                         draft = draft,
                         onDraftChange = onDraftChange,
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -1746,6 +2180,7 @@ private fun SaveRowV4(
     ability: CharacterAbility,
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val save = draft.saveFor(ability)
@@ -1775,10 +2210,12 @@ private fun SaveRowV4(
                     },
                 ),
                 onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
+                enabled = structuralEditingEnabled,
                 modifier = Modifier.weight(1f),
             )
             SaveProficiencyToggleV4(
                 proficient = save.proficient,
+                enabled = structuralEditingEnabled,
                 onToggle = {
                     onDraftChange(draft.withSave(save.copy(proficient = !save.proficient)))
                 },
@@ -1791,12 +2228,13 @@ private fun SaveRowV4(
 private fun SaveProficiencyToggleV4(
     proficient: Boolean,
     onToggle: () -> Unit,
+    enabled: Boolean = true,
 ) {
     val color = if (proficient) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     Surface(
         modifier = Modifier
             .size(36.dp)
-            .clickable(onClick = onToggle),
+            .clickable(enabled = enabled, onClick = onToggle),
         shape = CircleShape,
         border = BorderStroke(1.5.dp, color),
         color = if (proficient) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
@@ -1831,6 +2269,7 @@ private fun SkillsListCardV4(
     customSkills: List<CharacterCustomSkill>,
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val rows = presentCharacterSkills(
         builtInSkills = calculationSheet.skills,
@@ -1838,9 +2277,8 @@ private fun SkillsListCardV4(
         successorState = successorState,
     )
     SectionCardV4("Habilidades") {
-        Text(
-            "Las habilidades estándar se editan aquí. Las personalizadas se configuran en Ajustes del PJ y aparecen integradas en la misma lista.",
-            style = MaterialTheme.typography.labelSmall,
+        CharacterHelpV4(
+            "Las habilidades estándar se editan aquí. Las personalizadas se configuran en Ajustes del PJ y aparecen en esta misma lista.",
         )
         if (wide) {
             val midpoint = (rows.size + 1) / 2
@@ -1851,21 +2289,21 @@ private fun SkillsListCardV4(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     rows.take(midpoint).forEachIndexed { index, row ->
-                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
                         if (index < midpoint - 1) HorizontalDivider()
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     val second = rows.drop(midpoint)
                     second.forEachIndexed { index, row ->
-                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                        UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
                         if (index < second.lastIndex) HorizontalDivider()
                     }
                 }
             }
         } else {
             rows.forEachIndexed { index, row ->
-                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
                 if (index < rows.lastIndex) HorizontalDivider()
             }
         }
@@ -1880,11 +2318,12 @@ private fun UnifiedSkillRowV4(
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val builtInKey = row.builtInKey
     if (builtInKey != null) {
         val skill = draft.skills.firstOrNull { it.key == builtInKey } ?: return
-        SkillRowV4(skill, draft, onDraftChange)
+        SkillRowV4(skill, draft, onDraftChange, structuralEditingEnabled)
         return
     }
     val customSkill = row.customSkillId?.let { id -> customSkills.firstOrNull { it.id == id } } ?: return
@@ -1932,13 +2371,20 @@ private fun ReadOnlySkillTotalV4(total: Int?) {
 
 @Composable
 private fun ReadOnlyTrainingV4(training: SkillTraining) {
-    Surface(
-        modifier = Modifier.width(44.dp).heightIn(min = 34.dp),
-        shape = MaterialTheme.shapes.small,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        color = MaterialTheme.colorScheme.surface,
+    // Match the 48dp layout footprint reserved by the ordinary M3 training selector
+    // while keeping the custom projection visually compact and read-only.
+    Box(
+        modifier = Modifier.width(48.dp).heightIn(min = 48.dp, max = 48.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) { TrainingGlyphV4(training) }
+        Surface(
+            modifier = Modifier.width(44.dp).heightIn(min = 34.dp, max = 34.dp),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Box(contentAlignment = Alignment.Center) { TrainingGlyphV4(training) }
+        }
     }
 }
 
@@ -1947,6 +2393,7 @@ private fun SkillRowV4(
     skill: SkillDraftV4,
     draft: CharacterEditorDraftV4,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val abilityModifier = draft.abilityModifier(skill.key.ability)
     val proficiency = draft.finalProficiencyBonus()
@@ -1979,10 +2426,12 @@ private fun SkillRowV4(
                 "${trainingLabelV4(skill.training)} ${proficiencyContribution?.let(::formatSignedV4) ?: "—"}",
             ),
             onAdjustmentChange = { onDraftChange(draft.withSkill(skill.copy(adjustment = it))) },
+            enabled = structuralEditingEnabled,
             modifier = Modifier.width(58.dp),
         )
         TrainingSelectorV4(
             training = skill.training,
+            enabled = structuralEditingEnabled,
             onTrainingChange = { onDraftChange(draft.withSkill(skill.copy(training = it))) },
         )
     }
@@ -1992,11 +2441,13 @@ private fun SkillRowV4(
 private fun TrainingSelectorV4(
     training: SkillTraining,
     onTrainingChange: (SkillTraining) -> Unit,
+    enabled: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(
             onClick = { expanded = true },
+            enabled = enabled,
             modifier = Modifier
                 .width(44.dp)
                 .heightIn(min = 34.dp),
@@ -2004,7 +2455,7 @@ private fun TrainingSelectorV4(
         ) {
             TrainingGlyphV4(training)
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenu(expanded = expanded && enabled, onDismissRequest = { expanded = false }) {
             SkillTraining.entries.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(trainingLabelV4(option)) },
@@ -2062,6 +2513,7 @@ private fun AbilityGroupsCardV4(
     customSkills: List<CharacterCustomSkill>,
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
+    structuralEditingEnabled: Boolean = true,
 ) {
     val rows = presentCharacterSkills(
         builtInSkills = calculationSheet.skills,
@@ -2085,6 +2537,7 @@ private fun AbilityGroupsCardV4(
                         calculationSheet = calculationSheet,
                         successorState = successorState,
                         onDraftChange = onDraftChange,
+                        structuralEditingEnabled = structuralEditingEnabled,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -2129,6 +2582,7 @@ private fun AbilityGroupV4(
     calculationSheet: CharacterSheet,
     successorState: CharacterSuccessorState,
     onDraftChange: (CharacterEditorDraftV4) -> Unit,
+    structuralEditingEnabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val save = draft.saveFor(ability)
@@ -2152,11 +2606,15 @@ private fun AbilityGroupV4(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(abbreviation, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, maxLines = 1)
-                CompactIntInputV4(
-                    value = draft.abilityValue(ability),
-                    onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
-                    modifier = Modifier.width(52.dp),
-                )
+                if (structuralEditingEnabled) {
+                    CompactIntInputV4(
+                        value = draft.abilityValue(ability),
+                        onValueChange = { onDraftChange(draft.withAbilityValue(ability, it)) },
+                        modifier = Modifier.width(52.dp),
+                    )
+                } else {
+                    Text(draft.abilityValue(ability).ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium)
+                }
                 Text(
                     "Mod ${abilityModifier?.let(::formatSignedV4) ?: "—"}",
                     style = MaterialTheme.typography.labelMedium,
@@ -2182,17 +2640,19 @@ private fun AbilityGroupV4(
                         },
                     ),
                     onAdjustmentChange = { onDraftChange(draft.withSave(save.copy(adjustment = it))) },
+                    enabled = structuralEditingEnabled,
                     modifier = Modifier.weight(1f),
                 )
                 SaveProficiencyToggleV4(
                     proficient = save.proficient,
+                    enabled = structuralEditingEnabled,
                     onToggle = {
                         onDraftChange(draft.withSave(save.copy(proficient = !save.proficient)))
                     },
                 )
             }
             relatedSkills.forEach { row ->
-                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange)
+                UnifiedSkillRowV4(row, draft, customSkills, calculationSheet, successorState, onDraftChange, structuralEditingEnabled)
             }
         }
     }
@@ -2944,18 +3404,6 @@ private fun statusLabelV4(status: CharacterStatus): String = when (status) {
     CharacterStatus.DEAD -> "Muerto"
 }
 
-private fun formatSpeedV4(raw: String): String {
-    val feet = raw.trim().toIntOrNull() ?: return raw.ifBlank { "—" }
-    val metricTenths = feet * 3
-    val wholeMeters = metricTenths / 10
-    val remainder = kotlin.math.abs(metricTenths % 10)
-    val metric = if (remainder == 0) {
-        wholeMeters.toString()
-    } else {
-        "$wholeMeters,$remainder"
-    }
-    return "$feet ft ($metric m)"
-}
 
 private fun formatSignedV4(value: Int): String = if (value >= 0) "+$value" else value.toString()
 

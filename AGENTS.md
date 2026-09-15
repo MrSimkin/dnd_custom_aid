@@ -4,24 +4,25 @@ This file applies to every human contributor, ChatGPT conversation, coding agent
 
 ## 1. Repository authority and operative memory
 
-The repository is the project's durable source of truth **and its operative memory**.
+The repository is the project's durable source of truth **and operative memory**.
 
 Do not rely on chat memory, hidden context, previous conversations or assumptions to determine current project state. Those may be clues; repository truth controls until the owner explicitly changes it.
 
-Until the planned convergence is executed there are **two active authoritative lines with different roles**:
+The owner explicitly authorized beginning the integrated-MVP implementation on 2026-09-14 (Chile local time).
 
-- `main` — canonical global navigation plus current integrated-MVP product/architecture/governance decisions;
-- `implementation/phase4a-successor-cycle` — authoritative current Player/Phase 4A runtime, repair and QA line.
+The former split between `main` product/governance and `implementation/phase4a-successor-cycle` Player runtime was semantically reconciled on `integration/mvp-baseline-convergence` at merge commit:
 
-`main` is therefore not yet the latest Player runtime. Do not collapse these valid lines or infer that one supersedes all content on the other. `docs/BRANCH_STATUS.md` is the canonical lifecycle map.
+`5bed85cbb3e86ae63eac79149fadc5e56e61b256`
 
-D-0073 defines the intended transition: after explicit implementation authorization, create a dedicated convergence branch from current `main`, deliberately reconcile the authoritative Player successor runtime, validate it, then merge the coherent integrated baseline to `main`. After that successful convergence, `main` becomes the normal integrated-MVP trunk and the old Player successor becomes frozen historical evidence.
+Validation run `34917259324` / #1694 completed **SUCCESS**.
 
-Any information needed for another chat, AI, agent or human to continue must be written to Git.
+After promotion, **`main` is the single normal integrated-MVP trunk**. The old Player successor remains historical/frozen evidence and must not be used as the normal development branch.
+
+`docs/BRANCH_STATUS.md` controls branch lifecycle. Any information required for another human/agent/chat to continue must be written to Git.
 
 ## 2. Mandatory read order before work
 
-Before proposing or making changes, read:
+Before proposing or making substantial changes, read:
 
 1. `README.md`;
 2. `AGENTS.md`;
@@ -29,7 +30,7 @@ Before proposing or making changes, read:
 4. `docs/PROJECT_STATE.md`;
 5. `docs/checkpoints/LATEST.md`;
 6. `docs/BRANCH_STATUS.md`;
-7. `docs/DECISIONS.md` plus `docs/DECISIONS_RECENT.md` and relevant detailed records under `docs/decisions/`;
+7. `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` + relevant detailed records under `docs/decisions/`;
 8. `docs/CONVENTIONS.md`;
 9. `docs/PRODUCT.md`;
 10. `docs/ROADMAP.md`;
@@ -38,28 +39,19 @@ Before proposing or making changes, read:
 13. `docs/TESTING.md`;
 14. current checkpoints/feature files relevant to the task.
 
-For current Player source/evidence before convergence, switch to `implementation/phase4a-successor-cycle` and re-read that branch's `docs/checkpoints/LATEST.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md` and relevant checkpoints before touching Player runtime code.
-
-Do not start implementation from a historical branch merely because it has a newer-looking name or a frozen QA label.
+For exact historical Player QA evidence, the old successor branch may be inspected, but do not resume normal implementation there.
 
 ## 3. Current branch interpretation
 
-Before convergence:
+After convergence promotion:
 
-- `main` = global integrated-MVP product/design/architecture/governance truth;
-- `implementation/phase4a-successor-cycle` = current Player runtime/QA authority;
-- all other surviving discovery/foundation/architecture/implementation branches are historical milestone or audit evidence unless a later checkpoint changes their status;
-- frozen QA refs remain immutable.
+- `main` = normal integrated-MVP implementation trunk;
+- `implementation/phase4a-successor-cycle` = historical/frozen Player implementation/QA evidence;
+- `integration/mvp-baseline-convergence` = temporary/historical convergence evidence after promotion;
+- frozen QA refs remain immutable;
+- other surviving discovery/foundation/architecture/implementation refs are historical unless a later checkpoint explicitly reactivates them.
 
-Do not force-move either active line over the other.
-
-When convergence is explicitly authorized, use the semantic precedence from D-0073 and the current technical-readiness checkpoint:
-
-- Player runtime, SQLDelight migrations, Player tests/guards and exact Player evidence: successor authority;
-- later integrated product/architecture/governance documentation: current `main` authority;
-- shared navigation/CI files: deliberate reconciliation, not blind branch preference.
-
-After successful validated convergence, update this file and `docs/BRANCH_STATUS.md` so `main` becomes the single normal integrated trunk.
+For new work, branch from current `main` using short-lived outcome-oriented branches. Do not create permanent Player/Server/Desktop silos or a months-long catch-all integration branch.
 
 ## 4. Owner authority and working relationship
 
@@ -73,7 +65,7 @@ The owner decides consequential matters that genuinely require product ownership
 - user-facing destructive/safety behavior;
 - meaningful service/cost, security/privacy, compatibility or irreversible-lock-in tradeoffs.
 
-The owner explicitly delegates routine technical implementation to the technical assistant/coding agents and should **not** be asked to rubber-stamp matters outside their intended competence.
+The owner explicitly delegates routine technical implementation to technical assistants/coding agents and should **not** be asked to rubber-stamp matters outside their intended competence.
 
 Agents should normally decide, implement, test and document low-level matters such as:
 
@@ -83,19 +75,18 @@ Agents should normally decide, implement, test and document low-level matters su
 - migration mechanics;
 - internal sync structures;
 - canonical serialization format;
+- PDF-rendering internals within approved product behavior;
 - test architecture;
 - detailed branch/package granularity;
 - reversible provider-specific mechanics within approved service/cost/security boundaries.
 
-Escalate a technical choice only when it materially changes product behavior, risk, cost, privacy/security, irreversible lock-in or approved scope.
-
-D-0073 is controlling for this owner-vs-technical boundary and supersedes older wording that required ceremonial owner approval for every new durable implementation convention.
+Escalate only when a technical choice materially changes product behavior, risk, cost, privacy/security, irreversible lock-in, destructive behavior or approved scope.
 
 ## 5. Explain technical work
 
 Meaningful technical work must remain understandable to the owner. Explain proportionately:
 
-- what is changing;
+- what changed;
 - why;
 - the important approach in practical terms;
 - meaningful owner-relevant consequences/tradeoffs;
@@ -109,63 +100,70 @@ C-0008 additionally requires representative SQL when it materially improves unde
 
 C-0009 is controlling: this is a personal, deliberately limited project. Prefer the **simplest safe implementation that satisfies actual approved requirements**. Do not import enterprise/SaaS machinery without a concrete need.
 
-When a recurring coding/naming/structure/testing/documentation convention becomes necessary and no approved convention exists:
+When a recurring technical convention becomes necessary and no approved convention exists:
 
 1. choose the simplest maintainable option consistent with approved architecture;
-2. record it in Git when it will matter to later contributors;
+2. record it in Git when it matters to later contributors;
 3. apply it consistently;
-4. surface it to the owner only when it has a meaningful product, cost, security/privacy, compatibility or expensive-to-reverse consequence.
+4. surface it to the owner only when it has a meaningful product/cost/security/privacy/compatibility or expensive-to-reverse consequence.
 
-Do not create process overhead merely to obtain owner approval for low-level reversible implementation style.
+## 7. Approved product/architecture baseline
 
-## 7. Approved architecture and product baseline
+Foundational stack/architecture decisions remain controlling unless later specific decisions supersede them.
 
-D-0034 through D-0043 remain the foundational stack/architecture set.
+Current integrated direction includes:
 
-D-0068/D-0069 define the approved DM Workspace/Desk family and live-product direction. D-0070 defines the shared Player/DM rules-question capability.
+- one Player + hosted/shared + DM ecosystem;
+- paper-first Player play;
+- project-specific local-first sync with stable IDs/revisions/idempotency/tombstones/conflicts;
+- complete DM Live capability on Android/tablet and Desktop;
+- DM Workspace with DM Screen, Stage, Dungeon and Combat Desks;
+- rich Desktop authoring/management/admin surfaces;
+- explicit single-authority combat resume/handoff;
+- object storage, meaningful audit/recovery and full backup/export;
+- official-SRD-only grounded clarification in MVP;
+- complete cross-surface PC Sheet PDF export.
 
-D-0071 defines the integrated Player + Server + DM architecture. D-0072 closes the detailed DM Desktop/Manager product definition. D-0073 closes the exact MVP boundary, implementation governance and planned branch convergence.
+Do not silently trim approved MVP capabilities merely to finish sooner.
 
-Do not reopen those decisions merely because historical documents describe earlier uncertainty.
-
-The integrated MVP is intentionally substantial; internal waves are engineering organization, not permission to silently trim approved product capabilities.
+Do not reopen settled product decisions merely because historical documents describe earlier uncertainty.
 
 ## 8. No silent invention or status inflation
 
 Clearly distinguish:
 
-- **Approved** — explicitly accepted by the owner and durably recorded;
-- **Proposed/Recommended** — technically/product recommended but not owner-approved where approval is actually required;
+- **Approved** — explicitly accepted product/architecture direction;
+- **Proposed/Recommended** — recommendation awaiting approval only where approval is genuinely required;
 - **Pending** — genuinely requires a future decision/action;
 - **Implemented** — present in code and verified at the stated level;
 - **Accepted** — passed the required owner/manual gate where one exists.
 
-Do not infer `Accepted` from `Implemented`, green CI or branch location.
+Do not infer `Accepted` from green CI or branch location.
 
-Do not convert a delegated low-level engineering choice into a fake owner decision record merely to create paperwork.
+Do not convert a delegated engineering choice into a fake owner decision record merely to create paperwork.
 
 ## 9. Change workflow
 
 For substantial work:
 
-1. verify the applicable active branch/topology from `docs/BRANCH_STATUS.md`;
+1. verify current branch/topology from `docs/BRANCH_STATUS.md`;
 2. read current `PROJECT_STATE`, `LATEST`, relevant decisions and checkpoints;
-3. identify material unknowns and the real owner authorization boundary;
-4. make routine technical choices autonomously within D-0073;
+3. identify material unknowns and any real owner-action boundary;
+4. choose routine technical details autonomously;
 5. escalate only material owner-level consequences;
 6. implement the smallest coherent batch;
-7. run appropriate focused and aggregate checks;
+7. run focused + aggregate checks appropriate to risk;
 8. update operative-memory documentation;
 9. leave durable Git evidence/checkpoint when meaningful;
 10. summarize verification and exact next action.
 
 Do not bundle unrelated behavior merely to reduce commit count.
 
-Before the first integrated product-code batch, the planned `main` + Player successor convergence requires explicit owner implementation authorization. This documentation/readiness work does not itself grant that authorization.
+The integrated-MVP implementation is already authorized. Do **not** invent a new owner approval gate for each technical package.
 
-## 10. Definition of done and continuity checkpoints
+## 10. Definition of done and continuity
 
-A change is not complete merely because code exists. A completed batch has, as applicable:
+A batch is not complete merely because code exists. As applicable it must have:
 
 - implementation present;
 - relevant automated checks passed, or failures explicitly recorded;
@@ -177,7 +175,7 @@ A change is not complete merely because code exists. A completed batch has, as a
 
 Every meaningful project step must leave durable Git evidence before moving on.
 
-`docs/checkpoints/LATEST.md` is the stable global resume pointer and must be refreshed when its practical continuation point changes. Before convergence, the Player successor's own `LATEST.md` remains the exact Player-runtime evidence pointer.
+`docs/checkpoints/LATEST.md` is the stable global resume pointer and must be refreshed when its practical continuation changes.
 
 ## 11. Technical quality, credentials and signing material
 
@@ -185,21 +183,13 @@ Prefer maintainable, readable, testable code over clever code. Keep dependencies
 
 Never commit real secrets: passwords, API tokens, database credentials, provider admin credentials, production/private credentials, production/release signing keys, private certificates or other confidentiality-dependent material.
 
-System Administration may eventually store scoped provider credentials locally on the sole administrator's machine where this improves convenience, but those credentials must use suitable local/OS protected storage and never be hard-coded or committed.
+System Administration may eventually use scoped provider credentials locally on the sole administrator's machine where useful, but store them via suitable OS/local protected storage and never hard-code/commit them.
 
 ### Development-only Android signing
 
-The repository uses a stable **development-only debug signing identity** for CI QA APKs so successive builds can update one another in place and exercise SQLite migrations.
+The repository uses a stable **development-only debug signing identity** for CI QA APKs so successive builds can update one another and exercise SQLite migrations.
 
-That identity is not a production/release trust boundary.
-
-Rules:
-
-- never reuse it for a production/release build;
-- never treat possession of it as authentication/security;
-- any future real release signing identity remains private and must not be committed;
-- do not expose/reproduce signing material in chat/docs unnecessarily;
-- design release signing separately if/when a real release pipeline exists.
+It is not a production/release trust boundary. Never reuse it for real release signing or treat possession of it as authentication/security.
 
 ## 12. Recovery from inconsistency
 
@@ -209,37 +199,39 @@ If repository documents disagree:
 2. identify the contradiction;
 3. prefer the most specific later Approved decision/clarification over older general prose;
 4. prefer newer explicitly dated current-state documentation when authority is otherwise equal;
-5. `docs/BRANCH_STATUS.md` controls current branch lifecycle/role;
-6. use detailed `docs/decisions/` and checkpoints for rationale/evidence;
-7. ask the owner only for a genuinely material product/scope/risk ambiguity not already resolved;
-8. repair/document stale governance when it would misdirect later work.
+5. `docs/BRANCH_STATUS.md` controls branch lifecycle;
+6. `docs/PROJECT_STATE.md` controls current state;
+7. `docs/checkpoints/LATEST.md` controls practical continuation;
+8. use detailed decisions/checkpoints for rationale/evidence;
+9. ask the owner only for a genuinely material unresolved product/scope/risk ambiguity;
+10. repair stale governance when it could misdirect future work.
 
 Historical checkpoints remain evidence even when their old `next` instructions are superseded.
 
-## 13. Current project stage and authorization boundary
+## 13. Current project stage
 
-The integrated product design and MVP boundary are closed under D-0071/D-0072/D-0073. The technical-readiness review is recorded in:
+The integrated-MVP implementation is **IN PROGRESS**.
 
-`docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`
+Validated convergence baseline:
 
-Current Player frozen physical candidate remains:
+- semantic merge commit `5bed85cbb3e86ae63eac79149fadc5e56e61b256`;
+- run `34917259324` / #1694 — SUCCESS.
 
-- version `0.4.0-preqa.13`;
-- versionCode/build `41300`;
-- candidate commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
-- Scaffold run `34801612526` / #1630 — **SUCCESS**;
-- artifact `10331503478` / `dnd-custom-aid-debug-apk`;
-- targeted physical revalidation pending on the historical Player line.
+Historical frozen Player candidate remains evidence:
 
-This evidence must be preserved; automation is not retroactive physical owner acceptance.
+- `0.4.0-preqa.13 / 41300`;
+- commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
+- run `34801612526` / #1630 — SUCCESS;
+- targeted physical revalidation was pending at that historical boundary.
 
-However, D-0073 supersedes the older process rule that DM/integrated implementation could not even begin until a standalone Phase 4A owner closure. The intended next implementation activity is now the protected integrated baseline convergence, **but it still requires explicit owner authorization to begin product-code implementation**.
+Do not reinterpret integrated CI as retroactive physical acceptance.
 
 Current execution entry points:
 
-- global/integrated planning and governance: `main` -> `docs/checkpoints/LATEST.md`;
-- current Player source/evidence before convergence: `implementation/phase4a-successor-cycle` -> that branch's `docs/checkpoints/LATEST.md`;
-- technical readiness: `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`;
-- repository topology: `docs/BRANCH_STATUS.md`.
+- `docs/checkpoints/LATEST.md`;
+- `docs/PROJECT_STATE.md`;
+- `docs/BRANCH_STATUS.md`;
+- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_BASELINE_CONVERGENCE.md`;
+- `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`.
 
-Until explicit implementation authorization is granted, documentation/readiness corrections are allowed but do not start the convergence or product-code build.
+The next technical package is the **Shared Integrated-MVP Spine**. Proceed without another owner approval unless a material owner-level decision or external account/service action is encountered.

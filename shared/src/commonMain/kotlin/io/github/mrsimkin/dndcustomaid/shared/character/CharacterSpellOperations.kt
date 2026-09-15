@@ -113,6 +113,45 @@ fun moveCharacterSpellManual(
     }
 }
 
+/**
+ * Apply one complete direct-drag result for the visible spells of a single spell level.
+ *
+ * Manual spell order is level-local. When a spellcasting source is selected, only spells visible
+ * for that source participate in the drag surface; non-visible spells retain their exact positions
+ * inside the level. The proposal is therefore accepted only when it contains exactly the current
+ * visible stable-id set, then merged back into those visible positions and committed atomically.
+ */
+fun applyCharacterSpellManualOrder(
+    spells: List<CharacterSpell>,
+    level: Int,
+    proposedVisibleIds: List<String>,
+    selectedSourceId: Uuid? = null,
+): List<CharacterSpell> {
+    val normalized = normalizeCharacterSpellOrders(spells)
+    val levelOrdered = normalized
+        .filter { it.level == level }
+        .sortedWith(compareBy<CharacterSpell> { it.sortOrder }.thenBy { it.id.toString() })
+    if (levelOrdered.size < 2) return normalized
+
+    val visiblePositions = levelOrdered.indices.filter { index ->
+        spellVisibleForSource(levelOrdered[index], selectedSourceId)
+    }
+    val currentVisibleIds = visiblePositions.map { index -> levelOrdered[index].id.toString() }
+    if (!isValidCharacterReorderResult(currentVisibleIds, proposedVisibleIds)) return normalized
+
+    val spellById = levelOrdered.associateBy { it.id.toString() }
+    val proposedVisibleSpells = proposedVisibleIds.mapNotNull(spellById::get)
+    if (proposedVisibleSpells.size != currentVisibleIds.size) return normalized
+
+    val replacementByPosition = visiblePositions.zip(proposedVisibleSpells).toMap()
+    val reorderedLevel = levelOrdered.mapIndexed { index, spell -> replacementByPosition[index] ?: spell }
+    val levelOrderById = reorderedLevel.mapIndexed { index, spell -> spell.id to index }.toMap()
+
+    return normalized.map { spell ->
+        if (spell.level == level) spell.copy(sortOrder = levelOrderById.getValue(spell.id)) else spell
+    }
+}
+
 fun normalizeCharacterSpellOrders(spells: List<CharacterSpell>): List<CharacterSpell> {
     val orderById = spells
         .groupBy(CharacterSpell::level)

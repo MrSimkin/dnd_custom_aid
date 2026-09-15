@@ -12,7 +12,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,8 +55,11 @@ internal fun CharacterCustomSkillsCardV4(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Habilidades personalizadas", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        "Homebrew u otras habilidades asociadas a una característica. Usan el mismo cálculo de competencia/pericia.",
+                        "Homebrew y otras habilidades asociadas a una característica.",
                         style = MaterialTheme.typography.labelSmall,
+                    )
+                    CharacterHelpV4(
+                        "Usan el mismo cálculo de competencia y pericia que las habilidades estándar.",
                     )
                 }
                 TextButton(onClick = { editorId = null; editorOpen = true }) { Text("+ Añadir") }
@@ -202,7 +204,7 @@ private fun CustomSkillEditorDialogV4(
         },
         saveEnabled = valid,
     ) {
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         CustomEnumDropdownV4(
             label = "Característica",
             current = abilityAbbrevCustomV4(ability),
@@ -215,7 +217,7 @@ private fun CustomSkillEditorDialogV4(
             options = SkillTraining.entries.map { it.name to trainingLabelCustomV4(it) },
             onSelect = { trainingName = it },
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = adjustment,
             onValueChange = { raw ->
                 val sign = raw.firstOrNull()?.takeIf { it == '+' || it == '-' }?.toString().orEmpty()
@@ -227,8 +229,8 @@ private fun CustomSkillEditorDialogV4(
             singleLine = true,
         )
         CharacterInlineValidationMessage(if (adjustment.isNotBlank() && parsedAdjustment == null) "Escribe un ajuste numérico válido." else null)
-        OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+        CharacterCompactOutlinedTextFieldV4(value = source, onValueChange = { source = it }, label = { Text("Fuente opcional") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth(), minLines = characterCompactTextAreaMinLinesV4(2))
     }
 }
 
