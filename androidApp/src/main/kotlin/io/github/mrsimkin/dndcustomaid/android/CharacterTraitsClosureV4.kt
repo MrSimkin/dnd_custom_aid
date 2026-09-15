@@ -3,7 +3,7 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -23,7 +25,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,19 +36,27 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_TRAIT_FAVORITE_FILTER_KEY
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitProvenance
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourcePlacement
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourceSuccessorConfiguration
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitGrouping
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
+import io.github.mrsimkin.dndcustomaid.shared.character.applyCharacterTraitManualOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitSourceFilterKey
 import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitTypeDisplayLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitTypeFilterKey
@@ -55,10 +64,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterTraitUsageMeter
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterTrait
 import io.github.mrsimkin.dndcustomaid.shared.character.groupCharacterTraits
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterTraitManual
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterTraits
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
-import kotlin.math.abs
 import kotlin.uuid.Uuid
 
 private const val TRAIT_FILTER_SEPARATOR_G1 = "\u001E"
@@ -67,10 +74,18 @@ private const val TRAIT_FILTER_SEPARATOR_G1 = "\u001E"
 @Composable
 internal fun CharacterTraitsClosureTabV4(
     traits: List<CharacterTrait>,
+    classes: List<CharacterClassLevel>,
+    background: CharacterBackground,
+    successorState: CharacterSuccessorState,
+    traitProvenance: List<CharacterTraitProvenance>,
     closureState: CharacterClosureState,
     persistedTraitIds: Set<Uuid>,
+    resources: List<CharacterResource>,
     onTraitsChange: (List<CharacterTrait>) -> Unit,
+    onTraitProvenanceChange: (List<CharacterTraitProvenance>) -> Unit,
+    onSpentUsesChange: (Uuid, Int) -> Unit,
     onClosureStateChange: (CharacterClosureState) -> Unit,
+    onResourceValueChange: (Uuid, Int) -> Unit,
     structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean,
@@ -81,9 +96,9 @@ internal fun CharacterTraitsClosureTabV4(
 
     var editorOpen by rememberSaveable { mutableStateOf(false) }
     var editingId by rememberSaveable { mutableStateOf<String?>(null) }
+    var editorTraitId by rememberSaveable { mutableStateOf("") }
     var editorName by rememberSaveable { mutableStateOf("") }
-    var editorSource by rememberSaveable { mutableStateOf("") }
-    var editorTypeName by rememberSaveable { mutableStateOf(CharacterTraitType.OTHER.name) }
+    var editorProvenanceJson by rememberSaveable("trait-provenance-p7-editor") { mutableStateOf("") }
     var editorDescription by rememberSaveable { mutableStateOf("") }
     var editorNotes by rememberSaveable { mutableStateOf("") }
     var editorMaxUses by rememberSaveable { mutableStateOf("") }
@@ -93,6 +108,11 @@ internal fun CharacterTraitsClosureTabV4(
     var deleteId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val settingsContext = LocalCharacterPcSettingsContextV4.current
+    val resourceConfigurations = settingsContext?.successorState?.resourceConfigurations.orEmpty().associateBy { it.resourceId }
+    val traitResources = resources
+        .filter { resource -> CharacterResourcePlacement.TRAITS in (resourceConfigurations[resource.id]?.placements ?: emptySet()) }
+        .sortedBy { it.sortOrder }
     val grouping = runCatching { CharacterTraitGrouping.valueOf(groupingName) }
         .getOrDefault(CharacterTraitGrouping.TYPE)
     val activeFilters = activeFiltersText.split(TRAIT_FILTER_SEPARATOR_G1).filter { it.isNotBlank() }.toSet()
@@ -102,8 +122,7 @@ internal fun CharacterTraitsClosureTabV4(
         query = query,
         isFavorite = { trait -> closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id) },
     )
-    val groups = groupCharacterTraits(visibleTraits, grouping)
-    val canReorder = structuralEditingEnabled && query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
+    val reorderAvailable = structuralEditingEnabled && query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
 
     fun updateQuery(updated: CharacterCollectionQuery) {
         searchText = updated.searchText
@@ -116,10 +135,20 @@ internal fun CharacterTraitsClosureTabV4(
 
     fun beginAdd() {
         if (!structuralEditingEnabled) return
+        val newTraitId = Uuid.random()
         editingId = null
+        editorTraitId = newTraitId.toString()
         editorName = ""
-        editorSource = ""
-        editorTypeName = CharacterTraitType.OTHER.name
+        editorProvenanceJson = characterTraitProvenanceToJsonP7V4(
+            listOf(
+                newTraitProvenanceForKindP7V4(
+                    traitId = newTraitId,
+                    kind = CharacterProvenanceKind.OTHER,
+                    classes = classes,
+                    successorState = successorState,
+                ),
+            ),
+        )
         editorDescription = ""
         editorNotes = ""
         editorMaxUses = ""
@@ -132,9 +161,18 @@ internal fun CharacterTraitsClosureTabV4(
     fun beginEdit(trait: CharacterTrait) {
         if (!structuralEditingEnabled) return
         editingId = trait.id.toString()
+        editorTraitId = trait.id.toString()
         editorName = trait.name
-        editorSource = trait.source
-        editorTypeName = trait.type.name
+        editorProvenanceJson = characterTraitProvenanceToJsonP7V4(
+            listOf(
+                traitProvenanceDraftP7V4(
+                    trait = trait,
+                    existing = traitProvenance.firstOrNull { it.traitId == trait.id },
+                    classes = classes,
+                    successorState = successorState,
+                ),
+            ),
+        )
         editorDescription = trait.description
         editorNotes = trait.notes.orEmpty()
         editorMaxUses = trait.maxUses?.toString().orEmpty()
@@ -148,9 +186,7 @@ internal fun CharacterTraitsClosureTabV4(
         val max = trait.maxUses ?: return
         val next = (trait.spentUses + delta).coerceIn(0, max)
         if (next == trait.spentUses) return
-        onTraitsChange(
-            traits.map { item -> if (item.id == trait.id) item.copy(spentUses = next) else item },
-        )
+        onSpentUsesChange(trait.id, next)
         haptic(CharacterHapticEventV4.RESOURCE)
     }
 
@@ -161,148 +197,228 @@ internal fun CharacterTraitsClosureTabV4(
             newId = Uuid.random(),
             sortOrder = traits.size,
         )
+        val sourceProvenance = traitProvenanceDraftP7V4(
+            trait = trait,
+            existing = traitProvenance.firstOrNull { it.traitId == trait.id },
+            classes = classes,
+            successorState = successorState,
+        )
         onTraitsChange(normalize(traits + duplicated))
+        onTraitProvenanceChange(
+            traitProvenance.filterNot { it.traitId == duplicated.id } +
+                sourceProvenance.copy(traitId = duplicated.id),
+        )
     }
 
-    LazyColumn(
+    val listState = rememberLazyListState()
+
+    val keepCollectionToolsSticky =
+
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+    val normalizedTraits = normalize(traits)
+    val canonicalIds = normalizedTraits.map { it.id.toString() }
+    val traitById = traits.associateBy { it.id.toString() }
+    val canonicalGroups = groupCharacterTraits(normalizedTraits, grouping)
+    val reorderGroupById = canonicalGroups.flatMap { group ->
+        group.traits.map { trait -> trait.id.toString() to group.key }
+    }.toMap()
+    val reorderEnabled = reorderAvailable && canonicalIds.size > 1
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "traits",
+        canonicalOrder = canonicalIds,
+        enabled = reorderEnabled,
+        coordinator = reorderCoordinator,
+        onCommitOrder = { proposedIds ->
+            val reordered = applyCharacterTraitManualOrder(
+                traits = traits,
+                proposedIds = proposedIds,
+                grouping = grouping,
+            )
+            if (reordered != normalizedTraits) onTraitsChange(reordered)
+        },
+        onHaptic = haptic,
+        autoScrollBy = { delta -> listState.scrollBy(delta) },
+        reorderGroupById = reorderGroupById,
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+    val layoutTraits = if (reorderAvailable) {
+        reorderSession.previewOrder.mapNotNull(traitById::get)
+            .mapIndexed { index, trait -> trait.copy(sortOrder = index) }
+    } else {
+        visibleTraits
+    }
+    val groups = groupCharacterTraits(layoutTraits, grouping)
+
+    CharacterReorderOverlayHostV4(
+        session = reorderSession,
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
             .navigationBarsPadding(),
-        contentPadding = PaddingValues(
-            start = appSpacingV4(if (wide) 10.dp else 5.dp),
-            end = appSpacingV4(if (wide) 10.dp else 5.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        liftedContent = { draggedId ->
+            traitById[draggedId]?.let { trait ->
+                TraitCardG1(
+                    trait = trait,
+                    favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
+                    favoriteEnabled = false,
+                    reorderSession = null,
+                    structuralEditingEnabled = false,
+                    onFavoriteChange = {},
+                    onEdit = {},
+                    onSpendUse = {},
+                    onRecoverUse = {},
+                    onDuplicate = {},
+                    onDelete = {},
+                    lifted = true,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        },
     ) {
-        stickyHeader(key = "traits-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .characterReorderSessionViewportV4(reorderSession),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 10.dp else 5.dp),
+                end = appSpacingV4(if (wide) 10.dp else 5.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "traits-tools") {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(
+                            horizontal = appSpacingV4(7.dp),
+                            vertical = appSpacingV4(6.dp),
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Rasgos", style = MaterialTheme.typography.titleSmall)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Rasgos", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    "Rasgos del personaje y contenido personalizado.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                            TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
+                        }
+                        CharacterCollectionToolbarV4(
+                            itemCount = visibleTraits.size,
+                            query = query,
+                            onQueryChange = ::updateQuery,
+                            filters = traitFiltersG1(traits, closureState),
+                            searchLabel = "Buscar rasgos",
+                        )
+                        TraitGroupingControlsG1(
+                            grouping = grouping,
+                            onGroupingChange = { groupingName = it.name },
+                        )
+                        if (structuralEditingEnabled && !reorderAvailable && visibleTraits.isNotEmpty()) {
                             Text(
-                                "Clase, especie/raza, trasfondo, dotes, dones y contenido personalizado.",
+                                "Limpia búsqueda y filtros para reordenar manualmente.",
                                 style = MaterialTheme.typography.labelSmall,
                             )
                         }
-                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
                     }
-                    CharacterCollectionToolbarV4(
-                        itemCount = visibleTraits.size,
-                        query = query,
-                        onQueryChange = ::updateQuery,
-                        filters = traitFiltersG1(traits, closureState),
-                        searchLabel = "Buscar rasgos",
+                }
+            }
+
+            if (traitResources.isNotEmpty()) {
+                item(key = "traits-resources") {
+                    TraitsResourcesCardG2(
+                        resources = traitResources,
+                        configurations = resourceConfigurations,
+                        onResourceValueChange = { resourceId, value ->
+                            onResourceValueChange(resourceId, value)
+                            haptic(CharacterHapticEventV4.RESOURCE)
+                        },
                     )
-                    TraitGroupingControlsG1(
-                        grouping = grouping,
-                        onGroupingChange = { groupingName = it.name },
-                    )
-                    if (!canReorder && visibleTraits.isNotEmpty()) {
+                }
+            }
+
+            if (traits.isEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            "Limpia búsqueda y filtros para reordenar manualmente.",
-                            style = MaterialTheme.typography.labelSmall,
+                            "Sin rasgos registrados. La app no crea rasgos automáticamente desde otras secciones.",
+                            modifier = Modifier.padding(appSpacingV4(10.dp)),
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
-            }
-        }
-
-        if (traits.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "Sin rasgos registrados. La app no crea rasgos automáticamente desde otras secciones.",
-                        modifier = Modifier.padding(appSpacingV4(10.dp)),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        } else if (visibleTraits.isEmpty()) {
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        "No hay rasgos que coincidan con la búsqueda y filtros actuales.",
-                        modifier = Modifier.padding(appSpacingV4(10.dp)),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        } else {
-            groups.forEach { group ->
-                item(key = "trait-group-${group.key}") {
+            } else if (visibleTraits.isEmpty()) {
+                item {
                     Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
-                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                        ) {
-                            if (grouping != CharacterTraitGrouping.NONE) {
-                                Text(
-                                    "${group.label} (${group.traits.size})",
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                            }
-                            val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
-                            group.traits.chunked(columns).forEach { rowTraits ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                                    verticalAlignment = Alignment.Top,
-                                ) {
-                                    rowTraits.forEach { trait ->
-                                        TraitCardG1(
-                                            trait = trait,
-                                            favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
-                                            favoriteEnabled = structuralEditingEnabled && trait.id in persistedTraitIds,
-                                            canReorder = canReorder,
-                                            structuralEditingEnabled = structuralEditingEnabled,
-                                            onFavoriteChange = { enabled ->
-                                                onClosureStateChange(
-                                                    closureState.withQuickAccess(
-                                                        CharacterQuickAccessKind.TRAIT,
-                                                        trait.id,
-                                                        enabled,
-                                                    ),
-                                                )
-                                            },
-                                            onEdit = { beginEdit(trait) },
-                                            onMove = { offset ->
-                                                val moved = moveCharacterTraitManual(
-                                                    traits = traits,
-                                                    traitId = trait.id,
-                                                    offset = offset,
-                                                    grouping = grouping,
-                                                )
-                                                if (moved == normalize(traits)) {
-                                                    false
-                                                } else {
-                                                    onTraitsChange(moved)
-                                                    true
-                                                }
-                                            },
-                                            onSpendUse = { updateSpentUses(trait, 1) },
-                                            onRecoverUse = { updateSpentUses(trait, -1) },
-                                            onDuplicate = { duplicate(trait) },
-                                            onDelete = { deleteId = trait.id.toString() },
-                                            onHaptic = haptic,
-                                            modifier = Modifier.weight(1f),
-                                        )
-                                    }
-                                    repeat(columns - rowTraits.size) {
-                                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            "No hay rasgos que coincidan con la búsqueda y filtros actuales.",
+                            modifier = Modifier.padding(appSpacingV4(10.dp)),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            } else {
+                groups.forEach { group ->
+                    item(key = "trait-group-${group.key}") {
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(
+                                    horizontal = appSpacingV4(6.dp),
+                                    vertical = appSpacingV4(5.dp),
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+                            ) {
+                                if (grouping != CharacterTraitGrouping.NONE) {
+                                    Text(
+                                        "${group.label} (${group.traits.size})",
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
+                                }
+                                val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
+                                group.traits.chunked(columns).forEach { rowTraits ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                                        verticalAlignment = Alignment.Top,
+                                    ) {
+                                        rowTraits.forEach { trait ->
+                                            TraitCardG1(
+                                                trait = trait,
+                                                favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.TRAIT, trait.id),
+                                                favoriteEnabled = structuralEditingEnabled && trait.id in persistedTraitIds,
+                                                reorderSession = reorderSession.takeIf {
+                                                    reorderEnabled && group.traits.size > 1
+                                                },
+                                                structuralEditingEnabled = structuralEditingEnabled,
+                                                onFavoriteChange = { enabled ->
+                                                    onClosureStateChange(
+                                                        closureState.withQuickAccess(
+                                                            CharacterQuickAccessKind.TRAIT,
+                                                            trait.id,
+                                                            enabled,
+                                                        ),
+                                                    )
+                                                },
+                                                onEdit = { beginEdit(trait) },
+                                                onSpendUse = { updateSpentUses(trait, 1) },
+                                                onRecoverUse = { updateSpentUses(trait, -1) },
+                                                onDuplicate = { duplicate(trait) },
+                                                onDelete = { deleteId = trait.id.toString() },
+                                                modifier = Modifier.weight(1f),
+                                            )
+                                        }
+                                        repeat(columns - rowTraits.size) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
                                     }
                                 }
                             }
@@ -314,8 +430,15 @@ internal fun CharacterTraitsClosureTabV4(
     }
 
     if (editorOpen && structuralEditingEnabled) {
-        val selectedType = runCatching { CharacterTraitType.valueOf(editorTypeName) }
-            .getOrDefault(CharacterTraitType.OTHER)
+        val editorTraitUuid = runCatching { Uuid.parse(editorTraitId) }.getOrElse { Uuid.random() }
+        val selectedProvenance = characterTraitProvenanceFromJsonP7V4(editorProvenanceJson)
+            .singleOrNull()
+            ?: newTraitProvenanceForKindP7V4(
+                traitId = editorTraitUuid,
+                kind = CharacterProvenanceKind.OTHER,
+                classes = classes,
+                successorState = successorState,
+            )
         val selectedActivation = editorActivationName.takeIf { it.isNotBlank() }?.let { raw ->
             runCatching { CharacterActivationType.valueOf(raw) }.getOrNull()
         }
@@ -327,13 +450,15 @@ internal fun CharacterTraitsClosureTabV4(
         } else {
             parsedMaxUses != null && parsedSpentUses != null && parsedSpentUses in 0..parsedMaxUses
         }
-        val valid = editorName.trim().isNotEmpty() && maxUsesValid && spentUsesValid
+        val provenanceValid = traitProvenanceIsValidP7V4(selectedProvenance, classes, successorState)
+        val valid = editorName.trim().isNotEmpty() && maxUsesValid && spentUsesValid && provenanceValid
 
         TraitEditorDialogG1(
             title = if (editingId == null) "Añadir rasgo" else "Editar rasgo",
             name = editorName,
-            source = editorSource,
-            type = selectedType,
+            provenance = selectedProvenance,
+            classes = classes,
+            successorState = successorState,
             description = editorDescription,
             notes = editorNotes,
             maxUses = editorMaxUses,
@@ -342,8 +467,9 @@ internal fun CharacterTraitsClosureTabV4(
             activation = selectedActivation,
             valid = valid,
             onNameChange = { editorName = it },
-            onSourceChange = { editorSource = it },
-            onTypeChange = { editorTypeName = it.name },
+            onProvenanceChange = { updated ->
+                editorProvenanceJson = characterTraitProvenanceToJsonP7V4(listOf(updated))
+            },
             onDescriptionChange = { editorDescription = it },
             onNotesChange = { editorNotes = it },
             onMaxUsesChange = { editorMaxUses = traitUnsignedIntegerG1(it) },
@@ -353,13 +479,15 @@ internal fun CharacterTraitsClosureTabV4(
             onDismiss = { editorOpen = false },
             onApply = {
                 val existing = editingId?.let { id -> traits.firstOrNull { it.id.toString() == id } }
+                val traitId = existing?.id ?: editorTraitUuid
+                val provenance = normalizeTraitProvenanceP7V4(selectedProvenance.copy(traitId = traitId))
                 val maxUses = parsedMaxUses
                 val spentUses = if (maxUses == null) 0 else requireNotNull(parsedSpentUses).coerceIn(0, maxUses)
                 val trait = CharacterTrait(
-                    id = existing?.id ?: Uuid.random(),
+                    id = traitId,
                     name = editorName.trim(),
-                    source = editorSource.trim(),
-                    type = selectedType,
+                    source = traitProvenanceDisplaySourceP7V4(provenance, classes, successorState),
+                    type = traitTypeForProvenanceKindP7V4(provenance.kind),
                     description = editorDescription,
                     notes = editorNotes.trim().takeIf { it.isNotEmpty() },
                     maxUses = maxUses,
@@ -375,6 +503,9 @@ internal fun CharacterTraitsClosureTabV4(
                     traits.map { item -> if (item.id == existing.id) trait else item }
                 }
                 onTraitsChange(normalize(updated))
+                onTraitProvenanceChange(
+                    traitProvenance.filterNot { it.traitId == traitId } + provenance,
+                )
                 editorOpen = false
             },
         )
@@ -391,12 +522,38 @@ internal fun CharacterTraitsClosureTabV4(
                 onDismissRequest = { deleteId = null },
                 onConfirm = {
                     onTraitsChange(normalize(traits.filterNot { it.id == target.id }))
+                    onTraitProvenanceChange(traitProvenance.filterNot { it.traitId == target.id })
                     haptic(CharacterHapticEventV4.DESTRUCTIVE)
                     deleteId = null
                 },
             )
         }
     }
+}
+
+private fun traitOriginOptionsG5(
+    type: CharacterTraitType,
+    classes: List<CharacterClassLevel>,
+    background: CharacterBackground,
+): List<CharacterOriginOptionV4> = when (type) {
+    CharacterTraitType.CLASS -> classes
+        .sortedBy { it.sortOrder }
+        .mapNotNull { classLevel ->
+            classLevel.name.trim().takeIf(String::isNotEmpty)?.let { name ->
+                CharacterOriginOptionV4("class:${classLevel.id}", name)
+            }
+        }
+        .distinctBy { it.label.lowercase() }
+    CharacterTraitType.SPECIES_RACE -> background.race.trim().takeIf(String::isNotEmpty)
+        ?.let { listOf(CharacterOriginOptionV4("race", it)) }
+        .orEmpty()
+    CharacterTraitType.BACKGROUND -> background.name.trim().takeIf(String::isNotEmpty)
+        ?.let { listOf(CharacterOriginOptionV4("background", it)) }
+        .orEmpty()
+    CharacterTraitType.FEAT,
+    CharacterTraitType.GIFT_BLESSING,
+    CharacterTraitType.OTHER,
+    -> emptyList()
 }
 
 private fun traitFiltersG1(
@@ -472,27 +629,32 @@ private fun TraitCardG1(
     trait: CharacterTrait,
     favorite: Boolean,
     favoriteEnabled: Boolean,
-    canReorder: Boolean,
+    reorderSession: CharacterReorderSessionV4?,
     structuralEditingEnabled: Boolean,
     onFavoriteChange: (Boolean) -> Unit,
     onEdit: () -> Unit,
-    onMove: (Int) -> Boolean,
     onSpendUse: () -> Unit,
     onRecoverUse: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(trait.id) { mutableStateOf(0f) }
-    var dragging by remember(trait.id) { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 68.dp.toPx() }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
+    val id = trait.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
     val metadata = buildList {
         trait.source.takeIf { it.isNotBlank() }?.let(::add)
         add(characterTraitTypeDisplayLabel(trait.type))
@@ -500,139 +662,116 @@ private fun TraitCardG1(
     }.joinToString(" · ")
     val meter = characterTraitUsageMeter(trait)
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    Surface(
+        modifier = modifier.fillMaxWidth().then(geometryModifier),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(
+                horizontal = appSpacingV4(6.dp),
+                vertical = appSpacingV4(5.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .then(pickupModifier)
+                        .clickable(
+                            enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                            onClick = onEdit,
+                        ),
                 ) {
-                    if (canReorder) {
-                        StableDragHandle(
-                            modifier = Modifier.pointerInput(trait.id) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = {
-                                        accumulatedDrag = 0f
-                                        dragging = true
-                                        onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
-                                    },
-                                    onDragEnd = {
-                                        if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
-                                        accumulatedDrag = 0f
-                                        dragging = false
-                                    },
-                                    onDragCancel = {
-                                        accumulatedDrag = 0f
-                                        dragging = false
-                                    },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        accumulatedDrag += dragAmount.y
-                                        while (abs(accumulatedDrag) >= reorderStepPx) {
-                                            val direction = if (accumulatedDrag > 0f) 1 else -1
-                                            if (onMove(direction)) {
-                                                onHaptic(CharacterHapticEventV4.DRAG_STEP)
-                                                accumulatedDrag -= direction * reorderStepPx
-                                            } else {
-                                                accumulatedDrag = 0f
-                                                break
-                                            }
-                                        }
-                                    },
-                                )
-                            },
-                            active = dragging,
-                            contentDescription = "Mantén pulsado y arrastra para reordenar ${trait.name}",
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            trait.name,
-                            style = MaterialTheme.typography.labelLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            metadata,
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    TextButton(
-                        onClick = { onFavoriteChange(!favorite) },
-                        enabled = favoriteEnabled,
-                        contentPadding = PaddingValues(horizontal = 5.dp, vertical = 0.dp),
-                    ) { Text(if (favorite) "★" else "☆") }
+                    Text(
+                        trait.name,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        metadata,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
+                StableFavoriteIconButton(
+                    selected = favorite,
+                    onClick = { onFavoriteChange(!favorite) },
+                    enabled = !lifted && favoriteEnabled,
+                )
+            }
 
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(pickupModifier)
+                    .clickable(
+                        enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                        onClick = onEdit,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+            ) {
                 Text(
                     trait.description.ifBlank { "Sin descripción" },
                     style = if (trait.description.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-
-                meter?.let { usage ->
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
-                        LinearProgressIndicator(
-                            progress = { usage.remainingFraction },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        Text(
-                            "${usage.remaining} / ${usage.max} disponibles" +
-                                if (usage.spent > 0) " · ${usage.spent} gastados" else "",
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                        trait.recovery?.takeIf { it.isNotBlank() }?.let {
-                            Text("Recuperación: $it", style = MaterialTheme.typography.labelSmall)
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            TextButton(
-                                onClick = onRecoverUse,
-                                enabled = usage.spent > 0,
-                                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
-                            ) { Text("Recuperar") }
-                            TextButton(
-                                onClick = onSpendUse,
-                                enabled = usage.remaining > 0,
-                                contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
-                            ) { Text("Gastar") }
-                        }
-                    }
-                }
-
                 trait.notes?.takeIf { it.isNotBlank() }?.let {
                     Text(it, style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${trait.name}")
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${trait.name}")
+            }
+
+            meter?.let { usage ->
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
+                    LinearProgressIndicator(
+                        progress = { usage.remainingFraction },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text(
+                        "${usage.remaining} / ${usage.max} disponibles" +
+                            if (usage.spent > 0) " · ${usage.spent} gastados" else "",
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    trait.recovery?.takeIf { it.isNotBlank() }?.let {
+                        Text("Recuperación: $it", style = MaterialTheme.typography.labelSmall)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(
+                            onClick = onRecoverUse,
+                            enabled = !lifted && usage.spent > 0,
+                            contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
+                        ) { Text("Recuperar") }
+                        TextButton(
+                            onClick = onSpendUse,
+                            enabled = !lifted && usage.remaining > 0,
+                            contentPadding = PaddingValues(horizontal = 7.dp, vertical = 0.dp),
+                        ) { Text("Gastar") }
                     }
                 }
             }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (structuralEditingEnabled && !lifted) {
+                    StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${trait.name}")
+                    StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${trait.name}")
+                }
+            }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
@@ -640,8 +779,9 @@ private fun TraitCardG1(
 private fun TraitEditorDialogG1(
     title: String,
     name: String,
-    source: String,
-    type: CharacterTraitType,
+    provenance: CharacterTraitProvenance,
+    classes: List<CharacterClassLevel>,
+    successorState: CharacterSuccessorState,
     description: String,
     notes: String,
     maxUses: String,
@@ -650,8 +790,7 @@ private fun TraitEditorDialogG1(
     activation: CharacterActivationType?,
     valid: Boolean,
     onNameChange: (String) -> Unit,
-    onSourceChange: (String) -> Unit,
-    onTypeChange: (CharacterTraitType) -> Unit,
+    onProvenanceChange: (CharacterTraitProvenance) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
     onMaxUsesChange: (String) -> Unit,
@@ -661,7 +800,6 @@ private fun TraitEditorDialogG1(
     onDismiss: () -> Unit,
     onApply: () -> Unit,
 ) {
-    var typeMenuOpen by rememberSaveable { mutableStateOf(false) }
     var activationMenuOpen by rememberSaveable { mutableStateOf(false) }
 
     CharacterImeSafeEditorDialog(
@@ -670,39 +808,19 @@ private fun TraitEditorDialogG1(
         onSave = onApply,
         saveEnabled = valid,
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = name,
             onValueChange = onNameChange,
             label = { Text("Nombre") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        OutlinedTextField(
-            value = source,
-            onValueChange = onSourceChange,
-            label = { Text("Fuente") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
+        CharacterTraitProvenanceEditorP7V4(
+            provenance = provenance,
+            classes = classes,
+            successorState = successorState,
+            onChange = onProvenanceChange,
         )
-        Column {
-            Text("Tipo", style = MaterialTheme.typography.labelSmall)
-            androidx.compose.foundation.layout.Box {
-                OutlinedButton(onClick = { typeMenuOpen = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(characterTraitTypeDisplayLabel(type))
-                }
-                DropdownMenu(expanded = typeMenuOpen, onDismissRequest = { typeMenuOpen = false }) {
-                    CharacterTraitType.entries.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(characterTraitTypeDisplayLabel(option)) },
-                            onClick = {
-                                onTypeChange(option)
-                                typeMenuOpen = false
-                            },
-                        )
-                    }
-                }
-            }
-        }
         Column {
             Text("Activación", style = MaterialTheme.typography.labelSmall)
             androidx.compose.foundation.layout.Box {
@@ -729,24 +847,24 @@ private fun TraitEditorDialogG1(
                 }
             }
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = description,
             onValueChange = onDescriptionChange,
             label = { Text("Descripción") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 7,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = onNotesChange,
             label = { Text("Notas") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 5,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = maxUses,
                 onValueChange = onMaxUsesChange,
                 label = { Text("Usos máximos") },
@@ -754,7 +872,7 @@ private fun TraitEditorDialogG1(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = spentUses,
                 onValueChange = onSpentUsesChange,
                 label = { Text("Gastados") },
@@ -764,7 +882,7 @@ private fun TraitEditorDialogG1(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = recovery,
             onValueChange = onRecoveryChange,
             label = { Text("Recuperación") },
@@ -779,10 +897,120 @@ private fun TraitEditorDialogG1(
                 maxUses.isNotBlank() &&
                     (spentUses.toIntOrNull() == null || spentUses.toInt() !in 0..(maxUses.toIntOrNull() ?: 0)) ->
                     "Los usos gastados deben estar entre 0 y el máximo."
+                !traitProvenanceIsValidP7V4(provenance, classes, successorState) ->
+                    "Selecciona un origen que pertenezca al personaje o conserva una relación anterior no disponible."
                 else -> null
             },
         )
     }
+}
+
+@Composable
+private fun TraitsResourcesCardG2(
+    resources: List<CharacterResource>,
+    configurations: Map<Uuid, CharacterResourceSuccessorConfiguration>,
+    onResourceValueChange: (Uuid, Int) -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        ) {
+            Text("Recursos de Rasgos", style = MaterialTheme.typography.titleSmall)
+            resources.forEach { resource ->
+                val configuration = configurations[resource.id] ?: return@forEach
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        resource.name,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    when (configuration.valueKind) {
+                        CharacterTrackableValueKind.BINARY -> {
+                            val active = resource.currentValue > 0
+                            TraitResourceChipG2(if (active) "Activo" else "Inactivo", active) {
+                                onResourceValueChange(resource.id, if (active) 0 else 1)
+                            }
+                        }
+                        CharacterTrackableValueKind.COUNTER,
+                        CharacterTrackableValueKind.CURRENT_MAX,
+                        -> {
+                            val maximum = if (configuration.valueKind == CharacterTrackableValueKind.CURRENT_MAX) resource.maxValue else null
+                            TraitResourceStepG2("−", resource.currentValue > 0) {
+                                onResourceValueChange(resource.id, (resource.currentValue - 1).coerceAtLeast(0))
+                            }
+                            Text(
+                                maximum?.let { "${resource.currentValue}/$it" } ?: resource.currentValue.toString(),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                            TraitResourceStepG2("+", maximum?.let { resource.currentValue < it } ?: true) {
+                                val next = resource.currentValue + 1
+                                onResourceValueChange(resource.id, maximum?.let { next.coerceAtMost(it) } ?: next)
+                            }
+                        }
+                    }
+                }
+            }
+            CharacterHelpV4("Estos controles operan el mismo recurso canónico que Gestión, General o Equipo; la pestaña solo cambia dónde se proyecta.")
+        }
+    }
+}
+
+@Composable
+private fun TraitResourceChipG2(label: String, selected: Boolean, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelSmall) }
+    }
+}
+
+@Composable
+private fun TraitResourceStepG2(label: String, enabled: Boolean, onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(enabled = enabled, onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelLarge) }
+    }
+}
+
+private fun traitOriginTypeG2(type: CharacterTraitType): CharacterOriginTypeV4 = when (type) {
+    CharacterTraitType.CLASS -> CharacterOriginTypeV4.CLASS
+    CharacterTraitType.SPECIES_RACE -> CharacterOriginTypeV4.RACE
+    CharacterTraitType.BACKGROUND -> CharacterOriginTypeV4.BACKGROUND
+    CharacterTraitType.FEAT -> CharacterOriginTypeV4.FEAT
+    CharacterTraitType.GIFT_BLESSING -> CharacterOriginTypeV4.GIFT
+    CharacterTraitType.OTHER -> CharacterOriginTypeV4.OTHER
+}
+
+private fun traitTypeForOriginG2(origin: CharacterOriginTypeV4): CharacterTraitType = when (origin) {
+    CharacterOriginTypeV4.CLASS -> CharacterTraitType.CLASS
+    CharacterOriginTypeV4.RACE -> CharacterTraitType.SPECIES_RACE
+    CharacterOriginTypeV4.BACKGROUND -> CharacterTraitType.BACKGROUND
+    CharacterOriginTypeV4.FEAT -> CharacterTraitType.FEAT
+    CharacterOriginTypeV4.GIFT -> CharacterTraitType.GIFT_BLESSING
+    CharacterOriginTypeV4.PACT,
+    CharacterOriginTypeV4.ITEM,
+    CharacterOriginTypeV4.OTHER,
+    -> CharacterTraitType.OTHER
 }
 
 private fun traitUnsignedIntegerG1(raw: String): String = raw.filter(Char::isDigit)

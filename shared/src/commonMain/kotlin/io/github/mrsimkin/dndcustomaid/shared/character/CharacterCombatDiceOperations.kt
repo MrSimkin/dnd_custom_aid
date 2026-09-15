@@ -210,14 +210,41 @@ fun characterCombatEntryTypeSpanishLabel(type: CharacterCombatEntryType): String
 data class CharacterDiceExpression(
     val count: Int,
     val sides: Int,
+    val modifier: Int = 0,
 )
 
 fun parseCharacterDiceExpression(raw: String): CharacterDiceExpression? {
-    val match = Regex("^([0-9]*)[dD]([0-9]+)$").matchEntire(raw.trim()) ?: return null
+    val match = Regex("^([0-9]*)[dD]([0-9]+)([+-][0-9]+)?$").matchEntire(raw.trim()) ?: return null
     val count = match.groupValues[1].takeIf { it.isNotEmpty() }?.toIntOrNull() ?: 1
     val sides = match.groupValues[2].toIntOrNull() ?: return null
+    val modifier = match.groupValues[3].takeIf { it.isNotEmpty() }?.toIntOrNull() ?: 0
     if (count !in 1..100 || sides !in 2..1000) return null
-    return CharacterDiceExpression(count = count, sides = sides)
+    return CharacterDiceExpression(count = count, sides = sides, modifier = modifier)
+}
+
+data class CharacterResolvedDiceExpressionRoll(
+    val expression: CharacterDiceExpression,
+    val diceResults: List<Int>,
+) {
+    val diceTotal: Int
+        get() = diceResults.sum()
+
+    val total: Int
+        get() = diceTotal + expression.modifier
+}
+
+fun resolveCharacterDiceExpressionRoll(
+    expression: CharacterDiceExpression,
+    dieRoller: (sides: Int) -> Int,
+): CharacterResolvedDiceExpressionRoll {
+    val results = List(expression.count) {
+        dieRoller(expression.sides).also { result ->
+            require(result in 1..expression.sides) {
+                "Die roller returned $result for d${expression.sides}."
+            }
+        }
+    }
+    return CharacterResolvedDiceExpressionRoll(expression = expression, diceResults = results)
 }
 
 data class CharacterDamageRolledComponent(
@@ -247,17 +274,11 @@ fun resolveCharacterDamageRoll(
                 if (expression == null) {
                     CharacterDamageRolledComponent(component)
                 } else {
-                    val results = List(expression.count) {
-                        dieRoller(expression.sides).also { result ->
-                            require(result in 1..expression.sides) {
-                                "Die roller returned $result for d${expression.sides}."
-                            }
-                        }
-                    }
+                    val roll = resolveCharacterDiceExpressionRoll(expression, dieRoller)
                     CharacterDamageRolledComponent(
                         component = component,
-                        diceResults = results,
-                        numericValue = results.sum(),
+                        diceResults = roll.diceResults,
+                        numericValue = roll.total,
                     )
                 }
             }

@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   kotlin:
     runs-on: ubuntu-latest
@@ -20,6 +23,24 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
+      - name: Guard compact Player control geometry
+        run: python3 scripts/check_player_control_geometry.py
+      - name: Guard Player reorder target stability
+        run: python3 scripts/check_player_reorder_stability.py
+      - name: Guard Player checkbox consistency
+        run: python3 scripts/check_player_checkbox_consistency.py
+      - name: Guard Player spellcasting bootstrap
+        run: python3 scripts/check_player_spellcasting_bootstrap.py
+      - name: Guard Player class editor controls
+        run: python3 scripts/check_player_class_editor_controls.py
+      - name: Guard Player application-settings semantics
+        run: python3 scripts/check_player_application_settings_semantics.py
+      - name: Guard Player wide Combat composition
+        run: python3 scripts/check_player_wide_combat.py
+      - name: Guard Player Table Mode affordances
+        run: python3 scripts/check_player_table_mode_affordances.py
+      - name: Guard Player T2 dice presentation and Custom Throw
+        run: python3 scripts/check_player_dice_t2.py
       - name: Prepare stable CI debug keystore
         run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
       - name: Build and test Kotlin surfaces

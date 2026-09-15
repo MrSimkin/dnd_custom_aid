@@ -22,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,6 +40,7 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterDirectoryRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
@@ -57,7 +57,9 @@ class MainActivity : ComponentActivity() {
     private val characterBackupRepository by lazy { CharacterBackupRepository(database) }
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val characterSuccessorRepository by lazy { CharacterSuccessorRepository(database) }
+    private val characterProvenanceRepository by lazy { CharacterProvenanceRepository(database) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
+    private val hapticPreferencesStore by lazy { CharacterHapticPreferencesStore(applicationContext) }
     private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,17 +73,20 @@ class MainActivity : ComponentActivity() {
             }
 
             DndCustomAidTheme(preferences = preferences) {
-                DndCustomAidApp(
+                CharacterHapticSettingsProviderV4(store = hapticPreferencesStore) {
+                    DndCustomAidApp(
                     campaignRepository = campaignRepository,
                     characterRepository = characterRepository,
                     characterDirectoryRepository = characterDirectoryRepository,
                     characterBackupRepository = characterBackupRepository,
                     characterClosureRepository = characterClosureRepository,
                     characterSuccessorRepository = characterSuccessorRepository,
+                    characterProvenanceRepository = characterProvenanceRepository,
                     characterNavigationPreferenceStore = characterNavigationPreferenceStore,
                     preferences = preferences,
-                    onPreferencesChange = ::updatePreferences,
-                )
+                        onPreferencesChange = ::updatePreferences,
+                    )
+                }
             }
         }
     }
@@ -101,6 +106,7 @@ private fun DndCustomAidApp(
     characterBackupRepository: CharacterBackupRepository,
     characterClosureRepository: CharacterClosureRepository,
     characterSuccessorRepository: CharacterSuccessorRepository,
+    characterProvenanceRepository: CharacterProvenanceRepository,
     characterNavigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
@@ -141,7 +147,8 @@ private fun DndCustomAidApp(
         )
     }
 
-    when (screen) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (screen) {
         AppScreen.CAMPAIGNS -> CampaignScreen(
             repository = campaignRepository,
             onBack = {
@@ -161,7 +168,9 @@ private fun DndCustomAidApp(
                 CharacterPcSettingsStateProviderV4(
                     characterId = characterId,
                     characterRepository = characterRepository,
+                    closureRepository = characterClosureRepository,
                     successorRepository = characterSuccessorRepository,
+                    provenanceRepository = characterProvenanceRepository,
                 ) {
                     CharacterEditorScreenV4(
                         characterId = characterId,
@@ -180,14 +189,15 @@ private fun DndCustomAidApp(
                 }
             }
         }
-    }
+        }
 
-    if (showSettings) {
-        AppSettingsDialog(
-            preferences = preferences,
-            onPreferencesChange = onPreferencesChange,
-            onDismiss = { showSettings = false },
-        )
+        if (showSettings) {
+            AppSettingsScreen(
+                preferences = preferences,
+                onPreferencesChange = onPreferencesChange,
+                onDismiss = { showSettings = false },
+            )
+        }
     }
 }
 
@@ -345,7 +355,7 @@ private fun CreateCampaignDialog(
         onDismissRequest = onDismiss,
         title = { Text("Nueva campaña") },
         text = {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nombre de la campaña") },

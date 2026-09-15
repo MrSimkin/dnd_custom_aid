@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.mrsimkin.dndcustomaid"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 40700
-        versionName = "0.4.0-preqa.7"
+        versionCode = 41300
+        versionName = "0.4.0-preqa.13"
     }
 
     if (ciDebugKeystore.exists()) {
@@ -51,6 +51,7 @@ dependencies {
     implementation(projects.shared)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation("androidx.compose.animation:animation")
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.compose.material3)

@@ -3,10 +3,9 @@ package io.github.mrsimkin.dndcustomaid.android
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,19 +18,17 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,8 +40,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,12 +52,16 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryFilter
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPresentationOrder
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourcePlacement
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourceSuccessorConfiguration
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.carriedInventoryWeightLb
 import io.github.mrsimkin.dndcustomaid.shared.character.consumeInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateInventoryUsage
 import io.github.mrsimkin.dndcustomaid.shared.character.effectiveInventoryCarryState
-import io.github.mrsimkin.dndcustomaid.shared.character.inventoryUsageFor
+import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterReorderedSubset
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterInventorySection
 import io.github.mrsimkin.dndcustomaid.shared.character.withInventoryUsage
 import java.util.Locale
@@ -74,6 +73,10 @@ import kotlin.uuid.Uuid
 internal fun CharacterEquipmentClosureTabV4(
     draft: CharacterEquipmentDraftV4,
     onDraftChange: (CharacterEquipmentDraftV4) -> Unit,
+    onOperationalItemsChange: (List<CharacterInventoryItem>) -> Unit,
+    armorClass: Int,
+    resources: List<CharacterResource>,
+    onResourceValueChange: (Uuid, Int) -> Unit,
     structuralEditingEnabled: Boolean,
     wide: Boolean,
     hapticsEnabled: Boolean,
@@ -132,9 +135,20 @@ internal fun CharacterEquipmentClosureTabV4(
     )
     val carriedWeight = carriedInventoryWeightLb(draft.items, ::usageFor)
     val attunedCount = draft.items.count { it.special && it.attuned }
-    val canReorderOrdinary = structuralEditingEnabled && ordinaryOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
-    val canReorderSpecial = structuralEditingEnabled && specialOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
+    val reorderAvailableOrdinary =
+        structuralEditingEnabled && ordinaryOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
+    val reorderAvailableSpecial =
+        structuralEditingEnabled && specialOrder == CharacterPresentationOrder.MANUAL && query.isEmptyF2()
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
+    val settingsContext = LocalCharacterPcSettingsContextV4.current
+    val successorState = settingsContext?.successorState
+    val resourceConfigurations = successorState?.resourceConfigurations.orEmpty().associateBy { it.resourceId }
+    val equipmentResources = resources
+        .filter { resource -> CharacterResourcePlacement.EQUIPMENT in (resourceConfigurations[resource.id]?.placements ?: emptySet()) }
+        .sortedBy { it.sortOrder }
+    val equippedItems = draft.items.filter { it.equipped }.sortedBy { it.sortOrder }
+    val sideEditorVisible = wide && editorOpen && structuralEditingEnabled &&
+        characterLayoutContextV4().formFactor == CharacterFormFactorV4.TABLET_LANDSCAPE
 
     fun updateQuery(updated: CharacterCollectionQuery) {
         searchText = updated.searchText
@@ -181,25 +195,6 @@ internal fun CharacterEquipmentClosureTabV4(
         editorQuickUse = usage.quickUseAmount.toString()
         editorCarryName = effectiveInventoryCarryState(item, usage).name
         editorOpen = true
-    }
-
-    fun moveWithinSection(item: CharacterInventoryItem, offset: Int): Boolean {
-        if (!structuralEditingEnabled) return false
-        val section = draft.items
-            .filter { it.special == item.special }
-            .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
-        val index = section.indexOfFirst { it.id == item.id }
-        val target = index + offset
-        if (index < 0 || target !in section.indices) return false
-        val reordered = section.toMutableList()
-        val moved = reordered.removeAt(index)
-        reordered.add(target, moved)
-        val iterator = reordered.iterator()
-        val merged = draft.items.map { current ->
-            if (current.special == item.special) iterator.next() else current
-        }.mapIndexed { order, current -> current.copy(sortOrder = order) }
-        onDraftChange(draft.copy(items = merged))
-        return true
     }
 
     fun duplicate(item: CharacterInventoryItem) {
@@ -264,124 +259,193 @@ internal fun CharacterEquipmentClosureTabV4(
         editorOpen = false
     }
 
+    fun commitSectionOrder(committedIds: List<String>) {
+        if (!structuralEditingEnabled || committedIds.isEmpty()) return
+        val orderedItems = draft.items.sortedWith(
+            compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() },
+        )
+        val byId = orderedItems.associateBy { it.id.toString() }
+        val mergedIds = mergeCharacterReorderedSubset(
+            allIds = orderedItems.map { it.id.toString() },
+            reorderedSubsetIds = committedIds,
+        )
+        if (mergedIds == orderedItems.map { it.id.toString() }) return
+        val merged = mergedIds.mapNotNull(byId::get).mapIndexed { order, current -> current.copy(sortOrder = order) }
+        if (merged.size == orderedItems.size) onDraftChange(draft.copy(items = merged))
+    }
+
+    val ordinaryCanonicalIds = draft.items
+        .filterNot { it.special }
+        .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
+        .map { it.id.toString() }
+    val specialCanonicalIds = draft.items
+        .filter { it.special }
+        .sortedWith(compareBy<CharacterInventoryItem> { it.sortOrder }.thenBy { it.id.toString() })
+        .map { it.id.toString() }
+    val equipmentListState = rememberLazyListState()
+    val keepCollectionToolsSticky =
+        characterLayoutContextV4().verticalSpace == CharacterVerticalSpaceV4.COMFORTABLE
+    val ordinaryReorderState = rememberCharacterSpatialReorderStateV4(
+        canonicalOrder = ordinaryCanonicalIds,
+        onCommitOrder = ::commitSectionOrder,
+        onHaptic = haptic,
+        autoScrollBy = { delta -> equipmentListState.scrollBy(delta) },
+    )
+    val specialReorderState = rememberCharacterSpatialReorderStateV4(
+        canonicalOrder = specialCanonicalIds,
+        onCommitOrder = ::commitSectionOrder,
+        onHaptic = haptic,
+        autoScrollBy = { delta -> equipmentListState.scrollBy(delta) },
+    )
+    CharacterSpatialReorderAutoScrollEffectV4(ordinaryReorderState)
+    CharacterSpatialReorderAutoScrollEffectV4(specialReorderState)
+
     Row(
         modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding(),
-        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(if (wide) 8.dp else 0.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(if (sideEditorVisible) 8.dp else 0.dp)),
     ) {
+        val listModifier = if (sideEditorVisible) Modifier.weight(1f).fillMaxHeight() else Modifier.fillMaxSize()
         LazyColumn(
-            modifier = if (wide) Modifier.weight(1f).fillMaxHeight() else Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = appSpacingV4(if (wide) 10.dp else 5.dp),
-            end = appSpacingV4(if (wide) 10.dp else 5.dp),
-            top = appSpacingV4(5.dp),
-            bottom = appSpacingV4(92.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-    ) {
-        stickyHeader(key = "equipment-tools") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(
-                        horizontal = appSpacingV4(7.dp),
-                        vertical = appSpacingV4(6.dp),
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+            state = equipmentListState,
+            modifier = listModifier.characterSpatialReorderViewportV4(ordinaryReorderState, specialReorderState),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 10.dp else 5.dp),
+                end = appSpacingV4(if (wide) 10.dp else 5.dp),
+                top = appSpacingV4(5.dp),
+                bottom = appSpacingV4(92.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        ) {
+            characterAdaptiveStickyHeaderV4(sticky = keepCollectionToolsSticky, key = "equipment-tools") {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(
+                            horizontal = appSpacingV4(7.dp),
+                            vertical = appSpacingV4(6.dp),
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
                     ) {
-                        Column {
-                            Text("Equipo", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "${draft.items.size} objetos · ${formatWeightDualF2(carriedWeight)} transportados · $attunedCount sintonizados",
-                                style = MaterialTheme.typography.labelSmall,
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column {
+                                Text("Equipo", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    "${draft.items.size} objetos · ${formatWeightDualF2(carriedWeight)} transportados · $attunedCount sintonizados",
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                            TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
+                        }
+                        CharacterCollectionToolbarV4(
+                            itemCount = ordinaryVisible.size + specialVisible.size,
+                            query = query,
+                            onQueryChange = ::updateQuery,
+                            filters = equipmentFiltersF2(draft, ::usageFor),
+                            searchLabel = "Buscar equipo",
+                        )
+                    }
+                }
+            }
+
+            item(key = "equipment-ordinary") {
+                CharacterEquipmentSpatialSectionV4(
+                    title = "Objetos",
+                    items = ordinaryVisible,
+                    order = ordinaryOrder,
+                    onOrderChange = { ordinaryOrderName = it.name },
+                    collapsed = ordinaryCollapsed,
+                    onCollapsedChange = { ordinaryCollapsed = it },
+                    reorderAvailable = reorderAvailableOrdinary,
+                    reorderState = ordinaryReorderState,
+                    queryActive = !query.isEmptyF2(),
+                    wide = wide,
+                    special = false,
+                    selectedId = editingId,
+                    usageFor = ::usageFor,
+                    onEdit = ::beginEdit,
+                    onQuickUse = { _, usage ->
+                        onOperationalItemsChange(consumeInventoryItem(draft.items, usage))
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+                    onDuplicate = ::duplicate,
+                    onDelete = { deleteId = it.id.toString() },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                )
+            }
+
+            item(key = "equipment-special") {
+                CharacterEquipmentSpatialSectionV4(
+                    title = "Equipo especial",
+                    items = specialVisible,
+                    order = specialOrder,
+                    onOrderChange = { specialOrderName = it.name },
+                    collapsed = specialCollapsed,
+                    onCollapsedChange = { specialCollapsed = it },
+                    reorderAvailable = reorderAvailableSpecial,
+                    reorderState = specialReorderState,
+                    queryActive = !query.isEmptyF2(),
+                    wide = wide,
+                    special = true,
+                    selectedId = editingId,
+                    usageFor = ::usageFor,
+                    onEdit = ::beginEdit,
+                    onQuickUse = { _, usage ->
+                        onOperationalItemsChange(consumeInventoryItem(draft.items, usage))
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+                    onDuplicate = ::duplicate,
+                    onDelete = { deleteId = it.id.toString() },
+                    structuralEditingEnabled = structuralEditingEnabled,
+                )
+            }
+
+            item(key = "equipment-defenses") {
+                EquipmentDefensesAndResourcesG1(
+                    armorClass = armorClass,
+                    equippedItems = equippedItems,
+                    resources = equipmentResources,
+                    configurations = resourceConfigurations,
+                    onResourceValueChange = { resourceId, value ->
+                        onResourceValueChange(resourceId, value)
+                        haptic(CharacterHapticEventV4.RESOURCE)
+                    },
+                )
+            }
+
+            item(key = "equipment-currencies") {
+                CompactCurrenciesF2(
+                    currencies = draft.currencies,
+                    wide = wide,
+                    structuralEditingEnabled = structuralEditingEnabled,
+                    onCurrenciesChange = { onDraftChange(draft.copy(currencies = it)) },
+                    onAddCurrency = {
+                        customCurrencyName = ""
+                        customCurrencyAmount = "0"
+                        addCurrencyOpen = true
+                    },
+                )
+            }
+
+            item(key = "equipment-valuables") {
+                EquipmentValuablesG1(
+                    value = successorState?.preferences?.valuablesText.orEmpty(),
+                    editingEnabled = structuralEditingEnabled && settingsContext != null,
+                    onValueChange = { updated ->
+                        settingsContext?.let { context ->
+                            val current = context.successorState
+                            context.onSuccessorStateChange(
+                                current.copy(preferences = current.preferences.copy(valuablesText = updated)),
                             )
                         }
-                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-                    CharacterCollectionToolbarV4(
-                        itemCount = ordinaryVisible.size + specialVisible.size,
-                        query = query,
-                        onQueryChange = ::updateQuery,
-                        filters = equipmentFiltersF2(draft, ::usageFor),
-                        searchLabel = "Buscar equipo",
-                    )
-                }
+                    },
+                )
             }
         }
 
-        item {
-            EquipmentSectionF2(
-                title = "Objetos",
-                items = ordinaryVisible,
-                order = ordinaryOrder,
-                onOrderChange = { ordinaryOrderName = it.name },
-                collapsed = ordinaryCollapsed,
-                onCollapsedChange = { ordinaryCollapsed = it },
-                canReorder = canReorderOrdinary,
-                queryActive = !query.isEmptyF2(),
-                wide = wide,
-                special = false,
-                selectedId = editingId,
-                usageFor = ::usageFor,
-                onEdit = ::beginEdit,
-                onMove = ::moveWithinSection,
-                onQuickUse = { item, usage ->
-                    onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
-                    haptic(CharacterHapticEventV4.RESOURCE)
-                },
-                onDuplicate = ::duplicate,
-                onDelete = { deleteId = it.id.toString() },
-                structuralEditingEnabled = structuralEditingEnabled,
-                onHaptic = haptic,
-            )
-        }
-
-        item {
-            EquipmentSectionF2(
-                title = "Equipo especial",
-                items = specialVisible,
-                order = specialOrder,
-                onOrderChange = { specialOrderName = it.name },
-                collapsed = specialCollapsed,
-                onCollapsedChange = { specialCollapsed = it },
-                canReorder = canReorderSpecial,
-                queryActive = !query.isEmptyF2(),
-                wide = wide,
-                special = true,
-                selectedId = editingId,
-                usageFor = ::usageFor,
-                onEdit = ::beginEdit,
-                onMove = ::moveWithinSection,
-                onQuickUse = { _, usage ->
-                    onDraftChange(draft.copy(items = consumeInventoryItem(draft.items, usage)))
-                    haptic(CharacterHapticEventV4.RESOURCE)
-                },
-                onDuplicate = ::duplicate,
-                onDelete = { deleteId = it.id.toString() },
-                structuralEditingEnabled = structuralEditingEnabled,
-                onHaptic = haptic,
-            )
-        }
-
-        item {
-            CompactCurrenciesF2(
-                currencies = draft.currencies,
-                wide = wide,
-                structuralEditingEnabled = structuralEditingEnabled,
-                onCurrenciesChange = { onDraftChange(draft.copy(currencies = it)) },
-                onAddCurrency = {
-                    customCurrencyName = ""
-                    customCurrencyAmount = "0"
-                    addCurrencyOpen = true
-                },
-            )
-        }
-    }
-
-        if (wide && structuralEditingEnabled) {
+        if (sideEditorVisible) {
             EquipmentEditorPanelF3(
                 editorOpen = editorOpen,
                 title = if (editingId == null) "Añadir objeto" else "Editar objeto",
@@ -429,7 +493,7 @@ internal fun CharacterEquipmentClosureTabV4(
         }
     }
 
-    if (editorOpen && !wide && structuralEditingEnabled) {
+    if (editorOpen && !sideEditorVisible && structuralEditingEnabled) {
         EquipmentEditorF2(
             title = if (editingId == null) "Añadir objeto" else "Editar objeto",
             name = editorName,
@@ -539,14 +603,14 @@ internal fun CharacterEquipmentClosureTabV4(
             saveLabel = "Añadir",
             saveEnabled = customCurrencyName.trim().isNotEmpty() && amount != null,
         ) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = customCurrencyName,
                 onValueChange = { customCurrencyName = it },
                 label = { Text("Nombre") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = customCurrencyAmount,
                 onValueChange = { customCurrencyAmount = sanitizeSignedF2(it) },
                 label = { Text("Cantidad") },
@@ -598,269 +662,6 @@ private fun equipmentFiltersF2(
 }
 
 @Composable
-private fun EquipmentSectionF2(
-    title: String,
-    items: List<CharacterInventoryItem>,
-    order: CharacterPresentationOrder,
-    onOrderChange: (CharacterPresentationOrder) -> Unit,
-    collapsed: Boolean,
-    onCollapsedChange: (Boolean) -> Unit,
-    canReorder: Boolean,
-    queryActive: Boolean,
-    wide: Boolean,
-    special: Boolean,
-    selectedId: String?,
-    usageFor: (CharacterInventoryItem) -> CharacterInventoryUsage,
-    onEdit: (CharacterInventoryItem) -> Unit,
-    onMove: (CharacterInventoryItem, Int) -> Boolean,
-    onQuickUse: (CharacterInventoryItem, CharacterInventoryUsage) -> Unit,
-    onDuplicate: (CharacterInventoryItem) -> Unit,
-    onDelete: (CharacterInventoryItem) -> Unit,
-    structuralEditingEnabled: Boolean,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("$title (${items.size})", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                OrderButtonF2("Manual", order == CharacterPresentationOrder.MANUAL) {
-                    onOrderChange(CharacterPresentationOrder.MANUAL)
-                }
-                OrderButtonF2("A–Z", order == CharacterPresentationOrder.ALPHABETICAL) {
-                    onOrderChange(CharacterPresentationOrder.ALPHABETICAL)
-                }
-                TextButton(onClick = { onCollapsedChange(!collapsed) }) {
-                    Text(if (collapsed) "Mostrar" else "Ocultar")
-                }
-            }
-            if (order == CharacterPresentationOrder.MANUAL && queryActive) {
-                Text(
-                    "Limpia búsqueda y filtros para reordenar manualmente.",
-                    style = MaterialTheme.typography.labelSmall,
-                )
-            }
-            if (!collapsed) {
-                if (items.isEmpty()) {
-                    Text("Sin elementos visibles.", style = MaterialTheme.typography.bodySmall)
-                } else {
-                    val columns = constrainedCardColumnsV4(
-                        wide = wide,
-                        phoneMax = if (special) 2 else 3,
-                        wideMax = if (special) 3 else 5,
-                    )
-                    items.chunked(columns).forEach { rowItems ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                            verticalAlignment = Alignment.Top,
-                        ) {
-                            rowItems.forEach { item ->
-                                EquipmentDenseItemF2(
-                                    item = item,
-                                    usage = usageFor(item),
-                                    canReorder = canReorder,
-                                    special = special,
-                                    selected = selectedId == item.id.toString(),
-                                    onEdit = { onEdit(item) },
-                                    onMove = { offset -> onMove(item, offset) },
-                                    onQuickUse = { onQuickUse(item, usageFor(item)) },
-                                    onDuplicate = { onDuplicate(item) },
-                                    onDelete = { onDelete(item) },
-                                    structuralEditingEnabled = structuralEditingEnabled,
-                                    onHaptic = onHaptic,
-                                    modifier = Modifier.weight(1f),
-                                )
-                            }
-                            repeat(columns - rowItems.size) { Spacer(modifier = Modifier.weight(1f)) }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OrderButtonF2(label: String, selected: Boolean, onClick: () -> Unit) {
-    if (selected) {
-        Button(onClick = onClick, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)) { Text(label) }
-    } else {
-        OutlinedButton(onClick = onClick, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)) { Text(label) }
-    }
-}
-
-@Composable
-private fun EquipmentDenseItemF2(
-    item: CharacterInventoryItem,
-    usage: CharacterInventoryUsage,
-    canReorder: Boolean,
-    special: Boolean,
-    selected: Boolean,
-    onEdit: () -> Unit,
-    onMove: (Int) -> Boolean,
-    onQuickUse: () -> Unit,
-    onDuplicate: () -> Unit,
-    onDelete: () -> Unit,
-    structuralEditingEnabled: Boolean,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var accumulatedDrag by remember(item.id) { mutableStateOf(0f) }
-    var dragging by remember(item.id) { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { (if (special) 72.dp else 62.dp).toPx() }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
-    val carry = effectiveInventoryCarryState(item, usage)
-    val stateLabels = buildList {
-        add(if (carry == CharacterInventoryCarryState.CARRIED) "Transportado" else "Guardado")
-        if (item.equipped) add("Equipado")
-        if (item.attuned) add("Sintonizado")
-    }
-    val meta = buildList {
-        when (usage.kind) {
-            CharacterConsumableKind.CONSUMABLE -> add("Consumible −${usage.quickUseAmount}")
-            CharacterConsumableKind.AMMUNITION -> add("Munición −${usage.quickUseAmount}")
-            CharacterConsumableKind.NONE -> Unit
-        }
-        item.location?.takeIf { it.isNotBlank() }?.let { add(it) }
-    }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .characterDragFeedbackV4(dragState)
-                .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(
-                1.dp,
-                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            ),
-            tonalElevation = if (special) 1.dp else 0.dp,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (canReorder) {
-                        StableDragHandle(
-                            modifier = Modifier.pointerInput(item.id) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = {
-                                        accumulatedDrag = 0f
-                                        dragging = true
-                                        onHaptic(CharacterHapticEventV4.DRAG_PICKUP)
-                                    },
-                                    onDragEnd = {
-                                        if (dragging) onHaptic(CharacterHapticEventV4.DRAG_DROP)
-                                        accumulatedDrag = 0f
-                                        dragging = false
-                                    },
-                                    onDragCancel = {
-                                        accumulatedDrag = 0f
-                                        dragging = false
-                                    },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        accumulatedDrag += dragAmount.y
-                                        while (abs(accumulatedDrag) >= reorderStepPx) {
-                                            val direction = if (accumulatedDrag > 0f) 1 else -1
-                                            if (onMove(direction)) {
-                                                onHaptic(CharacterHapticEventV4.DRAG_STEP)
-                                                accumulatedDrag -= direction * reorderStepPx
-                                            } else {
-                                                accumulatedDrag = 0f
-                                                break
-                                            }
-                                        }
-                                    },
-                                )
-                            },
-                            active = dragging,
-                            contentDescription = "Mantén pulsado y arrastra para reordenar ${item.name}",
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp))) {
-                        Text(item.name, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        if (special) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
-                            ) {
-                                stateLabels.forEach { label ->
-                                    CharacterSemanticBadgeV4(
-                                        label = label,
-                                        kind = CharacterSemanticBadgeKindV4.STATE,
-                                    )
-                                }
-                            }
-                        } else {
-                            Text(
-                                stateLabels.joinToString(" · "),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        if (meta.isNotEmpty()) {
-                            Text(
-                                meta.joinToString(" · "),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text("×${item.quantity}", style = MaterialTheme.typography.labelLarge)
-                        item.weightLb?.let { Text("${formatCompactF2(it)} lb/u", style = MaterialTheme.typography.labelSmall) }
-                    }
-                }
-                if (special) {
-                    item.description?.takeIf { it.isNotBlank() }?.let {
-                        Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (usage.kind != CharacterConsumableKind.NONE && item.quantity > 0) {
-                        TextButton(
-                            onClick = onQuickUse,
-                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                        ) { Text("Usar −${usage.quickUseAmount}") }
-                    }
-                    if (structuralEditingEnabled) {
-                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${item.name}")
-                        StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${item.name}")
-                    }
-                }
-            }
-        }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
-    }
-}
-
-@Composable
 private fun EquipmentEditorPanelF3(
     editorOpen: Boolean,
     title: String,
@@ -906,7 +707,7 @@ private fun EquipmentEditorPanelF3(
             ) {
                 Text("Editor de equipo", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Selecciona un objeto de la lista para editarlo sin perder tu posición, búsqueda ni filtros.",
+                    "Selecciona un objeto para editarlo.",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Button(onClick = onBeginAdd, modifier = Modifier.padding(top = appSpacingV4(10.dp))) {
@@ -932,7 +733,7 @@ private fun EquipmentEditorPanelF3(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             ) {
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = name,
                     onValueChange = onNameChange,
                     label = { Text("Nombre") },
@@ -940,7 +741,7 @@ private fun EquipmentEditorPanelF3(
                     singleLine = true,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = quantity,
                         onValueChange = onQuantityChange,
                         label = { Text("Cantidad") },
@@ -948,7 +749,7 @@ private fun EquipmentEditorPanelF3(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = weight,
                         onValueChange = onWeightChange,
                         label = { Text("Peso/u. lb") },
@@ -957,13 +758,19 @@ private fun EquipmentEditorPanelF3(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = equipped, onCheckedChange = onEquippedChange)
-                    Text("Equipado")
-                    Checkbox(checked = special, onCheckedChange = onSpecialChange)
-                    Text("Especial")
+                CharacterResponsiveCheckboxGroupV4 {
+                    CharacterCompactCheckboxItemV4(
+                        checked = equipped,
+                        onCheckedChange = onEquippedChange,
+                        label = "Equipado",
+                    )
+                    CharacterCompactCheckboxItemV4(
+                        checked = special,
+                        onCheckedChange = onSpecialChange,
+                        label = "Especial",
+                    )
                 }
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = location,
                     onValueChange = onLocationChange,
                     label = { Text("Contenedor / ubicación") },
@@ -978,41 +785,42 @@ private fun EquipmentEditorPanelF3(
                     onSelect = { onCarryStateChange(CharacterInventoryCarryState.valueOf(it)) },
                 )
                 EnumDropdownF2(
-                    label = "Uso de cantidad",
+                    label = "Tipo de consumo",
                     current = consumableLabelF2(kind),
                     options = CharacterConsumableKind.entries.map { it.name to consumableLabelF2(it) },
                     onSelect = { onKindChange(CharacterConsumableKind.valueOf(it)) },
                 )
                 if (kind != CharacterConsumableKind.NONE) {
-                    OutlinedTextField(
+                    CharacterCompactOutlinedTextFieldV4(
                         value = quickUse,
                         onValueChange = onQuickUseChange,
-                        label = { Text("Cantidad por uso rápido") },
+                        label = { Text("Descuento por uso") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
                 if (special) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
-                        Text("Sintonizado")
-                    }
-                    OutlinedTextField(
+                    CharacterCompactCheckboxItemV4(
+                        checked = attuned,
+                        onCheckedChange = onAttunedChange,
+                        label = "Sintonizado",
+                    )
+                    CharacterCompactOutlinedTextFieldV4(
                         value = description,
                         onValueChange = onDescriptionChange,
                         label = { Text("Descripción especial") },
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 2,
+                        minLines = characterCompactTextAreaMinLinesV4(2),
                         maxLines = 5,
                     )
                 }
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = notes,
                     onValueChange = onNotesChange,
                     label = { Text("Notas") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
+                    minLines = characterCompactTextAreaMinLinesV4(2),
                     maxLines = 4,
                 )
                 CharacterInlineValidationMessage(
@@ -1073,9 +881,9 @@ private fun EquipmentEditorF2(
         onSave = onApply,
         saveEnabled = valid,
     ) {
-        OutlinedTextField(value = name, onValueChange = onNameChange, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        CharacterCompactOutlinedTextFieldV4(value = name, onValueChange = onNameChange, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = quantity,
                 onValueChange = onQuantityChange,
                 label = { Text("Cantidad") },
@@ -1083,7 +891,7 @@ private fun EquipmentEditorF2(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = weight,
                 onValueChange = onWeightChange,
                 label = { Text("Peso/u. lb") },
@@ -1092,13 +900,19 @@ private fun EquipmentEditorF2(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = equipped, onCheckedChange = onEquippedChange)
-            Text("Equipado")
-            Checkbox(checked = special, onCheckedChange = onSpecialChange)
-            Text("Equipo especial")
+        CharacterResponsiveCheckboxGroupV4 {
+            CharacterCompactCheckboxItemV4(
+                checked = equipped,
+                onCheckedChange = onEquippedChange,
+                label = "Equipado",
+            )
+            CharacterCompactCheckboxItemV4(
+                checked = special,
+                onCheckedChange = onSpecialChange,
+                label = "Equipo especial",
+            )
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = location,
             onValueChange = onLocationChange,
             label = { Text("Contenedor / ubicación (opcional)") },
@@ -1114,41 +928,42 @@ private fun EquipmentEditorF2(
             onSelect = { onCarryStateChange(CharacterInventoryCarryState.valueOf(it)) },
         )
         EnumDropdownF2(
-            label = "Uso de cantidad",
+            label = "Tipo de consumo",
             current = consumableLabelF2(kind),
             options = CharacterConsumableKind.entries.map { it.name to consumableLabelF2(it) },
             onSelect = { onKindChange(CharacterConsumableKind.valueOf(it)) },
         )
         if (kind != CharacterConsumableKind.NONE) {
-            OutlinedTextField(
+            CharacterCompactOutlinedTextFieldV4(
                 value = quickUse,
                 onValueChange = onQuickUseChange,
-                label = { Text("Cantidad por uso rápido") },
+                label = { Text("Descuento por uso") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
         if (special) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = attuned, onCheckedChange = onAttunedChange)
-                Text("Sintonizado")
-            }
-            OutlinedTextField(
+            CharacterCompactCheckboxItemV4(
+                checked = attuned,
+                onCheckedChange = onAttunedChange,
+                label = "Sintonizado",
+            )
+            CharacterCompactOutlinedTextFieldV4(
                 value = description,
                 onValueChange = onDescriptionChange,
                 label = { Text("Descripción especial") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
+                minLines = characterCompactTextAreaMinLinesV4(2),
                 maxLines = 5,
             )
         }
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = notes,
             onValueChange = onNotesChange,
             label = { Text("Notas") },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 2,
+            minLines = characterCompactTextAreaMinLinesV4(2),
             maxLines = 4,
         )
         CharacterInlineValidationMessage(
@@ -1191,6 +1006,157 @@ private fun EnumDropdownF2(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EquipmentDefensesAndResourcesG1(
+    armorClass: Int,
+    equippedItems: List<CharacterInventoryItem>,
+    resources: List<CharacterResource>,
+    configurations: Map<Uuid, CharacterResourceSuccessorConfiguration>,
+    onResourceValueChange: (Uuid, Int) -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        ) {
+            Text("Defensas y recursos", style = MaterialTheme.typography.titleSmall)
+            val equippedText = equippedItems.joinToString(", ") { item ->
+                if (item.quantity > 1) "${item.name} ×${item.quantity}" else item.name
+            }.ifBlank { "—" }
+            Text(
+                "CA $armorClass · Equipado: $equippedText",
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            CharacterHelpV4(
+                "Equipo proyecta la misma CA y los mismos objetos marcados como Equipado que General/Defensas. La ficha aún no clasifica armadura y escudo como categorías estructuradas separadas.",
+            )
+            if (resources.isNotEmpty()) {
+                Text("Recursos de Equipo", style = MaterialTheme.typography.labelMedium)
+                resources.forEach { resource ->
+                    val configuration = configurations[resource.id] ?: return@forEach
+                    EquipmentResourceRowG1(
+                        resource = resource,
+                        configuration = configuration,
+                        onValueChange = { value -> onResourceValueChange(resource.id, value) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EquipmentResourceRowG1(
+    resource: CharacterResource,
+    configuration: CharacterResourceSuccessorConfiguration,
+    onValueChange: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            resource.name,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        when (configuration.valueKind) {
+            CharacterTrackableValueKind.BINARY -> {
+                val active = resource.currentValue > 0
+                EquipmentToggleG1(
+                    label = if (active) "Activo" else "Inactivo",
+                    selected = active,
+                    onClick = { onValueChange(if (active) 0 else 1) },
+                )
+            }
+            CharacterTrackableValueKind.COUNTER,
+            CharacterTrackableValueKind.CURRENT_MAX,
+            -> {
+                val maximum = if (configuration.valueKind == CharacterTrackableValueKind.CURRENT_MAX) resource.maxValue else null
+                EquipmentStepG1("−", enabled = resource.currentValue > 0) {
+                    onValueChange((resource.currentValue - 1).coerceAtLeast(0))
+                }
+                Text(
+                    maximum?.let { "${resource.currentValue}/$it" } ?: resource.currentValue.toString(),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                EquipmentStepG1("+", enabled = maximum?.let { resource.currentValue < it } ?: true) {
+                    val next = resource.currentValue + 1
+                    onValueChange(maximum?.let { next.coerceAtMost(it) } ?: next)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EquipmentToggleG1(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelSmall) }
+    }
+}
+
+@Composable
+private fun EquipmentStepG1(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.heightIn(min = 30.dp).clickable(enabled = enabled, onClick = onClick),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (enabled) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.padding(horizontal = appSpacingV4(8.dp), vertical = appSpacingV4(3.dp)),
+            contentAlignment = Alignment.Center,
+        ) { Text(label, style = MaterialTheme.typography.labelLarge) }
+    }
+}
+
+@Composable
+private fun EquipmentValuablesG1(
+    value: String,
+    editingEnabled: Boolean,
+    onValueChange: (String) -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(4.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+        ) {
+            Text("Gemas / arte", style = MaterialTheme.typography.titleSmall)
+            CharacterCompactOutlinedTextFieldV4(
+                value = value,
+                onValueChange = { if (editingEnabled) onValueChange(it) },
+                readOnly = !editingEnabled,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Gemas, obras de arte, joyas u otros valores") },
+                minLines = 1,
+                maxLines = 4,
+            )
         }
     }
 }
@@ -1293,7 +1259,7 @@ private fun carryLabelF2(state: CharacterInventoryCarryState): String = when (st
 }
 
 private fun consumableLabelF2(kind: CharacterConsumableKind): String = when (kind) {
-    CharacterConsumableKind.NONE -> "Normal"
+    CharacterConsumableKind.NONE -> "No consume cantidad"
     CharacterConsumableKind.CONSUMABLE -> "Consumible"
     CharacterConsumableKind.AMMUNITION -> "Munición"
 }

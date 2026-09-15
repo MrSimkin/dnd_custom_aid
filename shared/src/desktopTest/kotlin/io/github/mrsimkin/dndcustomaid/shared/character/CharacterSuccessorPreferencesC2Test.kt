@@ -70,7 +70,7 @@ class CharacterSuccessorPreferencesC2Test {
             AppDatabase.Schema.migrate(
                 driver = driver,
                 oldVersion = 12,
-                newVersion = AppDatabase.Schema.version,
+                newVersion = 13,
             )
             val visible = AppDatabase(driver).characterSuccessorQueries
                 .selectSuccessorPreferences(characterId) { _, _, _, inspirationVisible -> inspirationVisible != 0L }

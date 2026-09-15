@@ -7,11 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.platform.LocalContext
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
+import io.github.mrsimkin.dndcustomaid.shared.character.mergeCharacterOperationalSuccessorState
 import kotlin.uuid.Uuid
 
 /** UI-only compatibility view; persistence remains owned by CharacterSuccessorPreferences. */
@@ -48,29 +50,46 @@ internal val LocalCharacterPcSettingsContextV4 =
 internal fun CharacterPcSettingsStateProviderV4(
     characterId: Uuid,
     characterRepository: CharacterRepository,
+    closureRepository: CharacterClosureRepository,
     successorRepository: CharacterSuccessorRepository,
+    provenanceRepository: CharacterProvenanceRepository,
     content: @Composable () -> Unit,
 ) {
     var successorState by remember(characterId) {
-        mutableStateOf(successorRepository.state(characterId))
+        mutableStateOf(
+            provenanceRepository.state(
+                characterId = characterId,
+                baseState = successorRepository.state(characterId),
+            ),
+        )
     }
-    val androidContext = LocalContext.current.applicationContext
-    val hapticStore = remember(androidContext) { CharacterHapticPreferencesStore(androidContext) }
-
     val settingsContext = CharacterPcSettingsContextV4(
         characterId = characterId,
         successorState = successorState,
         onSuccessorStateChange = { updated ->
-            if (updated != successorState) {
-                successorState = successorRepository.saveState(characterId, updated)
+            val effective = if (closureRepository.state(characterId).tableModeEnabled) {
+                mergeCharacterOperationalSuccessorState(successorState, updated)
+            } else {
+                updated
+            }
+            if (effective != successorState) {
+                val savedBase = successorRepository.saveState(characterId, effective)
+                successorState = provenanceRepository.saveState(
+                    characterId,
+                    savedBase.copy(
+                        subclassIdentities = effective.subclassIdentities,
+                        speciesIdentity = effective.speciesIdentity,
+                        subraceIdentity = effective.subraceIdentity,
+                        backgroundIdentity = effective.backgroundIdentity,
+                        traitProvenance = effective.traitProvenance,
+                    ),
+                )
             }
         },
         loadCanonicalSheet = { characterRepository.character(characterId) },
     )
 
-    CharacterHapticSettingsProviderV4(store = hapticStore) {
-        CompositionLocalProvider(LocalCharacterPcSettingsContextV4 provides settingsContext) {
-            content()
-        }
+    CompositionLocalProvider(LocalCharacterPcSettingsContextV4 provides settingsContext) {
+        content()
     }
 }

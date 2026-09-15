@@ -1,45 +1,49 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_NOTE_EMPTY_FILTER_KEY
+import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_NOTE_WITH_CONTENT_FILTER_KEY
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCollectionQuery
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterNote
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPresentationOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.duplicateCharacterNote
-import io.github.mrsimkin.dndcustomaid.shared.character.moveCharacterNoteManual
 import io.github.mrsimkin.dndcustomaid.shared.character.nextCharacterNoteSortOrder
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterNotes
-import kotlin.math.abs
+import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterNotes
 import kotlin.uuid.Uuid
 
+private const val NOTE_FILTER_SEPARATOR_G3 = "\u001E"
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun CharacterNotesTabV4(
     draft: CharacterNotesDraftV4,
@@ -48,13 +52,74 @@ internal fun CharacterNotesTabV4(
     wide: Boolean,
     hapticsEnabled: Boolean = true,
 ) {
+    var searchText by rememberSaveable("note-search") { mutableStateOf("") }
+    var activeFiltersText by rememberSaveable("note-filters") { mutableStateOf("") }
+    var orderName by rememberSaveable("note-order") { mutableStateOf(CharacterPresentationOrder.MANUAL.name) }
     var editorOpen by rememberSaveable("note-editor-open") { mutableStateOf(false) }
     var editingId by rememberSaveable("note-editor-id") { mutableStateOf<String?>(null) }
     var editorTitle by rememberSaveable("note-editor-title") { mutableStateOf("") }
     var editorContent by rememberSaveable("note-editor-content") { mutableStateOf("") }
     var deleteId by rememberSaveable("note-delete-id") { mutableStateOf<String?>(null) }
+
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
-    val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+    val order = runCatching { CharacterPresentationOrder.valueOf(orderName) }
+        .getOrDefault(CharacterPresentationOrder.MANUAL)
+    val activeFilters = activeFiltersText.split(NOTE_FILTER_SEPARATOR_G3).filter { it.isNotBlank() }.toSet()
+    val query = CharacterCollectionQuery(searchText = searchText, activeFilterKeys = activeFilters)
+    val visibleCards = presentCharacterNotes(draft.cards, order, query)
+    val reorderAvailable = structuralEditingEnabled && order == CharacterPresentationOrder.MANUAL &&
+        query.searchText.isBlank() && query.activeFilterKeys.isEmpty()
+    val canReorder = reorderAvailable && visibleCards.size > 1
+    val noteColumns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
+    val canonicalCards = normalizeCharacterNotes(draft.cards)
+    val canonicalIds = canonicalCards.map { it.id.toString() }
+    val cardsById = draft.cards.associateBy { it.id.toString() }
+
+    val reorderSession = rememberCharacterReorderSessionV4(
+        sessionKey = "notes",
+        canonicalOrder = canonicalIds,
+        enabled = canReorder,
+        coordinator = reorderCoordinator,
+        onCommitOrder = { committedIds ->
+            val currentById = draft.cards.associateBy { it.id.toString() }
+            val reordered = committedIds.mapNotNull(currentById::get)
+            if (reordered.size == draft.cards.size) {
+                onDraftChange(
+                    draft.copy(
+                        cards = reordered.mapIndexed { index, note -> note.copy(sortOrder = index) },
+                    ),
+                )
+            }
+        },
+        onHaptic = haptic,
+        autoScrollBy = { delta -> gridState.scrollBy(delta) },
+    )
+    CharacterReorderSessionAutoScrollEffectV4(reorderSession)
+
+    val layoutCards = if (reorderAvailable) {
+        reorderSession.previewOrder.mapNotNull(cardsById::get)
+    } else {
+        visibleCards
+    }
+    val filters = listOf(
+        CharacterFilterOptionV4(
+            key = CHARACTER_NOTE_WITH_CONTENT_FILTER_KEY,
+            label = "Con contenido",
+            count = draft.cards.count { it.content.isNotBlank() },
+        ),
+        CharacterFilterOptionV4(
+            key = CHARACTER_NOTE_EMPTY_FILTER_KEY,
+            label = "Sin contenido",
+            count = draft.cards.count { it.content.isBlank() },
+        ),
+    )
+
+    fun updateQuery(updated: CharacterCollectionQuery) {
+        searchText = updated.searchText
+        activeFiltersText = updated.activeFilterKeys.sorted().joinToString(NOTE_FILTER_SEPARATOR_G3)
+    }
 
     fun beginAdd() {
         if (!structuralEditingEnabled) return
@@ -72,16 +137,6 @@ internal fun CharacterNotesTabV4(
         editorOpen = true
     }
 
-    fun move(index: Int, offset: Int): Boolean {
-        if (!structuralEditingEnabled) return false
-        val note = draft.cards.getOrNull(index) ?: return false
-        val before = normalizeCharacterNotes(draft.cards)
-        val moved = moveCharacterNoteManual(draft.cards, note.id, offset)
-        if (moved == before) return false
-        onDraftChange(draft.copy(cards = moved))
-        return true
-    }
-
     fun duplicate(note: CharacterNote) {
         if (!structuralEditingEnabled) return
         val copied = duplicateCharacterNote(
@@ -92,116 +147,161 @@ internal fun CharacterNotesTabV4(
         onDraftChange(draft.copy(cards = normalizeCharacterNotes(draft.cards + copied)))
     }
 
-    LazyColumn(
-        state = listState,
+    CharacterReorderOverlayHostV4(
+        session = reorderSession,
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
             .navigationBarsPadding(),
-        contentPadding = PaddingValues(
-            start = appSpacingV4(if (wide) 14.dp else 5.dp),
-            end = appSpacingV4(if (wide) 14.dp else 5.dp),
-            top = appSpacingV4(7.dp),
-            bottom = appSpacingV4(88.dp),
-        ),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+        liftedContent = { draggedId ->
+            cardsById[draggedId]?.let { note ->
+                CharacterNoteCardV4(
+                    note = note,
+                    reorderSession = null,
+                    onEdit = {},
+                    onDuplicate = {},
+                    onDelete = {},
+                    structuralEditingEnabled = false,
+                    lifted = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
     ) {
-        item(key = "general-notes") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = appSpacingV4(if (wide) 12.dp else 7.dp),
-                            vertical = appSpacingV4(8.dp),
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Text("Notas generales", style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        "Espacio libre para cualquier información que quieras conservar en la ficha.",
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                    OutlinedTextField(
-                        value = draft.generalNotes,
-                        onValueChange = { onDraftChange(draft.copy(generalNotes = it)) },
-                        enabled = structuralEditingEnabled,
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(noteColumns),
+            state = gridState,
+            modifier = Modifier
+                .fillMaxSize()
+                .characterReorderSessionViewportV4(reorderSession),
+            contentPadding = PaddingValues(
+                start = appSpacingV4(if (wide) 14.dp else 5.dp),
+                end = appSpacingV4(if (wide) 14.dp else 5.dp),
+                top = appSpacingV4(7.dp),
+                bottom = appSpacingV4(88.dp),
+            ),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        ) {
+            item(
+                key = "general-notes",
+                span = { GridItemSpan(noteColumns) },
+            ) {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(
-                                min = if (wide) 220.dp else 180.dp,
-                                max = if (wide) 380.dp else 300.dp,
+                            .padding(
+                                horizontal = appSpacingV4(if (wide) 12.dp else 7.dp),
+                                vertical = appSpacingV4(8.dp),
                             ),
-                        placeholder = { Text("Escribe aquí…") },
-                        minLines = if (wide) 9 else 7,
-                        maxLines = if (wide) 18 else 14,
-                        supportingText = {
-                            if (draft.generalNotes.length > 400) {
-                                Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
-                            }
-                        },
-                    )
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                    ) {
+                        Text("Notas generales", style = MaterialTheme.typography.titleSmall)
+                        CharacterHelpV4("Espacio libre para cualquier información que quieras conservar en la ficha.")
+                        CharacterCompactOutlinedTextFieldV4(
+                            value = draft.generalNotes,
+                            onValueChange = { onDraftChange(draft.copy(generalNotes = it)) },
+                            enabled = structuralEditingEnabled,
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("Escribe aquí…") },
+                            minLines = characterCompactTextAreaMinLinesV4(3),
+                            maxLines = 10,
+                            supportingText = {
+                                if (draft.generalNotes.length > 400) {
+                                    Text("Texto largo: desliza dentro del campo para recorrerlo.")
+                                }
+                            },
+                        )
+                    }
                 }
             }
-        }
 
-        item(key = "titled-notes") {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = appSpacingV4(if (wide) 12.dp else 7.dp),
-                            vertical = appSpacingV4(7.dp),
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Notas con título", style = MaterialTheme.typography.titleSmall)
-                            Text(
-                                "Tarjetas opcionales para separar referencias concretas.",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                        TextButton(onClick = ::beginAdd, enabled = structuralEditingEnabled) { Text("+ Añadir") }
-                    }
-
-                    if (draft.cards.isEmpty()) {
-                        CharacterUsefulEmptyState(
-                            title = "Sin notas con título",
-                            message = "Puedes usar solo Notas generales o añadir una tarjeta para una referencia concreta.",
-                            onAdd = if (structuralEditingEnabled) ::beginAdd else null,
-                            addLabel = "Añadir nota",
+            item(
+                key = "titled-notes-tools",
+                span = { GridItemSpan(noteColumns) },
+            ) {
+                CharacterCollectionToolbarV4(
+                    itemCount = visibleCards.size,
+                    query = query,
+                    onQueryChange = ::updateQuery,
+                    order = order,
+                    onOrderChange = { orderName = it.name },
+                    filters = filters,
+                    searchLabel = "Buscar notas",
+                    collapsibleSearch = true,
+                    showItemCount = false,
+                    compactOrderControl = true,
+                    contextContent = {
+                        Text(
+                            "Notas con título",
+                            style = MaterialTheme.typography.titleSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
-                    } else {
-                        val columns = constrainedCardColumnsV4(wide = wide, phoneMax = 2, wideMax = 4)
-                        draft.cards.chunked(columns).forEach { rowCards ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                                verticalAlignment = Alignment.Top,
-                            ) {
-                                rowCards.forEach { note ->
-                                    val index = draft.cards.indexOfFirst { it.id == note.id }
-                                    CharacterNoteCardV4(
-                                        note = note,
-                                        onEdit = { beginEdit(note) },
-                                        onDuplicate = { duplicate(note) },
-                                        onDelete = { deleteId = note.id.toString() },
-                                        onMove = { offset -> move(index, offset) },
-                                        structuralEditingEnabled = structuralEditingEnabled,
-                                        onHaptic = haptic,
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                }
-                                repeat(columns - rowCards.size) { Spacer(modifier = Modifier.weight(1f)) }
-                            }
-                        }
+                    },
+                    onAdd = if (structuralEditingEnabled) ::beginAdd else null,
+                )
+            }
+
+            item(
+                key = "titled-notes-help",
+                span = { GridItemSpan(noteColumns) },
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
+                    CharacterHelpV4("Tarjetas opcionales para separar referencias concretas. La búsqueda revisa título y contenido.")
+                    if (visibleCards.isNotEmpty() && !reorderAvailable) {
+                        Text(
+                            if (order == CharacterPresentationOrder.ALPHABETICAL) {
+                                "A–Z es solo una vista. Vuelve a Manual para reordenar."
+                            } else {
+                                "Limpia búsqueda y filtros para reordenar."
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+            }
+
+            if (draft.cards.isEmpty()) {
+                item(
+                    key = "titled-notes-empty",
+                    span = { GridItemSpan(noteColumns) },
+                ) {
+                    CharacterUsefulEmptyState(
+                        title = "Sin notas con título",
+                        message = "Puedes usar solo Notas generales o añadir una tarjeta para una referencia concreta.",
+                        onAdd = if (structuralEditingEnabled) ::beginAdd else null,
+                        addLabel = "Añadir nota",
+                    )
+                }
+            } else if (visibleCards.isEmpty()) {
+                item(
+                    key = "titled-notes-no-results",
+                    span = { GridItemSpan(noteColumns) },
+                ) {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            "No hay notas que coincidan con la búsqueda y filtros actuales.",
+                            modifier = Modifier.padding(appSpacingV4(10.dp)),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            } else {
+                layoutCards.forEach { note ->
+                    item(key = "note-${note.id}") {
+                        CharacterNoteCardV4(
+                            note = note,
+                            reorderSession = reorderSession.takeIf { canReorder },
+                            onEdit = { beginEdit(note) },
+                            onDuplicate = { duplicate(note) },
+                            onDelete = { deleteId = note.id.toString() },
+                            structuralEditingEnabled = structuralEditingEnabled,
+                            modifier = Modifier
+                                .animateItem()
+                                .fillMaxWidth(),
+                        )
                     }
                 }
             }
@@ -247,6 +347,7 @@ internal fun CharacterNotesTabV4(
                 onDismissRequest = { deleteId = null },
                 onConfirm = {
                     onDraftChange(draft.copy(cards = normalizeCharacterNotes(draft.cards.filterNot { it.id == target.id })))
+                    haptic(CharacterHapticEventV4.DESTRUCTIVE)
                     deleteId = null
                 },
             )
@@ -257,112 +358,71 @@ internal fun CharacterNotesTabV4(
 @Composable
 private fun CharacterNoteCardV4(
     note: CharacterNote,
+    reorderSession: CharacterReorderSessionV4?,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
-    onMove: (Int) -> Boolean,
     structuralEditingEnabled: Boolean,
-    onHaptic: (CharacterHapticEventV4) -> Unit,
+    lifted: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    var accumulatedDrag by remember(note.id) { mutableStateOf(0f) }
-    var dragging by remember { mutableStateOf(false) }
-    val reorderStepPx = with(LocalDensity.current) { 68.dp.toPx() }
-    val dragState = CharacterDragVisualStateV4(
-        active = dragging,
-        offsetY = accumulatedDrag,
-        showDropBefore = dragging && accumulatedDrag < 0f,
-        showDropAfter = dragging && accumulatedDrag > 0f,
-    )
-
-    fun finishDrag() {
-        accumulatedDrag = 0f
-        dragging = false
+    val id = note.id.toString()
+    val geometryModifier = if (reorderSession != null && !lifted) {
+        Modifier
+            .characterReorderSessionBoundsV4(reorderSession, id)
+            .characterReorderPlaceholderV4(reorderSession, id)
+            .characterReorderSessionSemanticsV4(reorderSession, id)
+    } else {
+        Modifier
     }
+    val pickupModifier = if (reorderSession != null && !lifted) {
+        Modifier.characterReorderSessionDragHandleV4(reorderSession, id)
+    } else {
+        Modifier
+    }
+    val activePlaceholder = reorderSession?.draggedId == id
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        CharacterDropIndicatorV4(visible = dragState.showDropBefore)
-        Surface(
+    Surface(
+        modifier = modifier
+            .then(geometryModifier)
+            .clickable(
+                enabled = structuralEditingEnabled && !lifted && !activePlaceholder,
+                onClick = onEdit,
+            ),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .characterDragFeedbackV4(dragState),
-            shape = MaterialTheme.shapes.small,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            verticalAlignment = Alignment.Top,
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
+                    .weight(1f)
+                    .then(pickupModifier),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .characterLongPressDragV4(
-                                enabled = structuralEditingEnabled,
-                                onHaptic = onHaptic,
-                                onDragStart = {
-                                    accumulatedDrag = 0f
-                                    dragging = true
-                                },
-                                onDragDelta = { deltaY ->
-                                    accumulatedDrag += deltaY
-                                    var moved = false
-                                    while (abs(accumulatedDrag) >= reorderStepPx) {
-                                        val direction = if (accumulatedDrag > 0f) 1 else -1
-                                        if (onMove(direction)) {
-                                            accumulatedDrag -= direction * reorderStepPx
-                                            moved = true
-                                        } else {
-                                            accumulatedDrag = 0f
-                                            break
-                                        }
-                                    }
-                                    moved
-                                },
-                                onDragEnd = ::finishDrag,
-                                onDragCancel = ::finishDrag,
-                            )
-                            .clickable(enabled = structuralEditingEnabled, onClick = onEdit),
-                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                    ) {
-                        Text(
-                            note.title,
-                            style = MaterialTheme.typography.labelLarge,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            note.content.ifBlank { "Sin contenido" },
-                            style = if (note.content.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    if (structuralEditingEnabled) {
-                        StableRemoveIconButton(
-                            onClick = onDelete,
-                            contentDescription = "Eliminar ${note.title}",
-                        )
-                    }
-                }
-
-                if (structuralEditingEnabled) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${note.title}")
-                    }
-                }
+                Text(
+                    note.title,
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    note.content.ifBlank { "Sin contenido" },
+                    style = if (note.content.isBlank()) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (structuralEditingEnabled && !lifted) {
+                StableDuplicateIconButton(onClick = onDuplicate, contentDescription = "Duplicar ${note.title}")
+                StableRemoveIconButton(onClick = onDelete, contentDescription = "Eliminar ${note.title}")
             }
         }
-        CharacterDropIndicatorV4(visible = dragState.showDropAfter)
     }
 }
 
@@ -384,7 +444,7 @@ private fun CharacterNoteEditorDialogV4(
         saveLabel = "Guardar",
         saveEnabled = valid,
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = noteTitle,
             onValueChange = onTitleChange,
             label = { Text("Título") },
@@ -394,18 +454,16 @@ private fun CharacterNoteEditorDialogV4(
         CharacterInlineValidationMessage(
             if (noteTitle.isNotEmpty() && noteTitle.trim().isEmpty()) "Escribe un título para guardar la nota." else null,
         )
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = content,
             onValueChange = onContentChange,
             label = { Text("Contenido") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 220.dp, max = 340.dp),
-            minLines = 8,
-            maxLines = 16,
+            modifier = Modifier.fillMaxWidth(),
+            minLines = characterCompactTextAreaMinLinesV4(3),
+            maxLines = 8,
             supportingText = {
                 if (content.length > 400) {
-                    Text("↕ Texto largo: desliza dentro del campo para recorrerlo.")
+                    Text("Texto largo: desliza dentro del campo para recorrerlo.")
                 }
             },
         )

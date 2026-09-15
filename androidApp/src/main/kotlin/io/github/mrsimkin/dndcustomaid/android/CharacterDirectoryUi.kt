@@ -21,7 +21,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -344,7 +343,7 @@ private fun CreateCharacterInCampaignDialog(
         saveLabel = "Crear",
         saveEnabled = normalizedName.isNotEmpty(),
     ) {
-        OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = name,
             onValueChange = { name = it },
             label = { Text("Nombre del personaje") },

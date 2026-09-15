@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -23,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassCatalog
@@ -35,6 +37,7 @@ import kotlin.uuid.Uuid
 internal fun CharacterClassIdentitySuccessorCardV4(
     classes: List<ClassLevelDraftV4>,
     onClassesChange: (List<ClassLevelDraftV4>) -> Unit,
+    structuralEditingEnabled: Boolean = true,
 ) {
     var editorId by rememberSaveable { mutableStateOf<String?>(null) }
     var editorOpen by rememberSaveable { mutableStateOf(false) }
@@ -51,9 +54,11 @@ internal fun CharacterClassIdentitySuccessorCardV4(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Clases", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                CompactClassActionV4("+ Clase") {
-                    editorId = null
-                    editorOpen = true
+                if (structuralEditingEnabled) {
+                    CompactClassActionV4("+ Clase") {
+                        editorId = null
+                        editorOpen = true
+                    }
                 }
             }
 
@@ -82,18 +87,20 @@ internal fun CharacterClassIdentitySuccessorCardV4(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        CompactClassActionV4("Editar") {
-                            editorId = item.id.toString()
-                            editorOpen = true
+                        if (structuralEditingEnabled) {
+                            CompactClassActionV4("Editar") {
+                                editorId = item.id.toString()
+                                editorOpen = true
+                            }
+                            CompactClassActionV4("Quitar") { deleteId = item.id.toString() }
                         }
-                        CompactClassActionV4("Quitar") { deleteId = item.id.toString() }
                     }
                 }
             }
         }
     }
 
-    if (editorOpen) {
+    if (structuralEditingEnabled && editorOpen) {
         val existing = editorId?.let { id -> classes.firstOrNull { it.id.toString() == id } }
         CharacterClassIdentitySuccessorEditorV4(
             existing = existing,
@@ -111,7 +118,7 @@ internal fun CharacterClassIdentitySuccessorCardV4(
         )
     }
 
-    deleteId?.let { id ->
+    if (structuralEditingEnabled) deleteId?.let { id ->
         val target = classes.firstOrNull { it.id.toString() == id }
         if (target == null) {
             deleteId = null
@@ -235,12 +242,19 @@ private fun CharacterClassIdentitySuccessorEditorV4(
                 },
                 modifier = Modifier.weight(1f),
             )
+            CompactClassHitDieSelectorV4(
+                value = draft.hitDieSides,
+                onValueChange = { value -> draft = draft.copy(hitDieSides = value) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        val customHitDieSides = draft.hitDieSides.toIntOrNull()
+        if (customHitDieSides == null || customHitDieSides !in standardClassHitDieSidesV4) {
             CompactLabeledNumberInputSuccessorV4(
-                label = "Dado",
+                label = "Caras del dado",
                 value = draft.hitDieSides,
                 onValueChange = { value -> draft = draft.copy(hitDieSides = value.filter(Char::isDigit)) },
                 prefix = "d",
-                modifier = Modifier.weight(1f),
             )
         }
         CharacterHelpV4("Los DG máximos se derivan del nivel de esta clase; solo se guarda cuántos quedan disponibles y el tipo de dado.")
@@ -426,12 +440,50 @@ private fun CompactLabeledTextInputSuccessorV4(
 ) {
     Column {
         Text(label, style = MaterialTheme.typography.labelSmall)
-        androidx.compose.material3.OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
+    }
+}
+
+private val standardClassHitDieSidesV4 = listOf(4, 6, 8, 10, 12, 20)
+
+@Composable
+private fun CompactClassHitDieSelectorV4(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val sides = value.toIntOrNull()
+    val display = sides?.takeIf { it in standardClassHitDieSidesV4 }?.let { "d$it" } ?: "Otro…"
+
+    Column(modifier = modifier) {
+        Text("Dado", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+        Box {
+            CompactClassMenuV4(display) { expanded = true }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                standardClassHitDieSidesV4.forEach { standardSides ->
+                    DropdownMenuItem(
+                        text = { Text("d$standardSides") },
+                        onClick = {
+                            onValueChange(standardSides.toString())
+                            expanded = false
+                        },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("Otro…") },
+                    onClick = {
+                        if (sides != null && sides in standardClassHitDieSidesV4) onValueChange("")
+                        expanded = false
+                    },
+                )
+            }
+        }
     }
 }
 
@@ -445,11 +497,12 @@ private fun CompactLabeledNumberInputSuccessorV4(
 ) {
     Column(modifier = modifier) {
         Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1)
-        androidx.compose.material3.OutlinedTextField(
+        CharacterCompactOutlinedTextFieldV4(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             prefix = if (prefix.isBlank()) null else ({ Text(prefix) }),
         )
     }

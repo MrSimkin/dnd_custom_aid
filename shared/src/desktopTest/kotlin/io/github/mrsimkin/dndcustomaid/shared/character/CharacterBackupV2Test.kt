@@ -194,6 +194,41 @@ class CharacterBackupV2Test {
         }
     }
 
+    @Test
+    fun backgroundImagePayloadSurvivesBackupCodecAndImportWithFreshIdentity() {
+        withDatabase { database ->
+            val campaigns = CampaignRepository(database)
+            val characters = CharacterRepository(database)
+            val successor = CharacterSuccessorRepository(database)
+            val backups = CharacterBackupRepository(database)
+            val sourceCampaign = campaigns.createCampaign("Origen imagen")
+            val destinationCampaign = campaigns.createCampaign("Destino imagen")
+            val character = characters.createCharacter(sourceCampaign.id, "Retrato")
+            val image = CharacterBackgroundImage(
+                id = Uuid.random(),
+                slot = CharacterBackgroundImageSlot.SECONDARY,
+                mimeType = "image/png",
+                encodedData = "cG9ydGFibGUtaW1hZ2U=",
+                originalName = "secundaria.png",
+            )
+            successor.saveState(
+                character.id,
+                successor.state(character.id).copy(backgroundImages = listOf(image)),
+            )
+
+            val encodedBackup = CharacterBackupCodec.encode(backups.exportCharacter(character.id, 400))
+            val decoded = assertIs<CharacterBackupDecodeResult.Success>(CharacterBackupCodec.decode(encodedBackup)).document
+            val imported = backups.importAsCopy(decoded, destinationCampaign.id, 500)
+            val importedImage = imported.successorState.backgroundImages.single()
+
+            assertNotEquals(image.id, importedImage.id)
+            assertEquals(image.slot, importedImage.slot)
+            assertEquals(image.mimeType, importedImage.mimeType)
+            assertEquals(image.encodedData, importedImage.encodedData)
+            assertEquals(image.originalName, importedImage.originalName)
+        }
+    }
+
     private fun withDatabase(block: (AppDatabase) -> Unit) {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         try {

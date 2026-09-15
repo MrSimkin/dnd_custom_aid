@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 
 internal enum class CharacterHapticStrengthV4(val label: String, val amplitude: Int) {
+    NONE("Ninguna", 0),
     SOFT("Suave", 72),
     MEDIUM("Media", 140),
     STRONG("Fuerte", 220),

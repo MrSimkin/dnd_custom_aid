@@ -235,11 +235,30 @@ data class CharacterNote(
 )
 
 @Serializable
+enum class CharacterSpellcastingOriginKind {
+    CLASS,
+    TRAIT,
+    RACE,
+    BACKGROUND,
+    FEAT,
+    ITEM,
+    MAGIC_ITEM,
+    GIFT,
+    OTHER,
+}
+
+@Serializable
 data class CharacterSpellcastingSource(
     val id: Uuid,
     val name: String,
     val linkedClassId: Uuid?,
     val sortOrder: Int,
+    val originKind: CharacterSpellcastingOriginKind = if (linkedClassId != null) {
+        CharacterSpellcastingOriginKind.CLASS
+    } else {
+        CharacterSpellcastingOriginKind.OTHER
+    },
+    val originReferenceId: Uuid? = null,
 )
 
 @Serializable

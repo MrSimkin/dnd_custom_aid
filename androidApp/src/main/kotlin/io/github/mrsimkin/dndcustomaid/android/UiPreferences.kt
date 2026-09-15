@@ -11,13 +11,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ColorScheme
@@ -26,6 +29,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Typography
@@ -33,11 +37,11 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,6 +55,8 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.characterRulesFamilyBadgeLabel
 
@@ -79,19 +85,35 @@ internal enum class AppFontChoice(
     LEAGUE_SPARTAN("League Spartan", "League Spartan", "The League of Moveable Type"),
 }
 
+private val HIDDEN_FONT_CHOICES_V4 = setOf(
+    AppFontChoice.INTER,
+    AppFontChoice.FIGTREE,
+    AppFontChoice.PUBLIC_SANS,
+    AppFontChoice.CABIN_CONDENSED,
+    AppFontChoice.ENCODE_SANS_CONDENSED,
+)
+
+private val SELECTABLE_FONT_CHOICES_V4 = AppFontChoice.entries.filterNot { it in HIDDEN_FONT_CHOICES_V4 }
+
 internal enum class AppThemeChoice(val label: String) {
     SYSTEM("Sistema"),
     LIGHT("Claro"),
     DARK("Oscuro"),
     GRAY("Gris"),
-    DARK_PURPLE("Morado oscuro"),
-    DARK_CYAN("Cian oscuro"),
-    LIGHT_CYAN("Cian claro"),
-    NIGHT_BLUE("Azul noche"),
-    LIGHT_NIGHT_BLUE("Azul noche claro"),
-    FOREST_GREEN("Verde bosque"),
-    LIGHT_FOREST_GREEN("Verde bosque claro"),
+    DARK_PURPLE("Púrpura"),
+    DARK_CYAN("Cyan"),
+    LIGHT_CYAN("Cyan claro"),
+    NIGHT_BLUE("Noche"),
+    LIGHT_NIGHT_BLUE("Noche despejada"),
+    FOREST_GREEN("Bosque"),
+    LIGHT_FOREST_GREEN("Oasis"),
     PARCHMENT("Pergamino"),
+    CRIMSON("Carmesí"),
+    AMBER("Ámbar"),
+    GLACIER("Glaciar"),
+    LAVENDER("Lavanda"),
+    SLATE("Pizarra"),
+    TERRACOTTA("Terracota"),
     HIGH_CONTRAST("Alto contraste"),
     MATRIX("Matrix"),
 }
@@ -106,6 +128,13 @@ internal enum class DiceResultModeChoice(val label: String) {
     VISIBLE_DICE("Dados visibles"),
 }
 
+internal enum class CharacterCardDensityV4(val label: String, val minCardWidthDp: Int) {
+    COMFORTABLE("Cómodo", 420),
+    BALANCED("Equilibrado", 340),
+    COMPACT("Compacto", 280),
+    DENSE("Denso", 230),
+}
+
 internal data class UiPreferences(
     val fontScalePercent: Int = 100,
     val fontChoice: AppFontChoice = AppFontChoice.MANROPE,
@@ -115,6 +144,8 @@ internal data class UiPreferences(
     val phoneLandscapeColumns: Int = 2,
     val tabletPortraitColumns: Int = 2,
     val tabletLandscapeColumns: Int = 3,
+    val portraitCardDensity: CharacterCardDensityV4 = CharacterCardDensityV4.BALANCED,
+    val landscapeCardDensity: CharacterCardDensityV4 = CharacterCardDensityV4.BALANCED,
     val spacingScalePercent: Int = 100,
     val helpMode: CharacterHelpModeV4 = CharacterHelpModeV4.ALWAYS_VISIBLE,
     val diceResultMode: DiceResultModeChoice = DiceResultModeChoice.COMPACT,
@@ -126,8 +157,9 @@ internal class UiPreferencesStore(context: Context) {
     private val preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun load(): UiPreferences {
-        val scale = preferences.getInt(KEY_FONT_SCALE, 100).takeIf { it in FONT_SCALE_OPTIONS } ?: 100
-        val font = when (val stored = preferences.getString(KEY_FONT, null)) {
+        val storedScale = preferences.getInt(KEY_FONT_SCALE, 100)
+        val scale = FONT_SCALE_OPTIONS.minByOrNull { abs(it - storedScale.coerceIn(50, 150)) } ?: 100
+        val resolvedFont = when (val stored = preferences.getString(KEY_FONT, null)) {
             "IBM_PLEX_SANS_CONDENSED", "BARLOW_CONDENSED" -> AppFontChoice.ROBOTO_CONDENSED
             "LEXEND" -> AppFontChoice.SORA
             "OSWALD" -> AppFontChoice.MANROPE
@@ -135,6 +167,7 @@ internal class UiPreferencesStore(context: Context) {
                 ?.let { runCatching { AppFontChoice.valueOf(it) }.getOrNull() }
                 ?: AppFontChoice.MANROPE
         }
+        val font = resolvedFont.takeUnless { it in HIDDEN_FONT_CHOICES_V4 } ?: AppFontChoice.MANROPE
         val theme = when (val stored = preferences.getString(KEY_THEME, null)) {
             "LIGHT_GRAY" -> AppThemeChoice.GRAY
             else -> stored
@@ -148,8 +181,14 @@ internal class UiPreferencesStore(context: Context) {
         val phoneLandscapeColumns = preferences.getInt(KEY_PHONE_LANDSCAPE_COLUMNS, 2).coerceIn(1, 5)
         val tabletPortraitColumns = preferences.getInt(KEY_TABLET_PORTRAIT_COLUMNS, 2).coerceIn(1, 5)
         val tabletLandscapeColumns = preferences.getInt(KEY_TABLET_LANDSCAPE_COLUMNS, 3).coerceIn(1, 6)
-        val spacingScalePercent = preferences.getInt(KEY_SPACING_SCALE, 100)
-            .takeIf { it in SPACING_SCALE_OPTIONS } ?: 100
+        val portraitCardDensity = preferences.getString(KEY_PORTRAIT_CARD_DENSITY, null)
+            ?.let { runCatching { CharacterCardDensityV4.valueOf(it) }.getOrNull() }
+            ?: legacyCardDensityV4(phonePortraitColumns, tabletPortraitColumns, landscape = false)
+        val landscapeCardDensity = preferences.getString(KEY_LANDSCAPE_CARD_DENSITY, null)
+            ?.let { runCatching { CharacterCardDensityV4.valueOf(it) }.getOrNull() }
+            ?: legacyCardDensityV4(phoneLandscapeColumns, tabletLandscapeColumns, landscape = true)
+        val storedSpacing = preferences.getInt(KEY_SPACING_SCALE, 100)
+        val spacingScalePercent = SPACING_SCALE_OPTIONS.minByOrNull { abs(it - storedSpacing.coerceIn(50, 150)) } ?: 100
         val helpMode = preferences.getString(KEY_HELP_MODE, null)
             ?.let { runCatching { CharacterHelpModeV4.valueOf(it) }.getOrNull() }
             ?: CharacterHelpModeV4.ALWAYS_VISIBLE
@@ -166,6 +205,8 @@ internal class UiPreferencesStore(context: Context) {
             phoneLandscapeColumns = phoneLandscapeColumns,
             tabletPortraitColumns = tabletPortraitColumns,
             tabletLandscapeColumns = tabletLandscapeColumns,
+            portraitCardDensity = portraitCardDensity,
+            landscapeCardDensity = landscapeCardDensity,
             spacingScalePercent = spacingScalePercent,
             helpMode = helpMode,
             diceResultMode = diceResultMode,
@@ -182,6 +223,8 @@ internal class UiPreferencesStore(context: Context) {
             .putInt(KEY_PHONE_LANDSCAPE_COLUMNS, value.phoneLandscapeColumns)
             .putInt(KEY_TABLET_PORTRAIT_COLUMNS, value.tabletPortraitColumns)
             .putInt(KEY_TABLET_LANDSCAPE_COLUMNS, value.tabletLandscapeColumns)
+            .putString(KEY_PORTRAIT_CARD_DENSITY, value.portraitCardDensity.name)
+            .putString(KEY_LANDSCAPE_CARD_DENSITY, value.landscapeCardDensity.name)
             .putInt(KEY_SPACING_SCALE, value.spacingScalePercent)
             .putString(KEY_HELP_MODE, value.helpMode.name)
             .putString(KEY_DICE_RESULT_MODE, value.diceResultMode.name)
@@ -198,18 +241,71 @@ internal class UiPreferencesStore(context: Context) {
         const val KEY_PHONE_LANDSCAPE_COLUMNS = "phone_landscape_columns"
         const val KEY_TABLET_PORTRAIT_COLUMNS = "tablet_portrait_columns"
         const val KEY_TABLET_LANDSCAPE_COLUMNS = "tablet_landscape_columns"
+        const val KEY_PORTRAIT_CARD_DENSITY = "portrait_card_density"
+        const val KEY_LANDSCAPE_CARD_DENSITY = "landscape_card_density"
         const val KEY_SPACING_SCALE = "spacing_scale_percent"
         const val KEY_HELP_MODE = "help_mode"
         const val KEY_DICE_RESULT_MODE = "dice_result_mode"
     }
 }
 
-internal val FONT_SCALE_OPTIONS = listOf(70, 80, 90, 100, 110, 120, 130, 145, 160, 180, 200)
-internal val SPACING_SCALE_OPTIONS = listOf(100, 90, 80, 70, 60, 40)
+internal fun legacyCardDensityV4(
+    phoneColumns: Int,
+    tabletColumns: Int,
+    landscape: Boolean,
+): CharacterCardDensityV4 {
+    val score = phoneColumns.coerceAtLeast(1) + tabletColumns.coerceAtLeast(1)
+    return if (landscape) {
+        when {
+            score <= 4 -> CharacterCardDensityV4.COMFORTABLE
+            score <= 5 -> CharacterCardDensityV4.BALANCED
+            score <= 7 -> CharacterCardDensityV4.COMPACT
+            else -> CharacterCardDensityV4.DENSE
+        }
+    } else {
+        when {
+            score <= 2 -> CharacterCardDensityV4.COMFORTABLE
+            score <= 3 -> CharacterCardDensityV4.BALANCED
+            score <= 5 -> CharacterCardDensityV4.COMPACT
+            else -> CharacterCardDensityV4.DENSE
+        }
+    }
+}
+
+internal val FONT_SCALE_OPTIONS = (50..150 step 10).toList()
+internal val SPACING_SCALE_OPTIONS = (50..150 step 10).toList()
+
+private enum class AppSpacingRoleV4 {
+    DEFAULT,
+    OUTER,
+    INTERNAL,
+}
+
+/**
+ * Perceptual density scaling: 100 is the balanced baseline; 50/150 are deliberately less
+ * extreme than a blind 0.5x/1.5x multiplication. Fixed icon/font/touch-target sizes are not
+ * routed through this helper, so density changes whitespace without shrinking controls.
+ */
+@Composable
+internal fun appSpacingV4(value: Dp): Dp = appSpacingV4(value, AppSpacingRoleV4.DEFAULT)
 
 @Composable
-internal fun appSpacingV4(value: Dp): Dp =
-    value * (LocalUiPreferencesV4.current.spacingScalePercent / 100f)
+private fun appSpacingV4(value: Dp, role: AppSpacingRoleV4): Dp {
+    val percent = LocalUiPreferencesV4.current.spacingScalePercent.coerceIn(50, 150)
+    val signed = (percent - 100) / 100f
+    val response = when (role) {
+        AppSpacingRoleV4.DEFAULT -> 0.70f
+        AppSpacingRoleV4.OUTER -> 0.78f
+        AppSpacingRoleV4.INTERNAL -> 0.62f
+    }
+    val scaled = value * (1f + signed * response)
+    val floor = when (role) {
+        AppSpacingRoleV4.DEFAULT -> minOf(value, 1.5.dp)
+        AppSpacingRoleV4.OUTER -> minOf(value, 2.dp)
+        AppSpacingRoleV4.INTERNAL -> minOf(value, 2.dp)
+    }
+    return maxOf(scaled, floor)
+}
 
 private val googleFontProvider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
@@ -439,6 +535,99 @@ private fun resolveColorScheme(choice: AppThemeChoice): ColorScheme = when (choi
         outline = Color(0xFF735D3C),
         outlineVariant = Color(0xFFB59B6A),
     )
+    AppThemeChoice.CRIMSON -> darkColorScheme(
+        primary = Color(0xFFFFB3B8),
+        onPrimary = Color(0xFF650019),
+        primaryContainer = Color(0xFF8E1D35),
+        onPrimaryContainer = Color(0xFFFFDADD),
+        secondary = Color(0xFFE6BDC0),
+        secondaryContainer = Color(0xFF5A3F42),
+        background = Color(0xFF1B0C10),
+        onBackground = Color(0xFFF6DDE0),
+        surface = Color(0xFF251216),
+        onSurface = Color(0xFFF6DDE0),
+        surfaceVariant = Color(0xFF52383C),
+        onSurfaceVariant = Color(0xFFDCC2C5),
+        outline = Color(0xFFA78C90),
+    )
+    AppThemeChoice.AMBER -> lightColorScheme(
+        primary = Color(0xFF765800),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFFFFDEA3),
+        onPrimaryContainer = Color(0xFF251A00),
+        secondary = Color(0xFF6D5D3F),
+        secondaryContainer = Color(0xFFF7E0B2),
+        background = Color(0xFFFFF8E8),
+        onBackground = Color(0xFF211B10),
+        surface = Color(0xFFFFFBF2),
+        onSurface = Color(0xFF211B10),
+        surfaceVariant = Color(0xFFF2E3C1),
+        onSurfaceVariant = Color(0xFF504733),
+        outline = Color(0xFF7C715E),
+        outlineVariant = Color(0xFFD0C5AA),
+    )
+    AppThemeChoice.GLACIER -> lightColorScheme(
+        primary = Color(0xFF285D78),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFFC7E8F8),
+        onPrimaryContainer = Color(0xFF001E2B),
+        secondary = Color(0xFF4E616B),
+        secondaryContainer = Color(0xFFD1E6F0),
+        background = Color(0xFFF1FAFF),
+        onBackground = Color(0xFF151D21),
+        surface = Color(0xFFFAFDFF),
+        onSurface = Color(0xFF151D21),
+        surfaceVariant = Color(0xFFDCE5E9),
+        onSurfaceVariant = Color(0xFF40484C),
+        outline = Color(0xFF70787C),
+    )
+    AppThemeChoice.LAVENDER -> lightColorScheme(
+        primary = Color(0xFF66558A),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFFE9DDFF),
+        onPrimaryContainer = Color(0xFF211047),
+        secondary = Color(0xFF625B70),
+        secondaryContainer = Color(0xFFE8DEF8),
+        background = Color(0xFFFBF8FF),
+        onBackground = Color(0xFF1D1A20),
+        surface = Color(0xFFFFF8FF),
+        onSurface = Color(0xFF1D1A20),
+        surfaceVariant = Color(0xFFE8E0EB),
+        onSurfaceVariant = Color(0xFF4A454E),
+        outline = Color(0xFF7B757F),
+    )
+    AppThemeChoice.SLATE -> darkColorScheme(
+        primary = Color(0xFF8FD3FF),
+        onPrimary = Color(0xFF00344B),
+        primaryContainer = Color(0xFF22506B),
+        onPrimaryContainer = Color(0xFFC8E6FF),
+        secondary = Color(0xFFAEC8D8),
+        secondaryContainer = Color(0xFF304955),
+        background = Color(0xFF0B1218),
+        onBackground = Color(0xFFDDE8EF),
+        surface = Color(0xFF14212B),
+        onSurface = Color(0xFFDDE8EF),
+        surfaceVariant = Color(0xFF2A3C49),
+        onSurfaceVariant = Color(0xFFC1D1DC),
+        outline = Color(0xFF89A7B8),
+        outlineVariant = Color(0xFF465E6C),
+    )
+    AppThemeChoice.TERRACOTTA -> lightColorScheme(
+        primary = Color(0xFFA23F28),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFFFFD7CC),
+        onPrimaryContainer = Color(0xFF3C0800),
+        secondary = Color(0xFF8A4F3E),
+        secondaryContainer = Color(0xFFFFDCD2),
+        background = Color(0xFFFFF3ED),
+        onBackground = Color(0xFF271712),
+        surface = Color(0xFFFFFAF7),
+        onSurface = Color(0xFF271712),
+        surfaceVariant = Color(0xFFF3D3C8),
+        onSurfaceVariant = Color(0xFF5B3E35),
+        outline = Color(0xFF966A5C),
+        outlineVariant = Color(0xFFD9B8AD),
+    )
     AppThemeChoice.HIGH_CONTRAST -> darkColorScheme(
         primary = Color(0xFFFFFF00),
         onPrimary = Color.Black,
@@ -494,7 +683,7 @@ private fun typographyWithFamily(family: FontFamily): Typography {
 }
 
 @Composable
-internal fun AppSettingsDialog(
+internal fun AppSettingsScreen(
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
     onDismiss: () -> Unit,
@@ -504,57 +693,93 @@ internal fun AppSettingsDialog(
     val phoneLike = minOf(configuration.screenWidthDp, configuration.screenHeightDp) < 600
     val veryLargePhoneText = phoneLike && preferences.fontScalePercent >= 145
 
-    AlertDialog(
-        modifier = Modifier.imePadding().navigationBarsPadding(),
-        onDismissRequest = onDismiss,
-        title = { Text("Ajustes") },
-        text = {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(4.dp)),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            ) {
+                StableBackIconButton(
+                    onClick = onDismiss,
+                    contentDescription = "Volver desde Configuración de la aplicación",
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Configuración de la aplicación", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        "Preferencias de este dispositivo",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                TextButton(onClick = { showAbout = true }) { Text("Acerca de") }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 620.dp),
-                contentPadding = PaddingValues(bottom = appSpacingV4(12.dp)),
-                verticalArrangement = Arrangement.spacedBy(appSpacingV4(12.dp)),
+                    .weight(1f),
+                contentPadding = PaddingValues(
+                    start = appSpacingV4(8.dp),
+                    end = appSpacingV4(8.dp),
+                    top = appSpacingV4(4.dp),
+                    bottom = appSpacingV4(18.dp),
+                ),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(9.dp)),
             ) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
-                        SettingSelector(
-                            label = "Tamaño de texto",
-                            value = "${preferences.fontScalePercent}%",
-                            options = FONT_SCALE_OPTIONS,
-                            optionLabel = { "$it%" },
-                            onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
-                        )
-                        if (veryLargePhoneText) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.tertiaryContainer,
-                                shape = MaterialTheme.shapes.small,
-                            ) {
-                                Text(
-                                    "Advertencia para teléfono: ${preferences.fontScalePercent}% reduce mucho el área útil. La app conservará el valor y recurrirá a scroll cuando sea necesario.",
-                                    modifier = Modifier.padding(appSpacingV4(7.dp)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                )
-                            }
+                    SteppedPercentSettingV4(
+                        label = "Tamaño de texto",
+                        value = preferences.fontScalePercent,
+                        options = FONT_SCALE_OPTIONS,
+                        onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
+                        previewTitle = "Ejemplo de texto",
+                        previewPrimary = "Alyra Voss · Maga 7",
+                        previewSecondary = "CD 15 · CA 17 · 1d20 + 7",
+                    )
+                    if (veryLargePhoneText) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = MaterialTheme.shapes.small,
+                        ) {
+                            Text(
+                                "En teléfono, ${preferences.fontScalePercent}% deja menos área útil; la app mantiene el valor y usa scroll cuando hace falta.",
+                                modifier = Modifier.padding(appSpacingV4(7.dp)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            )
                         }
                     }
                 }
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
-                        SettingSelector(
-                            label = "Compactación adicional de espacios",
-                            value = "${preferences.spacingScalePercent}%",
-                            options = SPACING_SCALE_OPTIONS,
-                            optionLabel = { "$it%" },
-                            onSelect = { onPreferencesChange(preferences.copy(spacingScalePercent = it)) },
-                        )
-                        Text(
-                            "No reemplaza la vista Supercompacta. Reduce todavía más los márgenes, paddings y separaciones que controla la app; iconos y touch targets conservan su tamaño.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                    SteppedPercentSettingV4(
+                        label = "Densidad de espacios",
+                        value = preferences.spacingScalePercent,
+                        options = SPACING_SCALE_OPTIONS,
+                        onSelect = { onPreferencesChange(preferences.copy(spacingScalePercent = it)) },
+                        previewTitle = when {
+                            preferences.spacingScalePercent < 100 -> "Más denso"
+                            preferences.spacingScalePercent > 100 -> "Más espacioso"
+                            else -> "Equilibrado"
+                        },
+                        previewPrimary = "Tarjeta y contenido",
+                        previewSecondary = "Margen · separación · padding interno",
+                    )
+                    Text(
+                        "50–90% = más denso · 100% = equilibrado · 110–150% = más espacioso. Texto, iconos y áreas táctiles conservan su tamaño.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
@@ -566,28 +791,13 @@ internal fun AppSettingsDialog(
                             onSelect = { onPreferencesChange(preferences.copy(helpMode = it)) },
                         )
                         Text(
-                            "Controla si las explicaciones aparecen siempre, desde ⓘ, o se ocultan.",
+                            "Muestra explicaciones siempre, desde el icono de información, o las oculta.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
-                        SettingSelector(
-                            label = "Resultados de dados",
-                            value = preferences.diceResultMode.label,
-                            options = DiceResultModeChoice.entries,
-                            optionLabel = { it.label },
-                            onSelect = { onPreferencesChange(preferences.copy(diceResultMode = it)) },
-                        )
-                        Text(
-                            "El resultado compacto prioriza densidad. Dados visibles muestra los d20 obtenidos de forma prominente; ambos conservan la misma descomposición matemática.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                item { HapticDeviceSettingsV4() }
                 item {
                     FontChoicePicker(
                         selected = preferences.fontChoice,
@@ -607,24 +817,112 @@ internal fun AppSettingsDialog(
                     )
                 }
                 item { SettingsSheetPreview(preferences) }
-                item {
-                    Text(
-                        "La audición tipográfica mezcla candidatos de distintos orígenes; el distribuidor no decide la selección final.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
             }
-        },
-        confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
-                TextButton(onClick = { showAbout = true }) { Text("Acerca de") }
-                Button(onClick = onDismiss) { Text("Listo") }
-            }
-        },
-    )
+        }
+    }
 
     if (showAbout) {
         AboutBuildDialogV4(onDismiss = { showAbout = false })
+    }
+}
+
+@Composable
+private fun SteppedPercentSettingV4(
+    label: String,
+    value: Int,
+    options: List<Int>,
+    onSelect: (Int) -> Unit,
+    previewTitle: String,
+    previewPrimary: String,
+    previewSecondary: String,
+) {
+    val currentIndex = options.indexOf(value).coerceAtLeast(0)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = MaterialTheme.typography.labelLarge)
+            Text("$value%", style = MaterialTheme.typography.titleSmall)
+        }
+        Slider(
+            value = currentIndex.toFloat(),
+            onValueChange = { rawIndex ->
+                val index = rawIndex.roundToInt().coerceIn(options.indices)
+                val selected = options[index]
+                if (selected != value) onSelect(selected)
+            },
+            valueRange = 0f..options.lastIndex.toFloat(),
+            steps = (options.size - 2).coerceAtLeast(0),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("${options.first()}%", style = MaterialTheme.typography.labelSmall)
+            Text("${options.last()}%", style = MaterialTheme.typography.labelSmall)
+        }
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+        ) {
+            Column(
+                modifier = Modifier.padding(appSpacingV4(7.dp)),
+                verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
+            ) {
+                Text(previewTitle, style = MaterialTheme.typography.labelSmall)
+                Text(previewPrimary, style = MaterialTheme.typography.titleSmall)
+                Text(previewSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HapticDeviceSettingsV4() {
+    val hapticContext = LocalCharacterHapticSettingsV4.current
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+    ) {
+        Text("Respuesta háptica · dispositivo", style = MaterialTheme.typography.labelLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                SettingSelector(
+                    label = "Intensidad",
+                    value = hapticContext.preferences.strength.label,
+                    options = CharacterHapticStrengthV4.entries,
+                    optionLabel = { it.label },
+                    onSelect = { option ->
+                        hapticContext.onChange(hapticContext.preferences.copy(strength = option))
+                    },
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                SettingSelector(
+                    label = "Duración",
+                    value = hapticContext.preferences.duration.label,
+                    options = CharacterHapticDurationV4.entries,
+                    optionLabel = { it.label },
+                    onSelect = { option ->
+                        hapticContext.onChange(hapticContext.preferences.copy(duration = option))
+                    },
+                )
+            }
+        }
+        CharacterHelpV4(
+            "Ninguna desactiva la respuesta háptica generada por la app en este dispositivo. Intensidad y duración son globales; el interruptor de cada ficha sigue permitiendo desactivar sus hápticos individualmente.",
+        )
     }
 }
 
@@ -635,14 +933,14 @@ private fun AboutBuildDialogV4(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text("Acerca de D&D Custom Aid") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp))) {
+            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     shape = MaterialTheme.shapes.medium,
                 ) {
                     Column(
-                        modifier = Modifier.padding(appSpacingV4(12.dp)),
+                        modifier = Modifier.padding(appSpacingV4(8.dp)),
                         verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     ) {
                         Text("VERSIÓN", style = MaterialTheme.typography.labelMedium)
@@ -671,41 +969,32 @@ private fun LayoutColumnSettingsV4(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
     ) {
-        Text("Columnas de tarjetas · opt-in", style = MaterialTheme.typography.labelLarge)
+        Text("Distribución de tarjetas", style = MaterialTheme.typography.labelLarge)
         Text(
-            "Son máximos elegidos por el usuario. Puedes pedir más columnas que las predeterminadas en teléfono o tablet; cada superficie conserva sus propios límites de legibilidad cuando corresponda.",
+            "Cada orientación conserva una preferencia adaptativa. La app calcula cuántas tarjetas caben con el ancho disponible, el tamaño de texto y la densidad de espacios; no promete un número exacto de columnas.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         SettingSelector(
-            label = "Teléfono · vertical",
-            value = preferences.phonePortraitColumns.toString(),
-            options = (1..4).toList(),
-            optionLabel = Int::toString,
-            onSelect = { onPreferencesChange(preferences.copy(phonePortraitColumns = it)) },
+            label = "Vertical",
+            value = preferences.portraitCardDensity.label,
+            options = CharacterCardDensityV4.entries,
+            optionLabel = { it.label },
+            onSelect = { onPreferencesChange(preferences.copy(portraitCardDensity = it)) },
         )
         SettingSelector(
-            label = "Teléfono · horizontal",
-            value = preferences.phoneLandscapeColumns.toString(),
-            options = (1..5).toList(),
-            optionLabel = Int::toString,
-            onSelect = { onPreferencesChange(preferences.copy(phoneLandscapeColumns = it)) },
+            label = "Horizontal",
+            value = preferences.landscapeCardDensity.label,
+            options = CharacterCardDensityV4.entries,
+            optionLabel = { it.label },
+            onSelect = { onPreferencesChange(preferences.copy(landscapeCardDensity = it)) },
         )
-        SettingSelector(
-            label = "Tablet · vertical",
-            value = preferences.tabletPortraitColumns.toString(),
-            options = (1..5).toList(),
-            optionLabel = Int::toString,
-            onSelect = { onPreferencesChange(preferences.copy(tabletPortraitColumns = it)) },
-        )
-        SettingSelector(
-            label = "Tablet · horizontal",
-            value = preferences.tabletLandscapeColumns.toString(),
-            options = (1..6).toList(),
-            optionLabel = Int::toString,
-            onSelect = { onPreferencesChange(preferences.copy(tabletLandscapeColumns = it)) },
+        Text(
+            "Cómodo prioriza tarjetas más anchas; Equilibrado es el valor normal; Compacto y Denso aprovechan progresivamente más ancho cuando sigue siendo legible.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -724,7 +1013,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
             color = MaterialTheme.colorScheme.surface,
         ) {
             Column(
-                modifier = Modifier.padding(10.dp),
+                modifier = Modifier.padding(appSpacingV4(6.dp)),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
             ) {
                 Surface(
@@ -733,7 +1022,7 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                     color = MaterialTheme.colorScheme.primaryContainer,
                 ) {
                     Column(
-                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
+                        modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(4.dp)),
                         verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
                     ) {
                         Text(
@@ -777,8 +1066,18 @@ private fun SettingsSheetPreview(preferences: UiPreferences) {
                     )
                 }
 
+                CharacterCompactOutlinedTextFieldV4(
+                    value = "Texto libre para historia, notas o descripciones largas.",
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Texto libre") },
+                    minLines = characterCompactTextAreaMinLinesV4(2),
+                    maxLines = 3,
+                )
+
                 Text(
-                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · Ayuda ${preferences.helpMode.label} · Dados ${preferences.diceResultMode.label}",
+                    "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · Ayuda ${preferences.helpMode.label}",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -800,7 +1099,7 @@ private fun SettingsPreviewStatCell(
         color = MaterialTheme.colorScheme.surfaceVariant,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
+            modifier = Modifier.padding(horizontal = appSpacingV4(5.dp), vertical = appSpacingV4(3.dp)),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(label, style = MaterialTheme.typography.labelSmall)
@@ -818,8 +1117,8 @@ private fun FontChoicePicker(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        Text("Tipografía · audición", style = MaterialTheme.typography.labelLarge)
-        AppFontChoice.entries.forEach { choice ->
+        Text("Tipografía", style = MaterialTheme.typography.labelLarge)
+        SELECTABLE_FONT_CHOICES_V4.forEach { choice ->
             val isSelected = choice == selected
             Surface(
                 modifier = Modifier
@@ -833,16 +1132,25 @@ private fun FontChoicePicker(
                 tonalElevation = if (isSelected) 2.dp else 0.dp,
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.padding(horizontal = appSpacingV4(6.dp), vertical = appSpacingV4(5.dp)),
+                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        "${choice.label} · Aa Bb 123 · ${choice.sourceLabel}",
+                    Column(
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleSmall.copy(fontFamily = choice.family()),
-                        maxLines = 1,
-                    )
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
+                    ) {
+                        Text(
+                            choice.label,
+                            style = MaterialTheme.typography.titleSmall.copy(fontFamily = choice.family()),
+                            maxLines = 1,
+                        )
+                        Text(
+                            "Aventura · CD 15 · CA 17 · 1d20 + 7",
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = choice.family()),
+                            maxLines = 1,
+                        )
+                    }
                     if (isSelected) {
                         Text("Seleccionada", style = MaterialTheme.typography.labelSmall)
                     }
@@ -857,12 +1165,19 @@ private fun ThemeChoicePicker(
     selected: AppThemeChoice,
     onSelect: (AppThemeChoice) -> Unit,
 ) {
+    val width = LocalConfiguration.current.screenWidthDp
+    val columns = when {
+        width >= 900 -> 4
+        width >= 600 -> 3
+        else -> 2
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
     ) {
-        Text("Tema · audición", style = MaterialTheme.typography.labelLarge)
-        AppThemeChoice.entries.chunked(2).forEach { rowThemes ->
+        Text("Tema", style = MaterialTheme.typography.labelLarge)
+        AppThemeChoice.entries.chunked(columns).forEach { rowThemes ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
@@ -876,7 +1191,7 @@ private fun ThemeChoicePicker(
                         modifier = Modifier.weight(1f),
                     )
                 }
-                repeat(2 - rowThemes.size) {
+                repeat(columns - rowThemes.size) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
@@ -891,7 +1206,7 @@ private fun ThemePreviewCard(
     onSelect: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scheme = resolveColorScheme(choice)
+    val palette = resolveColorScheme(choice)
     Surface(
         modifier = modifier.clickable(onClick = onSelect),
         shape = MaterialTheme.shapes.small,
@@ -899,31 +1214,43 @@ private fun ThemePreviewCard(
             width = if (selected) 2.dp else 1.dp,
             color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
         ),
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Column(
-            modifier = Modifier.padding(6.dp),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp)),
+            modifier = Modifier.padding(horizontal = appSpacingV4(7.dp), vertical = appSpacingV4(5.dp)),
+            verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
         ) {
-            Text(choice.label, style = MaterialTheme.typography.labelMedium, maxLines = 2)
-            Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp))) {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(scheme.background, MaterialTheme.shapes.extraSmall),
-                )
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(scheme.surfaceVariant, MaterialTheme.shapes.extraSmall),
-                )
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(scheme.primary, MaterialTheme.shapes.extraSmall),
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(choice.label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, maxLines = 2)
+                Surface(
+                    modifier = Modifier.size(16.dp),
+                    shape = CircleShape,
+                    color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    border = BorderStroke(1.5.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
+                ) {}
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                ThemePaletteSwatchV4(palette.background)
+                ThemePaletteSwatchV4(palette.surface)
+                ThemePaletteSwatchV4(palette.primary)
             }
         }
     }
+}
+
+@Composable
+private fun ThemePaletteSwatchV4(color: Color) {
+    Surface(
+        modifier = Modifier.size(18.dp),
+        shape = MaterialTheme.shapes.extraSmall,
+        color = color,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {}
 }
 
 @Composable
@@ -937,7 +1264,7 @@ private fun <T> SettingSelector(
     var expanded by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(3.dp)),
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge)
         OutlinedButton(

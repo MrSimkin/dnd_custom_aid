@@ -1,0 +1,113 @@
+CREATE TABLE character_owned_subclass_identity (
+    id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    parent_class_id TEXT NOT NULL,
+    definition_key TEXT,
+    UNIQUE(character_id, parent_class_id)
+);
+
+CREATE TABLE character_owned_species_identity (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    id TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    definition_key TEXT,
+    rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED'
+);
+
+CREATE TABLE character_owned_subrace_identity (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    id TEXT NOT NULL UNIQUE,
+    parent_species_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    definition_key TEXT,
+    rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED'
+);
+
+CREATE TABLE character_owned_background_identity (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    id TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    definition_key TEXT,
+    rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED'
+);
+
+CREATE TABLE character_trait_provenance (
+    trait_id TEXT NOT NULL PRIMARY KEY,
+    character_id TEXT NOT NULL REFERENCES character(id) ON DELETE CASCADE,
+    provenance_kind TEXT NOT NULL,
+    target_id TEXT,
+    free_text TEXT,
+    legacy_text TEXT
+);
+
+insertSubclassIdentity:
+INSERT OR REPLACE INTO character_owned_subclass_identity(
+    id, character_id, parent_class_id, definition_key
+)
+VALUES (?, ?, ?, ?);
+
+selectSubclassIdentities:
+SELECT id, character_id, parent_class_id, definition_key
+FROM character_owned_subclass_identity
+WHERE character_id = ?
+ORDER BY parent_class_id, id;
+
+deleteSubclassIdentities:
+DELETE FROM character_owned_subclass_identity WHERE character_id = ?;
+
+upsertSpeciesIdentity:
+INSERT OR REPLACE INTO character_owned_species_identity(
+    character_id, id, name, definition_key, rules_family
+)
+VALUES (?, ?, ?, ?, ?);
+
+selectSpeciesIdentity:
+SELECT character_id, id, name, definition_key, rules_family
+FROM character_owned_species_identity
+WHERE character_id = ?;
+
+deleteSpeciesIdentity:
+DELETE FROM character_owned_species_identity WHERE character_id = ?;
+
+upsertSubraceIdentity:
+INSERT OR REPLACE INTO character_owned_subrace_identity(
+    character_id, id, parent_species_id, name, definition_key, rules_family
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectSubraceIdentity:
+SELECT character_id, id, parent_species_id, name, definition_key, rules_family
+FROM character_owned_subrace_identity
+WHERE character_id = ?;
+
+deleteSubraceIdentity:
+DELETE FROM character_owned_subrace_identity WHERE character_id = ?;
+
+upsertBackgroundIdentity:
+INSERT OR REPLACE INTO character_owned_background_identity(
+    character_id, id, name, definition_key, rules_family
+)
+VALUES (?, ?, ?, ?, ?);
+
+selectBackgroundIdentity:
+SELECT character_id, id, name, definition_key, rules_family
+FROM character_owned_background_identity
+WHERE character_id = ?;
+
+deleteBackgroundIdentity:
+DELETE FROM character_owned_background_identity WHERE character_id = ?;
+
+insertTraitProvenance:
+INSERT OR REPLACE INTO character_trait_provenance(
+    trait_id, character_id, provenance_kind, target_id, free_text, legacy_text
+)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectTraitProvenance:
+SELECT trait_id, character_id, provenance_kind, target_id, free_text, legacy_text
+FROM character_trait_provenance
+WHERE character_id = ?
+ORDER BY trait_id;
+
+deleteTraitProvenance:
+DELETE FROM character_trait_provenance WHERE character_id = ?;
