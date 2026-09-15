@@ -26,6 +26,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRetryState
 import kotlinx.coroutines.launch
 
 /**
@@ -36,13 +39,18 @@ import kotlinx.coroutines.launch
  */
 class HostedDevAuthActivity : ComponentActivity() {
     private val authController by lazy { AndroidHostedAuthController() }
+    private val database by lazy { AndroidDatabaseFactory(applicationContext).create() }
+    private val hostedOutbox by lazy { HostedOutboxRepository(database) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    HostedDevAuthScreen(authController)
+                    HostedDevAuthScreen(
+                        authController = authController,
+                        describeHostedOutbox = ::describeHostedOutbox,
+                    )
                 }
             }
         }
@@ -52,10 +60,29 @@ class HostedDevAuthActivity : ComponentActivity() {
         authController.close()
         super.onDestroy()
     }
+
+    private fun describeHostedOutbox(): String {
+        val mutations = hostedOutbox.allMutations()
+        if (mutations.isEmpty()) {
+            return "Outbox local: vacío. No hay cambios hospedados pendientes ni bloqueados."
+        }
+
+        val ready = mutations.count { it.retryState == HostedRetryState.READY }
+        val blocked = mutations.count { it.retryState == HostedRetryState.BLOCKED }
+        val details = mutations.joinToString(separator = "\n") { mutation ->
+            val expectedRevision = mutation.expectedRevision?.toString() ?: "n/a"
+            val errorCode = mutation.lastErrorCode ?: "sin error registrado"
+            "${mutation.type} | ${mutation.retryState} | intentos=${mutation.attemptCount} | expectedRevision=$expectedRevision | error=$errorCode"
+        }
+        return "Outbox local: total=${mutations.size}, READY=$ready, BLOCKED=$blocked\n$details"
+    }
 }
 
 @Composable
-private fun HostedDevAuthScreen(authController: AndroidHostedAuthController) {
+private fun HostedDevAuthScreen(
+    authController: AndroidHostedAuthController,
+    describeHostedOutbox: () -> String,
+) {
     var email by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var otpRequested by remember { mutableStateOf(false) }
@@ -106,6 +133,16 @@ private fun HostedDevAuthScreen(authController: AndroidHostedAuthController) {
             text = status,
             style = MaterialTheme.typography.bodyMedium,
         )
+
+        Button(
+            enabled = !busy,
+            onClick = {
+                status = describeHostedOutbox()
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Diagnosticar outbox local")
+        }
 
         if (hasSession) {
             Button(
