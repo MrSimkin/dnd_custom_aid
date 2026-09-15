@@ -1,6 +1,6 @@
 # Roadmap
 
-This roadmap defines the current development sequence. Detailed product behavior remains controlled by the approved decision records and current checkpoints.
+This roadmap defines the current development sequence. Detailed product behavior remains controlled by approved decision records and current checkpoints.
 
 ## Phase 0 — Project Foundation
 
@@ -10,17 +10,17 @@ This roadmap defines the current development sequence. Detailed product behavior
 
 **Status:** Current integrated-MVP product definition complete.
 
-The DM Desktop/Manager scope, exact MVP boundary, implementation governance and complete PC Sheet PDF-export behavior are closed. Reopen product discovery only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
+The DM Desktop/Manager scope, exact MVP boundary, implementation governance and PC Sheet PDF-export behavior are closed. Reopen product discovery only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
 
 ## Phase 2 — Technical Foundation
 
 **Status:** Architecture/readiness complete; implementation authorized; integrated trunk established.
 
-Approved foundation remains Kotlin/Compose Android, Kotlin + Compose Multiplatform Desktop, SQLDelight/SQLite local persistence, TypeScript Cloudflare Worker/API, Neon PostgreSQL and Descope authentication.
+Approved foundation remains Kotlin/Compose Android, Kotlin + Compose Multiplatform Desktop, SQLDelight/SQLite local persistence, TypeScript Cloudflare Worker/API, Neon PostgreSQL and Descope identity proof.
 
-Preferred delegated technical direction remains Ktor Client, versioned HTTP/JSON API, optimistic revisions + mutation IDs, project-specific SQLDelight outbox/push-pull sync, explicit SQL migrations, hosted PC JSONB snapshots plus relational auth/index metadata, versioned app-owned import/export, on-demand versioned backups and one canonical PC/export snapshot for cross-surface PDF generation.
+Preferred technical direction remains Ktor Client, versioned HTTP/JSON API, optimistic revisions + mutation IDs, project-specific SQLDelight outbox/push-pull sync, explicit SQL migrations, hosted PC JSONB snapshots plus relational auth/index metadata, versioned app-owned import/export, on-demand versioned backups and one canonical PC/export snapshot for cross-surface PDF generation.
 
-Cloudflare R2 Standard remains the current object-storage recommendation but has not been activated.
+Object storage is required by the MVP but provider selection remains deferred until Media/Handouts/assets reach implementation. Do not assume R2 merely because Cloudflare is already active.
 
 ## Phase 3 — First Vertical Slice
 
@@ -30,14 +30,11 @@ Cloudflare R2 Standard remains the current object-storage recommendation but has
 
 **Status:** Mature runtime integrated into the current baseline; historical physical evidence remains bounded.
 
-The former Player successor head at convergence was `b9dea8ad6b17dcf3feeabba263eff1ee498f1536`.
-
 Historical frozen candidate:
 
 - `0.4.0-preqa.13 / 41300`;
 - commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
 - Scaffold `34801612526` / #1630 — SUCCESS;
-- artifact `10331503478`;
 - targeted physical cross-device revalidation was still pending at that old boundary.
 
 Its runtime/migrations/tests/guard scripts are integrated into `main`. Do not restart historical repair cycles without new evidence.
@@ -46,13 +43,13 @@ Its runtime/migrations/tests/guard scripts are integrated into `main`. Do not re
 
 **Status:** **IN PROGRESS — owner implementation authorization granted.**
 
-Current verified hosted/sync checkpoint:
+Current provider-neutral implementation checkpoint:
 
-`734477b4e276810de1581dbc2d0a8458ad953f85`
+`8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
 
 Validation run:
 
-`34979121449` — **SUCCESS**.
+`34985799585` — **SUCCESS**.
 
 The build targets one coherent product:
 
@@ -83,43 +80,59 @@ Implemented shared semantics include:
 - tombstones/non-resurrection;
 - Personal/Campaign/System-or-Official scopes where valid;
 - independent-copy provenance;
-- basic sync metadata and invariant tests.
-
-The implementation deliberately avoided pre-modeling every future domain entity or creating a giant universal `SyncEntity` abstraction.
+- sync metadata and invariant tests.
 
 ### Wave 3 — Hosted foundation
 
-**Status:** **IN PROGRESS.**
+**Status:** COMPLETE / INTEGRATED / REAL DEV ENVIRONMENT VERIFIED.
 
-Already integrated through PR #21:
+Provider-neutral hosted work is integrated through PR #25 and includes:
 
-- shared spine contracts used by hosted/client work;
 - `/v1` hosted API/auth/domain foundation;
-- hosted PostgreSQL migrations/contracts + CI validation;
+- explicit PostgreSQL migrations/contracts + CI validation;
 - shared Android/Desktop HTTP transport;
+- provider-neutral access-token boundary;
 - durable SQLDelight hosted outbox;
 - local-first campaign creation + idempotent hosted delivery;
-- authenticated account/campaign bootstrap into local state with revision/tombstone/conflict protection.
+- authenticated account/campaign bootstrap;
+- campaign membership lifecycle reconciliation;
+- hosted PC current-state snapshots;
+- server-side application authorization;
+- optimistic revisions/idempotency/conflict/tombstone semantics;
+- safe same-identity hosted reconciliation.
 
-**Next package:** explicit hosted campaign/membership lifecycle and scoped change semantics so clients consume real lifecycle/removal events rather than infer them from absence in a list/bootstrap response.
+The first real DEV provider gate has also been completed:
 
-After that, continue toward hosted PC current-state/snapshot sync, application-owned authorization completion, audit/recovery/backup foundations, and other hosted dependencies in the order they become necessary.
+- Neon migration + real contract tests verified;
+- Descope real OTP login verified;
+- Cloudflare Worker deployed;
+- real authenticated `/v1/me` -> application user -> Neon persistence verified;
+- representative Workers Free CPU/runtime proof passed for the tested authenticated path.
 
-Do not introduce generalized event sourcing, CRDTs, a generic sync platform, queues or realtime infrastructure by default.
+See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`.
 
-#### Provider activation gate
+Do not repeat provider activation and do not introduce generalized event sourcing, CRDTs, queues, WebSockets or a generic sync platform by default.
 
-No external provider resource needs to be created yet.
+### Wave 4 — Player <-> Server end-to-end
 
-Activate the first real hosted development environment only after the remaining local campaign/membership change semantics are stable and before Wave 4 remembered-auth/real-hosted-PC integration reaches the owner-facing Player flow.
+**Status:** NEXT ACTIVE IMPLEMENTATION WAVE.
 
-At that gate activate Cloudflare Worker/API runtime, Neon PostgreSQL and Descope authentication. Start with development/test resources and keep credentials outside Git. R2 remains deferred until Media/Handouts/assets actually require object storage.
+Preserve the mature Player UX/runtime while wiring the real hosted environment through existing contracts.
 
-### Wave 4 — Player ↔ Server end-to-end
+Dependency order:
 
-Preserve the mature Player UX/runtime while adding remembered authentication, campaigns, hosted PC sync, conflicts/freshness, assets/history and public combat projection foundations.
+1. remembered Android Descope session/token acquisition at the platform edge;
+2. feed token into the existing `HostedAccessTokenProvider` seam;
+3. owner-facing hosted account/campaign bootstrap;
+4. campaign create/select + durable hosted delivery while preserving local-first behavior;
+5. PC snapshot push/pull;
+6. second-device observation;
+7. offline edit/reconnect/convergence;
+8. membership-revoke and Player/DM authorization validation.
 
-Establish the canonical PC/export snapshot used later by all PDF-export surfaces.
+Future materially heavier Worker routes should receive representative CPU/runtime profiling. Do not silently move to paid Workers if a route exceeds the Free budget; reassess under D-0075.
+
+Establish the canonical PC/export snapshot used later by all PDF-export surfaces as dependencies become available.
 
 ### Wave 5 — Desktop shell + Campaign Administration
 
@@ -127,11 +140,13 @@ Build the real Desktop navigation/workbench and Campaign Manager on the same sha
 
 ### Wave 6 — reusable/persistent content architecture
 
-Establish Personal → Campaign independent-copy/provenance semantics for Monsters, NPCs, Homebrew/Rules, Places/Zones, Encounters and related reusable material.
+Establish Personal -> Campaign independent-copy/provenance semantics for Monsters, NPCs, Homebrew/Rules, Places/Zones, Encounters and related reusable material.
 
 ### Wave 7 — Desktop authoring Managers
 
 Implement Monster/Creature Creator, NPC, Homebrew & Rules, Stage/Place, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts authoring/management workflows.
+
+Object-storage provider selection/activation occurs only when Media/Handouts/assets actually require it and must receive a fresh `$0` review.
 
 Cross-surface PC Sheet PDF export may be implemented across Waves 4–7 as dependencies become available; it must use one canonical semantic export path rather than separate incompatible exporters.
 
@@ -145,7 +160,7 @@ Implement local-first single-device combat authority, hosted opportunistic excha
 
 ### Wave 10 — SRD retrieval + grounded clarification
 
-Complete SRD 5.1/5.2.1 PostgreSQL retrieval and grounded Player/DM natural-language clarification. Homebrew-aware AI remains post-MVP.
+Complete SRD 5.1/5.2.1 PostgreSQL retrieval and grounded Player/DM natural-language clarification. Workers AI remains a conditional later provider only while it can be used safely at `$0`. Homebrew-aware AI remains post-MVP.
 
 ### Wave 11 — backup/recovery/operator completion
 
@@ -154,6 +169,20 @@ Complete verifiable full server backup/export, meaningful recovery/admin tooling
 ### Wave 12 — integrated owner-facing QA
 
 Exercise representative Player + Server + DM flows together, including auth/campaigns, PC sync/audit, content copies, authoring, live combat/handoff, offline/reconnect, backup, PDF export and official-SRD clarification.
+
+## Security work across waves
+
+Security is continuous rather than a separate enterprise phase. Current visible residuals include:
+
+- JWT/fail-closed verification review;
+- object-level authorization regression coverage;
+- SQL/query and error/log hygiene;
+- replay/idempotency authorization;
+- exact investigation of the locally reported **3 high severity npm vulnerabilities**;
+- least-privilege Neon runtime-role evaluation;
+- production Descope region/configuration review.
+
+Do not run `npm audit fix --force` blindly and do not make destructive live privilege/credential changes without a deliberate plan.
 
 ## Integrated-MVP protection
 
@@ -169,4 +198,4 @@ Still deferred unless concrete evidence requires them: full VTT/grid/LOS/fog, au
 
 The owner decides product behavior/workflow/scope/privacy and meaningful cost/security/convenience tradeoffs. Technical agents own routine schema/API/class/migration/sync/rendering/test/package decisions.
 
-Do not stop for owner rubber-stamping of ordinary engineering. Escalate only material product/scope/security/privacy/cost/lock-in/destructive behavior, required external account/service actions, or manual/physical QA gates.
+Do not stop for owner rubber-stamping of ordinary engineering. Escalate only material product/scope/security/privacy/cost/lock-in/destructive behavior, required new external account/service actions, or manual/physical QA gates.
