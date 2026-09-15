@@ -43,8 +43,16 @@ class HostedPcSyncBaselineMigrationTest {
             assertEquals(characterId, stored.first)
             assertEquals(7L, stored.second)
             assertEquals("{\"fixture\":true}", stored.third)
-            assertEquals(1L, database.characterQueries.countCharacters().executeAsOne())
             driver.close()
+
+            DriverManager.getConnection(jdbcUrl).use { connection ->
+                connection.createStatement().use { statement ->
+                    statement.executeQuery("SELECT COUNT(*) FROM character WHERE id = '$characterId'").use { result ->
+                        result.next()
+                        assertEquals(1, result.getInt(1))
+                    }
+                }
+            }
         } finally {
             file.delete()
         }
