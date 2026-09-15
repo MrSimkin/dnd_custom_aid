@@ -85,6 +85,7 @@ class HostedOutboxRepository(
         ignoreUnknownKeys = true
         explicitNulls = false
     },
+    private val pcBaselines: HostedPcSyncBaselineRepository = HostedPcSyncBaselineRepository(database),
 ) {
     fun enqueueCampaignCreation(
         campaignId: Uuid,
@@ -240,6 +241,7 @@ class HostedOutboxRepository(
         require(stored.type == HostedMutationType.PC_SNAPSHOT_PUT && stored.objectId == pcId) {
             "Hosted PC acknowledgement identity does not match the queued mutation."
         }
+        val payload = pcSnapshotPayload(stored)
 
         database.transaction {
             database.integratedSpineQueries.upsertObjectSyncState(
@@ -248,6 +250,15 @@ class HostedOutboxRepository(
                 revision = resultingRevision,
                 deleted_at_epoch_seconds = deletedAtEpochSeconds,
             )
+            if (deletedAtEpochSeconds == null) {
+                pcBaselines.put(
+                    pcId = pcId,
+                    revision = resultingRevision,
+                    snapshot = payload.snapshot,
+                )
+            } else {
+                pcBaselines.delete(pcId)
+            }
             database.hostedOutboxQueries.acknowledgeMutation(mutationId.toString())
         }
     }
