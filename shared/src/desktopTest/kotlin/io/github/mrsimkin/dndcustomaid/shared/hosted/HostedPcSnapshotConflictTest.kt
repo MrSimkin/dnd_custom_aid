@@ -48,6 +48,78 @@ class HostedPcSnapshotConflictTest {
     }
 
     @Test
+    fun concurrentLocalAndHostedEditsAreExplicitConflictAndPreserveLocalData() = withDatabase { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val characters = CharacterRepository(database)
+        val original = characters.createCharacter(campaign.id, "Original")
+        val backups = CharacterBackupRepository(database)
+        val baselineDocument = backups.exportCharacter(original.id, 100)
+        val spine = IntegratedSpineRepository(database)
+        val baselines = HostedPcSyncBaselineRepository(database)
+        spine.putSyncMetadata("PC", original.id, SyncMetadata(revision = Revision(3)))
+        baselines.record(original.id, Revision(3), baselineDocument)
+
+        characters.saveCharacter(original.copy(name = "Local Offline Edit"))
+        val hostedDocument = baselineDocument.copy(
+            character = baselineDocument.character.copy(name = "Other Client Edit"),
+            exportedAtEpochSeconds = 110,
+        )
+        val remote = HostedPcSnapshot(
+            id = original.id,
+            campaignId = campaign.id,
+            name = hostedDocument.character.name,
+            revision = 4,
+            snapshotFormat = hostedDocument.format,
+            snapshotVersion = hostedDocument.version,
+            snapshot = hostedDocument,
+        )
+        val service = HostedPcSnapshotPullService(
+            database = database,
+            snapshotsProvider = { listOf(remote) },
+        )
+
+        val result = runBlocking { service.refreshCampaign(campaign.id) }
+
+        assertEquals(HostedPcPullConflictReason.LOCAL_AND_HOSTED_CHANGED, result.conflicts.single().reason)
+        assertEquals("Local Offline Edit", assertNotNull(characters.character(original.id)).name)
+        assertEquals(Revision(3), spine.syncMetadata("PC", original.id).revision)
+        assertEquals(Revision(3), assertNotNull(baselines.baseline(original.id)).revision)
+    }
+
+    @Test
+    fun serverNewerWithUnknownLegacyBaselineRefusesDestructiveGuess() = withDatabase { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val characters = CharacterRepository(database)
+        val local = characters.createCharacter(campaign.id, "Possibly Edited Local")
+        val backups = CharacterBackupRepository(database)
+        val hostedDocument = backups.exportCharacter(local.id, 100).copy(
+            character = local.copy(name = "Hosted Newer"),
+        )
+        val spine = IntegratedSpineRepository(database)
+        spine.putSyncMetadata("PC", local.id, SyncMetadata(revision = Revision(2)))
+        val remote = HostedPcSnapshot(
+            id = local.id,
+            campaignId = campaign.id,
+            name = hostedDocument.character.name,
+            revision = 3,
+            snapshotFormat = hostedDocument.format,
+            snapshotVersion = hostedDocument.version,
+            snapshot = hostedDocument,
+        )
+
+        val result = runBlocking {
+            HostedPcSnapshotPullService(
+                database = database,
+                snapshotsProvider = { listOf(remote) },
+            ).refreshCampaign(campaign.id)
+        }
+
+        assertEquals(HostedPcPullConflictReason.SYNC_BASELINE_MISSING, result.conflicts.single().reason)
+        assertEquals("Possibly Edited Local", assertNotNull(characters.character(local.id)).name)
+        assertEquals(Revision(2), spine.syncMetadata("PC", local.id).revision)
+    }
+
+    @Test
     fun staleServerConflictBlocksAutomaticRetryWithoutAdvancingLocalRevision() = withDatabase { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val character = CharacterRepository(database).createCharacter(campaign.id, "Simkin")
