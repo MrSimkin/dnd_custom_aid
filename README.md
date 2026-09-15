@@ -4,138 +4,126 @@ Personal/small-scale tabletop RPG assistant beginning with D&D, with Android Pla
 
 ## Start here
 
-This repository is designed so a new human collaborator, ChatGPT conversation, coding agent or other AI can resume from Git alone.
+This repository is designed so a new human collaborator, ChatGPT conversation or coding agent can resume from Git alone.
 
 Read in this order:
 
 1. `AGENTS.md` — mandatory operating rules;
-2. `MANIFEST.md` — map of authoritative/project-memory files and implemented areas;
-3. `docs/PROJECT_STATE.md` — authoritative current global state/navigation;
+2. `MANIFEST.md` — map of authoritative/project-memory files;
+3. `docs/PROJECT_STATE.md` — global state/navigation;
 4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/BRANCH_STATUS.md` — branch lifecycle map;
-6. `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` + relevant detailed records under `docs/decisions/`;
-7. `docs/CONVENTIONS.md`;
-8. `docs/PRODUCT.md`;
-9. `docs/ROADMAP.md`;
-10. `docs/WORKFLOW.md`;
-11. `docs/ARCHITECTURE.md`;
-12. `docs/TESTING.md`;
-13. relevant checkpoints/feature files.
+5. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0` provider/budget rule and owner-guidance contract;
+6. `docs/BRANCH_STATUS.md` — branch lifecycle map;
+7. `docs/DECISIONS_RECENT.md` + relevant detailed decisions;
+8. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`;
+9. relevant checkpoints/feature files.
 
-Current implementation checkpoint:
+Reusable lost-chat/fresh-chat recovery prompt:
 
-`docs/checkpoints/2026-09-15_PLAYER_SERVER_PROVIDER_BOUNDARY.md`
+`docs/recovery/PROJECT_RECOVERY_PROMPT.md`
 
-Provider activation handoff:
+Current provider activation handoff:
 
 `docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md`
 
 ## Current repository authority
 
-The owner has authorized integrated-MVP implementation. **`main` is the normal integrated-MVP development trunk.** The historical Player successor and convergence branches remain frozen evidence rather than normal resume points.
+The owner has authorized integrated-MVP implementation. **`main` is the normal integrated-MVP development trunk.** Historical Player/convergence branches remain evidence, not normal resume points.
 
 Current verified implementation checkpoint:
 
 `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
 
-Post-merge GitHub Actions run `34985799585` completed **SUCCESS**, including all Player guard scripts, shared/Kotlin tests, Android debug build, Desktop build, backend checks, hosted PostgreSQL contracts and APK artifact upload.
-
-Use short-lived outcome-oriented branches from current remote `main`; do not recreate permanent Player/Server/Desktop silos.
+Actions `34985799585` completed SUCCESS across Player guards, shared/Kotlin tests, Android, Desktop, backend, hosted PostgreSQL contracts and APK upload. PR #26 later consolidated the provider boundary; post-merge run `34986965813` was SUCCESS.
 
 ## Working relationship
 
-AI/coding agents perform heavy technical execution.
+AI/coding agents perform heavy technical execution. The owner decides actual product/workflow/UX/game-semantic/privacy/scope choices, external account/resource activation and meaningful cost/security/convenience/lock-in tradeoffs. Routine engineering must not be pushed back to the owner for ceremonial approval.
 
-The owner decides actual product/workflow/UX/game-semantic/privacy/scope decisions, external account/resource activation and meaningful cost/security/convenience/lock-in tradeoffs. Routine low-level engineering is delegated and must not be pushed back to the owner for ceremonial approval.
+The owner is technically oriented and a heavy/power user, understands programming concepts and can perform substantial hands-on work, but is **not a professional software developer**. Owner-facing instructions must therefore teach while guiding:
 
-Escalate a technical choice only when it materially changes product behavior, cost, privacy/security, irreversible lock-in, destructive behavior or approved scope.
+- plain-language `what` and `why` first;
+- real technical terminology explained rather than hidden;
+- explicit ordered actions;
+- what to expect to see after important steps;
+- clear secret/billing/security stop conditions;
+- ASCII diagrams, flows or wireframes when they improve understanding;
+- clear separation between owner actions and implementation handled by the technical agent.
 
-Use the simplest safe implementation that satisfies real approved requirements; do not import enterprise machinery without a concrete reason.
+Do not patronize the owner and do not assume professional-developer fluency.
+
+## Hard external-service budget
+
+External-service operating budget is **USD $0** unless the owner explicitly changes it.
+
+A headline free tier is not enough. Before activation, current official provider information must be checked for payment-method requirements, automatic overage/billing behavior, hard quota/failure behavior, region/data-location consequences and migration/lock-in.
+
+Prefer free services that fail/suspend/require explicit upgrade when exhausted. Never enable paid plans, paid add-ons, billing commitments or overage-enabled resources without explicit owner approval.
+
+## Repository visibility and security
+
+The GitHub repository is intentionally **public**. `private: false` is expected and is not a security discrepancy.
+
+Any older wording that says otherwise is superseded by D-0075.
+
+Never commit database credentials, provider API/admin/deployment tokens, access/refresh/session tokens, private keys or other confidentiality-dependent material. Public repository visibility makes disciplined secret handling especially important, but the same rule would apply even in a private repository.
 
 ## Approved architecture snapshot
 
-- Android: **Kotlin + Jetpack Compose**, minimum Android 11 / API 30.
-- Android phone/tablet are first-class live surfaces.
-- DM Desktop: **Kotlin + Compose Multiplatform Desktop**.
-- Local persistence: **SQLite + SQLDelight** where local/offline behavior matters.
-- Desktop: local Save + explicit Sync.
+- Android: Kotlin + Jetpack Compose, minimum Android 11 / API 30.
+- DM Desktop: Kotlin + Compose Multiplatform Desktop.
+- Local persistence: SQLite + SQLDelight where local/offline behavior matters.
 - Hosted relational database: **Neon PostgreSQL**.
 - Backend/API: **Cloudflare Worker**, TypeScript.
 - Authentication proof: **Descope**; application/domain authorization remains project-owned.
 - Native clients do not connect directly to Neon or hold DB credentials.
-- Shared native HTTP: **Ktor Client**.
+- Shared native HTTP: Ktor Client.
 - Project-specific sync: stable IDs, revisions, idempotent mutations, durable outbox, tombstones, scoped pull/push and explicit conflict handling.
 - Hosted PC current state: versioned application-owned JSONB snapshot plus relational authorization/revision/lifecycle metadata.
-- Object storage is MVP; **Cloudflare R2 Standard is the current technical recommendation**, but R2 is deliberately deferred until asset work.
-- Ordinary HTTP/request-response and polling are preferred before generalized realtime infrastructure.
+- Workers AI remains the approved official-SRD clarification direction while safely usable under the `$0` policy.
+- Object storage is MVP but the provider decision is **deferred** until Media/Handouts/assets reach integration; R2 is a candidate, not an assumption.
 - Full verifiable server backup/export is MVP.
-- Official SRD clarification uses PostgreSQL FTS + grounded replaceable LLM and remains official-SRD-only for MVP.
 - PC Sheet PDF export is local/offline and cross-surface with one canonical semantic export path.
-
-See `docs/ARCHITECTURE.md`, `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` and the current checkpoint for detail.
 
 ## Current implementation state
 
 Wave 2 — Shared Integrated-MVP Spine — is complete.
 
-Provider-neutral hosted work is integrated through PR #25. The repository now includes:
+Provider-neutral hosted work is integrated through PR #25, including hosted API/database contracts, native hosted transport, provider-neutral token boundary, durable hosted outbox, local-first campaign delivery, membership lifecycle reconciliation, hosted PC current-state snapshot persistence/authorization, optimistic revision/idempotency/conflict/tombstone handling and safe same-identity reconciliation.
 
-- hosted `/v1` API/auth/domain behavior;
-- explicit hosted PostgreSQL migrations/contracts;
-- shared Android/Desktop hosted transport;
-- provider-neutral token boundary;
-- durable hosted outbox;
-- local-first campaign creation + idempotent hosted delivery;
-- hosted account/campaign bootstrap;
-- explicit campaign membership lifecycle/deletion reconciliation;
-- hosted PC current-state snapshot persistence and authorization;
-- PC optimistic revision/idempotency/conflict/tombstone semantics;
-- durable PC snapshot delivery;
-- safe same-identity PC reconciliation distinct from backup restore-as-copy.
+## Revalidated provider direction
+
+The completed MVP design was re-reviewed in September 2026 against the hard `$0` constraint rather than simply preserving old provider choices:
+
+- **Cloudflare Workers — KEEP**, conditional on an early representative free-tier CPU/runtime proof;
+- **Neon PostgreSQL — KEEP**;
+- **Descope — KEEP**, conditional on current Free-plan payment-method/region confirmation at activation;
+- **Workers AI — KEEP** while safely usable at `$0`;
+- **object storage — DEFER provider selection**.
 
 ## Exact current continuation
 
-The next meaningful package is **real authenticated Player↔Server development integration**.
+If no later checkpoint supersedes it, the next meaningful package is **real authenticated Player↔Server development integration**.
 
-The provider-neutral foundation is sufficiently complete. Owner-facing Android is still intentionally local-only at composition level; remembered Descope auth/session and real hosted campaign/PC round trips are not yet wired into Player UI.
+Provider-neutral prerequisites are sufficiently complete. Before owner-facing hosted wiring, owner-controlled free development/test resources are needed for Cloudflare + Neon + Descope. Use current official provider information immediately before setup.
 
-That means the first external-provider activation gate has now been reached.
+The expected path is:
 
-Before continuing that package, the owner must authorize/create development resources for:
+```text
+Android / Desktop
+      |
+      v
+Cloudflare Worker/API <---- Descope identity proof
+      |
+      v
+Neon PostgreSQL
+```
 
-1. **Cloudflare** — Worker/API runtime;
-2. **Neon** — PostgreSQL;
-3. **Descope** — authentication/identity.
+Then: remembered Android auth/session -> hosted campaign bootstrap/create/select -> PC snapshot push/pull -> second-device/offline/reconnect/revoke validation.
 
-Then implementation continues with remembered Android auth/session feeding the existing shared token seam, hosted campaign bootstrap/create/select, hosted PC push/pull and real two-device/offline/reconnect/revoke validation.
+Run an early representative Cloudflare free-tier CPU/runtime proof before deepening client integration. If it does not fit reliably at `$0`, reassess the API host rather than silently moving to paid infrastructure.
 
-Do not create additional parallel auth/networking/sync abstractions merely to postpone this gate.
-
-## External-service safety
-
-Provider activation is not implied by general implementation authorization. Accounts/resources remain owner-controlled.
-
-Immediately before activation, verify current provider plans, region/data-location options, pricing/quotas and relevant security/privacy/lock-in implications. Use development/test resources first.
-
-Never commit database credentials, provider API tokens, bearer/session tokens, private keys or deployment credentials. Use provider/runtime secret stores or ignored local configuration.
-
-R2 is **not** part of the first activation gate.
-
-At the current checkpoint, GitHub repository metadata reports `private: false` even though the project has previously been described conversationally as private. The owner should verify intended visibility before provider integration. Do not change repository visibility autonomously.
-
-## Historical Player evidence
-
-The mature Player runtime from `implementation/phase4a-successor-cycle` is integrated into the normal baseline.
-
-Historical frozen candidate remains evidence only:
-
-- version `0.4.0-preqa.13` / build `41300`;
-- candidate commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
-- Scaffold `34801612526` / #1630 — SUCCESS;
-- artifact `10331503478` / `dnd-custom-aid-debug-apk`;
-- targeted physical cross-device revalidation was pending at that historical boundary.
-
-New integrated CI success does not retroactively claim physical acceptance of that old candidate.
+R2/object storage is not part of the first activation gate.
 
 ## Integrated MVP scope
 
@@ -157,8 +145,6 @@ Kotlin / Android / Desktop / SQLDelight:
 gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
 ```
 
-Permanent Player guard scripts are part of the Scaffold workflow.
-
 Backend:
 
 ```bash
@@ -167,8 +153,4 @@ npm install
 npm run check
 ```
 
-Hosted PostgreSQL contracts are also exercised by Scaffold CI against PostgreSQL. See `docs/TESTING.md` for verification strategy.
-
-## Development signing note
-
-Development CI uses a stable **debug-only** Android signing identity so successive QA APKs can update one another in place and exercise migrations. It is not a production/release identity.
+Hosted PostgreSQL contracts are also exercised by Scaffold CI. See `docs/TESTING.md` for verification strategy.
