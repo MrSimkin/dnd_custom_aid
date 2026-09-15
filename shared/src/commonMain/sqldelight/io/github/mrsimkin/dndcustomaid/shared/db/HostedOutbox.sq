@@ -1,0 +1,73 @@
+CREATE TABLE hosted_outbox (
+    mutation_id TEXT NOT NULL PRIMARY KEY,
+    campaign_id TEXT NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,
+    mutation_type TEXT NOT NULL,
+    object_id TEXT NOT NULL,
+    expected_revision INTEGER CHECK (expected_revision IS NULL OR expected_revision >= 0),
+    payload_json TEXT NOT NULL CHECK (length(trim(payload_json)) > 0),
+    retry_state TEXT NOT NULL DEFAULT 'READY' CHECK (retry_state IN ('READY', 'BLOCKED')),
+    attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+    created_at_epoch_seconds INTEGER NOT NULL CHECK (created_at_epoch_seconds >= 0),
+    last_attempt_at_epoch_seconds INTEGER CHECK (
+        last_attempt_at_epoch_seconds IS NULL OR last_attempt_at_epoch_seconds >= 0
+    ),
+    last_error_code TEXT,
+    last_error_message TEXT
+);
+
+CREATE INDEX hosted_outbox_ready_idx
+ON hosted_outbox(retry_state, created_at_epoch_seconds, mutation_id);
+
+insertMutation:
+INSERT INTO hosted_outbox(
+    mutation_id,
+    campaign_id,
+    mutation_type,
+    object_id,
+    expected_revision,
+    payload_json,
+    retry_state,
+    attempt_count,
+    created_at_epoch_seconds,
+    last_attempt_at_epoch_seconds,
+    last_error_code,
+    last_error_message
+)
+VALUES (?, ?, ?, ?, ?, ?, 'READY', 0, ?, NULL, NULL, NULL);
+
+selectMutation:
+SELECT *
+FROM hosted_outbox
+WHERE mutation_id = ?;
+
+selectReadyMutations:
+SELECT *
+FROM hosted_outbox
+WHERE retry_state = 'READY'
+ORDER BY created_at_epoch_seconds, mutation_id
+LIMIT :row_limit;
+
+selectAllMutations:
+SELECT *
+FROM hosted_outbox
+ORDER BY created_at_epoch_seconds, mutation_id;
+
+recordAttemptFailure:
+UPDATE hosted_outbox
+SET retry_state = ?,
+    attempt_count = attempt_count + 1,
+    last_attempt_at_epoch_seconds = ?,
+    last_error_code = ?,
+    last_error_message = ?
+WHERE mutation_id = ?;
+
+markReady:
+UPDATE hosted_outbox
+SET retry_state = 'READY',
+    last_error_code = NULL,
+    last_error_message = NULL
+WHERE mutation_id = ?;
+
+acknowledgeMutation:
+DELETE FROM hosted_outbox
+WHERE mutation_id = ?;
