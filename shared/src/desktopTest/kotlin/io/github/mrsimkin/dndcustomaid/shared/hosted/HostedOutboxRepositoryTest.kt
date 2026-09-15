@@ -32,7 +32,7 @@ class HostedOutboxRepositoryTest {
         assertEquals(campaign.id, mutation.objectId)
         assertEquals(HostedMutationType.CAMPAIGN_CREATE, mutation.type)
         assertEquals(HostedRetryState.READY, mutation.retryState)
-        assertEquals(0, mutation.attemptCount)
+        assertEquals(0L, mutation.attemptCount)
         assertEquals(mutationId, payload.mutationId)
         assertEquals(campaign.id, payload.campaignId)
         assertEquals("Terramore", payload.name)
@@ -59,8 +59,8 @@ class HostedOutboxRepositoryTest {
         val stored = requireNotNull(repository.mutation(mutation.mutationId))
         assertEquals(mutation.mutationId, stored.mutationId)
         assertEquals(HostedRetryState.READY, stored.retryState)
-        assertEquals(1, stored.attemptCount)
-        assertEquals(120, stored.lastAttemptAtEpochSeconds)
+        assertEquals(1L, stored.attemptCount)
+        assertEquals(120L, stored.lastAttemptAtEpochSeconds)
         assertEquals("TRANSIENT_FAILURE", stored.lastErrorCode)
         assertEquals(listOf(mutation.mutationId), repository.readyMutations().map { it.mutationId })
     }
@@ -90,7 +90,7 @@ class HostedOutboxRepositoryTest {
 
         val ready = requireNotNull(repository.mutation(mutation.mutationId))
         assertEquals(HostedRetryState.READY, ready.retryState)
-        assertEquals(1, ready.attemptCount)
+        assertEquals(1L, ready.attemptCount)
         assertNull(ready.lastErrorCode)
         assertNull(ready.lastErrorMessage)
     }
