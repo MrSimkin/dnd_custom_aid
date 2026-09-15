@@ -34,6 +34,24 @@ class IntegratedSpineRepositoryTest {
     }
 
     @Test
+    fun updatingAccountIdentityDoesNotDropCampaignMembershipOrPcAuthority() = withDatabase { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val character = CharacterRepository(database).createCharacter(campaign.id, "Vanya")
+        val repository = IntegratedSpineRepository(database)
+        val account = AccountIdentity(Uuid.random(), externalSubject = "descope-player", displayName = "Old name")
+
+        repository.upsertAccount(account)
+        repository.upsertMembership(CampaignMembership(campaign.id, account.id, CampaignRole.PLAYER))
+        repository.setPcAuthority(PcAuthority(character.id, account.id, account.id))
+
+        repository.upsertAccount(account.copy(displayName = "New name"))
+
+        assertEquals("New name", repository.account(account.id)?.displayName)
+        assertEquals(CampaignRole.PLAYER, repository.membership(campaign.id, account.id)?.role)
+        assertEquals(PcAuthority(character.id, account.id, account.id), repository.pcAuthority(character.id))
+    }
+
+    @Test
     fun inactiveMemberCannotBeNewPcOwnerOrController() = withDatabase { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val character = CharacterRepository(database).createCharacter(campaign.id, "Vanya")
