@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.shared.hosted
 
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
@@ -54,6 +55,8 @@ class HostedPcSnapshotQueueService(
 enum class HostedPcPullConflictReason {
     LOCAL_REVISION_AHEAD,
     LOCAL_TOMBSTONE,
+    LOCAL_UNSENT_CHANGES,
+    LOCAL_BASELINE_UNKNOWN,
 }
 
 data class HostedPcPullConflict(
@@ -82,6 +85,7 @@ class HostedPcSnapshotPullService(
     private val database: AppDatabase,
     private val backups: CharacterBackupRepository = CharacterBackupRepository(database),
     private val spine: IntegratedSpineRepository = IntegratedSpineRepository(database),
+    private val baselines: HostedPcSyncBaselineRepository = HostedPcSyncBaselineRepository(database),
     private val snapshotsProvider: suspend (Uuid) -> List<HostedPcSnapshot>,
 ) {
     constructor(
@@ -110,13 +114,19 @@ class HostedPcSnapshotPullService(
             hosted.sortedBy { it.id.toString() }.forEach { remote ->
                 val hostedRevision = Revision(remote.revision)
                 val localMetadata = spine.syncMetadata(PC_SYNC_TYPE, remote.id)
-                val localCharacter = backupsCharacter(remote.id)
+                val localSnapshot = localSnapshot(remote.id)
 
                 if (remote.deletedAtEpochSeconds != null) {
-                    if (localMetadata.revision > hostedRevision) {
+                    val conflictReason = localConflictAgainstNewerHostedState(
+                        pcId = remote.id,
+                        localMetadata = localMetadata,
+                        hostedRevision = hostedRevision,
+                        localSnapshot = localSnapshot,
+                    )
+                    if (conflictReason != null) {
                         conflicts += HostedPcPullConflict(
                             pcId = remote.id,
-                            reason = HostedPcPullConflictReason.LOCAL_REVISION_AHEAD,
+                            reason = conflictReason,
                             localRevision = localMetadata.revision,
                             hostedRevision = hostedRevision,
                         )
@@ -131,6 +141,7 @@ class HostedPcSnapshotPullService(
                             deletedAtEpochSeconds = remote.deletedAtEpochSeconds,
                         ),
                     )
+                    baselines.delete(remote.id)
                     // Hosted deletion revokes the synchronized current state but deliberately keeps
                     // local character data for recovery/audit instead of destructively deleting it.
                     tombstoned += remote.id
@@ -157,11 +168,29 @@ class HostedPcSnapshotPullService(
                     return@forEach
                 }
 
-                if (localCharacter != null && localMetadata.revision == hostedRevision) {
+                if (localSnapshot != null && localMetadata.revision == hostedRevision) {
                     // Equal revision means the server has no newer authoritative mutation. Preserve
-                    // the local aggregate rather than overwriting potentially unsent local edits.
+                    // any local edit, but remember exactly what the server looked like at this
+                    // revision so a later server-newer pull can detect concurrent local changes.
+                    baselines.put(remote.id, remote.revision, remote.snapshot)
                     applyAuthorityWhenLocallyResolvable(remote)
                     unchanged += remote.id
+                    return@forEach
+                }
+
+                val conflictReason = localConflictAgainstNewerHostedState(
+                    pcId = remote.id,
+                    localMetadata = localMetadata,
+                    hostedRevision = hostedRevision,
+                    localSnapshot = localSnapshot,
+                )
+                if (conflictReason != null) {
+                    conflicts += HostedPcPullConflict(
+                        pcId = remote.id,
+                        reason = conflictReason,
+                        localRevision = localMetadata.revision,
+                        hostedRevision = hostedRevision,
+                    )
                     return@forEach
                 }
 
@@ -172,6 +201,7 @@ class HostedPcSnapshotPullService(
                     objectId = remote.id,
                     metadata = SyncMetadata(revision = hostedRevision),
                 )
+                baselines.put(remote.id, remote.revision, remote.snapshot)
                 applied += remote.id
             }
         }
@@ -185,9 +215,33 @@ class HostedPcSnapshotPullService(
         )
     }
 
-    private fun backupsCharacter(characterId: Uuid): CharacterSheet? =
+    private fun localConflictAgainstNewerHostedState(
+        pcId: Uuid,
+        localMetadata: SyncMetadata,
+        hostedRevision: Revision,
+        localSnapshot: CharacterBackupDocument?,
+    ): HostedPcPullConflictReason? {
+        if (localMetadata.revision > hostedRevision) {
+            return HostedPcPullConflictReason.LOCAL_REVISION_AHEAD
+        }
+        if (localSnapshot == null || localMetadata.revision >= hostedRevision) {
+            return null
+        }
+
+        val baseline = baselines.baseline(pcId)
+            ?: return HostedPcPullConflictReason.LOCAL_BASELINE_UNKNOWN
+        if (baseline.revision != localMetadata.revision.value) {
+            return HostedPcPullConflictReason.LOCAL_BASELINE_UNKNOWN
+        }
+        if (baseline.snapshot != normalizeHostedPcSnapshot(localSnapshot)) {
+            return HostedPcPullConflictReason.LOCAL_UNSENT_CHANGES
+        }
+        return null
+    }
+
+    private fun localSnapshot(characterId: Uuid): CharacterBackupDocument? =
         try {
-            backups.exportCharacter(characterId, exportedAtEpochSeconds = 0).character
+            backups.exportCharacter(characterId, exportedAtEpochSeconds = 0)
         } catch (_: IllegalArgumentException) {
             null
         }
