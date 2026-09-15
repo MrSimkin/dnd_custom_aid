@@ -6,13 +6,15 @@ This file maps authoritative project-control files and implemented areas so a fr
 
 The owner has authorized integrated-MVP implementation. **`main` is the single normal integrated-MVP trunk.** Historical Player/convergence lines are evidence only.
 
-Verified implementation checkpoint:
+Provider-neutral implementation checkpoint:
 
 `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
 
-Actions `34985799585` — SUCCESS. PR #26 later consolidated the provider boundary; post-merge Actions `34986965813` — SUCCESS.
+Actions `34985799585` — SUCCESS.
 
-`docs/BRANCH_STATUS.md` controls branch lifecycle. `docs/checkpoints/LATEST.md` controls the practical resume point.
+Hosted DEV provider activation is now **COMPLETE / VERIFIED**. `docs/checkpoints/LATEST.md` controls the practical resume point and `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` is the current hosted-environment checkpoint.
+
+`docs/BRANCH_STATUS.md` controls branch lifecycle.
 
 ## Start/resume control files
 
@@ -25,36 +27,39 @@ Mandatory operating rules for humans and AI/coding agents. Routine engineering i
 ### `docs/checkpoints/LATEST.md`
 Exact practical resume pointer and current supersession/correction rules.
 
+### `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
+Current hosted DEV environment truth: real Neon/Descope/Cloudflare resources, migration/auth/persistence/runtime evidence, local-development caveats, security residuals and exact Player <-> Server continuation.
+
 ### `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`
 Controlling owner policy for:
 
 - external-service budget = **USD $0** unless explicitly changed;
 - free-tier billing/overage/hard-cap evaluation;
-- September 2026 provider revalidation;
+- provider revalidation;
 - intentional public GitHub repository visibility;
 - strict secret hygiene;
 - owner-facing guidance style for a technically oriented power user who is not a professional developer.
 
 ### `docs/recovery/PROJECT_RECOVERY_PROMPT.md`
-Reusable fresh-chat/lost-chat recovery prompt carrying current resume rules, `$0` policy, security clarification, owner guidance style and provider boundary.
+Reusable whole-project fresh-chat/lost-chat recovery prompt. It must reconstruct the full project rather than merely the last provider task.
 
 ### `docs/checkpoints/2026-09-15_PLAYER_SERVER_PROVIDER_BOUNDARY.md`
-Provider-neutral hosted/sync implementation checkpoint and first real external-provider activation boundary. Where its old repository-visibility paragraph conflicts with D-0075/LATEST, D-0075 controls.
+Historical provider-boundary checkpoint capturing the state immediately before real provider activation. Its old `next` instructions are superseded by the hosted-activation completion checkpoint.
 
 ### `docs/PROJECT_STATE.md`
-Global implementation/product state. Older visibility-discrepancy wording is superseded by D-0075.
+Current global implementation/product state.
 
 ### `docs/BRANCH_STATUS.md`
-Canonical branch lifecycle map. Older visibility-discrepancy wording is superseded by D-0075.
+Canonical branch lifecycle map and current normal resume rule.
 
 ### `docs/ROADMAP.md`
 Integrated implementation waves and ordering.
 
 ### `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`
-Engineering handoff. Older visibility-discrepancy or assumed-R2 wording is superseded by D-0075 where it conflicts.
+Provider-neutral engineering handoff/contracts. Where it still describes provider creation as pending, the newer hosted completion checkpoint controls the current operational state.
 
 ### `docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md`
-Prepared safety/activation handoff for the first Cloudflare + Neon + Descope development environment, now hardened around the controlling `$0` policy and owner-guidance contract.
+Historical/operational record of the first Cloudflare + Neon + Descope activation gate, now updated to record that the gate has been completed and which items remain for later Player integration/security work.
 
 ## Controlling product/architecture decisions
 
@@ -71,7 +76,7 @@ Use `docs/DECISIONS_RECENT.md` for navigation to detailed decision records.
 - `docs/CONVENTIONS.md` — recurring conventions;
 - `docs/PRODUCT.md` — approved product scope;
 - `docs/WORKFLOW.md` — AI-led development/review workflow;
-- `docs/ARCHITECTURE.md` — integrated architecture;
+- `docs/ARCHITECTURE.md` — integrated architecture; older exact-resume text may be historical where superseded by `LATEST`;
 - `docs/TESTING.md` — verification strategy/evidence;
 - `docs/TEST_DEVICES.md` — owner-confirmed physical devices.
 
@@ -83,16 +88,16 @@ Historical checkpoints remain evidence; old `next` instructions may be supersede
 Kotlin Multiplatform domain/persistence/networking/sync foundation with SQLDelight, kotlinx.serialization and Ktor. Includes stable identities/revisions, hosted transport, durable outbox, campaign lifecycle sync and hosted PC snapshot reconciliation/conflict logic.
 
 ### `androidApp/`
-Mature Player Android runtime protected by permanent CI guards. Owner-facing composition remains intentionally local-only at the current provider boundary; remembered hosted authentication/session and real campaign/PC hosted wiring are the next external-environment-dependent package.
+Mature Player Android runtime protected by permanent CI guards. Owner-facing composition remains intentionally local-only at the current boundary; remembered real Descope authentication/session and real campaign/PC hosted wiring are the next implementation package.
 
 ### `desktopApp/`
-Compose Multiplatform Desktop foundation. Full approved DM Desktop workbench remains protected integrated-MVP work after Player↔Server contracts are proven end-to-end.
+Compose Multiplatform Desktop foundation. Full approved DM Desktop workbench remains protected integrated-MVP work after Player <-> Server contracts are proven end-to-end.
 
 ### `backend/`
-TypeScript Cloudflare Worker/API with `/v1` hosted routes, token-verifier boundaries, application-owned authorization, campaign/membership lifecycle and PC snapshot behavior.
+TypeScript Cloudflare Worker/API with `/v1` hosted routes, Descope/JWKS verification, application-owned authorization, campaign/membership lifecycle and PC snapshot behavior. The DEV Worker is deployed at the public workers.dev endpoint recorded in the hosted completion checkpoint.
 
 ### `database/`
-Explicit hosted PostgreSQL migrations/contracts validated in CI.
+Explicit hosted PostgreSQL migration/contracts validated in CI and additionally exercised against the real Neon DEV database during provider activation.
 
 ### `scripts/`
 Permanent Player guard scripts exercised by Scaffold CI.
@@ -102,25 +107,21 @@ PC Sheet PDF visual authorities; not the canonical PC model.
 
 ## Current integrated implementation position
 
-Wave 2 Shared Integrated-MVP Spine is complete. Provider-neutral Wave 3 hosted work is integrated through PR #25.
+Wave 2 Shared Integrated-MVP Spine is complete. Provider-neutral hosted foundation is integrated through PR #25. The first real hosted DEV environment is also activated and verified.
 
-The next meaningful package is **real authenticated Player↔Server development integration**, requiring owner-controlled development/test Cloudflare + Neon + Descope resources that satisfy D-0075's `$0` policy.
+The next meaningful package is **real authenticated Player <-> Server development integration**, using the already active Cloudflare + Neon + Descope DEV resources.
 
-Provider direction after revalidation:
+Do not restart provider activation. Do not create speculative parallel infrastructure.
 
-- Cloudflare Workers — KEEP, early free-tier CPU/runtime proof required;
-- Neon PostgreSQL — KEEP;
-- Descope — KEEP, current Free-plan payment/region confirmation required;
-- Workers AI — KEEP while safely usable at `$0`;
-- object storage — provider DEFERRED until asset integration.
-
-Do not create speculative parallel infrastructure merely to defer the provider gate.
+Object-storage provider selection remains deferred until real asset integration. Workers AI remains later/conditional under the `$0` policy.
 
 ## Security / repository visibility
 
 The GitHub repository is intentionally **public**. This is expected configuration, not a security discrepancy.
 
 Never commit provider credentials, database credentials, access/session tokens, private keys or other secrets.
+
+Security residuals visible at the current checkpoint include dependency-audit review, least-privilege Neon runtime-role evaluation, continued object-level authorization/JWT/query/log hardening and later production Descope-region/configuration review.
 
 ## Current integrated-MVP boundary
 
