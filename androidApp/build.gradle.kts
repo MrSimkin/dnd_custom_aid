@@ -49,6 +49,7 @@ android {
 
 dependencies {
     implementation(projects.shared)
+    implementation(libs.descope.kotlin)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation("androidx.compose.animation:animation")
