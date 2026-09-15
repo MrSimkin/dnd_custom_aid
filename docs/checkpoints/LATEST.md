@@ -7,9 +7,12 @@
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
 **Android hosted-session integration:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
 **Android hosted campaign bootstrap:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
-**Android hosted campaign + PC sync batch:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
+**Android hosted campaign + PC sync implementation:** **COMPLETE / VERIFIED**  
+**Campaign + PC delivery/recovery physical proof:** **PASS**  
+**Unchanged-repeat no-op physical confirmation:** **CARRIED FORWARD TO NEXT PHYSICAL GATE**  
 **Integrated campaign + PC sync commit:** `75d5acf354b41185255ff7d1a5eb4a689f300721`  
-**Post-merge validation:** Actions `35028893643` / #1940 — **SUCCESS**  
+**PR #34 exact-head validation:** Actions `35027987125` / #1939 — **SUCCESS**  
+**PR #34 post-merge validation:** Actions `35028893643` / #1940 — **SUCCESS**  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
@@ -17,22 +20,23 @@
 1. `AGENTS.md` — mandatory project operating rules;
 2. `README.md` — repository entry point;
 3. `MANIFEST.md` — project-memory/navigation map;
-4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — current Wave 4 checkpoint and exact continuation;
-5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
-6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
-7. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
-8. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
-9. `docs/PROJECT_STATE.md` — current global product/engineering state;
-10. `docs/BRANCH_STATUS.md` — branch lifecycle/resume rule;
-11. `docs/ROADMAP.md` — implementation-wave sequence;
-12. `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` — provider-neutral engineering contracts;
-13. `docs/recovery/PROJECT_RECOVERY_PROMPT.md` — reusable whole-project fresh-chat recovery prompt.
+4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_HANDOFF.md` — **current exact Wave 4 handoff and correction**;
+5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — integrated PR #34 record; superseded by the handoff only on the final no-op owner-observation detail;
+6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
+7. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
+8. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
+9. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
+10. `docs/PROJECT_STATE.md` — global product/engineering state;
+11. `docs/BRANCH_STATUS.md` — branch lifecycle/resume rule;
+12. `docs/ROADMAP.md` — implementation-wave sequence;
+13. `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` — provider-neutral engineering contracts;
+14. `docs/recovery/PROJECT_RECOVERY_PROMPT.md` — reusable fresh-chat recovery prompt.
 
-If older operational prose conflicts with this file or the current specific checkpoint, the newer specific checkpoint controls unless an even later approved decision/checkpoint supersedes it.
+If older operational prose conflicts with this file or the current handoff, the newer handoff controls unless an even later approved decision/checkpoint supersedes it.
 
 ## Important supersession/corrections
 
-The GitHub repository is intentionally **public** under D-0075. Any older wording treating `private: false` as an unexpected security/privacy discrepancy is superseded.
+The GitHub repository is intentionally **public** under D-0075. Any older wording treating `private: false` as an unexpected discrepancy is superseded.
 
 The first Cloudflare + Neon + Descope DEV activation is complete. Do not restart provider activation.
 
@@ -40,7 +44,9 @@ The Android Descope remembered-session edge is complete. Do not create a second 
 
 The ordinary Player hosted account/campaign bootstrap is complete. Do not treat read/bootstrap as pending.
 
-Campaign creation + durable hosted delivery and PC snapshot push/pull are now also complete and physically verified through PR #34. Do not restart those packages from scratch.
+PR #34 integrated local-first campaign creation + durable hosted delivery and PC snapshot push/pull. During real Android testing, a `PC_SNAPSHOT_PUT` was preserved as `BLOCKED` with `VALIDATION_FAILED`; the hosted JSON wire serializer was repaired to emit default-valued character-backup envelope fields, automated regression coverage was added, and the same preserved mutation was successfully retried and acknowledged until the debug outbox reported empty.
+
+The previous completion checkpoint over-recorded one final physical observation: the owner did **not** separately report an unchanged repeat Player sync followed by a second empty-outbox diagnostic before requesting consolidation. Treat that no-op owner observation as a carry-forward manual check, not as already proven.
 
 The real Neon database name is `dnd-custom-aid-dev` with hyphens.
 
@@ -60,7 +66,7 @@ Object storage remains deferred until real Media/Handouts/assets integration req
 
 `main` is the sole normal integrated-MVP development trunk. Historical Player/convergence branches are evidence only.
 
-Completed:
+Completed/integrated:
 
 - baseline convergence;
 - Wave 2 Shared Integrated-MVP Spine;
@@ -74,11 +80,15 @@ Completed:
 - PR #32 ordinary-Player hosted account/campaign bootstrap and physical safe-refresh proof;
 - PR #34 local-first campaign creation + durable hosted delivery;
 - PR #34 PC snapshot push/pull + hosted read-back;
-- real diagnosis and repair of a PC wire-envelope `VALIDATION_FAILED` caused by omitted default-valued backup metadata;
+- real diagnosis/repair of the PC wire-envelope `VALIDATION_FAILED` caused by omitted default-valued backup metadata;
 - durable recovery of the same blocked PC mutation after the serializer repair;
-- owner physical proof that the repaired mutation is acknowledged/removed and an unchanged repeat sync leaves the outbox empty.
+- owner physical proof that the recovered mutation is acknowledged/removed and the local outbox becomes empty.
 
-See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` for the exact current proof.
+Carry-forward manual observation:
+
+- unchanged repeat Player sync should leave the outbox empty; include this in the next consolidated owner physical session.
+
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_HANDOFF.md` for the exact current proof and continuation.
 
 ## Hosted DEV status
 
@@ -92,7 +102,8 @@ Workers Free CPU gate       PASS for tested representative path
 Android session edge        COMPLETE / OWNER-PHYSICAL PASS
 Android campaign bootstrap  COMPLETE / OWNER-PHYSICAL PASS
 Campaign hosted delivery    COMPLETE / OWNER-PHYSICAL PASS
-PC snapshot push/pull       COMPLETE / OWNER-PHYSICAL PASS
+PC snapshot delivery/retry  COMPLETE / OWNER-PHYSICAL PASS
+No-op repeat physical check CARRY-FORWARD
 ```
 
 Future materially heavier Worker routes should still receive representative CPU/runtime profiling.
@@ -106,12 +117,12 @@ remembered Android Descope session/token           COMPLETE
 existing HostedAccessTokenProvider                 COMPLETE
 owner-facing hosted account/campaign bootstrap     COMPLETE
 campaign create + durable hosted delivery          COMPLETE
-PC snapshot push/pull + no-op suppression          COMPLETE
+PC snapshot push/pull                              COMPLETE
+blocked validation recovery                        COMPLETE
+unchanged-repeat no-op physical check               CARRY FORWARD
         |
         v
-second-client observation                          NEXT BATCH
-        +
-offline edit / reconnect / convergence safety      NEXT BATCH
+multi-client PC convergence safety                 NEXT IMPLEMENTATION BATCH
         |
         v
 membership revoke + Player/DM authorization        FOLLOWING BOUNDARY
@@ -119,9 +130,9 @@ membership revoke + Player/DM authorization        FOLLOWING BOUNDARY
 
 The next primary development batch is **multi-client PC convergence safety**.
 
-Do not ask the owner for an immediate one-change/one-test loop. Accumulate the closely related implementation first, with automated CI after each coherent step, then stop at the next natural physical gate.
+The owner explicitly prefers batched development/testing. Do not ask for an APK install after every small implementation step. Accumulate closely related convergence work with automated CI, then stop at the next meaningful physical gate. Include the carried-forward unchanged-repeat no-op observation in that physical session.
 
-The key correctness case to harden is:
+The key correctness rule is:
 
 > A server-newer PC revision must not silently overwrite an unsent local edit on another client.
 

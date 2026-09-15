@@ -1,6 +1,6 @@
 # Roadmap
 
-This roadmap defines the current development sequence. Detailed product behavior remains controlled by approved decision records and current checkpoints.
+This roadmap defines the current development sequence. Detailed product behavior remains controlled by approved decisions and current checkpoints.
 
 ## Phase 0 — Project Foundation
 
@@ -35,21 +35,13 @@ Historical frozen candidate:
 - `0.4.0-preqa.13 / 41300`;
 - commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
 - Scaffold `34801612526` / #1630 — SUCCESS;
-- targeted physical cross-device revalidation was still pending at that old boundary.
+- targeted physical cross-device revalidation was still pending at that historical boundary.
 
 Its runtime/migrations/tests/guard scripts are integrated into `main`. Do not restart historical repair cycles without new evidence.
 
 ## Phase 4B — Integrated MVP Build
 
 **Status:** **IN PROGRESS — owner implementation authorization granted.**
-
-Current provider-neutral implementation checkpoint:
-
-`8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
-
-Validation run:
-
-`34985799585` — **SUCCESS**.
 
 The build targets one coherent product:
 
@@ -63,85 +55,89 @@ Internal waves are engineering controls, not separate products.
 
 **Status:** COMPLETE / INTEGRATED.
 
-The semantic convergence was promoted to `main`; the former Player successor and convergence branch are historical evidence only. `main` is the normal integrated trunk.
+The semantic convergence was promoted to `main`; former Player successor/convergence branches are historical evidence only.
 
 ### Wave 2 — Shared Integrated-MVP Spine
 
 **Status:** COMPLETE / INTEGRATED.
 
-Implemented shared semantics include:
-
-- global account/identity;
-- Campaign;
-- Membership + campaign role;
-- PC owner vs current controller;
-- stable IDs;
-- revisions and stale-write protection;
-- tombstones/non-resurrection;
-- Personal/Campaign/System-or-Official scopes where valid;
-- independent-copy provenance;
-- sync metadata and invariant tests.
+Implemented shared semantics include global identity, Campaign, Membership/role, PC owner vs controller, stable IDs, revisions/stale-write protection, tombstones/non-resurrection, valid content scopes, independent-copy provenance, sync metadata and invariant tests.
 
 ### Wave 3 — Hosted foundation
 
 **Status:** COMPLETE / INTEGRATED / REAL DEV ENVIRONMENT VERIFIED.
 
-Provider-neutral hosted work is integrated through PR #25 and includes:
+Provider-neutral hosted work is integrated through PR #25 and includes `/v1` API/auth/domain foundations, PostgreSQL migrations/contracts, shared Android/Desktop transport, provider-neutral access-token seam, durable SQLDelight outbox, campaign lifecycle/bootstrap, hosted PC snapshots, server-side authorization, optimistic revisions/idempotency/conflict/tombstone semantics and same-identity reconciliation.
 
-- `/v1` hosted API/auth/domain foundation;
-- explicit PostgreSQL migrations/contracts + CI validation;
-- shared Android/Desktop HTTP transport;
-- provider-neutral access-token boundary;
-- durable SQLDelight hosted outbox;
-- local-first campaign creation + idempotent hosted delivery;
-- authenticated account/campaign bootstrap;
-- campaign membership lifecycle reconciliation;
-- hosted PC current-state snapshots;
-- server-side application authorization;
-- optimistic revisions/idempotency/conflict/tombstone semantics;
-- safe same-identity hosted reconciliation.
+The first real DEV provider gate is complete:
 
-The first real DEV provider gate has also been completed:
-
-- Neon migration + real contract tests verified;
-- Descope real OTP login verified;
+- Neon migration + contract tests verified;
+- Descope OTP verified;
 - Cloudflare Worker deployed;
 - real authenticated `/v1/me` -> application user -> Neon persistence verified;
-- representative Workers Free CPU/runtime proof passed for the tested authenticated path.
-
-See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`.
+- representative Workers Free CPU/runtime proof passed for the tested path.
 
 Do not repeat provider activation and do not introduce generalized event sourcing, CRDTs, queues, WebSockets or a generic sync platform by default.
 
 ### Wave 4 — Player <-> Server end-to-end
 
-**Status:** ACTIVE — Android hosted-session edge COMPLETE; owner-facing campaign bootstrap NEXT.
-
-Preserve the mature Player UX/runtime while wiring the real hosted environment through existing contracts.
+**Status:** ACTIVE — campaign + PC hosted sync integrated; multi-client convergence safety NEXT.
 
 Completed Wave 4 steps:
 
-1. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — remembered Android Descope session/token acquisition at the platform edge;
-2. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — feed token into the existing `HostedAccessTokenProvider` seam.
+1. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — remembered Android Descope session/token acquisition;
+2. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — token feeds the existing `HostedAccessTokenProvider` seam;
+3. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — ordinary Player hosted account/campaign bootstrap;
+4. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — local-first campaign create + durable hosted delivery;
+5. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — PC snapshot push/pull plus recovery of the real blocked `VALIDATION_FAILED` mutation after the wire-envelope serializer repair.
 
-PR #30 merged as `bf5f843066a7c2f8674a4577918156e8a8d2c139`; post-merge Actions `35020281492` / #1898 completed SUCCESS. The owner physically verified OTP login, authenticated Worker access, remembered-session reuse after a full app restart and logout clearing the remembered session after restart.
+PR #34 integrated commit:
 
-See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`.
+`75d5acf354b41185255ff7d1a5eb4a689f300721`
 
-Remaining dependency order:
+Validation:
 
-3. **NEXT** — owner-facing hosted account/campaign bootstrap;
-4. campaign create/select + durable hosted delivery while preserving local-first behavior;
-5. PC snapshot push/pull;
-6. second-device observation;
-7. offline edit/reconnect/convergence;
-8. membership-revoke and Player/DM authorization validation.
+- exact-head Actions `35027987125` / #1939 — SUCCESS;
+- post-merge Actions `35028893643` / #1940 — SUCCESS.
 
-The debug-only `DnD Aid - Hosted DEV Auth` activity is verification infrastructure, not the final Player login UX.
+One precise owner observation is carried forward rather than overclaimed: an unchanged repeat Player sync followed by another empty-outbox diagnostic was requested but not separately reported before consolidation. Include that in the next batched physical gate.
+
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_HANDOFF.md`.
+
+#### Next implementation batch — multi-client PC convergence safety
+
+Harden the sync model so a newer server revision cannot silently overwrite an unsent local edit from another client.
+
+Add enough last-synchronized baseline knowledge to distinguish:
+
+- old local copy still clean -> safe to apply newer hosted state;
+- old local copy edited locally while hosted state also advanced -> preserve local data and surface explicit conflict;
+- offline local edit with unchanged server -> reconnect and deliver normally;
+- fresh second-client state -> pull the same stable hosted campaign/PC identity.
+
+Preserve local-first semantics, stable IDs, optimistic revisions, idempotency, tombstones/non-resurrection, explicit conflicts, DM authority vs PC ownership, owner vs controller distinction and non-destructive local recovery.
+
+The owner explicitly prefers **batched development/testing**. Accumulate closely related implementation behind automated CI and stop at a natural physical boundary rather than asking for an APK install after every small change.
+
+The next consolidated physical gate should cover:
+
+- carried-forward unchanged-repeat no-op confirmation;
+- fresh second-client observation;
+- offline edit/reconnect with no remote change;
+- remote-newer clean-local convergence;
+- concurrent local + remote edit preservation as an explicit conflict.
+
+#### Following Wave 4 boundary
+
+After multi-client convergence, validate:
+
+- membership revoke enforcement;
+- Player/DM authorization boundaries;
+- owner vs controller behavior under hosted authority changes.
+
+The debug-only `DnD Aid - Hosted DEV Auth` activity remains verification infrastructure, not final Player login UX.
 
 Future materially heavier Worker routes should receive representative CPU/runtime profiling. Do not silently move to paid Workers if a route exceeds the Free budget; reassess under D-0075.
-
-Establish the canonical PC/export snapshot used later by all PDF-export surfaces as dependencies become available.
 
 ### Wave 5 — Desktop shell + Campaign Administration
 
@@ -169,7 +165,7 @@ Implement local-first single-device combat authority, hosted opportunistic excha
 
 ### Wave 10 — SRD retrieval + grounded clarification
 
-Complete SRD 5.1/5.2.1 PostgreSQL retrieval and grounded Player/DM natural-language clarification. Workers AI remains a conditional later provider only while it can be used safely at `$0`. Homebrew-aware AI remains post-MVP.
+Complete SRD 5.1/5.2.1 PostgreSQL retrieval and grounded Player/DM natural-language clarification. Workers AI remains conditional later only while safe under `$0`. Homebrew-aware AI remains post-MVP.
 
 ### Wave 11 — backup/recovery/operator completion
 
