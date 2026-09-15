@@ -13,7 +13,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
 class HostedPcSnapshotSyncTest {
@@ -41,7 +40,7 @@ class HostedPcSnapshotSyncTest {
     }
 
     @Test
-    fun successfulPcDeliveryAcknowledgesOutboxAndAdvancesLocalRevision() = withDatabase { database ->
+    fun successfulPcDeliveryAcknowledgesOutboxAndAdvancesRevisionAndBaseline() = withDatabase { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val character = CharacterRepository(database).createCharacter(campaign.id, "Simkin")
         val spine = IntegratedSpineRepository(database)
@@ -79,21 +78,26 @@ class HostedPcSnapshotSyncTest {
         )
 
         val report = runBlocking { delivery.deliverReady(attemptedAtEpochSeconds = 120) }
+        val baseline = assertNotNull(HostedPcSyncBaselineRepository(database).baseline(character.id))
 
         assertEquals(HostedOutboxDeliveryReport(1, 1, 0, 0), report)
         assertNull(outbox.mutation(payload.mutationId))
         assertEquals(Revision(3), spine.syncMetadata("PC", character.id).revision)
+        assertEquals(Revision(3), baseline.revision)
+        assertEquals(normalizePcSyncSnapshot(payload.snapshot), baseline.snapshot)
     }
 
     @Test
-    fun newerHostedSnapshotReplacesCurrentStateWithoutChangingPcIdentity() = withDatabase { database ->
+    fun newerHostedSnapshotReplacesCleanCurrentStateWithoutChangingPcIdentity() = withDatabase { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val characters = CharacterRepository(database)
         val local = characters.createCharacter(campaign.id, "Local Name")
         val backups = CharacterBackupRepository(database)
         val spine = IntegratedSpineRepository(database)
+        val baselines = HostedPcSyncBaselineRepository(database)
         spine.putSyncMetadata("PC", local.id, SyncMetadata(revision = Revision(1)))
         val baseDocument = backups.exportCharacter(local.id, 100)
+        baselines.record(local.id, Revision(1), baseDocument)
         val remoteDocument = baseDocument.copy(
             character = baseDocument.character.copy(name = "Hosted Name"),
             exportedAtEpochSeconds = 110,
@@ -105,23 +109,28 @@ class HostedPcSnapshotSyncTest {
         )
 
         val result = runBlocking { service.refreshCampaign(campaign.id) }
+        val baseline = assertNotNull(baselines.baseline(local.id))
 
         assertEquals(listOf(local.id), result.appliedPcIds)
         assertEquals("Hosted Name", assertNotNull(characters.character(local.id)).name)
         assertEquals(local.id, characters.character(local.id)?.id)
         assertEquals(Revision(2), spine.syncMetadata("PC", local.id).revision)
+        assertEquals(Revision(2), baseline.revision)
+        assertEquals(normalizePcSyncSnapshot(remoteDocument), baseline.snapshot)
     }
 
     @Test
-    fun equalRevisionPreservesPotentiallyUnsentLocalEdits() = withDatabase { database ->
+    fun equalRevisionPreservesOfflineLocalEditForNormalDelivery() = withDatabase { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val characters = CharacterRepository(database)
         val base = characters.createCharacter(campaign.id, "Original")
         val backups = CharacterBackupRepository(database)
         val remoteDocument = backups.exportCharacter(base.id, 100)
-        characters.saveCharacter(base.copy(name = "Local Unsent Edit"))
         val spine = IntegratedSpineRepository(database)
+        val baselines = HostedPcSyncBaselineRepository(database)
         spine.putSyncMetadata("PC", base.id, SyncMetadata(revision = Revision(3)))
+        baselines.record(base.id, Revision(3), remoteDocument)
+        characters.saveCharacter(base.copy(name = "Local Offline Edit"))
         val service = HostedPcSnapshotPullService(
             database = database,
             snapshotsProvider = { listOf(hostedPc(remoteDocument, revision = 3)) },
@@ -130,8 +139,34 @@ class HostedPcSnapshotSyncTest {
         val result = runBlocking { service.refreshCampaign(campaign.id) }
 
         assertEquals(listOf(base.id), result.unchangedPcIds)
-        assertEquals("Local Unsent Edit", assertNotNull(characters.character(base.id)).name)
+        assertEquals("Local Offline Edit", assertNotNull(characters.character(base.id)).name)
         assertEquals(Revision(3), spine.syncMetadata("PC", base.id).revision)
+        assertEquals(Revision(3), assertNotNull(baselines.baseline(base.id)).revision)
+    }
+
+    @Test
+    fun equalRevisionBootstrapsBaselineWithoutOverwritingLegacyLocalEdit() = withDatabase { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val characters = CharacterRepository(database)
+        val base = characters.createCharacter(campaign.id, "Original")
+        val backups = CharacterBackupRepository(database)
+        val remoteDocument = backups.exportCharacter(base.id, 100)
+        characters.saveCharacter(base.copy(name = "Legacy Local Edit"))
+        val spine = IntegratedSpineRepository(database)
+        spine.putSyncMetadata("PC", base.id, SyncMetadata(revision = Revision(3)))
+        val baselines = HostedPcSyncBaselineRepository(database)
+        val service = HostedPcSnapshotPullService(
+            database = database,
+            snapshotsProvider = { listOf(hostedPc(remoteDocument, revision = 3)) },
+        )
+
+        val result = runBlocking { service.refreshCampaign(campaign.id) }
+        val baseline = assertNotNull(baselines.baseline(base.id))
+
+        assertEquals(listOf(base.id), result.unchangedPcIds)
+        assertEquals("Legacy Local Edit", assertNotNull(characters.character(base.id)).name)
+        assertEquals(Revision(3), baseline.revision)
+        assertEquals(normalizePcSyncSnapshot(remoteDocument), baseline.snapshot)
     }
 
     @Test
@@ -165,14 +200,16 @@ class HostedPcSnapshotSyncTest {
     }
 
     @Test
-    fun hostedDeletionTombstonesSyncStateWithoutDeletingLocalCharacter() = withDatabase { database ->
+    fun hostedDeletionTombstonesCleanSyncStateWithoutDeletingLocalCharacter() = withDatabase { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val characters = CharacterRepository(database)
         val local = characters.createCharacter(campaign.id, "Recoverable Local Copy")
         val backups = CharacterBackupRepository(database)
         val document = backups.exportCharacter(local.id, 100)
         val spine = IntegratedSpineRepository(database)
+        val baselines = HostedPcSyncBaselineRepository(database)
         spine.putSyncMetadata("PC", local.id, SyncMetadata(revision = Revision(2)))
+        baselines.record(local.id, Revision(2), document)
         val remote = hostedPc(document, revision = 3, deletedAtEpochSeconds = 300)
         val service = HostedPcSnapshotPullService(
             database = database,
@@ -187,10 +224,11 @@ class HostedPcSnapshotSyncTest {
             SyncMetadata(revision = Revision(3), deletedAtEpochSeconds = 300),
             spine.syncMetadata("PC", local.id),
         )
+        assertEquals(Revision(3), assertNotNull(baselines.baseline(local.id)).revision)
     }
 
     @Test
-    fun hostedSnapshotCanCreateSameStablePcIdentityLocally() {
+    fun hostedSnapshotCanCreateSameStablePcIdentityAndBaselineOnFreshSecondClient() {
         val sourceDriver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         val targetDriver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         AppDatabase.Schema.create(sourceDriver)
@@ -209,12 +247,15 @@ class HostedPcSnapshotSyncTest {
             )
             val result = runBlocking { service.refreshCampaign(campaign.id) }
             val imported = CharacterRepository(targetDb).character(sourceCharacter.id)
+            val baseline = HostedPcSyncBaselineRepository(targetDb).baseline(sourceCharacter.id)
 
             assertEquals(listOf(sourceCharacter.id), result.appliedPcIds)
             assertNotNull(imported)
             assertEquals(sourceCharacter.id, imported.id)
             assertEquals(campaign.id, imported.campaignId)
             assertEquals("Remote PC", imported.name)
+            assertEquals(Revision(0), assertNotNull(baseline).revision)
+            assertEquals(normalizePcSyncSnapshot(document), baseline.snapshot)
         } finally {
             sourceDriver.close()
             targetDriver.close()
