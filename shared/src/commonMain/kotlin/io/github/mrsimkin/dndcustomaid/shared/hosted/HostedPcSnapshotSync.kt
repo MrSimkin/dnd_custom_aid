@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.shared.hosted
 
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
@@ -54,6 +55,10 @@ class HostedPcSnapshotQueueService(
 enum class HostedPcPullConflictReason {
     LOCAL_REVISION_AHEAD,
     LOCAL_TOMBSTONE,
+    LOCAL_AND_HOSTED_CHANGED,
+    SYNC_BASELINE_MISSING,
+    SYNC_BASELINE_REVISION_MISMATCH,
+    HOSTED_CHANGED_WITHOUT_REVISION,
 }
 
 data class HostedPcPullConflict(
@@ -82,6 +87,7 @@ class HostedPcSnapshotPullService(
     private val database: AppDatabase,
     private val backups: CharacterBackupRepository = CharacterBackupRepository(database),
     private val spine: IntegratedSpineRepository = IntegratedSpineRepository(database),
+    private val baselines: HostedPcSyncBaselineRepository = HostedPcSyncBaselineRepository(database),
     private val snapshotsProvider: suspend (Uuid) -> List<HostedPcSnapshot>,
 ) {
     constructor(
@@ -110,17 +116,37 @@ class HostedPcSnapshotPullService(
             hosted.sortedBy { it.id.toString() }.forEach { remote ->
                 val hostedRevision = Revision(remote.revision)
                 val localMetadata = spine.syncMetadata(PC_SYNC_TYPE, remote.id)
-                val localCharacter = backupsCharacter(remote.id)
+                val localDocument = backupsDocument(remote.id)
+                val baseline = baselines.baseline(remote.id)
 
                 if (remote.deletedAtEpochSeconds != null) {
                     if (localMetadata.revision > hostedRevision) {
-                        conflicts += HostedPcPullConflict(
-                            pcId = remote.id,
-                            reason = HostedPcPullConflictReason.LOCAL_REVISION_AHEAD,
-                            localRevision = localMetadata.revision,
-                            hostedRevision = hostedRevision,
+                        conflicts += conflict(
+                            remote.id,
+                            HostedPcPullConflictReason.LOCAL_REVISION_AHEAD,
+                            localMetadata.revision,
+                            hostedRevision,
                         )
                         return@forEach
+                    }
+
+                    if (localMetadata.isDeleted && localMetadata.revision == hostedRevision) {
+                        tombstoned += remote.id
+                        return@forEach
+                    }
+
+                    if (localDocument != null && localMetadata.revision < hostedRevision) {
+                        val advanceConflict = conflictForHostedAdvance(
+                            pcId = remote.id,
+                            localDocument = localDocument,
+                            localMetadata = localMetadata,
+                            baseline = baseline,
+                            hostedRevision = hostedRevision,
+                        )
+                        if (advanceConflict != null) {
+                            conflicts += advanceConflict
+                            return@forEach
+                        }
                     }
 
                     spine.putSyncMetadata(
@@ -131,37 +157,92 @@ class HostedPcSnapshotPullService(
                             deletedAtEpochSeconds = remote.deletedAtEpochSeconds,
                         ),
                     )
-                    // Hosted deletion revokes the synchronized current state but deliberately keeps
+                    // Hosted deletion revokes synchronized current state but deliberately keeps
                     // local character data for recovery/audit instead of destructively deleting it.
+                    if (localDocument != null) {
+                        baselines.record(remote.id, hostedRevision, remote.snapshot)
+                    }
                     tombstoned += remote.id
                     return@forEach
                 }
 
                 if (localMetadata.isDeleted) {
-                    conflicts += HostedPcPullConflict(
-                        pcId = remote.id,
-                        reason = HostedPcPullConflictReason.LOCAL_TOMBSTONE,
-                        localRevision = localMetadata.revision,
-                        hostedRevision = hostedRevision,
+                    conflicts += conflict(
+                        remote.id,
+                        HostedPcPullConflictReason.LOCAL_TOMBSTONE,
+                        localMetadata.revision,
+                        hostedRevision,
                     )
                     return@forEach
                 }
 
                 if (localMetadata.revision > hostedRevision) {
-                    conflicts += HostedPcPullConflict(
-                        pcId = remote.id,
-                        reason = HostedPcPullConflictReason.LOCAL_REVISION_AHEAD,
-                        localRevision = localMetadata.revision,
-                        hostedRevision = hostedRevision,
+                    conflicts += conflict(
+                        remote.id,
+                        HostedPcPullConflictReason.LOCAL_REVISION_AHEAD,
+                        localMetadata.revision,
+                        hostedRevision,
                     )
                     return@forEach
                 }
 
-                if (localCharacter != null && localMetadata.revision == hostedRevision) {
+                if (localDocument == null) {
+                    backups.applyCurrentState(remote.snapshot)
+                    applyAuthorityWhenLocallyResolvable(remote)
+                    spine.putSyncMetadata(
+                        objectType = PC_SYNC_TYPE,
+                        objectId = remote.id,
+                        metadata = SyncMetadata(revision = hostedRevision),
+                    )
+                    baselines.record(remote.id, hostedRevision, remote.snapshot)
+                    applied += remote.id
+                    return@forEach
+                }
+
+                if (localMetadata.revision == hostedRevision) {
+                    when {
+                        baseline == null -> {
+                            // Upgrade path for clients that synchronized before durable baselines
+                            // existed: the equal-revision hosted snapshot is the authoritative
+                            // baseline, while any differing local state remains an unsent local edit.
+                            baselines.record(remote.id, hostedRevision, remote.snapshot)
+                        }
+                        baseline.revision != hostedRevision -> {
+                            conflicts += conflict(
+                                remote.id,
+                                HostedPcPullConflictReason.SYNC_BASELINE_REVISION_MISMATCH,
+                                localMetadata.revision,
+                                hostedRevision,
+                            )
+                            return@forEach
+                        }
+                        baseline.snapshot != normalizePcSyncSnapshot(remote.snapshot) -> {
+                            conflicts += conflict(
+                                remote.id,
+                                HostedPcPullConflictReason.HOSTED_CHANGED_WITHOUT_REVISION,
+                                localMetadata.revision,
+                                hostedRevision,
+                            )
+                            return@forEach
+                        }
+                    }
+
                     // Equal revision means the server has no newer authoritative mutation. Preserve
-                    // the local aggregate rather than overwriting potentially unsent local edits.
+                    // the local aggregate so an offline/local edit can be queued normally afterward.
                     applyAuthorityWhenLocallyResolvable(remote)
                     unchanged += remote.id
+                    return@forEach
+                }
+
+                val advanceConflict = conflictForHostedAdvance(
+                    pcId = remote.id,
+                    localDocument = localDocument,
+                    localMetadata = localMetadata,
+                    baseline = baseline,
+                    hostedRevision = hostedRevision,
+                )
+                if (advanceConflict != null) {
+                    conflicts += advanceConflict
                     return@forEach
                 }
 
@@ -172,6 +253,7 @@ class HostedPcSnapshotPullService(
                     objectId = remote.id,
                     metadata = SyncMetadata(revision = hostedRevision),
                 )
+                baselines.record(remote.id, hostedRevision, remote.snapshot)
                 applied += remote.id
             }
         }
@@ -185,9 +267,55 @@ class HostedPcSnapshotPullService(
         )
     }
 
-    private fun backupsCharacter(characterId: Uuid): CharacterSheet? =
+    private fun conflictForHostedAdvance(
+        pcId: Uuid,
+        localDocument: CharacterBackupDocument,
+        localMetadata: SyncMetadata,
+        baseline: HostedPcSyncBaseline?,
+        hostedRevision: Revision,
+    ): HostedPcPullConflict? {
+        if (baseline == null) {
+            return conflict(
+                pcId,
+                HostedPcPullConflictReason.SYNC_BASELINE_MISSING,
+                localMetadata.revision,
+                hostedRevision,
+            )
+        }
+        if (baseline.revision != localMetadata.revision) {
+            return conflict(
+                pcId,
+                HostedPcPullConflictReason.SYNC_BASELINE_REVISION_MISMATCH,
+                localMetadata.revision,
+                hostedRevision,
+            )
+        }
+        if (normalizePcSyncSnapshot(localDocument) != baseline.snapshot) {
+            return conflict(
+                pcId,
+                HostedPcPullConflictReason.LOCAL_AND_HOSTED_CHANGED,
+                localMetadata.revision,
+                hostedRevision,
+            )
+        }
+        return null
+    }
+
+    private fun conflict(
+        pcId: Uuid,
+        reason: HostedPcPullConflictReason,
+        localRevision: Revision,
+        hostedRevision: Revision,
+    ): HostedPcPullConflict = HostedPcPullConflict(
+        pcId = pcId,
+        reason = reason,
+        localRevision = localRevision,
+        hostedRevision = hostedRevision,
+    )
+
+    private fun backupsDocument(characterId: Uuid): CharacterBackupDocument? =
         try {
-            backups.exportCharacter(characterId, exportedAtEpochSeconds = 0).character
+            backups.exportCharacter(characterId, exportedAtEpochSeconds = 0)
         } catch (_: IllegalArgumentException) {
             null
         }

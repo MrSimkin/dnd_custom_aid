@@ -1,7 +1,7 @@
 # Checkpoint — Android hosted campaign + PC sync batch
 
 **Date:** 2026-09-15 (Chile local time)  
-**Status:** INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS THROUGH RECOVERED PC DELIVERY; FINAL UNCHANGED-SYNC CONFIRMATION PENDING  
+**Status:** COMPLETE / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS  
 **Integrated PR:** #34 — `android: deliver campaign and PC state to hosted server`  
 **Exact final PR head:** `ff7d96d6d5806fcf9969490d288c0d25b00d62fe`  
 **Merged `main` commit:** `75d5acf354b41185255ff7d1a5eb4a689f300721`  
@@ -26,7 +26,7 @@ The ordinary Android Player now uses the existing shared local-first hosted cont
 - local data remains non-destructive on auth/network/provider failure;
 - the normal Player reports hosted delivery/reconciliation state while the debug-only hosted-auth activity retains diagnostic instrumentation.
 
-## Physical Android proof — what is actually confirmed
+## Physical Android proof — confirmed
 
 The owner physically exercised the accumulated batch on Android and confirmed:
 
@@ -39,9 +39,11 @@ The owner physically exercised the accumulated batch on Android and confirmed:
 7. the blocked row was `PC_SNAPSHOT_PUT | BLOCKED | attempts=1 | expectedRevision=0 | error=VALIDATION_FAILED`;
 8. after the wire-format repair, the same preserved mutation was safely returned to `READY` rather than deleted/recreated;
 9. the same mutation was subsequently accepted by the server and acknowledged;
-10. the debug diagnostic then reported an empty outbox: no pending or blocked hosted mutations remained.
+10. the debug diagnostic then reported an empty outbox: no pending or blocked hosted mutations remained;
+11. with no intervening campaign/PC change, the owner performed one additional ordinary Player `Sincronizar con servidor`;
+12. the subsequent `DnD Aid - Hosted DEV Auth` outbox diagnostic still reported `Outbox local: vacío. No hay cambios hospedados pendientes ni bloqueados.`
 
-The owner did **not yet explicitly report** the additional final physical check of performing one more unchanged Player synchronization and then confirming that the outbox remains empty. Do not claim that final no-op physical proof until it is actually reported.
+The unchanged-sync/no-op physical gate is therefore **PASS**. The campaign + PC sync package is physically closed at this boundary.
 
 ## Defect found and repaired during the gate
 
@@ -89,29 +91,17 @@ remembered Android Descope session/token           COMPLETE
 existing HostedAccessTokenProvider                 COMPLETE
 owner-facing hosted account/campaign bootstrap     COMPLETE
 campaign create + durable hosted delivery          COMPLETE
-PC snapshot push/pull + recovered blocked delivery INTEGRATED / PHYSICALLY VERIFIED
-final unchanged-sync no-op physical confirmation   NEXT OWNER CHECK
+PC snapshot push/pull + recovered blocked delivery COMPLETE / OWNER-PHYSICAL PASS
+unchanged-sync no-op physical confirmation          COMPLETE / OWNER-PHYSICAL PASS
         |
         v
-second-client observation                          NEXT DEVELOPMENT BATCH
-        +
-offline edit / reconnect / convergence safety      NEXT DEVELOPMENT BATCH
+multi-client PC convergence safety                  ACTIVE DEVELOPMENT BATCH
         |
         v
 membership revoke + Player/DM authorization        FOLLOWING BOUNDARY
 ```
 
-### First action in the next chat
-
-Before starting the multi-client implementation batch, close the one remaining physical evidence gap:
-
-1. without changing the campaign or PC, open the ordinary Player and press `Sincronizar con servidor` once;
-2. open `DnD Aid - Hosted DEV Auth` and press `Diagnosticar outbox local`;
-3. if it still reports an empty outbox, record the unchanged-sync no-op physical gate as PASS.
-
-No reinstall, data reset or new campaign/PC is required for this check.
-
-### Next implementation batch after that check
+### Next implementation batch
 
 Harden multi-client convergence before asking the owner for another larger physical test.
 

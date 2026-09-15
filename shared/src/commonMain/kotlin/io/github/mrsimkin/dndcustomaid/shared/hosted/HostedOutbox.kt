@@ -230,9 +230,13 @@ class HostedOutboxRepository(
         mutationId: Uuid,
         pcId: Uuid,
         resultingRevision: Long,
+        snapshot: CharacterBackupDocument,
         deletedAtEpochSeconds: Long? = null,
     ) {
         require(resultingRevision >= 0) { "Resulting PC revision must not be negative." }
+        require(snapshot.character.id == pcId) {
+            "Hosted PC acknowledgement snapshot identity does not match the queued PC."
+        }
         require(deletedAtEpochSeconds == null || deletedAtEpochSeconds >= 0) {
             "Hosted PC deletion timestamp must not be negative."
         }
@@ -241,12 +245,18 @@ class HostedOutboxRepository(
             "Hosted PC acknowledgement identity does not match the queued mutation."
         }
 
+        val normalizedSnapshotJson = json.encodeToString(normalizePcSyncSnapshot(snapshot))
         database.transaction {
             database.integratedSpineQueries.upsertObjectSyncState(
                 object_type = PC_SYNC_OBJECT_TYPE,
                 object_id = pcId.toString(),
                 revision = resultingRevision,
                 deleted_at_epoch_seconds = deletedAtEpochSeconds,
+            )
+            database.pcSyncBaselineQueries.upsertBaseline(
+                pc_id = pcId.toString(),
+                revision = resultingRevision,
+                snapshot_json = normalizedSnapshotJson,
             )
             database.hostedOutboxQueries.acknowledgeMutation(mutationId.toString())
         }

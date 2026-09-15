@@ -1,0 +1,18 @@
+CREATE TABLE pc_sync_baseline (
+    pc_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    revision INTEGER NOT NULL CHECK (revision >= 0),
+    snapshot_json TEXT NOT NULL CHECK (length(trim(snapshot_json)) > 0)
+);
+
+upsertBaseline:
+INSERT OR REPLACE INTO pc_sync_baseline(pc_id, revision, snapshot_json)
+VALUES (?, ?, ?);
+
+selectBaseline:
+SELECT pc_id, revision, snapshot_json
+FROM pc_sync_baseline
+WHERE pc_id = ?;
+
+deleteBaseline:
+DELETE FROM pc_sync_baseline
+WHERE pc_id = ?;

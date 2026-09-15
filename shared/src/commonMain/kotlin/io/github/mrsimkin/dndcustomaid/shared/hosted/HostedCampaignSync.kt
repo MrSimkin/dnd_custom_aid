@@ -190,11 +190,13 @@ class HostedOutboxDeliveryService(
         }
 
         // A fresh mutation and an idempotent replay both confirm server receipt. Persist the
-        // authoritative resulting revision atomically with removal from the outbox.
+        // authoritative resulting revision and normalized last-synchronized baseline atomically
+        // with removal from the outbox.
         outbox.acknowledgePcSnapshot(
             mutationId = mutation.mutationId,
             pcId = payload.pcId,
             resultingRevision = result.pc.revision,
+            snapshot = result.pc.snapshot,
             deletedAtEpochSeconds = result.pc.deletedAtEpochSeconds,
         )
     }
