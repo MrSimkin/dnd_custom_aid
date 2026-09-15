@@ -7,8 +7,8 @@
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
 **Android hosted-session integration:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
 **Android hosted campaign bootstrap:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
-**Android hosted campaign + PC sync batch:** **INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS THROUGH RECOVERED PC DELIVERY**  
-**Final unchanged-sync no-op physical confirmation:** **PENDING ONE OWNER CHECK**  
+**Android hosted campaign + PC sync batch:** **COMPLETE / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
+**Final unchanged-sync no-op physical confirmation:** **OWNER-PHYSICAL PASS**  
 **Integrated campaign + PC sync commit:** `75d5acf354b41185255ff7d1a5eb4a689f300721`  
 **Post-merge validation:** Actions `35028893643` / #1940 — **SUCCESS**  
 **Owner implementation authorization:** **GRANTED**
@@ -18,7 +18,7 @@
 1. `AGENTS.md` — mandatory project operating rules;
 2. `README.md` — repository entry point;
 3. `MANIFEST.md` — project-memory/navigation map;
-4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — current Wave 4 checkpoint, corrected physical-evidence boundary and exact continuation;
+4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — completed Wave 4 campaign/PC sync checkpoint and physical evidence;
 5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
 6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
 7. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
@@ -41,7 +41,7 @@ The Android Descope remembered-session edge is complete. Do not create a second 
 
 The ordinary Player hosted account/campaign bootstrap is complete. Do not treat read/bootstrap as pending.
 
-Campaign creation + durable hosted delivery and PC snapshot push/pull are integrated through PR #34. The owner physically verified delivery through recovery/acknowledgement of the real blocked PC mutation and confirmed the outbox was empty afterward. One explicit physical no-op repeat-sync check remains before that particular proof is called fully closed.
+Campaign creation + durable hosted delivery and PC snapshot push/pull are integrated through PR #34. The owner physically verified delivery through recovery/acknowledgement of the real blocked PC mutation, then performed an additional unchanged ordinary Player sync with no intervening PC/campaign change. The following outbox diagnostic remained empty, so the unchanged-sync/no-op physical gate is **PASS**.
 
 The real Neon database name is `dnd-custom-aid-dev` with hyphens.
 
@@ -78,13 +78,12 @@ Completed/integrated:
 - real diagnosis and repair of a PC wire-envelope `VALIDATION_FAILED` caused by omitted default-valued backup metadata;
 - durable recovery of the same blocked PC mutation after the serializer repair;
 - owner physical confirmation that the repaired mutation was acknowledged/removed and the outbox became empty;
-- automated implementation/CI coverage for the unchanged-sync no-op behavior.
+- automated implementation/CI coverage for the unchanged-sync no-op behavior;
+- owner physical confirmation that a further unchanged sync leaves the outbox empty.
 
-Still pending physically:
+The previous campaign/PC delivery package is physically closed. The active development batch is **multi-client PC convergence safety**.
 
-- one unchanged Player synchronization followed by one more empty-outbox diagnostic, with no intervening local changes.
-
-See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` for the exact current proof boundary.
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` for the completed proof boundary.
 
 ## Hosted DEV status
 
@@ -98,8 +97,8 @@ Workers Free CPU gate       PASS for tested representative path
 Android session edge        COMPLETE / OWNER-PHYSICAL PASS
 Android campaign bootstrap  COMPLETE / OWNER-PHYSICAL PASS
 Campaign hosted delivery    COMPLETE / OWNER-PHYSICAL PASS
-PC snapshot push/pull       INTEGRATED / PHYSICALLY VERIFIED THROUGH ACK
-No-op repeat sync           AUTOMATED VERIFIED / OWNER PHYSICAL CHECK PENDING
+PC snapshot push/pull       COMPLETE / OWNER-PHYSICAL PASS
+No-op repeat sync           AUTOMATED VERIFIED / OWNER-PHYSICAL PASS
 ```
 
 Future materially heavier Worker routes should still receive representative CPU/runtime profiling.
@@ -113,29 +112,19 @@ remembered Android Descope session/token           COMPLETE
 existing HostedAccessTokenProvider                 COMPLETE
 owner-facing hosted account/campaign bootstrap     COMPLETE
 campaign create + durable hosted delivery          COMPLETE
-PC snapshot push/pull + recovered blocked delivery INTEGRATED / PHYSICALLY VERIFIED
-final unchanged-sync no-op physical confirmation   NEXT OWNER CHECK
+PC snapshot push/pull + recovered blocked delivery COMPLETE / OWNER-PHYSICAL PASS
+final unchanged-sync no-op physical confirmation   COMPLETE / OWNER-PHYSICAL PASS
         |
         v
-second-client observation                          NEXT DEVELOPMENT BATCH
-        +
-offline edit / reconnect / convergence safety      NEXT DEVELOPMENT BATCH
+multi-client PC convergence safety                  ACTIVE DEVELOPMENT BATCH
         |
         v
 membership revoke + Player/DM authorization        FOLLOWING BOUNDARY
 ```
 
-### First action after resuming
+### Active development batch
 
-Do not reinstall, clear data, create a new campaign or create a new PC.
-
-1. Without changing the current campaign/PC, open the ordinary Player and press `Sincronizar con servidor` once.
-2. Open `DnD Aid - Hosted DEV Auth` and press `Diagnosticar outbox local`.
-3. If the outbox is still empty, record the unchanged-sync no-op physical gate as PASS.
-
-Then begin the next primary development batch: **multi-client PC convergence safety**.
-
-Do not ask the owner for an immediate one-change/one-test loop. Accumulate the closely related implementation first, with automated CI after each coherent step, then stop at the next natural physical gate.
+Do not ask the owner for an immediate one-change/one-test loop. Accumulate the closely related implementation first, with automated CI after coherent steps, then stop at the next natural physical gate.
 
 The key correctness case to harden is:
 
@@ -149,6 +138,15 @@ Add local knowledge of the last synchronized PC snapshot/revision so the client 
 - fresh second-client state -> pull the same stable hosted campaign/PC identity.
 
 Preserve local-first behavior, stable IDs, revisions, idempotency, tombstones, explicit conflicts, DM authority vs PC ownership, owner vs controller distinction and non-destructive local recovery.
+
+The next accumulated owner physical gate should cover together:
+
+- same hosted campaign/PC observed from a second client state;
+- offline local edit -> reconnect -> successful delivery when remote did not change;
+- server-newer + clean local -> safe convergence;
+- concurrent local + remote edits -> explicit conflict with local data preserved.
+
+Membership revoke and Player/DM authorization enforcement are the following separate boundary and must not be bundled into this batch.
 
 The debug-only `DnD Aid - Hosted DEV Auth` launcher remains verification infrastructure, not the final Player login UX.
 
