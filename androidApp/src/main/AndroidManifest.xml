@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:name=".DndCustomAidApplication"
         android:allowBackup="true"
         android:label="dnd_custom_aid"
         android:supportsRtl="true"
