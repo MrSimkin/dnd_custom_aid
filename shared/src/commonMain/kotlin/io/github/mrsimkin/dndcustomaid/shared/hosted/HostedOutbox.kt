@@ -99,7 +99,7 @@ class HostedOutboxRepository(
     fun readyMutations(limit: Long = 50): List<HostedOutboxMutation> {
         require(limit > 0) { "Outbox query limit must be positive." }
         return database.hostedOutboxQueries.selectReadyMutations(
-            limit = limit,
+            row_limit = limit,
             mapper = ::mapMutation,
         ).executeAsList()
     }
