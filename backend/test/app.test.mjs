@@ -24,6 +24,17 @@ function fixture() {
       calls.push(["listCampaigns", userId]);
       return [{ id: CAMPAIGN_ID, name: "Terramore", role: "DM", revision: 0 }];
     },
+    async listCampaignMemberships(userId) {
+      calls.push(["listCampaignMemberships", userId]);
+      return [{
+        campaignId: CAMPAIGN_ID,
+        name: "Terramore",
+        role: "PLAYER",
+        status: "KICKED",
+        revision: 4,
+        deletedAtEpochSeconds: null,
+      }];
+    },
     async createCampaign(input) {
       calls.push(["createCampaign", input]);
       return {
@@ -64,6 +75,35 @@ test("campaign listing is scoped to the authenticated app user", async () => {
     campaigns: [{ id: CAMPAIGN_ID, name: "Terramore", role: "DM", revision: 0 }],
   });
   assert.deepEqual(calls.at(-1), ["listCampaigns", ACCOUNT_ID]);
+});
+
+test("membership lifecycle listing exposes explicit inactive state", async () => {
+  const { calls, handler } = fixture();
+  const response = await handler(new Request("https://example.test/v1/campaign-memberships"));
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    memberships: [{
+      campaignId: CAMPAIGN_ID,
+      name: "Terramore",
+      role: "PLAYER",
+      status: "KICKED",
+      revision: 4,
+      deletedAtEpochSeconds: null,
+    }],
+  });
+  assert.deepEqual(calls.at(-1), ["listCampaignMemberships", ACCOUNT_ID]);
+});
+
+test("membership lifecycle endpoint is read only", async () => {
+  const { handler } = fixture();
+  const response = await handler(new Request("https://example.test/v1/campaign-memberships", {
+    method: "POST",
+  }));
+
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("allow"), "GET");
+  assert.equal((await response.json()).code, "VALIDATION_FAILED");
 });
 
 test("campaign creation preserves client identities and trims the display name", async () => {

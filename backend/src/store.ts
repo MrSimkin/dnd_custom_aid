@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import type { CampaignRole, Uuid } from "./contracts/spine.ts";
+import type { CampaignMembershipStatus, CampaignRole, Uuid } from "./contracts/spine.ts";
 
 export interface AppUser {
   id: Uuid;
@@ -12,6 +12,15 @@ export interface CampaignSummary {
   name: string;
   role: CampaignRole;
   revision: number;
+}
+
+export interface CampaignMembershipState {
+  campaignId: Uuid;
+  name: string;
+  role: CampaignRole;
+  status: CampaignMembershipStatus;
+  revision: number;
+  deletedAtEpochSeconds: number | null;
 }
 
 export interface CreateCampaignInput {
@@ -29,6 +38,7 @@ export interface CreateCampaignResult {
 export interface CampaignStore {
   resolveUser(externalSubject: string, displayName: string | null): Promise<AppUser>;
   listCampaigns(userId: Uuid): Promise<CampaignSummary[]>;
+  listCampaignMemberships(userId: Uuid): Promise<CampaignMembershipState[]>;
   createCampaign(input: CreateCampaignInput): Promise<CreateCampaignResult>;
 }
 
@@ -51,6 +61,15 @@ interface CampaignRow {
   role: CampaignRole;
   revision: string;
   created?: boolean;
+}
+
+interface CampaignMembershipRow {
+  campaign_id: string;
+  name: string;
+  role: CampaignRole;
+  status: CampaignMembershipStatus;
+  revision: string;
+  deleted_at_epoch_seconds: string | null;
 }
 
 export class NeonCampaignStore implements CampaignStore {
@@ -105,6 +124,35 @@ export class NeonCampaignStore implements CampaignStore {
     const rows = rawRows as unknown as CampaignRow[];
 
     return rows.map(mapCampaignRow);
+  }
+
+  async listCampaignMemberships(userId: Uuid): Promise<CampaignMembershipState[]> {
+    const rawRows = await this.sql`
+      SELECT
+        c.id::text AS campaign_id,
+        c.name,
+        m.role,
+        m.status,
+        c.revision::text AS revision,
+        CASE
+          WHEN c.deleted_at IS NULL THEN NULL
+          ELSE floor(extract(epoch FROM c.deleted_at))::bigint::text
+        END AS deleted_at_epoch_seconds
+      FROM campaign_membership m
+      JOIN campaign c ON c.id = m.campaign_id
+      WHERE m.user_id = ${userId}::uuid
+      ORDER BY c.id
+    `;
+    const rows = rawRows as unknown as CampaignMembershipRow[];
+
+    return rows.map((row) => ({
+      campaignId: row.campaign_id,
+      name: row.name,
+      role: row.role,
+      status: row.status,
+      revision: parseRevision(row.revision),
+      deletedAtEpochSeconds: parseNullableEpochSeconds(row.deleted_at_epoch_seconds),
+    }));
   }
 
   async createCampaign(input: CreateCampaignInput): Promise<CreateCampaignResult> {
@@ -210,6 +258,17 @@ function parseRevision(value: string): number {
     throw new Error("Database returned an invalid revision.");
   }
   return revision;
+}
+
+function parseNullableEpochSeconds(value: string | null): number | null {
+  if (value == null) {
+    return null;
+  }
+  const epochSeconds = Number(value);
+  if (!Number.isSafeInteger(epochSeconds) || epochSeconds < 0) {
+    throw new Error("Database returned an invalid deletion timestamp.");
+  }
+  return epochSeconds;
 }
 
 function requireSingle<T>(rows: T[], message: string): T {

@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.shared.hosted
 
+import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -32,6 +33,24 @@ data class HostedCampaign(
     init {
         require(name.isNotBlank()) { "Hosted campaign name must not be blank." }
         require(revision >= 0) { "Hosted campaign revision must not be negative." }
+    }
+}
+
+@Serializable
+data class HostedCampaignMembershipState(
+    val campaignId: Uuid,
+    val name: String,
+    val role: CampaignRole,
+    val status: CampaignMembershipStatus,
+    val revision: Long,
+    val deletedAtEpochSeconds: Long? = null,
+) {
+    init {
+        require(name.isNotBlank()) { "Hosted campaign name must not be blank." }
+        require(revision >= 0) { "Hosted campaign revision must not be negative." }
+        require(deletedAtEpochSeconds == null || deletedAtEpochSeconds >= 0) {
+            "Hosted campaign deletion timestamp must not be negative."
+        }
     }
 }
 
@@ -76,6 +95,11 @@ private data class CampaignsResponse(
 )
 
 @Serializable
+private data class CampaignMembershipsResponse(
+    val memberships: List<HostedCampaignMembershipState>,
+)
+
+@Serializable
 private data class CreateCampaignRequest(
     val mutationId: Uuid,
     val campaignId: Uuid,
@@ -103,6 +127,9 @@ class HostedApiClient(
     suspend fun currentAccount(): HostedAccount = authenticatedGet<MeResponse>("/v1/me").account
 
     suspend fun campaigns(): List<HostedCampaign> = authenticatedGet<CampaignsResponse>("/v1/campaigns").campaigns
+
+    suspend fun campaignMemberships(): List<HostedCampaignMembershipState> =
+        authenticatedGet<CampaignMembershipsResponse>("/v1/campaign-memberships").memberships
 
     suspend fun createCampaign(
         mutationId: Uuid,
