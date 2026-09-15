@@ -49,6 +49,14 @@ BEGIN
         WHERE user_id = p_user
           AND mutation_id = p_mutation
     ),
+    existing_campaign AS (
+        SELECT c.id, c.name, c.revision
+        FROM existing_receipt r
+        JOIN campaign c ON c.id = r.object_id
+        WHERE r.object_type = 'CAMPAIGN'
+          AND r.object_id = p_campaign
+          AND c.deleted_at IS NULL
+    ),
     created_campaign AS (
         INSERT INTO campaign(id, name, revision)
         SELECT p_campaign, btrim(p_name), 0
@@ -64,42 +72,35 @@ BEGIN
         FROM created_campaign c
         RETURNING object_type, object_id, resulting_revision
     ),
-    target AS (
-        SELECT object_type, object_id, resulting_revision FROM existing_receipt
-        UNION ALL
-        SELECT object_type, object_id, resulting_revision FROM new_receipt
-    ),
-    target_campaign AS (
-        SELECT c.id, c.name, c.revision
-        FROM target t
-        JOIN campaign c ON c.id = t.object_id
-        WHERE t.object_type = 'CAMPAIGN'
-          AND t.object_id = p_campaign
-          AND c.deleted_at IS NULL
-    ),
     new_membership AS (
         INSERT INTO campaign_membership(campaign_id, user_id, role, status)
         SELECT c.id, p_user, 'DM', 'ACTIVE'
         FROM created_campaign c
         RETURNING campaign_id, campaign_membership.role
     ),
-    permitted_campaign AS (
-        SELECT campaign_id, new_membership.role FROM new_membership
-        UNION ALL
-        SELECT m.campaign_id, m.role
-        FROM campaign_membership m
+    existing_permitted AS (
+        SELECT c.id, c.name, m.role, c.revision
+        FROM existing_campaign c
+        JOIN campaign_membership m ON m.campaign_id = c.id
         WHERE m.user_id = p_user
           AND m.status = 'ACTIVE'
-          AND NOT EXISTS (SELECT 1 FROM created_campaign)
     )
     SELECT
         c.id,
         c.name,
-        p.role,
+        m.role,
         c.revision,
-        EXISTS (SELECT 1 FROM created_campaign) AS created
-    FROM target_campaign c
-    JOIN permitted_campaign p ON p.campaign_id = c.id;
+        true AS created
+    FROM created_campaign c
+    JOIN new_membership m ON m.campaign_id = c.id
+    UNION ALL
+    SELECT
+        c.id,
+        c.name,
+        c.role,
+        c.revision,
+        false AS created
+    FROM existing_permitted c;
 END
 $$;
 
