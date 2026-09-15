@@ -14,6 +14,14 @@ class CampaignRepository(
             )
         }.executeAsList()
 
+    fun campaign(id: Uuid): Campaign? =
+        database.campaignQueries.selectCampaignById(id.toString()) { storedId, name ->
+            Campaign(
+                id = Uuid.parse(storedId),
+                name = name,
+            )
+        }.executeAsOneOrNull()
+
     fun createCampaign(rawName: String): Campaign {
         val name = rawName.trim()
         require(name.isNotEmpty()) { "Campaign name must not be blank." }
@@ -29,6 +37,17 @@ class CampaignRepository(
         )
 
         return campaign
+    }
+
+    fun upsertCampaign(id: Uuid, rawName: String): Campaign {
+        val name = rawName.trim()
+        require(name.isNotEmpty()) { "Campaign name must not be blank." }
+
+        database.campaignQueries.upsertCampaign(
+            id = id.toString(),
+            name = name,
+        )
+        return Campaign(id = id, name = name)
     }
 
     fun setActiveCampaign(id: Uuid) {
