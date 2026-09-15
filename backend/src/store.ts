@@ -123,6 +123,14 @@ export class NeonCampaignStore implements CampaignStore {
           WHERE user_id = ${input.actorUserId}::uuid
             AND mutation_id = ${input.mutationId}::uuid
         ),
+        existing_campaign AS (
+          SELECT c.id, c.name, c.revision
+          FROM existing_receipt r
+          JOIN campaign c ON c.id = r.object_id
+          WHERE r.object_type = 'CAMPAIGN'
+            AND r.object_id = ${input.campaignId}::uuid
+            AND c.deleted_at IS NULL
+        ),
         created_campaign AS (
           INSERT INTO campaign(id, name, revision)
           SELECT ${input.campaignId}::uuid, ${name}, 0
@@ -143,42 +151,35 @@ export class NeonCampaignStore implements CampaignStore {
           FROM created_campaign
           RETURNING object_type, object_id, resulting_revision
         ),
-        target AS (
-          SELECT object_type, object_id, resulting_revision FROM existing_receipt
-          UNION ALL
-          SELECT object_type, object_id, resulting_revision FROM new_receipt
-        ),
-        target_campaign AS (
-          SELECT c.id, c.name, c.revision
-          FROM target t
-          JOIN campaign c ON c.id = t.object_id
-          WHERE t.object_type = 'CAMPAIGN'
-            AND t.object_id = ${input.campaignId}::uuid
-            AND c.deleted_at IS NULL
-        ),
         new_membership AS (
           INSERT INTO campaign_membership(campaign_id, user_id, role, status)
           SELECT id, ${input.actorUserId}::uuid, 'DM', 'ACTIVE'
           FROM created_campaign
           RETURNING campaign_id, role
         ),
-        permitted_campaign AS (
-          SELECT campaign_id, role FROM new_membership
-          UNION ALL
-          SELECT m.campaign_id, m.role
-          FROM campaign_membership m
+        existing_permitted AS (
+          SELECT c.id, c.name, m.role, c.revision
+          FROM existing_campaign c
+          JOIN campaign_membership m ON m.campaign_id = c.id
           WHERE m.user_id = ${input.actorUserId}::uuid
             AND m.status = 'ACTIVE'
-            AND NOT EXISTS (SELECT 1 FROM created_campaign)
         )
         SELECT
           c.id::text AS id,
           c.name,
-          p.role,
+          m.role,
           c.revision::text AS revision,
-          EXISTS (SELECT 1 FROM created_campaign) AS created
-        FROM target_campaign c
-        JOIN permitted_campaign p ON p.campaign_id = c.id
+          true AS created
+        FROM created_campaign c
+        JOIN new_membership m ON m.campaign_id = c.id
+        UNION ALL
+        SELECT
+          c.id::text AS id,
+          c.name,
+          c.role,
+          c.revision::text AS revision,
+          false AS created
+        FROM existing_permitted c
       `,
     ], { isolationLevel: "ReadCommitted" });
 
