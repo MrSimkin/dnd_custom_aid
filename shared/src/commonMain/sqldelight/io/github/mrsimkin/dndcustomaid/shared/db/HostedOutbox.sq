@@ -45,7 +45,7 @@ SELECT *
 FROM hosted_outbox
 WHERE retry_state = 'READY'
 ORDER BY created_at_epoch_seconds, mutation_id
-LIMIT ?;
+LIMIT :row_limit;
 
 selectAllMutations:
 SELECT *
