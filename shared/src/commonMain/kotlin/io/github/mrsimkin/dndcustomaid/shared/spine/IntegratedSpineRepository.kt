@@ -10,11 +10,22 @@ class IntegratedSpineRepository(
         require(account.externalSubject == null || account.externalSubject.isNotBlank()) {
             "External subject must be null or non-blank."
         }
-        database.integratedSpineQueries.upsertAccount(
-            id = account.id.toString(),
-            external_subject = account.externalSubject,
-            display_name = account.displayName?.trim()?.takeIf { it.isNotEmpty() },
-        )
+        val displayName = account.displayName?.trim()?.takeIf { it.isNotEmpty() }
+        database.transaction {
+            if (account(account.id) == null) {
+                database.integratedSpineQueries.insertAccount(
+                    id = account.id.toString(),
+                    external_subject = account.externalSubject,
+                    display_name = displayName,
+                )
+            } else {
+                database.integratedSpineQueries.updateAccount(
+                    external_subject = account.externalSubject,
+                    display_name = displayName,
+                    id = account.id.toString(),
+                )
+            }
+        }
     }
 
     fun account(id: Uuid): AccountIdentity? =
