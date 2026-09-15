@@ -20,7 +20,11 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         return jsonResponse({ status: "ok", service: "dnd-custom-aid-api" });
       }
 
-      if (path !== "/v1/me" && path !== "/v1/campaigns") {
+      if (
+        path !== "/v1/me" &&
+        path !== "/v1/campaigns" &&
+        path !== "/v1/campaign-memberships"
+      ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
 
@@ -35,6 +39,12 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
             displayName: user.displayName,
           },
         });
+      }
+
+      if (path === "/v1/campaign-memberships") {
+        requireMethod(request, "GET");
+        const memberships = await dependencies.campaigns.listCampaignMemberships(user.id);
+        return jsonResponse({ memberships });
       }
 
       if (request.method === "GET") {
