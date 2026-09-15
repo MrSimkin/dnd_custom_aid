@@ -71,7 +71,7 @@ export class NeonCampaignStore implements CampaignStore {
     }
 
     const proposedId = crypto.randomUUID();
-    const rows = await this.sql<UserRow[]>`
+    const rawRows = await this.sql`
       INSERT INTO app_user(id, descope_subject, display_name)
       VALUES (${proposedId}::uuid, ${subject}, ${displayName})
       ON CONFLICT(descope_subject) DO UPDATE SET
@@ -79,6 +79,7 @@ export class NeonCampaignStore implements CampaignStore {
         updated_at = now()
       RETURNING id::text AS id, descope_subject AS external_subject, display_name
     `;
+    const rows = rawRows as unknown as UserRow[];
     const row = requireSingle(rows, "Failed to resolve authenticated user.");
     return {
       id: row.id,
@@ -88,7 +89,7 @@ export class NeonCampaignStore implements CampaignStore {
   }
 
   async listCampaigns(userId: Uuid): Promise<CampaignSummary[]> {
-    const rows = await this.sql<CampaignRow[]>`
+    const rawRows = await this.sql`
       SELECT
         c.id::text AS id,
         c.name,
@@ -101,6 +102,7 @@ export class NeonCampaignStore implements CampaignStore {
         AND c.deleted_at IS NULL
       ORDER BY c.name COLLATE "C", c.id
     `;
+    const rows = rawRows as unknown as CampaignRow[];
 
     return rows.map(mapCampaignRow);
   }
@@ -178,7 +180,7 @@ export class NeonCampaignStore implements CampaignStore {
         FROM target_campaign c
         JOIN permitted_campaign p ON p.campaign_id = c.id
       `,
-    ], { isolationMode: "ReadCommitted" });
+    ], { isolationLevel: "ReadCommitted" });
 
     const rows = resultRows as unknown as CampaignRow[];
     if (rows.length !== 1) {
