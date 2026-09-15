@@ -1,0 +1,5 @@
+CREATE TABLE hosted_pc_sync_baseline (
+    pc_id TEXT NOT NULL PRIMARY KEY,
+    revision INTEGER NOT NULL CHECK (revision >= 0),
+    snapshot_json TEXT NOT NULL CHECK (length(trim(snapshot_json)) > 0)
+);

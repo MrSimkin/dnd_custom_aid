@@ -228,14 +228,23 @@ private fun CampaignScreen(
     var hostedRefreshing by remember { mutableStateOf(false) }
 
     fun idleHostedStatus(): String {
-        val pending = hostedBootstrap.pendingMutationCount()
+        val outbox = hostedBootstrap.outboxStatus()
+        val hasSession = hostedBootstrap.hasRememberedSession()
         return when {
-            hostedBootstrap.hasRememberedSession() && pending > 0 ->
-                "Sesión hospedada disponible. Hay $pending cambio(s) local(es) pendiente(s) de sincronizar."
-            hostedBootstrap.hasRememberedSession() ->
+            hasSession && outbox.readyCount > 0 && outbox.blockedCount > 0 ->
+                "Sesión hospedada disponible. ${outbox.readyCount} cambio(s) esperan reintento y ${outbox.blockedCount} cambio(s) están bloqueados para revisión."
+            hasSession && outbox.blockedCount > 0 ->
+                "Sesión hospedada disponible. Hay ${outbox.blockedCount} cambio(s) bloqueado(s) que requieren revisión."
+            hasSession && outbox.readyCount > 0 ->
+                "Sesión hospedada disponible. Hay ${outbox.readyCount} cambio(s) local(es) pendiente(s) de sincronizar."
+            hasSession ->
                 "Sesión hospedada disponible. Puedes sincronizar las campañas con el servidor."
-            pending > 0 ->
-                "Sin sesión hospedada. $pending cambio(s) local(es) permanecen guardados y pendientes."
+            outbox.readyCount > 0 && outbox.blockedCount > 0 ->
+                "Sin sesión hospedada. ${outbox.readyCount} cambio(s) esperan reintento y ${outbox.blockedCount} cambio(s) están bloqueados para revisión."
+            outbox.blockedCount > 0 ->
+                "Sin sesión hospedada. Hay ${outbox.blockedCount} cambio(s) bloqueado(s) que requieren revisión."
+            outbox.readyCount > 0 ->
+                "Sin sesión hospedada. ${outbox.readyCount} cambio(s) local(es) permanecen guardados y pendientes."
             else ->
                 "Sin sesión hospedada en este dispositivo."
         }
@@ -248,16 +257,24 @@ private fun CampaignScreen(
         activeCampaignId = repository.activeCampaign()?.id
     }
 
-    fun hostedCampaignSummary(outcome: AndroidHostedCampaignBootstrapOutcome.Success): String =
-        when {
+    fun hostedCampaignSummary(outcome: AndroidHostedCampaignBootstrapOutcome.Success): String {
+        val parts = mutableListOf<String>()
+        parts += when {
             outcome.hostedCampaignCount == 0 ->
                 "No hay campañas hospedadas para esta cuenta."
             outcome.conflictCount == 0 ->
                 "${outcome.appliedCampaignCount} campaña(s) conciliada(s) desde el servidor."
             else ->
                 "${outcome.appliedCampaignCount} campaña(s) conciliada(s); " +
-                    "${outcome.conflictCount} conflicto(s) local(es) fueron preservados sin sobrescribir."
+                    "${outcome.conflictCount} conflicto(s) de campaña fueron preservados sin sobrescribir."
         }
+        if (outcome.pcConflictCount > 0) {
+            parts += "${outcome.pcConflictCount} conflicto(s) de personaje fueron preservados; no se sobrescribieron cambios locales concurrentes."
+        } else if (outcome.hostedPcCount > 0) {
+            parts += "${outcome.hostedPcCount} PC(s) hospedado(s) fueron revisados sin conflicto."
+        }
+        return parts.joinToString(" ")
+    }
 
     fun applyHostedOutcome(
         outcome: AndroidHostedCampaignBootstrapOutcome,
@@ -281,11 +298,12 @@ private fun CampaignScreen(
                     if (outcome.acknowledgedMutationCount > 0) {
                         deliveryParts += "${outcome.acknowledgedMutationCount} cambio(s) local(es) confirmado(s) por el servidor."
                     }
-                    if (outcome.retryableMutationCount > 0) {
-                        deliveryParts += "${outcome.retryableMutationCount} cambio(s) siguen pendientes para reintentar."
+                    val outbox = hostedBootstrap.outboxStatus()
+                    if (outbox.readyCount > 0) {
+                        deliveryParts += "${outbox.readyCount} cambio(s) siguen pendientes para reintentar."
                     }
-                    if (outcome.blockedMutationCount > 0) {
-                        deliveryParts += "${outcome.blockedMutationCount} cambio(s) quedaron bloqueados y requieren revisión."
+                    if (outbox.blockedCount > 0) {
+                        deliveryParts += "${outbox.blockedCount} cambio(s) están bloqueados y requieren revisión."
                     }
                     deliveryParts += campaignSummary
                     hostedStatus = deliveryParts.joinToString(" ")
