@@ -70,15 +70,24 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
 }
 
 class ApiProblem extends Error {
+  readonly status: number;
+  readonly code: ApiErrorCode;
+  readonly details?: Record<string, unknown>;
+  readonly headers?: HeadersInit;
+
   constructor(
-    readonly status: number,
-    readonly code: ApiErrorCode,
+    status: number,
+    code: ApiErrorCode,
     message: string,
-    readonly details?: Record<string, unknown>,
-    readonly headers?: HeadersInit,
+    details?: Record<string, unknown>,
+    headers?: HeadersInit,
   ) {
     super(message);
     this.name = "ApiProblem";
+    this.status = status;
+    this.code = code;
+    this.details = details;
+    this.headers = headers;
   }
 }
 
