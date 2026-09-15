@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceRepos
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
+import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
 class MainActivity : ComponentActivity() {
@@ -58,6 +60,9 @@ class MainActivity : ComponentActivity() {
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val characterSuccessorRepository by lazy { CharacterSuccessorRepository(database) }
     private val characterProvenanceRepository by lazy { CharacterProvenanceRepository(database) }
+    private val hostedCampaignBootstrapController by lazy {
+        AndroidHostedCampaignBootstrapController(database)
+    }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
     private val hapticPreferencesStore by lazy { CharacterHapticPreferencesStore(applicationContext) }
     private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
@@ -75,20 +80,26 @@ class MainActivity : ComponentActivity() {
             DndCustomAidTheme(preferences = preferences) {
                 CharacterHapticSettingsProviderV4(store = hapticPreferencesStore) {
                     DndCustomAidApp(
-                    campaignRepository = campaignRepository,
-                    characterRepository = characterRepository,
-                    characterDirectoryRepository = characterDirectoryRepository,
-                    characterBackupRepository = characterBackupRepository,
-                    characterClosureRepository = characterClosureRepository,
-                    characterSuccessorRepository = characterSuccessorRepository,
-                    characterProvenanceRepository = characterProvenanceRepository,
-                    characterNavigationPreferenceStore = characterNavigationPreferenceStore,
-                    preferences = preferences,
+                        campaignRepository = campaignRepository,
+                        hostedCampaignBootstrapController = hostedCampaignBootstrapController,
+                        characterRepository = characterRepository,
+                        characterDirectoryRepository = characterDirectoryRepository,
+                        characterBackupRepository = characterBackupRepository,
+                        characterClosureRepository = characterClosureRepository,
+                        characterSuccessorRepository = characterSuccessorRepository,
+                        characterProvenanceRepository = characterProvenanceRepository,
+                        characterNavigationPreferenceStore = characterNavigationPreferenceStore,
+                        preferences = preferences,
                         onPreferencesChange = ::updatePreferences,
                     )
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        hostedCampaignBootstrapController.close()
+        super.onDestroy()
     }
 }
 
@@ -101,6 +112,7 @@ private enum class AppScreen {
 @Composable
 private fun DndCustomAidApp(
     campaignRepository: CampaignRepository,
+    hostedCampaignBootstrapController: AndroidHostedCampaignBootstrapController,
     characterRepository: CharacterRepository,
     characterDirectoryRepository: CharacterDirectoryRepository,
     characterBackupRepository: CharacterBackupRepository,
@@ -149,46 +161,47 @@ private fun DndCustomAidApp(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (screen) {
-        AppScreen.CAMPAIGNS -> CampaignScreen(
-            repository = campaignRepository,
-            onBack = {
-                selectedCharacterId = null
-                screenName = AppScreen.CHARACTERS.name
-            },
-            onOpenSettings = { showSettings = true },
-        )
+            AppScreen.CAMPAIGNS -> CampaignScreen(
+                repository = campaignRepository,
+                hostedBootstrap = hostedCampaignBootstrapController,
+                onBack = {
+                    selectedCharacterId = null
+                    screenName = AppScreen.CHARACTERS.name
+                },
+                onOpenSettings = { showSettings = true },
+            )
 
-        AppScreen.CHARACTERS -> directory()
+            AppScreen.CHARACTERS -> directory()
 
-        AppScreen.CHARACTER_EDITOR -> {
-            val characterId = selectedCharacterId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
-            if (characterId == null) {
-                directory()
-            } else {
-                CharacterPcSettingsStateProviderV4(
-                    characterId = characterId,
-                    characterRepository = characterRepository,
-                    closureRepository = characterClosureRepository,
-                    successorRepository = characterSuccessorRepository,
-                    provenanceRepository = characterProvenanceRepository,
-                ) {
-                    CharacterEditorScreenV4(
+            AppScreen.CHARACTER_EDITOR -> {
+                val characterId = selectedCharacterId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+                if (characterId == null) {
+                    directory()
+                } else {
+                    CharacterPcSettingsStateProviderV4(
                         characterId = characterId,
-                        repository = characterRepository,
-                        backupRepository = characterBackupRepository,
+                        characterRepository = characterRepository,
                         closureRepository = characterClosureRepository,
-                        navigationPreferenceStore = characterNavigationPreferenceStore,
-                        preferences = preferences,
-                        onPreferencesChange = onPreferencesChange,
-                        onOpenApplicationSettings = { showSettings = true },
-                        onBack = {
-                            selectedCharacterId = null
-                            screenName = AppScreen.CHARACTERS.name
-                        },
-                    )
+                        successorRepository = characterSuccessorRepository,
+                        provenanceRepository = characterProvenanceRepository,
+                    ) {
+                        CharacterEditorScreenV4(
+                            characterId = characterId,
+                            repository = characterRepository,
+                            backupRepository = characterBackupRepository,
+                            closureRepository = characterClosureRepository,
+                            navigationPreferenceStore = characterNavigationPreferenceStore,
+                            preferences = preferences,
+                            onPreferencesChange = onPreferencesChange,
+                            onOpenApplicationSettings = { showSettings = true },
+                            onBack = {
+                                selectedCharacterId = null
+                                screenName = AppScreen.CHARACTERS.name
+                            },
+                        )
+                    }
                 }
             }
-        }
         }
 
         if (showSettings) {
@@ -204,16 +217,59 @@ private fun DndCustomAidApp(
 @Composable
 private fun CampaignScreen(
     repository: CampaignRepository,
+    hostedBootstrap: AndroidHostedCampaignBootstrapController,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     var campaigns by remember { mutableStateOf(repository.listCampaigns()) }
     var activeCampaignId by remember { mutableStateOf(repository.activeCampaign()?.id) }
     var showCreateDialog by remember { mutableStateOf(false) }
+    var hostedRefreshing by remember { mutableStateOf(false) }
+    var hostedStatus by remember {
+        mutableStateOf(
+            if (hostedBootstrap.hasRememberedSession()) {
+                "Sesión hospedada disponible. Puedes actualizar las campañas desde el servidor."
+            } else {
+                "Sin sesión hospedada en este dispositivo."
+            },
+        )
+    }
 
     fun reload() {
         campaigns = repository.listCampaigns()
         activeCampaignId = repository.activeCampaign()?.id
+    }
+
+    fun refreshHostedCampaigns() {
+        if (hostedRefreshing) return
+
+        coroutineScope.launch {
+            hostedRefreshing = true
+            when (val outcome = hostedBootstrap.refresh()) {
+                is AndroidHostedCampaignBootstrapOutcome.Success -> {
+                    reload()
+                    hostedStatus = when {
+                        outcome.hostedCampaignCount == 0 ->
+                            "Cuenta hospedada conectada. No hay campañas hospedadas para esta cuenta."
+                        outcome.conflictCount == 0 ->
+                            "Cuenta hospedada conectada. ${outcome.appliedCampaignCount} campaña(s) actualizada(s) desde el servidor."
+                        else ->
+                            "Cuenta hospedada conectada. ${outcome.appliedCampaignCount} campaña(s) actualizada(s); " +
+                                "${outcome.conflictCount} conflicto(s) local(es) fueron preservados sin sobrescribir."
+                    }
+                }
+
+                AndroidHostedCampaignBootstrapOutcome.NoRememberedSession -> {
+                    hostedStatus = "Sin sesión hospedada válida en este dispositivo."
+                }
+
+                is AndroidHostedCampaignBootstrapOutcome.Failure -> {
+                    hostedStatus = outcome.message
+                }
+            }
+            hostedRefreshing = false
+        }
     }
 
     Scaffold(
@@ -261,6 +317,32 @@ private fun CampaignScreen(
                             )
                         }
                         StableSettingsIconButton(onClick = onOpenSettings)
+                    }
+                }
+
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                        ) {
+                            Text(
+                                text = "Servidor",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                text = hostedStatus,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Button(
+                                onClick = ::refreshHostedCampaigns,
+                                enabled = !hostedRefreshing,
+                            ) {
+                                Text(if (hostedRefreshing) "Actualizando…" else "Actualizar desde servidor")
+                            }
+                        }
                     }
                 }
 
