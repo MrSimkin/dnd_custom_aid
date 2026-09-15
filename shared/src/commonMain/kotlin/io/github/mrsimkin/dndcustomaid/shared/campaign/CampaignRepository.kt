@@ -42,12 +42,23 @@ class CampaignRepository(
     fun upsertCampaign(id: Uuid, rawName: String): Campaign {
         val name = rawName.trim()
         require(name.isNotEmpty()) { "Campaign name must not be blank." }
+        val campaign = Campaign(id = id, name = name)
 
-        database.campaignQueries.upsertCampaign(
-            id = id.toString(),
-            name = name,
-        )
-        return Campaign(id = id, name = name)
+        database.transaction {
+            if (this@CampaignRepository.campaign(id) == null) {
+                database.campaignQueries.insertCampaign(
+                    id = campaign.id.toString(),
+                    name = campaign.name,
+                )
+            } else {
+                database.campaignQueries.updateCampaignName(
+                    name = campaign.name,
+                    id = campaign.id.toString(),
+                )
+            }
+        }
+
+        return campaign
     }
 
     fun setActiveCampaign(id: Uuid) {
