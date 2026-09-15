@@ -1,0 +1,5 @@
+CREATE TABLE pc_sync_baseline (
+    pc_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    revision INTEGER NOT NULL CHECK (revision >= 0),
+    snapshot_json TEXT NOT NULL CHECK (length(trim(snapshot_json)) > 0)
+);
