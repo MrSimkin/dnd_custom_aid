@@ -12,12 +12,13 @@ Read in this order:
 2. `MANIFEST.md` — map of authoritative/project-memory files;
 3. `docs/PROJECT_STATE.md` — global state/navigation;
 4. `docs/checkpoints/LATEST.md` — exact practical resume pointer;
-5. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — current real hosted DEV environment and verification;
-6. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0` provider/budget rule and owner-guidance contract;
-7. `docs/BRANCH_STATUS.md` — branch lifecycle map;
-8. `docs/DECISIONS_RECENT.md` + relevant detailed decisions;
-9. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`;
-10. relevant checkpoints/feature files.
+5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — current Wave 4 checkpoint and exact continuation;
+6. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — real hosted DEV environment/provider evidence;
+7. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0` provider/budget rule and owner-guidance contract;
+8. `docs/BRANCH_STATUS.md` — branch lifecycle map;
+9. `docs/DECISIONS_RECENT.md` + relevant detailed decisions;
+10. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`;
+11. relevant checkpoints/feature files.
 
 Reusable lost-chat/fresh-chat recovery prompt:
 
@@ -37,7 +38,11 @@ Provider-neutral implementation checkpoint:
 
 Actions `34985799585` completed SUCCESS across Player guards, shared/Kotlin tests, Android, Desktop, backend, hosted PostgreSQL contracts and APK upload.
 
-The last pre-activation consolidated `main` was `a6bb965cf08a14878150a74d41191023dd70d552`; Actions `34993181692` completed SUCCESS.
+The Android hosted-session package was integrated through PR #30 at:
+
+`bf5f843066a7c2f8674a4577918156e8a8d2c139`
+
+Post-merge Actions `35020281492` / #1898 completed SUCCESS.
 
 ## Working relationship
 
@@ -92,37 +97,53 @@ Wave 2 — Shared Integrated-MVP Spine — is complete.
 
 Provider-neutral hosted work is integrated through PR #25, including hosted API/database contracts, native hosted transport, provider-neutral token boundary, durable hosted outbox, local-first campaign delivery, membership lifecycle reconciliation, hosted PC current-state snapshot persistence/authorization, optimistic revision/idempotency/conflict/tombstone handling and safe same-identity reconciliation.
 
-The first real DEV provider activation is also **COMPLETE / VERIFIED**:
+The first real DEV provider activation is **COMPLETE / VERIFIED**:
 
 ```text
-Neon PostgreSQL      ✅
-Descope identity     ✅
-Cloudflare Worker    ✅
-Real JWT-auth /v1/me ✅
-Real Neon persistence✅
-Workers Free CPU gate✅
+Neon PostgreSQL       ✅
+Descope identity      ✅
+Cloudflare Worker     ✅
+Real JWT-auth /v1/me  ✅
+Real Neon persistence ✅
+Workers Free CPU gate ✅
 ```
 
 The representative authenticated `/v1/me` path showed about 1 ms Worker CPU per visible invocation with no observed benchmark errors.
 
-See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for exact public provider identifiers, evidence, local caveats and security residuals.
+The first Android hosted-session edge is also **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**:
+
+```text
+Descope Android SDK       ✅
+Remembered session        ✅
+HostedAccessTokenProvider ✅
+Real Android -> Worker    ✅
+Restart/session reuse     ✅
+Logout/session cleared    ✅
+```
+
+The separate `DnD Aid - Hosted DEV Auth` launcher is debug-only verification infrastructure. It is not the final product login UX and the ordinary Player launcher is not yet product-login-gated.
+
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` for exact implementation/manual evidence and `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for provider/environment evidence.
 
 ## Exact current continuation
 
-If no later checkpoint supersedes it, the next primary package is **real authenticated Player <-> Server development integration**.
+Wave 4 — Player <-> Server end-to-end — is active.
 
-Provider activation prerequisites are already satisfied. Do not repeat account setup or invent another auth/network/sync stack.
+The remembered Android Descope session/token and existing `HostedAccessTokenProvider` integration are complete. The next primary package is:
+
+**owner-facing hosted account/campaign bootstrap**
 
 Expected path:
 
 ```text
-remembered Android Descope session/token
+remembered Android Descope session/token       ✅
+existing HostedAccessTokenProvider             ✅
         |
         v
-existing HostedAccessTokenProvider
+hosted account/campaign bootstrap              NEXT
         |
         v
-hosted campaign bootstrap/create/select
+campaign create/select + durable hosted delivery
         |
         v
 PC snapshot push/pull
@@ -130,6 +151,8 @@ PC snapshot push/pull
         v
 second-device + offline/reconnect + revoke tests
 ```
+
+Provider activation prerequisites are already satisfied. Do not repeat account setup or invent another auth/network/sync stack.
 
 Future materially heavier Worker routes should still be profiled. The current CPU PASS applies to the representative authenticated path already tested.
 

@@ -19,13 +19,14 @@ Before changing anything:
 3. read `MANIFEST.md`;
 4. read `docs/PROJECT_STATE.md`;
 5. read `docs/checkpoints/LATEST.md`;
-6. read the checkpoint referenced by `LATEST.md`, especially `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` if it remains current;
-7. read `docs/BRANCH_STATUS.md`;
-8. read `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` and relevant detailed decisions, especially D-0071 through D-0075;
-9. read `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md`;
-10. read `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` for the provider-neutral engineering contracts;
-11. inspect current remote `main`, newer merged PRs/commits and current CI before writing;
-12. prefer newer specific approved decisions/checkpoints if any older document conflicts.
+6. read the checkpoint referenced by `LATEST.md`, especially `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` if it remains current;
+7. read `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` when exact provider/environment evidence is relevant;
+8. read `docs/BRANCH_STATUS.md`;
+9. read `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` and relevant detailed decisions, especially D-0071 through D-0075;
+10. read `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md`;
+11. read `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` for the provider-neutral engineering contracts;
+12. inspect current remote `main`, newer merged PRs/commits and current CI before writing;
+13. prefer newer specific approved decisions/checkpoints if any older document conflicts.
 
 Do not assume the latest remembered conversation is current. Reconstruct from Git and current provider evidence where provider state is relevant.
 
@@ -41,25 +42,28 @@ You must understand at least:
 - historical/frozen Player evidence versus current integrated state;
 - provider-neutral API/database/native transport/sync contracts;
 - hosted DEV provider state;
+- Android hosted-auth/session state;
 - security and `$0` constraints;
 - test/CI posture;
 - deferred provider/features;
 - current exact implementation package;
 - owner/manual/external-service gates.
 
-Do not answer from a narrow provider-only perspective.
+Do not answer from a narrow provider-only or auth-only perspective.
 
 ## Last known consolidated state at this checkpoint
 
-Always verify for newer work, but the repository was consolidated after completing the first real hosted DEV provider activation.
+Always verify for newer work, but the repository was most recently advanced through the first real Android hosted-session integration.
 
-Known pre-consolidation main state:
+Known important integrated states:
 
 - normal trunk: `main`;
-- last pre-activation consolidated main: `a6bb965cf08a14878150a74d41191023dd70d552`;
-- its post-merge Actions run `34993181692` — SUCCESS;
 - provider-neutral implementation checkpoint: `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`;
-- provider-neutral implementation CI: Actions `34985799585` — SUCCESS.
+- provider-neutral implementation CI: Actions `34985799585` — SUCCESS;
+- hosted DEV provider activation: COMPLETE / VERIFIED;
+- Android hosted-session PR #30 merged as `bf5f843066a7c2f8674a4577918156e8a8d2c139`;
+- PR #30 post-merge Actions `35020281492` / #1898 — SUCCESS;
+- Android session lifecycle owner/manual gate — PASS.
 
 Use current `main` rather than blindly resuming any hash above.
 
@@ -74,7 +78,10 @@ Do not restart or redesign the following without a concrete defect or newer appr
 - hosted PC snapshot foundation;
 - existing provider-neutral auth/network/sync seams;
 - current application-owned authorization model;
-- revision/idempotency/tombstone/conflict rules.
+- revision/idempotency/tombstone/conflict rules;
+- first Cloudflare + Neon + Descope DEV activation;
+- Android remembered Descope session/token acquisition;
+- Android `HostedAccessTokenProvider` adapter.
 
 Preserve:
 
@@ -150,6 +157,29 @@ The current backend code uses `DATABASE_URL` + `DESCOPE_PROJECT_ID`, with option
 
 Future materially heavier Worker paths should still be profiled.
 
+## Android hosted session — already integrated
+
+Do not repeat the first Android authentication/session package unless newer evidence shows a defect.
+
+PR #30 integrated:
+
+- Descope Android SDK initialization at app startup;
+- Descope-managed remembered session/refresh lifecycle;
+- `DescopeHostedAccessTokenProvider` feeding the existing shared `HostedApiClient`;
+- Android INTERNET permission;
+- a separate debug-only `DnD Aid - Hosted DEV Auth` verification activity.
+
+The owner physically verified:
+
+- real email OTP authentication;
+- authenticated Worker `/v1/me` through the Android/shared client path;
+- remembered session after a full app close/reopen;
+- successful remembered-session reuse without another login;
+- DEV logout;
+- no remembered session after another full close/reopen.
+
+The debug auth harness is **not** the final product login UX. The ordinary Player application is not yet product-login-gated. Do not turn the debug harness into production UX by inertia.
+
 ## Owner/local workflow
 
 Known owner workspace:
@@ -190,7 +220,7 @@ Whenever giving owner-facing setup or troubleshooting instructions:
 
 ## Current security residuals
 
-Do not assume provider activation means security is permanently complete.
+Do not assume provider/session success means security is permanently complete.
 
 Carry forward and assess proportionately:
 
@@ -210,7 +240,7 @@ Specific known items:
 - local backend install reported **3 high severity npm vulnerabilities**; inspect exact packages/reachability/fixed versions before remediation and do **not** run `npm audit fix --force` blindly;
 - current Worker DB credential is associated with the Neon project owner role; evaluate a dedicated least-privilege runtime role in a later security hardening pass, without destructive privilege/credential changes unless properly planned.
 
-These residuals are visible work, not justification to reopen the already completed provider-activation gate.
+These residuals are visible work, not justification to reopen already completed provider/session gates.
 
 ## Deferred provider work
 
@@ -220,22 +250,18 @@ Workers AI remains the later official-SRD clarification direction only while usa
 
 ## Current intended next implementation package
 
-If no newer checkpoint supersedes it, the next primary package is:
+If no newer checkpoint supersedes it, Wave 4 is active and its next primary package is:
 
-**real authenticated Player <-> Server development integration**
+**owner-facing hosted account/campaign bootstrap**
 
-Provider activation prerequisites are already satisfied.
-
-Expected dependency path:
+The first two Wave 4 steps are already complete:
 
 ```text
-remembered Android Descope session/token
+remembered Android Descope session/token        COMPLETE
+existing HostedAccessTokenProvider              COMPLETE
         |
         v
-existing HostedAccessTokenProvider
-        |
-        v
-hosted account/campaign bootstrap
+owner-facing hosted account/campaign bootstrap  NEXT
         |
         v
 campaign create/select + durable hosted delivery
@@ -250,7 +276,7 @@ second-device observation
 offline/reconnect/convergence + revoke tests
 ```
 
-Do not create a second auth/network/sync architecture. Reuse the existing shared/provider-neutral contracts.
+Do not create a second auth/network/sync architecture. Reuse the existing shared/provider-neutral contracts and the already integrated Android Descope session edge.
 
 Continue implementation autonomously once repository state is reconstructed, returning to the owner only for material product/scope/security/privacy/cost/lock-in/destructive behavior, new external account/service actions or manual/physical QA gates.
 
@@ -262,10 +288,11 @@ Before implementing, give the owner a concise reconstruction containing:
 - current whole-project stage;
 - major completed milestones;
 - hosted provider status;
+- Android hosted-session status;
 - material open risks;
 - exact next implementation package;
 - any genuine owner action required before continuing.
 
-The objective is to resume the **project**, not merely repeat the last provider or security task.
+The objective is to resume the **project**, not merely repeat the last provider, security or authentication task.
 
 ---

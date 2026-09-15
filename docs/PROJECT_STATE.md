@@ -6,7 +6,8 @@
 **Provider-neutral implementation checkpoint:** `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`  
 **Provider-neutral checkpoint Actions:** `34985799585` — **SUCCESS**  
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
-**Current hosted completion checkpoint:** `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
+**Android hosted-session integration:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
+**Current implementation checkpoint:** `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`
 
 ## 1. Current authority/topology
 
@@ -90,23 +91,56 @@ Completed successfully:
 
 The representative Workers Free CPU/runtime gate is therefore **PASS** for the tested authenticated path. Materially heavier future endpoints should still be profiled.
 
-See the current hosted completion checkpoint for exact evidence and provider/public identifiers.
+See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for exact provider evidence and public identifiers.
 
-## 4. Current implementation boundary
+## 4. Android hosted authentication/session edge — complete
 
-Provider activation itself is no longer the dependency.
+PR #30 connected Android to the already-existing provider-neutral hosted-client seam rather than creating a second auth/network architecture.
 
-Android owner-facing composition is still intentionally local-only: it does not yet acquire a remembered real Descope session or drive the existing hosted campaign/PC sync flows from Player UI.
+Integrated behavior includes:
 
-The next primary package is therefore:
+- Descope Android SDK setup during application startup;
+- Descope-managed remembered session/refresh lifecycle;
+- Android implementation of `HostedAccessTokenProvider` that refreshes when needed and exposes the active short-lived session JWT to the shared hosted client;
+- Android INTERNET permission for real hosted traffic;
+- a separate debug-only `DnD Aid - Hosted DEV Auth` verification activity so the temporary DEV email-OTP harness does not become the final product login UX by inertia.
 
-**real authenticated Player <-> Server development integration**
+PR #30 merged to `main` as:
 
-Proceed in dependency order:
+`bf5f843066a7c2f8674a4577918156e8a8d2c139`
 
-1. wire remembered Android Descope session/token acquisition at the platform edge;
-2. feed tokens into the existing `HostedAccessTokenProvider` seam;
-3. wire hosted account/campaign bootstrap into the owner-facing Player flow;
+Post-merge Actions `35020281492` / #1898 completed **SUCCESS**.
+
+The owner physically verified on Android:
+
+- real email OTP login;
+- authenticated `/v1/me` through the shared hosted client;
+- session persistence across full app close/reopen;
+- remembered-session reuse without another login;
+- DEV logout;
+- no remembered session after another full close/reopen.
+
+The Android session lifecycle gate is therefore **PASS**.
+
+The ordinary Player launcher remains the normal application and is not yet product-login-gated. The debug harness is verification infrastructure, not a final authentication UX decision.
+
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` for exact evidence.
+
+## 5. Current implementation boundary
+
+Provider activation and Android session/token acquisition are no longer dependencies.
+
+Wave 4 — Player <-> Server end-to-end — is active.
+
+The next primary package is:
+
+**owner-facing hosted account/campaign bootstrap**
+
+Proceed in dependency order from the already-integrated session edge:
+
+1. **COMPLETE** — remembered Android Descope session/token acquisition at the platform edge;
+2. **COMPLETE** — feed the session token into the existing `HostedAccessTokenProvider` seam;
+3. **NEXT** — wire hosted account/campaign bootstrap into the owner-facing Player flow;
 4. wire campaign create/select + durable hosted delivery while preserving local-first behavior;
 5. wire PC snapshot push/pull through the existing sync foundation;
 6. prove second-device observation;
@@ -116,7 +150,7 @@ Proceed in dependency order:
 
 Do not invent another auth/network/sync abstraction simply because the providers are now real.
 
-## 5. Controlling integrated-MVP product direction
+## 6. Controlling integrated-MVP product direction
 
 The approved product remains one ecosystem:
 
@@ -126,7 +160,7 @@ Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 
 Paper-first Player play, local-first saves, bounded project-specific sync, complete DM Desktop fallback, explicit combat authority resume/handoff, object storage/media, meaningful recovery/backup and official-SRD clarification remain protected integrated-MVP direction.
 
-## 6. Protected integrated-MVP scope
+## 7. Protected integrated-MVP scope
 
 Do not silently demote the following to stretch goals:
 
@@ -150,7 +184,7 @@ Do not silently demote the following to stretch goals:
 
 The project remains paper-first and intentionally not a VTT, automatic legality/rules engine, generalized sync platform, marketplace/social product or enterprise infrastructure exercise.
 
-## 7. Current technical direction
+## 8. Current technical direction
 
 The approved technical direction remains:
 
@@ -173,7 +207,7 @@ Object storage remains required for the MVP but provider selection/activation is
 
 Workers AI remains a later approved official-SRD clarification direction only while it can be used safely under the hard `$0` policy.
 
-## 8. External-service and security state
+## 9. External-service and security state
 
 D-0075 remains controlling:
 
@@ -182,7 +216,7 @@ D-0075 remains controlling:
 - never commit secrets;
 - paid plans/overage/billing commitments require explicit owner approval.
 
-Current provider activation succeeded within the `$0` policy.
+Current provider activation and Android session integration succeeded within the `$0` policy.
 
 Important security residuals carried forward:
 
@@ -195,9 +229,9 @@ Important security residuals carried forward:
 - evaluate a dedicated least-privilege Neon runtime role instead of the current project-owner runtime credential;
 - reassess Descope region/settings before production release.
 
-Activation completion is not a claim that security work is permanently finished.
+Completion of the current gates is not a claim that security work is permanently finished.
 
-## 9. Owner/local development notes
+## 10. Owner/local development notes
 
 Owner project root: `D:\DnD_Aid`  
 Local clone: `D:\DnD_Aid\repo\dnd_custom_aid`  
@@ -207,16 +241,18 @@ The credential file is intentionally outside Git and plaintext by explicit owner
 
 A local Windows SChannel issue prevents PowerShell `Invoke-RestMethod`/Windows `curl.exe` from negotiating TLS with the Worker URL on the owner's machine, while Node `fetch()` and Vivaldi work. Treat Node/browser as the known-good local endpoint-test path unless the Windows TLS issue is separately investigated.
 
-## 10. Release/acceptance status
+## 11. Release/acceptance status
 
 The project remains development/debug and is not release-ready.
 
-Real provider activation and end-to-end authentication/persistence proof do not retroactively convert historical Player physical QA into a PASS.
+The Android hosted-session path has passed its specific owner/manual gate. That does not retroactively convert historical Player physical QA into a PASS.
 
 Historical frozen Player candidate remains `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`; targeted cross-device physical revalidation was pending at that historical boundary.
 
-## 11. Resume rule
+## 12. Resume rule
 
-For exact continuation, read `docs/checkpoints/LATEST.md` and `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`.
+For exact continuation, read `docs/checkpoints/LATEST.md` and `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`.
 
-Older current-state documents that still describe provider activation as pending are superseded for that operational point by these newer records.
+Use `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` when exact provider/environment evidence is needed.
+
+Older current-state documents that still describe provider activation or Android session acquisition as pending are superseded for those operational points by these newer records.

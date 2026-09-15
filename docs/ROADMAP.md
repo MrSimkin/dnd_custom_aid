@@ -115,20 +115,29 @@ Do not repeat provider activation and do not introduce generalized event sourcin
 
 ### Wave 4 — Player <-> Server end-to-end
 
-**Status:** NEXT ACTIVE IMPLEMENTATION WAVE.
+**Status:** ACTIVE — Android hosted-session edge COMPLETE; owner-facing campaign bootstrap NEXT.
 
 Preserve the mature Player UX/runtime while wiring the real hosted environment through existing contracts.
 
-Dependency order:
+Completed Wave 4 steps:
 
-1. remembered Android Descope session/token acquisition at the platform edge;
-2. feed token into the existing `HostedAccessTokenProvider` seam;
-3. owner-facing hosted account/campaign bootstrap;
+1. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — remembered Android Descope session/token acquisition at the platform edge;
+2. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — feed token into the existing `HostedAccessTokenProvider` seam.
+
+PR #30 merged as `bf5f843066a7c2f8674a4577918156e8a8d2c139`; post-merge Actions `35020281492` / #1898 completed SUCCESS. The owner physically verified OTP login, authenticated Worker access, remembered-session reuse after a full app restart and logout clearing the remembered session after restart.
+
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`.
+
+Remaining dependency order:
+
+3. **NEXT** — owner-facing hosted account/campaign bootstrap;
 4. campaign create/select + durable hosted delivery while preserving local-first behavior;
 5. PC snapshot push/pull;
 6. second-device observation;
 7. offline edit/reconnect/convergence;
 8. membership-revoke and Player/DM authorization validation.
+
+The debug-only `DnD Aid - Hosted DEV Auth` activity is verification infrastructure, not the final Player login UX.
 
 Future materially heavier Worker routes should receive representative CPU/runtime profiling. Do not silently move to paid Workers if a route exceeds the Free budget; reassess under D-0075.
 
