@@ -4,64 +4,67 @@ This file maps authoritative project-control files and implemented areas so a fr
 
 ## Current authority model
 
-The owner has authorized integrated-MVP implementation. **`main` is the single normal integrated-MVP trunk.** The former Player successor and convergence line are historical evidence, not normal resume branches.
+The owner has authorized integrated-MVP implementation. **`main` is the single normal integrated-MVP trunk.** Historical Player/convergence lines are evidence only.
 
-Current verified implementation checkpoint:
+Verified implementation checkpoint:
 
 `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
 
-Post-merge GitHub Actions `34985799585` — **SUCCESS**.
+Actions `34985799585` — SUCCESS. PR #26 later consolidated the provider boundary; post-merge Actions `34986965813` — SUCCESS.
 
-`docs/BRANCH_STATUS.md` controls branch lifecycle. Branch existence alone does not establish authority.
+`docs/BRANCH_STATUS.md` controls branch lifecycle. `docs/checkpoints/LATEST.md` controls the practical resume point.
 
 ## Start/resume control files
 
 ### `README.md`
-Repository entry point and mandatory read sequence.
+Repository entry point and read sequence.
 
 ### `AGENTS.md`
-Mandatory operating rules for humans and AI/coding agents. Routine low-level engineering is delegated; do not use the owner as a rubber stamp.
-
-### `MANIFEST.md`
-This inventory.
+Mandatory operating rules for humans and AI/coding agents. Routine engineering is delegated; owner escalation is for real consequential decisions/gates.
 
 ### `docs/checkpoints/LATEST.md`
-Exact practical resume pointer.
+Exact practical resume pointer and current supersession/correction rules.
+
+### `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`
+Controlling owner policy for:
+
+- external-service budget = **USD $0** unless explicitly changed;
+- free-tier billing/overage/hard-cap evaluation;
+- September 2026 provider revalidation;
+- intentional public GitHub repository visibility;
+- strict secret hygiene;
+- owner-facing guidance style for a technically oriented power user who is not a professional developer.
+
+### `docs/recovery/PROJECT_RECOVERY_PROMPT.md`
+Reusable fresh-chat/lost-chat recovery prompt carrying current resume rules, `$0` policy, security clarification, owner guidance style and provider boundary.
 
 ### `docs/checkpoints/2026-09-15_PLAYER_SERVER_PROVIDER_BOUNDARY.md`
-Current hosted/sync implementation checkpoint. It records the integrated provider-neutral foundation, exact validated commit/run, and the first real external-provider activation boundary.
+Provider-neutral hosted/sync implementation checkpoint and first real external-provider activation boundary. Where its old repository-visibility paragraph conflicts with D-0075/LATEST, D-0075 controls.
 
 ### `docs/PROJECT_STATE.md`
-Authoritative current global implementation/product state and exact next dependency.
+Global implementation/product state. Older visibility-discrepancy wording is superseded by D-0075.
 
 ### `docs/BRANCH_STATUS.md`
-Canonical branch lifecycle map.
+Canonical branch lifecycle map. Older visibility-discrepancy wording is superseded by D-0075.
 
 ### `docs/ROADMAP.md`
-Overall integrated implementation waves and ordering.
+Integrated implementation waves and ordering.
 
 ### `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`
-Current engineering handoff: shared/hosted foundation, sync, auth, PC snapshots, provider gate, object storage, backup and PDF direction.
+Engineering handoff. Older visibility-discrepancy or assumed-R2 wording is superseded by D-0075 where it conflicts.
 
 ### `docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md`
-Prepared safety/activation handoff for the first development Cloudflare + Neon + Descope environment. This file is not authorization to create accounts/resources.
+Prepared safety/activation handoff for the first Cloudflare + Neon + Descope development environment, now hardened around the controlling `$0` policy and owner-guidance contract.
 
 ## Controlling product/architecture decisions
 
-### `docs/decisions/D-0071_MVP_INTEGRATION_PLAYER_SERVER_DM_DESKTOP_ARCHITECTURE.md`
-Integrated Player + Server + DM architecture, paper/local/server authority, sync, permissions, recovery/backup, Desktop fallback, combat authority and SRD direction.
+- `D-0071` — integrated Player + Server + DM architecture, authority/sync/recovery/Desktop direction;
+- `D-0072` — DM Desktop product and authoring/management surfaces;
+- `D-0073` — integrated MVP boundary and implementation governance;
+- `D-0074` — cross-surface PC Sheet PDF export definition;
+- `D-0075` — zero-budget provider policy, provider revalidation, repository visibility clarification and owner-guidance contract.
 
-### `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`
-Desktop Live/Prepare/Admin product definition.
-
-### `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`
-MVP boundary, implementation waves, Git strategy and owner-vs-technical responsibility.
-
-### `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`
-Complete cross-surface PC Sheet PDF-export behavior.
-
-### `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md`
-Historical chronological decision log plus recent decision index.
+Use `docs/DECISIONS_RECENT.md` for navigation to detailed decision records.
 
 ## Other mandatory/reference docs
 
@@ -77,81 +80,55 @@ Historical checkpoints remain evidence; old `next` instructions may be supersede
 ## Current implemented areas
 
 ### `shared/`
-Kotlin Multiplatform domain/persistence/networking/sync foundation using SQLDelight, kotlinx.serialization and Ktor. It contains the mature Player model/runtime persistence support, integrated spine, versioned backup/serialization, hosted transport, durable hosted outbox, campaign lifecycle sync and hosted PC snapshot synchronization/conflict logic.
+Kotlin Multiplatform domain/persistence/networking/sync foundation with SQLDelight, kotlinx.serialization and Ktor. Includes stable identities/revisions, hosted transport, durable outbox, campaign lifecycle sync and hosted PC snapshot reconciliation/conflict logic.
 
 ### `androidApp/`
-Mature Player Android runtime from the historical successor line is integrated and protected by permanent CI guards. At the current provider-boundary checkpoint, owner-facing Android composition remains local-only: real remembered Descope session acquisition and hosted campaign/PC wiring are the next external-environment-dependent package.
+Mature Player Android runtime protected by permanent CI guards. Owner-facing composition remains intentionally local-only at the current provider boundary; remembered hosted authentication/session and real campaign/PC hosted wiring are the next external-environment-dependent package.
 
 ### `desktopApp/`
-Compose Multiplatform Desktop foundation. The full approved DM Desktop workbench remains protected future integrated-MVP work after Player↔Server contracts are proven end-to-end.
+Compose Multiplatform Desktop foundation. Full approved DM Desktop workbench remains protected integrated-MVP work after Player↔Server contracts are proven end-to-end.
 
 ### `backend/`
-TypeScript Cloudflare Worker/API implementation, no longer scaffold-only. It includes `/v1` hosted domain routes, token-verifier boundaries, application-owned authorization, campaign/membership lifecycle behavior, PC snapshot behavior and hosted error contracts.
+TypeScript Cloudflare Worker/API with `/v1` hosted routes, token-verifier boundaries, application-owned authorization, campaign/membership lifecycle and PC snapshot behavior.
 
 ### `database/`
-Explicit hosted PostgreSQL migration plus contract tests, including integrated spine, campaign membership lifecycle and PC snapshot authorization/revision/DM-authority contracts. CI validates these against PostgreSQL.
+Explicit hosted PostgreSQL migrations/contracts validated in CI.
 
 ### `scripts/`
 Permanent Player guard scripts exercised by Scaffold CI.
 
 ### `assets/character-sheets/templates/`
-PC Sheet PDF source templates/visual authorities; presentation artifacts, not the canonical PC model.
+PC Sheet PDF visual authorities; not the canonical PC model.
 
 ## Current integrated implementation position
 
-Wave 2 — Shared Integrated-MVP Spine — is complete.
+Wave 2 Shared Integrated-MVP Spine is complete. Provider-neutral Wave 3 hosted work is integrated through PR #25.
 
-Provider-neutral Wave 3 hosted work is integrated through PR #25:
+The next meaningful package is **real authenticated Player↔Server development integration**, requiring owner-controlled development/test Cloudflare + Neon + Descope resources that satisfy D-0075's `$0` policy.
 
-- hosted API/database/shared transport;
-- durable outbox and idempotent campaign delivery;
-- hosted account/campaign bootstrap;
-- explicit membership lifecycle/deletion reconciliation;
-- hosted PC JSONB current-state snapshot foundation;
-- PC authorization, revision/idempotency/conflict/tombstone semantics;
-- durable PC snapshot delivery and safe same-identity reconciliation.
+Provider direction after revalidation:
 
-The next meaningful package is **real authenticated Player↔Server development integration**, which requires the first owner-controlled development Cloudflare + Neon + Descope environment.
+- Cloudflare Workers — KEEP, early free-tier CPU/runtime proof required;
+- Neon PostgreSQL — KEEP;
+- Descope — KEEP, current Free-plan payment/region confirmation required;
+- Workers AI — KEEP while safely usable at `$0`;
+- object storage — provider DEFERRED until asset integration.
 
-Do not add speculative parallel infrastructure merely to defer this gate.
+Do not create speculative parallel infrastructure merely to defer the provider gate.
 
-## External-provider boundary
+## Security / repository visibility
 
-The provider activation gate has now been reached, but provider activation remains an owner action.
+The GitHub repository is intentionally **public**. This is expected configuration, not a security discrepancy.
 
-Before activation, verify current plans, regions/data locations, pricing/quotas and security implications. Use development/test resources first. Never commit secrets.
-
-R2 remains later for Media/Handouts/assets.
-
-At checkpoint capture, GitHub repository metadata reports `private: false`; the owner should verify intended visibility before provider integration. Do not change visibility autonomously.
-
-## Historical Player evidence
-
-Old successor head at convergence:
-
-`b9dea8ad6b17dcf3feeabba263eff1ee498f1536`
-
-Frozen candidate:
-
-- `0.4.0-preqa.13 / 41300`;
-- `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
-- run `34801612526` / #1630 — SUCCESS;
-- artifact `10331503478`;
-- targeted physical cross-device revalidation pending at that old boundary.
-
-Current integrated CI does not retroactively establish physical acceptance of that historical candidate.
+Never commit provider credentials, database credentials, access/session tokens, private keys or other secrets.
 
 ## Current integrated-MVP boundary
-
-Target:
 
 ```text
 Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
 Protected scope includes Player hosted integration, full DM live Android/Desktop capability, combat authority resume, Managers, structured homebrew/import-export, object storage/media, PC audit/correction, PC Sheet PDF export, Campaign/System Administration, audit/recovery/full backup and official-SRD clarification.
-
-Generalized VTT/realtime/ACL/CRDT/marketplace/homebrew-AI/enterprise infrastructure remains deferred unless a concrete approved requirement proves it necessary.
 
 ## Authority rule
 
@@ -160,8 +137,8 @@ If documents conflict:
 1. later specific Approved decisions control older general prose;
 2. `AGENTS.md` controls working governance;
 3. `docs/BRANCH_STATUS.md` controls branch lifecycle;
-4. `docs/PROJECT_STATE.md` controls current global state;
+4. `docs/PROJECT_STATE.md` controls current global state except where a newer specific decision/checkpoint explicitly supersedes stale prose;
 5. `docs/checkpoints/LATEST.md` controls the practical resume point;
-6. the current checkpoint controls current implementation/validation facts;
+6. detailed decisions/checkpoints control their specific approved facts;
 7. historical checkpoints remain evidence only;
 8. surface material contradictions instead of guessing.
