@@ -53,7 +53,7 @@ BEGIN
         INSERT INTO campaign(id, name, revision)
         SELECT p_campaign, btrim(p_name), 0
         WHERE NOT EXISTS (SELECT 1 FROM existing_receipt)
-        ON CONFLICT(id) DO NOTHING
+        ON CONFLICT ON CONSTRAINT campaign_pkey DO NOTHING
         RETURNING campaign.id, campaign.name, campaign.revision
     ),
     new_receipt AS (
