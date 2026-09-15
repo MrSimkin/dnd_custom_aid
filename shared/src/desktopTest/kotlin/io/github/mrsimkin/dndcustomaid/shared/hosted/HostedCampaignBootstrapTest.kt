@@ -5,6 +5,7 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.spine.AccountIdentity
+import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembership
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import io.github.mrsimkin.dndcustomaid.shared.spine.IntegratedSpineRepository
@@ -23,7 +24,7 @@ class HostedCampaignBootstrapTest {
         val accountId = Uuid.random()
         val campaignId = Uuid.random()
         val account = HostedAccount(accountId, "Gustavo")
-        val hosted = HostedCampaign(campaignId, "Terramore", CampaignRole.DM, revision = 3)
+        val hosted = hostedState(campaignId, "Terramore", CampaignRole.DM, revision = 3)
         val service = service(database, account, listOf(hosted))
 
         val result = runBlocking { service.refresh() }
@@ -57,7 +58,7 @@ class HostedCampaignBootstrapTest {
             service(
                 database,
                 HostedAccount(accountId, "Gustavo"),
-                listOf(HostedCampaign(campaignId, "New Name", CampaignRole.PLAYER, revision = 2)),
+                listOf(hostedState(campaignId, "New Name", CampaignRole.PLAYER, revision = 2)),
             ).refresh()
         }
 
@@ -65,6 +66,94 @@ class HostedCampaignBootstrapTest {
         assertEquals(Campaign(campaignId, "New Name"), campaigns.campaign(campaignId))
         assertEquals(Revision(2), spine.syncMetadata("CAMPAIGN", campaignId).revision)
         assertEquals(CampaignRole.PLAYER, spine.membership(campaignId, accountId)?.role)
+    }
+
+    @Test
+    fun explicitKickDisablesHostedMembershipWithoutDeletingLocalCampaign() = withDatabase { database ->
+        val accountId = Uuid.random()
+        val campaignId = Uuid.random()
+        val campaigns = CampaignRepository(database)
+        val spine = IntegratedSpineRepository(database)
+        campaigns.upsertCampaign(campaignId, "Terramore")
+        spine.upsertAccount(AccountIdentity(accountId))
+        spine.upsertMembership(
+            CampaignMembership(campaignId, accountId, CampaignRole.PLAYER, CampaignMembershipStatus.ACTIVE),
+        )
+        spine.putSyncMetadata("CAMPAIGN", campaignId, SyncMetadata(revision = Revision(2)))
+
+        val result = runBlocking {
+            service(
+                database,
+                HostedAccount(accountId),
+                listOf(
+                    hostedState(
+                        campaignId,
+                        "Terramore",
+                        CampaignRole.PLAYER,
+                        revision = 2,
+                        status = CampaignMembershipStatus.KICKED,
+                    ),
+                ),
+            ).refresh()
+        }
+
+        assertEquals(listOf(campaignId), result.appliedCampaignIds)
+        assertEquals(Campaign(campaignId, "Terramore"), campaigns.campaign(campaignId))
+        assertEquals(CampaignMembershipStatus.KICKED, spine.membership(campaignId, accountId)?.status)
+        assertEquals(false, spine.membership(campaignId, accountId)?.canUseHostedCampaign)
+    }
+
+    @Test
+    fun hostedCampaignTombstoneIsAppliedWithoutDestroyingLocalCampaignData() = withDatabase { database ->
+        val accountId = Uuid.random()
+        val campaignId = Uuid.random()
+        val campaigns = CampaignRepository(database)
+        val spine = IntegratedSpineRepository(database)
+        campaigns.upsertCampaign(campaignId, "Terramore")
+        spine.putSyncMetadata("CAMPAIGN", campaignId, SyncMetadata(revision = Revision(2)))
+
+        val result = runBlocking {
+            service(
+                database,
+                HostedAccount(accountId),
+                listOf(
+                    hostedState(
+                        campaignId,
+                        "Terramore",
+                        CampaignRole.PLAYER,
+                        revision = 3,
+                        deletedAtEpochSeconds = 1234,
+                    ),
+                ),
+            ).refresh()
+        }
+
+        assertEquals(listOf(campaignId), result.appliedCampaignIds)
+        assertEquals(Campaign(campaignId, "Terramore"), campaigns.campaign(campaignId))
+        assertEquals(
+            SyncMetadata(revision = Revision(3), deletedAtEpochSeconds = 1234),
+            spine.syncMetadata("CAMPAIGN", campaignId),
+        )
+    }
+
+    @Test
+    fun absentMembershipStateDoesNotInventRemoval() = withDatabase { database ->
+        val accountId = Uuid.random()
+        val campaignId = Uuid.random()
+        val campaigns = CampaignRepository(database)
+        val spine = IntegratedSpineRepository(database)
+        campaigns.upsertCampaign(campaignId, "Local Campaign")
+        spine.upsertAccount(AccountIdentity(accountId))
+        spine.upsertMembership(
+            CampaignMembership(campaignId, accountId, CampaignRole.PLAYER, CampaignMembershipStatus.ACTIVE),
+        )
+
+        runBlocking {
+            service(database, HostedAccount(accountId), emptyList()).refresh()
+        }
+
+        assertEquals(CampaignMembershipStatus.ACTIVE, spine.membership(campaignId, accountId)?.status)
+        assertEquals(Campaign(campaignId, "Local Campaign"), campaigns.campaign(campaignId))
     }
 
     @Test
@@ -80,7 +169,15 @@ class HostedCampaignBootstrapTest {
             service(
                 database,
                 HostedAccount(accountId),
-                listOf(HostedCampaign(campaignId, "Hosted Older", CampaignRole.PLAYER, revision = 4)),
+                listOf(
+                    hostedState(
+                        campaignId,
+                        "Hosted Older",
+                        CampaignRole.PLAYER,
+                        revision = 4,
+                        status = CampaignMembershipStatus.BANNED,
+                    ),
+                ),
             ).refresh()
         }
 
@@ -99,10 +196,11 @@ class HostedCampaignBootstrapTest {
         assertEquals(Campaign(campaignId, "Local Newer"), campaigns.campaign(campaignId))
         assertEquals(Revision(5), spine.syncMetadata("CAMPAIGN", campaignId).revision)
         assertEquals(CampaignRole.PLAYER, spine.membership(campaignId, accountId)?.role)
+        assertEquals(CampaignMembershipStatus.BANNED, spine.membership(campaignId, accountId)?.status)
     }
 
     @Test
-    fun localTombstoneIsNeverResurrectedByBootstrap() = withDatabase { database ->
+    fun localTombstoneIsNeverResurrectedByHostedAliveState() = withDatabase { database ->
         val accountId = Uuid.random()
         val campaignId = Uuid.random()
         val campaigns = CampaignRepository(database)
@@ -118,7 +216,7 @@ class HostedCampaignBootstrapTest {
             service(
                 database,
                 HostedAccount(accountId),
-                listOf(HostedCampaign(campaignId, "Hosted Alive", CampaignRole.DM, revision = 4)),
+                listOf(hostedState(campaignId, "Hosted Alive", CampaignRole.DM, revision = 4)),
             ).refresh()
         }
 
@@ -143,7 +241,7 @@ class HostedCampaignBootstrapTest {
             service(
                 database,
                 HostedAccount(accountId),
-                listOf(HostedCampaign(campaignId, "Hosted State", CampaignRole.DM, revision = 2)),
+                listOf(hostedState(campaignId, "Hosted State", CampaignRole.DM, revision = 2)),
             ).refresh()
         }
 
@@ -152,6 +250,45 @@ class HostedCampaignBootstrapTest {
             result.conflicts.single().reason,
         )
         assertEquals(Campaign(campaignId, "Local State"), campaigns.campaign(campaignId))
+    }
+
+    @Test
+    fun sameRevisionDifferentTombstoneTimestampIsReported() = withDatabase { database ->
+        val accountId = Uuid.random()
+        val campaignId = Uuid.random()
+        val campaigns = CampaignRepository(database)
+        val spine = IntegratedSpineRepository(database)
+        campaigns.upsertCampaign(campaignId, "Deleted")
+        spine.putSyncMetadata(
+            "CAMPAIGN",
+            campaignId,
+            SyncMetadata(revision = Revision(4), deletedAtEpochSeconds = 100),
+        )
+
+        val result = runBlocking {
+            service(
+                database,
+                HostedAccount(accountId),
+                listOf(
+                    hostedState(
+                        campaignId,
+                        "Deleted",
+                        CampaignRole.DM,
+                        revision = 4,
+                        deletedAtEpochSeconds = 200,
+                    ),
+                ),
+            ).refresh()
+        }
+
+        assertEquals(
+            HostedCampaignBootstrapConflictReason.SAME_REVISION_STATE_MISMATCH,
+            result.conflicts.single().reason,
+        )
+        assertEquals(
+            SyncMetadata(revision = Revision(4), deletedAtEpochSeconds = 100),
+            spine.syncMetadata("CAMPAIGN", campaignId),
+        )
     }
 
     @Test
@@ -184,8 +321,8 @@ class HostedCampaignBootstrapTest {
             database,
             HostedAccount(accountId),
             listOf(
-                HostedCampaign(campaignId, "One", CampaignRole.DM, revision = 0),
-                HostedCampaign(campaignId, "Two", CampaignRole.DM, revision = 1),
+                hostedState(campaignId, "One", CampaignRole.DM, revision = 0),
+                hostedState(campaignId, "Two", CampaignRole.DM, revision = 1),
             ),
         )
 
@@ -198,12 +335,12 @@ class HostedCampaignBootstrapTest {
     }
 
     @Test
-    fun failedCampaignReadLeavesLocalStateUntouched() = withDatabase { database ->
+    fun failedMembershipReadLeavesLocalStateUntouched() = withDatabase { database ->
         val accountId = Uuid.random()
         val service = HostedCampaignBootstrapService(
             database = database,
             accountProvider = { HostedAccount(accountId, "Gustavo") },
-            campaignsProvider = { error("offline") },
+            membershipsProvider = { error("offline") },
         )
 
         assertFailsWith<IllegalStateException> {
@@ -214,14 +351,30 @@ class HostedCampaignBootstrapTest {
         assertEquals(emptyList(), CampaignRepository(database).listCampaigns())
     }
 
+    private fun hostedState(
+        campaignId: Uuid,
+        name: String,
+        role: CampaignRole,
+        revision: Long,
+        status: CampaignMembershipStatus = CampaignMembershipStatus.ACTIVE,
+        deletedAtEpochSeconds: Long? = null,
+    ): HostedCampaignMembershipState = HostedCampaignMembershipState(
+        campaignId = campaignId,
+        name = name,
+        role = role,
+        status = status,
+        revision = revision,
+        deletedAtEpochSeconds = deletedAtEpochSeconds,
+    )
+
     private fun service(
         database: AppDatabase,
         account: HostedAccount,
-        campaigns: List<HostedCampaign>,
+        memberships: List<HostedCampaignMembershipState>,
     ): HostedCampaignBootstrapService = HostedCampaignBootstrapService(
         database = database,
         accountProvider = { account },
-        campaignsProvider = { campaigns },
+        membershipsProvider = { memberships },
     )
 
     private fun withDatabase(block: (AppDatabase) -> Unit) {
