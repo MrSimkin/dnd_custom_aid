@@ -12,7 +12,7 @@ class IntegratedSpineRepository(
         }
         val displayName = account.displayName?.trim()?.takeIf { it.isNotEmpty() }
         database.transaction {
-            if (account(account.id) == null) {
+            if (this@IntegratedSpineRepository.account(account.id) == null) {
                 database.integratedSpineQueries.insertAccount(
                     id = account.id.toString(),
                     external_subject = account.externalSubject,
