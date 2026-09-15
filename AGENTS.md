@@ -29,15 +29,16 @@ Before proposing or making substantial changes, read:
 3. `MANIFEST.md`;
 4. `docs/PROJECT_STATE.md`;
 5. `docs/checkpoints/LATEST.md`;
-6. `docs/BRANCH_STATUS.md`;
-7. `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` + relevant detailed records under `docs/decisions/`;
-8. `docs/CONVENTIONS.md`;
-9. `docs/PRODUCT.md`;
-10. `docs/ROADMAP.md`;
-11. `docs/WORKFLOW.md`;
-12. `docs/ARCHITECTURE.md`;
-13. `docs/TESTING.md`;
-14. current checkpoints/feature files relevant to the task.
+6. the current checkpoint referenced by `LATEST.md`;
+7. `docs/BRANCH_STATUS.md`;
+8. `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` + relevant detailed records under `docs/decisions/`;
+9. `docs/CONVENTIONS.md`;
+10. `docs/PRODUCT.md`;
+11. `docs/ROADMAP.md`;
+12. `docs/WORKFLOW.md`;
+13. `docs/ARCHITECTURE.md`;
+14. `docs/TESTING.md`;
+15. current checkpoints/feature files relevant to the task.
 
 For exact historical Player QA evidence, the old successor branch may be inspected, but do not resume normal implementation there.
 
@@ -147,7 +148,7 @@ Do not convert a delegated engineering choice into a fake owner decision record 
 For substantial work:
 
 1. verify current branch/topology from `docs/BRANCH_STATUS.md`;
-2. read current `PROJECT_STATE`, `LATEST`, relevant decisions and checkpoints;
+2. read current `PROJECT_STATE`, `LATEST`, current checkpoint, relevant decisions and checkpoints;
 3. identify material unknowns and any real owner-action boundary;
 4. choose routine technical details autonomously;
 5. escalate only material owner-level consequences;
@@ -202,9 +203,10 @@ If repository documents disagree:
 5. `docs/BRANCH_STATUS.md` controls branch lifecycle;
 6. `docs/PROJECT_STATE.md` controls current state;
 7. `docs/checkpoints/LATEST.md` controls practical continuation;
-8. use detailed decisions/checkpoints for rationale/evidence;
-9. ask the owner only for a genuinely material unresolved product/scope/risk ambiguity;
-10. repair stale governance when it could misdirect future work.
+8. the current checkpoint referenced by `LATEST.md` controls its specific milestone/provider evidence;
+9. use detailed decisions/checkpoints for rationale/evidence;
+10. ask the owner only for a genuinely material unresolved product/scope/risk ambiguity;
+11. repair stale governance when it could misdirect future work.
 
 Historical checkpoints remain evidence even when their old `next` instructions are superseded.
 
@@ -212,10 +214,25 @@ Historical checkpoints remain evidence even when their old `next` instructions a
 
 The integrated-MVP implementation is **IN PROGRESS**.
 
-Validated convergence baseline:
+Validated provider-neutral hosted/sync implementation checkpoint:
 
-- semantic merge commit `5bed85cbb3e86ae63eac79149fadc5e56e61b256`;
-- run `34917259324` / #1694 — SUCCESS.
+- commit `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`;
+- Actions `34985799585` — SUCCESS.
+
+The first real hosted DEV provider activation is **COMPLETE / VERIFIED**. Current evidence is recorded in:
+
+`docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
+
+Verified real hosted state includes:
+
+- Neon DEV migration + real contract tests;
+- Descope real OTP authentication;
+- deployed Cloudflare Worker;
+- real authenticated `/v1/me`;
+- real application-user persistence through Neon;
+- representative Workers Free CPU/runtime proof passing for the tested authenticated path.
+
+Provider activation is no longer the next dependency.
 
 Historical frozen Player candidate remains evidence:
 
@@ -224,14 +241,14 @@ Historical frozen Player candidate remains evidence:
 - run `34801612526` / #1630 — SUCCESS;
 - targeted physical revalidation was pending at that historical boundary.
 
-Do not reinterpret integrated CI as retroactive physical acceptance.
+Do not reinterpret integrated CI or hosted-provider proof as retroactive physical acceptance.
 
 Current execution entry points:
 
 - `docs/checkpoints/LATEST.md`;
+- `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`;
 - `docs/PROJECT_STATE.md`;
 - `docs/BRANCH_STATUS.md`;
-- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_BASELINE_CONVERGENCE.md`;
 - `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`.
 
-The next technical package is the **Shared Integrated-MVP Spine**. Proceed without another owner approval unless a material owner-level decision or external account/service action is encountered.
+The next primary technical package is **real authenticated Player <-> Server development integration** using the already activated DEV Cloudflare + Neon + Descope environment. Proceed without another owner approval unless a material owner-level decision, new external account/service action, security/cost/privacy gate or manual/physical QA boundary is encountered.
