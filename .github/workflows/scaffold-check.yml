@@ -66,3 +66,38 @@ jobs:
         run: npm install
       - name: Type-check Worker
         run: npm run check
+
+  hosted-database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dnd_custom_aid
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d dnd_custom_aid"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: dnd_custom_aid
+    steps:
+      - uses: actions/checkout@v7
+      - name: Ensure PostgreSQL client is available
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes postgresql-client
+          fi
+      - name: Apply hosted database migrations
+        run: psql -v ON_ERROR_STOP=1 -f database/migrations/0001_integrated_mvp_spine.sql
+      - name: Verify hosted database contracts
+        run: psql -v ON_ERROR_STOP=1 -f database/tests/0001_integrated_mvp_spine_contract.sql
