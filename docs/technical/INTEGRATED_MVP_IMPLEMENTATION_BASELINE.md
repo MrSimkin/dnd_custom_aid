@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-14  
 **Status:** Technical recommendation / handoff; implementation not yet authorized  
-**Controlling product/architecture:** D-0071, D-0072, D-0073  
-**Readiness evidence:** `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md`
+**Controlling product/architecture:** D-0071, D-0072, D-0073, D-0074  
+**Readiness evidence:** `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` + `docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md`
 
 This file is a compact engineering handoff for the first implementation Workers. It deliberately avoids owner-facing approval gates for low-level technical matters.
 
@@ -15,7 +15,7 @@ Do **not** start backend/DM feature coding directly on either current authority 
 2. create a focused convergence branch from current `main`;
 3. reconcile the Player successor deliberately;
 4. preserve successor Player runtime, SQLDelight migrations, tests, guard scripts and evidence;
-5. preserve current `main` product/architecture/governance;
+5. preserve current `main` product/architecture/governance, including D-0074;
 6. reconcile CI/navigation manually;
 7. run convergence gates;
 8. merge coherent baseline to `main`;
@@ -274,7 +274,41 @@ checksums/integrity data
 
 Do not require a queue platform unless real generation time/limits prove it necessary.
 
-## 13. CI evolution
+## 13. PC Sheet PDF export
+
+D-0074 turns PDF export into an explicit cross-surface integrated-MVP capability. Do not implement three independent semantic exporters.
+
+Preferred technical decomposition:
+
+```text
+PC/domain state
+-> canonical export snapshot
+-> shared export semantics/render plan
+   - selected family/variant
+   - permanent vs current snapshot
+   - custom-stat mode
+   - portrait mode
+   - overflow/extension decisions
+   - spellbook inclusion/content
+-> platform renderer
+```
+
+Renderers must support two kinds of output:
+
+1. **faithful template overlay** for owner v1/v2 base pages where geometry remains fixed;
+2. **generated/adapted drawing** for Classic, App Modified sheets, design-specific Extended pages and the application-designed Spellbook.
+
+The existing source PDFs under `assets/character-sheets/templates/` are visual authorities for v1/v2.
+
+The semantic layer should be shared enough that Player Android, DM Android/tablet and Desktop make the same content/completeness decisions. Platform-specific PDF APIs, font/image primitives and file/share integration may differ.
+
+D-0040's local/offline principle remains controlling. No server-side PDF service is required.
+
+Exact library choice is delegated. Existing PdfBox-Android / Apache PDFBox direction may be retained if it supports the approved behavior cleanly, but D-0074 permits technical replacement/evolution without owner approval if the old choice becomes unnecessarily restrictive. Preserve static PDF output, local/offline generation and approved visual behavior.
+
+Implementation should include deterministic layout/overflow tests where practical plus rendered golden/reference checks for representative sheets. Do not use a fixed tiny font to avoid overflow; enforce a readability floor and explicit continuation.
+
+## 14. CI evolution
 
 Preserve successor Player guards.
 
@@ -289,11 +323,12 @@ Add tests incrementally for:
 - sync round-trip and conflict;
 - asset authorization/integrity;
 - backup completeness;
+- PDF export semantic completeness/overflow across representative template families;
 - later combat authority generation/sequence.
 
 Avoid generic coverage targets as substitutes for invariant tests.
 
-## 14. Escalation rule
+## 15. Escalation rule
 
 Do not ask the owner to approve the implementation details in this file.
 
