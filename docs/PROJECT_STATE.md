@@ -1,51 +1,58 @@
 # Project State — global repository navigation
 
-**Last verified:** 2026-09-14 (Chile local time)  
+**Last verified:** 2026-09-15 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** **GRANTED**  
-**Validated convergence branch:** `integration/mvp-baseline-convergence`  
-**Semantic convergence commit:** `5bed85cbb3e86ae63eac79149fadc5e56e61b256`  
-**Convergence Actions:** `34917259324` / #1694 — **SUCCESS**  
-**Canonical trunk after promotion:** `main`  
+**Normal integrated trunk:** `main`  
+**Hosted/sync implementation checkpoint:** `734477b4e276810de1581dbc2d0a8458ad953f85`  
+**Checkpoint Actions:** `34979121449` — **SUCCESS**  
 **Historical Player successor:** `implementation/phase4a-successor-cycle` at `b9dea8ad6b17dcf3feeabba263eff1ee498f1536`
 
 ## 1. Current authority/topology
 
-The former two-authority state has been reconciled on the dedicated convergence branch.
+The former Player/integrated split has been reconciled. **`main` is the single normal integrated-MVP development trunk.**
 
-The merge deliberately preserves:
+The convergence line and former Player successor remain historical/frozen evidence. They should not receive ordinary new implementation work and should not be used as resume points merely because older documents mention pending work.
 
-- Player runtime, SQLDelight migrations, Player tests/guards and Player implementation evidence from the successor line;
-- current integrated product/architecture/governance from `main`;
-- current PC Sheet PDF-export/template direction from `main`;
-- historical Player checkpoints needed for traceability.
+New implementation should use short-lived outcome-oriented branches from current `main`, validate proportionately, and reintegrate early.
 
-After promotion of the validated convergence branch, **`main` is the single normal integrated-MVP development trunk**. The old Player successor remains historical/frozen evidence and should not receive ordinary new development.
+Do not recreate permanent Player/Server/Desktop mainline silos.
 
-Do not recreate permanent Player/Server/Desktop mainline silos. Use short-lived outcome-oriented branches from current `main` and integrate frequently.
+## 2. Current verified implementation baseline
 
-## 2. Convergence verification
+The integrated convergence baseline preserved the mature Player runtime, SQLDelight migrations, tests/guards, current product/architecture/governance and PDF-export direction.
 
-Semantic convergence commit:
+Implementation has progressed materially beyond convergence.
 
-`5bed85cbb3e86ae63eac79149fadc5e56e61b256`
+Wave 2 — **Shared Integrated-MVP Spine** — is complete and integrated, including:
 
-GitHub Actions run `34917259324` / #1694 completed successfully with:
+- account/identity;
+- Campaign;
+- Membership + campaign role;
+- PC owner vs current controller;
+- stable object identities;
+- monotonic revisions and stale-write semantics;
+- tombstones/non-resurrection semantics;
+- Personal/Campaign/System/Official scope models where valid;
+- independent-copy provenance;
+- local sync metadata and invariant tests.
 
-- all permanent Player guard scripts;
-- `:shared:desktopTest`;
-- `:androidApp:assembleDebug`;
-- `:desktopApp:build`;
-- Android debug APK artifact upload;
-- backend `npm install` + `npm run check`.
+Wave 3 — **Hosted foundation** — is **IN PROGRESS**. PRs #15–#21 established, in dependency order:
 
-This is the validated integrated technical baseline. It does **not** retroactively convert historical Player physical QA into a PASS.
+- the shared integrated spine;
+- hosted `/v1` API/auth/domain foundations;
+- hosted PostgreSQL schema/contracts and CI validation;
+- shared Android/Desktop HTTP transport;
+- durable SQLDelight hosted outbox persistence;
+- atomic local campaign creation + hosted delivery with stable mutation identity and retry classification;
+- authenticated hosted account/campaign bootstrap into the local spine with revision/tombstone/conflict protection.
 
-Historical frozen Player candidate remains:
+PR #21 merged as:
 
-- `0.4.0-preqa.13 / 41300`;
-- commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
-- run `34801612526` / #1630 — SUCCESS;
-- targeted cross-device physical revalidation was pending at that historical boundary.
+`734477b4e276810de1581dbc2d0a8458ad953f85`
+
+Post-merge Actions run `34979121449` passed all preserved Player guards, shared/Kotlin tests, Android build, Desktop build, APK upload, backend checks and hosted PostgreSQL migration/contract checks.
+
+This technical success does **not** retroactively convert historical Player physical QA into a PASS.
 
 ## 3. Controlling integrated-MVP product direction
 
@@ -88,53 +95,37 @@ Do not silently demote the following to stretch goals:
 
 The project remains paper-first and intentionally not a VTT, automatic legality/rules engine, generalized sync platform, marketplace/social product or enterprise infrastructure exercise.
 
-## 5. Current technical baseline
+## 5. Current technical direction
 
-The mature asset now present in the integrated baseline is the Player/shared Kotlin + SQLDelight implementation, including its migrations, backup serialization, tests and guard scripts.
+The approved technical direction remains:
 
-Current hosted/Desktop reality remains deliberately early:
-
-- backend: health-only TypeScript Cloudflare Worker scaffold;
-- hosted PostgreSQL migrations: scaffold-only;
-- Desktop: Compose Multiplatform placeholder shell.
-
-Preferred delegated engineering direction remains:
-
-- Ktor Client for shared Android/Desktop HTTP;
-- small versioned `/v1` HTTP/JSON API;
-- client mutation UUIDs + optimistic expected revisions;
-- SQLDelight outbox + scoped push/pull synchronization;
-- Neon serverless driver from Worker initially;
-- explicit SQL migrations;
+- Kotlin/Compose Android + Kotlin/Compose Multiplatform Desktop;
+- SQLDelight/SQLite local persistence;
+- TypeScript Cloudflare Worker API;
+- Neon PostgreSQL hosted persistence;
+- Descope identity proof with application-owned authorization;
+- Ktor Client shared Android/Desktop HTTP;
+- versioned `/v1` HTTP/JSON API;
+- client mutation UUIDs + optimistic revisions;
+- durable SQLDelight outbox + scoped push/pull synchronization;
+- explicit hosted SQL migrations and contract validation;
 - hosted PC current state as versioned JSONB snapshot plus relational authorization/index/public-projection metadata;
-- Descope identity proof plus application-owned domain authorization;
-- R2 Standard as current object-storage recommendation, pending owner/service activation;
 - versioned app-owned JSON import/export;
-- versioned on-demand full backup archive with manifest/integrity data;
-- one canonical PC/export snapshot + shared PDF-export semantics with platform-specific rendering.
+- versioned on-demand backup archives with manifest/integrity data;
+- one canonical PC/export snapshot + shared PDF-export semantics with platform-specific rendering;
+- Cloudflare R2 Standard when object-storage work is actually reached.
 
 Exact low-level implementation choices remain delegated unless they create a material owner-level product/security/privacy/cost/lock-in consequence.
 
 ## 6. Exact next implementation package
 
-Proceed to the **Shared Integrated-MVP Spine**.
+Continue Wave 3 with **explicit hosted campaign/membership lifecycle and scoped change semantics**.
 
-Required semantic foundation:
+Current bootstrap/list behavior must not force clients to infer `KICKED`, `BANNED`, deletion or other lifecycle state from absence alone. The next package should make those hosted changes explicit enough for safe client reconciliation while remaining project-specific.
 
-- global account/identity;
-- Campaign;
-- Membership + campaign role;
-- PC owner vs current controller;
-- stable object IDs;
-- monotonic revisions and stale-write rejection;
-- deletion/tombstone/non-resurrection semantics;
-- Personal/Campaign/System-or-Official scope semantics where valid;
-- provenance for independent copies;
-- basic audit/sync metadata and invariant tests.
+Do not turn this into generalized event sourcing, CRDTs, queues, WebSockets or a generic sync platform without a concrete requirement.
 
-Do not pre-model every Monster/NPC/Zone/Encounter/Combat/SRD field in this first package and do not force everything into a giant universal `SyncEntity` abstraction.
-
-After the shared spine, continue into hosted foundation and Player↔Server integration in dependency order.
+After that package, continue in dependency order toward hosted PC current-state/snapshot sync and the Wave 4 Player↔Server end-to-end path.
 
 ## 7. Owner-vs-technical responsibility
 
@@ -144,12 +135,32 @@ Technical agents decide routine schema/table layout, type decomposition, endpoin
 
 Do not pause for ceremonial owner approval of routine engineering.
 
-## 8. External-service boundary
+## 8. External-service activation boundary
 
-No external provider was activated by convergence.
+**No external provider must be activated yet.** Current local/shared/backend/database contracts can continue through CI without speculative provider setup.
 
-R2 activation, provider project secrets or similar account/service steps should be requested from the owner only when implementation actually reaches the relevant dependency. Secrets must remain outside Git and should be configured through secure provider/runtime mechanisms.
+The first activation gate is the first package that needs a **real authenticated end-to-end hosted development environment**, after the remaining campaign/membership change semantics are stable and before remembered Player authentication/real hosted PC sync is wired into the owner-facing Player flow.
+
+At that gate, activate only:
+
+1. **Cloudflare** — development Worker/API runtime;
+2. **Neon** — development PostgreSQL database;
+3. **Descope** — development authentication/identity project.
+
+**R2 is later** and should be activated only when Media/Handouts/assets reach object-storage integration.
+
+Provider setup rules:
+
+- accounts/resources remain owner-controlled;
+- begin with development/test resources, not production;
+- choose plan, region and project settings deliberately at activation time;
+- secrets/tokens/connection credentials never enter Git;
+- runtime secrets belong in provider/runtime secret stores or ignored local development configuration;
+- public/non-secret project identifiers may be documented when useful;
+- immediately before activation, present the owner with any material plan/region/cost/security/privacy/lock-in choices and the exact owner actions required.
 
 ## 9. Release/acceptance status
 
-The project remains development/debug and is not release-ready. Integrated implementation authorization does not fabricate historical physical acceptance or replace future integrated owner-facing QA.
+The project remains development/debug and is not release-ready. Integrated implementation progress does not fabricate historical physical acceptance or replace future integrated owner-facing QA.
+
+Historical frozen Player candidate remains `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`; targeted cross-device physical revalidation was pending at that historical boundary.
