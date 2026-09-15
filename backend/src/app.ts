@@ -1,6 +1,14 @@
 import { AuthenticationError, type AuthVerifier } from "./auth.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
-import { MutationReuseError, type CampaignStore } from "./store.ts";
+import {
+  HostedAuthorizationError,
+  HostedObjectGoneError,
+  MutationReuseError,
+  StaleRevisionError,
+  type CampaignStore,
+} from "./store.ts";
+
+const CHARACTER_BACKUP_FORMAT = "dnd-custom-aid.character-backup";
 
 export interface ApiDependencies {
   auth: AuthVerifier;
@@ -20,11 +28,14 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         return jsonResponse({ status: "ok", service: "dnd-custom-aid-api" });
       }
 
-      if (
-        path !== "/v1/me" &&
-        path !== "/v1/campaigns" &&
-        path !== "/v1/campaign-memberships"
-      ) {
+      const campaignPcsMatch = /^\/v1\/campaigns\/([^/]+)\/pcs$/.exec(path);
+      const pcSnapshotMatch = /^\/v1\/pcs\/([^/]+)$/.exec(path);
+      const knownFixedPath =
+        path === "/v1/me" ||
+        path === "/v1/campaigns" ||
+        path === "/v1/campaign-memberships";
+
+      if (!knownFixedPath && campaignPcsMatch == null && pcSnapshotMatch == null) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
 
@@ -45,6 +56,55 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         requireMethod(request, "GET");
         const memberships = await dependencies.campaigns.listCampaignMemberships(user.id);
         return jsonResponse({ memberships });
+      }
+
+      if (campaignPcsMatch != null) {
+        requireMethod(request, "GET");
+        const campaignId = requireUuid(campaignPcsMatch[1], "campaignId");
+        const pcs = await dependencies.campaigns.listPcSnapshots(user.id, campaignId);
+        return jsonResponse({ pcs });
+      }
+
+      if (pcSnapshotMatch != null) {
+        requireMethod(request, "PUT");
+        const pcId = requireUuid(pcSnapshotMatch[1], "pcId");
+        const body = await readJsonObject(request);
+        const mutationId = requireUuid(body.mutationId, "mutationId");
+        const campaignId = requireUuid(body.campaignId, "campaignId");
+        const expectedRevision = requireNonNegativeInteger(body.expectedRevision, "expectedRevision");
+        const snapshot = requireJsonObject(body.snapshot, "snapshot");
+        const snapshotFormat = requireNonBlankString(snapshot.format, "snapshot.format");
+        const snapshotVersion = requirePositiveInteger(snapshot.version, "snapshot.version");
+        if (snapshotFormat !== CHARACTER_BACKUP_FORMAT) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.format is not a supported character snapshot format.", {
+            field: "snapshot.format",
+          });
+        }
+
+        const character = requireJsonObject(snapshot.character, "snapshot.character");
+        const snapshotPcId = requireUuid(character.id, "snapshot.character.id");
+        const snapshotCampaignId = requireUuid(character.campaignId, "snapshot.character.campaignId");
+        const name = requireNonBlankString(character.name, "snapshot.character.name");
+        if (snapshotPcId !== pcId || snapshotCampaignId !== campaignId) {
+          throw new ApiProblem(
+            400,
+            "VALIDATION_FAILED",
+            "Snapshot identity must match the requested PC and campaign.",
+          );
+        }
+
+        const result = await dependencies.campaigns.putPcSnapshot({
+          actorUserId: user.id,
+          mutationId,
+          pcId,
+          campaignId,
+          expectedRevision,
+          name,
+          snapshotFormat,
+          snapshotVersion,
+          snapshot,
+        });
+        return jsonResponse({ pc: result.pc, applied: result.applied });
       }
 
       if (request.method === "GET") {
@@ -132,8 +192,12 @@ async function readJsonObject(request: Request): Promise<Record<string, unknown>
     throw new ApiProblem(400, "VALIDATION_FAILED", "Request body must be valid JSON.");
   }
 
+  return requireJsonObject(value, "request");
+}
+
+function requireJsonObject(value: unknown, field: string): Record<string, unknown> {
   if (value == null || typeof value !== "object" || Array.isArray(value)) {
-    throw new ApiProblem(400, "VALIDATION_FAILED", "Request body must be a JSON object.");
+    throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be a JSON object.`, { field });
   }
   return value as Record<string, unknown>;
 }
@@ -152,6 +216,20 @@ function requireUuid(value: unknown, field: string): Uuid {
   return value.toLowerCase();
 }
 
+function requireNonNegativeInteger(value: unknown, field: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be a non-negative safe integer.`, { field });
+  }
+  return value;
+}
+
+function requirePositiveInteger(value: unknown, field: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be a positive safe integer.`, { field });
+  }
+  return value;
+}
+
 function errorResponse(error: unknown): Response {
   if (error instanceof ApiProblem) {
     return jsonError(error.status, error.code, error.message, error.details, error.headers);
@@ -161,8 +239,19 @@ function errorResponse(error: unknown): Response {
       "WWW-Authenticate": "Bearer",
     });
   }
+  if (error instanceof HostedAuthorizationError) {
+    return jsonError(403, "FORBIDDEN", error.message);
+  }
   if (error instanceof MutationReuseError) {
     return jsonError(409, "CONFLICT_MUTATION_REUSE", error.message);
+  }
+  if (error instanceof StaleRevisionError) {
+    return jsonError(409, "CONFLICT_STALE_REVISION", error.message, {
+      currentRevision: error.currentRevision,
+    });
+  }
+  if (error instanceof HostedObjectGoneError) {
+    return jsonError(410, "GONE", error.message);
   }
 
   console.error("Unhandled API error", error);

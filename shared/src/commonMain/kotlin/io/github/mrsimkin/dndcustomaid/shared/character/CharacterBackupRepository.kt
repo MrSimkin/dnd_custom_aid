@@ -41,6 +41,56 @@ class CharacterBackupRepository(
         return document
     }
 
+    /**
+     * Applies an authoritative hosted current-state snapshot while preserving its stable PC and
+     * child identities. This is intentionally distinct from user-facing backup import, which must
+     * restore as a new copy.
+     *
+     * The caller is responsible for revision/conflict decisions before invoking this method. The
+     * complete character aggregate is applied transactionally so a failed child aggregate cannot
+     * leave a partially reconciled PC behind.
+     */
+    fun applyCurrentState(document: CharacterBackupDocument): CharacterBackupApplyResult {
+        val validation = characterBackupValidationMessage(document)
+        require(validation == null) { validation ?: "Invalid character backup." }
+        val incoming = document.character
+
+        var result: CharacterBackupApplyResult? = null
+        database.transaction {
+            val existing = characters.character(incoming.id)
+            if (existing == null) {
+                val campaign = database.campaignQueries
+                    .selectCampaignById(incoming.campaignId.toString())
+                    .executeAsOneOrNull()
+                require(campaign != null) { "Hosted character campaign must already exist locally." }
+                database.characterQueries.insertCharacter(
+                    id = incoming.id.toString(),
+                    campaign_id = incoming.campaignId.toString(),
+                    name = incoming.name.trim(),
+                    status = incoming.status.name,
+                )
+            } else {
+                require(existing.campaignId == incoming.campaignId) {
+                    "Hosted character cannot move an existing local PC to a different campaign."
+                }
+            }
+
+            val savedCharacter = characters.saveCharacter(incoming)
+            val savedClosure = closure.saveState(savedCharacter.id, document.closureState)
+            val savedBaseSuccessor = successor.saveState(savedCharacter.id, document.successorState)
+            val savedSuccessor = provenance.saveState(
+                savedCharacter.id,
+                savedBaseSuccessor.withCharacterProvenanceFrom(document.successorState),
+            )
+            result = CharacterBackupApplyResult(
+                character = savedCharacter,
+                closureState = savedClosure,
+                successorState = savedSuccessor,
+            )
+        }
+        return requireNotNull(result)
+    }
+
     fun importAsCopy(
         document: CharacterBackupDocument,
         destinationCampaignId: Uuid,
@@ -106,6 +156,12 @@ class CharacterBackupRepository(
         return requireNotNull(result)
     }
 }
+
+data class CharacterBackupApplyResult(
+    val character: CharacterSheet,
+    val closureState: CharacterClosureState,
+    val successorState: CharacterSuccessorState,
+)
 
 data class CharacterBackupImportResult(
     val sourceCharacterId: Uuid,

@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.shared.hosted
 
+import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_BACKUP_FORMAT
+import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_BACKUP_VERSION
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -7,9 +10,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.uuid.Uuid
 
+private const val PC_SYNC_OBJECT_TYPE = "PC"
+
 @Serializable
 enum class HostedMutationType {
     CAMPAIGN_CREATE,
+    PC_SNAPSHOT_PUT,
 }
 
 @Serializable
@@ -26,6 +32,23 @@ data class HostedCampaignCreatePayload(
 ) {
     init {
         require(name.isNotBlank()) { "Campaign name must not be blank." }
+    }
+}
+
+@Serializable
+data class HostedPcSnapshotPutPayload(
+    val mutationId: Uuid,
+    val pcId: Uuid,
+    val campaignId: Uuid,
+    val expectedRevision: Long,
+    val snapshot: CharacterBackupDocument,
+) {
+    init {
+        require(expectedRevision >= 0) { "Expected PC revision must not be negative." }
+        require(snapshot.format == CHARACTER_BACKUP_FORMAT) { "PC snapshot format is unsupported." }
+        require(snapshot.version in 1..CHARACTER_BACKUP_VERSION) { "PC snapshot version is unsupported." }
+        require(snapshot.character.id == pcId) { "PC snapshot identity must match its queued object." }
+        require(snapshot.character.campaignId == campaignId) { "PC snapshot campaign must match its queued campaign." }
     }
 }
 
@@ -90,6 +113,43 @@ class HostedOutboxRepository(
         return requireNotNull(mutation(mutationId))
     }
 
+    fun enqueuePcSnapshot(
+        campaignId: Uuid,
+        pcId: Uuid,
+        expectedRevision: Long,
+        snapshot: CharacterBackupDocument,
+        createdAtEpochSeconds: Long,
+        mutationId: Uuid = Uuid.random(),
+    ): HostedOutboxMutation {
+        require(expectedRevision >= 0) { "Expected PC revision must not be negative." }
+        require(createdAtEpochSeconds >= 0) { "Creation timestamp must not be negative." }
+        require(
+            allMutations().none {
+                it.type == HostedMutationType.PC_SNAPSHOT_PUT &&
+                    it.objectId == pcId &&
+                    it.retryState == HostedRetryState.READY
+            },
+        ) { "A ready hosted PC snapshot mutation already exists for this PC." }
+
+        val payload = HostedPcSnapshotPutPayload(
+            mutationId = mutationId,
+            pcId = pcId,
+            campaignId = campaignId,
+            expectedRevision = expectedRevision,
+            snapshot = snapshot,
+        )
+        database.hostedOutboxQueries.insertMutation(
+            mutation_id = mutationId.toString(),
+            campaign_id = campaignId.toString(),
+            mutation_type = HostedMutationType.PC_SNAPSHOT_PUT.name,
+            object_id = pcId.toString(),
+            expected_revision = expectedRevision,
+            payload_json = json.encodeToString(payload),
+            created_at_epoch_seconds = createdAtEpochSeconds,
+        )
+        return requireNotNull(mutation(mutationId))
+    }
+
     fun mutation(mutationId: Uuid): HostedOutboxMutation? =
         database.hostedOutboxQueries.selectMutation(
             mutation_id = mutationId.toString(),
@@ -121,6 +181,23 @@ class HostedOutboxRepository(
         return payload
     }
 
+    fun pcSnapshotPayload(mutation: HostedOutboxMutation): HostedPcSnapshotPutPayload {
+        require(mutation.type == HostedMutationType.PC_SNAPSHOT_PUT) {
+            "Hosted mutation is not a PC snapshot update."
+        }
+        val payload = json.decodeFromString<HostedPcSnapshotPutPayload>(mutation.payloadJson)
+        require(payload.mutationId == mutation.mutationId) {
+            "Hosted PC mutation payload changed mutation identity."
+        }
+        require(payload.pcId == mutation.objectId && payload.campaignId == mutation.campaignId) {
+            "Hosted PC mutation payload changed object or campaign identity."
+        }
+        require(payload.expectedRevision == mutation.expectedRevision) {
+            "Hosted PC mutation payload changed expected revision."
+        }
+        return payload
+    }
+
     fun recordFailure(
         mutationId: Uuid,
         attemptedAtEpochSeconds: Long,
@@ -147,6 +224,32 @@ class HostedOutboxRepository(
 
     fun acknowledge(mutationId: Uuid) {
         database.hostedOutboxQueries.acknowledgeMutation(mutationId.toString())
+    }
+
+    fun acknowledgePcSnapshot(
+        mutationId: Uuid,
+        pcId: Uuid,
+        resultingRevision: Long,
+        deletedAtEpochSeconds: Long? = null,
+    ) {
+        require(resultingRevision >= 0) { "Resulting PC revision must not be negative." }
+        require(deletedAtEpochSeconds == null || deletedAtEpochSeconds >= 0) {
+            "Hosted PC deletion timestamp must not be negative."
+        }
+        val stored = requireNotNull(mutation(mutationId)) { "Hosted PC mutation must exist before acknowledgement." }
+        require(stored.type == HostedMutationType.PC_SNAPSHOT_PUT && stored.objectId == pcId) {
+            "Hosted PC acknowledgement identity does not match the queued mutation."
+        }
+
+        database.transaction {
+            database.integratedSpineQueries.upsertObjectSyncState(
+                object_type = PC_SYNC_OBJECT_TYPE,
+                object_id = pcId.toString(),
+                revision = resultingRevision,
+                deleted_at_epoch_seconds = deletedAtEpochSeconds,
+            )
+            database.hostedOutboxQueries.acknowledgeMutation(mutationId.toString())
+        }
     }
 
     private fun mapMutation(

@@ -58,6 +58,8 @@ data class HostedOutboxDeliveryReport(
 
 class HostedOutboxDeliveryService(
     private val outbox: HostedOutboxRepository,
+    private val pcSnapshotPutter: suspend (Uuid, Uuid, Uuid, Long, io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument) -> HostedPcSnapshotPut =
+        { _, _, _, _, _ -> error("Hosted PC snapshot delivery is not configured.") },
     private val campaignCreator: suspend (Uuid, Uuid, String) -> HostedCampaignCreation,
 ) {
     constructor(
@@ -65,6 +67,7 @@ class HostedOutboxDeliveryService(
         api: HostedApiClient,
     ) : this(
         outbox = outbox,
+        pcSnapshotPutter = api::putPcSnapshot,
         campaignCreator = api::createCampaign,
     )
 
@@ -81,43 +84,21 @@ class HostedOutboxDeliveryService(
         var blockedFailures = 0
 
         for (mutation in selected) {
-            val payload = try {
+            try {
                 when (mutation.type) {
-                    HostedMutationType.CAMPAIGN_CREATE -> outbox.campaignCreationPayload(mutation)
+                    HostedMutationType.CAMPAIGN_CREATE -> deliverCampaignCreation(mutation)
+                    HostedMutationType.PC_SNAPSHOT_PUT -> deliverPcSnapshot(mutation)
                 }
-            } catch (error: Exception) {
+                acknowledged += 1
+            } catch (error: LocalHostedMutationException) {
                 outbox.recordFailure(
                     mutationId = mutation.mutationId,
                     attemptedAtEpochSeconds = attemptedAtEpochSeconds,
                     retryable = false,
-                    errorCode = "LOCAL_MUTATION_INVALID",
+                    errorCode = error.code,
                     errorMessage = error.message,
                 )
                 blockedFailures += 1
-                continue
-            }
-
-            try {
-                val creation = campaignCreator(
-                    payload.mutationId,
-                    payload.campaignId,
-                    payload.name,
-                )
-                if (creation.campaign.id != payload.campaignId) {
-                    outbox.recordFailure(
-                        mutationId = mutation.mutationId,
-                        attemptedAtEpochSeconds = attemptedAtEpochSeconds,
-                        retryable = false,
-                        errorCode = "HOSTED_RESPONSE_IDENTITY_MISMATCH",
-                        errorMessage = "Hosted campaign identity did not match the queued campaign.",
-                    )
-                    blockedFailures += 1
-                    continue
-                }
-
-                // Both a fresh create and an idempotent replay confirm that this exact mutation reached the server.
-                outbox.acknowledge(mutation.mutationId)
-                acknowledged += 1
             } catch (error: CancellationException) {
                 throw error
             } catch (error: HostedAuthenticationUnavailableException) {
@@ -163,4 +144,63 @@ class HostedOutboxDeliveryService(
             blockedFailures = blockedFailures,
         )
     }
+
+    private suspend fun deliverCampaignCreation(mutation: HostedOutboxMutation) {
+        val payload = try {
+            outbox.campaignCreationPayload(mutation)
+        } catch (error: Exception) {
+            throw LocalHostedMutationException("LOCAL_MUTATION_INVALID", error.message)
+        }
+
+        val creation = campaignCreator(
+            payload.mutationId,
+            payload.campaignId,
+            payload.name,
+        )
+        if (creation.campaign.id != payload.campaignId) {
+            throw LocalHostedMutationException(
+                "HOSTED_RESPONSE_IDENTITY_MISMATCH",
+                "Hosted campaign identity did not match the queued campaign.",
+            )
+        }
+
+        // Both a fresh create and an idempotent replay confirm that this exact mutation reached the server.
+        outbox.acknowledge(mutation.mutationId)
+    }
+
+    private suspend fun deliverPcSnapshot(mutation: HostedOutboxMutation) {
+        val payload = try {
+            outbox.pcSnapshotPayload(mutation)
+        } catch (error: Exception) {
+            throw LocalHostedMutationException("LOCAL_MUTATION_INVALID", error.message)
+        }
+
+        val result = pcSnapshotPutter(
+            payload.mutationId,
+            payload.campaignId,
+            payload.pcId,
+            payload.expectedRevision,
+            payload.snapshot,
+        )
+        if (result.pc.id != payload.pcId || result.pc.campaignId != payload.campaignId) {
+            throw LocalHostedMutationException(
+                "HOSTED_RESPONSE_IDENTITY_MISMATCH",
+                "Hosted PC identity did not match the queued PC snapshot.",
+            )
+        }
+
+        // A fresh mutation and an idempotent replay both confirm server receipt. Persist the
+        // authoritative resulting revision atomically with removal from the outbox.
+        outbox.acknowledgePcSnapshot(
+            mutationId = mutation.mutationId,
+            pcId = payload.pcId,
+            resultingRevision = result.pc.revision,
+            deletedAtEpochSeconds = result.pc.deletedAtEpochSeconds,
+        )
+    }
 }
+
+private class LocalHostedMutationException(
+    val code: String,
+    message: String?,
+) : Exception(message)

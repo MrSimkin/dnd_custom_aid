@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.shared.hosted
 
+import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_BACKUP_FORMAT
+import io.github.mrsimkin.dndcustomaid.shared.character.CHARACTER_BACKUP_VERSION
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import io.ktor.client.HttpClient
@@ -7,6 +10,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
@@ -51,6 +55,36 @@ data class HostedCampaignMembershipState(
         require(deletedAtEpochSeconds == null || deletedAtEpochSeconds >= 0) {
             "Hosted campaign deletion timestamp must not be negative."
         }
+    }
+}
+
+@Serializable
+data class HostedPcSnapshot(
+    val id: Uuid,
+    val campaignId: Uuid,
+    val ownerUserId: Uuid? = null,
+    val controllerUserId: Uuid? = null,
+    val name: String,
+    val revision: Long,
+    val deletedAtEpochSeconds: Long? = null,
+    val snapshotFormat: String,
+    val snapshotVersion: Int,
+    val snapshot: CharacterBackupDocument,
+) {
+    init {
+        require(name.isNotBlank()) { "Hosted PC name must not be blank." }
+        require(revision >= 0) { "Hosted PC revision must not be negative." }
+        require(deletedAtEpochSeconds == null || deletedAtEpochSeconds >= 0) {
+            "Hosted PC deletion timestamp must not be negative."
+        }
+        require(snapshotFormat == CHARACTER_BACKUP_FORMAT) { "Hosted PC snapshot format is unsupported." }
+        require(snapshotVersion in 1..CHARACTER_BACKUP_VERSION) { "Hosted PC snapshot version is unsupported." }
+        require(snapshot.format == snapshotFormat && snapshot.version == snapshotVersion) {
+            "Hosted PC snapshot metadata does not match its document envelope."
+        }
+        require(snapshot.character.id == id) { "Hosted PC snapshot identity does not match its character document." }
+        require(snapshot.character.campaignId == campaignId) { "Hosted PC snapshot campaign does not match its character document." }
+        require(snapshot.character.name.trim() == name.trim()) { "Hosted PC name does not match its character document." }
     }
 }
 
@@ -100,6 +134,11 @@ private data class CampaignMembershipsResponse(
 )
 
 @Serializable
+private data class CampaignPcsResponse(
+    val pcs: List<HostedPcSnapshot>,
+)
+
+@Serializable
 private data class CreateCampaignRequest(
     val mutationId: Uuid,
     val campaignId: Uuid,
@@ -112,9 +151,28 @@ private data class CreateCampaignResponse(
     val created: Boolean,
 )
 
+@Serializable
+private data class PutPcSnapshotRequest(
+    val mutationId: Uuid,
+    val campaignId: Uuid,
+    val expectedRevision: Long,
+    val snapshot: CharacterBackupDocument,
+)
+
+@Serializable
+private data class PutPcSnapshotResponse(
+    val pc: HostedPcSnapshot,
+    val applied: Boolean,
+)
+
 data class HostedCampaignCreation(
     val campaign: HostedCampaign,
     val created: Boolean,
+)
+
+data class HostedPcSnapshotPut(
+    val pc: HostedPcSnapshot,
+    val applied: Boolean,
 )
 
 class HostedApiClient(
@@ -130,6 +188,9 @@ class HostedApiClient(
 
     suspend fun campaignMemberships(): List<HostedCampaignMembershipState> =
         authenticatedGet<CampaignMembershipsResponse>("/v1/campaign-memberships").memberships
+
+    suspend fun campaignPcs(campaignId: Uuid): List<HostedPcSnapshot> =
+        authenticatedGet<CampaignPcsResponse>("/v1/campaigns/$campaignId/pcs").pcs
 
     suspend fun createCampaign(
         mutationId: Uuid,
@@ -154,6 +215,37 @@ class HostedApiClient(
         ensureSuccess(response.status.value, response)
         val body = response.body<CreateCampaignResponse>()
         return HostedCampaignCreation(body.campaign, body.created)
+    }
+
+    suspend fun putPcSnapshot(
+        mutationId: Uuid,
+        campaignId: Uuid,
+        pcId: Uuid,
+        expectedRevision: Long,
+        snapshot: CharacterBackupDocument,
+    ): HostedPcSnapshotPut {
+        require(expectedRevision >= 0) { "Expected PC revision must not be negative." }
+        require(snapshot.format == CHARACTER_BACKUP_FORMAT) { "PC snapshot format is unsupported." }
+        require(snapshot.version in 1..CHARACTER_BACKUP_VERSION) { "PC snapshot version is unsupported." }
+        require(snapshot.character.id == pcId) { "PC snapshot identity must match the requested PC." }
+        require(snapshot.character.campaignId == campaignId) { "PC snapshot campaign must match the requested campaign." }
+
+        val token = requireAccessToken()
+        val response = httpClient.put("$apiBaseUrl/v1/pcs/$pcId") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(
+                PutPcSnapshotRequest(
+                    mutationId = mutationId,
+                    campaignId = campaignId,
+                    expectedRevision = expectedRevision,
+                    snapshot = snapshot,
+                ),
+            )
+        }
+        ensureSuccess(response.status.value, response)
+        val body = response.body<PutPcSnapshotResponse>()
+        return HostedPcSnapshotPut(body.pc, body.applied)
     }
 
     fun close() {
