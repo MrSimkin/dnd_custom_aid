@@ -26,6 +26,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedMutationType
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRetryState
 import kotlinx.coroutines.launch
 
 /**
@@ -36,13 +41,19 @@ import kotlinx.coroutines.launch
  */
 class HostedDevAuthActivity : ComponentActivity() {
     private val authController by lazy { AndroidHostedAuthController() }
+    private val database by lazy { AndroidDatabaseFactory(applicationContext).create() }
+    private val hostedOutbox by lazy { HostedOutboxRepository(database) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    HostedDevAuthScreen(authController)
+                    HostedDevAuthScreen(
+                        authController = authController,
+                        describeHostedOutbox = ::describeHostedOutbox,
+                        retryBlockedPcValidationFailures = ::retryBlockedPcValidationFailures,
+                    )
                 }
             }
         }
@@ -52,10 +63,59 @@ class HostedDevAuthActivity : ComponentActivity() {
         authController.close()
         super.onDestroy()
     }
+
+    private fun describeHostedOutbox(): String {
+        val mutations = hostedOutbox.allMutations()
+        if (mutations.isEmpty()) {
+            return "Outbox local: vacío. No hay cambios hospedados pendientes ni bloqueados."
+        }
+
+        val ready = mutations.count { it.retryState == HostedRetryState.READY }
+        val blocked = mutations.count { it.retryState == HostedRetryState.BLOCKED }
+        val details = mutations.joinToString(separator = "\n") { mutation ->
+            val expectedRevision = mutation.expectedRevision?.toString() ?: "n/a"
+            val errorCode = mutation.lastErrorCode ?: "sin error registrado"
+            val errorMessage = mutation.lastErrorMessage?.replace('\n', ' ') ?: "sin mensaje"
+            "${mutation.type} | ${mutation.retryState} | intentos=${mutation.attemptCount} | expectedRevision=$expectedRevision | error=$errorCode | mensaje=$errorMessage"
+        }
+        return "Outbox local: total=${mutations.size}, READY=$ready, BLOCKED=$blocked\n$details"
+    }
+
+    private fun retryBlockedPcValidationFailures(): String {
+        val candidates = hostedOutbox.allMutations().filter { mutation ->
+            mutation.type == HostedMutationType.PC_SNAPSHOT_PUT &&
+                mutation.retryState == HostedRetryState.BLOCKED &&
+                mutation.lastErrorCode == HostedApiErrorCode.VALIDATION_FAILED.name
+        }
+        if (candidates.isEmpty()) {
+            return "No hay mutaciones PC bloqueadas por VALIDATION_FAILED para reintentar."
+        }
+
+        var readyCount = 0
+        candidates.forEach { mutation ->
+            val payloadStillValid = runCatching {
+                hostedOutbox.pcSnapshotPayload(mutation)
+            }.isSuccess
+            if (payloadStillValid) {
+                hostedOutbox.markReady(mutation.mutationId)
+                readyCount += 1
+            }
+        }
+
+        return if (readyCount > 0) {
+            "$readyCount mutación(es) PC válida(s) fueron marcadas READY. Vuelve al Player y pulsa «Sincronizar con servidor»."
+        } else {
+            "Las mutaciones bloqueadas no superaron la validación local y no fueron modificadas."
+        }
+    }
 }
 
 @Composable
-private fun HostedDevAuthScreen(authController: AndroidHostedAuthController) {
+private fun HostedDevAuthScreen(
+    authController: AndroidHostedAuthController,
+    describeHostedOutbox: () -> String,
+    retryBlockedPcValidationFailures: () -> String,
+) {
     var email by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var otpRequested by remember { mutableStateOf(false) }
@@ -106,6 +166,26 @@ private fun HostedDevAuthScreen(authController: AndroidHostedAuthController) {
             text = status,
             style = MaterialTheme.typography.bodyMedium,
         )
+
+        Button(
+            enabled = !busy,
+            onClick = {
+                status = describeHostedOutbox()
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Diagnosticar outbox local")
+        }
+
+        Button(
+            enabled = !busy,
+            onClick = {
+                status = retryBlockedPcValidationFailures()
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Reintentar bloqueo PC de validación")
+        }
 
         if (hasSession) {
             Button(
