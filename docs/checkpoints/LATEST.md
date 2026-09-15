@@ -7,8 +7,9 @@
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
 **Android hosted-session integration:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
 **Android hosted campaign bootstrap:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
-**Integrated hosted campaign bootstrap commit:** `161edc2cf52104a906d03891a56ee73edda90dde`  
-**Post-merge validation:** Actions `35023358758` / #1916 — **SUCCESS**  
+**Android hosted campaign + PC sync batch:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
+**Integrated campaign + PC sync commit:** `75d5acf354b41185255ff7d1a5eb4a689f300721`  
+**Post-merge validation:** Actions `35028893643` / #1940 — **SUCCESS**  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
@@ -16,31 +17,34 @@
 1. `AGENTS.md` — mandatory project operating rules;
 2. `README.md` — repository entry point;
 3. `MANIFEST.md` — project-memory/navigation map;
-4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — current Wave 4 checkpoint and exact continuation;
-5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
-6. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
-7. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
-8. `docs/PROJECT_STATE.md` — current global product/engineering state;
-9. `docs/BRANCH_STATUS.md` — branch lifecycle/resume rule;
-10. `docs/ROADMAP.md` — implementation-wave sequence;
-11. `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` — provider-neutral engineering contracts;
-12. `docs/recovery/PROJECT_RECOVERY_PROMPT.md` — reusable whole-project fresh-chat recovery prompt.
+4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — current Wave 4 checkpoint and exact continuation;
+5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
+6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
+7. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
+8. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
+9. `docs/PROJECT_STATE.md` — current global product/engineering state;
+10. `docs/BRANCH_STATUS.md` — branch lifecycle/resume rule;
+11. `docs/ROADMAP.md` — implementation-wave sequence;
+12. `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` — provider-neutral engineering contracts;
+13. `docs/recovery/PROJECT_RECOVERY_PROMPT.md` — reusable whole-project fresh-chat recovery prompt.
 
 If older operational prose conflicts with this file or the current specific checkpoint, the newer specific checkpoint controls unless an even later approved decision/checkpoint supersedes it.
 
 ## Important supersession/corrections
 
-The GitHub repository is intentionally **public** under D-0075. Any older wording treating `private: false` as an unexpected security/privacy discrepancy is superseded and must not be acted upon.
+The GitHub repository is intentionally **public** under D-0075. Any older wording treating `private: false` as an unexpected security/privacy discrepancy is superseded.
 
-The first Cloudflare + Neon + Descope DEV activation is **complete**. Older text saying those resources still need to be created/authorized is historical and no longer the current dependency.
+The first Cloudflare + Neon + Descope DEV activation is complete. Do not restart provider activation.
 
-The first real Android Descope session integration is also **complete**. Do not restart Android token/session acquisition or create a second authentication/network abstraction.
+The Android Descope remembered-session edge is complete. Do not create a second authentication/network abstraction.
 
-The first owner-facing hosted account/campaign bootstrap in the ordinary Player is **complete**. Do not treat hosted campaign reads/bootstrap as the next task; PR #32 physically proved the normal Player can use the remembered hosted session and preserve local campaign state during reconciliation.
+The ordinary Player hosted account/campaign bootstrap is complete. Do not treat read/bootstrap as pending.
+
+Campaign creation + durable hosted delivery and PC snapshot push/pull are now also complete and physically verified through PR #34. Do not restart those packages from scratch.
 
 The real Neon database name is `dnd-custom-aid-dev` with hyphens.
 
-The current deployed Worker contract actually used by `backend/src/index.ts` requires `DATABASE_URL` + `DESCOPE_PROJECT_ID`, with optional `DESCOPE_BASE_URL`; older activation handoff references to `APP_ENV`, `AUTH_MODE` and `DESCOPE_JWKS_URL` are not the current deployed configuration contract.
+The deployed Worker contract uses `DATABASE_URL` + `DESCOPE_PROJECT_ID`, with optional `DESCOPE_BASE_URL`.
 
 Secret hygiene remains strict regardless of repository visibility.
 
@@ -48,11 +52,9 @@ Secret hygiene remains strict regardless of repository visibility.
 
 External-service operating budget remains **USD $0** unless the owner explicitly changes it.
 
-Provider activation, Android hosted-session integration and hosted campaign bootstrap completed without authorizing paid plans or billable infrastructure. Do not silently introduce paid plans, paid add-ons, overage-enabled resources or billing commitments later.
+The current hosted integration uses Neon Free, Descope Free and Cloudflare Workers Free. Do not silently enable paid plans, overage-enabled resources or billable add-ons.
 
-Object storage remains deferred. Do not activate R2 merely because Cloudflare is already in use.
-
-Workers AI remains a later conditional direction for official-SRD clarification only while it can be used safely under the `$0` policy.
+Object storage remains deferred until real Media/Handouts/assets integration requires it. Workers AI remains later/conditional under D-0075.
 
 ## Current implementation state
 
@@ -67,88 +69,88 @@ Completed:
 - real Descope DEV OTP authentication;
 - deployed Cloudflare DEV Worker;
 - real authenticated `/v1/me` -> application identity -> Neon persistence;
-- representative Cloudflare Workers Free CPU/runtime proof for the authenticated `/v1/me` path;
-- PR #30 Android Descope SDK/session-manager integration;
-- real Android `HostedAccessTokenProvider` adapter using remembered/refreshable Descope sessions;
-- owner physical proof of OTP login, authenticated Worker call, remembered-session reuse after full app restart, and logout clearing the remembered session;
-- PR #32 ordinary-Player hosted account/campaign bootstrap;
-- owner physical proof that `Campañas` can safely handle no hosted session, then use the remembered real DEV session to refresh hosted campaign/account membership state without destroying existing local campaigns.
+- representative Workers Free CPU/runtime proof for `/v1/me`;
+- PR #30 Android remembered/refreshable Descope session integration and physical login/restart/logout proof;
+- PR #32 ordinary-Player hosted account/campaign bootstrap and physical safe-refresh proof;
+- PR #34 local-first campaign creation + durable hosted delivery;
+- PR #34 PC snapshot push/pull + hosted read-back;
+- real diagnosis and repair of a PC wire-envelope `VALIDATION_FAILED` caused by omitted default-valued backup metadata;
+- durable recovery of the same blocked PC mutation after the serializer repair;
+- owner physical proof that the repaired mutation is acknowledged/removed and an unchanged repeat sync leaves the outbox empty.
 
-The current hosted campaign bootstrap checkpoint contains the exact implementation/manual evidence and continuation. The hosted provider checkpoint remains the authority for provider IDs/environment evidence.
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` for the exact current proof.
 
 ## Hosted DEV status
 
 ```text
-Neon PostgreSQL          COMPLETE / VERIFIED
-Descope identity         COMPLETE / VERIFIED
-Cloudflare Worker        COMPLETE / VERIFIED
-Real auth round trip     VERIFIED
-Real Neon persistence    VERIFIED
-Workers Free CPU gate    PASS for tested representative path
-Android session edge     COMPLETE / OWNER-PHYSICAL PASS
-Android campaign bootstrap COMPLETE / OWNER-PHYSICAL PASS
+Neon PostgreSQL             COMPLETE / VERIFIED
+Descope identity            COMPLETE / VERIFIED
+Cloudflare Worker           COMPLETE / VERIFIED
+Real auth round trip        VERIFIED
+Real Neon persistence       VERIFIED
+Workers Free CPU gate       PASS for tested representative path
+Android session edge        COMPLETE / OWNER-PHYSICAL PASS
+Android campaign bootstrap  COMPLETE / OWNER-PHYSICAL PASS
+Campaign hosted delivery    COMPLETE / OWNER-PHYSICAL PASS
+PC snapshot push/pull       COMPLETE / OWNER-PHYSICAL PASS
 ```
 
-The representative hosted path showed roughly 1 ms CPU per visible authenticated `/v1/me` invocation with no observed errors. Future materially heavier endpoints should still be profiled.
+Future materially heavier Worker routes should still receive representative CPU/runtime profiling.
 
 ## Exact current continuation
 
-Wave 4 — Player <-> Server end-to-end — is active.
-
-The first three dependency steps are complete:
+Wave 4 — Player <-> Server end-to-end — remains active.
 
 ```text
-remembered Android Descope session/token          COMPLETE
-existing HostedAccessTokenProvider                COMPLETE
-owner-facing hosted account/campaign bootstrap    COMPLETE
+remembered Android Descope session/token           COMPLETE
+existing HostedAccessTokenProvider                 COMPLETE
+owner-facing hosted account/campaign bootstrap     COMPLETE
+campaign create + durable hosted delivery          COMPLETE
+PC snapshot push/pull + no-op suppression          COMPLETE
         |
         v
-campaign create/select + durable hosted delivery  NEXT
+second-client observation                          NEXT BATCH
+        +
+offline edit / reconnect / convergence safety      NEXT BATCH
         |
         v
-PC snapshot push/pull
-        |
-        v
-second-device observation
-        |
-        v
-offline/reconnect/convergence + revoke enforcement
+membership revoke + Player/DM authorization        FOLLOWING BOUNDARY
 ```
 
-The next primary development package is therefore:
+The next primary development batch is **multi-client PC convergence safety**.
 
-**local campaign creation -> durable hosted delivery -> hosted read-back/reconciliation**
+Do not ask the owner for an immediate one-change/one-test loop. Accumulate the closely related implementation first, with automated CI after each coherent step, then stop at the next natural physical gate.
 
-Reuse the already-existing provider-neutral path:
+The key correctness case to harden is:
 
-- `HostedCampaignCreationService` for atomic local creation + outbox enqueue;
-- `HostedOutboxRepository` for durable retry state;
-- `HostedOutboxDeliveryService` and `HostedApiClient.createCampaign` for idempotent hosted delivery;
-- the existing server `POST /v1/campaigns` mutation-receipt contract;
-- `HostedCampaignBootstrapService` for authoritative read-back.
+> A server-newer PC revision must not silently overwrite an unsent local edit on another client.
 
-Do not make local campaign creation depend on immediate network success. The local campaign must remain usable while delivery is queued/retryable.
+Add local knowledge of the last synchronized PC snapshot/revision so the client can distinguish:
 
-The debug-only `DnD Aid - Hosted DEV Auth` launcher remains a verification harness, not the final Player login UX. The normal Player app is not yet product-login-gated.
+- old local copy unchanged since last sync -> safe to apply a newer hosted snapshot;
+- old local copy changed locally while hosted state also advanced -> preserve local data and report an explicit conflict;
+- offline local edit with no remote change -> reconnect and deliver normally;
+- fresh second-client state -> pull the same stable hosted campaign/PC identity.
 
 Preserve local-first behavior, stable IDs, revisions, idempotency, tombstones, explicit conflicts, DM authority vs PC ownership, owner vs controller distinction and non-destructive local recovery.
 
+The debug-only `DnD Aid - Hosted DEV Auth` launcher remains verification infrastructure, not the final Player login UX.
+
 ## Security residuals carried forward
 
-Activation and mobile integration success do not close security work. Important follow-up topics include:
+Important follow-up topics remain:
 
 - JWT/fail-closed verification review;
 - object-level authorization regression coverage;
 - SQL/query safety;
 - error/log secret leakage;
 - replay/idempotency authorization;
-- request/API hardening;
 - exact investigation of the locally reported **3 high severity npm vulnerabilities** — do not run `npm audit fix --force` blindly;
-- evaluate a dedicated least-privilege Neon runtime role instead of the current owner-role credential;
+- evaluate a dedicated least-privilege Neon runtime role;
 - production-region/identity configuration review before release.
 
-These are visible residuals, not a reason to reopen completed provider/session/bootstrap gates.
+These are visible residuals, not a reason to reopen completed provider/session/bootstrap/campaign/PC gates.
 
 ## Historical Player evidence remains bounded
 
-Current integrated CI, hosted DEV proof and the new Android hosted-session/bootstrap physical proofs do not retroactively establish physical owner acceptance of the historical frozen Player candidate. Preserve the historical QA evidence for exactly what it tested.
+Current integrated CI and hosted physical proofs do not retroactively establish physical owner acceptance of the historical frozen Player candidate. Preserve historical QA evidence for exactly what it tested.
