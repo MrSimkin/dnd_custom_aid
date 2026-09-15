@@ -436,8 +436,8 @@ export class NeonCampaignStore implements CampaignStore {
           SELECT
             ${input.pcId}::uuid,
             ${input.campaignId}::uuid,
-            ${input.actorUserId}::uuid,
-            ${input.actorUserId}::uuid,
+            CASE WHEN (SELECT role FROM membership) = 'PLAYER' THEN ${input.actorUserId}::uuid ELSE NULL END,
+            CASE WHEN (SELECT role FROM membership) = 'PLAYER' THEN ${input.actorUserId}::uuid ELSE NULL END,
             ${name},
             0,
             ${input.snapshotFormat},
