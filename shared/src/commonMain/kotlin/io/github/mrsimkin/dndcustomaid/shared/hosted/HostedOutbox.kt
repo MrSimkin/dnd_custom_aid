@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.shared.hosted
 
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.uuid.Uuid
