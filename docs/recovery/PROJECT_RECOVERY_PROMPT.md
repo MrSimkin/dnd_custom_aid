@@ -23,14 +23,17 @@ Before changing anything:
 9. inspect current remote `main`, newer merged PRs/commits and current CI before writing;
 10. prefer newer specific approved decisions/checkpoints if any older document conflicts.
 
-Last known state when this prompt was consolidated:
+Last known state when this prompt was refreshed:
 
 - normal trunk: `main`;
-- last known `main`: `10bfa51ce6d2309a5530ed5bd133e9c2e2c38b07` before the zero-budget/guidance consolidation package;
-- verified implementation checkpoint: `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`;
-- verified implementation CI: Actions `34985799585` SUCCESS;
-- PR #26 subsequently consolidated the Player↔Server provider boundary and its post-merge CI `34986965813` was SUCCESS;
-- verify whether this recovery-document package or later work has since been merged and use current `main` rather than these historical hashes.
+- last known consolidated `main`: `b4280d46868d3a1eb424d27f3146a201d584c761`;
+- PR #27 merged the zero-budget/provider-revalidation/owner-guidance consolidation at that commit;
+- PR #27 exact-head CI: Actions `34992678380` — SUCCESS;
+- post-merge `main` CI: Actions `34992802795` — SUCCESS;
+- verified implementation checkpoint remains `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`;
+- verified implementation CI: Actions `34985799585` — SUCCESS;
+- PR #26 previously consolidated the Player↔Server provider boundary and its post-merge CI `34986965813` was SUCCESS;
+- always verify whether later work has superseded these references and use current `main` rather than blindly resuming an old hash.
 
 ## Do not restart completed foundations
 
