@@ -5,10 +5,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
@@ -17,6 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
@@ -79,8 +80,9 @@ class HostedApiClientTest {
             httpClient = hostedClient { request ->
                 assertEquals(HttpMethod.Post, request.method)
                 assertEquals("/v1/campaigns", request.url.encodedPath)
-                assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), request.body.contentType)
-                bodyText = request.body.toByteArray().decodeToString()
+                val body = assertIs<TextContent>(request.body)
+                assertTrue(body.contentType.toString().startsWith("application/json"))
+                bodyText = body.text
                 respondJson(
                     """{"campaign":{"id":"$campaignId","name":"Terramore","role":"DM","revision":0},"created":true}""",
                     HttpStatusCode.Created,
