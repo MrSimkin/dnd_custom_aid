@@ -10,15 +10,15 @@ This roadmap defines development stages and current integration direction. Produ
 
 ## Phase 1 — Product Discovery and Design
 
-**Status:** Current integrated-MVP product-design pass complete through D-0073.
+**Status:** Current integrated-MVP product-design pass complete through D-0074.
 
-Future targeted product design occurs only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
+D-0074 closes the PC Sheet PDF-export gap discovered after the technical-readiness review and before coding authorization. Future targeted product design occurs only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
 
 ---
 
 ## Phase 2 — Technical Foundation
 
-**Status:** Foundational architecture selected; technical-readiness review complete; hosted implementation not yet activated.
+**Status:** Foundational architecture selected; technical-readiness review complete; PDF-export post-review alignment complete; hosted implementation not yet activated.
 
 Approved base remains Kotlin/Compose Android, Kotlin + Compose Multiplatform Desktop, genuinely shared Kotlin logic/data where useful, SQLDelight/SQLite local persistence, TypeScript Cloudflare Worker/API, Neon PostgreSQL and Descope authentication.
 
@@ -36,7 +36,9 @@ The 2026-09-14 technical-readiness review additionally establishes the preferred
 - versioned JSON import/export family;
 - on-demand versioned backup archive with manifest/integrity information.
 
-These are technical implementation choices under D-0073 unless later evidence creates a material owner-level tradeoff.
+D-0074 additionally requires one canonical PC/export snapshot and shared export semantics across Player Android, DM Android/tablet and Desktop, with platform PDF rendering capable of faithful static-template overlay plus generated Modified/Extended/Spellbook pages. Exact renderer/library/layout mechanics remain delegated.
+
+These are technical implementation choices under D-0073/D-0074 unless later evidence creates a material owner-level tradeoff.
 
 C-0009 remains controlling: add complexity only for concrete requirements.
 
@@ -76,14 +78,16 @@ Existing Player evidence remains valid for the exact tested boundaries. Do not r
 
 ## Phase 4B — Integrated MVP Build
 
-**Status:** product scope + implementation governance + technical readiness complete; **waiting for explicit owner implementation authorization**.
+**Status:** product scope + implementation governance + technical readiness + PC Sheet PDF-export closure complete; **waiting for explicit owner implementation authorization**.
 
 Controlling records:
 
 - D-0071 — integrated Player + Server + DM architecture;
 - D-0072 — DM Desktop product and authoring/management surfaces;
 - D-0073 — exact MVP boundary, implementation governance and Git convergence;
-- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` — technical implementation recommendations/readiness.
+- D-0074 — complete cross-surface PC Sheet PDF-export product definition;
+- `docs/checkpoints/2026-09-14_INTEGRATED_MVP_TECHNICAL_READINESS_REVIEW.md` — technical implementation recommendations/readiness;
+- `docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md` — post-readiness PDF closure/alignment.
 
 Target:
 
@@ -99,15 +103,21 @@ Establish common semantic meaning for identity, campaigns/membership/roles, PC o
 
 ### Workstream B — Player stabilization and hosted integration
 
-Preserve the mature Player foundation and integrate remembered authentication, campaigns, hosted PC sync, assets, audit/history/conflicts and public combat projection without gratuitous Player rewrites.
+Preserve the mature Player foundation and integrate remembered authentication, campaigns, hosted PC sync, assets, audit/history/conflicts, PC Sheet PDF export and public combat projection without gratuitous Player rewrites.
+
+PC Sheet export must use the same canonical export semantics later exposed by DM Android/tablet and Desktop rather than becoming a Player-only implementation.
 
 ### Workstream C — hosted foundation
 
 Implement PostgreSQL migrations/schema, Cloudflare API, Descope identity mapping/verification, domain authorization, sync endpoints, object storage, audit/recovery and full backup/export. Begin SRD storage/provenance foundations early enough to avoid later architectural rework.
 
-### Workstream D — shared Kotlin data/sync
+PC Sheet PDF rendering remains local/offline and does not require a server PDF service.
+
+### Workstream D — shared Kotlin data/sync/export semantics
 
 Implement genuinely reusable local/shared data and sync behavior across Android/Desktop where appropriate, including revisions, pending mutations, tombstones, conflicts and asset references.
+
+Define the canonical PC/export snapshot and shared PDF-export semantic/render-plan layer needed so all approved clients interpret template families, custom statistics, overflow, portrait state and Spellbook content consistently. Platform-specific PDF rendering may remain outside common code.
 
 ### Workstream E — DM Desktop / DM Android product
 
@@ -128,8 +138,10 @@ Prepare/Manage includes:
 - Stage/Place/Scene Spine preparation;
 - Dungeon/Zone preparation, Encounter Readiness, clocks/advisory triggers;
 - Encounter Manager;
-- PC Manager/Audit;
+- PC Manager/Audit including D-0074 PC Sheet PDF export;
 - Media & Handouts.
+
+DM Android/tablet also exposes the same authorized PC Sheet PDF export capability when viewing/managing a campaign PC.
 
 Administration includes Campaign Manager and separate System Administration.
 
@@ -155,10 +167,10 @@ Broad dependency direction:
 2. deliberate `main` + Player-successor convergence — **NEXT, after owner authorization**;
 3. shared MVP semantic spine;
 4. hosted foundation;
-5. Player <-> Server end-to-end integration;
+5. Player <-> Server end-to-end integration plus canonical PC/export snapshot foundation;
 6. Desktop shell + campaign administration;
 7. reusable/persistent DM content architecture;
-8. Desktop authoring Managers;
+8. Desktop authoring Managers and cross-surface PC Sheet PDF exposure as dependencies permit;
 9. DM Live Workspace on shared semantics;
 10. combat/public-projection/device-authority integration;
 11. SRD retrieval + grounded clarification;
@@ -166,6 +178,8 @@ Broad dependency direction:
 13. integrated owner-facing QA candidate.
 
 Exact low-level package boundaries remain delegated engineering decisions. Parallelism is encouraged after shared semantics exist, but parallel streams must not independently redefine shared contracts.
+
+PDF implementation may span waves 5-8 internally; the key dependency is a coherent canonical PC/export snapshot, not a rigid wave number.
 
 ---
 
@@ -184,7 +198,7 @@ After explicit owner implementation authorization:
 2. create a dedicated convergence branch from current `main`;
 3. deliberately reconcile the Player successor runtime;
 4. preserve successor Player runtime, SQLDelight migrations, tests/guards and evidence;
-5. preserve current integrated product/architecture/governance from `main`;
+5. preserve current integrated product/architecture/governance from `main`, including D-0074;
 6. reconcile CI/navigation intentionally;
 7. run all Player guards + aggregate shared/Android/Desktop build/tests + backend check;
 8. inspect for semantic loss;
@@ -203,6 +217,8 @@ Representative end-to-end coverage should include:
 - remembered login, campaign membership/switching and role behavior;
 - Player local Save and PC/assets/history synchronization;
 - authorized DM PC retrieval/audit/correction without ownership confusion;
+- PC Sheet PDF export from Player Android, DM Android/tablet and DM Desktop using the same canonical PC data;
+- representative Classic/v1/v2 export families, custom-stat presentation modes, portrait fit/crop, Permanent vs Current Snapshot, overflow/Extended pages, offline Save/Share and optional Spellbook;
 - Personal -> Campaign content-copy workflows;
 - Monster/NPC/Homebrew/Stage/Dungeon/Encounter preparation;
 - saved encounter -> independent live encounter;
@@ -220,7 +236,7 @@ Internal automated/integration checks run throughout implementation.
 
 ## Integrated MVP boundary — closed
 
-Approved in-scope items must not later be silently demoted to stretch goals merely to make implementation appear complete sooner. This includes Desktop live parity, combat authority resume/handoff, the approved authoring Managers, structured homebrew, import/export, object storage/media, PC audit, Campaign/System Administration, backup/export and official-SRD clarification.
+Approved in-scope items must not later be silently demoted to stretch goals merely to make implementation appear complete sooner. This includes Desktop live parity, combat authority resume/handoff, the approved authoring Managers, structured homebrew, import/export, object storage/media, PC audit, **PC Sheet PDF export**, Campaign/System Administration, backup/export and official-SRD clarification.
 
 Explicitly deferred/generalized unless concrete evidence requires otherwise:
 
@@ -253,7 +269,7 @@ Deferred technologies remain permissible if they prove the simplest safe/proport
 
 The owner decides product behavior/workflow, visibility/privacy, MVP vs later scope, user-facing destructive/safety behavior and meaningful convenience/cost/security/lock-in tradeoffs.
 
-The technical assistant/Worker normally decides exact schema/table design, class/type decomposition, endpoint shapes, internal sync structures, migration mechanics, canonical import serialization, testing architecture and detailed technical package granularity.
+The technical assistant/Worker normally decides exact schema/table design, class/type decomposition, endpoint shapes, internal sync structures, migration mechanics, canonical import serialization, PDF-rendering/library/layout mechanics, testing architecture and detailed technical package granularity.
 
 Do not ask the owner to rubber-stamp routine technical matters.
 
@@ -261,15 +277,15 @@ Do not ask the owner to rubber-stamp routine technical matters.
 
 ## Current owner intervention
 
-Technical readiness is complete. No unresolved low-level technical question currently requires owner selection.
+Technical readiness and the reopened PC Sheet PDF-export product definition are complete. No unresolved low-level technical question currently requires owner selection.
 
 The next meaningful owner decision is:
 
 > **Authorize beginning the integrated-MVP implementation, starting with protected branch convergence.**
 
-After that authorization, routine technical work proceeds under D-0073. Return to the owner only for material product/scope/security/cost choices, external account/service setup (for example enabling R2 or configuring provider secrets) and manual/physical QA gates.
+After that authorization, routine technical work proceeds under D-0073/D-0074. Return to the owner only for material product/scope/security/cost choices, external account/service setup (for example enabling R2 or configuring provider secrets) and manual/physical QA gates.
 
-No product coding has been performed by the technical-readiness documentation pass.
+No product coding has been performed by the technical-readiness/PDF-closure documentation passes.
 
 ---
 
