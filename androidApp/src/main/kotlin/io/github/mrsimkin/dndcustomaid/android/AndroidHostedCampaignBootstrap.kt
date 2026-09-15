@@ -224,7 +224,10 @@ internal class AndroidHostedCampaignBootstrapController(
             AndroidHostedCampaignBootstrapOutcome.Success(
                 hostedCampaignCount = campaignResult.hostedCampaignCount,
                 appliedCampaignCount = campaignResult.appliedCampaignIds.size,
-                conflictCount = campaignResult.conflicts.size,
+                // The existing Player status surface reports this as local conflicts preserved
+                // without overwrite. Include PC convergence conflicts so they are visible to the
+                // owner instead of remaining only an internal reconciliation result.
+                conflictCount = campaignResult.conflicts.size + pcConflictCount,
                 acknowledgedMutationCount = firstDelivery.acknowledged + secondDelivery.acknowledged,
                 retryableMutationCount = firstDelivery.retryableFailures + secondDelivery.retryableFailures,
                 blockedMutationCount = firstDelivery.blockedFailures + secondDelivery.blockedFailures,
