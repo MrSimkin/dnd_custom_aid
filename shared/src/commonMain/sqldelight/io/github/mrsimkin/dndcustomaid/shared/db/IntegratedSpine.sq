@@ -26,12 +26,15 @@ CREATE TABLE object_sync_state (
     PRIMARY KEY(object_type, object_id)
 );
 
-upsertAccount:
-INSERT INTO app_account(id, external_subject, display_name)
-VALUES (?, ?, ?)
-ON CONFLICT(id) DO UPDATE SET
-    external_subject = excluded.external_subject,
-    display_name = excluded.display_name;
+insertAccountIfAbsent:
+INSERT OR IGNORE INTO app_account(id, external_subject, display_name)
+VALUES (?, ?, ?);
+
+updateAccount:
+UPDATE app_account
+SET external_subject = ?,
+    display_name = ?
+WHERE id = ?;
 
 selectAccountById:
 SELECT id, external_subject, display_name
@@ -39,11 +42,8 @@ FROM app_account
 WHERE id = ?;
 
 upsertCampaignMembership:
-INSERT INTO campaign_membership(campaign_id, account_id, role, status)
-VALUES (?, ?, ?, ?)
-ON CONFLICT(campaign_id, account_id) DO UPDATE SET
-    role = excluded.role,
-    status = excluded.status;
+INSERT OR REPLACE INTO campaign_membership(campaign_id, account_id, role, status)
+VALUES (?, ?, ?, ?);
 
 selectCampaignMembership:
 SELECT campaign_id, account_id, role, status
@@ -62,11 +62,8 @@ FROM character
 WHERE id = ?;
 
 upsertPcAuthority:
-INSERT INTO pc_authority(character_id, owner_account_id, controller_account_id)
-VALUES (?, ?, ?)
-ON CONFLICT(character_id) DO UPDATE SET
-    owner_account_id = excluded.owner_account_id,
-    controller_account_id = excluded.controller_account_id;
+INSERT OR REPLACE INTO pc_authority(character_id, owner_account_id, controller_account_id)
+VALUES (?, ?, ?);
 
 selectPcAuthority:
 SELECT character_id, owner_account_id, controller_account_id
@@ -74,11 +71,8 @@ FROM pc_authority
 WHERE character_id = ?;
 
 upsertObjectSyncState:
-INSERT INTO object_sync_state(object_type, object_id, revision, deleted_at_epoch_seconds)
-VALUES (?, ?, ?, ?)
-ON CONFLICT(object_type, object_id) DO UPDATE SET
-    revision = excluded.revision,
-    deleted_at_epoch_seconds = excluded.deleted_at_epoch_seconds;
+INSERT OR REPLACE INTO object_sync_state(object_type, object_id, revision, deleted_at_epoch_seconds)
+VALUES (?, ?, ?, ?);
 
 selectObjectSyncState:
 SELECT object_type, object_id, revision, deleted_at_epoch_seconds
