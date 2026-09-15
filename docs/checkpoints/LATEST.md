@@ -7,7 +7,8 @@
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
 **Android hosted-session integration:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
 **Android hosted campaign bootstrap:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
-**Android hosted campaign + PC sync batch:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
+**Android hosted campaign + PC sync batch:** **INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS THROUGH RECOVERED PC DELIVERY**  
+**Final unchanged-sync no-op physical confirmation:** **PENDING ONE OWNER CHECK**  
 **Integrated campaign + PC sync commit:** `75d5acf354b41185255ff7d1a5eb4a689f300721`  
 **Post-merge validation:** Actions `35028893643` / #1940 — **SUCCESS**  
 **Owner implementation authorization:** **GRANTED**
@@ -17,7 +18,7 @@
 1. `AGENTS.md` — mandatory project operating rules;
 2. `README.md` — repository entry point;
 3. `MANIFEST.md` — project-memory/navigation map;
-4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — current Wave 4 checkpoint and exact continuation;
+4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — current Wave 4 checkpoint, corrected physical-evidence boundary and exact continuation;
 5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
 6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
 7. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
@@ -40,7 +41,7 @@ The Android Descope remembered-session edge is complete. Do not create a second 
 
 The ordinary Player hosted account/campaign bootstrap is complete. Do not treat read/bootstrap as pending.
 
-Campaign creation + durable hosted delivery and PC snapshot push/pull are now also complete and physically verified through PR #34. Do not restart those packages from scratch.
+Campaign creation + durable hosted delivery and PC snapshot push/pull are integrated through PR #34. The owner physically verified delivery through recovery/acknowledgement of the real blocked PC mutation and confirmed the outbox was empty afterward. One explicit physical no-op repeat-sync check remains before that particular proof is called fully closed.
 
 The real Neon database name is `dnd-custom-aid-dev` with hyphens.
 
@@ -60,7 +61,7 @@ Object storage remains deferred until real Media/Handouts/assets integration req
 
 `main` is the sole normal integrated-MVP development trunk. Historical Player/convergence branches are evidence only.
 
-Completed:
+Completed/integrated:
 
 - baseline convergence;
 - Wave 2 Shared Integrated-MVP Spine;
@@ -76,9 +77,14 @@ Completed:
 - PR #34 PC snapshot push/pull + hosted read-back;
 - real diagnosis and repair of a PC wire-envelope `VALIDATION_FAILED` caused by omitted default-valued backup metadata;
 - durable recovery of the same blocked PC mutation after the serializer repair;
-- owner physical proof that the repaired mutation is acknowledged/removed and an unchanged repeat sync leaves the outbox empty.
+- owner physical confirmation that the repaired mutation was acknowledged/removed and the outbox became empty;
+- automated implementation/CI coverage for the unchanged-sync no-op behavior.
 
-See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` for the exact current proof.
+Still pending physically:
+
+- one unchanged Player synchronization followed by one more empty-outbox diagnostic, with no intervening local changes.
+
+See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` for the exact current proof boundary.
 
 ## Hosted DEV status
 
@@ -92,7 +98,8 @@ Workers Free CPU gate       PASS for tested representative path
 Android session edge        COMPLETE / OWNER-PHYSICAL PASS
 Android campaign bootstrap  COMPLETE / OWNER-PHYSICAL PASS
 Campaign hosted delivery    COMPLETE / OWNER-PHYSICAL PASS
-PC snapshot push/pull       COMPLETE / OWNER-PHYSICAL PASS
+PC snapshot push/pull       INTEGRATED / PHYSICALLY VERIFIED THROUGH ACK
+No-op repeat sync           AUTOMATED VERIFIED / OWNER PHYSICAL CHECK PENDING
 ```
 
 Future materially heavier Worker routes should still receive representative CPU/runtime profiling.
@@ -106,18 +113,27 @@ remembered Android Descope session/token           COMPLETE
 existing HostedAccessTokenProvider                 COMPLETE
 owner-facing hosted account/campaign bootstrap     COMPLETE
 campaign create + durable hosted delivery          COMPLETE
-PC snapshot push/pull + no-op suppression          COMPLETE
+PC snapshot push/pull + recovered blocked delivery INTEGRATED / PHYSICALLY VERIFIED
+final unchanged-sync no-op physical confirmation   NEXT OWNER CHECK
         |
         v
-second-client observation                          NEXT BATCH
+second-client observation                          NEXT DEVELOPMENT BATCH
         +
-offline edit / reconnect / convergence safety      NEXT BATCH
+offline edit / reconnect / convergence safety      NEXT DEVELOPMENT BATCH
         |
         v
 membership revoke + Player/DM authorization        FOLLOWING BOUNDARY
 ```
 
-The next primary development batch is **multi-client PC convergence safety**.
+### First action after resuming
+
+Do not reinstall, clear data, create a new campaign or create a new PC.
+
+1. Without changing the current campaign/PC, open the ordinary Player and press `Sincronizar con servidor` once.
+2. Open `DnD Aid - Hosted DEV Auth` and press `Diagnosticar outbox local`.
+3. If the outbox is still empty, record the unchanged-sync no-op physical gate as PASS.
+
+Then begin the next primary development batch: **multi-client PC convergence safety**.
 
 Do not ask the owner for an immediate one-change/one-test loop. Accumulate the closely related implementation first, with automated CI after each coherent step, then stop at the next natural physical gate.
 
@@ -149,7 +165,7 @@ Important follow-up topics remain:
 - evaluate a dedicated least-privilege Neon runtime role;
 - production-region/identity configuration review before release.
 
-These are visible residuals, not a reason to reopen completed provider/session/bootstrap/campaign/PC gates.
+These are visible residuals, not a reason to reopen completed provider/session/bootstrap/campaign/PC implementation packages.
 
 ## Historical Player evidence remains bounded
 
