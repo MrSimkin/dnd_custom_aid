@@ -2,82 +2,81 @@
 
 **Updated:** 2026-09-15 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Hosted/sync implementation checkpoint:** `da0083680565b2382605b422c8a10d21f2bf7e6a`  
-**PR #23 validation:** Actions run `34981524994` — **SUCCESS**  
+**Verified implementation checkpoint:** `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`  
+**Post-merge validation:** Actions `34985799585` — **SUCCESS**  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
-1. `docs/checkpoints/2026-09-15_HOSTED_SYNC_FOUNDATION.md` — current implementation/provider-activation checkpoint and authoritative exact next package;
-2. `docs/PROJECT_STATE.md` — global product/engineering state and execution rules;
-3. `docs/BRANCH_STATUS.md` — branch lifecycle/resume rule;
-4. `docs/ROADMAP.md` — overall implementation-wave sequence;
-5. `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` — broader engineering baseline;
-6. approved integrated-MVP decision records for product-scope questions.
+1. `docs/checkpoints/2026-09-15_PLAYER_SERVER_PROVIDER_BOUNDARY.md` — current implementation/provider-boundary checkpoint and exact continuation;
+2. `docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md` — safe development-provider activation handoff;
+3. `docs/PROJECT_STATE.md` — current global product/engineering state;
+4. `docs/BRANCH_STATUS.md` — branch lifecycle/resume rule;
+5. `docs/ROADMAP.md` — overall implementation-wave sequence;
+6. `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` — engineering baseline;
+7. approved integrated-MVP decision records for product-scope questions.
 
-For ordinary implementation resume, **the exact-next-package statement here and in the current hosted-sync checkpoint supersedes older Wave 3 “next package” wording elsewhere until the next broader documentation consolidation.**
+If older checkpoints or operational prose conflict with this file, this file and the current provider-boundary checkpoint control the practical resume point unless a later merged checkpoint explicitly supersedes them.
 
 ## Current repository state
 
-`main` is the sole normal integrated-MVP development trunk. Historical Player/convergence branches remain evidence only.
+`main` is the sole normal integrated-MVP development trunk. Historical Player/convergence branches are evidence only.
 
 Wave 2 — Shared Integrated-MVP Spine — is complete.
 
-Wave 3 — Hosted foundation — is **IN PROGRESS through PR #23**. The repository now includes:
+Wave 3 provider-neutral hosted foundation is integrated through PR #25. Current implementation includes:
 
 - shared identity/campaign/membership/role/PC-authority/scope/revision/tombstone/provenance semantics;
 - hosted `/v1` API/auth/domain foundation;
-- hosted PostgreSQL contracts and CI validation;
-- shared Android/Desktop HTTP transport;
+- hosted PostgreSQL migration/contracts and CI validation;
+- shared Android/Desktop HTTP transport and provider-neutral access-token boundary;
 - durable SQLDelight hosted outbox;
-- atomic local-first campaign creation + idempotent hosted delivery;
-- authenticated hosted account/campaign bootstrap with revision/tombstone/conflict protection;
-- explicit campaign membership lifecycle reconciliation: `ACTIVE`, `KICKED`, `BANNED`, plus campaign soft-deletion metadata;
-- a preserved active-campaign projection distinct from lifecycle state;
-- no fabricated removal from simple response absence.
+- local-first campaign creation + idempotent hosted delivery;
+- authenticated account/campaign bootstrap;
+- explicit campaign membership lifecycle reconciliation and campaign soft-deletion state;
+- hosted PC current-state snapshots using the existing versioned app-owned Player backup document as JSONB;
+- server-side DM/Player authorization with DM authority distinct from PC ownership;
+- optimistic PC revisions, idempotency, stale-conflict handling and tombstone/non-resurrection behavior;
+- durable PC snapshot delivery and safe same-identity pull/reconciliation;
+- protection against equal-revision/local-ahead silent overwrite and destructive hosted deletion of local recovery data.
 
-PR #23 merged as:
+PR #25 merged as:
 
-`da0083680565b2382605b422c8a10d21f2bf7e6a`
+`8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
 
-Its exact branch head `40db41116530fc593eebe05d7185d4797234fae7` passed Actions run `34981524994` across backend, hosted PostgreSQL contracts, shared/Kotlin tests, Android, Desktop, APK upload and all preserved Player guards. Post-merge `main` validation run `34981917563` was started for the integrated merge.
+Post-merge Actions run `34985799585` completed SUCCESS across backend, hosted PostgreSQL contracts, shared/Kotlin tests, Android, Desktop, APK upload and all preserved Player guards.
 
-## Exact next technical package
+## Exact next dependency
 
-Continue Wave 3 with **hosted PC current-state/snapshot sync foundation**.
+The next meaningful package is **real authenticated Player↔Server development integration**.
 
-Use the approved hybrid representation rather than mirroring the entire local SQLDelight graph:
+Provider-neutral prerequisites are sufficiently complete. Do not create another parallel auth/networking/sync abstraction merely to postpone the external environment.
 
-- relational PC identity/campaign/owner/controller/revision/lifecycle metadata;
-- versioned application-owned PC snapshot JSONB;
-- server-side campaign/ownership/control authorization;
-- optimistic stale-revision rejection;
-- mutation idempotency;
-- local durable-outbox integration;
-- safe pull/reconciliation;
-- evolution/reuse of the existing versioned Player serialization family.
+Before owner-facing remembered authentication and real hosted round trips are wired into Player Android, the owner must authorize/create development resources for:
 
-Keep audit/history/recovery separate from current state. Do not expand into generalized event sourcing, CRDTs, queues, WebSockets or a generic sync platform without concrete evidence.
+1. Cloudflare — Worker/API runtime;
+2. Neon — PostgreSQL;
+3. Descope — authentication/identity.
 
-## External-service activation
+After activation, continue with remembered Android session/token acquisition feeding the existing shared token-provider seam, hosted campaign bootstrap/create/select, hosted PC push/pull, then two-device/offline/reconnect/revoke validation.
 
-**You do not need to sign up for or create provider resources yet.**
+## External-service safety
 
-The next PC snapshot package can still be designed, implemented and tested locally/in CI. The first activation gate is immediately before we need a real authenticated end-to-end hosted development round trip in the owner-facing Player integration.
+No provider account/resource activation is authorized implicitly by this checkpoint. Accounts/resources remain owner-controlled.
 
-At that gate we will configure a development environment using:
-
-- **Cloudflare** — Worker/API runtime;
-- **Neon** — PostgreSQL;
-- **Descope** — authentication.
+Before activation, re-check current provider plan/region/pricing/security details and surface material cost/privacy/security/lock-in choices. Use development/test resources first. Never commit secrets.
 
 R2 remains later, when Media/Handouts/assets actually need object storage.
 
-Accounts/resources remain owner-controlled. We will start with development/test resources rather than production. Credentials stay outside Git; secrets go directly into provider/runtime secret stores or ignored local development configuration. Before activation, the owner receives the exact signup/configuration checklist and any material plan/region/cost/security/privacy/lock-in choices.
+## Security visibility note
+
+At checkpoint capture, GitHub repository metadata reports `private: false`, although the project has previously been described conversationally as private. The owner should verify intended visibility before provider integration. Do not change repository visibility autonomously.
+
+Regardless of repository visibility, provider credentials and secrets must remain outside Git.
 
 ## Historical Player evidence remains bounded
 
-The historical frozen Player candidate remains evidence only; current integrated CI does not retroactively establish physical acceptance.
+Current integrated CI does not retroactively establish physical acceptance of the historical frozen Player candidate.
 
 ## Product scope
 
@@ -87,4 +86,4 @@ The integrated MVP remains one ecosystem:
 Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
-Approved protected scope and owner-vs-technical responsibility boundaries remain unchanged.
+Protected integrated-MVP scope and owner-vs-technical responsibility boundaries remain unchanged.

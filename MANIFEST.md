@@ -4,24 +4,20 @@ This file maps authoritative project-control files and implemented areas so a fr
 
 ## Current authority model
 
-The owner has authorized the integrated-MVP implementation. The former `main` + Player-successor split has been semantically converged and validated on `integration/mvp-baseline-convergence`.
+The owner has authorized integrated-MVP implementation. **`main` is the single normal integrated-MVP trunk.** The former Player successor and convergence line are historical evidence, not normal resume branches.
 
-Convergence commit:
+Current verified implementation checkpoint:
 
-`5bed85cbb3e86ae63eac79149fadc5e56e61b256`
+`8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
 
-Validation:
-
-GitHub Actions `34917259324` / #1694 — **SUCCESS**.
-
-After promotion, **`main` is the single normal integrated-MVP trunk**. `implementation/phase4a-successor-cycle` remains historical/frozen Player evidence only.
+Post-merge GitHub Actions `34985799585` — **SUCCESS**.
 
 `docs/BRANCH_STATUS.md` controls branch lifecycle. Branch existence alone does not establish authority.
 
-## Root control files
+## Start/resume control files
 
 ### `README.md`
-Project entry point and mandatory read sequence.
+Repository entry point and mandatory read sequence.
 
 ### `AGENTS.md`
 Mandatory operating rules for humans and AI/coding agents. Routine low-level engineering is delegated; do not use the owner as a rubber stamp.
@@ -29,25 +25,26 @@ Mandatory operating rules for humans and AI/coding agents. Routine low-level eng
 ### `MANIFEST.md`
 This inventory.
 
-## Core current truth
+### `docs/checkpoints/LATEST.md`
+Exact practical resume pointer.
+
+### `docs/checkpoints/2026-09-15_PLAYER_SERVER_PROVIDER_BOUNDARY.md`
+Current hosted/sync implementation checkpoint. It records the integrated provider-neutral foundation, exact validated commit/run, and the first real external-provider activation boundary.
 
 ### `docs/PROJECT_STATE.md`
-Authoritative current global state and next implementation package.
-
-### `docs/checkpoints/LATEST.md`
-Practical resume pointer.
-
-### `docs/checkpoints/2026-09-14_INTEGRATED_MVP_BASELINE_CONVERGENCE.md`
-Current implementation/topology checkpoint: owner authorization, semantic convergence, validation evidence and next package.
+Authoritative current global implementation/product state and exact next dependency.
 
 ### `docs/BRANCH_STATUS.md`
-Canonical lifecycle map: `main` integrated trunk after promotion, old Player successor historical evidence.
+Canonical branch lifecycle map.
 
 ### `docs/ROADMAP.md`
-Current integrated implementation waves. Baseline convergence is validated; Shared Integrated-MVP Spine is next.
+Overall integrated implementation waves and ordering.
 
 ### `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`
-Technical handoff for the shared spine, hosted foundation, sync, auth, backup, object storage and PC Sheet PDF export.
+Current engineering handoff: shared/hosted foundation, sync, auth, PC snapshots, provider gate, object storage, backup and PDF direction.
+
+### `docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md`
+Prepared safety/activation handoff for the first development Cloudflare + Neon + Descope environment. This file is not authorization to create accounts/resources.
 
 ## Controlling product/architecture decisions
 
@@ -55,16 +52,13 @@ Technical handoff for the shared spine, hosted foundation, sync, auth, backup, o
 Integrated Player + Server + DM architecture, paper/local/server authority, sync, permissions, recovery/backup, Desktop fallback, combat authority and SRD direction.
 
 ### `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`
-Closed Desktop Live/Prepare/Admin product definition.
+Desktop Live/Prepare/Admin product definition.
 
 ### `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`
-Exact MVP boundary, implementation waves, Git strategy and owner-vs-technical responsibility.
+MVP boundary, implementation waves, Git strategy and owner-vs-technical responsibility.
 
 ### `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`
-Complete cross-surface PC Sheet PDF-export behavior. In ordinary conversation, call this “the PDF export decision” unless the exact repository identifier matters.
-
-### D-0068 / D-0069 / D-0070
-DM Workspace/Desk family and shared Player/DM rules-question capability.
+Complete cross-surface PC Sheet PDF-export behavior.
 
 ### `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md`
 Historical chronological decision log plus recent decision index.
@@ -80,34 +74,56 @@ Historical chronological decision log plus recent decision index.
 
 Historical checkpoints remain evidence; old `next` instructions may be superseded by current `LATEST.md`.
 
-## Character-sheet template assets
-
-- `assets/character-sheets/templates/Hoja de PJ - 5.0 - Simkin.pdf` — Custom v1 visual source;
-- `assets/character-sheets/templates/Hoja de PJ v2 - 5.0 - Simkin.pdf` — Custom v2 source with two alternative main-page organizations;
-- `assets/character-sheets/templates/README.md` — template/rendering guidance;
-- `assets/character-sheets/templates/REFERENCE.md` — durable terminology/visual-family companion.
-
-The PDFs are presentation artifacts, not the canonical PC model.
-
 ## Current implemented areas
 
 ### `shared/`
-Mature Kotlin Multiplatform Player/domain/persistence foundation using SQLDelight and kotlinx.serialization. The integrated baseline now contains the authoritative Player successor evolution, migrations through at least 14, backup/provenance logic and extensive tests.
+Kotlin Multiplatform domain/persistence/networking/sync foundation using SQLDelight, kotlinx.serialization and Ktor. It contains the mature Player model/runtime persistence support, integrated spine, versioned backup/serialization, hosted transport, durable hosted outbox, campaign lifecycle sync and hosted PC snapshot synchronization/conflict logic.
 
 ### `androidApp/`
-Mature Player Android runtime from the successor line is now in the integrated baseline. Future work must preserve it rather than gratuitously rewrite it.
+Mature Player Android runtime from the historical successor line is integrated and protected by permanent CI guards. At the current provider-boundary checkpoint, owner-facing Android composition remains local-only: real remembered Descope session acquisition and hosted campaign/PC wiring are the next external-environment-dependent package.
 
 ### `desktopApp/`
-Compose Multiplatform Desktop scaffold. The real Desktop workbench remains to be implemented.
+Compose Multiplatform Desktop foundation. The full approved DM Desktop workbench remains protected future integrated-MVP work after Player↔Server contracts are proven end-to-end.
 
 ### `backend/`
-TypeScript Cloudflare Worker scaffold; currently essentially `/health` plus type-checking. Real auth/domain/sync/storage/backup routes remain to be implemented.
+TypeScript Cloudflare Worker/API implementation, no longer scaffold-only. It includes `/v1` hosted domain routes, token-verifier boundaries, application-owned authorization, campaign/membership lifecycle behavior, PC snapshot behavior and hosted error contracts.
 
 ### `database/`
-Hosted PostgreSQL area is scaffold-only; real migrations remain to be implemented.
+Explicit hosted PostgreSQL migration plus contract tests, including integrated spine, campaign membership lifecycle and PC snapshot authorization/revision/DM-authority contracts. CI validates these against PostgreSQL.
 
 ### `scripts/`
-Permanent Player guard scripts imported from the successor and exercised by Scaffold CI.
+Permanent Player guard scripts exercised by Scaffold CI.
+
+### `assets/character-sheets/templates/`
+PC Sheet PDF source templates/visual authorities; presentation artifacts, not the canonical PC model.
+
+## Current integrated implementation position
+
+Wave 2 — Shared Integrated-MVP Spine — is complete.
+
+Provider-neutral Wave 3 hosted work is integrated through PR #25:
+
+- hosted API/database/shared transport;
+- durable outbox and idempotent campaign delivery;
+- hosted account/campaign bootstrap;
+- explicit membership lifecycle/deletion reconciliation;
+- hosted PC JSONB current-state snapshot foundation;
+- PC authorization, revision/idempotency/conflict/tombstone semantics;
+- durable PC snapshot delivery and safe same-identity reconciliation.
+
+The next meaningful package is **real authenticated Player↔Server development integration**, which requires the first owner-controlled development Cloudflare + Neon + Descope environment.
+
+Do not add speculative parallel infrastructure merely to defer this gate.
+
+## External-provider boundary
+
+The provider activation gate has now been reached, but provider activation remains an owner action.
+
+Before activation, verify current plans, regions/data locations, pricing/quotas and security implications. Use development/test resources first. Never commit secrets.
+
+R2 remains later for Media/Handouts/assets.
+
+At checkpoint capture, GitHub repository metadata reports `private: false`; the owner should verify intended visibility before provider integration. Do not change visibility autonomously.
 
 ## Historical Player evidence
 
@@ -123,7 +139,7 @@ Frozen candidate:
 - artifact `10331503478`;
 - targeted physical cross-device revalidation pending at that old boundary.
 
-This is historical evidence, not the normal development branch after convergence.
+Current integrated CI does not retroactively establish physical acceptance of that historical candidate.
 
 ## Current integrated-MVP boundary
 
@@ -137,42 +153,6 @@ Protected scope includes Player hosted integration, full DM live Android/Desktop
 
 Generalized VTT/realtime/ACL/CRDT/marketplace/homebrew-AI/enterprise infrastructure remains deferred unless a concrete approved requirement proves it necessary.
 
-## Delegated technical direction
-
-Current preferred implementation choices include:
-
-- Ktor Client shared networking;
-- versioned HTTP/JSON API;
-- mutation IDs + optimistic revisions;
-- SQLDelight outbox + scoped push/pull sync;
-- Neon serverless driver initially;
-- explicit SQL migrations;
-- versioned JSONB hosted PC snapshots + relational auth/index metadata;
-- server-side Descope token validation + app-owned authorization;
-- R2 Standard as current object-storage recommendation, pending activation;
-- versioned app-owned JSON import/export;
-- on-demand versioned backup archive with manifest/checksums;
-- canonical PC/export snapshot + shared PDF semantic/render plan with platform renderers.
-
-## CI and verification
-
-Validated convergence run `34917259324` / #1694 passed:
-
-- all Player guards;
-- shared desktop tests;
-- Android debug build;
-- Desktop build;
-- backend type-check;
-- APK artifact upload.
-
-Expand CI proportionately as hosted migrations/auth/revisions/sync/assets/backup/PDF/combat authority become real.
-
-## Exact current continuation
-
-After promotion to `main`, branch from current `main` and implement the **Shared Integrated-MVP Spine**: identity, campaigns/membership/role, PC owner/controller, stable IDs, revisions, tombstones, scope/provenance and basic audit/sync invariants.
-
-No additional owner approval is required for routine engineering. Escalate only material product/scope/security/privacy/cost/lock-in/destructive behavior, external account/service actions or manual/physical QA gates.
-
 ## Authority rule
 
 If documents conflict:
@@ -182,6 +162,6 @@ If documents conflict:
 3. `docs/BRANCH_STATUS.md` controls branch lifecycle;
 4. `docs/PROJECT_STATE.md` controls current global state;
 5. `docs/checkpoints/LATEST.md` controls the practical resume point;
-6. the convergence checkpoint controls the current topology/validation facts;
+6. the current checkpoint controls current implementation/validation facts;
 7. historical checkpoints remain evidence only;
 8. surface material contradictions instead of guessing.
