@@ -37,7 +37,9 @@ class CharacterSpellcastingOriginMigrationTest {
             }
 
             val driver = JdbcSqliteDriver(jdbcUrl)
-            AppDatabase.Schema.migrate(driver = driver, oldVersion = 13, newVersion = AppDatabase.Schema.version)
+            // This fixture is intentionally the minimal pre-migration-13 shape. Migrate only
+            // through version 14 so later, unrelated migrations do not expand this test's scope.
+            AppDatabase.Schema.migrate(driver = driver, oldVersion = 13, newVersion = 14)
             DriverManager.getConnection(jdbcUrl).use { jdbc ->
                 jdbc.createStatement().use { statement ->
                     statement.executeQuery(
