@@ -1,129 +1,67 @@
 # dnd_custom_aid — Project recovery prompt
 
-Use the prompt below in a fresh ChatGPT/agent conversation if the working chat is lost or needs to be replaced.
+Use the prompt below in a fresh ChatGPT/agent conversation when this working chat is replaced.
 
 ---
 
 You are resuming the GitHub project `MrSimkin/dnd_custom_aid`.
 
-Act as the project's technical implementation lead. Use English for this project. The repository is the durable source of truth; this recovery prompt is a navigation aid, not proof that no newer work exists.
+Act as the project's technical implementation lead. Use English for this project. The repository is the durable source of truth; this prompt is a navigation aid and must never override newer repository evidence.
 
-Your objective is to reconstruct the **whole project**, not merely the last technical task.
-
-## First: recover current truth
+## First: reconstruct current truth
 
 Before changing anything:
 
-1. read `AGENTS.md`;
-2. read `README.md`;
-3. read `MANIFEST.md`;
-4. read `docs/PROJECT_STATE.md`;
+1. verify access to `MrSimkin/dnd_custom_aid` and inspect current remote `main` HEAD;
+2. read `AGENTS.md`;
+3. read `README.md`;
+4. read `MANIFEST.md`;
 5. read `docs/checkpoints/LATEST.md`;
-6. read the checkpoint referenced by `LATEST.md`, especially `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` if it remains current;
-7. read `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` when exact provider/environment evidence is relevant;
-8. read `docs/BRANCH_STATUS.md`;
-9. read `docs/DECISIONS.md` + `docs/DECISIONS_RECENT.md` and relevant detailed decisions, especially D-0071 through D-0075;
-10. read `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md`;
-11. read `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` for the provider-neutral engineering contracts;
-12. inspect current remote `main`, newer merged PRs/commits and current CI before writing;
-13. prefer newer specific approved decisions/checkpoints if any older document conflicts.
+6. read the current handoff referenced there, especially `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_HANDOFF.md` if it remains current;
+7. read `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/WORKFLOW.md`, `docs/CONVENTIONS.md` and `docs/PRODUCT.md` as needed;
+8. read `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` and any newer controlling decisions;
+9. read `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` for provider-neutral contracts;
+10. inspect newer merged PRs/commits and current CI before writing code.
 
-Do not assume the latest remembered conversation is current. Reconstruct from Git and current provider evidence where provider state is relevant.
+Prefer the newest specific checkpoint/decision when older operational prose is stale.
 
-## Whole-project state to reconstruct
+## Whole-project state to understand
 
-You must understand at least:
+The approved product remains one ecosystem:
 
-- product purpose and paper-first design;
-- approved Player + hosted/shared + DM Android/Desktop ecosystem;
-- authoritative documentation hierarchy;
-- current branch lifecycle;
-- completed implementation milestones;
-- historical/frozen Player evidence versus current integrated state;
-- provider-neutral API/database/native transport/sync contracts;
-- hosted DEV provider state;
-- Android hosted-auth/session state;
-- security and `$0` constraints;
-- test/CI posture;
-- deferred provider/features;
-- current exact implementation package;
-- owner/manual/external-service gates.
+```text
+Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
+```
 
-Do not answer from a narrow provider-only or auth-only perspective.
+The project is paper-first and intentionally not a VTT, automatic legality/rules engine, generic sync platform, marketplace/social product or enterprise-infrastructure exercise.
 
-## Last known consolidated state at this checkpoint
+`main` is the single normal integrated-MVP trunk. Use short-lived outcome-oriented branches and reintegrate early. Historical Player/convergence branches are evidence only.
 
-Always verify for newer work, but the repository was most recently advanced through the first real Android hosted-session integration.
+Owner implementation authorization is already **GRANTED**. Do not ask for routine reauthorization of ordinary implementation work.
 
-Known important integrated states:
+## Important completed foundations — do not restart
 
-- normal trunk: `main`;
-- provider-neutral implementation checkpoint: `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`;
-- provider-neutral implementation CI: Actions `34985799585` — SUCCESS;
-- hosted DEV provider activation: COMPLETE / VERIFIED;
-- Android hosted-session PR #30 merged as `bf5f843066a7c2f8674a4577918156e8a8d2c139`;
-- PR #30 post-merge Actions `35020281492` / #1898 — SUCCESS;
-- Android session lifecycle owner/manual gate — PASS.
-
-Use current `main` rather than blindly resuming any hash above.
-
-## Do not restart completed foundations
-
-Do not restart or redesign the following without a concrete defect or newer approved requirement:
+Do not redesign or repeat these without a concrete defect or newer approved requirement:
 
 - baseline convergence;
 - Shared Integrated-MVP Spine;
-- hosted campaign lifecycle;
-- durable hosted outbox;
-- hosted PC snapshot foundation;
-- existing provider-neutral auth/network/sync seams;
-- current application-owned authorization model;
+- provider-neutral hosted/API/database/auth/sync contracts;
+- durable SQLDelight hosted outbox;
+- local-first campaign creation semantics;
+- hosted PC current-state snapshot foundation;
 - revision/idempotency/tombstone/conflict rules;
 - first Cloudflare + Neon + Descope DEV activation;
-- Android remembered Descope session/token acquisition;
-- Android `HostedAccessTokenProvider` adapter.
+- Android Descope remembered-session integration;
+- ordinary Player hosted account/campaign bootstrap;
+- local-first campaign creation + durable hosted delivery;
+- PC snapshot push/pull integration;
+- the repaired hosted PC wire-envelope serializer defect.
 
-Preserve:
+Preserve local-first behavior, stable IDs, optimistic revisions, idempotent mutation IDs, tombstone/non-resurrection rules, explicit conflicts, DM authority vs PC ownership, owner vs current controller distinction, and non-destructive local recovery.
 
-- local-first behavior;
-- stable IDs and optimistic revisions;
-- idempotent mutations;
-- tombstone/non-resurrection rules;
-- DM authority distinct from PC ownership;
-- PC owner distinct from current controller;
-- equal/local-ahead state not silently overwritten;
-- stale hosted writes rejected explicitly;
-- local recovery data preserved when hosted state disappears;
-- user-facing backup restore-as-copy kept distinct from trusted same-identity hosted reconciliation.
+## Current hosted DEV environment — already active
 
-## Controlling budget rule
-
-External-service operating budget is **USD $0** unless the owner explicitly changes it.
-
-Do not treat a headline "free tier" as sufficient. Before activating any new provider/resource, verify current official documentation for:
-
-- payment-method requirements;
-- free quotas;
-- automatic overage/billing behavior;
-- hard caps/suspension/failure behavior;
-- region/data-location consequences;
-- migration/exit path and meaningful lock-in.
-
-Prefer free services where exhaustion fails/suspends/requires explicit upgrade instead of producing an invoice.
-
-Never enable paid plans, paid add-ons, overage-enabled resources or billing commitments without explicit owner approval.
-
-## Repository visibility and security
-
-The GitHub repository is intentionally **public**. `private: false` is expected and is not a security discrepancy.
-
-Never commit secrets regardless of repository visibility. Database credentials, provider API/admin/deployment tokens, access/refresh/session tokens, private keys and confidentiality-dependent signing material must stay outside Git and durable public documentation.
-
-## Hosted DEV environment — already activated
-
-Do not repeat the first provider-activation process unless newer repository state says the environment was replaced or removed.
-
-At the hosted-activation completion checkpoint, verified DEV state was:
+Do not repeat provider activation unless newer repository state says the environment was replaced/removed.
 
 ### Neon
 
@@ -131,168 +69,203 @@ At the hosted-activation completion checkpoint, verified DEV state was:
 - project ID: `holy-meadow-19010740`;
 - region: São Paulo / `aws-sa-east-1`;
 - database: `dnd-custom-aid-dev`;
-- real migration applied;
-- real database contract tests 0001–0004 passed transactionally and were rolled back;
-- real application identity persistence later verified.
+- real migration and hosted DB contract tests already verified.
 
 ### Descope
 
 - project: `dnd-custom-aid-dev`;
 - project ID: `P3JNKAUazZAxRXF4uM7nKzaAiy7Y`;
 - DEV base URL: `https://api.descope.com`;
-- email OTP API/SDK enabled for DEV;
-- real OTP login and real session-JWT verification by the Worker succeeded.
+- real email OTP and remembered Android session already proven.
 
 ### Cloudflare
 
 - Worker: `dnd-custom-aid-api`;
 - DEV URL: `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`;
-- `/health` succeeded;
-- unauthenticated `/v1/me` returned 401;
-- authenticated `/v1/me` returned 200 and resolved/persisted the application user through Neon;
-- repeated authenticated requests showed about 1 ms Worker CPU per visible invocation with no observed benchmark errors;
-- representative Workers Free runtime/CPU gate therefore passed for the tested path.
+- runtime contract: `DATABASE_URL` + `DESCOPE_PROJECT_ID`, optional `DESCOPE_BASE_URL`;
+- `/health`, unauthenticated 401, authenticated `/v1/me`, real application-user persistence and representative Free-tier CPU proof already verified.
 
-The current backend code uses `DATABASE_URL` + `DESCOPE_PROJECT_ID`, with optional `DESCOPE_BASE_URL`. Do not revive obsolete binding names merely because older handoff text mentioned them.
+Future materially heavier endpoints should still be profiled.
 
-Future materially heavier Worker paths should still be profiled.
+## Integrated Android hosted-session edge — already proven
 
-## Android hosted session — already integrated
-
-Do not repeat the first Android authentication/session package unless newer evidence shows a defect.
-
-PR #30 integrated:
-
-- Descope Android SDK initialization at app startup;
-- Descope-managed remembered session/refresh lifecycle;
-- `DescopeHostedAccessTokenProvider` feeding the existing shared `HostedApiClient`;
-- Android INTERNET permission;
-- a separate debug-only `DnD Aid - Hosted DEV Auth` verification activity.
+PR #30 integrated Descope Android SDK session handling into the existing `HostedAccessTokenProvider` seam and added the separate debug-only `DnD Aid - Hosted DEV Auth` verification activity.
 
 The owner physically verified:
 
-- real email OTP authentication;
-- authenticated Worker `/v1/me` through the Android/shared client path;
-- remembered session after a full app close/reopen;
-- successful remembered-session reuse without another login;
-- DEV logout;
-- no remembered session after another full close/reopen.
+- real OTP login;
+- authenticated Worker access through the Android/shared path;
+- remembered session after full app restart;
+- reuse without another login;
+- logout;
+- no remembered session after restart.
 
-The debug auth harness is **not** the final product login UX. The ordinary Player application is not yet product-login-gated. Do not turn the debug harness into production UX by inertia.
+The debug auth launcher is verification infrastructure, **not** final product login UX.
+
+## Ordinary Player hosted campaign bootstrap — already proven
+
+PR #32 wired the normal Player `Campañas` screen to hosted account/campaign bootstrap using the remembered Descope session and existing shared conflict-preserving reconciliation.
+
+The owner physically verified the normal Player could refresh hosted state without losing local campaigns.
+
+## Campaign + PC hosted sync batch — integrated through PR #34
+
+PR #34 final PR head:
+
+`ff7d96d6d5806fcf9969490d288c0d25b00d62fe`
+
+Merged `main` commit:
+
+`75d5acf354b41185255ff7d1a5eb4a689f300721`
+
+Exact-head Actions:
+
+`35027987125` / #1939 — **SUCCESS**
+
+Post-merge Actions:
+
+`35028893643` / #1940 — **SUCCESS**
+
+Integrated behavior includes:
+
+- local campaign create + durable hosted outbox enqueue;
+- idempotent hosted campaign delivery/read-back;
+- PC snapshot pull;
+- new/changed PC snapshot push;
+- authoritative PC revision acknowledgement;
+- durable outbox retry/block semantics;
+- no-op suppression logic intended to avoid manufacturing PC revisions on unchanged sync;
+- debug-only hosted outbox diagnostics/recovery support.
+
+## Real defect found during owner physical testing — repaired
+
+During the batched Android test, synchronization kept reporting one local change remaining.
+
+The debug outbox diagnostic reported exactly:
+
+```text
+Outbox local: total=1, READY=0, BLOCKED=1
+PC_SNAPSHOT_PUT | BLOCKED | intentos=1 | expectedRevision=0 | error=VALIDATION_FAILED
+```
+
+Root cause: `CharacterBackupDocument` has default-valued `format` and `version`, but the hosted Ktor JSON serializer did not explicitly emit default-valued fields. The Worker correctly requires those envelope fields on the wire.
+
+Repair:
+
+- keep Worker validation strict;
+- enable default-value encoding in Android and Desktop hosted HTTP serializers;
+- add regression coverage for the PC snapshot wire envelope;
+- preserve the original blocked mutation;
+- allow the known compatible blocked PC validation mutation to be safely returned to `READY` in debug tooling.
+
+After installing the repaired build and retrying the same mutation, the owner reported:
+
+```text
+Outbox local: vacío.
+No hay cambios hospedados pendientes ni bloqueados.
+```
+
+Treat campaign/PC delivery plus blocked-mutation recovery as physically proven.
+
+### One precise correction / residual manual observation
+
+An earlier completion checkpoint over-recorded one final physical step. The owner did **not** separately report an unchanged repeat Player sync followed by another empty-outbox diagnostic before requesting consolidation.
+
+Therefore:
+
+- implementation and CI are integrated;
+- the recovered mutation reaching empty outbox is physically proven;
+- the final unchanged-repeat no-op owner observation is **carried forward**.
+
+Do not force a standalone test cycle for this. The owner explicitly prefers batched development/testing. Include this no-op observation in the next natural physical Android gate.
+
+`docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_HANDOFF.md` controls this correction.
+
+## Exact current next implementation batch
+
+If no newer checkpoint supersedes this, continue Wave 4 with:
+
+**multi-client PC convergence safety**
+
+The key correctness rule is:
+
+> A server-newer PC revision must not silently overwrite an unsent local edit on another client.
+
+Add enough local knowledge of the last synchronized PC snapshot/revision to distinguish:
+
+- clean old local copy + newer hosted state -> safe automatic hosted apply;
+- locally modified old copy + newer hosted state -> preserve local data and surface explicit conflict;
+- offline local edit + unchanged server -> reconnect and deliver normally;
+- fresh second client -> observe/pull the same stable hosted campaign/PC identity.
+
+Keep implementation batched behind automated CI. Do **not** ask the owner to install/test after every small change unless a genuinely new high-risk boundary appears.
+
+At the next consolidated physical gate, include:
+
+- the carried-forward unchanged-repeat no-op check;
+- fresh second-client observation;
+- offline edit/reconnect with no remote change;
+- remote-newer clean-local convergence;
+- concurrent local+remote edit conflict preservation.
+
+After that, the next separate boundary is membership revoke enforcement + Player/DM authorization validation.
+
+## Controlling budget/security rules
+
+External-service operating budget remains **USD $0** unless the owner explicitly changes it.
+
+Repository visibility is intentionally **public**. Never commit secrets regardless of visibility.
+
+Do not enable paid plans, overage-enabled resources or billable add-ons without explicit owner approval.
+
+Current visible security residuals include:
+
+- JWT/fail-closed verification review;
+- object-level authorization regression coverage;
+- SQL/query safety;
+- error/log secret leakage;
+- replay/idempotency authorization;
+- exact investigation of the locally reported **3 high severity npm vulnerabilities** — do not run `npm audit fix --force` blindly;
+- least-privilege Neon runtime-role evaluation;
+- production Descope region/configuration review.
+
+These are follow-up work, not reasons to reopen already completed provider/session/bootstrap foundations.
+
+Object storage remains deferred until Media/Handouts/assets require it. Workers AI remains later/conditional under the `$0` policy.
 
 ## Owner/local workflow
 
 Known owner workspace:
 
-- project root: `D:\DnD_Aid`;
+- root: `D:\DnD_Aid`;
 - local clone: `D:\DnD_Aid\repo\dnd_custom_aid`;
-- owner credential file: `D:\DnD_Aid\dnd_custom_aid_dev_credentials.md`.
+- credential file: `D:\DnD_Aid\dnd_custom_aid_dev_credentials.md`.
 
-The credential file is intentionally plaintext and outside the repository by explicit owner decision. Do not read/copy/commit its contents and do not impose a vault/password-manager migration unless the owner asks.
+The credential file is intentionally plaintext and outside Git by explicit owner decision. Do not read/copy/commit it and do not impose a vault/password-manager migration unless asked.
 
-Known local tooling at activation time:
+Known Windows caveat: PowerShell `Invoke-RestMethod` and Windows `curl.exe` failed TLS negotiation against workers.dev through SChannel, while Node `fetch()` and Vivaldi worked. Use Node/browser as the known-good path unless specifically investigating Windows TLS.
 
-- Node.js 22.22.2;
-- npm 10.9.7;
-- Neon CLI;
-- Wrangler 4.127.1.
+Before asking the owner to use the local clone after remote changes, give exact PowerShell commands and expected HEAD/status.
 
-Known Windows caveat: PowerShell `Invoke-RestMethod` and Windows `curl.exe` failed TLS negotiation to the workers.dev URL through SChannel, while Node `fetch()` and Vivaldi worked. Treat Node/browser as the known-good local endpoint-test path unless separately investigating Windows TLS.
+## Owner guidance style
 
-## Owner guidance style — mandatory
+The owner is technically oriented and wants to understand what is happening, but is not a professional software developer.
 
-The owner is technically oriented, a heavy/power user and can understand programming concepts and perform substantial hands-on work, but is **not a professional software developer**.
+Use plain technical explanations, exact ordered actions, expected results, small ASCII flows when useful, and clear warnings for meaningful risks/security/billing/destructive actions. Do not patronize. Do not push routine engineering choices back to the owner.
 
-The owner wants to learn and understand what is happening, not merely copy commands.
-
-Whenever giving owner-facing setup or troubleshooting instructions:
-
-1. explain in plain language what is being done and why;
-2. use the real technical term where useful, then explain it;
-3. give ordered, concrete actions;
-4. say what the owner should expect to see after key steps;
-5. warn before meaningful risks, irreversible actions or billing/security consequences;
-6. clearly mark what is safe to share versus secret;
-7. use small ASCII diagrams/wireframes/flows when they make relationships easier to understand;
-8. distinguish owner actions from implementation handled by the technical agent;
-9. do not patronize the owner or assume professional-developer fluency;
-10. do not push routine engineering decisions to the owner merely because the explanation is educational.
-
-## Current security residuals
-
-Do not assume provider/session success means security is permanently complete.
-
-Carry forward and assess proportionately:
-
-- JWT/fail-closed verification robustness;
-- server-side object-level authorization regression coverage;
-- SQL/query safety;
-- error/log secret leakage;
-- replay/idempotency authorization;
-- request/API hardening;
-- dependency vulnerabilities;
-- least-privilege database runtime access;
-- DEV-vs-PROD Descope region/configuration;
-- ongoing secret hygiene in tracked/generated files and history.
-
-Specific known items:
-
-- local backend install reported **3 high severity npm vulnerabilities**; inspect exact packages/reachability/fixed versions before remediation and do **not** run `npm audit fix --force` blindly;
-- current Worker DB credential is associated with the Neon project owner role; evaluate a dedicated least-privilege runtime role in a later security hardening pass, without destructive privilege/credential changes unless properly planned.
-
-These residuals are visible work, not justification to reopen already completed provider/session gates.
-
-## Deferred provider work
-
-Object storage remains required by the MVP but provider selection is **deferred** until Media/Handouts/assets reach real integration. Do not activate R2 merely because Cloudflare is configured.
-
-Workers AI remains the later official-SRD clarification direction only while usable safely under the `$0` policy. It is not part of the immediate Player <-> Server package.
-
-## Current intended next implementation package
-
-If no newer checkpoint supersedes it, Wave 4 is active and its next primary package is:
-
-**owner-facing hosted account/campaign bootstrap**
-
-The first two Wave 4 steps are already complete:
-
-```text
-remembered Android Descope session/token        COMPLETE
-existing HostedAccessTokenProvider              COMPLETE
-        |
-        v
-owner-facing hosted account/campaign bootstrap  NEXT
-        |
-        v
-campaign create/select + durable hosted delivery
-        |
-        v
-PC snapshot push/pull
-        |
-        v
-second-device observation
-        |
-        v
-offline/reconnect/convergence + revoke tests
-```
-
-Do not create a second auth/network/sync architecture. Reuse the existing shared/provider-neutral contracts and the already integrated Android Descope session edge.
-
-Continue implementation autonomously once repository state is reconstructed, returning to the owner only for material product/scope/security/privacy/cost/lock-in/destructive behavior, new external account/service actions or manual/physical QA gates.
-
-## First response in a fresh chat
+## First response in the fresh chat
 
 Before implementing, give the owner a concise reconstruction containing:
 
-- repository/branch/current HEAD;
-- current whole-project stage;
-- major completed milestones;
-- hosted provider status;
-- Android hosted-session status;
-- material open risks;
-- exact next implementation package;
-- any genuine owner action required before continuing.
+- repository / branch / current remote HEAD;
+- whole-project stage;
+- latest integrated hosted Player milestones;
+- the repaired PR #34 defect and what was physically proven;
+- the one carried-forward no-op manual observation;
+- material security/cost residuals;
+- exact next implementation batch;
+- whether any genuine owner action is required before implementation.
 
-The objective is to resume the **project**, not merely repeat the last provider, security or authentication task.
+Then continue implementation autonomously unless the repository shows a newer state.
 
 ---
