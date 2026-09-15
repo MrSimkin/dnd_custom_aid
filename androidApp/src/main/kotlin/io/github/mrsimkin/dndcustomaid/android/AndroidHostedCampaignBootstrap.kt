@@ -7,13 +7,13 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiException
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedAuthenticationUnavailableException
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignBootstrapService
+import kotlinx.coroutines.CancellationException
 
 internal sealed interface AndroidHostedCampaignBootstrapOutcome {
     data class Success(
         val hostedCampaignCount: Int,
         val appliedCampaignCount: Int,
         val conflictCount: Int,
-        val accountDisplayName: String?,
     ) : AndroidHostedCampaignBootstrapOutcome
 
     data object NoRememberedSession : AndroidHostedCampaignBootstrapOutcome
@@ -56,7 +56,6 @@ internal class AndroidHostedCampaignBootstrapController(
                 hostedCampaignCount = result.hostedCampaignCount,
                 appliedCampaignCount = result.appliedCampaignIds.size,
                 conflictCount = result.conflicts.size,
-                accountDisplayName = result.account.displayName,
             )
         } catch (_: HostedAuthenticationUnavailableException) {
             AndroidHostedCampaignBootstrapOutcome.NoRememberedSession
@@ -71,6 +70,8 @@ internal class AndroidHostedCampaignBootstrapController(
                         "No se pudo actualizar desde el servidor. Reintenta cuando tengas conexión."
                 },
             )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (_: Exception) {
             AndroidHostedCampaignBootstrapOutcome.Failure(
                 message = "No se pudo actualizar desde el servidor. Reintenta cuando tengas conexión.",
