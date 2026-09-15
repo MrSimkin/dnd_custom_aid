@@ -72,9 +72,9 @@ class HostedSecondClientDevActivity : ComponentActivity() {
 
         val lines = mutableListOf("Cliente B local:")
         for (campaign in localCampaigns.sortedBy { it.name }) {
-            val pcs = characters.listCharacters(campaign.id)
+            val pcs = characters.listCharacters(campaign.id).sortedBy { it.name }
             lines += "• ${campaign.name}: ${pcs.size} PC(s)"
-            pcs.sortedBy { it.name }.forEach { pc -> lines += "  - ${pc.name}" }
+            pcs.forEach { pc -> lines += "  - ${pc.name}" }
         }
         return lines.joinToString("\n")
     }
@@ -85,12 +85,12 @@ class HostedSecondClientDevActivity : ComponentActivity() {
         val first = campaigns.listCampaigns()
             .asSequence()
             .sortedBy { it.name }
-            .flatMap { campaign -> characters.listCharacters(campaign.id).asSequence() }
+            .flatMap { campaign -> characters.listCharacters(campaign.id).sortedBy { it.name }.asSequence() }
             .firstOrNull()
             ?: return "Cliente B todavía no tiene un PC local para editar. Sincroniza primero."
 
         characters.saveCharacter(first.copy(name = name))
-        return "Cambio local guardado solo en Cliente B: «$name». Todavía no se ha sincronizado."
+        return "Cambio local guardado solo en Cliente B: «${first.name}» → «$name». Todavía no se ha sincronizado."
     }
 
     private companion object {
@@ -174,7 +174,7 @@ private fun HostedSecondClientDevScreen(
         OutlinedTextField(
             value = newName,
             onValueChange = { newName = it },
-            label = { Text("Nuevo nombre del primer PC de Cliente B") },
+            label = { Text("Nuevo nombre del primer PC listado en Cliente B") },
             singleLine = true,
             enabled = !busy,
             modifier = Modifier.fillMaxWidth(),
