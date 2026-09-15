@@ -226,49 +226,117 @@ private fun CampaignScreen(
     var activeCampaignId by remember { mutableStateOf(repository.activeCampaign()?.id) }
     var showCreateDialog by remember { mutableStateOf(false) }
     var hostedRefreshing by remember { mutableStateOf(false) }
-    var hostedStatus by remember {
-        mutableStateOf(
-            if (hostedBootstrap.hasRememberedSession()) {
-                "Sesión hospedada disponible. Puedes actualizar las campañas desde el servidor."
-            } else {
+
+    fun idleHostedStatus(): String {
+        val pending = hostedBootstrap.pendingMutationCount()
+        return when {
+            hostedBootstrap.hasRememberedSession() && pending > 0 ->
+                "Sesión hospedada disponible. Hay $pending cambio(s) local(es) pendiente(s) de sincronizar."
+            hostedBootstrap.hasRememberedSession() ->
+                "Sesión hospedada disponible. Puedes sincronizar las campañas con el servidor."
+            pending > 0 ->
+                "Sin sesión hospedada. $pending cambio(s) local(es) permanecen guardados y pendientes."
+            else ->
                 "Sin sesión hospedada en este dispositivo."
-            },
-        )
+        }
     }
+
+    var hostedStatus by remember { mutableStateOf(idleHostedStatus()) }
 
     fun reload() {
         campaigns = repository.listCampaigns()
         activeCampaignId = repository.activeCampaign()?.id
     }
 
-    fun refreshHostedCampaigns() {
-        if (hostedRefreshing) return
+    fun hostedCampaignSummary(outcome: AndroidHostedCampaignBootstrapOutcome.Success): String =
+        when {
+            outcome.hostedCampaignCount == 0 ->
+                "No hay campañas hospedadas para esta cuenta."
+            outcome.conflictCount == 0 ->
+                "${outcome.appliedCampaignCount} campaña(s) conciliada(s) desde el servidor."
+            else ->
+                "${outcome.appliedCampaignCount} campaña(s) conciliada(s); " +
+                    "${outcome.conflictCount} conflicto(s) local(es) fueron preservados sin sobrescribir."
+        }
+
+    fun applyHostedOutcome(
+        outcome: AndroidHostedCampaignBootstrapOutcome,
+        focusedCreation: AndroidQueuedHostedCampaignCreation? = null,
+    ) {
+        when (outcome) {
+            is AndroidHostedCampaignBootstrapOutcome.Success -> {
+                reload()
+                val campaignSummary = hostedCampaignSummary(outcome)
+                if (focusedCreation != null) {
+                    hostedStatus = when (hostedBootstrap.mutationState(focusedCreation.mutationId)) {
+                        AndroidHostedMutationState.ACKNOWLEDGED ->
+                            "«${focusedCreation.campaign.name}» quedó guardada localmente y confirmada por el servidor. $campaignSummary"
+                        AndroidHostedMutationState.READY ->
+                            "«${focusedCreation.campaign.name}» quedó guardada localmente. Su envío sigue pendiente para reintentar. $campaignSummary"
+                        AndroidHostedMutationState.BLOCKED ->
+                            "«${focusedCreation.campaign.name}» quedó guardada localmente, pero el servidor bloqueó su envío. La copia local no fue eliminada. $campaignSummary"
+                    }
+                } else {
+                    val deliveryParts = mutableListOf<String>()
+                    if (outcome.acknowledgedMutationCount > 0) {
+                        deliveryParts += "${outcome.acknowledgedMutationCount} cambio(s) local(es) confirmado(s) por el servidor."
+                    }
+                    if (outcome.retryableMutationCount > 0) {
+                        deliveryParts += "${outcome.retryableMutationCount} cambio(s) siguen pendientes para reintentar."
+                    }
+                    if (outcome.blockedMutationCount > 0) {
+                        deliveryParts += "${outcome.blockedMutationCount} cambio(s) quedaron bloqueados y requieren revisión."
+                    }
+                    deliveryParts += campaignSummary
+                    hostedStatus = deliveryParts.joinToString(" ")
+                }
+            }
+
+            AndroidHostedCampaignBootstrapOutcome.NoRememberedSession -> {
+                hostedStatus = if (focusedCreation == null) {
+                    idleHostedStatus()
+                } else {
+                    "«${focusedCreation.campaign.name}» quedó guardada localmente y pendiente. Vuelve a autenticarte para enviarla al servidor."
+                }
+            }
+
+            is AndroidHostedCampaignBootstrapOutcome.Failure -> {
+                if (focusedCreation == null) {
+                    hostedStatus = outcome.message
+                } else {
+                    hostedStatus = when (hostedBootstrap.mutationState(focusedCreation.mutationId)) {
+                        AndroidHostedMutationState.ACKNOWLEDGED ->
+                            "«${focusedCreation.campaign.name}» fue recibida por el servidor, pero no se pudo completar la lectura de confirmación. ${outcome.message}"
+                        AndroidHostedMutationState.READY ->
+                            "«${focusedCreation.campaign.name}» quedó guardada localmente y pendiente para reintentar. ${outcome.message}"
+                        AndroidHostedMutationState.BLOCKED ->
+                            "«${focusedCreation.campaign.name}» quedó guardada localmente, pero su envío está bloqueado. ${outcome.message}"
+                    }
+                }
+            }
+        }
+    }
+
+    fun syncHostedCampaigns(focusedCreation: AndroidQueuedHostedCampaignCreation? = null) {
+        if (hostedRefreshing) {
+            if (focusedCreation != null) {
+                hostedStatus =
+                    "«${focusedCreation.campaign.name}» quedó guardada localmente. Ya hay una sincronización en curso; " +
+                    "si este cambio no entra en ella, permanecerá pendiente para el próximo intento."
+            }
+            return
+        }
 
         coroutineScope.launch {
             hostedRefreshing = true
-            when (val outcome = hostedBootstrap.refresh()) {
-                is AndroidHostedCampaignBootstrapOutcome.Success -> {
-                    reload()
-                    hostedStatus = when {
-                        outcome.hostedCampaignCount == 0 ->
-                            "Cuenta hospedada conectada. No hay campañas hospedadas para esta cuenta."
-                        outcome.conflictCount == 0 ->
-                            "Cuenta hospedada conectada. ${outcome.appliedCampaignCount} campaña(s) actualizada(s) desde el servidor."
-                        else ->
-                            "Cuenta hospedada conectada. ${outcome.appliedCampaignCount} campaña(s) actualizada(s); " +
-                                "${outcome.conflictCount} conflicto(s) local(es) fueron preservados sin sobrescribir."
-                    }
-                }
-
-                AndroidHostedCampaignBootstrapOutcome.NoRememberedSession -> {
-                    hostedStatus = "Sin sesión hospedada válida en este dispositivo."
-                }
-
-                is AndroidHostedCampaignBootstrapOutcome.Failure -> {
-                    hostedStatus = outcome.message
-                }
+            try {
+                applyHostedOutcome(
+                    outcome = hostedBootstrap.refresh(),
+                    focusedCreation = focusedCreation,
+                )
+            } finally {
+                hostedRefreshing = false
             }
-            hostedRefreshing = false
         }
     }
 
@@ -337,10 +405,10 @@ private fun CampaignScreen(
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Button(
-                                onClick = ::refreshHostedCampaigns,
+                                onClick = { syncHostedCampaigns() },
                                 enabled = !hostedRefreshing,
                             ) {
-                                Text(if (hostedRefreshing) "Actualizando…" else "Actualizar desde servidor")
+                                Text(if (hostedRefreshing) "Sincronizando…" else "Sincronizar con servidor")
                             }
                         }
                     }
@@ -376,9 +444,18 @@ private fun CampaignScreen(
         CreateCampaignDialog(
             onDismiss = { showCreateDialog = false },
             onCreate = { name ->
-                repository.createCampaign(name)
+                val queued = hostedBootstrap.createCampaignLocally(name)
                 reload()
                 showCreateDialog = false
+
+                if (hostedBootstrap.hasRememberedSession()) {
+                    hostedStatus = "«${queued.campaign.name}» se creó localmente. Sincronizando con el servidor…"
+                    syncHostedCampaigns(queued)
+                } else {
+                    hostedStatus =
+                        "«${queued.campaign.name}» se creó localmente y quedó pendiente de envío. " +
+                        "Vuelve a autenticarte para sincronizarla con el servidor."
+                }
             },
         )
     }
