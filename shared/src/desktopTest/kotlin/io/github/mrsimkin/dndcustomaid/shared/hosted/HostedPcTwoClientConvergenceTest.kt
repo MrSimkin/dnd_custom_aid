@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class HostedPcTwoClientConvergenceTest {
     @Test
@@ -72,6 +73,7 @@ class HostedPcTwoClientConvergenceTest {
             )
             val deliveryReport = runBlocking { deliveryA.deliverReady(attemptedAtEpochSeconds = 210) }
             assertEquals(HostedOutboxDeliveryReport(1, 1, 0, 0), deliveryReport)
+            assertNull(outboxA.mutation(queuedA.mutation.mutationId))
             assertEquals(Revision(2), spineA.syncMetadata("PC", pcA.id).revision)
             assertEquals("Client A Hosted Edit", hosted.snapshot.character.name)
 
@@ -89,10 +91,6 @@ class HostedPcTwoClientConvergenceTest {
             assertEquals("Client B Offline Edit", assertNotNull(charactersB.character(pcA.id)).name)
             assertEquals(Revision(1), IntegratedSpineRepository(clientB).syncMetadata("PC", pcA.id).revision)
             assertEquals(1L, assertNotNull(HostedPcSyncBaselineRepository(clientB).baseline(pcA.id)).revision)
-            assertNotNull(outboxA.mutation(queuedA.mutation.mutationId).let { mutation ->
-                // Successful Client A delivery must have acknowledged the mutation.
-                if (mutation == null) Unit else null
-            })
         } finally {
             firstDriver.close()
             secondDriver.close()
