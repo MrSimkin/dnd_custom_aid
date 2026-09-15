@@ -4,7 +4,6 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.spine.AccountIdentity
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembership
-import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.IntegratedSpineRepository
 import io.github.mrsimkin.dndcustomaid.shared.spine.Revision
 import io.github.mrsimkin.dndcustomaid.shared.spine.SyncMetadata
@@ -34,7 +33,7 @@ data class HostedCampaignBootstrapResult(
     init {
         require(hostedCampaignCount >= 0)
         require(appliedCampaignIds.size + conflicts.size == hostedCampaignCount) {
-            "Every hosted campaign must be applied or reported as a conflict."
+            "Every hosted campaign membership state must be applied or reported as a conflict."
         }
     }
 }
@@ -44,7 +43,7 @@ class HostedCampaignBootstrapService(
     private val localCampaigns: CampaignRepository = CampaignRepository(database),
     private val spine: IntegratedSpineRepository = IntegratedSpineRepository(database),
     private val accountProvider: suspend () -> HostedAccount,
-    private val campaignsProvider: suspend () -> List<HostedCampaign>,
+    private val membershipsProvider: suspend () -> List<HostedCampaignMembershipState>,
 ) {
     constructor(
         database: AppDatabase,
@@ -52,16 +51,16 @@ class HostedCampaignBootstrapService(
     ) : this(
         database = database,
         accountProvider = api::currentAccount,
-        campaignsProvider = api::campaigns,
+        membershipsProvider = api::campaignMemberships,
     )
 
     suspend fun refresh(): HostedCampaignBootstrapResult {
-        // Complete the authenticated reads before mutating local state so an API failure cannot
+        // Complete authenticated reads before mutating local state so an API failure cannot
         // leave a half-refreshed account/campaign snapshot.
         val hostedAccount = accountProvider()
-        val hostedCampaigns = campaignsProvider()
-        require(hostedCampaigns.map { it.id }.distinct().size == hostedCampaigns.size) {
-            "Hosted campaign response contains duplicate campaign identities."
+        val hostedMemberships = membershipsProvider()
+        require(hostedMemberships.map { it.campaignId }.distinct().size == hostedMemberships.size) {
+            "Hosted membership response contains duplicate campaign identities."
         }
 
         val applied = mutableListOf<Uuid>()
@@ -79,41 +78,53 @@ class HostedCampaignBootstrapService(
                 ),
             )
 
-            hostedCampaigns
-                .sortedBy { it.id.toString() }
-                .forEach { hostedCampaign ->
-                    val hostedRevision = Revision(hostedCampaign.revision)
-                    val localCampaign = localCampaigns.campaign(hostedCampaign.id)
+            hostedMemberships
+                .sortedBy { it.campaignId.toString() }
+                .forEach { hosted ->
+                    val hostedRevision = Revision(hosted.revision)
+                    val hostedMetadata = SyncMetadata(
+                        revision = hostedRevision,
+                        deletedAtEpochSeconds = hosted.deletedAtEpochSeconds,
+                    )
+                    val localCampaign = localCampaigns.campaign(hosted.campaignId)
                     val localMetadata = spine.syncMetadata(
                         CAMPAIGN_SYNC_OBJECT_TYPE,
-                        hostedCampaign.id,
+                        hosted.campaignId,
                     )
 
                     val conflictReason = when {
-                        localMetadata.isDeleted -> HostedCampaignBootstrapConflictReason.LOCAL_TOMBSTONE
-                        localMetadata.revision > hostedRevision -> HostedCampaignBootstrapConflictReason.LOCAL_REVISION_AHEAD
+                        localMetadata.isDeleted && !hostedMetadata.isDeleted ->
+                            HostedCampaignBootstrapConflictReason.LOCAL_TOMBSTONE
+                        localMetadata.revision > hostedRevision ->
+                            HostedCampaignBootstrapConflictReason.LOCAL_REVISION_AHEAD
+                        localMetadata.revision == hostedRevision &&
+                            localMetadata.isDeleted &&
+                            hostedMetadata.isDeleted &&
+                            localMetadata.deletedAtEpochSeconds != hostedMetadata.deletedAtEpochSeconds ->
+                            HostedCampaignBootstrapConflictReason.SAME_REVISION_STATE_MISMATCH
                         localCampaign != null &&
+                            !hostedMetadata.isDeleted &&
                             localMetadata.revision == hostedRevision &&
-                            localCampaign.name != hostedCampaign.name ->
+                            localCampaign.name != hosted.name ->
                             HostedCampaignBootstrapConflictReason.SAME_REVISION_STATE_MISMATCH
                         else -> null
                     }
 
                     if (conflictReason != null) {
-                        // If the campaign row still exists, hosted membership/role is independently
-                        // authoritative and safe to refresh even while object state needs resolution.
+                        // Membership lifecycle is independently authoritative. Refresh it when the
+                        // campaign row exists even if campaign object state needs resolution.
                         if (localCampaign != null) {
                             spine.upsertMembership(
                                 CampaignMembership(
-                                    campaignId = hostedCampaign.id,
+                                    campaignId = hosted.campaignId,
                                     accountId = hostedAccount.id,
-                                    role = hostedCampaign.role,
-                                    status = CampaignMembershipStatus.ACTIVE,
+                                    role = hosted.role,
+                                    status = hosted.status,
                                 ),
                             )
                         }
                         conflicts += HostedCampaignBootstrapConflict(
-                            campaignId = hostedCampaign.id,
+                            campaignId = hosted.campaignId,
                             reason = conflictReason,
                             localRevision = localMetadata.revision,
                             hostedRevision = hostedRevision,
@@ -121,32 +132,35 @@ class HostedCampaignBootstrapService(
                         return@forEach
                     }
 
+                    // Keep the last hosted campaign identity/name locally even when membership is
+                    // inactive or the hosted campaign is tombstoned; local data is not destroyed by
+                    // losing hosted access.
                     localCampaigns.upsertCampaign(
-                        id = hostedCampaign.id,
-                        rawName = hostedCampaign.name,
+                        id = hosted.campaignId,
+                        rawName = hosted.name,
                     )
                     spine.upsertMembership(
                         CampaignMembership(
-                            campaignId = hostedCampaign.id,
+                            campaignId = hosted.campaignId,
                             accountId = hostedAccount.id,
-                            role = hostedCampaign.role,
-                            status = CampaignMembershipStatus.ACTIVE,
+                            role = hosted.role,
+                            status = hosted.status,
                         ),
                     )
                     spine.putSyncMetadata(
                         objectType = CAMPAIGN_SYNC_OBJECT_TYPE,
-                        objectId = hostedCampaign.id,
-                        metadata = SyncMetadata(revision = hostedRevision),
+                        objectId = hosted.campaignId,
+                        metadata = hostedMetadata,
                     )
-                    applied += hostedCampaign.id
+                    applied += hosted.campaignId
                 }
         }
 
-        // Absence from GET /v1/campaigns is deliberately not converted into KICKED/BANNED.
-        // Those states need explicit server-side change semantics rather than client inference.
+        // Absence remains deliberately non-semantic. A membership is only changed when the server
+        // explicitly returns its lifecycle state.
         return HostedCampaignBootstrapResult(
             account = hostedAccount,
-            hostedCampaignCount = hostedCampaigns.size,
+            hostedCampaignCount = hostedMemberships.size,
             appliedCampaignIds = applied,
             conflicts = conflicts,
         )
