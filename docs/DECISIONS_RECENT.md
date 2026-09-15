@@ -1,4 +1,4 @@
-# Recent Decision Index — D-0068 through D-0073
+# Recent Decision Index — D-0068 through D-0074
 
 This file closes the indexing gap between the historical chronological `docs/DECISIONS.md` master log and the later detailed Approved decision records already stored under `docs/decisions/`.
 
@@ -63,6 +63,17 @@ Closes the detailed 7D Desktop product-design pass. Defines one Desktop workbenc
 
 Closes 7E and the current implementation-planning pass. Protects the substantial integrated-MVP scope from later accidental trimming, records explicit deferred/generalized directions, establishes dependency-driven integration waves, defines the planned `main` + Player-successor convergence strategy, and records the owner-vs-technical responsibility boundary: the owner decides product/scope/user-facing risk; routine low-level implementation design is delegated unless it materially changes behavior, security/privacy, cost, lock-in or approved scope.
 
+## D-0074 — PC Sheet PDF export product definition
+
+**Status:** Approved  
+**Date:** 2026-09-14  
+**Detailed record:** `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`  
+**Checkpoint:** `docs/checkpoints/2026-09-14_PC_SHEET_PDF_EXPORT_PRODUCT_CLOSURE.md`
+
+Closes the cross-surface PC Sheet PDF-export gap discovered after technical readiness. Protects PDF export on Player Android, DM Android/tablet and DM Desktop; defines Classic/v1/v2 visual families, v2's two alternative first-page organizations, mandatory custom-stat completeness, Extended/App-Modified/Modified+Extended modes, design-specific extension families, portrait behavior, Permanent vs Current Snapshot, offline/static Save/Share output, overflow/readability rules and the optional complete Spellbook appendix.
+
+D-0074 expands D-0040 and supersedes its narrower overlay/layout assumptions where necessary. Exact PDF libraries, coordinates and rendering algorithms remain delegated engineering details under D-0073.
+
 ## Current exact continuation
 
 Read `docs/checkpoints/LATEST.md`.
@@ -72,6 +83,7 @@ Current resume point:
 1. the 7D Desktop product definition is closed;
 2. the 7E integrated-MVP boundary is closed;
 3. 8A implementation-wave strategy, 8B Git convergence strategy and 8C first shared-spine technical package direction are closed;
-4. discussion intentionally pauses before expanding the next hosted-foundation technical package;
-5. before product coding, verify branch state and execute the planned convergence under explicit coding authorization;
-6. low-level technical package design is delegated and should not be repeatedly pushed to the owner for rubber-stamp approval.
+4. the reopened PC Sheet PDF-export product-definition gate is closed by D-0074;
+5. technical readiness remains complete after the PDF alignment;
+6. before product coding, verify branch state and execute the planned convergence only after explicit owner coding authorization;
+7. low-level technical package design remains delegated and should not be repeatedly pushed to the owner for rubber-stamp approval.
