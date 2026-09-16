@@ -1,18 +1,16 @@
-# Desktop workbench shell + local campaign context — owner QA complete, repairs pending
+# Desktop workbench shell + local campaign context — owner QA complete
 
 **Date:** 2026-09-16 (Chile local time)  
 **Wave:** 5 — Desktop shell + Campaign Administration  
 **Branch:** `wave5/desktop-workbench-shell`  
 **PR:** #42  
-**Verified behavior/test head:** `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`  
-**Scaffold:** `35125170321` — **SUCCESS**  
 **Starting integrated main:** `40b29006052c9986e2d79227a6053f36241de1e6`
 
 ## Result
 
-The first Wave 5 Desktop package is **BEHAVIORALLY OWNER-QA PASS / PRE-MERGE REPAIRS REQUIRED**.
+The first Wave 5 Desktop package is **OWNER-QA PASS / AUTOMATED VERIFIED / READY FOR MERGE AFTER FINAL EXACT-HEAD CI**.
 
-The previous placeholder Desktop window has been replaced with a real local-first workbench shell that uses existing Shared campaign semantics. No hosted Desktop synchronization or final Campaign Administration moderation behavior has been claimed or implemented by this package.
+The previous placeholder Desktop window has been replaced with a real local-first workbench shell that uses existing Shared campaign semantics. No hosted Desktop synchronization or final Campaign Administration moderation behavior is claimed by this package.
 
 ## Implemented
 
@@ -41,63 +39,80 @@ Navigation includes approved long-term Desktop destinations while substantive im
 
 ### Functioning destinations in this package
 
-- **Dashboard** — shows local campaign count and current active campaign;
-- **Campaigns** — lists campaigns, creates local campaigns through Shared `CampaignRepository`, and switches the active campaign;
-- **Campaign Administration** — opens against the same selected campaign context and clearly defers membership/moderation controls to later packages.
+- **Dashboard** — local campaign count and active campaign;
+- **Campañas** — local campaign list/create/active selection through Shared `CampaignRepository`;
+- **Administración de campaña** — same selected campaign context, with hosted membership/moderation explicitly deferred;
+- **Configuración de la aplicación** — persistent owner-local Desktop presentation preferences;
+- **QA / Diagnóstico** — bounded selectable/copyable runtime, campaign, local-path, preference and session-event context.
 
-Other workbench destinations are navigation placeholders only.
+Other workbench destinations remain honest navigation placeholders only.
 
 ## Automated verification
 
-Exact behavior/test head:
+### Original behavior/test head
 
 `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`
 
-Scaffold:
+Scaffold `35125170321` — **SUCCESS**.
 
-`35125170321` — **SUCCESS**
+### Repair head
 
-Verified:
+`9417e969b4a861bc5950600ced07ed943b997f20`
 
-- Shared Desktop test compilation/execution;
-- Desktop database persistence across close/reopen;
-- Desktop application compilation/build;
+Scaffold `35136378221` — **SUCCESS**.
+
+### Pre-final current tree head
+
+`709424d257f61ca17d7f8a7ccc604a450ca582d4`
+
+The branch tree at this head is identical to the verified repair tree after removal of an accidental empty temporary file. Exact-head Scaffold completed successfully across:
+
+- Shared/Desktop tests and Desktop build;
+- Desktop preference persistence tests;
 - Android build and permanent Player guards;
 - backend type-check;
 - hosted PostgreSQL contracts;
 - APK artifact upload.
 
-An earlier run `35124891611` failed only in the new test source because deprecated `createTempDir` is treated as an error. Production Desktop compilation/build had already succeeded in that run. The test helper was replaced with `kotlin.io.path.createTempDirectory`; the exact repaired head then passed completely.
-
 ## Owner Windows Desktop QA — 2026-09-16
 
-### Behavioral gate — PASS
+### Original behavioral gate — PASS
 
 Owner manually verified on the recorded Windows QA workstation:
 
 - Desktop workbench launches successfully;
-- major chrome/navigation is usable at the tested Windows setup with no obvious clipping in the tested views;
-- `Campaigns` opens correctly;
-- campaign-name entry enables the create action as expected;
-- local campaign `QA Wave 5 - 2026-09-16` was created successfully;
-- the new campaign appears in the local campaign list and becomes active automatically;
-- the right-side campaign context updates to the same active campaign;
+- major chrome/navigation is usable with no obvious clipping in the tested views;
+- local campaign creation succeeds;
+- newly created campaign becomes active automatically;
+- right-side campaign context matches the active campaign;
 - Campaign Administration reflects the same campaign context;
-- test campaign ID remained `30609c9d-89f7-42ef-85dd-a7a35df3c506`;
-- after normal app close/relaunch, the campaign, active selection and same UUID persisted;
-- Dashboard reported one local campaign after restart;
-- Player Characters, Media / Handouts, Managers, Combat, System Administration and Export / Backup each presented clearly as deferred placeholders rather than pretending functionality exists;
-- the app closed normally and the Gradle run completed `BUILD SUCCESSFUL`.
+- test campaign `QA Wave 5 - 2026-09-16` persisted across normal close/relaunch;
+- campaign UUID remained `30609c9d-89f7-42ef-85dd-a7a35df3c506`;
+- deferred destinations remained clearly labeled as deferred rather than pretending implementation;
+- normal close returned the Gradle run to `BUILD SUCCESSFUL`.
 
-The informational Wave 5 notice was considered useful because it states the current boundary instead of implying hosted Desktop sync/moderation already exist.
+### Pre-merge repairs discovered and implemented
 
-### Pre-merge repair requirements
+1. **Spanish product-language pass** — user-facing Desktop UI is Spanish where appropriate. `Dashboard` and `Backup` remain accepted product terms.
+2. **Desktop Application Settings** — persistent owner-local settings aligned with applicable Android concepts: text size, spacing density, font choice, theme and workspace density. Android-only haptics are not copied to Desktop.
+3. **QA diagnostics / copyable data** — bounded QA surface with selectable/copyable OS/runtime, local-path, campaign, UI-preference and recent-session-event context.
 
-1. **Desktop product-language pass** — current shell is substantially English. The owner confirmed that only the technical-assistant chat should stay English; the product UI should be Spanish where appropriate. `Dashboard` and `Backup` are explicitly acceptable product terms in Spanish and may remain unchanged.
-2. **Desktop Application Settings** — add a Desktop settings destination/surface aligned closely with Android settings where applicable, including theme, fonts, density/spacing and equivalent presentation preferences. Reuse the same concepts rather than creating a disconnected Desktop settings model.
-3. **QA diagnostics / copyable data** — expose a minimal QA-oriented diagnostics/log surface and make useful values copyable. Whether this remains temporary QA tooling or becomes a permanent feature is intentionally undecided. Candidate data includes build/revision, active campaign name/ID and relevant lifecycle/repository actions/errors. Avoid turning this into a generalized logging subsystem prematurely.
+### Repair visual recheck — PASS
 
-These repair requirements do not invalidate the behavioral PASS, but PR #42 must remain open until they are implemented, automated verification is green again, and the owner rechecks the visible repair surface.
+Owner updated the local branch by clean fast-forward from the earlier QA code to current Wave 5 repair code and manually confirmed:
+
+- repaired Desktop app opens normally;
+- main visible product UI is Spanish;
+- existing QA campaign remains present and active;
+- Application Settings surface exposes the intended controls;
+- all tested settings changed the UI successfully;
+- QA / Diagnóstico exposes the intended diagnostic data;
+- diagnostic block is selectable/copyable, proven by copying it directly from the app;
+- diagnostic data correctly reported Windows 11, Java 17.0.20.1, local DB/preferences paths, one campaign, the active QA campaign and its full UUID, current UI values and recent session events;
+- after normal close/relaunch, changed settings persisted, including `Pergamino` theme, `Monoespaciada` font and `50%` spacing density;
+- final close completed normally.
+
+The owner suggested eventually using the same richer font catalogue as Android. This is recorded as a **later genuine Desktop-development follow-up**, not a blocker for PR #42 or this package.
 
 ## Scope clarification preserved
 
@@ -113,10 +128,10 @@ This package does not implement:
 - live combat authority/resume/handoff;
 - substantive Managers;
 - Media/Handouts/object-storage activation;
-- System Administration;
+- System Administration behavior;
 - backup/export/PDF hardening;
 - generalized RBAC/ACL.
 
 ## Current action
 
-Implement the three pre-merge repair requirements on the current short-lived branch, rerun automated verification, then perform a bounded owner visual recheck before merging PR #42.
+Allow exact-head CI for this final documentation commit to complete. If green and the PR head remains unchanged, merge PR #42 to `main`, then verify post-merge `main` CI.
