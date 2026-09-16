@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.android
 
 import com.descope.Descope
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
+import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
@@ -15,14 +16,18 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignCreationServi
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedMutationType
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxDeliveryService
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcPullConflict
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshot
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshotPullService
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshotQueueService
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSyncBaselineRepository
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRetryState
 import io.github.mrsimkin.dndcustomaid.shared.spine.IntegratedSpineRepository
 import kotlinx.coroutines.CancellationException
 import kotlin.uuid.Uuid
 
 private const val PC_SYNC_OBJECT_TYPE = "PC"
+private const val CAMPAIGN_SYNC_OBJECT_TYPE = "CAMPAIGN"
 
 internal enum class AndroidHostedMutationState {
     ACKNOWLEDGED,
@@ -38,7 +43,9 @@ internal data class AndroidQueuedHostedCampaignCreation(
 internal sealed interface AndroidHostedCampaignBootstrapOutcome {
     data class Success(
         val hostedCampaignCount: Int,
+        val eligibleCampaignCount: Int,
         val appliedCampaignCount: Int,
+        val campaignConflictCount: Int,
         val conflictCount: Int,
         val acknowledgedMutationCount: Int,
         val retryableMutationCount: Int,
@@ -49,6 +56,8 @@ internal sealed interface AndroidHostedCampaignBootstrapOutcome {
         val tombstonedPcCount: Int,
         val pcConflictCount: Int,
         val queuedPcSnapshotCount: Int,
+        val campaignDiagnostics: List<AndroidHostedCampaignSyncDiagnostic>,
+        val pcConflictDiagnostics: List<AndroidHostedPcConflictDiagnostic>,
     ) : AndroidHostedCampaignBootstrapOutcome
 
     data object NoRememberedSession : AndroidHostedCampaignBootstrapOutcome
@@ -74,7 +83,9 @@ internal class AndroidHostedCampaignBootstrapController(
     private val outbox = HostedOutboxRepository(database)
     private val characters = CharacterRepository(database)
     private val backups = CharacterBackupRepository(database)
+    private val campaigns = CampaignRepository(database)
     private val spine = IntegratedSpineRepository(database)
+    private val baselines = HostedPcSyncBaselineRepository(database)
     private val campaignCreation = HostedCampaignCreationService(
         database = database,
         outbox = outbox,
@@ -131,6 +142,7 @@ internal class AndroidHostedCampaignBootstrapController(
      * 6. pull PCs once more to confirm/read back the resulting hosted state.
      *
      * A failed network/provider step never deletes local campaign/PC data or its durable outbox.
+     * Diagnostic projections retain enough evidence for physical QA without exposing credentials.
      */
     suspend fun refresh(): AndroidHostedCampaignBootstrapOutcome {
         if (!hasRememberedSession()) {
@@ -144,16 +156,42 @@ internal class AndroidHostedCampaignBootstrapController(
             )
             val campaignResult = bootstrap.refresh()
 
-            val activeHostedCampaignIds = apiClient.campaigns()
-                .mapTo(mutableSetOf()) { it.id }
+            val activeHostedCampaigns = apiClient.campaigns()
+            val activeHostedById = activeHostedCampaigns.associateBy { it.id }
+            val activeHostedCampaignIds = activeHostedById.keys
             val eligibleCampaignIds = campaignResult.appliedCampaignIds
                 .filterTo(mutableSetOf()) { it in activeHostedCampaignIds }
+            val campaignConflictsById = campaignResult.conflicts.associateBy { it.campaignId }
+            val campaignIds = buildSet {
+                addAll(campaignResult.appliedCampaignIds)
+                addAll(campaignConflictsById.keys)
+                addAll(activeHostedCampaignIds)
+            }
+            val campaignDiagnostics = campaignIds
+                .sortedBy(Uuid::toString)
+                .map { campaignId ->
+                    val conflict = campaignConflictsById[campaignId]
+                    val hosted = activeHostedById[campaignId]
+                    AndroidHostedCampaignSyncDiagnostic(
+                        campaignId = campaignId,
+                        campaignName = hosted?.name ?: campaigns.campaign(campaignId)?.name,
+                        returnedAsActiveHostedCampaign = campaignId in activeHostedCampaignIds,
+                        appliedByBootstrap = campaignId in campaignResult.appliedCampaignIds,
+                        eligibleForPcSync = campaignId in eligibleCampaignIds,
+                        conflictReason = conflict?.reason?.name,
+                        localRevision = conflict?.localRevision?.value
+                            ?: spine.syncMetadata(CAMPAIGN_SYNC_OBJECT_TYPE, campaignId).revision.value,
+                        hostedRevision = conflict?.hostedRevision?.value ?: hosted?.revision,
+                    )
+                }
 
             val appliedPcIds = mutableSetOf<Uuid>()
+            val pcConflictDiagnostics = mutableListOf<AndroidHostedPcConflictDiagnostic>()
             var queuedPcSnapshotCount = 0
 
             for (campaignId in eligibleCampaignIds.sortedBy(Uuid::toString)) {
                 val remoteBefore = apiClient.campaignPcs(campaignId)
+                val remoteBeforeById = remoteBefore.associateBy { it.id }
                 val initialPull = HostedPcSnapshotPullService(
                     database = database,
                     snapshotsProvider = { requestedCampaignId ->
@@ -164,8 +202,14 @@ internal class AndroidHostedCampaignBootstrapController(
                     },
                 ).refreshCampaign(campaignId)
                 appliedPcIds += initialPull.appliedPcIds
+                pcConflictDiagnostics += conflictDiagnostics(
+                    campaignId = campaignId,
+                    campaignName = activeHostedById[campaignId]?.name ?: campaigns.campaign(campaignId)?.name,
+                    phase = AndroidHostedPcPullPhase.INITIAL_PULL,
+                    conflicts = initialPull.conflicts,
+                    remoteById = remoteBeforeById,
+                )
 
-                val remoteById = remoteBefore.associateBy { it.id }
                 val pendingPcIds = outbox.allMutations()
                     .asSequence()
                     .filter { it.type == HostedMutationType.PC_SNAPSHOT_PUT }
@@ -177,7 +221,7 @@ internal class AndroidHostedCampaignBootstrapController(
                     val metadata = spine.syncMetadata(PC_SYNC_OBJECT_TYPE, character.id)
                     if (metadata.isDeleted) continue
 
-                    val remote = remoteById[character.id]
+                    val remote = remoteBeforeById[character.id]
                     if (remote?.deletedAtEpochSeconds != null) continue
                     if (remote != null && metadata.revision.value != remote.revision) continue
 
@@ -210,23 +254,39 @@ internal class AndroidHostedCampaignBootstrapController(
             var pcConflictCount = 0
 
             for (campaignId in eligibleCampaignIds.sortedBy(Uuid::toString)) {
+                val remoteFinal = apiClient.campaignPcs(campaignId)
+                val remoteFinalById = remoteFinal.associateBy { it.id }
                 val finalPull = HostedPcSnapshotPullService(
                     database = database,
-                    api = apiClient,
+                    snapshotsProvider = { requestedCampaignId ->
+                        require(requestedCampaignId == campaignId) {
+                            "Cached hosted PC snapshot scope changed during reconciliation."
+                        }
+                        remoteFinal
+                    },
                 ).refreshCampaign(campaignId)
                 hostedPcCount += finalPull.hostedCount
                 appliedPcIds += finalPull.appliedPcIds
                 unchangedPcCount += finalPull.unchangedPcIds.size
                 tombstonedPcCount += finalPull.tombstonedPcIds.size
                 pcConflictCount += finalPull.conflicts.size
+                pcConflictDiagnostics += conflictDiagnostics(
+                    campaignId = campaignId,
+                    campaignName = activeHostedById[campaignId]?.name ?: campaigns.campaign(campaignId)?.name,
+                    phase = AndroidHostedPcPullPhase.FINAL_PULL,
+                    conflicts = finalPull.conflicts,
+                    remoteById = remoteFinalById,
+                )
             }
 
             AndroidHostedCampaignBootstrapOutcome.Success(
                 hostedCampaignCount = campaignResult.hostedCampaignCount,
+                eligibleCampaignCount = eligibleCampaignIds.size,
                 appliedCampaignCount = campaignResult.appliedCampaignIds.size,
+                campaignConflictCount = campaignResult.conflicts.size,
                 // The existing Player status surface reports this as local conflicts preserved
-                // without overwrite. Include PC convergence conflicts so they are visible to the
-                // owner instead of remaining only an internal reconciliation result.
+                // without overwrite. Include final PC convergence conflicts so they are visible to
+                // the owner instead of remaining only an internal reconciliation result.
                 conflictCount = campaignResult.conflicts.size + pcConflictCount,
                 acknowledgedMutationCount = firstDelivery.acknowledged + secondDelivery.acknowledged,
                 retryableMutationCount = firstDelivery.retryableFailures + secondDelivery.retryableFailures,
@@ -237,6 +297,8 @@ internal class AndroidHostedCampaignBootstrapController(
                 tombstonedPcCount = tombstonedPcCount,
                 pcConflictCount = pcConflictCount,
                 queuedPcSnapshotCount = queuedPcSnapshotCount,
+                campaignDiagnostics = campaignDiagnostics,
+                pcConflictDiagnostics = pcConflictDiagnostics,
             )
         } catch (_: HostedAuthenticationUnavailableException) {
             AndroidHostedCampaignBootstrapOutcome.NoRememberedSession
@@ -256,6 +318,50 @@ internal class AndroidHostedCampaignBootstrapController(
         } catch (_: Exception) {
             AndroidHostedCampaignBootstrapOutcome.Failure(
                 message = "No se pudo sincronizar con el servidor. Los cambios locales se conservaron para reintentar.",
+            )
+        }
+    }
+
+    private fun conflictDiagnostics(
+        campaignId: Uuid,
+        campaignName: String?,
+        phase: AndroidHostedPcPullPhase,
+        conflicts: List<HostedPcPullConflict>,
+        remoteById: Map<Uuid, HostedPcSnapshot>,
+    ): List<AndroidHostedPcConflictDiagnostic> {
+        if (conflicts.isEmpty()) return emptyList()
+
+        val pendingByPcId = outbox.allMutations()
+            .asSequence()
+            .filter { it.type == HostedMutationType.PC_SNAPSHOT_PUT }
+            .associateBy { it.objectId }
+
+        return conflicts.map { conflict ->
+            val remote = remoteById[conflict.pcId]
+            val baseline = baselines.baseline(conflict.pcId)
+            val localDocument = runCatching {
+                backups.exportCharacter(conflict.pcId, exportedAtEpochSeconds = 0)
+            }.getOrNull()
+            AndroidHostedPcConflictDiagnostic(
+                phase = phase,
+                campaignId = campaignId,
+                campaignName = campaignName,
+                pcId = conflict.pcId,
+                pcName = localDocument?.character?.name ?: remote?.name,
+                reason = conflict.reason,
+                localRevision = conflict.localRevision.value,
+                hostedRevision = conflict.hostedRevision.value,
+                baselinePresent = baseline != null,
+                baselineRevision = baseline?.revision?.value,
+                localDiffersFromBaseline = when {
+                    localDocument == null || baseline == null -> null
+                    else -> normalizedSnapshot(localDocument) != baseline.snapshot
+                },
+                localEqualsHosted = when {
+                    localDocument == null || remote == null -> null
+                    else -> normalizedSnapshot(localDocument) == normalizedSnapshot(remote.snapshot)
+                },
+                pendingOutboxState = pendingByPcId[conflict.pcId]?.retryState?.name,
             )
         }
     }

@@ -240,6 +240,7 @@ class HostedPcSnapshotPullService(
                     localMetadata = localMetadata,
                     baseline = baseline,
                     hostedRevision = hostedRevision,
+                    hostedDocument = remote.snapshot,
                 )
                 if (advanceConflict != null) {
                     conflicts += advanceConflict
@@ -273,8 +274,20 @@ class HostedPcSnapshotPullService(
         localMetadata: SyncMetadata,
         baseline: HostedPcSyncBaseline?,
         hostedRevision: Revision,
+        hostedDocument: CharacterBackupDocument? = null,
     ): HostedPcPullConflict? {
         if (baseline == null) {
+            // A legacy client can safely recover a missing historical baseline when its complete
+            // current aggregate is already identical to the newer hosted aggregate. There is no
+            // local information to lose in that case; the pull below only advances revision and
+            // establishes the durable baseline. If content differs, remain conservative because
+            // an empty outbox cannot prove the local copy was never edited offline.
+            if (
+                hostedDocument != null &&
+                normalizePcSyncSnapshot(localDocument) == normalizePcSyncSnapshot(hostedDocument)
+            ) {
+                return null
+            }
             return conflict(
                 pcId,
                 HostedPcPullConflictReason.SYNC_BASELINE_MISSING,

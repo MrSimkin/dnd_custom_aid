@@ -233,7 +233,7 @@ private fun CampaignScreen(
             hostedBootstrap.hasRememberedSession() && pending > 0 ->
                 "Sesión hospedada disponible. Hay $pending cambio(s) local(es) pendiente(s) de sincronizar."
             hostedBootstrap.hasRememberedSession() ->
-                "Sesión hospedada disponible. Puedes sincronizar las campañas con el servidor."
+                "Sesión hospedada disponible. La sincronización revisará todas las campañas hospedadas elegibles."
             pending > 0 ->
                 "Sin sesión hospedada. $pending cambio(s) local(es) permanecen guardados y pendientes."
             else ->
@@ -253,10 +253,12 @@ private fun CampaignScreen(
             outcome.hostedCampaignCount == 0 ->
                 "No hay campañas hospedadas para esta cuenta."
             outcome.conflictCount == 0 ->
-                "${outcome.appliedCampaignCount} campaña(s) conciliada(s) desde el servidor."
+                "${outcome.appliedCampaignCount} campaña(s) conciliada(s); " +
+                    "${outcome.hostedPcCount} PC hospedado(s) revisado(s)."
             else ->
                 "${outcome.appliedCampaignCount} campaña(s) conciliada(s); " +
-                    "${outcome.conflictCount} conflicto(s) local(es) fueron preservados sin sobrescribir."
+                    "${outcome.campaignConflictCount} conflicto(s) de campaña y " +
+                    "${outcome.pcConflictCount} conflicto(s) de PC fueron preservados sin sobrescribir."
         }
 
     fun applyHostedOutcome(
@@ -380,7 +382,7 @@ private fun CampaignScreen(
                                 style = MaterialTheme.typography.headlineMedium,
                             )
                             Text(
-                                text = "Administra campañas y elige la campaña activa.",
+                                text = "La campaña activa se usa localmente. La sincronización revisa todas las campañas hospedadas elegibles.",
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
@@ -408,7 +410,7 @@ private fun CampaignScreen(
                                 onClick = { syncHostedCampaigns() },
                                 enabled = !hostedRefreshing,
                             ) {
-                                Text(if (hostedRefreshing) "Sincronizando…" else "Sincronizar con servidor")
+                                Text(if (hostedRefreshing) "Sincronizando…" else "Sincronizar campañas hospedadas")
                             }
                         }
                     }
@@ -492,7 +494,7 @@ private fun CampaignCard(
                 )
                 if (isActive) {
                     Text(
-                        text = "Campaña activa",
+                        text = "Campaña activa para uso local",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }

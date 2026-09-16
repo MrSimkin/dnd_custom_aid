@@ -120,6 +120,42 @@ class HostedPcSnapshotConflictTest {
     }
 
     @Test
+    fun serverNewerWithUnknownLegacyBaselineConvergesWhenCompleteStateIsAlreadyIdentical() = withDatabase { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val characters = CharacterRepository(database)
+        val local = characters.createCharacter(campaign.id, "Already Identical")
+        val backups = CharacterBackupRepository(database)
+        val hostedDocument = backups.exportCharacter(local.id, 100)
+        val spine = IntegratedSpineRepository(database)
+        val baselines = HostedPcSyncBaselineRepository(database)
+        spine.putSyncMetadata("PC", local.id, SyncMetadata(revision = Revision(2)))
+        val remote = HostedPcSnapshot(
+            id = local.id,
+            campaignId = campaign.id,
+            name = hostedDocument.character.name,
+            revision = 3,
+            snapshotFormat = hostedDocument.format,
+            snapshotVersion = hostedDocument.version,
+            snapshot = hostedDocument.copy(exportedAtEpochSeconds = 999),
+        )
+
+        val result = runBlocking {
+            HostedPcSnapshotPullService(
+                database = database,
+                snapshotsProvider = { listOf(remote) },
+            ).refreshCampaign(campaign.id)
+        }
+        val baseline = assertNotNull(baselines.baseline(local.id))
+
+        assertTrue(result.conflicts.isEmpty())
+        assertEquals(listOf(local.id), result.appliedPcIds)
+        assertEquals("Already Identical", assertNotNull(characters.character(local.id)).name)
+        assertEquals(Revision(3), spine.syncMetadata("PC", local.id).revision)
+        assertEquals(Revision(3), baseline.revision)
+        assertEquals(normalizePcSyncSnapshot(remote.snapshot), baseline.snapshot)
+    }
+
+    @Test
     fun staleServerConflictBlocksAutomaticRetryWithoutAdvancingLocalRevision() = withDatabase { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val character = CharacterRepository(database).createCharacter(campaign.id, "Simkin")

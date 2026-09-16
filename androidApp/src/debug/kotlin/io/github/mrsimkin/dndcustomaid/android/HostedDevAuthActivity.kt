@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -30,19 +34,24 @@ import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedMutationType
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcPullConflictReason
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRetryState
 import kotlinx.coroutines.launch
 
 /**
- * Debug-only owner test harness for the first real Android -> Descope -> Worker -> Neon proof.
+ * Debug-only owner QA harness.
  *
- * This activity is deliberately separate from the normal Player UI so the temporary DEV
- * email-OTP path does not silently become the final product login UX.
+ * Authentication proof remains available here, but this surface also owns the reusable physical-QA
+ * log. Future QA packages should extend the structured diagnostic report rather than introducing
+ * unrelated one-off debug screens. Tokens and credentials must never be copied into that report.
  */
 class HostedDevAuthActivity : ComponentActivity() {
     private val authController by lazy { AndroidHostedAuthController() }
     private val database by lazy { AndroidDatabaseFactory(applicationContext).create() }
     private val hostedOutbox by lazy { HostedOutboxRepository(database) }
+    private val hostedBootstrap by lazy { AndroidHostedCampaignBootstrapController(database) }
+    private val hostedConflictResolver by lazy { AndroidHostedPcConflictResolver(database) }
+    private var lastQaOutcome: AndroidHostedCampaignBootstrapOutcome? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +62,10 @@ class HostedDevAuthActivity : ComponentActivity() {
                         authController = authController,
                         describeHostedOutbox = ::describeHostedOutbox,
                         retryBlockedPcValidationFailures = ::retryBlockedPcValidationFailures,
+                        runHostedSyncQa = ::runHostedSyncQa,
+                        keepLocalForLatestPcConflict = ::keepLocalForLatestPcConflict,
+                        copyQaLog = ::copyQaLog,
+                        shareQaLog = ::shareQaLog,
                     )
                 }
             }
@@ -60,6 +73,8 @@ class HostedDevAuthActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        hostedConflictResolver.close()
+        hostedBootstrap.close()
         authController.close()
         super.onDestroy()
     }
@@ -79,6 +94,65 @@ class HostedDevAuthActivity : ComponentActivity() {
             "${mutation.type} | ${mutation.retryState} | intentos=${mutation.attemptCount} | expectedRevision=$expectedRevision | error=$errorCode | mensaje=$errorMessage"
         }
         return "Outbox local: total=${mutations.size}, READY=$ready, BLOCKED=$blocked\n$details"
+    }
+
+    private suspend fun runHostedSyncQa(): String {
+        val outcome = hostedBootstrap.refresh()
+        lastQaOutcome = outcome
+        return hostedQaReport(
+            outcome = outcome,
+            generatedAtEpochSeconds = System.currentTimeMillis() / 1_000L,
+            appVersionName = BuildConfig.VERSION_NAME,
+            appVersionCode = BuildConfig.VERSION_CODE,
+            outboxDescription = describeHostedOutbox(),
+        )
+    }
+
+    private suspend fun keepLocalForLatestPcConflict(): String {
+        val success = lastQaOutcome as? AndroidHostedCampaignBootstrapOutcome.Success
+        val candidates = success
+            ?.pcConflictDiagnostics
+            .orEmpty()
+            .asSequence()
+            .filter { diagnostic ->
+                diagnostic.phase == AndroidHostedPcPullPhase.FINAL_PULL &&
+                    diagnostic.reason == HostedPcPullConflictReason.LOCAL_AND_HOSTED_CHANGED
+            }
+            .distinctBy { it.pcId }
+            .toList()
+
+        val resolution = when (candidates.size) {
+            1 -> hostedConflictResolver.keepLocal(candidates.single())
+            0 -> AndroidHostedKeepLocalResolutionOutcome.Refused(
+                "La última sincronización QA no contiene un conflicto LOCAL_AND_HOSTED_CHANGED resoluble.",
+            )
+            else -> AndroidHostedKeepLocalResolutionOutcome.Refused(
+                "Hay ${candidates.size} PCs con conflicto. Esta acción QA de seguridad resuelve uno por vez; ejecuta una prueba focalizada antes de continuar.",
+            )
+        }
+        val resolutionText = renderKeepLocalResolutionOutcome(resolution)
+        val refreshedLog = runHostedSyncQa()
+        return buildString {
+            append(refreshedLog)
+            appendLine()
+            appendLine()
+            appendLine("=== LAST EXPLICIT KEEP-LOCAL RESOLUTION ===")
+            append(resolutionText)
+        }
+    }
+
+    private fun copyQaLog(log: String) {
+        val clipboard = getSystemService(ClipboardManager::class.java)
+        clipboard.setPrimaryClip(ClipData.newPlainText("D&D Custom Aid QA log", log))
+    }
+
+    private fun shareQaLog(log: String) {
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "D&D Custom Aid QA log")
+            putExtra(Intent.EXTRA_TEXT, log)
+        }
+        startActivity(Intent.createChooser(shareIntent, "Compartir log QA"))
     }
 
     private fun retryBlockedPcValidationFailures(): String {
@@ -103,7 +177,7 @@ class HostedDevAuthActivity : ComponentActivity() {
         }
 
         return if (readyCount > 0) {
-            "$readyCount mutación(es) PC válida(s) fueron marcadas READY. Vuelve al Player y pulsa «Sincronizar con servidor»."
+            "$readyCount mutación(es) PC válida(s) fueron marcadas READY. Vuelve al Player y pulsa «Sincronizar campañas hospedadas»."
         } else {
             "Las mutaciones bloqueadas no superaron la validación local y no fueron modificadas."
         }
@@ -115,16 +189,22 @@ private fun HostedDevAuthScreen(
     authController: AndroidHostedAuthController,
     describeHostedOutbox: () -> String,
     retryBlockedPcValidationFailures: () -> String,
+    runHostedSyncQa: suspend () -> String,
+    keepLocalForLatestPcConflict: suspend () -> String,
+    copyQaLog: (String) -> Unit,
+    shareQaLog: (String) -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     var otpRequested by remember { mutableStateOf(false) }
     var hasSession by remember { mutableStateOf(authController.hasRememberedSession()) }
     var busy by remember { mutableStateOf(false) }
+    var qaLog by remember { mutableStateOf("") }
+    var showKeepLocalConfirmation by remember { mutableStateOf(false) }
     var status by remember {
         mutableStateOf(
             if (hasSession) {
-                "Se encontró una sesión recordada de Descope. Puedes probarla contra el Worker."
+                "Se encontró una sesión recordada de Descope. Puedes ejecutar una sincronización QA completa."
             } else {
                 "No hay una sesión recordada en este dispositivo."
             },
@@ -146,6 +226,37 @@ private fun HostedDevAuthScreen(
         }
     }
 
+    if (showKeepLocalConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showKeepLocalConfirmation = false },
+            title = { Text("Conservar versión local") },
+            text = {
+                Text(
+                    "Esta acción intentará subir el PC local por encima de la versión hospedada que acabas de revisar. " +
+                        "Solo se ejecutará si el servidor sigue exactamente en esa misma revisión; si otro cliente cambió el PC otra vez, se detendrá sin sobrescribirlo.",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showKeepLocalConfirmation = false
+                        runAction {
+                            qaLog = keepLocalForLatestPcConflict()
+                            status = "Resolución explícita ejecutada. Revisa el log actualizado y compártelo antes de continuar."
+                        }
+                    },
+                ) {
+                    Text("Sí, conservar local")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showKeepLocalConfirmation = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -154,11 +265,11 @@ private fun HostedDevAuthScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = "Prueba DEV de autenticación alojada",
+            text = "QA / autenticación hospedada DEV",
             style = MaterialTheme.typography.headlineSmall,
         )
         Text(
-            text = "Esta pantalla existe solo en builds debug. Prueba una sesión real de Descope contra el Worker y Neon sin cambiar todavía el flujo normal del Player.",
+            text = "Pantalla exclusiva de builds debug. La sincronización QA revisa todas las campañas hospedadas elegibles; la campaña activa del Player no limita este alcance.",
             style = MaterialTheme.typography.bodyMedium,
         )
 
@@ -166,6 +277,57 @@ private fun HostedDevAuthScreen(
             text = status,
             style = MaterialTheme.typography.bodyMedium,
         )
+
+        Button(
+            enabled = !busy && hasSession,
+            onClick = {
+                runAction {
+                    qaLog = runHostedSyncQa()
+                    status = "Sincronización QA completada. Revisa el log y usa «Copiar log QA» para pegarlo en ChatGPT."
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(if (busy) "Procesando…" else "Ejecutar sincronización QA")
+        }
+
+        Button(
+            enabled = !busy && hasSession && qaLog.isNotBlank(),
+            onClick = { showKeepLocalConfirmation = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Resolver conflicto: conservar PC local")
+        }
+        Text(
+            text = "Usa esta acción solo después de revisar un LOCAL_AND_HOSTED_CHANGED en el log. Nunca se ejecuta automáticamente.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+
+        Button(
+            enabled = !busy && qaLog.isNotBlank(),
+            onClick = {
+                copyQaLog(qaLog)
+                status = "Log QA copiado al portapapeles."
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Copiar log QA")
+        }
+
+        Button(
+            enabled = !busy && qaLog.isNotBlank(),
+            onClick = { shareQaLog(qaLog) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Compartir log QA")
+        }
+
+        if (qaLog.isNotBlank()) {
+            Text(
+                text = qaLog,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
 
         Button(
             enabled = !busy,
@@ -209,6 +371,7 @@ private fun HostedDevAuthScreen(
                         hasSession = false
                         otpRequested = false
                         code = ""
+                        qaLog = ""
                         status = "Sesión cerrada en este dispositivo."
                     }
                 },
@@ -282,7 +445,7 @@ private fun HostedDevAuthScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "No se muestran ni registran JWT, refresh tokens ni credenciales de base de datos.",
+            text = "El log QA no incluye JWT, refresh tokens, cabeceras de autorización ni credenciales de base de datos.",
             style = MaterialTheme.typography.bodySmall,
         )
     }

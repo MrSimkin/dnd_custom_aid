@@ -4,7 +4,7 @@
         <activity
             android:name=".HostedDevAuthActivity"
             android:exported="true"
-            android:label="DnD Aid - Hosted DEV Auth">
+            android:label="DnD Aid - QA DEV">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
