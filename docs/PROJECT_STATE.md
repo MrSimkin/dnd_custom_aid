@@ -3,29 +3,26 @@
 **Last verified:** 2026-09-16 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** **GRANTED**  
 **Normal integrated trunk:** `main`  
-**Verified integrated main:** `587a000dae7ff9b9f997dd138b0ebbaeca201256`  
-**Post-merge Scaffold:** `35116690562` — **SUCCESS**  
+**Verified integrated main before current package:** `587a000dae7ff9b9f997dd138b0ebbaeca201256`  
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
 **Android hosted-session integration:** **COMPLETE / OWNER-PHYSICAL PASS**  
 **Hosted campaign/PC integration and convergence:** **COMPLETE / OWNER-PHYSICAL PASS**  
-**Current implementation checkpoint:** `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md`  
-**Current focused package:** membership revoke + Player/DM authorization
+**Membership revoke + Player/DM authorization:** **AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
+**Current completion checkpoint:** `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md`  
+**Current focused branch:** `wave4/membership-revoke-authorization`  
+**Current PR:** #41 — closure/merge pending
 
 ## 1. Current authority/topology
 
 `main` is the single normal integrated-MVP development trunk.
 
-The old Player successor and convergence lines remain historical/frozen evidence. New work uses short-lived outcome-oriented branches from current verified `main` and reintegrates early. Do not recreate permanent Player/Server/Desktop silos.
-
-Current focused branch:
-
-`wave4/membership-revoke-authorization`
+Old Player and convergence lines remain historical/frozen evidence. New work uses short-lived outcome-oriented branches from current verified `main` and reintegrates early. Do not recreate permanent Player/Server/Desktop silos.
 
 `docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle.
 
 ## 2. Current verified implementation baseline
 
-Wave 2 — **Shared Integrated-MVP Spine** — is complete and integrated, including:
+The integrated foundation includes:
 
 - account/global identity;
 - Campaign;
@@ -34,35 +31,20 @@ Wave 2 — **Shared Integrated-MVP Spine** — is complete and integrated, inclu
 - stable object identities;
 - monotonic revisions and stale-write semantics;
 - tombstones/non-resurrection semantics;
-- Personal/Campaign/System/Official scope models where valid;
-- independent-copy provenance;
-- local sync metadata and invariant tests.
-
-Provider-neutral hosted foundation is integrated and includes:
-
-- hosted `/v1` API/auth/domain foundations;
-- explicit PostgreSQL schema/migrations/contracts and PostgreSQL CI validation;
-- shared Android/Desktop Ktor transport;
-- provider-neutral token acquisition/verification seams;
-- durable SQLDelight hosted outbox;
-- local-first campaign creation + hosted delivery using stable mutation identity;
+- durable local hosted outbox;
 - authenticated hosted account/campaign bootstrap;
-- explicit campaign membership lifecycle reconciliation (`ACTIVE`, `KICKED`, `BANNED`) and campaign soft-deletion state;
-- hosted PC current-state snapshot read/write using versioned app-owned Player serialization as JSONB;
-- server-side PC authorization using active membership plus DM authority or Player owner/controller authority;
-- optimistic PC revisions, mutation idempotency, stale-write rejection and tombstone handling;
-- durable PC snapshot outbox delivery with authoritative revision acknowledgement;
-- same-identity hosted reconciliation distinct from user-facing backup restore-as-copy;
-- guards against equal-revision overwrite, local-ahead overwrite and tombstone resurrection;
-- non-destructive local recovery when hosted PC state is deleted.
-
-PR #40 completed the current multi-client convergence layer with permanent QA diagnostics, narrow missing-baseline equal-state recovery and explicit reviewed keep-local conflict resolution. It merged to `main` as `587a000dae7ff9b9f997dd138b0ebbaeca201256`; post-merge Scaffold `35116690562` completed **SUCCESS**.
+- explicit membership lifecycle (`ACTIVE`, `KICKED`, `BANNED`);
+- hosted PC snapshot read/write;
+- active-membership plus DM-or-owner/controller server-side PC authorization;
+- mutation idempotency and optimistic revisions;
+- local-first PC delivery/reconciliation;
+- equal-revision/local-ahead/tombstone convergence guards;
+- explicit reviewed conflict resolution;
+- permanent hosted-sync QA diagnostics.
 
 ## 3. Hosted DEV activation — complete
 
-The first real external-provider activation is complete and verified.
-
-Verified DEV architecture:
+Verified DEV architecture remains:
 
 ```text
 Android / Desktop clients
@@ -74,13 +56,9 @@ Cloudflare Worker/API <---- Descope identity proof
 Neon PostgreSQL
 ```
 
-Current DEV resources remain the existing Neon `dnd-custom-aid-dev`, Descope DEV project and Cloudflare Worker recorded in the provider activation checkpoint. The Worker runtime uses server-side provider secret storage; native clients do not hold database credentials.
+The existing Neon `dnd-custom-aid-dev`, Descope DEV project and Cloudflare Worker remain the current DEV resources. Native clients do not hold database credentials.
 
-Verified provider evidence includes real Neon migration/contracts, real email OTP authentication, deployed Worker health/authenticated `/v1/me`, application identity persistence through Neon and representative Workers Free CPU/runtime proof for the tested authenticated path.
-
-See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for exact environment evidence.
-
-## 4. Completed Wave 4 Player <-> Server path so far
+## 4. Completed Wave 4 Player <-> Server path
 
 Completed and physically verified where applicable:
 
@@ -91,41 +69,30 @@ Completed and physically verified where applicable:
 5. PC snapshot push/pull and blocked-row recovery;
 6. unchanged-sync/no-op behavior;
 7. second-client observation and offline/concurrent edit convergence;
-8. explicit owner-controlled keep-local conflict resolution with hosted compare-and-swap protection.
+8. explicit owner-controlled keep-local conflict resolution with hosted compare-and-swap protection;
+9. membership revoke/reinstate hosted eligibility behavior with non-destructive local preservation.
 
-The convergence physical gate proved that concurrent divergence does not silently overwrite either side, that explicit reviewed keep-local can safely advance the server revision, and that a clean second client subsequently converges to the selected hosted state.
+The convergence gate proved no-silent-overwrite multi-client behavior. The current membership gate proved a real DEV DM membership could move `ACTIVE -> KICKED -> ACTIVE`, stop hosted PC eligibility while inactive, preserve local campaign/PC data, and resume cleanly after reinstatement.
 
-Exact evidence:
-
-`docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md`
+Physical membership QA specifically exercised DM lifecycle revoke/reinstate. Player owner/controller revoke is covered by the automated PostgreSQL authorization contract and must not be described as a physical Player revoke test.
 
 ## 5. Current implementation boundary
 
-Wave 4 — Player <-> Server end-to-end — remains active.
+The membership revoke + Player/DM authorization validation package is complete in substance and awaiting normal PR #41 integration closure.
 
-The current primary package is now:
+Approved semantics now have both automated and proportionate physical evidence:
 
-> **membership revoke + Player/DM authorization**
-
-Current focused branch:
-
-`wave4/membership-revoke-authorization`
-
-This package must first inspect the existing membership lifecycle/backend authorization/shared synchronization contracts and regression coverage. Implement only the missing end-to-end enforcement and verification needed to prove the approved behavior.
-
-Approved semantics already exist and should not be reopened without concrete contradictory evidence:
-
-- `ACTIVE`, `KICKED` and `BANNED` are meaningful membership lifecycle states;
-- membership removal/revoke stops future hosted access/sync but does not silently wipe local cached data;
-- account identity, membership, campaign role, PC ownership and PC current control are distinct;
+- inactive membership stops hosted access/sync;
+- local cached campaign/PC data is not silently wiped;
+- account identity, membership, campaign role, PC ownership and PC current control remain distinct;
 - DM campaign authority does not imply PC ownership;
-- Player PC access is constrained by owner/controller authority;
-- hosted authorization must fail closed where access is no longer valid;
+- Player PC authority is constrained by owner/controller identity;
+- hosted authorization fails closed when access is invalid;
 - local-first data preservation, stale revisions, mutation idempotency, tombstones/non-resurrection and no-silent-overwrite semantics remain protected.
 
-No new owner decision is required for routine implementation. Return to the owner when a genuine product/security/cost/destructive-behavior ambiguity, external-account action or manual/physical QA gate is reached.
+No new owner/manual action is required to close PR #41 unless CI or merge state reveals a material issue.
 
-Do not introduce a generalized RBAC/ACL framework, reset databases, clear outboxes or wipe local cached data merely to make the package pass.
+Do not extend this validation package into generalized RBAC/ACL or final Campaign Manager moderation UI.
 
 ## 6. Controlling integrated-MVP product direction
 
@@ -135,13 +102,13 @@ The approved product remains one ecosystem:
 Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
 ```
 
-Paper-first Player play, local-first saves, bounded project-specific sync, complete DM Desktop fallback, explicit combat authority resume/handoff, object storage/media, meaningful recovery/backup and official-SRD clarification remain protected integrated-MVP direction.
+Paper-first Player play, local-first saves, bounded project-specific sync, complete DM Desktop fallback, combat authority resume/handoff, object storage/media, recovery/backup and official-SRD clarification remain protected integrated-MVP direction.
 
 ## 7. Protected integrated-MVP scope
 
 Protected MVP scope continues to include Player hosted/shared integration, project-specific sync semantics, object storage/media, complete DM live Android/Desktop capability, combat authority resume/handoff, authoring Managers, structured homebrew/import-export, PC audit/correction, cross-surface PC Sheet PDF export, Campaign/System Administration, audit/recovery/full backup and official-SRD clarification.
 
-The project remains paper-first and intentionally not a VTT, automatic legality/rules engine, generalized sync platform, marketplace/social product or enterprise infrastructure exercise.
+The project remains intentionally not a VTT, automatic legality/rules engine, generalized sync platform, marketplace/social product or enterprise infrastructure exercise.
 
 ## 8. Current technical direction
 
@@ -162,9 +129,7 @@ The approved technical direction remains:
 - versioned on-demand backup archives with manifest/integrity data;
 - one canonical PC/export snapshot + shared PDF-export semantics with platform-specific rendering.
 
-Object storage remains required for the MVP but provider selection/activation is **deferred** until Media/Handouts/assets reach real integration. Do not assume R2 by inertia.
-
-Workers AI remains a later approved official-SRD clarification direction only while it can be used safely under the hard `$0` policy.
+Object storage remains required for MVP but provider selection/activation is deferred until Media/Handouts/assets reach real integration. Do not assume R2 by inertia.
 
 ## 9. External-service and security state
 
@@ -178,41 +143,27 @@ D-0075 remains controlling:
 Important security residuals carried forward:
 
 - review JWT/fail-closed verification robustness;
-- extend object-level authorization regression coverage;
+- continue object-level authorization regression coverage where new objects/features require it;
 - maintain SQL/query safety;
 - prevent token/secret leakage through errors/logs;
 - review replay/idempotency authorization;
 - inspect the locally reported **3 high severity npm vulnerabilities** before remediation; never run `npm audit fix --force` blindly;
-- evaluate a dedicated least-privilege Neon runtime role instead of the current project-owner runtime credential;
-- reassess Descope region/settings before production release.
+- evaluate a dedicated least-privilege Neon runtime role;
+- reassess identity/production configuration before release.
 
-Completion of current gates is not a claim that security work is permanently finished.
-
-## 10. Owner/local development notes
-
-Owner project root: `D:\DnD_Aid`  
-Local clone: `D:\DnD_Aid\repo\dnd_custom_aid`  
-Owner credential file: `D:\DnD_Aid\dnd_custom_aid_dev_credentials.md`
-
-The credential file is intentionally outside Git and plaintext by explicit owner choice. Do not read/copy/commit its contents or replace the workflow with a vault/password-manager migration unless requested.
-
-A local Windows SChannel issue prevents PowerShell `Invoke-RestMethod`/Windows `curl.exe` from negotiating TLS with the Worker URL on the owner's machine, while Node `fetch()` and Vivaldi work. Treat Node/browser as the known-good local endpoint-test path unless the Windows TLS issue is separately investigated.
-
-## 11. Release/acceptance status
+## 10. Release/acceptance status
 
 The project remains development/debug and is not release-ready.
 
-Hosted provider activation, Android hosted-session, account/campaign bootstrap, campaign/PC delivery and the bounded multi-client convergence gate have passed their recorded verification/manual boundaries. This does not retroactively convert unrelated historical Player QA into a PASS.
+Hosted provider activation, Android hosted-session, account/campaign bootstrap, campaign/PC delivery, multi-client convergence and the bounded membership revoke/reinstate gate have passed their recorded verification/manual boundaries. This does not retroactively convert unrelated historical Player QA into a PASS.
 
-Historical frozen Player candidate remains `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`; preserve its historical evidence for exactly what it tested.
-
-## 12. Resume rule
+## 11. Resume rule
 
 For exact continuation, read:
 
 1. `docs/checkpoints/LATEST.md`;
 2. `docs/BRANCH_STATUS.md`;
-3. `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md` for predecessor evidence;
-4. the current membership-revoke/authorization package files/tests as they are created.
+3. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md`;
+4. predecessor convergence evidence only as needed.
 
-Continue on `wave4/membership-revoke-authorization`. Do not restart provider/session/bootstrap/PC-convergence work. The next owner interaction should occur only when the package reaches a genuine manual/physical QA or owner-decision boundary.
+Close PR #41 through exact-head CI, merge and post-merge verification. After integration, stop before final moderation/Campaign Manager UI unless a separate package is explicitly scoped.
