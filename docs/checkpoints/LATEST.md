@@ -7,26 +7,126 @@
 **Android hosted campaign bootstrap:** **COMPLETE / OWNER-PHYSICAL PASS**  
 **Android hosted campaign + PC sync:** **COMPLETE / OWNER-PHYSICAL PASS**  
 **Unchanged-sync/no-op confirmation:** **OWNER-PHYSICAL PASS**  
-**Multi-client PC convergence safety:** **IMPLEMENTED / AUTOMATED VERIFIED / PHYSICAL GATE INCONCLUSIVE; DIAGNOSTIC QA NEXT**  
+**Multi-client PC convergence safety:** **IMPLEMENTED / AUTOMATED VERIFIED / PHYSICAL QA CONTINUES**  
 **Convergence base PR:** #39  
-**Diagnostic/recovery PR:** #40  
-**QA build:** `0.4.0-preqa.14` / `41400`  
+**QA/recovery/conflict-resolution PR:** #40  
+**QA build:** `0.4.0-preqa.15` / `41500`  
+**Verified behavior head for APK:** `008a73c20101a127edd82947af71c6024f894609`  
+**Scaffold:** `35044956294` — **SUCCESS**  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md` — mandatory project operating rules;
-2. `docs/checkpoints/2026-09-15_HOSTED_SYNC_QA_LOG_AND_LEGACY_BASELINE_RECOVERY_READY_FOR_PHYSICAL_QA.md` — current Wave 4 checkpoint and exact next owner action;
-3. `docs/checkpoints/2026-09-15_MULTI_CLIENT_PC_CONVERGENCE_SAFETY_READY_FOR_PHYSICAL_QA.md` — PR #39 convergence design and original physical gate;
-4. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — completed campaign/PC delivery physical evidence;
-5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
-6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
-7. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
-8. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
-9. `docs/PROJECT_STATE.md` and `docs/BRANCH_STATUS.md` — broader state/lifecycle context; newer specific checkpoints control where older prose is stale;
-10. `docs/ROADMAP.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md` and `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md` as needed.
+2. `docs/checkpoints/2026-09-15_HOSTED_PC_EXPLICIT_CONFLICT_RESOLUTION_READY_FOR_PHYSICAL_QA.md` — **current Wave 4 checkpoint and exact next owner action**;
+3. `docs/checkpoints/2026-09-15_HOSTED_SYNC_QA_LOG_AND_LEGACY_BASELINE_RECOVERY_READY_FOR_PHYSICAL_QA.md` — permanent QA log + legacy-baseline recovery package;
+4. `docs/checkpoints/2026-09-15_MULTI_CLIENT_PC_CONVERGENCE_SAFETY_READY_FOR_PHYSICAL_QA.md` — PR #39 convergence design and original physical gate;
+5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — completed campaign/PC delivery physical evidence;
+6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
+7. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
+8. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
+9. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
+10. `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md` as needed.
 
 If older operational prose conflicts with this file or the current specific checkpoint, the newer specific checkpoint controls unless an even later approved decision/checkpoint supersedes it.
+
+## Current Wave 4 state
+
+```text
+remembered Android Descope session/token             COMPLETE
+owner-facing hosted account/campaign bootstrap       COMPLETE
+campaign create + durable hosted delivery            COMPLETE / OWNER-PHYSICAL PASS
+PC snapshot push/pull + blocked-row recovery         COMPLETE / OWNER-PHYSICAL PASS
+unchanged-sync no-op confirmation                    COMPLETE / OWNER-PHYSICAL PASS
+        |
+        v
+multi-client PC convergence safety                    IMPLEMENTED / AUTOMATED VERIFIED
+        |
+        v
+permanent hosted-sync QA log                          IMPLEMENTED / PHYSICALLY USEFUL
+        |
+        v
+legacy missing-baseline safe equal-state recovery     IMPLEMENTED / AUTOMATED VERIFIED
+        |
+        v
+real emulator concurrent state observed               LOCAL_AND_HOSTED_CHANGED / PROTECTION WORKED
+        |
+        v
+explicit user-controlled keep-local resolution        IMPLEMENTED / AUTOMATED VERIFIED
+        |
+        v
+EMULATOR KEEP-LOCAL PHYSICAL GATE                     NEXT
+        |
+        v
+PHONE SERVER-NEWER + CLEAN-LOCAL CONVERGENCE          AFTER EMULATOR SUCCESS
+        |
+        v
+remaining multi-client conflict scenarios             THEN
+        |
+        v
+membership revoke + Player/DM authorization          FOLLOWING SEPARATE BOUNDARY
+```
+
+## Decisive physical evidence from `preqa.14`
+
+The owner kept the phone PC in its original state and an emulator PC in a locally modified, never-uploaded state. The emulator QA sync reported the same conflict in both initial and final pull:
+
+- `LOCAL_AND_HOSTED_CHANGED`;
+- local sync revision `7`;
+- hosted revision `8`;
+- baseline present `YES` at revision `7`;
+- local differs from baseline `YES`;
+- local equals current hosted `NO`;
+- no pending outbox mutation.
+
+This is **not evidence that conflict detection failed**. It is evidence that the PR #39 no-silent-overwrite protection worked: a revision-7 local edit was not blindly written over a different hosted revision 8. What was missing was an explicit, user-controlled way to choose the local version after reviewing that conflict.
+
+The immediately preceding phone QA run and the emulator QA run both queued/acknowledged zero hosted mutations, so neither created hosted revision 8. Its older origin is not required for safe resolution of the current known state.
+
+## Explicit keep-local resolution in `preqa.15`
+
+The debug QA console now exposes:
+
+`Resolver conflicto: conservar PC local`
+
+It is never automatic. It only accepts one reviewed `FINAL_PULL / LOCAL_AND_HOSTED_CHANGED` conflict. Before queueing, it revalidates local revision/baseline state, local dirtiness, outbox isolation, hosted existence/tombstone status and a fresh hosted read. The hosted revision must still equal the exact revision the owner reviewed.
+
+The selected local snapshot is then queued durably using that reviewed hosted revision as `expectedRevision`. Server compare-and-swap protection therefore remains active. If another client advances again before PUT, stale-revision protection prevents a silent overwrite.
+
+A focused shared regression proves the intended `local 7 -> reviewed hosted 8 -> accepted hosted 9` acknowledgement path, including atomic sync-metadata/baseline advancement. Exact behavior head `008a73c20101a127edd82947af71c6024f894609` passed Scaffold `35044956294`, including shared tests, Android build, backend type-check, hosted DB contracts and debug APK upload.
+
+## Permanent QA console
+
+Debug builds expose `DnD Aid - QA DEV`. Hosted QA synchronization produces a copyable/shareable plain-text report with campaign eligibility, exact PC conflict reasons, revisions, baseline state, local-vs-baseline/current-hosted comparison, pull phase and outbox state.
+
+The log excludes JWTs, refresh tokens, authorization headers, provider secrets and database credentials. Future physical gates should extend this structured diagnostic surface instead of creating unrelated one-off diagnostics.
+
+The active campaign selector is local Player context only. Hosted synchronization reviews **all eligible hosted campaigns**.
+
+## Exact next owner gate
+
+Use the emulator only first. Do not edit or synchronize the clean phone yet.
+
+1. Install `0.4.0-preqa.15` over the existing emulator installation. **Do not uninstall and do not clear app data.**
+2. Open `DnD Aid - QA DEV`.
+3. Tap `Ejecutar sincronización QA`.
+4. Confirm the final-pull `LOCAL_AND_HOSTED_CHANGED` conflict is still present. If hosted revision changed, inspect/share the new log instead of resolving against stale evidence.
+5. Tap `Resolver conflicto: conservar PC local` and confirm `Sí, conservar local`.
+6. The app re-runs QA automatically. Tap `Copiar log QA` and paste the entire result into the technical-assistant chat.
+
+Expected success evidence includes:
+
+`=== LAST EXPLICIT KEEP-LOCAL RESOLUTION ===`
+
+`SUCCESS | ... | reviewedHostedRevision=8 | resultingRevision=9`
+
+plus a refreshed clean synchronization and empty outbox.
+
+If the action reports `REFUSED`, `PENDING` or `FAILURE`, do not clear/reset/retry destructively; share the complete log. Local state remains protected.
+
+Only after this emulator result is reviewed should the phone synchronize to exercise `server-newer + clean local` convergence.
+
+PR #40 remains open pending physical evidence.
 
 ## Important corrections carried forward
 
@@ -36,113 +136,10 @@ If older operational prose conflicts with this file or the current specific chec
 - Android remembered Descope session and `HostedAccessTokenProvider` are complete; do not create a second authentication/network abstraction.
 - Ordinary Player hosted account/campaign bootstrap is complete.
 - Campaign local-first creation + durable hosted delivery and PC push/pull are complete.
-- The prior PC wire-envelope `VALIDATION_FAILED` defect was repaired; the blocked mutation was recovered and acknowledged.
-- An additional unchanged Player sync kept the outbox empty, so the earlier no-op physical gate is **PASS**.
+- The prior PC wire-envelope `VALIDATION_FAILED` defect was repaired; its blocked mutation was recovered and acknowledged.
+- The earlier unchanged-sync/no-op physical gate is PASS.
 - The real Neon database name is `dnd-custom-aid-dev` with hyphens.
 - Secret hygiene remains strict regardless of repository visibility.
-
-## Current Wave 4 state
-
-```text
-remembered Android Descope session/token           COMPLETE
-owner-facing hosted account/campaign bootstrap     COMPLETE
-campaign create + durable hosted delivery          COMPLETE / OWNER-PHYSICAL PASS
-PC snapshot push/pull + blocked-row recovery       COMPLETE / OWNER-PHYSICAL PASS
-unchanged-sync no-op confirmation                   COMPLETE / OWNER-PHYSICAL PASS
-        |
-        v
-multi-client PC convergence safety                  IMPLEMENTED / AUTOMATED VERIFIED
-        |
-        v
-first physical convergence attempt                  INCONCLUSIVE: observability insufficient
-        |
-        v
-permanent QA log + safe legacy baseline recovery   IMPLEMENTED / AUTOMATED VERIFIED
-        |
-        v
-DIAGNOSTIC OWNER PHYSICAL SYNC                      NEXT
-        |
-        v
-complete remaining convergence scenarios           AFTER LOG EVIDENCE
-        |
-        v
-membership revoke + Player/DM authorization        FOLLOWING SEPARATE BOUNDARY
-```
-
-## What changed after the first physical convergence attempt
-
-The owner observed a generic preserved-local-conflict message while the hosted outbox was empty. The app did not expose the exact PC conflict reason, revisions or baseline state, so that observation cannot be classified as a convergence PASS or FAIL.
-
-The current leading explanation is the designed legacy-upgrade condition: an existing client can have old hosted revision metadata but no durable PR #39 PC baseline. If another client advances the hosted PC before the legacy device establishes an equal-revision baseline, the client correctly refuses to guess and reports `SYNC_BASELINE_MISSING`.
-
-PR #40 adds a bounded recovery only when the complete normalized local PC state already equals the complete newer hosted state. In that unambiguous case the client may advance the revision and establish the baseline. If local and hosted differ, `SYNC_BASELINE_MISSING` remains and local state is preserved.
-
-An empty outbox is **not** treated as proof that the local PC is clean.
-
-## Permanent QA console
-
-Debug builds now expose the launcher:
-
-`DnD Aid - QA DEV`
-
-For hosted sync the QA console can run the real synchronization and produce a copyable/shareable plain-text report with per-campaign and per-PC evidence, including exact conflict reason, local/hosted revision, baseline presence/revision, local-vs-baseline/current-hosted comparison, pull phase and outbox state.
-
-The log excludes authentication tokens, authorization headers, provider secrets and database credentials.
-
-This facility is permanent QA infrastructure. Future physical gates should extend its structured diagnostic projection instead of creating unrelated one-off debug screens.
-
-## Campaign selection semantics
-
-The active campaign selector controls local Player context only. Hosted synchronization reviews **all eligible hosted campaigns**. The normal Campaigns screen now states this explicitly and labels the active campaign as local-use state.
-
-## Automated evidence
-
-Implementation head `cf11c88cf7a424793c40f3d7bcb57b859e058b1e` passed Scaffold run `35043186839`, including:
-
-- Shared desktop tests;
-- Android debug assemble;
-- Desktop build;
-- Player guard scripts;
-- backend type-check;
-- hosted database migrations/contracts;
-- Android debug APK upload.
-
-A later non-behavioral launcher-label change renames the debug entry point to `DnD Aid - QA DEV`; use the final branch Scaffold result when selecting the APK artifact.
-
-## Exact next owner gate
-
-Install `0.4.0-preqa.14` over the existing phone installation **without uninstalling or clearing app data**.
-
-Then:
-
-1. open `DnD Aid - QA DEV`;
-2. use the remembered hosted session or authenticate if required;
-3. tap `Ejecutar sincronización QA`;
-4. tap `Copiar log QA`;
-5. paste the complete log into the active technical-assistant chat.
-
-Do not clear the outbox, reset the database, recreate PCs/campaigns or reinstall before this diagnostic sync.
-
-The next action after that log depends on its exact conflict reason and revision/baseline evidence. Do not continue by guessing.
-
-Membership revoke and Player/DM authorization enforcement remain the following separate boundary.
-
-## Hosted DEV status
-
-```text
-Neon PostgreSQL             COMPLETE / VERIFIED
-Descope identity            COMPLETE / VERIFIED
-Cloudflare Worker           COMPLETE / VERIFIED
-Real auth round trip        VERIFIED
-Real Neon persistence       VERIFIED
-Workers Free CPU gate       PASS for tested representative path
-Android session edge        COMPLETE / OWNER-PHYSICAL PASS
-Android campaign bootstrap  COMPLETE / OWNER-PHYSICAL PASS
-Campaign hosted delivery    COMPLETE / OWNER-PHYSICAL PASS
-PC snapshot push/pull       COMPLETE / OWNER-PHYSICAL PASS
-No-op repeat sync           OWNER-PHYSICAL PASS
-Multi-client convergence    AUTOMATED VERIFIED / DIAGNOSTIC PHYSICAL QA NEXT
-```
 
 ## Security residuals carried forward
 
@@ -157,7 +154,7 @@ Important follow-up topics remain:
 - evaluate a dedicated least-privilege Neon runtime role;
 - production-region/identity configuration review before release.
 
-These are visible residuals, not a reason to reopen completed provider/session/bootstrap/campaign/PC packages.
+These residuals do not reopen completed provider/session/bootstrap/campaign/PC packages.
 
 ## Historical Player evidence remains bounded
 
