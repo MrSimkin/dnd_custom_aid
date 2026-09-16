@@ -198,7 +198,7 @@ private fun DesktopWorkbench(
                         onQaEvent = ::logQa,
                     )
 
-                    DesktopDestination.APPLICATION_SETTINGS -> ApplicationSettingsScreen(
+                    DesktopDestination.APPLICATION_SETTINGS -> DesktopApplicationSettingsScreen(
                         preferences = preferences,
                         onPreferencesChange = onPreferencesChange,
                     )
