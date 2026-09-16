@@ -19,11 +19,8 @@ import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Slider
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -46,7 +43,6 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
-import kotlin.math.roundToInt
 
 fun main() {
     val databaseFactory = DesktopDatabaseFactory()
