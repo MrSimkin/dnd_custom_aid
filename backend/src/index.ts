@@ -1,5 +1,6 @@
 import { createApiHandler, type ApiHandler } from "./app.ts";
 import { DescopeJwtVerifier } from "./auth.ts";
+import { NeonCampaignAdministrationStore } from "./campaignAdministrationStore.ts";
 import { NeonCampaignStore } from "./store.ts";
 
 interface AppEnv {
@@ -36,6 +37,7 @@ export default {
           baseUrl: env.DESCOPE_BASE_URL,
         }),
         campaigns: new NeonCampaignStore(databaseUrl),
+        campaignAdministration: new NeonCampaignAdministrationStore(databaseUrl),
       });
     }
 
