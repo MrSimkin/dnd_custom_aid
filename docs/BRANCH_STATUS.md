@@ -3,92 +3,99 @@
 **Updated:** 2026-09-16 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Verified starting main for current package:** `40b29006052c9986e2d79227a6053f36241de1e6`  
-**Starting Scaffold:** `35123470001` — **SUCCESS**  
+**Verified starting main:** `40b29006052c9986e2d79227a6053f36241de1e6`  
 **Current focused branch:** `wave5/desktop-workbench-shell`  
-**Current package:** Wave 5 — Desktop workbench shell + local campaign context  
-**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_PACKAGE_OPEN.md`  
-**Current lifecycle state:** implementation active; no owner/manual gate yet
+**Current PR:** #42  
+**Verified behavior/test head:** `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`  
+**Scaffold:** `35125170321` — **SUCCESS**  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`  
+**Lifecycle state:** automated verified / owner Desktop manual QA pending
 
 This file is the canonical branch-lifecycle map. Branch existence alone never establishes authority.
 
 ## 1. `main` — sole normal integrated-MVP trunk
 
-`main` remains the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from verified `main`, merges only after proportionate verification, verifies post-merge `main`, and refreshes durable checkpoints when operational truth changes.
+`main` remains the sole normal integrated-MVP trunk. Use short-lived outcome-oriented branches from verified `main`, merge only after proportionate verification, verify post-merge `main`, and refresh durable checkpoints when operational truth changes.
 
-Do not create permanent Player/Server/Desktop silos or months-long catch-all integration branches.
+Do not create permanent Player/Server/Desktop silos.
 
-## 2. Current focused branch
+## 2. Current focused branch / PR
 
 Branch:
 
 `wave5/desktop-workbench-shell`
 
-Exact base:
+PR:
+
+`#42 — feat: establish Desktop workbench shell and local campaign context`
+
+Base:
 
 `40b29006052c9986e2d79227a6053f36241de1e6`
 
-Base Scaffold:
+Verified behavior/test head:
 
-`35123470001` — **SUCCESS**
+`c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`
 
-Purpose:
+Scaffold:
 
-> establish the real Desktop workbench shell and persistent local campaign context using existing Shared campaign semantics.
+`35125170321` — **SUCCESS**
 
-The inspected Desktop application is currently a placeholder window. Shared already provides `CampaignRepository` and Desktop SQLite JDBC support, so this package should add only the missing Desktop database/wiring layer and the first real workbench UI.
+The package replaces the placeholder Desktop surface with a persistent workbench using existing Shared Campaign semantics. Desktop owns its own local SQLite file; hosted Desktop synchronization is not part of this package.
 
-Expected first functioning workbench destinations are Dashboard, Campaigns and Campaign Administration. Other approved Desktop destinations may appear as stable navigation placeholders, but their substantive implementation belongs to later packages.
+## 3. Verified package contents
 
-## 3. Current package boundary
+Included and automated-verified:
 
-Included:
-
-- persistent Desktop SQLDelight database wiring;
+- `DesktopDatabaseFactory` / explicit database-handle lifetime;
 - Shared `CampaignRepository` reuse;
-- approved workbench chrome: top toolbar, left navigation, central work area, optional contextual area, bottom status strip;
-- local campaign list/create/active selection;
-- active-campaign context surfaced in Dashboard and Campaign Administration;
-- automated Desktop/persistence verification and later bounded visual audition.
+- persistent campaign state across Desktop close/reopen;
+- top toolbar, left navigation, central work area, contextual campaign panel and bottom status strip;
+- functioning Dashboard;
+- functioning Campaigns list/create/active selection;
+- Campaign Administration bound to the active campaign;
+- stable placeholders for later approved destinations.
 
-Excluded from this first slice:
+The first CI attempt failed only because a deprecated test-only temp-directory helper was rejected. Production Desktop compilation/build succeeded even in that attempt. The test helper was corrected, and the exact repaired head passed completely.
 
-- invitation/rejoin workflows;
-- Kick/Ban/Unban product UI;
-- hosted Desktop authentication/full sync activation;
+## 4. Current manual gate
+
+PR #42 must remain open until the owner completes the bounded Windows Desktop audition recorded in:
+
+`docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`
+
+The gate verifies launch/usability, campaign create/select behavior, persistence after relaunch and Campaign Administration context consistency.
+
+Manual guidance must be one exact step at a time. Do not reset/delete the Desktop database merely to make the gate pass.
+
+## 5. Explicit package boundary
+
+Still excluded:
+
+- invitations/join/rejoin;
+- Kick/Ban/Unban UI;
+- hosted Desktop authentication/full sync;
 - live combat authority/resume/handoff;
-- substantive Managers, Media/Handouts, System Administration or backup/export implementation;
+- substantive Managers;
+- Media/Handouts/object storage;
+- System Administration;
+- backup/export/PDF hardening;
 - generalized RBAC/ACL.
 
-D-0072 and D-0073 remain controlling. Routine technical implementation does not require another owner decision.
+D-0072 and D-0073 remain controlling.
 
-## 4. Completed Wave 4 baseline
+## 6. Completed Wave 4 baseline
 
-PR #40 multi-client convergence and PR #41 membership revoke/authorization are integrated and closed. PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; its post-merge Scaffold `35123027446` passed.
+PR #40 multi-client convergence and PR #41 membership revoke/authorization are integrated and closed. Do not reopen those branches for Wave 5 work unless later behavior actually touches their contracts.
 
-The current branch starts from later documentation/device-inventory `main` head `40b29006052c9986e2d79227a6053f36241de1e6`, whose Scaffold `35123470001` passed all backend, hosted-database, Kotlin, Android and Desktop checks.
+## 7. Protected invariants
 
-Do not resume completed Wave 4 branches for new work.
+Preserve local-first persistence, stable identity, membership/role/ownership/current-control distinctions, DM authority distinct from ownership, stale-revision/idempotency/tombstone/no-silent-overwrite semantics, the hard USD $0 policy and public-repository secret hygiene.
 
-## 5. Protected invariants
+## 8. Historical branches
 
-Preserve:
+Completed/frozen Wave 4 and older branches remain evidence only unless a newer checkpoint explicitly reactivates one. Do not force-move or repurpose them.
 
-- local-first persistence and stable object identity;
-- membership/role/ownership/current-control distinctions;
-- DM campaign authority distinct from PC ownership;
-- stale-revision, mutation-idempotency, tombstone/non-resurrection and no-silent-overwrite semantics;
-- non-destructive handling of local user data;
-- project-specific authorization rather than generalized RBAC/ACL infrastructure;
-- hard external-service budget of USD $0 unless owner changes it;
-- public-repository secret hygiene.
+## 9. Exact resume rule
 
-## 6. Historical branches
-
-`wave4/membership-revoke-authorization`, `implementation/phase4a-successor-cycle`, `integration/mvp-baseline-convergence` and other completed/frozen refs remain historical evidence only unless explicitly reactivated by a later checkpoint.
-
-Do not force-move or repurpose historical refs.
-
-## 7. Exact resume rule
-
-Continue on `wave5/desktop-workbench-shell` and read `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_PACKAGE_OPEN.md` first. No owner interaction is required until a genuine visual/manual QA gate or material product/security/cost/destructive-behavior ambiguity appears.
+Continue on `wave5/desktop-workbench-shell`; read the manual-QA checkpoint first. The only current owner action is the guided Windows Desktop audition.
