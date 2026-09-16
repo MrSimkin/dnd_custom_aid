@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -33,6 +34,7 @@ import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedMutationType
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcPullConflictReason
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRetryState
 import kotlinx.coroutines.launch
 
@@ -48,6 +50,8 @@ class HostedDevAuthActivity : ComponentActivity() {
     private val database by lazy { AndroidDatabaseFactory(applicationContext).create() }
     private val hostedOutbox by lazy { HostedOutboxRepository(database) }
     private val hostedBootstrap by lazy { AndroidHostedCampaignBootstrapController(database) }
+    private val hostedConflictResolver by lazy { AndroidHostedPcConflictResolver(database) }
+    private var lastQaOutcome: AndroidHostedCampaignBootstrapOutcome? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +63,7 @@ class HostedDevAuthActivity : ComponentActivity() {
                         describeHostedOutbox = ::describeHostedOutbox,
                         retryBlockedPcValidationFailures = ::retryBlockedPcValidationFailures,
                         runHostedSyncQa = ::runHostedSyncQa,
+                        keepLocalForLatestPcConflict = ::keepLocalForLatestPcConflict,
                         copyQaLog = ::copyQaLog,
                         shareQaLog = ::shareQaLog,
                     )
@@ -68,6 +73,7 @@ class HostedDevAuthActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        hostedConflictResolver.close()
         hostedBootstrap.close()
         authController.close()
         super.onDestroy()
@@ -92,6 +98,7 @@ class HostedDevAuthActivity : ComponentActivity() {
 
     private suspend fun runHostedSyncQa(): String {
         val outcome = hostedBootstrap.refresh()
+        lastQaOutcome = outcome
         return hostedQaReport(
             outcome = outcome,
             generatedAtEpochSeconds = System.currentTimeMillis() / 1_000L,
@@ -99,6 +106,39 @@ class HostedDevAuthActivity : ComponentActivity() {
             appVersionCode = BuildConfig.VERSION_CODE,
             outboxDescription = describeHostedOutbox(),
         )
+    }
+
+    private suspend fun keepLocalForLatestPcConflict(): String {
+        val success = lastQaOutcome as? AndroidHostedCampaignBootstrapOutcome.Success
+        val candidates = success
+            ?.pcConflictDiagnostics
+            .orEmpty()
+            .asSequence()
+            .filter { diagnostic ->
+                diagnostic.phase == AndroidHostedPcPullPhase.FINAL_PULL &&
+                    diagnostic.reason == HostedPcPullConflictReason.LOCAL_AND_HOSTED_CHANGED
+            }
+            .distinctBy { it.pcId }
+            .toList()
+
+        val resolution = when (candidates.size) {
+            1 -> hostedConflictResolver.keepLocal(candidates.single())
+            0 -> AndroidHostedKeepLocalResolutionOutcome.Refused(
+                "La última sincronización QA no contiene un conflicto LOCAL_AND_HOSTED_CHANGED resoluble.",
+            )
+            else -> AndroidHostedKeepLocalResolutionOutcome.Refused(
+                "Hay ${candidates.size} PCs con conflicto. Esta acción QA de seguridad resuelve uno por vez; ejecuta una prueba focalizada antes de continuar.",
+            )
+        }
+        val resolutionText = renderKeepLocalResolutionOutcome(resolution)
+        val refreshedLog = runHostedSyncQa()
+        return buildString {
+            append(refreshedLog)
+            appendLine()
+            appendLine()
+            appendLine("=== LAST EXPLICIT KEEP-LOCAL RESOLUTION ===")
+            append(resolutionText)
+        }
     }
 
     private fun copyQaLog(log: String) {
@@ -150,6 +190,7 @@ private fun HostedDevAuthScreen(
     describeHostedOutbox: () -> String,
     retryBlockedPcValidationFailures: () -> String,
     runHostedSyncQa: suspend () -> String,
+    keepLocalForLatestPcConflict: suspend () -> String,
     copyQaLog: (String) -> Unit,
     shareQaLog: (String) -> Unit,
 ) {
@@ -159,6 +200,7 @@ private fun HostedDevAuthScreen(
     var hasSession by remember { mutableStateOf(authController.hasRememberedSession()) }
     var busy by remember { mutableStateOf(false) }
     var qaLog by remember { mutableStateOf("") }
+    var showKeepLocalConfirmation by remember { mutableStateOf(false) }
     var status by remember {
         mutableStateOf(
             if (hasSession) {
@@ -182,6 +224,37 @@ private fun HostedDevAuthScreen(
                 busy = false
             }
         }
+    }
+
+    if (showKeepLocalConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showKeepLocalConfirmation = false },
+            title = { Text("Conservar versión local") },
+            text = {
+                Text(
+                    "Esta acción intentará subir el PC local por encima de la versión hospedada que acabas de revisar. " +
+                        "Solo se ejecutará si el servidor sigue exactamente en esa misma revisión; si otro cliente cambió el PC otra vez, se detendrá sin sobrescribirlo.",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showKeepLocalConfirmation = false
+                        runAction {
+                            qaLog = keepLocalForLatestPcConflict()
+                            status = "Resolución explícita ejecutada. Revisa el log actualizado y compártelo antes de continuar."
+                        }
+                    },
+                ) {
+                    Text("Sí, conservar local")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showKeepLocalConfirmation = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
     }
 
     Column(
@@ -217,6 +290,18 @@ private fun HostedDevAuthScreen(
         ) {
             Text(if (busy) "Procesando…" else "Ejecutar sincronización QA")
         }
+
+        Button(
+            enabled = !busy && hasSession && qaLog.isNotBlank(),
+            onClick = { showKeepLocalConfirmation = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Resolver conflicto: conservar PC local")
+        }
+        Text(
+            text = "Usa esta acción solo después de revisar un LOCAL_AND_HOSTED_CHANGED en el log. Nunca se ejecuta automáticamente.",
+            style = MaterialTheme.typography.bodySmall,
+        )
 
         Button(
             enabled = !busy && qaLog.isNotBlank(),
@@ -287,6 +372,7 @@ private fun HostedDevAuthScreen(
                         otpRequested = false
                         code = ""
                         qaLog = ""
+                        lastQaOutcome = null
                         status = "Sesión cerrada en este dispositivo."
                     }
                 },
