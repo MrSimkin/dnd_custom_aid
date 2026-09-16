@@ -2,48 +2,54 @@
 
 **Updated:** 2026-09-16 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Verified integrated behavior main:** `6f7165e6e5ae56a4b1985f037a656bf527b94d01`  
-**Post-merge Scaffold:** `35123027446` — **SUCCESS**  
-**PR #41:** **MERGED**  
-**Membership revoke + Player/DM authorization:** **COMPLETE / INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
-**Current focused implementation package:** none opened by this closure
+**Verified starting main for current package:** `40b29006052c9986e2d79227a6053f36241de1e6`  
+**Starting Scaffold:** `35123470001` — **SUCCESS**  
+**Current focused branch:** `wave5/desktop-workbench-shell`  
+**Current package:** Wave 5 — Desktop workbench shell + local campaign context  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_PACKAGE_OPEN.md`  
+**Owner implementation authorization:** **GRANTED**  
+**Current owner/manual action:** none
 
 ## Read first
 
 1. `AGENTS.md` — mandatory project operating rules;
-2. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` — latest completed Wave 4 authorization evidence;
+2. `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_PACKAGE_OPEN.md` — current package boundary and verification plan;
 3. this file — practical resume point;
 4. `docs/BRANCH_STATUS.md` — branch lifecycle;
 5. `docs/PROJECT_STATE.md` — global implementation state;
-6. `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md` — preceding convergence evidence;
-7. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and secret-hygiene policy.
+6. `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md` — controlling Desktop/workbench product direction;
+7. `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md` — integrated-MVP sequencing/governance;
+8. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` — latest completed Wave 4 evidence;
+9. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — `$0`, public-repository and secret-hygiene policy.
 
-If older operational prose conflicts with this file or the latest completion checkpoint, the newer completion record controls.
+If older operational prose conflicts with this file or the current package checkpoint, the newer current record controls.
 
-## Current Wave 4 state
+## Current implementation sequence
 
 ```text
-remembered Android Descope session/token             COMPLETE / OWNER-PHYSICAL PASS
-owner-facing hosted account/campaign bootstrap       COMPLETE / OWNER-PHYSICAL PASS
-campaign create + durable hosted delivery            COMPLETE / OWNER-PHYSICAL PASS
-PC snapshot push/pull + blocked-row recovery         COMPLETE / OWNER-PHYSICAL PASS
-unchanged-sync/no-op confirmation                    COMPLETE / OWNER-PHYSICAL PASS
-multi-client PC convergence safety                    COMPLETE / OWNER-PHYSICAL PASS
-membership revoke + Player/DM authorization          COMPLETE / OWNER-PHYSICAL PASS
-PR #41 merge + post-merge main                       COMPLETE / VERIFIED
+Wave 4 Player <-> Server                           COMPLETE / INTEGRATED
+membership revoke + Player/DM authorization       COMPLETE / OWNER-PHYSICAL PASS
+        |
+        v
+Wave 5 Desktop shell + Campaign Administration    ACTIVE
+        |
+        v
+desktop workbench shell + local campaign context CURRENT PACKAGE
 ```
 
-## Membership revoke / authorization completion
+## Current package intent
 
-Automated coverage proves dynamic Player owner/controller revoke, BANNED inactivity, independent DM authority, DM revoke, hosted-PC preservation and stable `403 FORBIDDEN` behavior.
+The Desktop application is currently only a placeholder window. Shared already owns Campaign identity/persistence semantics through `CampaignRepository`, and the Shared Desktop target already includes SQLite JDBC support.
 
-The bounded real-DEV physical gate specifically exercised the actual DM membership for `Hosted Batch Test` through `ACTIVE -> KICKED -> ACTIVE` on Android `0.4.0-preqa.15 / 41500`.
+This package therefore establishes the real Desktop workbench around those existing Shared seams instead of inventing Desktop-only campaign state. It will provide persistent local Desktop storage, the approved workbench frame, functioning Dashboard/Campaigns/Campaign Administration destinations, and active-campaign context.
 
-While KICKED, hosted eligibility stopped, no PC sync occurred, no conflicts/outbox work appeared, and the local campaign/PC remained present and viewable. After restoration to ACTIVE, eligibility and unchanged PC synchronization resumed cleanly.
+Final invitation/Kick/Ban workflows, hosted Desktop authentication/sync, live combat authority, Managers, Media/Handouts, System Administration and backup/export remain outside this first slice.
 
-Physical testing covered DM revoke/reinstate. Player revoke remains automated evidence and must not be mislabeled as physical.
+## Completed Wave 4 baseline
 
-Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Scaffold `35122878536`. PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` passed.
+PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` passed. The later documentation/device-inventory head `40b29006052c9986e2d79227a6053f36241de1e6` passed Scaffold `35123470001` and is the exact base of the current Wave 5 branch.
+
+Do not reopen completed provider/session/campaign-PC/convergence/membership QA unless new behavior touches those contracts.
 
 ## Permanent safety rules
 
@@ -54,9 +60,8 @@ Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Sca
 - Membership, campaign role, PC ownership and current control remain distinct.
 - DM authority does not imply PC ownership.
 - Preserve stale-revision, idempotency, tombstone/non-resurrection and no-silent-overwrite guarantees.
+- Live Combat belongs to Wave 6 and must not be pulled into the current Desktop shell package.
 
-## Next product boundary
+## Exact next action
 
-No new implementation branch/package is opened by this closure.
-
-Final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration and broader moderation workflows are separate product work. Scope/authorize the next package explicitly before implementation rather than treating it as a continuation of PR #41.
+Continue implementation on `wave5/desktop-workbench-shell` from the current package checkpoint. No owner input is needed until automated verification reaches a meaningful Desktop visual/manual QA gate or a genuine product-level ambiguity appears.
