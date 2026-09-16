@@ -69,7 +69,9 @@ class DesktopPreferencesStoreTest {
         val properties = Properties().apply {
             setProperty("font_choice", "A_FONT_THAT_DOES_NOT_EXIST")
         }
-        Files.newOutputStream(file).use(properties::store)
+        Files.newOutputStream(file).use { output ->
+            properties.store(output, "test preferences")
+        }
 
         val loaded = DesktopPreferencesStore(file).load()
 
