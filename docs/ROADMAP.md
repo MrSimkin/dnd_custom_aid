@@ -10,7 +10,7 @@ This roadmap defines the current development sequence. Detailed product behavior
 
 **Status:** Current integrated-MVP product definition complete.
 
-The DM Desktop/Manager scope, exact MVP boundary, implementation governance and PC Sheet PDF-export behavior are closed. Reopen product discovery only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
+Reopen product discovery only when implementation exposes a real unresolved user-facing decision or the owner deliberately changes scope.
 
 ## Phase 2 — Technical Foundation
 
@@ -20,7 +20,7 @@ Approved foundation remains Kotlin/Compose Android, Kotlin + Compose Multiplatfo
 
 Preferred technical direction remains Ktor Client, versioned HTTP/JSON API, optimistic revisions + mutation IDs, project-specific SQLDelight outbox/push-pull sync, explicit SQL migrations, hosted PC JSONB snapshots plus relational auth/index metadata, versioned app-owned import/export, on-demand versioned backups and one canonical PC/export snapshot for cross-surface PDF generation.
 
-Object storage is required by the MVP but provider selection remains deferred until Media/Handouts/assets reach implementation. Do not assume R2 merely because Cloudflare is already active.
+Object storage is required by the MVP but provider selection remains deferred until Media/Handouts/assets reach implementation.
 
 ## Phase 3 — First Vertical Slice
 
@@ -30,26 +30,11 @@ Object storage is required by the MVP but provider selection remains deferred un
 
 **Status:** Mature runtime integrated into the current baseline; historical physical evidence remains bounded.
 
-Historical frozen candidate:
-
-- `0.4.0-preqa.13 / 41300`;
-- commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
-- Scaffold `34801612526` / #1630 — SUCCESS;
-- targeted physical cross-device revalidation was still pending at that old boundary.
-
 Its runtime/migrations/tests/guard scripts are integrated into `main`. Do not restart historical repair cycles without new evidence.
 
 ## Phase 4B — Integrated MVP Build
 
 **Status:** **IN PROGRESS — owner implementation authorization granted.**
-
-Current provider-neutral implementation checkpoint:
-
-`8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
-
-Validation run:
-
-`34985799585` — **SUCCESS**.
 
 The build targets one coherent product:
 
@@ -63,89 +48,48 @@ Internal waves are engineering controls, not separate products.
 
 **Status:** COMPLETE / INTEGRATED.
 
-The semantic convergence was promoted to `main`; the former Player successor and convergence branch are historical evidence only. `main` is the normal integrated trunk.
-
 ### Wave 2 — Shared Integrated-MVP Spine
 
 **Status:** COMPLETE / INTEGRATED.
 
-Implemented shared semantics include:
-
-- global account/identity;
-- Campaign;
-- Membership + campaign role;
-- PC owner vs current controller;
-- stable IDs;
-- revisions and stale-write protection;
-- tombstones/non-resurrection;
-- Personal/Campaign/System-or-Official scopes where valid;
-- independent-copy provenance;
-- sync metadata and invariant tests.
+Implemented shared semantics include global account/identity, Campaign, Membership + campaign role, PC owner/current controller distinction, stable IDs, revisions/stale-write protection, tombstones/non-resurrection, scope/provenance semantics and sync metadata/invariants.
 
 ### Wave 3 — Hosted foundation
 
 **Status:** COMPLETE / INTEGRATED / REAL DEV ENVIRONMENT VERIFIED.
 
-Provider-neutral hosted work is integrated through PR #25 and includes:
+Provider-neutral hosted work includes the `/v1` API/auth/domain foundation, explicit PostgreSQL contracts, shared native transport, provider-neutral access-token seam, durable hosted outbox, local-first campaign delivery, campaign membership lifecycle reconciliation, hosted PC snapshots, application authorization, optimistic revisions/idempotency/conflict/tombstone behavior and safe same-identity reconciliation.
 
-- `/v1` hosted API/auth/domain foundation;
-- explicit PostgreSQL migrations/contracts + CI validation;
-- shared Android/Desktop HTTP transport;
-- provider-neutral access-token boundary;
-- durable SQLDelight hosted outbox;
-- local-first campaign creation + idempotent hosted delivery;
-- authenticated account/campaign bootstrap;
-- campaign membership lifecycle reconciliation;
-- hosted PC current-state snapshots;
-- server-side application authorization;
-- optimistic revisions/idempotency/conflict/tombstone semantics;
-- safe same-identity hosted reconciliation.
-
-The first real DEV provider gate has also been completed:
-
-- Neon migration + real contract tests verified;
-- Descope real OTP login verified;
-- Cloudflare Worker deployed;
-- real authenticated `/v1/me` -> application user -> Neon persistence verified;
-- representative Workers Free CPU/runtime proof passed for the tested authenticated path.
-
-See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`.
-
-Do not repeat provider activation and do not introduce generalized event sourcing, CRDTs, queues, WebSockets or a generic sync platform by default.
+The real DEV provider activation completed Neon migration/contracts, Descope OTP login, Cloudflare Worker deployment, authenticated `/v1/me` -> application user -> Neon persistence and representative Workers Free CPU/runtime proof.
 
 ### Wave 4 — Player <-> Server end-to-end
 
-**Status:** ACTIVE — Android hosted-session edge COMPLETE; owner-facing campaign bootstrap NEXT.
+**Status:** COMPLETE / INTEGRATED for the recorded scope.
 
-Preserve the mature Player UX/runtime while wiring the real hosted environment through existing contracts.
+Completed work includes remembered Android Descope authentication/session reuse, hosted campaign bootstrap/delivery, PC snapshot push/pull, multi-client convergence, explicit conflict resolution and membership revoke/reinstate authorization behavior. Recorded owner physical/manual gates are complete where the checkpoints state so.
 
-Completed Wave 4 steps:
-
-1. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — remembered Android Descope session/token acquisition at the platform edge;
-2. **COMPLETE / INTEGRATED / OWNER-PHYSICAL PASS** — feed token into the existing `HostedAccessTokenProvider` seam.
-
-PR #30 merged as `bf5f843066a7c2f8674a4577918156e8a8d2c139`; post-merge Actions `35020281492` / #1898 completed SUCCESS. The owner physically verified OTP login, authenticated Worker access, remembered-session reuse after a full app restart and logout clearing the remembered session after restart.
-
-See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`.
-
-Remaining dependency order:
-
-3. **NEXT** — owner-facing hosted account/campaign bootstrap;
-4. campaign create/select + durable hosted delivery while preserving local-first behavior;
-5. PC snapshot push/pull;
-6. second-device observation;
-7. offline edit/reconnect/convergence;
-8. membership-revoke and Player/DM authorization validation.
-
-The debug-only `DnD Aid - Hosted DEV Auth` activity is verification infrastructure, not the final Player login UX.
-
-Future materially heavier Worker routes should receive representative CPU/runtime profiling. Do not silently move to paid Workers if a route exceeds the Free budget; reassess under D-0075.
-
-Establish the canonical PC/export snapshot used later by all PDF-export surfaces as dependencies become available.
+Do not restart Wave 4 merely because older roadmap prose once listed intermediate steps as pending.
 
 ### Wave 5 — Desktop shell + Campaign Administration
 
-Build the real Desktop navigation/workbench and Campaign Manager on the same shared domain semantics.
+**Status:** ACTIVE.
+
+Completed:
+
+- Desktop workbench + persistent local campaign context — merged/owner-QA accepted via PR #42;
+- hosted Campaign membership administration backend/database/Shared core — merged via PR #43 with post-merge CI pass.
+
+Current package:
+
+- `wave5/desktop-hosted-campaign-administration` / draft PR #44;
+- Desktop Descope email-OTP/session acquisition;
+- hosted campaign bootstrap/convergence;
+- real Campaign Administration roster + Player moderation consumption;
+- non-secret diagnostics;
+- Desktop font/theme preview settings follow-up;
+- bounded repository implementation is complete and CI-verified.
+
+**Current gate:** explicit real DEV Worker deployment/integration evidence, then owner Windows Desktop QA. Repository CI does not substitute for those gates.
 
 ### Wave 6 — reusable/persistent content architecture
 
@@ -157,7 +101,7 @@ Implement Monster/Creature Creator, NPC, Homebrew & Rules, Stage/Place, Dungeon/
 
 Object-storage provider selection/activation occurs only when Media/Handouts/assets actually require it and must receive a fresh `$0` review.
 
-Cross-surface PC Sheet PDF export may be implemented across Waves 4–7 as dependencies become available; it must use one canonical semantic export path rather than separate incompatible exporters.
+Cross-surface PC Sheet PDF export may be implemented across relevant waves as dependencies become available; it must use one canonical semantic export path.
 
 ### Wave 8 — DM Live Workspace
 
@@ -169,7 +113,7 @@ Implement local-first single-device combat authority, hosted opportunistic excha
 
 ### Wave 10 — SRD retrieval + grounded clarification
 
-Complete SRD 5.1/5.2.1 PostgreSQL retrieval and grounded Player/DM natural-language clarification. Workers AI remains a conditional later provider only while it can be used safely at `$0`. Homebrew-aware AI remains post-MVP.
+Complete SRD 5.1/5.2.1 PostgreSQL retrieval and grounded Player/DM natural-language clarification. Workers AI remains conditional only while usable safely under the `$0` policy. Homebrew-aware AI remains post-MVP.
 
 ### Wave 11 — backup/recovery/operator completion
 
@@ -181,15 +125,7 @@ Exercise representative Player + Server + DM flows together, including auth/camp
 
 ## Security work across waves
 
-Security is continuous rather than a separate enterprise phase. Current visible residuals include:
-
-- JWT/fail-closed verification review;
-- object-level authorization regression coverage;
-- SQL/query and error/log hygiene;
-- replay/idempotency authorization;
-- exact investigation of the locally reported **3 high severity npm vulnerabilities**;
-- least-privilege Neon runtime-role evaluation;
-- production Descope region/configuration review.
+Security is continuous rather than a separate enterprise phase. Visible residuals include JWT/fail-closed verification review, object-level authorization regression coverage, SQL/query and error/log hygiene, replay/idempotency authorization, dependency vulnerabilities, least-privilege Neon runtime-role evaluation and production identity/configuration review.
 
 Do not run `npm audit fix --force` blindly and do not make destructive live privilege/credential changes without a deliberate plan.
 
@@ -197,14 +133,12 @@ Do not run `npm audit fix --force` blindly and do not make destructive live priv
 
 Do not silently demote Desktop live parity, combat handoff/resume, authoring Managers, structured homebrew/import-export, object storage/media, PC audit/correction, PC Sheet PDF export, Campaign/System Administration, backup/recovery or official-SRD clarification to stretch goals.
 
-Still deferred unless concrete evidence requires them: full VTT/grid/LOS/fog, automatic character legality/rules engine, simultaneous authoritative co-DM combat, generalized realtime/WebSockets, Durable Objects/queues by default, generic ACL/CRDT/sync platforms, automatic encounter-balance authority, homebrew-aware AI, public marketplace/community, every third-party import format, polished one-click catastrophic restore, exhaustive event sourcing, enterprise observability and generic RPG framework.
+Still deferred unless concrete evidence requires them: full VTT/grid/LOS/fog, automatic legality engine, simultaneous authoritative co-DM combat, generalized realtime/WebSockets, generic ACL/CRDT/sync platforms, automatic encounter-balance authority, homebrew-aware AI, public marketplace/community, exhaustive event sourcing, enterprise observability and a generic RPG framework.
 
 ## Git/development rule
 
 `main` is the integrated trunk. Use short-lived outcome-oriented branches and frequent reintegration. Shared contracts merge early. Durable decisions live in documentation; branches are temporary implementation vehicles.
 
-## Collaboration rule
+## External-provider rule
 
-The owner decides product behavior/workflow/scope/privacy and meaningful cost/security/convenience tradeoffs. Technical agents own routine schema/API/class/migration/sync/rendering/test/package decisions.
-
-Do not stop for owner rubber-stamping of ordinary engineering. Escalate only material product/scope/security/privacy/cost/lock-in/destructive behavior, required new external account/service actions, or manual/physical QA gates.
+When execution reaches an authenticated provider action the agent cannot actually perform, stop at one bounded owner handoff instead of retrying access indefinitely. See `AGENTS.md`, `docs/WORKFLOW.md` and `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md`.

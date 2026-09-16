@@ -4,19 +4,16 @@ This file maps authoritative project-control files and implemented areas so a fr
 
 ## Current authority model
 
-The owner has authorized integrated-MVP implementation. **`main` is the single normal integrated-MVP trunk.** Historical Player/convergence lines are evidence only.
+The owner has authorized integrated-MVP implementation. **`main` is the sole normal integrated-MVP trunk.** Historical Player/convergence lines are evidence only.
 
-Provider-neutral implementation checkpoint:
+Current practical truth is controlled by:
 
-`8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`
+- `docs/checkpoints/LATEST.md` — exact resume pointer;
+- `docs/PROJECT_STATE.md` — current global implementation/product state;
+- `docs/BRANCH_STATUS.md` — branch lifecycle;
+- the current checkpoint referenced by `LATEST.md` — package-specific implementation/verification evidence.
 
-Actions `34985799585` — SUCCESS.
-
-Hosted DEV provider activation is **COMPLETE / VERIFIED** and the first Android hosted-session edge is **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**.
-
-`docs/checkpoints/LATEST.md` controls the practical resume point. The current implementation checkpoint is `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`; `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` remains the hosted-environment/provider evidence checkpoint.
-
-`docs/BRANCH_STATUS.md` controls branch lifecycle.
+As of 2026-09-16, Wave 4 is complete. Wave 5 is active. The current draft PR #44 repository implementation is complete/CI-verified and is stopped at explicit real DEV Worker deployment/integration before owner Windows Desktop QA.
 
 ## Start/resume control files
 
@@ -24,47 +21,40 @@ Hosted DEV provider activation is **COMPLETE / VERIFIED** and the first Android 
 Repository entry point and read sequence.
 
 ### `AGENTS.md`
-Mandatory operating rules for humans and AI/coding agents. Routine engineering is delegated; owner escalation is for real consequential decisions/gates.
+Mandatory operating rules for humans and AI/coding agents, including the external-provider capability boundary.
 
 ### `docs/checkpoints/LATEST.md`
-Exact practical resume pointer and current supersession/correction rules.
-
-### `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`
-Current Wave 4 implementation truth: Android Descope session-manager integration, real `HostedAccessTokenProvider` adapter, automated validation, owner physical login/restart/logout proof, debug-harness boundary and exact hosted account/campaign bootstrap continuation.
-
-### `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
-Hosted DEV environment truth: real Neon/Descope/Cloudflare resources, migration/auth/persistence/runtime evidence, local-development caveats and security residuals.
-
-### `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`
-Controlling owner policy for:
-
-- external-service budget = **USD $0** unless explicitly changed;
-- free-tier billing/overage/hard-cap evaluation;
-- provider revalidation;
-- intentional public GitHub repository visibility;
-- strict secret hygiene;
-- owner-facing guidance style for a technically oriented power user who is not a professional developer.
-
-### `docs/recovery/PROJECT_RECOVERY_PROMPT.md`
-Reusable whole-project fresh-chat/lost-chat recovery prompt. It must reconstruct the full project rather than merely the last provider/auth task.
-
-### `docs/checkpoints/2026-09-15_PLAYER_SERVER_PROVIDER_BOUNDARY.md`
-Historical provider-boundary checkpoint capturing the state immediately before real provider activation. Its old `next` instructions are superseded.
+Exact practical resume pointer and current supersession rules.
 
 ### `docs/PROJECT_STATE.md`
 Current global implementation/product state.
 
 ### `docs/BRANCH_STATUS.md`
-Canonical branch lifecycle map and current normal resume rule.
+Canonical branch lifecycle map and current resume rule.
+
+### `docs/recovery/PROJECT_RECOVERY_PROMPT.md`
+Reusable whole-project fresh-chat/lost-chat recovery prompt.
+
+### `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md`
+Reusable prompt for continuing autonomous repository work while stopping cleanly at inaccessible Cloudflare/Descope/Neon/provider actions.
+
+### `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`
+Controlling `$0` external-service budget, provider revalidation, intentional public-repository visibility, secret hygiene and owner-guidance contract.
+
+### `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
+Historical evidence for the first real Neon + Descope + Cloudflare DEV activation. Provider activation is complete; do not repeat it.
+
+### `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`
+Historical evidence for the first Android hosted-session integration and owner physical login/restart/logout proof.
 
 ### `docs/ROADMAP.md`
 Integrated implementation waves and ordering.
 
-### `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`
-Provider-neutral engineering handoff/contracts. Where it still describes provider creation/session wiring as pending, newer checkpoints control the current operational state.
+### `docs/WORKFLOW.md`
+AI-led development/review workflow and external-provider handoff protocol.
 
-### `docs/technical/HOSTED_PROVIDER_ACTIVATION_GATE.md`
-Historical/operational record of the first Cloudflare + Neon + Descope activation gate, now completed.
+### `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`
+Provider-neutral engineering handoff/contracts. Older exact-resume prose inside technical baselines is superseded by current state docs.
 
 ## Controlling product/architecture decisions
 
@@ -72,16 +62,15 @@ Historical/operational record of the first Cloudflare + Neon + Descope activatio
 - `D-0072` — DM Desktop product and authoring/management surfaces;
 - `D-0073` — integrated MVP boundary and implementation governance;
 - `D-0074` — cross-surface PC Sheet PDF export definition;
-- `D-0075` — zero-budget provider policy, provider revalidation, repository visibility clarification and owner-guidance contract.
+- `D-0075` — zero-budget provider policy, provider revalidation, repository visibility and owner-guidance contract.
 
-Use `docs/DECISIONS_RECENT.md` for navigation to detailed decision records.
+Use `docs/DECISIONS_RECENT.md` for navigation.
 
 ## Other mandatory/reference docs
 
 - `docs/CONVENTIONS.md` — recurring conventions;
 - `docs/PRODUCT.md` — approved product scope;
-- `docs/WORKFLOW.md` — AI-led development/review workflow;
-- `docs/ARCHITECTURE.md` — integrated architecture; older exact-resume text may be historical where superseded by `LATEST`;
+- `docs/ARCHITECTURE.md` — integrated architecture;
 - `docs/TESTING.md` — verification strategy/evidence;
 - `docs/TEST_DEVICES.md` — owner-confirmed physical devices.
 
@@ -90,19 +79,19 @@ Historical checkpoints remain evidence; old `next` instructions may be supersede
 ## Current implemented areas
 
 ### `shared/`
-Kotlin Multiplatform domain/persistence/networking/sync foundation with SQLDelight, kotlinx.serialization and Ktor. Includes stable identities/revisions, hosted transport, durable outbox, campaign lifecycle sync and hosted PC snapshot reconciliation/conflict logic.
+Kotlin Multiplatform domain/persistence/networking/sync foundation with SQLDelight, kotlinx.serialization and Ktor. Includes stable identities/revisions, hosted transport, durable outbox, campaign lifecycle sync, hosted PC snapshot reconciliation/conflict logic and provider-neutral hosted Campaign Administration clients.
 
 ### `androidApp/`
-Mature Player Android runtime protected by permanent CI guards. The real Descope remembered-session edge and `HostedAccessTokenProvider` adapter are now integrated and physically verified. A debug-only hosted-auth harness exists for DEV verification; owner-facing hosted account/campaign bootstrap is the next active integration package.
+Mature Player Android runtime protected by permanent CI guards. Real Descope remembered-session integration, campaign bootstrap/delivery, PC hosted synchronization/convergence/conflict behavior and Wave 4 authorization QA are integrated for their recorded scope.
 
 ### `desktopApp/`
-Compose Multiplatform Desktop foundation. Full approved DM Desktop workbench remains protected integrated-MVP work after Player <-> Server contracts are proven end-to-end.
+Compose Multiplatform Desktop workbench with persistent local campaign context. Current PR #44 adds Desktop hosted Descope email-OTP/session acquisition, hosted campaign bootstrap, real Campaign Administration roster/moderation consumption, diagnostics and font/theme preview settings.
 
 ### `backend/`
-TypeScript Cloudflare Worker/API with `/v1` hosted routes, Descope/JWKS verification, application-owned authorization, campaign/membership lifecycle and PC snapshot behavior. The DEV Worker is deployed at the public workers.dev endpoint recorded in the hosted completion checkpoint.
+TypeScript Cloudflare Worker/API with `/v1` routes, Descope/JWKS verification, application-owned authorization, campaign/membership lifecycle, Campaign Administration and PC snapshot behavior. The historical DEV Worker exists, but new PR #43 Campaign Administration routes must not be described as live until explicit current deployment/integration evidence exists.
 
 ### `database/`
-Explicit hosted PostgreSQL migration/contracts validated in CI and additionally exercised against the real Neon DEV database during provider activation.
+Explicit hosted PostgreSQL migrations/contracts validated in CI and previously exercised against the real Neon DEV database. Current Campaign Administration contracts include migration/contract `0006`.
 
 ### `scripts/`
 Permanent Player guard scripts exercised by Scaffold CI.
@@ -112,23 +101,27 @@ PC Sheet PDF visual authorities; not the canonical PC model.
 
 ## Current integrated implementation position
 
-Wave 2 Shared Integrated-MVP Spine is complete. Provider-neutral hosted foundation is integrated through PR #25. The first real hosted DEV environment is activated and verified.
+```text
+Wave 1 baseline convergence                         COMPLETE
+Wave 2 Shared Integrated-MVP Spine                  COMPLETE
+Wave 3 hosted foundation / real DEV activation      COMPLETE
+Wave 4 Player <-> Server                            COMPLETE
+Wave 5 Desktop shell/local campaign                 COMPLETE / owner-QA pass
+Wave 5 hosted membership administration core       COMPLETE / merged #43
+Wave 5 Desktop hosted Campaign Administration       REPO IMPLEMENTED / CI VERIFIED / PR #44
+Real DEV deployment/integration                     NEXT
+Owner Windows Desktop QA                            REQUIRED BEFORE MERGE
+```
 
-Wave 4 is now active. Its Android remembered-session/token edge is complete through PR #30 (`bf5f843066a7c2f8674a4577918156e8a8d2c139`; post-merge Actions `35020281492` SUCCESS), including owner physical proof of login, restart/session reuse and logout/session clearing.
+Do not restart completed provider activation, Android session work, Wave 4, PR #42 or PR #43.
 
-The next meaningful package is **owner-facing hosted account/campaign bootstrap**, using the already active Cloudflare + Neon + Descope DEV resources and the already-integrated Android session edge.
+## External-provider capability rule
 
-Do not restart provider activation or Android session acquisition. Do not create speculative parallel infrastructure.
-
-Object-storage provider selection remains deferred until real asset integration. Workers AI remains later/conditional under the `$0` policy.
+If an agent cannot actually authenticate to a required provider, it must not loop on alternate connection attempts. Finish safe repository preparation, produce one owner-action packet, stop, and resume from non-secret evidence. See `AGENTS.md`, `docs/WORKFLOW.md` and `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md`.
 
 ## Security / repository visibility
 
-The GitHub repository is intentionally **public**. This is expected configuration, not a security discrepancy.
-
-Never commit provider credentials, database credentials, access/session tokens, private keys or other secrets.
-
-Security residuals visible at the current checkpoint include dependency-audit review, least-privilege Neon runtime-role evaluation, continued object-level authorization/JWT/query/log hardening and later production Descope-region/configuration review.
+The GitHub repository is intentionally **public**. Never commit provider/database credentials, API/admin/deployment tokens, access/session tokens, private keys or other secrets.
 
 ## Current integrated-MVP boundary
 
@@ -142,11 +135,11 @@ Protected scope includes Player hosted integration, full DM live Android/Desktop
 
 If documents conflict:
 
-1. later specific Approved decisions control older general prose;
+1. later specific approved decisions control older general prose;
 2. `AGENTS.md` controls working governance;
 3. `docs/BRANCH_STATUS.md` controls branch lifecycle;
-4. `docs/PROJECT_STATE.md` controls current global state except where a newer specific decision/checkpoint explicitly supersedes stale prose;
-5. `docs/checkpoints/LATEST.md` controls the practical resume point;
-6. detailed decisions/checkpoints control their specific approved facts;
+4. `docs/PROJECT_STATE.md` controls current global state;
+5. `docs/checkpoints/LATEST.md` controls practical continuation;
+6. the current specific checkpoint controls its milestone evidence;
 7. historical checkpoints remain evidence only;
 8. surface material contradictions instead of guessing.
