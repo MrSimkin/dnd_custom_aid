@@ -12,6 +12,8 @@ dependencies {
     implementation(projects.shared)
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.multiplatform.material)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.ktor.client.core)
     testImplementation(kotlin("test"))
 }
 
