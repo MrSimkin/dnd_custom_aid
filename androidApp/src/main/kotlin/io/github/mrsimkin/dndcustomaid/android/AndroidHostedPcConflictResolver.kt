@@ -10,6 +10,7 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcConflictResolutionQueueService
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcPullConflictReason
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSyncBaselineRepository
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRetryState
 import io.github.mrsimkin.dndcustomaid.shared.spine.IntegratedSpineRepository
 import io.github.mrsimkin.dndcustomaid.shared.spine.Revision
 import kotlinx.coroutines.CancellationException
@@ -46,7 +47,7 @@ internal sealed interface AndroidHostedKeepLocalResolutionOutcome {
  * compare-and-swap protection if another client advances again between the re-fetch and delivery.
  */
 internal class AndroidHostedPcConflictResolver(
-    private val database: AppDatabase,
+    database: AppDatabase,
     private val apiClient: HostedApiClient = HostedApiClient(
         baseUrl = HostedDevelopmentEnvironment.API_BASE_URL,
         accessTokens = DescopeHostedAccessTokenProvider(),
@@ -80,12 +81,18 @@ internal class AndroidHostedPcConflictResolver(
         }
 
         return try {
-            val pendingForPc = outbox.allMutations().firstOrNull { mutation ->
+            val pendingMutations = outbox.allMutations()
+            val pendingForPc = pendingMutations.firstOrNull { mutation ->
                 mutation.type == HostedMutationType.PC_SNAPSHOT_PUT && mutation.objectId == candidate.pcId
             }
             if (pendingForPc != null) {
                 return AndroidHostedKeepLocalResolutionOutcome.Refused(
                     "Ya existe una mutación hospedada para este PC (${pendingForPc.retryState}). No se creó otra.",
+                )
+            }
+            if (pendingMutations.any { it.retryState == HostedRetryState.READY }) {
+                return AndroidHostedKeepLocalResolutionOutcome.Refused(
+                    "Hay otras mutaciones READY pendientes. Ejecuta primero una sincronización QA normal para que esta resolución quede aislada.",
                 )
             }
 
