@@ -10,9 +10,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import java.awt.GraphicsEnvironment
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -31,10 +35,65 @@ internal enum class DesktopThemeChoice(val label: String) {
     PARCHMENT("Pergamino"),
 }
 
-internal enum class DesktopFontChoice(val label: String, val family: FontFamily) {
-    SANS_SERIF("Sans serif", FontFamily.SansSerif),
-    SERIF("Serif", FontFamily.Serif),
-    MONOSPACE("Monoespaciada", FontFamily.Monospace),
+internal enum class DesktopFontChoice(
+    val label: String,
+    private val systemFamilyName: String? = null,
+    private val bundledResource: String? = null,
+) {
+    // Preserve the three original Desktop choices for preference compatibility and predictable
+    // logical-font fallbacks on every supported JVM.
+    SANS_SERIF("Sistema · Sans serif"),
+    SERIF("Sistema · Serif"),
+    MONOSPACE("Sistema · Monoespaciada"),
+
+    // Current Android-selectable application catalogue. Geist and Mona Sans Condensed are bundled
+    // from the already-present Android assets; the remainder are offered only when that exact
+    // family is installed on the Desktop machine. This prevents fake labels rendering one fallback.
+    MANROPE("Manrope", systemFamilyName = "Manrope"),
+    SORA("Sora", systemFamilyName = "Sora"),
+    SOURCE_SANS_3("Source Sans 3", systemFamilyName = "Source Sans 3"),
+    ROBOTO_CONDENSED("Roboto Condensed", systemFamilyName = "Roboto Condensed"),
+    ARCHIVO_NARROW("Archivo Narrow", systemFamilyName = "Archivo Narrow"),
+    IBM_PLEX_SANS_CONDENSED("IBM Plex Sans Condensed", systemFamilyName = "IBM Plex Sans Condensed"),
+    MONA_SANS_CONDENSED(
+        "Mona Sans Condensed",
+        bundledResource = "fonts/mona_sans_condensed_vf.ttf",
+    ),
+    GEIST("Geist", bundledResource = "fonts/geist_vf.ttf"),
+    BARLOW_SEMI_CONDENSED("Barlow Semi Condensed", systemFamilyName = "Barlow Semi Condensed"),
+    SPACE_GROTESK("Space Grotesk", systemFamilyName = "Space Grotesk"),
+    RECURSIVE("Recursive", systemFamilyName = "Recursive"),
+    PT_SANS_NARROW("PT Sans Narrow", systemFamilyName = "PT Sans Narrow"),
+    LEAGUE_SPARTAN("League Spartan", systemFamilyName = "League Spartan"),
+    ;
+
+    val family: FontFamily
+        get() = when (this) {
+            SANS_SERIF -> FontFamily.SansSerif
+            SERIF -> FontFamily.Serif
+            MONOSPACE -> FontFamily.Monospace
+            else -> bundledResource?.let { resource ->
+                FontFamily(
+                    Font(
+                        resource = resource,
+                        weight = FontWeight.Normal,
+                        style = FontStyle.Normal,
+                    ),
+                )
+            } ?: FontFamily(requireNotNull(systemFamilyName))
+        }
+
+    fun isAvailable(installedFamilies: Set<String> = installedDesktopFontFamilies()): Boolean = when {
+        this == SANS_SERIF || this == SERIF || this == MONOSPACE -> true
+        bundledResource != null -> true
+        systemFamilyName != null -> installedFamilies.any { it.equals(systemFamilyName, ignoreCase = true) }
+        else -> false
+    }
+
+    companion object {
+        fun selectableChoices(installedFamilies: Set<String> = installedDesktopFontFamilies()): List<DesktopFontChoice> =
+            entries.filter { it.isAvailable(installedFamilies) }
+    }
 }
 
 internal enum class DesktopWorkspaceDensity(val label: String) {
@@ -54,6 +113,28 @@ internal data class DesktopPreferences(
 
 internal val DESKTOP_FONT_SCALE_OPTIONS = (50..150 step 10).toList()
 internal val DESKTOP_SPACING_SCALE_OPTIONS = (50..150 step 10).toList()
+
+private val cachedInstalledDesktopFontFamilies: Set<String> by lazy {
+    runCatching {
+        GraphicsEnvironment
+            .getLocalGraphicsEnvironment()
+            .availableFontFamilyNames
+            .toSet()
+    }.getOrDefault(emptySet())
+}
+
+internal fun installedDesktopFontFamilies(): Set<String> = cachedInstalledDesktopFontFamilies
+
+internal fun resolveDesktopFontChoice(
+    raw: String?,
+    installedFamilies: Set<String> = installedDesktopFontFamilies(),
+): DesktopFontChoice {
+    val parsed = raw?.let { stored ->
+        DesktopFontChoice.entries.firstOrNull { it.name == stored }
+    }
+    return parsed?.takeIf { it.isAvailable(installedFamilies) }
+        ?: DesktopFontChoice.SANS_SERIF
+}
 
 internal class DesktopPreferencesStore(
     private val file: Path = defaultPreferencesFile(),
@@ -77,7 +158,7 @@ internal class DesktopPreferencesStore(
                 properties.getProperty(KEY_SPACING_SCALE)?.toIntOrNull() ?: 100,
                 DESKTOP_SPACING_SCALE_OPTIONS,
             ),
-            fontChoice = properties.enumValue(KEY_FONT, DesktopFontChoice.SANS_SERIF),
+            fontChoice = resolveDesktopFontChoice(properties.getProperty(KEY_FONT)),
             themeChoice = properties.enumValue(KEY_THEME, DesktopThemeChoice.SYSTEM),
             workspaceDensity = properties.enumValue(KEY_WORKSPACE_DENSITY, DesktopWorkspaceDensity.BALANCED),
         )
@@ -156,7 +237,7 @@ internal fun DesktopAppTheme(
 }
 
 @Composable
-private fun desktopColors(choice: DesktopThemeChoice): Colors = when (choice) {
+internal fun desktopColors(choice: DesktopThemeChoice): Colors = when (choice) {
     DesktopThemeChoice.SYSTEM -> if (isSystemInDarkTheme()) darkColors() else lightColors()
     DesktopThemeChoice.LIGHT -> lightColors()
     DesktopThemeChoice.DARK -> darkColors()
