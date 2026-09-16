@@ -53,6 +53,11 @@ fun main() {
     val databaseHandle = databaseFactory.create()
     val campaignRepository = CampaignRepository(databaseHandle.database)
     val preferencesStore = DesktopPreferencesStore()
+    val hostedAuthController = DesktopHostedAuthController()
+    val hostedCampaignController = DesktopHostedCampaignAdministrationController(
+        database = databaseHandle.database,
+        accessTokens = hostedAuthController,
+    )
 
     try {
         application {
@@ -65,6 +70,8 @@ fun main() {
                 DesktopAppTheme(preferences) {
                     DesktopWorkbench(
                         campaignRepository = campaignRepository,
+                        hostedAuthController = hostedAuthController,
+                        hostedCampaignController = hostedCampaignController,
                         preferences = preferences,
                         onPreferencesChange = { updated ->
                             preferences = updated
@@ -75,6 +82,8 @@ fun main() {
             }
         }
     } finally {
+        hostedCampaignController.close()
+        hostedAuthController.close()
         databaseHandle.close()
     }
 }
@@ -96,6 +105,8 @@ private enum class DesktopDestination(val label: String) {
 @Composable
 private fun DesktopWorkbench(
     campaignRepository: CampaignRepository,
+    hostedAuthController: DesktopHostedAuthController,
+    hostedCampaignController: DesktopHostedCampaignAdministrationController,
     preferences: DesktopPreferences,
     onPreferencesChange: (DesktopPreferences) -> Unit,
 ) {
@@ -178,9 +189,13 @@ private fun DesktopWorkbench(
                         onActivate = ::activateCampaign,
                     )
 
-                    DesktopDestination.CAMPAIGN_ADMINISTRATION -> CampaignAdministrationScreen(
+                    DesktopDestination.CAMPAIGN_ADMINISTRATION -> HostedCampaignAdministrationScreen(
                         activeCampaign = activeCampaign,
+                        authController = hostedAuthController,
+                        hostedController = hostedCampaignController,
                         onOpenCampaigns = { selectDestination(DesktopDestination.CAMPAIGNS) },
+                        onLocalCampaignsChanged = ::refreshCampaigns,
+                        onQaEvent = ::logQa,
                     )
 
                     DesktopDestination.APPLICATION_SETTINGS -> ApplicationSettingsScreen(
@@ -193,6 +208,7 @@ private fun DesktopWorkbench(
                         activeCampaign = activeCampaign,
                         destination = destination,
                         preferences = preferences,
+                        hostedAuthPhase = hostedAuthController.phase,
                         events = qaEvents,
                     )
 
@@ -313,15 +329,13 @@ private fun DashboardScreen(
             ) {
                 Text("Paquete Wave 5", style = MaterialTheme.typography.h6)
                 Text(
-                    "Este primer corte de Desktop usa el repositorio Shared de campañas y estado local persistente en SQLite. " +
-                        "La sincronización alojada de Desktop y las acciones de moderación siguen siendo trabajo posterior separado.",
+                    "Desktop mantiene el contexto local persistente y puede conectarse al servicio alojado desde " +
+                        "Administración de campaña. El trabajo local sigue disponible sin autenticación.",
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
                     Button(onClick = onOpenCampaigns) { Text("Abrir campañas") }
-                    if (activeCampaign != null) {
-                        Button(onClick = onOpenAdministration) {
-                            Text("Abrir administración de campaña")
-                        }
+                    Button(onClick = onOpenAdministration) {
+                        Text("Abrir administración de campaña")
                     }
                 }
             }
@@ -421,47 +435,6 @@ private fun CampaignsScreen(
                             Text(if (isActive) "ACTIVA" else "Seleccionar")
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CampaignAdministrationScreen(
-    activeCampaign: Campaign?,
-    onOpenCampaigns: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp))) {
-        WorkbenchHeading(
-            title = "Administración de campaña",
-            subtitle = "Espacio de administración centrado en la campaña.",
-        )
-
-        if (activeCampaign == null) {
-            Card(elevation = 2.dp) {
-                Column(
-                    modifier = Modifier.padding(desktopSpacing(20.dp)),
-                    verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp)),
-                ) {
-                    Text("No hay una campaña activa seleccionada.")
-                    Button(onClick = onOpenCampaigns) { Text("Elegir campaña") }
-                }
-            }
-        } else {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
-                Column(
-                    modifier = Modifier.padding(desktopSpacing(20.dp)),
-                    verticalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp)),
-                ) {
-                    Text(activeCampaign.name, style = MaterialTheme.typography.h6)
-                    Text("ID de campaña: ${activeCampaign.id}")
-                    Divider()
-                    Text(
-                        "Este paquete establece el espacio de Administración de campaña y su contexto. " +
-                            "Invitaciones, Kick/Ban/Unban y administración alojada se mantienen deliberadamente " +
-                            "para paquetes posteriores acotados.",
-                    )
                 }
             }
         }
@@ -681,6 +654,7 @@ private fun QaDiagnosticsScreen(
     activeCampaign: Campaign?,
     destination: DesktopDestination,
     preferences: DesktopPreferences,
+    hostedAuthPhase: DesktopHostedAuthPhase,
     events: List<String>,
 ) {
     val snapshot = buildQaSnapshot(
@@ -688,6 +662,7 @@ private fun QaDiagnosticsScreen(
         activeCampaign = activeCampaign,
         destination = destination,
         preferences = preferences,
+        hostedAuthPhase = hostedAuthPhase,
         events = events,
     )
 
@@ -724,7 +699,7 @@ private fun QaDiagnosticsScreen(
         }
         item {
             Text(
-                "El registro de sesión es deliberadamente acotado y se reinicia al cerrar la aplicación.",
+                "El registro de sesión es deliberadamente acotado y nunca incluye tokens ni códigos OTP.",
                 style = MaterialTheme.typography.caption,
             )
         }
@@ -736,14 +711,17 @@ private fun buildQaSnapshot(
     activeCampaign: Campaign?,
     destination: DesktopDestination,
     preferences: DesktopPreferences,
+    hostedAuthPhase: DesktopHostedAuthPhase,
     events: List<String>,
 ): String = buildString {
     appendLine("D&D Custom Aid — Desktop QA")
-    appendLine("Paquete: Wave 5 Desktop shell")
+    appendLine("Paquete: Wave 5 Desktop hosted Campaign Administration")
     appendLine("SO: ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
     appendLine("Java: ${System.getProperty("java.version")}")
     appendLine("Base local: ${DesktopDatabaseFactory.defaultDatabaseFile().absolutePath}")
     appendLine("Preferencias: ${DesktopPreferencesStore.defaultPreferencesFile()}")
+    appendLine("Hosted API: ${DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL}")
+    appendLine("Sesión alojada: ${hostedAuthPhase.name}")
     appendLine("Destino actual: ${destination.label}")
     appendLine("Campañas locales: ${campaigns.size}")
     appendLine("Campaña activa: ${activeCampaign?.name ?: "ninguna"}")
