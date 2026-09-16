@@ -1,99 +1,71 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-15 (Chile local time)  
+**Updated:** 2026-09-16 (Chile local time)  
 **Normal implementation trunk:** `main`  
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
 **Android hosted-session integration:** **COMPLETE / OWNER-PHYSICAL PASS**  
 **Android hosted campaign bootstrap:** **COMPLETE / OWNER-PHYSICAL PASS**  
 **Android hosted campaign + PC sync:** **COMPLETE / OWNER-PHYSICAL PASS**  
 **Unchanged-sync/no-op confirmation:** **OWNER-PHYSICAL PASS**  
-**Multi-client PC convergence safety:** **IMPLEMENTED / AUTOMATED VERIFIED / PHYSICAL QA CONTINUES**  
-**Convergence base PR:** #39  
-**QA/recovery/conflict-resolution PR:** #40  
+**Multi-client PC convergence safety:** **COMPLETE / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
+**Convergence base PR:** #39 — merged  
+**QA/recovery/conflict-resolution PR:** #40 — **PACKAGE COMPLETE; CLOSURE/MERGE PENDING**  
 **QA build:** `0.4.0-preqa.15` / `41500`  
 **Verified behavior head for APK:** `008a73c20101a127edd82947af71c6024f894609`  
-**Scaffold:** `35044956294` — **SUCCESS**  
+**Behavior-head Scaffold:** `35044956294` — **SUCCESS**  
+**QA APK SHA-256:** `4615d1a9c8f9e87c2ebbc5ecb80e4a22f747384baa3091c1f05b6d90e4cac4f5`  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md` — mandatory project operating rules;
-2. `docs/checkpoints/2026-09-15_HOSTED_PC_EXPLICIT_CONFLICT_RESOLUTION_READY_FOR_PHYSICAL_QA.md` — **current Wave 4 checkpoint and exact next owner action**;
-3. `docs/checkpoints/2026-09-15_HOSTED_SYNC_QA_LOG_AND_LEGACY_BASELINE_RECOVERY_READY_FOR_PHYSICAL_QA.md` — permanent QA log + legacy-baseline recovery package;
-4. `docs/checkpoints/2026-09-15_MULTI_CLIENT_PC_CONVERGENCE_SAFETY_READY_FOR_PHYSICAL_QA.md` — PR #39 convergence design and original physical gate;
-5. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md` — completed campaign/PC delivery physical evidence;
-6. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_BOOTSTRAP_COMPLETE.md` — completed ordinary-Player hosted bootstrap proof;
-7. `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` — completed Android hosted-session edge;
-8. `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` — hosted DEV provider/environment evidence;
-9. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
-10. `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md` as needed.
+2. `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md` — **current Wave 4 completion checkpoint and exact closure/continuation**;
+3. `docs/checkpoints/2026-09-15_HOSTED_PC_EXPLICIT_CONFLICT_RESOLUTION_READY_FOR_PHYSICAL_QA.md` — historical pre-gate implementation checkpoint;
+4. `docs/checkpoints/2026-09-15_HOSTED_SYNC_QA_LOG_AND_LEGACY_BASELINE_RECOVERY_READY_FOR_PHYSICAL_QA.md` — permanent QA log + legacy-baseline recovery package;
+5. `docs/checkpoints/2026-09-15_MULTI_CLIENT_PC_CONVERGENCE_SAFETY_READY_FOR_PHYSICAL_QA.md` — PR #39 convergence design and original gate;
+6. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and owner-guidance policy;
+7. `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/ROADMAP.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md` as needed.
 
-If older operational prose conflicts with this file or the current specific checkpoint, the newer specific checkpoint controls unless an even later approved decision/checkpoint supersedes it.
+If older operational prose conflicts with this file or the current specific checkpoint, this newer completion checkpoint controls unless an even later approved decision/checkpoint supersedes it.
 
 ## Current Wave 4 state
 
 ```text
 remembered Android Descope session/token             COMPLETE
-owner-facing hosted account/campaign bootstrap       COMPLETE
+owner-facing hosted account/campaign bootstrap       COMPLETE / OWNER-PHYSICAL PASS
 campaign create + durable hosted delivery            COMPLETE / OWNER-PHYSICAL PASS
 PC snapshot push/pull + blocked-row recovery         COMPLETE / OWNER-PHYSICAL PASS
 unchanged-sync no-op confirmation                    COMPLETE / OWNER-PHYSICAL PASS
         |
         v
-multi-client PC convergence safety                    IMPLEMENTED / AUTOMATED VERIFIED
+multi-client PC convergence safety                    COMPLETE / OWNER-PHYSICAL PASS
+        |
+        +-- concurrent divergence protection          PASS
+        +-- explicit reviewed keep-local resolution   PASS
+        +-- clean second-client convergence           PASS
         |
         v
-permanent hosted-sync QA log                          IMPLEMENTED / PHYSICALLY USEFUL
+PR #40 DOCUMENTATION/INTEGRATION CLOSURE              NOW
         |
         v
-legacy missing-baseline safe equal-state recovery     IMPLEMENTED / AUTOMATED VERIFIED
-        |
-        v
-real emulator concurrent state observed               LOCAL_AND_HOSTED_CHANGED / PROTECTION WORKED
-        |
-        v
-explicit user-controlled keep-local resolution        IMPLEMENTED / AUTOMATED VERIFIED
-        |
-        v
-EMULATOR KEEP-LOCAL PHYSICAL GATE                     NEXT
-        |
-        v
-PHONE SERVER-NEWER + CLEAN-LOCAL CONVERGENCE          AFTER EMULATOR SUCCESS
-        |
-        v
-remaining multi-client conflict scenarios             THEN
-        |
-        v
-membership revoke + Player/DM authorization          FOLLOWING SEPARATE BOUNDARY
+membership revoke + Player/DM authorization          NEXT SEPARATE PACKAGE
 ```
 
-## Decisive physical evidence from `preqa.14`
+## Physical convergence evidence
 
-The owner kept the phone PC in its original state and an emulator PC in a locally modified, never-uploaded state. The emulator QA sync reported the same conflict in both initial and final pull:
+The owner preserved two clients with intentionally different PC state. On the emulator, a local offline modification at revision `7` conflicted with independently newer hosted revision `8` while the durable baseline remained at revision `7`.
 
-- `LOCAL_AND_HOSTED_CHANGED`;
-- local sync revision `7`;
-- hosted revision `8`;
-- baseline present `YES` at revision `7`;
-- local differs from baseline `YES`;
-- local equals current hosted `NO`;
-- no pending outbox mutation.
+The QA report correctly produced `LOCAL_AND_HOSTED_CHANGED`, with local different from baseline, local different from hosted, and an empty outbox. The empty outbox was legitimate because the initial hosted pull discovered the conflict before snapshot queueing.
 
-This is **not evidence that conflict detection failed**. It is evidence that the PR #39 no-silent-overwrite protection worked: a revision-7 local edit was not blindly written over a different hosted revision 8. What was missing was an explicit, user-controlled way to choose the local version after reviewing that conflict.
+On `0.4.0-preqa.15`, the owner explicitly selected `Resolver conflicto: conservar PC local`. The result was:
 
-The immediately preceding phone QA run and the emulator QA run both queued/acknowledged zero hosted mutations, so neither created hosted revision 8. Its older origin is not required for safe resolution of the current known state.
+`SUCCESS | PC=HBT PJ Test 2 B OFFLINE | reviewedHostedRevision=8 | resultingRevision=9`
 
-## Explicit keep-local resolution in `preqa.15`
+The emulator then reported a clean synchronization with no PC conflicts, no queued/retryable/blocked mutations and an empty outbox.
 
-The debug QA console now exposes:
+The phone, which previously displayed the old/original PC value, subsequently displayed the emulator-modified value. Its QA diagnostic reported one unchanged hosted PC, no conflicts and an empty outbox, consistent with the normal app having already synchronized revision `9` before the explicit QA report ran.
 
-`Resolver conflicto: conservar PC local`
-
-It is never automatic. It only accepts one reviewed `FINAL_PULL / LOCAL_AND_HOSTED_CHANGED` conflict. Before queueing, it revalidates local revision/baseline state, local dirtiness, outbox isolation, hosted existence/tombstone status and a fresh hosted read. The hosted revision must still equal the exact revision the owner reviewed.
-
-The selected local snapshot is then queued durably using that reviewed hosted revision as `expectedRevision`. Server compare-and-swap protection therefore remains active. If another client advances again before PUT, stale-revision protection prevents a silent overwrite.
-
-A focused shared regression proves the intended `local 7 -> reviewed hosted 8 -> accepted hosted 9` acknowledgement path, including atomic sync-metadata/baseline advancement. Exact behavior head `008a73c20101a127edd82947af71c6024f894609` passed Scaffold `35044956294`, including shared tests, Android build, backend type-check, hosted DB contracts and debug APK upload.
+Therefore the multi-client convergence gate is **OWNER-PHYSICAL PASS**. Do not rerun the whole scenario unless later code changes touch the relevant behavior.
 
 ## Permanent QA console
 
@@ -103,30 +75,18 @@ The log excludes JWTs, refresh tokens, authorization headers, provider secrets a
 
 The active campaign selector is local Player context only. Hosted synchronization reviews **all eligible hosted campaigns**.
 
-## Exact next owner gate
+## Current package closure
 
-Use the emulator only first. Do not edit or synchronize the clean phone yet.
+The tested behavior head is `008a73c20101a127edd82947af71c6024f894609`. The two commits that followed it before this completion record were documentation-only; no sync behavior changed after the physically tested APK.
 
-1. Install `0.4.0-preqa.15` over the existing emulator installation. **Do not uninstall and do not clear app data.**
-2. Open `DnD Aid - QA DEV`.
-3. Tap `Ejecutar sincronización QA`.
-4. Confirm the final-pull `LOCAL_AND_HOSTED_CHANGED` conflict is still present. If hosted revision changed, inspect/share the new log instead of resolving against stale evidence.
-5. Tap `Resolver conflicto: conservar PC local` and confirm `Sí, conservar local`.
-6. The app re-runs QA automatically. Tap `Copiar log QA` and paste the entire result into the technical-assistant chat.
+PR #40 should remain focused on the completed convergence/QA/recovery/conflict-resolution package. Do not add membership revoke or Player/DM authorization work to it.
 
-Expected success evidence includes:
+Exact closure sequence:
 
-`=== LAST EXPLICIT KEEP-LOCAL RESOLUTION ===`
-
-`SUCCESS | ... | reviewedHostedRevision=8 | resultingRevision=9`
-
-plus a refreshed clean synchronization and empty outbox.
-
-If the action reports `REFUSED`, `PENDING` or `FAILURE`, do not clear/reset/retry destructively; share the complete log. Local state remains protected.
-
-Only after this emulator result is reviewed should the phone synchronize to exercise `server-newer + clean local` convergence.
-
-PR #40 remains open pending physical evidence.
+1. verify the documentation-only closure head passes CI;
+2. merge PR #40 into `main`;
+3. verify post-merge `main` according to normal workflow;
+4. create a new focused package from current `main` for membership revoke + Player/DM authorization.
 
 ## Important corrections carried forward
 
@@ -137,7 +97,8 @@ PR #40 remains open pending physical evidence.
 - Ordinary Player hosted account/campaign bootstrap is complete.
 - Campaign local-first creation + durable hosted delivery and PC push/pull are complete.
 - The prior PC wire-envelope `VALIDATION_FAILED` defect was repaired; its blocked mutation was recovered and acknowledged.
-- The earlier unchanged-sync/no-op physical gate is PASS.
+- The unchanged-sync/no-op physical gate is PASS.
+- Multi-client PC convergence, explicit reviewed keep-local resolution and clean second-client convergence are physically PASS.
 - The real Neon database name is `dnd-custom-aid-dev` with hyphens.
 - Secret hygiene remains strict regardless of repository visibility.
 
@@ -154,7 +115,7 @@ Important follow-up topics remain:
 - evaluate a dedicated least-privilege Neon runtime role;
 - production-region/identity configuration review before release.
 
-These residuals do not reopen completed provider/session/bootstrap/campaign/PC packages.
+These residuals do not reopen completed provider/session/bootstrap/campaign/PC/convergence packages.
 
 ## Historical Player evidence remains bounded
 
