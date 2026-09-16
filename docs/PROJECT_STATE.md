@@ -6,8 +6,10 @@
 **Verified current main:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
 **Verified post-merge Scaffold:** `35142092743` — **SUCCESS**  
 **Current focused branch:** `wave5/desktop-hosted-campaign-administration`  
-**Current PR:** none yet  
-**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_OPENED.md`
+**Current PR:** #44 — draft  
+**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md`  
+**Latest verified implementation head:** `58dc05933e35d47bc8f65f0249a2a0b74d6206c4`  
+**Latest verified implementation Scaffold:** `35150382923` — **SUCCESS**
 
 ## 1. Current authority/topology
 
@@ -15,7 +17,7 @@
 
 `docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle. Historical checkpoints remain evidence for the state that existed when they were written.
 
-PR #43 is completed and merged. The current branch is `wave5/desktop-hosted-campaign-administration`, created from the verified PR #43 merge with zero unique commits at opening.
+PR #43 is completed and merged. The current branch is `wave5/desktop-hosted-campaign-administration`, with draft PR #44. Its bounded repository implementation is complete and CI-verified; explicit DEV integration and owner Windows Desktop QA remain pending.
 
 ## 2. Integrated foundation
 
@@ -58,7 +60,7 @@ Android hosted behavior is physically verified through Wave 4. Native clients do
 
 The repository does not automatically deploy the Cloudflare Worker. The PR #43 Campaign Administration routes are repository/API-contract verified but must not be described as live on the real DEV Worker until explicit deployment evidence exists.
 
-The current Desktop hosted package owns that deployment/integration gate because it is the first real consumer of those routes.
+The current Desktop hosted package owns that deployment/integration gate because it is the first real Desktop consumer of those routes.
 
 ## 4. Completed predecessor packages
 
@@ -88,7 +90,7 @@ Integrated behavior includes:
 - provider-neutral Shared Campaign Administration client;
 - hosted PostgreSQL contract `0006` and focused backend/Shared tests.
 
-## 5. Wave 5 package C — active
+## 5. Wave 5 package C — repository implementation complete / external verification pending
 
 Current package:
 
@@ -98,62 +100,85 @@ Branch:
 
 `wave5/desktop-hosted-campaign-administration`
 
-Required bounded scope:
+PR:
 
-- Desktop-specific hosted auth/session adapter plugged into `HostedAccessTokenProvider`;
-- keep Shared provider-neutral and provider credentials/secrets out of the repository;
-- hosted account/campaign discovery and bootstrap through the existing Shared service;
+`#44 — draft`
+
+Exact verified implementation head:
+
+`58dc05933e35d47bc8f65f0249a2a0b74d6206c4`
+
+Scaffold:
+
+`35150382923` — **SUCCESS**
+
+Implemented bounded scope:
+
+- Desktop-specific Descope email-OTP/session adapter plugged into `HostedAccessTokenProvider` while Shared remains provider-neutral;
+- memory-only session/refresh JWT handling with refresh-before-use and fail-closed session clearing;
+- hosted auth/session UX wired into the Desktop workbench without disabling local-only work;
+- hosted account/campaign discovery and canonical bootstrap through the existing Shared service;
 - canonical hosted campaign UUID convergence without a second link table or silent duplicate;
 - real hosted Campaign Administration roster;
-- Kick/Ban/lift-Ban UX that waits for server authority and refreshes authoritative state after success;
-- hosted/session UX that does not disable offline/local-only work;
+- valid Player-only Kick/Ban/Lift-ban UX with confirmation, server authority and authoritative refresh after success;
+- no DM-row moderation affordances;
 - non-secret copyable diagnostics;
-- Desktop settings follow-up: current Android selectable font catalogue where technically/licensing-wise appropriate, real font rendering, font previews and theme previews;
-- focused automated tests.
+- Desktop font/theme preview settings follow-up;
+- bundled Geist and Mona Sans Condensed resources with licensing/provenance records;
+- conditional honest availability for other Android-equivalent named font families;
+- focused auth, moderation and preference/fallback tests.
 
-## 6. Authentication/session direction
+The repository implementation is not equivalent to real DEV integration. External deployment/integration evidence remains the next gate.
 
-Android keeps Descope-specific implementation in Android code and exposes only a short-lived token provider to Shared. Desktop must preserve that architecture.
+## 6. Authentication/session implementation
 
-The Descope Kotlin SDK in use is Android-specific; Desktop must not introduce it as if it were a general JVM/Desktop SDK. A Desktop platform adapter may use the documented Descope authentication HTTP contract with the public project ID already present in the repository.
+Desktop preserves the same architectural boundary as Android: provider-specific Descope code stays in platform code, while Shared sees only `HostedAccessTokenProvider`.
 
-Session/refresh JWTs are secrets. They must not be logged, exposed in diagnostics, committed or stored in ordinary preferences. For this bounded package, a memory-only Desktop session is an acceptable honest limitation if secure persisted credential storage is not introduced.
+The Desktop adapter uses the provider authentication HTTP contract rather than importing the Android-specific Descope SDK as a false JVM/Desktop dependency.
 
-Sign-out clears hosted session state only; it must not delete local campaign/character state.
+Session/refresh JWTs remain memory-only. They are not logged, exposed in diagnostics, committed or stored in ordinary Desktop preferences. Refresh failure clears hosted session state rather than weakening authentication guarantees.
 
-## 7. Campaign identity/bootstrap direction
+Sign-out clears hosted session state only; it does not delete local campaign/character state.
 
-Use `HostedApiClient.campaigns()` and `HostedCampaignBootstrapService` rather than inventing a Desktop-only API model or campaign-link table.
+## 7. Campaign identity/bootstrap implementation
 
-Hosted campaign identity remains the canonical campaign UUID. Hosted bootstrap must preserve revisions, tombstones, conflict semantics and membership lifecycle behavior already implemented in Shared.
+Desktop uses the existing hosted API/client and `HostedCampaignBootstrapService` rather than a Desktop-only campaign-link model.
 
-A local-only campaign remains local-only unless a real hosted campaign with the same canonical identity is bootstrapped; hosted access loss must not destroy local data.
+Hosted campaign identity remains the canonical campaign UUID. The implementation preserves the established Shared convergence and membership semantics rather than creating silent local duplicates.
 
-## 8. Campaign Administration behavior
+Local-only campaign work remains usable without hosted auth, and hosted session/access changes do not delete local campaign data.
 
-For an authenticated active DM and a hosted campaign:
+## 8. Campaign Administration implementation
 
-- show the real member roster with display name, role and lifecycle status;
-- do not make UUIDs the primary human label;
-- expose only valid Player moderation actions;
-- `KICK` must never weaken an existing ban;
-- `LIFT_BAN` returns the member to `KICKED`, not `ACTIVE`;
-- do not simulate success locally before the server confirms;
-- refresh/reconcile authoritative state after a mutation;
-- errors must not silently mutate local truth;
-- no co-DM moderation in this package.
+For the hosted administration surface, the repository implementation now:
 
-## 9. Desktop settings follow-up
+- reads the real hosted member roster;
+- uses display name where available instead of making UUIDs the primary human label;
+- exposes moderation only for Player rows;
+- provides `KICK` / `BAN` for active Players, `BAN` for kicked Players and `LIFT_BAN` for banned Players;
+- never offers moderation for DM rows;
+- preserves `LIFT_BAN = BANNED -> KICKED`, not `ACTIVE`;
+- waits for server confirmation before treating moderation as successful;
+- refreshes authoritative roster state after a successful mutation;
+- surfaces hosted errors without silently mutating local truth.
 
-This package is the next genuine Desktop feature build, so the owner-approved follow-up is active scope:
+Real DEV behavior remains to be verified after explicit deployment/integration.
 
-- use the actual current Android selectable catalogue as the parity reference, excluding Android-hidden historical choices;
-- real named fonts must render as themselves; no fake labels over a common fallback;
-- use legitimate free/public-repository licensing and avoid paid dependencies;
-- replace the plain font selector with visual samples rendered in each candidate font;
-- replace the plain theme dropdown with preview cards/forms;
-- preserve the current Desktop theme catalogue unless evidence requires parity expansion;
-- preserve text-size, spacing density, workspace density, persistence and application of all settings.
+## 9. Desktop settings follow-up — implemented
+
+The owner-approved settings follow-up is implemented and CI-verified:
+
+- the current Android selectable font catalogue remains the parity reference;
+- Geist and Mona Sans Condensed are guaranteed bundled Desktop choices using existing repository assets with explicit license/provenance records;
+- other Android-equivalent named choices are offered only when the exact system font family is actually available;
+- unavailable/removed persisted named choices safely fall back to system sans rather than presenting a false label;
+- font selection uses visual samples rendered in the candidate font;
+- theme selection uses preview cards with representative palette/surface content;
+- the existing Desktop theme catalogue is preserved;
+- text-size, spacing density, workspace density and preference persistence remain present;
+- focused tests cover persistence and font fallback/availability semantics.
+
+Visual behavior and normal close/relaunch persistence still require owner Windows Desktop QA on the owner-testable build.
 
 ## 10. Explicit current-package non-goals
 
@@ -169,24 +194,28 @@ Do not use destructive recovery or delete/reset the owner's existing local QA ca
 
 ## 12. QA / acceptance gate
 
-Automated tests and Scaffold must pass on the exact implementation head.
+Repository implementation and automated verification are complete for the current bounded code state.
 
-They do not substitute for:
+Still required before merge:
 
-1. explicit real DEV Worker deployment/integration evidence for the PR #43 routes; and
-2. owner Windows Desktop QA for hosted login, roster/moderation behavior and visual settings previews.
+1. explicit real DEV Worker deployment/integration evidence for the PR #43 Campaign Administration routes;
+2. real Desktop authentication/bootstrap/roster/moderation integration verification against that DEV environment;
+3. owner Windows Desktop QA for hosted flows, local-data preservation and visual/settings persistence behavior;
+4. narrowly scoped fixes + CI if integration/QA finds defects;
+5. final PR readiness and merge verification only after owner QA passes.
 
-Do not merge the owner-testable Desktop surface before required owner QA passes.
+A green Scaffold does not substitute for these external/manual gates.
 
 ## 13. Resume rule
 
 Read, in order:
 
 1. `docs/checkpoints/LATEST.md`;
-2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_OPENED.md`;
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md`;
 3. `docs/BRANCH_STATUS.md`;
 4. D-0072, D-0073 and D-0075 as needed;
-5. `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md`;
-6. the completed PR #43 automated-verification checkpoint for predecessor contract evidence.
+5. `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md` for historical requirement context;
+6. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_OPENED.md` for package opening rationale;
+7. the completed PR #43 automated-verification checkpoint for predecessor contract evidence.
 
-Continue on `wave5/desktop-hosted-campaign-administration`; do not restart PR #43 work or reopen the completed Desktop-shell package.
+Continue on `wave5/desktop-hosted-campaign-administration`; do not restart PR #43 work or reopen the completed Desktop-shell package. The next substantive gate is explicit DEV Worker deployment/integration, not more speculative repository implementation.
