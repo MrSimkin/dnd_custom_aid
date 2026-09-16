@@ -3,93 +3,92 @@
 **Updated:** 2026-09-16 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Verified integrated behavior main:** `6f7165e6e5ae56a4b1985f037a656bf527b94d01`  
-**Post-merge Scaffold:** `35123027446` — **SUCCESS**  
-**Current focused branch:** none  
-**PR #41:** **MERGED / CLOSED BY INTEGRATION**  
-**Current lifecycle state:** membership revoke + Player/DM authorization package complete
+**Verified starting main for current package:** `40b29006052c9986e2d79227a6053f36241de1e6`  
+**Starting Scaffold:** `35123470001` — **SUCCESS**  
+**Current focused branch:** `wave5/desktop-workbench-shell`  
+**Current package:** Wave 5 — Desktop workbench shell + local campaign context  
+**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_PACKAGE_OPEN.md`  
+**Current lifecycle state:** implementation active; no owner/manual gate yet
 
 This file is the canonical branch-lifecycle map. Branch existence alone never establishes authority.
 
 ## 1. `main` — sole normal integrated-MVP trunk
 
-`main` remains the sole normal development trunk for integrated-MVP work.
-
-Normal implementation should start from verified remote `main`, use short-lived outcome-oriented branches, merge only after proportionate verification, verify post-merge `main`, and refresh durable checkpoints when operational truth changes.
+`main` remains the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from verified `main`, merges only after proportionate verification, verifies post-merge `main`, and refreshes durable checkpoints when operational truth changes.
 
 Do not create permanent Player/Server/Desktop silos or months-long catch-all integration branches.
 
-## 2. Completed convergence package
+## 2. Current focused branch
 
-PR #40 completed permanent hosted-sync QA diagnostics, safe legacy baseline recovery, explicit reviewed keep-local conflict resolution and bounded multi-client convergence. It merged as `587a000dae7ff9b9f997dd138b0ebbaeca201256`; post-merge Scaffold `35116690562` passed.
+Branch:
 
-## 3. Completed membership revoke / authorization package
+`wave5/desktop-workbench-shell`
 
-PR:
+Exact base:
 
-`#41 — test: prove membership revoke and PC authorization boundaries`
+`40b29006052c9986e2d79227a6053f36241de1e6`
 
-Automated behavior/test head:
+Base Scaffold:
 
-`a188417f8173573271346246e5cc129dabdf45cc`
+`35123470001` — **SUCCESS**
 
-Automated Scaffold:
+Purpose:
 
-`35118236579` — **SUCCESS**
+> establish the real Desktop workbench shell and persistent local campaign context using existing Shared campaign semantics.
 
-Physical completion evidence:
+The inspected Desktop application is currently a placeholder window. Shared already provides `CampaignRepository` and Desktop SQLite JDBC support, so this package should add only the missing Desktop database/wiring layer and the first real workbench UI.
 
-`docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md`
+Expected first functioning workbench destinations are Dashboard, Campaigns and Campaign Administration. Other approved Desktop destinations may appear as stable navigation placeholders, but their substantive implementation belongs to later packages.
 
-The real DEV physical gate exercised the exact DM membership for `Hosted Batch Test` through `ACTIVE -> KICKED -> ACTIVE`. While inactive, Android stopped hosted PC eligibility/sync while preserving local campaign/PC data. After reinstatement, eligibility resumed cleanly with no conflicts or pending outbox work.
+## 3. Current package boundary
 
-Physical coverage specifically exercised DM lifecycle revoke/reinstate. Player owner/controller revoke remains automated contract evidence.
+Included:
 
-Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Scaffold `35122878536`.
+- persistent Desktop SQLDelight database wiring;
+- Shared `CampaignRepository` reuse;
+- approved workbench chrome: top toolbar, left navigation, central work area, optional contextual area, bottom status strip;
+- local campaign list/create/active selection;
+- active-campaign context surfaced in Dashboard and Campaign Administration;
+- automated Desktop/persistence verification and later bounded visual audition.
 
-PR #41 merged into `main` as:
+Excluded from this first slice:
 
-`6f7165e6e5ae56a4b1985f037a656bf527b94d01`
+- invitation/rejoin workflows;
+- Kick/Ban/Unban product UI;
+- hosted Desktop authentication/full sync activation;
+- live combat authority/resume/handoff;
+- substantive Managers, Media/Handouts, System Administration or backup/export implementation;
+- generalized RBAC/ACL.
 
-Post-merge Scaffold:
+D-0072 and D-0073 remain controlling. Routine technical implementation does not require another owner decision.
 
-`35123027446` — **SUCCESS**
+## 4. Completed Wave 4 baseline
 
-This package is integrated and closed.
+PR #40 multi-client convergence and PR #41 membership revoke/authorization are integrated and closed. PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; its post-merge Scaffold `35123027446` passed.
 
-## 4. Current branch state
+The current branch starts from later documentation/device-inventory `main` head `40b29006052c9986e2d79227a6053f36241de1e6`, whose Scaffold `35123470001` passed all backend, hosted-database, Kotlin, Android and Desktop checks.
 
-There is no active focused implementation branch opened by this closure.
+Do not resume completed Wave 4 branches for new work.
 
-The historical branch `wave4/membership-revoke-authorization` is completed evidence only. Do not continue adding unrelated work to it or treat its existence as an active resume point.
-
-Start any next package from current verified `main` using a new short-lived outcome-oriented branch after its scope is established.
-
-## 5. Safety and authorization invariants
+## 5. Protected invariants
 
 Preserve:
 
-- `ACTIVE`, `KICKED`, `BANNED` lifecycle semantics;
-- membership revoke stopping future hosted access/sync without silently wiping local cached data;
+- local-first persistence and stable object identity;
 - membership/role/ownership/current-control distinctions;
 - DM campaign authority distinct from PC ownership;
-- Player PC authority constrained to owner/controller;
-- local-first data preservation on hosted authorization failure;
 - stale-revision, mutation-idempotency, tombstone/non-resurrection and no-silent-overwrite semantics;
-- project-specific authorization rather than generalized RBAC/ACL infrastructure.
+- non-destructive handling of local user data;
+- project-specific authorization rather than generalized RBAC/ACL infrastructure;
+- hard external-service budget of USD $0 unless owner changes it;
+- public-repository secret hygiene.
 
-## 6. Next product boundary
+## 6. Historical branches
 
-Final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration and broader moderation workflows are separate product packages.
-
-Do not automatically reactivate `wave4/membership-revoke-authorization` or begin those features without a separately scoped continuation package.
-
-## 7. Historical branches
-
-`implementation/phase4a-successor-cycle` remains historical/frozen Player evidence. `integration/mvp-baseline-convergence` remains historical convergence evidence. Other completed/frozen refs remain evidence only unless explicitly reactivated.
+`wave4/membership-revoke-authorization`, `implementation/phase4a-successor-cycle`, `integration/mvp-baseline-convergence` and other completed/frozen refs remain historical evidence only unless explicitly reactivated by a later checkpoint.
 
 Do not force-move or repurpose historical refs.
 
-## 8. Security / repository visibility
+## 7. Exact resume rule
 
-The repository is intentionally public under D-0075. Never store provider/database credentials, bearer/session tokens, private keys or other confidentiality-dependent material in Git or QA logs.
+Continue on `wave5/desktop-workbench-shell` and read `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_PACKAGE_OPEN.md` first. No owner interaction is required until a genuine visual/manual QA gate or material product/security/cost/destructive-behavior ambiguity appears.
