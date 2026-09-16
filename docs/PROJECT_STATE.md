@@ -1,19 +1,25 @@
 # Project State — global repository navigation
 
-**Last verified:** 2026-09-15 (Chile local time)  
+**Last verified:** 2026-09-16 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** **GRANTED**  
 **Normal integrated trunk:** `main`  
-**Provider-neutral implementation checkpoint:** `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`  
-**Provider-neutral checkpoint Actions:** `34985799585` — **SUCCESS**  
+**Verified integrated main:** `587a000dae7ff9b9f997dd138b0ebbaeca201256`  
+**Post-merge Scaffold:** `35116690562` — **SUCCESS**  
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
-**Android hosted-session integration:** **COMPLETE / VERIFIED / OWNER-PHYSICAL PASS**  
-**Current implementation checkpoint:** `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`
+**Android hosted-session integration:** **COMPLETE / OWNER-PHYSICAL PASS**  
+**Hosted campaign/PC integration and convergence:** **COMPLETE / OWNER-PHYSICAL PASS**  
+**Current implementation checkpoint:** `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md`  
+**Current focused package:** membership revoke + Player/DM authorization
 
 ## 1. Current authority/topology
 
 `main` is the single normal integrated-MVP development trunk.
 
-The old Player successor and convergence lines remain historical/frozen evidence. New work uses short-lived outcome-oriented branches from current `main` and reintegrates early. Do not recreate permanent Player/Server/Desktop silos.
+The old Player successor and convergence lines remain historical/frozen evidence. New work uses short-lived outcome-oriented branches from current verified `main` and reintegrates early. Do not recreate permanent Player/Server/Desktop silos.
+
+Current focused branch:
+
+`wave4/membership-revoke-authorization`
 
 `docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle.
 
@@ -32,7 +38,7 @@ Wave 2 — **Shared Integrated-MVP Spine** — is complete and integrated, inclu
 - independent-copy provenance;
 - local sync metadata and invariant tests.
 
-Provider-neutral hosted foundation is integrated through PR #25 and includes:
+Provider-neutral hosted foundation is integrated and includes:
 
 - hosted `/v1` API/auth/domain foundations;
 - explicit PostgreSQL schema/migrations/contracts and PostgreSQL CI validation;
@@ -50,11 +56,11 @@ Provider-neutral hosted foundation is integrated through PR #25 and includes:
 - guards against equal-revision overwrite, local-ahead overwrite and tombstone resurrection;
 - non-destructive local recovery when hosted PC state is deleted.
 
-PR #25 merged as `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`; Actions `34985799585` passed backend, PostgreSQL contracts, shared/Kotlin tests, Android, Desktop, APK upload and preserved Player guards.
+PR #40 completed the current multi-client convergence layer with permanent QA diagnostics, narrow missing-baseline equal-state recovery and explicit reviewed keep-local conflict resolution. It merged to `main` as `587a000dae7ff9b9f997dd138b0ebbaeca201256`; post-merge Scaffold `35116690562` completed **SUCCESS**.
 
 ## 3. Hosted DEV activation — complete
 
-The first real external-provider activation has been completed successfully.
+The first real external-provider activation is complete and verified.
 
 Verified DEV architecture:
 
@@ -68,87 +74,58 @@ Cloudflare Worker/API <---- Descope identity proof
 Neon PostgreSQL
 ```
 
-Current DEV resources:
+Current DEV resources remain the existing Neon `dnd-custom-aid-dev`, Descope DEV project and Cloudflare Worker recorded in the provider activation checkpoint. The Worker runtime uses server-side provider secret storage; native clients do not hold database credentials.
 
-- Neon project `dnd-custom-aid-dev`, project ID `holy-meadow-19010740`, São Paulo region, database `dnd-custom-aid-dev`;
-- Descope project `dnd-custom-aid-dev`, project ID `P3JNKAUazZAxRXF4uM7nKzaAiy7Y`, current DEV base URL `https://api.descope.com`;
-- Cloudflare Worker `dnd-custom-aid-api` at `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`.
+Verified provider evidence includes real Neon migration/contracts, real email OTP authentication, deployed Worker health/authenticated `/v1/me`, application identity persistence through Neon and representative Workers Free CPU/runtime proof for the tested authenticated path.
 
-The current Worker runtime contract uses `DATABASE_URL` plus `DESCOPE_PROJECT_ID`; `DESCOPE_BASE_URL` is optional and defaults to the current US Descope base URL.
+See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for exact environment evidence.
 
-### Verified real-provider evidence
+## 4. Completed Wave 4 Player <-> Server path so far
 
-Completed successfully:
+Completed and physically verified where applicable:
 
-- real Neon migration `database/migrations/0001_integrated_mvp_spine.sql`;
-- real Neon contract tests 0001–0004, executed transactionally and rolled back;
-- real email OTP login through Descope DEV;
-- deployed Cloudflare Worker health response;
-- `/v1/me` without auth -> 401 `UNAUTHENTICATED`;
-- `/v1/me` with valid Descope JWT -> 200;
-- application identity persisted/resolved through real Neon;
-- repeated authenticated `/v1/me` requests observed at about 1 ms Worker CPU per visible invocation with no benchmark errors.
+1. remembered Android Descope session/token acquisition;
+2. token delivery through the existing `HostedAccessTokenProvider` seam;
+3. owner-facing hosted account/campaign bootstrap;
+4. local-first campaign creation + durable hosted delivery;
+5. PC snapshot push/pull and blocked-row recovery;
+6. unchanged-sync/no-op behavior;
+7. second-client observation and offline/concurrent edit convergence;
+8. explicit owner-controlled keep-local conflict resolution with hosted compare-and-swap protection.
 
-The representative Workers Free CPU/runtime gate is therefore **PASS** for the tested authenticated path. Materially heavier future endpoints should still be profiled.
+The convergence physical gate proved that concurrent divergence does not silently overwrite either side, that explicit reviewed keep-local can safely advance the server revision, and that a clean second client subsequently converges to the selected hosted state.
 
-See `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` for exact provider evidence and public identifiers.
+Exact evidence:
 
-## 4. Android hosted authentication/session edge — complete
-
-PR #30 connected Android to the already-existing provider-neutral hosted-client seam rather than creating a second auth/network architecture.
-
-Integrated behavior includes:
-
-- Descope Android SDK setup during application startup;
-- Descope-managed remembered session/refresh lifecycle;
-- Android implementation of `HostedAccessTokenProvider` that refreshes when needed and exposes the active short-lived session JWT to the shared hosted client;
-- Android INTERNET permission for real hosted traffic;
-- a separate debug-only `DnD Aid - Hosted DEV Auth` verification activity so the temporary DEV email-OTP harness does not become the final product login UX by inertia.
-
-PR #30 merged to `main` as:
-
-`bf5f843066a7c2f8674a4577918156e8a8d2c139`
-
-Post-merge Actions `35020281492` / #1898 completed **SUCCESS**.
-
-The owner physically verified on Android:
-
-- real email OTP login;
-- authenticated `/v1/me` through the shared hosted client;
-- session persistence across full app close/reopen;
-- remembered-session reuse without another login;
-- DEV logout;
-- no remembered session after another full close/reopen.
-
-The Android session lifecycle gate is therefore **PASS**.
-
-The ordinary Player launcher remains the normal application and is not yet product-login-gated. The debug harness is verification infrastructure, not a final authentication UX decision.
-
-See `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` for exact evidence.
+`docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md`
 
 ## 5. Current implementation boundary
 
-Provider activation and Android session/token acquisition are no longer dependencies.
+Wave 4 — Player <-> Server end-to-end — remains active.
 
-Wave 4 — Player <-> Server end-to-end — is active.
+The current primary package is now:
 
-The next primary package is:
+> **membership revoke + Player/DM authorization**
 
-**owner-facing hosted account/campaign bootstrap**
+Current focused branch:
 
-Proceed in dependency order from the already-integrated session edge:
+`wave4/membership-revoke-authorization`
 
-1. **COMPLETE** — remembered Android Descope session/token acquisition at the platform edge;
-2. **COMPLETE** — feed the session token into the existing `HostedAccessTokenProvider` seam;
-3. **NEXT** — wire hosted account/campaign bootstrap into the owner-facing Player flow;
-4. wire campaign create/select + durable hosted delivery while preserving local-first behavior;
-5. wire PC snapshot push/pull through the existing sync foundation;
-6. prove second-device observation;
-7. prove offline edit/reconnect/convergence;
-8. prove membership revoke enforcement and Player/DM authorization boundaries;
-9. only then deepen DM Android/tablet/Desktop hosted integration in dependency order.
+This package must first inspect the existing membership lifecycle/backend authorization/shared synchronization contracts and regression coverage. Implement only the missing end-to-end enforcement and verification needed to prove the approved behavior.
 
-Do not invent another auth/network/sync abstraction simply because the providers are now real.
+Approved semantics already exist and should not be reopened without concrete contradictory evidence:
+
+- `ACTIVE`, `KICKED` and `BANNED` are meaningful membership lifecycle states;
+- membership removal/revoke stops future hosted access/sync but does not silently wipe local cached data;
+- account identity, membership, campaign role, PC ownership and PC current control are distinct;
+- DM campaign authority does not imply PC ownership;
+- Player PC access is constrained by owner/controller authority;
+- hosted authorization must fail closed where access is no longer valid;
+- local-first data preservation, stale revisions, mutation idempotency, tombstones/non-resurrection and no-silent-overwrite semantics remain protected.
+
+No new owner decision is required for routine implementation. Return to the owner when a genuine product/security/cost/destructive-behavior ambiguity, external-account action or manual/physical QA gate is reached.
+
+Do not introduce a generalized RBAC/ACL framework, reset databases, clear outboxes or wipe local cached data merely to make the package pass.
 
 ## 6. Controlling integrated-MVP product direction
 
@@ -162,25 +139,7 @@ Paper-first Player play, local-first saves, bounded project-specific sync, compl
 
 ## 7. Protected integrated-MVP scope
 
-Do not silently demote the following to stretch goals:
-
-- Player hosted/shared integration, remembered auth and campaign switching;
-- project-specific revisions/idempotency/outbox/tombstone/conflict sync;
-- object storage and Media/Handouts;
-- complete DM live Workspace on Android/tablet and Desktop;
-- explicit DM combat authority resume/handoff;
-- Monster + Creature Creator Assistant;
-- NPC Manager/helper;
-- Homebrew & Rules Manager;
-- Stage/Place/Scene Spine preparation;
-- Dungeon/Zone/Encounter Readiness/clocks/triggers preparation;
-- Encounter Manager;
-- PC Manager/Audit/correction;
-- PC Sheet PDF export on Player Android, DM Android/tablet and DM Desktop;
-- Campaign Manager + System Administration;
-- meaningful audit/history/recovery;
-- full verifiable server backup/export;
-- official SRD storage/retrieval/grounded Player+DM clarification.
+Protected MVP scope continues to include Player hosted/shared integration, project-specific sync semantics, object storage/media, complete DM live Android/Desktop capability, combat authority resume/handoff, authoring Managers, structured homebrew/import-export, PC audit/correction, cross-surface PC Sheet PDF export, Campaign/System Administration, audit/recovery/full backup and official-SRD clarification.
 
 The project remains paper-first and intentionally not a VTT, automatic legality/rules engine, generalized sync platform, marketplace/social product or enterprise infrastructure exercise.
 
@@ -216,8 +175,6 @@ D-0075 remains controlling:
 - never commit secrets;
 - paid plans/overage/billing commitments require explicit owner approval.
 
-Current provider activation and Android session integration succeeded within the `$0` policy.
-
 Important security residuals carried forward:
 
 - review JWT/fail-closed verification robustness;
@@ -229,7 +186,7 @@ Important security residuals carried forward:
 - evaluate a dedicated least-privilege Neon runtime role instead of the current project-owner runtime credential;
 - reassess Descope region/settings before production release.
 
-Completion of the current gates is not a claim that security work is permanently finished.
+Completion of current gates is not a claim that security work is permanently finished.
 
 ## 10. Owner/local development notes
 
@@ -245,14 +202,17 @@ A local Windows SChannel issue prevents PowerShell `Invoke-RestMethod`/Windows `
 
 The project remains development/debug and is not release-ready.
 
-The Android hosted-session path has passed its specific owner/manual gate. That does not retroactively convert historical Player physical QA into a PASS.
+Hosted provider activation, Android hosted-session, account/campaign bootstrap, campaign/PC delivery and the bounded multi-client convergence gate have passed their recorded verification/manual boundaries. This does not retroactively convert unrelated historical Player QA into a PASS.
 
-Historical frozen Player candidate remains `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`; targeted cross-device physical revalidation was pending at that historical boundary.
+Historical frozen Player candidate remains `0.4.0-preqa.13 / 41300` at `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`; preserve its historical evidence for exactly what it tested.
 
 ## 12. Resume rule
 
-For exact continuation, read `docs/checkpoints/LATEST.md` and `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`.
+For exact continuation, read:
 
-Use `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` when exact provider/environment evidence is needed.
+1. `docs/checkpoints/LATEST.md`;
+2. `docs/BRANCH_STATUS.md`;
+3. `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md` for predecessor evidence;
+4. the current membership-revoke/authorization package files/tests as they are created.
 
-Older current-state documents that still describe provider activation or Android session acquisition as pending are superseded for those operational points by these newer records.
+Continue on `wave4/membership-revoke-authorization`. Do not restart provider/session/bootstrap/PC-convergence work. The next owner interaction should occur only when the package reaches a genuine manual/physical QA or owner-decision boundary.
