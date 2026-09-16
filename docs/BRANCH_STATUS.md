@@ -7,10 +7,10 @@
 **Post-merge Scaffold:** `35142092743` — **SUCCESS**  
 **Current focused branch:** `wave5/desktop-hosted-campaign-administration`  
 **Current PR:** #44 — draft  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_AUTH_SLICE_VERIFIED.md`  
-**Latest verified implementation head:** `9c6994cff2782e2c3c8f37e08d4f0e483ae13322`  
-**Latest verified Scaffold:** `35146769605` — **SUCCESS**  
-**Lifecycle state:** active implementation
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md`  
+**Latest verified implementation head:** `58dc05933e35d47bc8f65f0249a2a0b74d6206c4`  
+**Latest verified implementation Scaffold:** `35150382923` — **SUCCESS**  
+**Lifecycle state:** repository implementation complete / explicit DEV integration + owner QA pending
 
 This file is the canonical branch-lifecycle map. Branch existence alone never establishes authority.
 
@@ -54,47 +54,53 @@ Package objective:
 
 **Desktop hosted authentication/session acquisition + real Campaign Administration consumption**
 
-The package also owns the already-approved Desktop font catalogue + font/theme preview settings follow-up because this is the next genuine Desktop feature build.
+The package also owns the approved Desktop font catalogue + font/theme preview settings follow-up because this is the next genuine Desktop feature build.
 
-## 4. Verified progress
+## 4. Verified repository implementation
 
 Verified implementation head:
 
-`9c6994cff2782e2c3c8f37e08d4f0e483ae13322`
+`58dc05933e35d47bc8f65f0249a2a0b74d6206c4`
 
 Scaffold:
 
-`35146769605` — **SUCCESS**.
+`35150382923` — **SUCCESS**.
 
-Verified slice:
+Verified repository scope now includes:
 
-- Desktop-only Descope email OTP/session adapter;
-- provider-neutral Shared token seam preserved;
-- memory-only session/refresh JWT handling;
-- refresh-before-use logic with focused tests;
-- sign-out clears hosted session state without local campaign/character deletion.
+- Desktop-only Descope email OTP/session adapter with provider-neutral Shared token seam;
+- memory-only session/refresh JWT handling and refresh-before-use behavior;
+- hosted auth wired into the Desktop workbench;
+- canonical hosted campaign bootstrap/convergence through the existing Shared service;
+- real hosted member roster consumption;
+- server-authoritative Player moderation with confirmation and authoritative refresh after success;
+- no moderation affordances for DM rows;
+- non-secret hosted diagnostics;
+- preview-oriented Desktop font/theme settings;
+- bundled Geist and Mona Sans Condensed Desktop resources with license/provenance records;
+- honest conditional availability for other Android-equivalent named font families;
+- focused auth/moderation/font-preference tests;
+- preservation of local-only campaign operation without hosted auth.
 
-The workbench UI has not yet consumed this adapter; hosted campaign bootstrap, roster/moderation UI and the font/theme preview follow-up remain active package work.
+The repository implementation phase is complete enough to advance to external DEV integration. This does not yet establish that the relevant routes are live on the real DEV Worker.
 
 ## 5. Current package gate
 
 Current progression:
 
-1. wire Desktop hosted auth/session state into the workbench;
-2. consume hosted campaign discovery/bootstrap and canonical campaign identity;
-3. consume real hosted member roster and server-authoritative moderation;
-4. implement settings font catalogue and preview-oriented font/theme selectors;
-5. extend non-secret diagnostics and focused tests;
-6. pass Scaffold on the exact implementation head;
-7. explicitly deploy/verify the DEV Worker routes if repository automation still cannot do so;
-8. perform bounded owner Windows Desktop QA;
-9. only then finalize PR documentation, re-run final-head Scaffold if needed, mark PR ready, merge with expected-head safety and verify post-merge `main`.
+1. **COMPLETE:** repository implementation and exact-head Scaffold verification;
+2. **NEXT:** inspect and perform only the safe/authorized explicit DEV Worker deployment/integration path;
+3. obtain explicit evidence that the Campaign Administration routes are live and usable on DEV;
+4. perform bounded owner Windows Desktop QA for real auth/bootstrap/roster/moderation plus settings previews/persistence and local-data preservation;
+5. fix any QA/integration defects in narrowly scoped commits with CI verification;
+6. finalize PR documentation and final-head verification as needed;
+7. mark PR ready and merge only after required owner QA passes, with expected-head safety and post-merge `main` verification.
 
-A green build alone does not replace real Desktop visual/behavioral QA.
+A green repository build alone does not replace real external integration or Desktop visual/behavioral QA.
 
 ## 6. Deployment boundary
 
-There is no automatic Cloudflare Worker deployment workflow in the repository. The PR #43 routes are repository/API-contract verified but not yet claimed live on the real DEV Worker.
+There is no automatic Cloudflare Worker deployment workflow in the repository. The PR #43 routes are repository/API-contract verified but must not yet be described as live on the real DEV Worker without explicit deployment evidence.
 
 This branch is the first Desktop consumer and therefore owns explicit DEV deployment/integration evidence.
 
@@ -102,9 +108,9 @@ If deployment requires credentials available only in the owner's local/provider 
 
 ## 7. Authentication boundary
 
-The current Android Descope SDK is Android-specific. Desktop platform code may implement the provider's documented public authentication HTTP contract, but Shared must continue to receive only a provider-neutral `HostedAccessTokenProvider`.
+The current Android Descope SDK is Android-specific. Desktop platform code implements the provider-specific authentication boundary outside Shared; Shared continues to receive only the provider-neutral `HostedAccessTokenProvider`.
 
-Session and refresh JWTs are secrets. Do not commit, log, diagnose or store them in ordinary Desktop preferences. Memory-only session storage remains the bounded approach for this package unless a platform-secure persistence mechanism is deliberately added.
+Session and refresh JWTs are secrets and remain memory-only in the bounded implementation. They must not be committed, logged, exposed through diagnostics or stored in ordinary Desktop preferences.
 
 Sign-out must not delete local campaign/character state.
 
@@ -124,4 +130,4 @@ This branch does not own invitation creation/revoke/regenerate, kicked-member re
 
 ## 11. Exact resume rule
 
-Resume only on PR #44 / `wave5/desktop-hosted-campaign-administration` from `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_AUTH_SLICE_VERIFIED.md` or a newer current-package checkpoint. Treat PR #43 as integrated and its historical pre-merge wording as historical evidence rather than current branch truth.
+Resume only on PR #44 / `wave5/desktop-hosted-campaign-administration` from `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md` or a newer current-package checkpoint. Treat PR #43 as integrated and its historical pre-merge wording as historical evidence rather than current branch truth.
