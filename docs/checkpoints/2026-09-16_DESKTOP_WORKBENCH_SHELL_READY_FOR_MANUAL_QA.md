@@ -98,6 +98,29 @@ The owner should not delete the new Desktop database or reset any existing proje
 
 Manual instructions are to be given one exact step at a time by the technical-assistant chat.
 
+## Manual QA observations in progress — 2026-09-16
+
+Owner Windows Desktop audition has started successfully.
+
+### Passed so far
+
+- Desktop workbench launches successfully on the owner workstation.
+- Main shell/chrome is visible and usable at the tested Windows setup with no obvious clipping in the initial views.
+- `Campaigns` opens correctly.
+- Campaign-name entry enables the create action as expected.
+- Local campaign `QA Wave 5 - 2026-09-16` was created successfully.
+- The newly created campaign appears in the local campaign list and becomes the active campaign automatically.
+- The right-side campaign-context panel updates to the same active campaign.
+- Test campaign ID: `30609c9d-89f7-42ef-85dd-a7a35df3c506`.
+
+### Repair / follow-up requirements discovered during audition
+
+1. **Desktop product-language pass:** the current shell is substantially English. The owner confirmed that only the technical-assistant chat should stay English; the product UI should be Spanish where appropriate. `Dashboard` and `Backup` are explicitly acceptable product terms in Spanish and may remain unchanged.
+2. **Desktop Application Settings:** add a Desktop settings destination/surface with options closely aligned to the Android app where applicable, including theme, fonts, density/spacing and equivalent presentation preferences. Reuse the same concepts rather than creating a disconnected Desktop settings model.
+3. **QA diagnostics / copyable data:** the next Desktop build should expose a QA-oriented log/diagnostic surface and make useful diagnostic values copyable. Whether this remains temporary QA tooling or becomes a permanent feature is intentionally undecided. Candidate data includes build/revision, active campaign name/ID, local database/location context where safe, and relevant lifecycle/repository actions/errors. Exact scope should stay minimal and useful rather than becoming a general logging subsystem prematurely.
+
+These findings do not invalidate the current manual session; continue the bounded behavior/persistence gate, then repair the findings before merge.
+
 ## Non-goals preserved
 
 This package does not implement:
