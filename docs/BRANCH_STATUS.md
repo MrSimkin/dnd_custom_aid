@@ -5,9 +5,11 @@
 **Normal integrated trunk:** `main`  
 **Verified starting main:** `fb113909cb53b2463bd643cae7d2f54f0673fec4`  
 **Current focused branch:** `wave5/campaign-membership-administration-core`  
-**Current PR:** not opened yet  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_OPEN.md`  
-**Lifecycle state:** implementation in progress / automated gate pending
+**Current PR:** #43  
+**Verified implementation head:** `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c`  
+**Verified implementation Scaffold:** `35140381721` — **SUCCESS**  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_AUTOMATED_VERIFIED.md`  
+**Lifecycle state:** automated verified / final documentation-head CI then merge
 
 This file is the canonical branch-lifecycle map. Branch existence alone never establishes authority.
 
@@ -15,90 +17,91 @@ This file is the canonical branch-lifecycle map. Branch existence alone never es
 
 `main` remains the sole normal integrated-MVP trunk. Use short-lived outcome-oriented branches from verified `main`, merge only after proportionate verification, verify post-merge `main`, and refresh durable checkpoints when operational truth changes.
 
-Do not create permanent Player/Server/Desktop silos.
-
-Current verified `main` is the PR #42 merge commit:
+Current package base is the PR #42 merge commit:
 
 `fb113909cb53b2463bd643cae7d2f54f0673fec4`
 
-Post-merge Scaffold `35138029472` completed **SUCCESS**.
+PR #42 post-merge Scaffold `35138029472` completed **SUCCESS**.
 
 ## 2. Completed Wave 5 predecessor
 
-Branch `wave5/desktop-workbench-shell` / PR #42 is completed and merged. It is no longer the active implementation branch.
+Branch `wave5/desktop-workbench-shell` / PR #42 is completed and merged. Accepted evidence includes persistent Desktop local campaign state, Spanish product UI, Desktop Application Settings, bounded QA diagnostics and owner Windows Desktop QA PASS.
 
-Accepted package contents include:
+Do not reopen that branch for the current package.
 
-- persistent Desktop SQLite/JDBC local store;
-- Shared `CampaignRepository` local campaign semantics;
-- workbench shell and local campaign context;
-- Spanish product-language repair;
-- persistent Desktop presentation settings;
-- bounded QA/diagnostic copy surface;
-- owner Windows Desktop manual QA PASS.
-
-The completed checkpoint remains:
-
-`docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`
-
-## 3. Current focused branch
+## 3. Current focused branch / PR
 
 Branch:
 
 `wave5/campaign-membership-administration-core`
 
+PR:
+
+`#43 — feat: add hosted campaign membership administration core`
+
 Base:
 
 `fb113909cb53b2463bd643cae7d2f54f0673fec4`
 
-Purpose:
+Verified implementation head:
 
-> hosted Campaign membership administration core
+`fcaa533f79332f6a2f13fb06b7f1bb889dd1982c`
 
-The package is intentionally backend/shared-first because real Desktop Campaign Administration requires authenticated hosted member/moderation contracts before user-facing Desktop controls can safely consume them.
+Scaffold:
 
-Current bounded scope:
+`35140381721` — **SUCCESS**.
 
-- DM-only campaign member roster;
+Implemented/verified scope:
+
+- active-DM-only hosted campaign member roster;
 - Player `KICK`, `BAN`, `LIFT_BAN` lifecycle actions;
-- lifecycle-preserving/idempotent moderation;
-- no deletion of membership rows, PCs, ownership/control or local cache;
-- Shared client contract;
-- focused backend/database/Shared verification.
+- `LIFT_BAN` = `BANNED -> KICKED`;
+- idempotent/no-op moderation and campaign-revision discipline;
+- no deletion of membership rows, PCs or owner/controller identity;
+- provider-neutral Shared Campaign Administration client;
+- focused backend/database/Shared contract tests.
 
-`LIFT_BAN` means `BANNED -> KICKED`; later invitation/rejoin owns `KICKED -> ACTIVE`.
+No owner/manual gate is required for this package.
 
-## 4. Explicit current-package boundary
+## 4. Current gate
 
-Excluded from this package:
+The implementation head is already green. The only pre-merge gate is Scaffold on the final documentation-only PR head produced by the closure commit.
 
-- Desktop provider/session acquisition;
-- Desktop hosted sync;
-- final Desktop member moderation UI;
-- invitations/rejoin;
-- co-DM role/moderation workflows;
-- PC assignment shortcuts/PC Manager;
-- Live Combat;
-- generalized RBAC/ACL.
+If that run is green and the PR head remains unchanged, merge PR #43 to `main` and verify post-merge `main` CI.
 
-## 5. Desktop settings follow-up already approved by owner
+If PR #43 is already merged when this file is read, treat this package as completed once post-merge `main` CI is green.
 
-At the next genuine Desktop feature build, expand the Desktop font catalogue toward the Android-equivalent choices where supported and replace plain Font/Theme selection with Android-like preview cards/forms.
+## 5. Deployment boundary
 
-This is a durable follow-up and does not change branch/package order.
+The repository has no automatic Cloudflare Worker deployment workflow. The new Campaign Administration routes are repository/API-contract verified but are not yet claimed as deployed to the real DEV Worker.
 
-## 6. Completed Wave 4 baseline
+Explicit DEV deployment/authenticated integration belongs to the next real Desktop-hosted consumer package when it first needs those routes.
 
-Wave 4 Player <-> Server work, including multi-client convergence and membership revoke/authorization, remains integrated and closed. Do not reopen completed branches unless later behavior actually touches their contracts.
+## 6. Next Desktop settings requirement
 
-## 7. Protected invariants
+At the next genuine Desktop feature build, apply `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md`:
+
+- expand the Desktop font catalogue toward Android-equivalent choices where supported;
+- replace plain Font/Theme selectors with Android-like preview cards/forms.
+
+This does not reorder the dependency sequence.
+
+## 7. Explicit current-package non-goals
+
+The current package does not implement Desktop provider/session acquisition, Desktop hosted sync, final Desktop member UI, invitations/rejoin, co-DM workflows, PC assignment/PC Manager, Live Combat, generalized RBAC/ACL or destructive cleanup.
+
+## 8. Protected invariants
 
 Preserve local-first persistence, stable identity, membership/role/ownership/current-control distinctions, DM authority distinct from ownership, stale-revision/idempotency/tombstone/no-silent-overwrite semantics, the hard USD $0 policy and public-repository secret hygiene.
 
-## 8. Historical branches
+## 9. Non-authoritative stray ref
 
-Completed/frozen Wave 4 and older branches remain evidence only unless a newer checkpoint explicitly reactivates one. Do not force-move or repurpose them.
+An accidental branch ref named `__should_not_create__` was created during tool operation and points to the same verified implementation commit `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c`.
 
-## 9. Exact resume rule
+It contains no unique commits, is **not** an active branch, must never be used as authority or continuation, and may be deleted later through normal Git/GitHub branch cleanup when a branch-delete capability is available. Do not force-move or repurpose it.
 
-Continue on `wave5/campaign-membership-administration-core`; read the current package checkpoint first. No owner/manual action is currently required. Implement the bounded contracts, verify them, then open the package PR only after a coherent verified head exists.
+## 10. Exact resume rule
+
+Continue on `wave5/campaign-membership-administration-core` / PR #43 until the final documentation-head CI and merge/post-merge verification are complete.
+
+After that, start the next bounded Wave 5 package from current `main`: Desktop hosted authentication/session acquisition + real Campaign Administration consumption, with explicit DEV Worker deployment/integration when the new routes are first required.

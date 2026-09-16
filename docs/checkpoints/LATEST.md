@@ -4,23 +4,25 @@
 **Normal implementation trunk:** `main`  
 **Verified starting main for current package:** `fb113909cb53b2463bd643cae7d2f54f0673fec4`  
 **Current focused branch:** `wave5/campaign-membership-administration-core`  
-**Current PR:** not opened yet  
+**Current PR:** #43  
+**Verified implementation head:** `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c`  
+**Verified implementation Scaffold:** `35140381721` — **SUCCESS**  
 **Current package:** Wave 5 — hosted Campaign membership administration core  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_OPEN.md`  
-**Current gate:** implementation + automated verification  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_AUTOMATED_VERIFIED.md`  
+**Current gate:** final documentation-head Scaffold -> merge PR #43 -> post-merge `main` Scaffold  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_OPEN.md`;
+2. `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_AUTOMATED_VERIFIED.md`;
 3. this file;
 4. `docs/BRANCH_STATUS.md`;
 5. `docs/PROJECT_STATE.md`;
 6. `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`;
 7. `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`;
-8. `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md` for the completed predecessor package;
-9. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` for latest completed Wave 4 membership evidence;
+8. `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md` for the completed first Wave 5 package;
+9. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` for completed Wave 4 membership evidence;
 10. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`.
 
 Newer current-package records control over older operational prose.
@@ -36,53 +38,53 @@ Wave 5 Desktop shell + Campaign Administration       ACTIVE
         |
         +-- Desktop workbench + local campaign       COMPLETE / OWNER-QA PASS / MERGED
         |
+        +-- hosted membership administration core   AUTOMATED VERIFIED / PR #43
+        |
         v
-hosted Campaign membership administration core      CURRENT PACKAGE
+final doc-head CI -> merge -> post-merge CI          CURRENT GATE
 ```
 
-## Completed predecessor
+## Current package result
 
-PR #42 (`wave5/desktop-workbench-shell`) merged to `main` as:
-
-`fb113909cb53b2463bd643cae7d2f54f0673fec4`
-
-Post-merge Scaffold:
-
-`35138029472` — **SUCCESS**.
-
-The owner manually accepted the Desktop shell, Spanish product-language repair, persistent Application Settings, QA/diagnostic copyability and persisted local campaign context. The manual QA campaign remained intact with UUID `30609c9d-89f7-42ef-85dd-a7a35df3c506`.
-
-Desktop and Android continue to use separate local database files. Hosted Desktop authentication/synchronization has not yet been activated.
-
-## Current package
-
-`wave5/campaign-membership-administration-core` starts exactly from the verified PR #42 merge commit.
-
-Its bounded goal is to provide the hosted/shared Campaign Administration contracts needed before Desktop can safely expose real member administration:
+The repository now contains the backend/database/Shared core for hosted Campaign member administration:
 
 - active-DM-only member roster;
-- explicit Player Kick / Ban / Lift Ban lifecycle actions;
-- preserve membership rows and all PC/local data;
-- `LIFT_BAN` returns `BANNED -> KICKED`, while invitation/rejoin later owns `KICKED -> ACTIVE`;
-- Shared provider-neutral client contract;
-- backend/database/Shared automated evidence.
+- Player `KICK`, `BAN`, `LIFT_BAN` lifecycle actions;
+- idempotent/no-op moderation;
+- campaign revision changes only for actual lifecycle changes;
+- no membership/PC/owner-controller destruction as a moderation side effect;
+- provider-neutral Shared hosted Campaign Administration client;
+- focused backend and PostgreSQL contract coverage.
 
-Invitation/rejoin, Desktop auth/session acquisition, final Desktop member UI, PC assignment shortcuts and co-DM workflows remain separate later packages.
+`LIFT_BAN` is intentionally `BANNED -> KICKED`. Invitation/rejoin later owns `KICKED -> ACTIVE`.
 
-## Owner-approved future Desktop settings requirement
+Exact implementation head `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c` passed Scaffold `35140381721` across backend, hosted database, Shared/Kotlin, Android guards/build and Desktop build.
+
+No owner/manual gate is required for this backend/shared-only package.
+
+## Deployment boundary
+
+The repository has no automatic Cloudflare Worker deployment workflow. The new routes are repository/API-contract verified but must **not** be described as already deployed to the real DEV Worker.
+
+Real DEV deployment belongs with the first real Desktop-hosted consumer package that needs these routes.
+
+## Owner-approved Desktop settings follow-up
 
 At the next genuine Desktop feature build:
 
-- expand the Desktop font catalogue to Android-equivalent choices where supported;
-- replace Font and Theme selectors with Android-like preview cards/forms so the owner can preview the result before selecting it.
+- expand the Desktop font catalogue toward the Android-equivalent choices where supported;
+- replace plain Font and Theme selectors with Android-like preview cards/forms so the result can be previewed before selection.
 
-This requirement is recorded in the current package checkpoint and does not reorder the roadmap.
+The durable record is `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md`. This requirement does not reorder the roadmap.
 
 ## Exact next action
 
-Continue implementation on `wave5/campaign-membership-administration-core`, add focused automated contracts/tests, update operative memory, and run Scaffold on the exact package head.
+1. Let the final documentation-only PR #43 head pass Scaffold.
+2. If the PR head remains unchanged and CI is green, merge PR #43 to `main`.
+3. Verify post-merge `main` Scaffold.
+4. Start the next bounded Wave 5 package from current `main`: Desktop hosted authentication/session acquisition + real Campaign Administration consumption; deploy/verify the DEV Worker explicitly when those new routes are first needed.
 
-No owner/manual action is currently required.
+If PR #43 is already merged and post-merge CI is green when this file is read, skip steps 1–3 and continue with step 4.
 
 ## Permanent safety rules
 
