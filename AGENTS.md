@@ -173,9 +173,11 @@ Current authoritative position as of 2026-09-16:
 - current focused branch: `wave5/desktop-hosted-campaign-administration`;
 - current draft PR: #44;
 - bounded PR #44 repository implementation is complete/CI-verified;
-- the next substantive gate is explicit real DEV Worker deployment/integration, followed by owner Windows Desktop QA;
-- repository implementation must not be described as real provider verification until that evidence exists.
+- the PR #44/PR #43 Campaign Administration Worker code has been explicitly deployed to real DEV from head `a6c0532878e8ef49ddfb894fa71076c1af73587a`;
+- post-deployment `/health` returned 200 and the unauthenticated roster route returned `401 UNAUTHENTICATED`, proving route presence/auth enforcement;
+- the current substantive gate is owner Windows Desktop live-QA preflight, followed by a bounded moderation test only if a suitable real Player membership exists;
+- do not claim authenticated Desktop/bootstrap/roster/moderation acceptance until that owner evidence exists.
 
-Do not restart provider activation, Android hosted-session work, completed Wave 4 packages, PR #42 or PR #43.
+Do not restart provider activation, Android hosted-session work, completed Wave 4 packages, PR #42 or PR #43. Do not redeploy Cloudflare again merely because documentation advances; redeploy only when later Worker code changes require it.
 
 Use `docs/checkpoints/LATEST.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md` and the current checkpoint for exact hashes/runs and the practical continuation.

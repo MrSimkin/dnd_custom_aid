@@ -50,15 +50,11 @@ See `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md` and `docs/WORKFLOW.md`.
 
 ## Hard external-service budget
 
-External-service operating budget is **USD $0** unless the owner explicitly changes it. A headline free tier is not enough: before activating a new provider/resource, verify current payment-method requirements, quotas, overage/billing behavior, hard-cap behavior, data-location consequences and meaningful lock-in.
-
-Prefer free services that fail/suspend/require explicit upgrade when exhausted. Never enable paid plans, paid add-ons, billing commitments or overage-enabled resources without explicit owner approval.
+External-service operating budget is **USD $0** unless the owner explicitly changes it. Never enable paid plans, paid add-ons, billing commitments or overage-enabled resources without explicit owner approval.
 
 ## Repository visibility and security
 
-The GitHub repository is intentionally **public**. This is expected and is not a security discrepancy.
-
-Never commit database credentials, provider API/admin/deployment tokens, access/refresh/session tokens, private keys or other confidentiality-dependent material.
+The GitHub repository is intentionally **public**. Never commit database credentials, provider API/admin/deployment tokens, access/refresh/session tokens, private keys or other confidentiality-dependent material.
 
 ## Approved architecture snapshot
 
@@ -85,13 +81,15 @@ Wave 5 is active:
 Desktop workbench + local campaign                 ✅ complete / merged / owner-QA pass
 hosted Campaign membership administration core    ✅ complete / merged (#43)
 Desktop hosted auth + Campaign Administration      ✅ repository implementation / CI verified
-DEV Worker deployment + real integration           NEXT
-owner Windows Desktop QA                           after DEV integration
+DEV Worker deployment                              ✅ verified
+owner Windows Desktop live-QA preflight            NEXT
+real moderation QA                                 after roster evidence
+final owner QA / PR #44 merge                      after all gates pass
 ```
 
 The current PR #44 implementation includes Desktop Descope email-OTP/session acquisition, hosted campaign bootstrap, real hosted member roster/moderation consumption, non-secret diagnostics and the approved font/theme preview settings follow-up.
 
-Repository/CI success is **not** evidence that the new routes are live on the real DEV Worker. The current next gate is explicit deployment/integration evidence, then owner Windows Desktop QA. See `docs/checkpoints/LATEST.md` for the exact branch, hashes and CI runs.
+The DEV Worker deployment is now explicit evidence rather than an outstanding provider gate. The current next action is real Windows Desktop QA against that deployed Worker. See `docs/checkpoints/LATEST.md` and `docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md`.
 
 ## Integrated MVP scope
 
@@ -117,7 +115,7 @@ Backend:
 
 ```bash
 cd backend
-npm install
+npm install --no-package-lock
 npm run check
 ```
 

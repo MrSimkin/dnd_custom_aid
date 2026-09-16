@@ -8,23 +8,24 @@
 **Current PR:** #44 — draft  
 **Package branch base:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
 **Current package:** Wave 5 — Desktop hosted authentication/session acquisition + real Campaign Administration consumption  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md`  
-**Latest verified implementation head:** `58dc05933e35d47bc8f65f0249a2a0b74d6206c4`  
-**Latest verified implementation Scaffold:** `35150382923` — **SUCCESS**  
-**Checkpoint-documentation Scaffold:** `35150597857` — **SUCCESS**  
-**Current gate:** explicit DEV Worker deployment/integration evidence, then owner Windows Desktop QA before merge  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`  
+**Deployed code head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
+**Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
+**DEV Worker deployment:** **VERIFIED**  
+**Worker Version ID:** `130d35e7-7903-47b2-8203-d74f9ec3db55`  
+**Current gate:** owner Windows Desktop live-QA preflight, then bounded real moderation QA before merge  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md`;
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`;
 3. this file;
-4. `docs/BRANCH_STATUS.md`;
-5. `docs/PROJECT_STATE.md`;
-6. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_OPENED.md` for package opening rationale;
-7. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_AUTH_SLICE_VERIFIED.md` for the earlier auth-slice boundary;
-8. relevant decisions and `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md` as needed.
+4. `docs/PROJECT_STATE.md`;
+5. `docs/BRANCH_STATUS.md`;
+6. `docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md` for the current owner action;
+7. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md` for implementation evidence;
+8. relevant decisions/checkpoints as needed.
 
 Newer current-package records control over older operational prose. Historical checkpoints remain evidence for the state they recorded.
 
@@ -36,37 +37,60 @@ Wave 5 Desktop shell + local campaign                 COMPLETE / OWNER-QA PASS /
 hosted membership administration core                COMPLETE / MERGED (#43) / POST-MERGE CI PASS
         |
         v
-Desktop hosted auth + real Campaign Administration   IMPLEMENTED / CI VERIFIED / PR #44 DRAFT
-        +-- provider/session adapter                  IMPLEMENTED / CI VERIFIED
-        +-- hosted campaign bootstrap/selection       IMPLEMENTED / CI VERIFIED
-        +-- real member roster + moderation           IMPLEMENTED / CI VERIFIED
-        +-- font/theme preview settings follow-up     IMPLEMENTED / CI VERIFIED
-        +-- diagnostics/tests                         IMPLEMENTED / CI VERIFIED
+Desktop hosted auth + real Campaign Administration   REPO IMPLEMENTED / CI VERIFIED / PR #44 DRAFT
         |
         v
-DEV Worker deployment/integration                    NEXT / EXPLICIT EVIDENCE REQUIRED
+DEV Worker deployment                                VERIFIED
+  /health -> 200
+  unauth roster route -> 401 UNAUTHENTICATED
         |
         v
-Owner Windows Desktop QA                             REQUIRED BEFORE MERGE
+Owner Windows Desktop live-QA preflight              NEXT
+  launch + preserve local data
+  real email OTP login
+  hosted bootstrap/campaign context
+  real roster retrieval
+        |
+        v
+Bounded moderation QA if suitable Player exists      PENDING ROSTER EVIDENCE
+        |
+        v
+Final settings/sign-out/relaunch QA                  REQUIRED BEFORE MERGE
+        |
+        v
+PR readiness / merge / post-merge verification
 ```
 
-## Latest verified package state
+## Verified deployment state
 
-At exact implementation head `58dc05933e35d47bc8f65f0249a2a0b74d6206c4`, the bounded repository implementation is complete and Scaffold `35150382923` completed **SUCCESS** across backend, hosted database and Kotlin/Desktop/Android/Shared surfaces.
+The owner deployed exact repository head `a6c0532878e8ef49ddfb894fa71076c1af73587a` to the existing Cloudflare Worker `dnd-custom-aid-api` using the repository-pinned Wrangler `4.127.1` and the expected existing authenticated Cloudflare account.
 
-Desktop now has provider-specific Descope email-OTP/session acquisition outside Shared, canonical hosted campaign bootstrap, real hosted member roster consumption, server-authoritative Player moderation and non-secret hosted diagnostics. Session/refresh JWTs remain memory-only; OTPs/tokens are not persisted or exposed through ordinary diagnostics.
+Cloudflare deployment completed successfully and reported Worker Version ID `130d35e7-7903-47b2-8203-d74f9ec3db55`.
 
-The owner-approved Desktop settings follow-up is also implemented: font/theme preview cards are reachable from the real Settings destination, Geist and Mona Sans Condensed are bundled from existing repository assets with license provenance, other Android catalogue names are offered only when the exact system family is available, and preference fallback/persistence is covered by focused tests.
+Secret-free post-deployment probes passed:
 
-## External verification still pending
+- `GET /health` -> `200` with normal service health JSON;
+- unauthenticated `GET /v1/campaigns/<zero-uuid>/members` -> `401 UNAUTHENTICATED`.
 
-Repository/CI completion is **not** evidence that the Campaign Administration routes are live on the real DEV Worker.
+The `401` proves the new Campaign Administration member-roster route is live through route recognition and authentication enforcement. Do not describe authenticated Desktop behavior or moderation as verified yet.
 
-The repository still has no automatic Cloudflare Worker deployment workflow. Explicit DEV deployment/integration evidence is required before describing those routes as live or before treating real Desktop authentication/roster/moderation as externally verified.
+## Current owner/manual gate
 
-Owner Windows Desktop QA also remains required after DEV integration. It must cover real email-OTP authentication, hosted campaign convergence, roster/moderation behavior, sign-out/relaunch semantics, preservation of local-only work/data and the font/theme preview/persistence follow-up.
+Use:
 
-If deployment requires owner-local/provider credentials unavailable safely to the Work environment, finish all safe repository work first and stop only at that narrow gate. Never request secrets in chat or Git.
+`docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md`
+
+The next bounded owner action is Windows Desktop live-QA preflight only:
+
+1. launch with the already-recorded portable JDK 17 + Gradle 9.5 toolchain;
+2. confirm existing local data survives;
+3. perform real email-OTP login locally;
+4. verify hosted bootstrap/canonical campaign context;
+5. retrieve the real roster;
+6. report whether a suitable Player row exists and which moderation actions are visible;
+7. confirm font/theme preview surfaces are present.
+
+Do not perform Kick/Ban/Lift Ban until roster evidence is reviewed. If no suitable Player membership exists, stop rather than inventing data or editing Neon ad hoc.
 
 ## Permanent safety rules
 
@@ -78,4 +102,5 @@ If deployment requires owner-local/provider credentials unavailable safely to th
 - preserve stable identity, stale-revision, idempotency, tombstone/non-resurrection and no-silent-overwrite guarantees;
 - DM authority is not PC ownership;
 - Live Combat belongs to a later wave;
-- avoid generalized RBAC/ACL or speculative infrastructure.
+- avoid generalized RBAC/ACL or speculative infrastructure;
+- do not run `npm audit fix --force` blindly; the known 3 high-severity dependency findings remain a later explicit hardening item.

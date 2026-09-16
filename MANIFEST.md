@@ -13,7 +13,7 @@ Current practical truth is controlled by:
 - `docs/BRANCH_STATUS.md` — branch lifecycle;
 - the current checkpoint referenced by `LATEST.md` — package-specific implementation/verification evidence.
 
-As of 2026-09-16, Wave 4 is complete. Wave 5 is active. The current draft PR #44 repository implementation is complete/CI-verified and is stopped at explicit real DEV Worker deployment/integration before owner Windows Desktop QA.
+As of 2026-09-16, Wave 4 is complete and Wave 5 is active. Draft PR #44 repository implementation is complete/CI-verified, and its DEV Cloudflare Worker deployment is explicitly verified. The current gate is owner Windows Desktop live QA.
 
 ## Start/resume control files
 
@@ -26,6 +26,12 @@ Mandatory operating rules for humans and AI/coding agents, including the externa
 ### `docs/checkpoints/LATEST.md`
 Exact practical resume pointer and current supersession rules.
 
+### `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`
+Current Wave 5 provider evidence: exact deployed repository head, verified CI, Cloudflare Worker version, public health result and Campaign Administration route-presence/auth-boundary proof.
+
+### `docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md`
+Current bounded owner-action packet for Windows Desktop live QA after deployment.
+
 ### `docs/PROJECT_STATE.md`
 Current global implementation/product state.
 
@@ -36,7 +42,7 @@ Canonical branch lifecycle map and current resume rule.
 Reusable whole-project fresh-chat/lost-chat recovery prompt.
 
 ### `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md`
-Reusable prompt for continuing autonomous repository work while stopping cleanly at inaccessible Cloudflare/Descope/Neon/provider actions.
+Reusable prompt for autonomous repository work that stops cleanly at inaccessible provider actions.
 
 ### `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`
 Controlling `$0` external-service budget, provider revalidation, intentional public-repository visibility, secret hygiene and owner-guidance contract.
@@ -44,17 +50,14 @@ Controlling `$0` external-service budget, provider revalidation, intentional pub
 ### `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
 Historical evidence for the first real Neon + Descope + Cloudflare DEV activation. Provider activation is complete; do not repeat it.
 
-### `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`
-Historical evidence for the first Android hosted-session integration and owner physical login/restart/logout proof.
+### `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md`
+Repository implementation evidence for PR #44 before external deployment/owner QA.
 
 ### `docs/ROADMAP.md`
 Integrated implementation waves and ordering.
 
 ### `docs/WORKFLOW.md`
 AI-led development/review workflow and external-provider handoff protocol.
-
-### `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`
-Provider-neutral engineering handoff/contracts. Older exact-resume prose inside technical baselines is superseded by current state docs.
 
 ## Controlling product/architecture decisions
 
@@ -72,7 +75,7 @@ Use `docs/DECISIONS_RECENT.md` for navigation.
 - `docs/PRODUCT.md` — approved product scope;
 - `docs/ARCHITECTURE.md` — integrated architecture;
 - `docs/TESTING.md` — verification strategy/evidence;
-- `docs/TEST_DEVICES.md` — owner-confirmed physical devices.
+- `docs/TEST_DEVICES.md` — owner-confirmed physical devices and Windows Desktop QA toolchain.
 
 Historical checkpoints remain evidence; old `next` instructions may be superseded by current `LATEST.md`.
 
@@ -85,13 +88,13 @@ Kotlin Multiplatform domain/persistence/networking/sync foundation with SQLDelig
 Mature Player Android runtime protected by permanent CI guards. Real Descope remembered-session integration, campaign bootstrap/delivery, PC hosted synchronization/convergence/conflict behavior and Wave 4 authorization QA are integrated for their recorded scope.
 
 ### `desktopApp/`
-Compose Multiplatform Desktop workbench with persistent local campaign context. Current PR #44 adds Desktop hosted Descope email-OTP/session acquisition, hosted campaign bootstrap, real Campaign Administration roster/moderation consumption, diagnostics and font/theme preview settings.
+Compose Multiplatform Desktop workbench with persistent local campaign context. PR #44 adds Desktop hosted Descope email-OTP/session acquisition, hosted campaign bootstrap, real Campaign Administration roster/moderation consumption, diagnostics and font/theme preview settings.
 
 ### `backend/`
-TypeScript Cloudflare Worker/API with `/v1` routes, Descope/JWKS verification, application-owned authorization, campaign/membership lifecycle, Campaign Administration and PC snapshot behavior. The historical DEV Worker exists, but new PR #43 Campaign Administration routes must not be described as live until explicit current deployment/integration evidence exists.
+TypeScript Cloudflare Worker/API with `/v1` routes, Descope/JWKS verification, application-owned authorization, campaign/membership lifecycle, Campaign Administration and PC snapshot behavior. The current PR #44/PR #43 Campaign Administration code is deployed on DEV. Real authenticated Desktop consumption remains the current QA gate.
 
 ### `database/`
-Explicit hosted PostgreSQL migrations/contracts validated in CI and previously exercised against the real Neon DEV database. Current Campaign Administration contracts include migration/contract `0006`.
+Explicit hosted PostgreSQL migration/contracts validated in CI and previously exercised against the real Neon DEV database. Campaign Administration uses the existing schema; `0006` is a contract-test layer, not a new live migration.
 
 ### `scripts/`
 Permanent Player guard scripts exercised by Scaffold CI.
@@ -109,11 +112,13 @@ Wave 4 Player <-> Server                            COMPLETE
 Wave 5 Desktop shell/local campaign                 COMPLETE / owner-QA pass
 Wave 5 hosted membership administration core       COMPLETE / merged #43
 Wave 5 Desktop hosted Campaign Administration       REPO IMPLEMENTED / CI VERIFIED / PR #44
-Real DEV deployment/integration                     NEXT
-Owner Windows Desktop QA                            REQUIRED BEFORE MERGE
+Real DEV Worker deployment                          VERIFIED
+Owner Windows Desktop live-QA preflight             NEXT
+Real moderation QA                                  PENDING ROSTER EVIDENCE
+Final owner QA / merge                              REQUIRED
 ```
 
-Do not restart completed provider activation, Android session work, Wave 4, PR #42 or PR #43.
+Do not restart completed provider activation, Android session work, Wave 4, PR #42 or PR #43. Do not redeploy the Worker again unless subsequent code changes actually require it.
 
 ## External-provider capability rule
 
