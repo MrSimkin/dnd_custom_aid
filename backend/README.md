@@ -10,8 +10,10 @@ Current implemented foundation:
 - `GET /v1/me` returns the current application account;
 - `GET /v1/campaigns` lists active campaign memberships;
 - `POST /v1/campaigns` creates an independently identified campaign, makes the creator its DM, and uses a mutation UUID for retry-safe idempotency;
+- `GET /v1/campaigns/{campaignId}/members` returns the active-DM-authorized hosted member roster;
+- `POST /v1/campaigns/{campaignId}/members/{userId}/moderation` applies server-authoritative Player `KICK`, `BAN`, or `LIFT_BAN` actions;
 - Neon PostgreSQL is accessed through the edge-compatible `@neondatabase/serverless` HTTP driver;
-- API and authentication boundaries have deterministic Node tests.
+- API, authentication and Campaign Administration boundaries have deterministic tests.
 
 Runtime configuration is intentionally supplied through Worker environment/secrets, never committed:
 
@@ -19,14 +21,39 @@ Runtime configuration is intentionally supplied through Worker environment/secre
 - `DESCOPE_PROJECT_ID` — Descope project/audience identifier;
 - `DESCOPE_BASE_URL` — optional HTTPS Descope base URL; defaults to `https://api.descope.com`.
 
+`backend/wrangler.jsonc` declares `DATABASE_URL` and `DESCOPE_PROJECT_ID` as required secret names. Their values remain provider-side; normal deployment must not copy them into Git, chat, command history or a `--secrets-file` merely to redeploy code.
+
 No provider account, database, secret, or deployment is created by the repository itself. R2, Durable Objects, WebSockets, queues, and generalized realtime remain outside this foundation.
 
 Commands from this directory:
 
 ```bash
-npm install
+npm install --no-package-lock
 npm run check
 npm run dev
+npm run deploy
 ```
 
 `npm run check` generates Worker types, type-checks the TypeScript surface, and runs the backend tests with Node's built-in test runner.
+
+`npm run deploy` is the explicit owner/provider deployment action for the existing Cloudflare Worker named `dnd-custom-aid-api`. The repository has no automatic Worker deployment workflow. Existing configured Worker secrets are expected to remain provider-side across a normal code deployment; the required-secret declaration causes deployment to fail if those required secret names are missing instead of silently publishing an unusable configuration.
+
+Before deployment, confirm the local Wrangler session with:
+
+```bash
+npx wrangler whoami
+```
+
+After deployment, a secret-free public route-presence check can distinguish the new Campaign Administration route from the pre-deployment Worker without exposing a JWT:
+
+```bash
+node -e "fetch('https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/health').then(async r => console.log(r.status, await r.text()))"
+node -e "fetch('https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/v1/campaigns/00000000-0000-0000-0000-000000000000/members').then(async r => console.log(r.status, await r.text()))"
+```
+
+Expected after the current Worker code is live:
+
+- `/health` -> HTTP `200` with the normal service health JSON;
+- the unauthenticated Campaign Administration route -> HTTP `401` / `UNAUTHENTICATED`.
+
+The second check is intentionally unauthenticated. A `401` means the route is recognized and reached the authentication boundary; a `404` would indicate that the deployed Worker still does not contain that route.
