@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.shared.db
 
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import java.io.File
+import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -9,7 +10,7 @@ import kotlin.test.assertTrue
 class DesktopDatabaseFactoryTest {
     @Test
     fun createsPersistentDatabaseAndReopensExistingSchema() {
-        val directory = createTempDir(prefix = "dnd-custom-aid-desktop-")
+        val directory = createTempDirectory("dnd-custom-aid-desktop-").toFile()
         val databaseFile = File(directory, "desktop.db")
 
         try {
