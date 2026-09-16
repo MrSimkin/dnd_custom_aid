@@ -3,20 +3,19 @@
 **Last verified:** 2026-09-16 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** **GRANTED**  
 **Normal integrated trunk:** `main`  
-**Verified current main / Wave 5 package base:** `fb113909cb53b2463bd643cae7d2f54f0673fec4`  
-**Current focused branch:** `wave5/campaign-membership-administration-core`  
-**Current PR:** #43  
-**Verified implementation head:** `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c`  
-**Verified implementation Scaffold:** `35140381721` — **SUCCESS**  
-**Current package checkpoint:** `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_AUTOMATED_VERIFIED.md`
+**Verified current main:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
+**Verified post-merge Scaffold:** `35142092743` — **SUCCESS**  
+**Current focused branch:** `wave5/desktop-hosted-campaign-administration`  
+**Current PR:** none yet  
+**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_OPENED.md`
 
 ## 1. Current authority/topology
 
-`main` is the single normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches and reintegrates after proportionate verification. Historical Player/convergence/Wave 4 refs remain evidence rather than parallel trunks.
+`main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches and reintegrates only after proportionate verification.
 
-`docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle.
+`docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle. Historical checkpoints remain evidence for the state that existed when they were written.
 
-The previous Wave 5 branch `wave5/desktop-workbench-shell` is completed/merged. The current package is PR #43 on `wave5/campaign-membership-administration-core`.
+PR #43 is completed and merged. The current branch is `wave5/desktop-hosted-campaign-administration`, created from the verified PR #43 merge with zero unique commits at opening.
 
 ## 2. Integrated foundation
 
@@ -39,11 +38,11 @@ The integrated foundation includes:
 - explicit reviewed conflict resolution;
 - permanent hosted-sync QA diagnostics;
 - persistent Desktop local SQLite campaign context and workbench shell;
-- hosted Campaign Administration member-roster/moderation contract in the current verified PR.
+- active-DM-only hosted Campaign Administration roster and moderation API/client contract.
 
-## 3. Hosted DEV state
+## 3. Hosted DEV architecture and deployment boundary
 
-Verified DEV architecture remains:
+Verified architecture remains:
 
 ```text
 Android / Desktop clients
@@ -55,148 +54,139 @@ Cloudflare Worker/API <---- Descope identity proof
 Neon PostgreSQL
 ```
 
-The Android hosted path is physically verified through Wave 4. Native clients do not hold database credentials. The hard external-service operating budget remains USD $0 unless the owner changes it.
+Android hosted behavior is physically verified through Wave 4. Native clients do not hold database credentials. The hard external-service operating budget remains USD $0 unless the owner changes it.
 
-Desktop currently has local persistence but does **not** yet have hosted provider/session acquisition or hosted synchronization.
+The repository does not automatically deploy the Cloudflare Worker. The PR #43 Campaign Administration routes are repository/API-contract verified but must not be described as live on the real DEV Worker until explicit deployment evidence exists.
 
-The current Campaign Administration routes are repository/API-contract verified but are **not yet claimed as deployed** to the real DEV Worker; this repository has no automatic Worker deployment workflow.
+The current Desktop hosted package owns that deployment/integration gate because it is the first real consumer of those routes.
 
-## 4. Wave 4 — complete
+## 4. Completed predecessor packages
 
-Wave 4 Player <-> Server is complete and integrated for the recorded scope, including remembered authentication, campaign bootstrap/delivery, PC push/pull, multi-client convergence, explicit conflict resolution and membership revoke/reinstate authorization behavior.
+### Wave 4 Player <-> Server — complete
 
-PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` passed.
+Wave 4 is integrated for remembered authentication, campaign bootstrap/delivery, PC push/pull, multi-client convergence, explicit conflict resolution and membership revoke/reinstate authorization behavior.
 
-Physical membership QA specifically exercised DM `ACTIVE -> KICKED -> ACTIVE`; Player owner/controller revoke remains automated-contract evidence, not physical Player evidence.
+### Wave 5 package A — Desktop shell/local campaign — complete
 
-## 5. Wave 5 — active
+PR #42 merged as `fb113909cb53b2463bd643cae7d2f54f0673fec4`; post-merge Scaffold `35138029472` passed.
 
-### 5.1 Desktop shell/local campaign — complete
+Owner Windows Desktop QA passed the workbench shell, local campaign persistence/context, Spanish product language, persistent Application Settings and QA/diagnostic copy surface.
 
-PR #42 merged as:
+### Wave 5 package B — hosted Campaign membership administration core — complete
 
-`fb113909cb53b2463bd643cae7d2f54f0673fec4`
+PR #43 merged as `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`; post-merge Scaffold `35142092743` passed.
 
-Post-merge Scaffold `35138029472` — **SUCCESS**.
-
-Owner Windows Desktop QA passed the workbench shell, local campaign persistence/context, Spanish product language, persistent Application Settings, QA/diagnostic copy surface and honest deferred placeholders.
-
-### 5.2 Hosted Campaign membership administration core — automated verified
-
-PR #43 implements:
+Integrated behavior includes:
 
 - ACTIVE-DM-only hosted member roster;
-- member application user ID/display name/role/lifecycle projection;
+- member application account identity/display name, campaign role and lifecycle status;
 - Player `KICK`, `BAN`, `LIFT_BAN` actions;
-- `LIFT_BAN` as `BANNED -> KICKED`, with invitation/rejoin later owning `KICKED -> ACTIVE`;
+- `LIFT_BAN` = `BANNED -> KICKED`;
 - idempotent/no-op moderation;
-- campaign revision only for actual lifecycle changes;
+- campaign revision changes only for real lifecycle changes;
 - no membership-row/PC/owner-controller destruction;
-- provider-neutral Shared hosted Campaign Administration client;
-- focused backend/database/Shared verification.
+- provider-neutral Shared Campaign Administration client;
+- hosted PostgreSQL contract `0006` and focused backend/Shared tests.
 
-Exact implementation head `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c` passed Scaffold `35140381721`.
+## 5. Wave 5 package C — active
 
-No owner/manual gate is required for this backend/shared-only package.
+Current package:
 
-## 6. Current gate / continuation
+**Desktop hosted authentication/session acquisition + real Campaign Administration consumption**
 
-Current gate:
+Branch:
 
-1. final documentation-only PR #43 head must pass Scaffold;
-2. if head remains unchanged, merge PR #43;
-3. verify post-merge `main` Scaffold.
+`wave5/desktop-hosted-campaign-administration`
 
-If those steps are already complete when this file is read, treat PR #43 as integrated and continue from current `main` with the next bounded Wave 5 Desktop-hosted consumer package: Desktop hosted authentication/session acquisition + real Campaign Administration consumption, including explicit DEV Worker deployment/authenticated integration when the new routes are first needed.
+Required bounded scope:
 
-Do not let the earlier PC-sync clarification reorder the approved sequence.
+- Desktop-specific hosted auth/session adapter plugged into `HostedAccessTokenProvider`;
+- keep Shared provider-neutral and provider credentials/secrets out of the repository;
+- hosted account/campaign discovery and bootstrap through the existing Shared service;
+- canonical hosted campaign UUID convergence without a second link table or silent duplicate;
+- real hosted Campaign Administration roster;
+- Kick/Ban/lift-Ban UX that waits for server authority and refreshes authoritative state after success;
+- hosted/session UX that does not disable offline/local-only work;
+- non-secret copyable diagnostics;
+- Desktop settings follow-up: current Android selectable font catalogue where technically/licensing-wise appropriate, real font rendering, font previews and theme previews;
+- focused automated tests.
 
-## 7. Current Wave 5 boundaries
+## 6. Authentication/session direction
 
-Not part of PR #43:
+Android keeps Descope-specific implementation in Android code and exposes only a short-lived token provider to Shared. Desktop must preserve that architecture.
 
-- invitations/join/rejoin;
-- co-DM moderation/role editing;
-- Desktop provider/session acquisition or full hosted sync;
-- final Desktop Campaign Administration member UI;
-- PC ownership/control assignment shortcuts;
-- PC Manager/Audit;
-- live combat authority/resume/handoff;
-- substantive authoring Managers;
-- Media/Handouts/object-storage activation;
-- System Administration;
-- backup/export/PDF hardening;
-- generalized RBAC/ACL.
+The Descope Kotlin SDK in use is Android-specific; Desktop must not introduce it as if it were a general JVM/Desktop SDK. A Desktop platform adapter may use the documented Descope authentication HTTP contract with the public project ID already present in the repository.
 
-D-0072 controls the Desktop workbench/product direction. D-0073 controls integrated-MVP sequencing.
+Session/refresh JWTs are secrets. They must not be logged, exposed in diagnostics, committed or stored in ordinary preferences. For this bounded package, a memory-only Desktop session is an acceptable honest limitation if secure persisted credential storage is not introduced.
 
-## 8. Owner-approved next Desktop settings enhancement
+Sign-out clears hosted session state only; it must not delete local campaign/character state.
 
-When the next genuine Desktop feature build occurs:
+## 7. Campaign identity/bootstrap direction
 
-- expand the Desktop font catalogue to Android-equivalent choices where technically appropriate;
-- replace plain Theme and Font selectors with Android-like preview cards/forms so the result can be previewed before selection.
+Use `HostedApiClient.campaigns()` and `HostedCampaignBootstrapService` rather than inventing a Desktop-only API model or campaign-link table.
 
-The durable detail is in `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md`.
+Hosted campaign identity remains the canonical campaign UUID. Hosted bootstrap must preserve revisions, tombstones, conflict semantics and membership lifecycle behavior already implemented in Shared.
 
-## 9. Controlling integrated-MVP direction
+A local-only campaign remains local-only unless a real hosted campaign with the same canonical identity is bootstrapped; hosted access loss must not destroy local data.
 
-The approved product remains one ecosystem:
+## 8. Campaign Administration behavior
 
-```text
-Player Android <-> hosted/shared services <-> DM Android/tablet/Desktop
-```
+For an authenticated active DM and a hosted campaign:
 
-Paper-first Player play, local-first saves, bounded project-specific sync, complete DM Desktop fallback, combat authority resume/handoff, object storage/media, meaningful recovery/backup and official-SRD clarification remain protected integrated-MVP direction.
+- show the real member roster with display name, role and lifecycle status;
+- do not make UUIDs the primary human label;
+- expose only valid Player moderation actions;
+- `KICK` must never weaken an existing ban;
+- `LIFT_BAN` returns the member to `KICKED`, not `ACTIVE`;
+- do not simulate success locally before the server confirms;
+- refresh/reconcile authoritative state after a mutation;
+- errors must not silently mutate local truth;
+- no co-DM moderation in this package.
 
-The project remains intentionally not a VTT, automatic legality/rules engine, generalized sync platform, marketplace/social product or enterprise infrastructure exercise.
+## 9. Desktop settings follow-up
 
-## 10. Technical direction
+This package is the next genuine Desktop feature build, so the owner-approved follow-up is active scope:
 
-- Kotlin/Compose Android + Kotlin/Compose Multiplatform Desktop;
-- SQLDelight/SQLite local persistence;
-- TypeScript Cloudflare Worker API;
-- Neon PostgreSQL hosted persistence;
-- Descope identity proof with application-owned authorization;
-- Ktor Client shared Android/Desktop HTTP;
-- versioned `/v1` HTTP/JSON API;
-- client mutation UUIDs + optimistic revisions where retry identity is required;
-- durable SQLDelight outbox + scoped push/pull synchronization;
-- explicit hosted SQL migrations/contracts;
-- versioned app-owned JSON import/export;
-- one canonical PC/export snapshot + shared PDF-export semantics with platform rendering.
+- use the actual current Android selectable catalogue as the parity reference, excluding Android-hidden historical choices;
+- real named fonts must render as themselves; no fake labels over a common fallback;
+- use legitimate free/public-repository licensing and avoid paid dependencies;
+- replace the plain font selector with visual samples rendered in each candidate font;
+- replace the plain theme dropdown with preview cards/forms;
+- preserve the current Desktop theme catalogue unless evidence requires parity expansion;
+- preserve text-size, spacing density, workspace density, persistence and application of all settings.
 
-Object storage remains required for MVP but provider activation remains deferred until Media/Handouts/assets reach real integration.
+## 10. Explicit current-package non-goals
+
+Do not expand this package into invitations/rejoin, co-DM role administration, PC Manager/Audit, ownership/control shortcuts, full PC hosted synchronization, Managers, Media/Handouts/object storage, Live Combat, System Administration, backup/export/PDF hardening, broad Player redesign, generalized RBAC/ACL or unrelated infrastructure.
 
 ## 11. Security / operating residuals
 
 D-0075 remains controlling: repository intentionally public, hard USD $0 external-service budget, never commit secrets, and paid/overage commitments require explicit owner approval.
 
-Carry forward JWT/fail-closed review, object-level authorization regression coverage, SQL/query safety, token/secret leakage prevention, replay/idempotency authorization review, dependency-vulnerability investigation without blind `npm audit fix --force`, least-privilege Neon runtime-role evaluation, and production identity/configuration review before release.
+Preserve fail-closed authorization, least privilege, local-first safety, stable identities, stale-revision protection, idempotency, tombstones/non-resurrection and no-silent-overwrite guarantees.
 
-## 12. QA environment
+Do not use destructive recovery or delete/reset the owner's existing local QA campaign merely to make hosted QA pass.
 
-Current owner-reported Android QA inventory is six instances:
+## 12. QA / acceptance gate
 
-- phone-class: 1 physical Redmi Note 11 Pro 5G + 2 emulators;
-- tablet-class: 1 physical Lenovo Tab P11 TB-J606F, 6 GB RAM, Android 11 + 2 emulators.
+Automated tests and Scaffold must pass on the exact implementation head.
 
-The Windows Desktop QA workstation/toolchain is recorded in `docs/TEST_DEVICES.md`.
+They do not substitute for:
 
-## 13. Release/acceptance status
+1. explicit real DEV Worker deployment/integration evidence for the PR #43 routes; and
+2. owner Windows Desktop QA for hosted login, roster/moderation behavior and visual settings previews.
 
-The project remains development/debug and is not release-ready.
+Do not merge the owner-testable Desktop surface before required owner QA passes.
 
-Wave 4 recorded hosted/manual gates are complete. The first Wave 5 Desktop package is owner-accepted and integrated. PR #43 is automated verified and requires only final documentation-head CI, merge and post-merge CI; it has no owner/manual acceptance gate.
-
-## 14. Resume rule
+## 13. Resume rule
 
 Read, in order:
 
 1. `docs/checkpoints/LATEST.md`;
-2. `docs/BRANCH_STATUS.md`;
-3. `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_AUTOMATED_VERIFIED.md`;
-4. D-0072 and D-0073 as needed;
-5. the completed Desktop-shell and membership-revoke checkpoints for predecessor evidence.
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_OPENED.md`;
+3. `docs/BRANCH_STATUS.md`;
+4. D-0072, D-0073 and D-0075 as needed;
+5. `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md`;
+6. the completed PR #43 automated-verification checkpoint for predecessor contract evidence.
 
-Continue PR #43 through exact-head CI/merge/post-merge verification. If it is already integrated, start the next bounded Wave 5 package from current `main`.
+Continue on `wave5/desktop-hosted-campaign-administration`; do not restart PR #43 work or reopen the completed Desktop-shell package.
