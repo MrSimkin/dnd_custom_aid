@@ -10,10 +10,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.platform.Font as DesktopFont
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import java.awt.GraphicsEnvironment
@@ -67,6 +68,7 @@ internal enum class DesktopFontChoice(
     LEAGUE_SPARTAN("League Spartan", systemFamilyName = "League Spartan"),
     ;
 
+    @OptIn(ExperimentalTextApi::class)
     val family: FontFamily
         get() = when (this) {
             SANS_SERIF -> FontFamily.SansSerif
@@ -74,10 +76,10 @@ internal enum class DesktopFontChoice(
             MONOSPACE -> FontFamily.Monospace
             else -> bundledResource?.let { resource ->
                 FontFamily(
-                    Font(
-                        resource = resource,
-                        weight = FontWeight.Normal,
-                        style = FontStyle.Normal,
+                    DesktopFont(
+                        resource,
+                        FontWeight.Normal,
+                        FontStyle.Normal,
                     ),
                 )
             } ?: FontFamily(requireNotNull(systemFamilyName))
