@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.shared)
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.multiplatform.material)
+    testImplementation(kotlin("test"))
 }
 
 compose.desktop {
