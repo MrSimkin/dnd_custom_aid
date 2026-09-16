@@ -12,8 +12,10 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMember
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMemberRoster
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignModerationAction
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignModerationResult
+import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembership
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
+import io.github.mrsimkin.dndcustomaid.shared.spine.IntegratedSpineRepository
 import kotlin.uuid.Uuid
 
 /**
@@ -37,8 +39,12 @@ internal class DesktopHostedCampaignAdministrationController(
         ),
 ) {
     private val bootstrapService = HostedCampaignBootstrapService(database, apiClient)
+    private val spine = IntegratedSpineRepository(database)
 
     suspend fun bootstrap(): HostedCampaignBootstrapResult = bootstrapService.refresh()
+
+    fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =
+        spine.membership(campaignId, accountId)
 
     suspend fun roster(campaignId: Uuid): HostedCampaignMemberRoster =
         administrationClient.members(campaignId)
