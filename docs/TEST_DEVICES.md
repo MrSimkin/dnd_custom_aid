@@ -2,6 +2,15 @@
 
 This file records owner-confirmed physical devices and emulator inventory available for visual audition and QA. Do not infer unrecorded OS/display settings from model/profile names; add them only when they become material to a finding.
 
+## QA inventory summary
+
+**Owner-reported 2026-09-16:** the current Android QA inventory contains **3 phone-class devices** and **3 tablet-class devices**:
+
+- **Phone:** 1 physical + 2 Android Studio emulators;
+- **Tablet:** 1 physical + 2 Android Studio emulators.
+
+This gives six available Android test instances in total. Physical and virtual coverage must remain explicitly distinguished in QA records.
+
 ## Primary physical phone
 
 - **Role:** primary owner phone test device
@@ -14,11 +23,13 @@ This file records owner-confirmed physical devices and emulator inventory availa
 
 ## Physical tablet
 
-No owner physical tablet test device has been recorded yet.
+- **Role:** owner physical tablet available for tablet-class QA
+- **Owner-confirmed availability:** 2026-09-16
+- **Model / Android version / system display scale / exact effective viewport:** not yet recorded; do not guess
 
 ## Android Studio emulator inventory
 
-**Owner-reported 2026-09-16:** Android Studio currently has **4 available emulators**:
+Android Studio currently has **4 available emulators**:
 
 - **2 phone emulators**;
 - **2 tablet emulators**.
@@ -31,4 +42,4 @@ These emulators are available for multi-form-factor development/QA and can be us
 
 When a concrete visual/IME/layout finding is recorded, include the device or emulator profile, orientation, app font, application text scale, application spacing scale and card-column preference. Add OS/system display details only when they materially affect reproduction.
 
-For synchronization/multi-client findings, also identify which client/device instance produced each state so emulator-to-emulator, emulator-to-phone and physical-device observations are not conflated.
+For synchronization/multi-client findings, also identify which client/device instance produced each state so emulator-to-emulator, emulator-to-phone, emulator-to-tablet and physical-device observations are not conflated.
