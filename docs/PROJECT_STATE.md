@@ -3,18 +3,18 @@
 **Last verified:** 2026-09-16 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** **GRANTED**  
 **Normal integrated trunk:** `main`  
-**Verified Wave 5 starting main:** `40b29006052c9986e2d79227a6053f36241de1e6`  
-**Current focused branch:** `wave5/desktop-workbench-shell`  
-**Current PR:** #42  
-**Current verified package head:** `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`  
-**Current Scaffold:** `35125170321` — **SUCCESS**  
-**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`
+**Verified current main / Wave 5 package base:** `fb113909cb53b2463bd643cae7d2f54f0673fec4`  
+**Current focused branch:** `wave5/campaign-membership-administration-core`  
+**Current PR:** not opened yet  
+**Current package checkpoint:** `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_OPEN.md`
 
 ## 1. Current authority/topology
 
 `main` is the single normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches and reintegrates after proportionate verification. Historical Player/convergence/Wave 4 refs remain evidence rather than parallel trunks.
 
 `docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle.
+
+The previous Wave 5 branch `wave5/desktop-workbench-shell` is completed/merged and must not be treated as the active work branch.
 
 ## 2. Integrated foundation
 
@@ -36,7 +36,8 @@ The integrated foundation includes:
 - local-first PC delivery/reconciliation;
 - equal-revision/local-ahead/tombstone convergence guards;
 - explicit reviewed conflict resolution;
-- permanent hosted-sync QA diagnostics.
+- permanent hosted-sync QA diagnostics;
+- persistent Desktop local SQLite campaign context and workbench shell.
 
 ## 3. Hosted DEV state
 
@@ -52,67 +53,93 @@ Cloudflare Worker/API <---- Descope identity proof
 Neon PostgreSQL
 ```
 
-The current native Android hosted path is physically verified through Wave 4. Native clients do not hold database credentials. The hard external-service operating budget remains USD $0 unless the owner changes it.
+The native Android hosted path is physically verified through Wave 4. Native clients do not hold database credentials. The hard external-service operating budget remains USD $0 unless the owner changes it.
+
+Desktop currently has local persistence but does **not** yet have hosted provider/session acquisition or hosted synchronization.
 
 ## 4. Wave 4 — complete
 
 Wave 4 Player <-> Server is complete and integrated for the recorded scope, including remembered authentication, campaign bootstrap/delivery, PC push/pull, blocked-row recovery, unchanged sync, multi-client convergence, explicit reviewed conflict resolution and membership revoke/reinstate authorization behavior.
 
-PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` passed. The later documentation/device-inventory main head `40b29006052c9986e2d79227a6053f36241de1e6` passed Scaffold `35123470001` and is the current Wave 5 base.
+PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` passed.
 
 Physical membership QA specifically exercised DM `ACTIVE -> KICKED -> ACTIVE`; Player owner/controller revoke remains automated-contract evidence, not physical Player evidence.
 
 ## 5. Wave 5 — active
 
-Wave 5 Desktop shell + Campaign Administration is now active.
+Wave 5 Desktop shell + Campaign Administration is active.
 
-Current first package:
+### 5.1 First package — complete
 
-> **Desktop workbench shell + local campaign context**
+PR #42 established Desktop workbench shell + local campaign context and merged as:
 
-Branch:
+`fb113909cb53b2463bd643cae7d2f54f0673fec4`
 
-`wave5/desktop-workbench-shell`
+Post-merge Scaffold:
 
-PR:
+`35138029472` — **SUCCESS**.
 
-`#42`
+Owner Windows Desktop QA passed for:
 
-The prior Desktop app was only a placeholder window. This package now establishes:
+- workbench launch/close/navigation/layout;
+- local campaign create/select/persistence;
+- same active campaign context in Campaign Administration;
+- Spanish product-language repair;
+- persistent Desktop Application Settings;
+- bounded QA/diagnostic selectable/copyable data;
+- deferred destinations honestly presented as deferred.
 
-- persistent Desktop SQLDelight/SQLite JDBC local storage;
-- explicit Desktop database-driver lifetime;
-- Shared `CampaignRepository` as the campaign source of truth;
-- approved workbench chrome: top toolbar, left navigation, central workspace, optional context panel and bottom status strip;
-- functioning Dashboard;
-- functioning Campaigns list/create/active selection;
-- Campaign Administration bound to the same active campaign context;
-- stable navigation placeholders for later approved Desktop areas;
-- persistence-across-reopen regression coverage.
+The owner QA campaign remains:
 
-Desktop and Android use separate local database files. This package does not activate hosted Desktop authentication or synchronization and must not be described as cross-device Desktop convergence.
+- `QA Wave 5 - 2026-09-16`;
+- `30609c9d-89f7-42ef-85dd-a7a35df3c506`.
 
-Exact verified behavior/test head `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4` passed Scaffold `35125170321` across Shared Desktop tests, Desktop build, Android build/guards, backend checks and hosted PostgreSQL contracts.
+### 5.2 Current package
 
-The current gate is owner Windows Desktop visual/interaction QA before PR #42 may merge.
+Current branch:
 
-## 6. Current Wave 5 boundary
+`wave5/campaign-membership-administration-core`
 
-This first package deliberately excludes:
+Current bounded objective:
+
+- authenticated active-DM-only hosted campaign member roster;
+- explicit Player `KICK`, `BAN`, `LIFT_BAN` actions;
+- preserve rows/data and apply lifecycle transitions without destructive cleanup;
+- `LIFT_BAN` returns `BANNED -> KICKED`; valid invitation/rejoin later owns `KICKED -> ACTIVE`;
+- campaign revision advances only for actual lifecycle changes;
+- provider-neutral Shared contract for later Desktop consumption;
+- focused automated backend/database/Shared verification.
+
+This package is deliberately backend/shared-first. Desktop hosted auth/session acquisition and the final Campaign Administration member UI follow after these contracts exist.
+
+## 6. Current Wave 5 boundaries
+
+Not part of the current package:
 
 - invitations/join/rejoin;
-- Kick/Ban/Unban product UI;
-- hosted Desktop authentication/full sync;
+- co-DM moderation/role editing;
+- Desktop provider/session acquisition or full hosted sync;
+- PC ownership/control assignment shortcuts;
+- PC Manager/Audit;
 - live combat authority/resume/handoff;
-- substantive Managers/editors;
+- substantive authoring Managers;
 - Media/Handouts/object-storage activation;
 - System Administration;
 - backup/export/PDF hardening;
 - generalized RBAC/ACL.
 
-D-0072 controls the Desktop workbench/product direction. D-0073 controls integrated-MVP sequencing. Live Combat remains Wave 6.
+D-0072 controls the Desktop workbench/product direction. D-0073 controls integrated-MVP sequencing.
 
-## 7. Controlling integrated-MVP direction
+## 7. Owner-approved next Desktop settings enhancement
+
+When the next genuine Desktop feature build occurs:
+
+- expand the Desktop font catalogue to Android-equivalent choices where technically appropriate;
+- replace plain Theme and Font selectors with Android-like preview cards/forms so the result can be previewed before selection.
+
+This is a durable Desktop UX requirement, not a reason to reorder the current dependency sequence.
+
+## 8. Controlling integrated-MVP direction
 
 The approved product remains one ecosystem:
 
@@ -124,7 +151,7 @@ Paper-first Player play, local-first saves, bounded project-specific sync, compl
 
 The project remains intentionally not a VTT, automatic legality/rules engine, generalized sync platform, marketplace/social product or enterprise infrastructure exercise.
 
-## 8. Current technical direction
+## 9. Current technical direction
 
 - Kotlin/Compose Android + Kotlin/Compose Multiplatform Desktop;
 - SQLDelight/SQLite local persistence;
@@ -133,7 +160,7 @@ The project remains intentionally not a VTT, automatic legality/rules engine, ge
 - Descope identity proof with application-owned authorization;
 - Ktor Client shared Android/Desktop HTTP;
 - versioned `/v1` HTTP/JSON API;
-- client mutation UUIDs + optimistic revisions;
+- client mutation UUIDs + optimistic revisions where mutations require retry identity;
 - durable SQLDelight outbox + scoped push/pull synchronization;
 - explicit hosted SQL migrations/contracts;
 - versioned app-owned JSON import/export;
@@ -141,14 +168,14 @@ The project remains intentionally not a VTT, automatic legality/rules engine, ge
 
 Object storage remains required for MVP but provider activation remains deferred until Media/Handouts/assets reach real integration. Do not assume R2 by inertia.
 
-## 9. Security / operating residuals
+## 10. Security / operating residuals
 
 D-0075 remains controlling: repository intentionally public, hard USD $0 external-service budget, never commit secrets, and paid/overage commitments require explicit owner approval.
 
 Carry forward:
 
 - JWT/fail-closed verification review;
-- object-level authorization regression coverage for new hosted objects;
+- object-level authorization regression coverage for new hosted objects/actions;
 - SQL/query safety;
 - token/secret leakage prevention;
 - replay/idempotency authorization review;
@@ -156,28 +183,31 @@ Carry forward:
 - least-privilege Neon runtime role evaluation;
 - production identity/configuration review before release.
 
-## 10. QA device context
+## 11. QA device context
 
 Current owner-reported Android QA inventory is six instances:
 
 - phone-class: 1 physical Redmi Note 11 Pro 5G + 2 emulators;
 - tablet-class: 1 physical Lenovo Tab P11 TB-J606F, 6 GB RAM, Android 11 + 2 emulators.
 
+The Windows Desktop QA workstation/toolchain is recorded in `docs/TEST_DEVICES.md`.
+
 Emulator coverage does not replace physical-device acceptance where a physical gate is explicitly required.
 
-## 11. Release/acceptance status
+## 12. Release/acceptance status
 
 The project remains development/debug and is not release-ready.
 
-Wave 4 recorded hosted/manual gates are complete. Wave 5 Desktop workbench shell is automated-verified but not yet owner-manual accepted.
+Wave 4 recorded hosted/manual gates are complete. The first Wave 5 Desktop package is owner-accepted and integrated. The current campaign-membership administration core has no owner/manual gate yet; implementation and automated verification are pending.
 
-## 12. Resume rule
+## 13. Resume rule
 
 Read, in order:
 
 1. `docs/checkpoints/LATEST.md`;
 2. `docs/BRANCH_STATUS.md`;
-3. `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`;
-4. D-0072 and D-0073 as needed.
+3. `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_OPEN.md`;
+4. D-0072 and D-0073 as needed;
+5. the completed Desktop-shell and membership-revoke checkpoints for predecessor evidence.
 
-Continue on `wave5/desktop-workbench-shell`. The only current owner action is the guided Windows Desktop audition. Do not merge PR #42 before that gate passes.
+Continue on `wave5/campaign-membership-administration-core`. No owner/manual action is currently required.
