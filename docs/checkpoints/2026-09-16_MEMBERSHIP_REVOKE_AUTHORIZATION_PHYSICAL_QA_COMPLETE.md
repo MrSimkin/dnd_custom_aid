@@ -1,21 +1,20 @@
 # Membership revoke + Player/DM authorization — physical QA complete
 
 **Date:** 2026-09-16 (Chile local time)  
-**Branch:** `wave4/membership-revoke-authorization`  
-**PR:** #41  
-**Integrated base main:** `587a000dae7ff9b9f997dd138b0ebbaeca201256`  
+**PR:** #41 — **MERGED**  
+**Integrated main:** `6f7165e6e5ae56a4b1985f037a656bf527b94d01`  
+**Post-merge Scaffold:** `35123027446` — **SUCCESS**  
 **Automated behavior/test head:** `a188417f8173573271346246e5cc129dabdf45cc`  
 **Automated Scaffold:** `35118236579` — **SUCCESS**  
-**Pre-physical documentation head:** `f93c766a95947bbfbc876c662281855f77612abf`  
-**Exact-head Scaffold:** `35118646816` — **SUCCESS**
+**Physical gate:** **OWNER-PHYSICAL PASS**
 
 ## Result
 
-The membership-revoke and hosted PC authorization package is **AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**.
+The membership-revoke and hosted PC authorization package is **COMPLETE / INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**.
 
-The production implementation already contained the required active-membership and object-authority enforcement. This package added missing transition-focused automated evidence and completed a bounded real-DEV physical revoke/reinstate test without destructive cleanup or credential exposure.
+Production code already contained the required active-membership and object-authority enforcement. The package added missing transition-focused automated evidence and completed a bounded real-DEV physical revoke/reinstate test without destructive cleanup or credential exposure.
 
-No new generic RBAC/ACL framework or final moderation UI was introduced.
+No generic RBAC/ACL framework or final moderation UI was introduced.
 
 ## 1. Automated evidence
 
@@ -24,7 +23,7 @@ No new generic RBAC/ACL framework or final moderation UI was introduced.
 - an ACTIVE Player owner/controller can initially read/write its hosted PC;
 - `ACTIVE -> KICKED` removes Player hosted PC read/write authority;
 - revoke does not delete the PC, rewrite owner/controller identity, or advance revision as a side effect;
-- an independently ACTIVE DM retains authority after the Player revoke;
+- an independently ACTIVE DM retains authority after Player revoke;
 - `BANNED` remains inactive;
 - revoking the DM removes DM hosted PC read/write authority;
 - the hosted PC remains intact after revoke transitions.
@@ -37,27 +36,9 @@ Scaffold `35118236579` passed the new database contract, earlier hosted contract
 
 ## 2. Physical preflight
 
-Device/build:
+Android `0.4.0-preqa.15 / 41500` preflight at epoch `1789574372` showed one active/eligible hosted campaign, one unchanged hosted PC, no conflicts and an empty outbox.
 
-- Android phone previously used for clean convergence;
-- `0.4.0-preqa.15` / `41500`;
-- DEBUG QA.
-
-Preflight QA log at epoch `1789574372` showed:
-
-- hosted campaigns: `1`;
-- eligible campaigns: `1`;
-- applied/reconciled campaigns: `1`;
-- hosted PCs: `1`;
-- unchanged PCs: `1`;
-- no campaign or PC conflicts;
-- no queued, retryable or blocked mutations;
-- local hosted outbox empty;
-- `Hosted Batch Test` returned as active hosted campaign = `YES`;
-- membership bootstrap applied = `YES`;
-- eligible for PC sync = `YES`.
-
-The exact DEV membership row was then identified read-only as:
+The exact DEV membership row was identified read-only as:
 
 - campaign `31762fa9-b01a-4f3d-80e5-877a07c63e62`;
 - user `4ba0f476-2eba-4eff-b4e0-78bb9372a8b4`;
@@ -66,52 +47,37 @@ The exact DEV membership row was then identified read-only as:
 
 ## 3. Physical revoke
 
-The exact identified DM membership was changed reversibly from `ACTIVE` to `KICKED`. The update returned exactly that row with status `KICKED`.
+The exact DM membership was changed reversibly from `ACTIVE` to `KICKED`; the update returned exactly that row.
 
-Android QA log at epoch `1789574898` then showed:
+Android QA at epoch `1789574898` showed:
 
-- hosted membership lifecycle rows: `1`;
-- eligible campaigns: `0`;
-- applied/reconciled campaigns: `1`;
-- hosted PCs: `0`;
+- explicit lifecycle membership still returned/applied;
+- active hosted campaign projection = `NO`;
+- eligible campaigns = `0`;
+- hosted PCs = `0`;
 - no campaign or PC conflicts;
-- no queued, acknowledged, retryable or blocked mutations;
-- local hosted outbox empty;
-- `Hosted Batch Test` returned as active hosted campaign = `NO`;
-- membership bootstrap applied = `YES`;
-- eligible for PC sync = `NO`;
-- hosted revision = `n/a`.
+- no queued, retryable or blocked mutations;
+- empty local hosted outbox.
 
-This demonstrates that explicit inactive membership state was received and applied while hosted PC synchronization was disabled.
+While the membership remained KICKED, the owner confirmed in the normal/local UI that the campaign remained present, the existing PC remained present, and the PC could still be opened/viewed. No edit/save was performed during the revoke interval.
 
-The owner then checked the normal/local app UI while the membership remained KICKED and confirmed:
-
-- the campaign remained present locally;
-- the existing PC remained present locally;
-- the PC could still be opened/viewed;
-- no local edit/save was performed during the revoke interval.
-
-Therefore membership revoke stopped hosted eligibility without silently wiping cached local campaign/PC data.
+Therefore revoke stopped hosted eligibility without silently wiping cached local campaign/PC data.
 
 ## 4. Physical reinstate
 
-The same exact DM membership row was restored from `KICKED` to `ACTIVE`; the update returned exactly one row with status `ACTIVE`.
+The same exact DM membership row was restored from `KICKED` to `ACTIVE`; exactly one row returned as ACTIVE.
 
-Android QA log at epoch `1789576310` then showed:
+Android QA at epoch `1789576310` showed:
 
-- hosted campaigns: `1`;
-- eligible campaigns: `1`;
-- applied/reconciled campaigns: `1`;
-- hosted PCs: `1`;
-- unchanged PCs: `1`;
+- active hosted campaign projection = `YES`;
+- eligible campaigns = `1`;
+- hosted PCs = `1`;
+- unchanged PCs = `1`;
 - no campaign or PC conflicts;
-- no queued, acknowledged, retryable or blocked mutations;
-- local hosted outbox empty;
-- `Hosted Batch Test` returned as active hosted campaign = `YES`;
-- membership bootstrap applied = `YES`;
-- eligible for PC sync = `YES`.
+- no queued, retryable or blocked mutations;
+- empty local hosted outbox.
 
-Hosted eligibility and normal no-op PC synchronization therefore resumed cleanly after reinstatement.
+Hosted eligibility and normal no-op PC synchronization resumed cleanly. The real DEV membership ended in its original ACTIVE state.
 
 ## 5. Coverage statement
 
@@ -119,24 +85,24 @@ The physical gate specifically exercised the real DEV **DM membership** lifecycl
 
 Player owner/controller revoke behavior is proven by the automated PostgreSQL authorization contract, not by this physical phone exercise. Do not describe this checkpoint as a physical Player revoke test.
 
-Taken together, automated and physical evidence now cover the approved membership revoke + Player/DM authorization boundary proportionately.
+Taken together, automated and physical evidence cover the approved membership revoke + Player/DM authorization boundary proportionately.
 
 ## 6. Safety properties preserved
 
-The test did not:
+The test did not delete membership/campaign/PC rows, modify owner/controller identity, clear app data, reinstall, clear the hosted outbox, introduce unrelated PC edits, expose secrets, or use production resources.
 
-- delete membership, campaign or PC rows;
-- modify owner/controller identity;
-- clear app data or reinstall;
-- clear the hosted outbox;
-- introduce unrelated PC edits;
-- expose database credentials, provider tokens or session material;
-- use production resources.
+## 7. Integration closure
 
-The real DEV membership ended in its original `ACTIVE` state.
+Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Scaffold `35122878536`.
 
-## 7. Package closure
+PR #41 then merged into `main` as:
 
-PR #41 may now be closed through normal documentation-head CI and merge verification.
+`6f7165e6e5ae56a4b1985f037a656bf527b94d01`
 
-Do not extend this PR into final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration, generalized RBAC/ACL, or unrelated Wave 5 work. Those are separate product packages and may require their own scope/owner decisions.
+Post-merge Scaffold `35123027446` completed **SUCCESS** across backend, hosted-database and Kotlin/Android/Desktop jobs.
+
+The package is therefore integrated and closed. Do not reopen or rerun the physical scenario unless later behavior changes touch membership lifecycle or hosted authorization.
+
+## 8. Separate next product boundary
+
+Final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration and any broader moderation workflow are separate product packages. They are not implicitly authorized by this completed validation package and should be scoped separately before implementation.

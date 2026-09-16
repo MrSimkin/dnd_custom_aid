@@ -3,14 +3,14 @@
 **Last verified:** 2026-09-16 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** **GRANTED**  
 **Normal integrated trunk:** `main`  
-**Verified integrated main before current package:** `587a000dae7ff9b9f997dd138b0ebbaeca201256`  
+**Verified integrated behavior main:** `6f7165e6e5ae56a4b1985f037a656bf527b94d01`  
+**Post-merge Scaffold:** `35123027446` — **SUCCESS**  
 **Hosted DEV provider activation:** **COMPLETE / VERIFIED**  
 **Android hosted-session integration:** **COMPLETE / OWNER-PHYSICAL PASS**  
 **Hosted campaign/PC integration and convergence:** **COMPLETE / OWNER-PHYSICAL PASS**  
-**Membership revoke + Player/DM authorization:** **AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
+**Membership revoke + Player/DM authorization:** **COMPLETE / INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
 **Current completion checkpoint:** `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md`  
-**Current focused branch:** `wave4/membership-revoke-authorization`  
-**Current PR:** #41 — closure/merge pending
+**Current focused implementation package:** none opened by this closure
 
 ## 1. Current authority/topology
 
@@ -72,13 +72,19 @@ Completed and physically verified where applicable:
 8. explicit owner-controlled keep-local conflict resolution with hosted compare-and-swap protection;
 9. membership revoke/reinstate hosted eligibility behavior with non-destructive local preservation.
 
-The convergence gate proved no-silent-overwrite multi-client behavior. The current membership gate proved a real DEV DM membership could move `ACTIVE -> KICKED -> ACTIVE`, stop hosted PC eligibility while inactive, preserve local campaign/PC data, and resume cleanly after reinstatement.
+The convergence gate proved no-silent-overwrite multi-client behavior. The membership gate proved a real DEV DM membership could move `ACTIVE -> KICKED -> ACTIVE`, stop hosted PC eligibility while inactive, preserve local campaign/PC data, and resume cleanly after reinstatement.
 
 Physical membership QA specifically exercised DM lifecycle revoke/reinstate. Player owner/controller revoke is covered by the automated PostgreSQL authorization contract and must not be described as a physical Player revoke test.
 
-## 5. Current implementation boundary
+## 5. Membership revoke / authorization package closure
 
-The membership revoke + Player/DM authorization validation package is complete in substance and awaiting normal PR #41 integration closure.
+Automated behavior/test head `a188417f8173573271346246e5cc129dabdf45cc` passed Scaffold `35118236579`.
+
+Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Scaffold `35122878536`.
+
+PR #41 merged into `main` as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` completed **SUCCESS**.
+
+The package is integrated and closed. No further owner/manual action is required for this package unless later code changes touch membership lifecycle or hosted authorization behavior.
 
 Approved semantics now have both automated and proportionate physical evidence:
 
@@ -89,10 +95,6 @@ Approved semantics now have both automated and proportionate physical evidence:
 - Player PC authority is constrained by owner/controller identity;
 - hosted authorization fails closed when access is invalid;
 - local-first data preservation, stale revisions, mutation idempotency, tombstones/non-resurrection and no-silent-overwrite semantics remain protected.
-
-No new owner/manual action is required to close PR #41 unless CI or merge state reveals a material issue.
-
-Do not extend this validation package into generalized RBAC/ACL or final Campaign Manager moderation UI.
 
 ## 6. Controlling integrated-MVP product direction
 
@@ -166,4 +168,6 @@ For exact continuation, read:
 3. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md`;
 4. predecessor convergence evidence only as needed.
 
-Close PR #41 through exact-head CI, merge and post-merge verification. After integration, stop before final moderation/Campaign Manager UI unless a separate package is explicitly scoped.
+There is no active focused branch opened by this closure. Start any next implementation package from current verified `main` after scope is established.
+
+Final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration and broader moderation workflows are separate product work and should be scoped separately before implementation.

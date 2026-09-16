@@ -2,26 +2,23 @@
 
 **Updated:** 2026-09-16 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Verified integrated main before current package:** `587a000dae7ff9b9f997dd138b0ebbaeca201256`  
-**Current focused branch:** `wave4/membership-revoke-authorization`  
-**Current PR:** #41  
-**Automated behavior/test head:** `a188417f8173573271346246e5cc129dabdf45cc`  
-**Automated Scaffold:** `35118236579` — **SUCCESS**  
-**Physical gate:** **OWNER-PHYSICAL PASS**  
-**Current package:** membership revoke + Player/DM authorization  
-**Current action:** documentation-head CI, merge PR #41, verify post-merge `main`
+**Verified integrated behavior main:** `6f7165e6e5ae56a4b1985f037a656bf527b94d01`  
+**Post-merge Scaffold:** `35123027446` — **SUCCESS**  
+**PR #41:** **MERGED**  
+**Membership revoke + Player/DM authorization:** **COMPLETE / INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
+**Current focused implementation package:** none opened by this closure
 
 ## Read first
 
 1. `AGENTS.md` — mandatory project operating rules;
-2. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` — current completion evidence;
+2. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` — latest completed Wave 4 authorization evidence;
 3. this file — practical resume point;
 4. `docs/BRANCH_STATUS.md` — branch lifecycle;
 5. `docs/PROJECT_STATE.md` — global implementation state;
 6. `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md` — preceding convergence evidence;
 7. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and secret-hygiene policy.
 
-If older operational prose conflicts with this file or the current completion checkpoint, the newer completion checkpoint controls.
+If older operational prose conflicts with this file or the latest completion checkpoint, the newer completion record controls.
 
 ## Current Wave 4 state
 
@@ -32,43 +29,21 @@ campaign create + durable hosted delivery            COMPLETE / OWNER-PHYSICAL P
 PC snapshot push/pull + blocked-row recovery         COMPLETE / OWNER-PHYSICAL PASS
 unchanged-sync/no-op confirmation                    COMPLETE / OWNER-PHYSICAL PASS
 multi-client PC convergence safety                    COMPLETE / OWNER-PHYSICAL PASS
-PR #40 merge + post-merge main                       COMPLETE / VERIFIED
-membership revoke + Player/DM authorization          AUTOMATED VERIFIED / OWNER-PHYSICAL PASS
-        |
-        v
-PR #41 DOCUMENTATION-HEAD CI + MERGE                 CURRENT CLOSURE ACTION
+membership revoke + Player/DM authorization          COMPLETE / OWNER-PHYSICAL PASS
+PR #41 merge + post-merge main                       COMPLETE / VERIFIED
 ```
 
-## Membership revoke / authorization result
+## Membership revoke / authorization completion
 
-Production code already enforces ACTIVE campaign membership plus DM-or-owner/controller authority for hosted PC access. The current package added dynamic-transition contracts rather than replacing the authorization architecture.
+Automated coverage proves dynamic Player owner/controller revoke, BANNED inactivity, independent DM authority, DM revoke, hosted-PC preservation and stable `403 FORBIDDEN` behavior.
 
-Automated coverage proves Player owner/controller revoke, BANNED inactivity, independent DM authority, DM revoke, hosted-PC preservation and stable `403 FORBIDDEN` behavior.
+The bounded real-DEV physical gate specifically exercised the actual DM membership for `Hosted Batch Test` through `ACTIVE -> KICKED -> ACTIVE` on Android `0.4.0-preqa.15 / 41500`.
 
-The bounded real-DEV physical gate exercised the actual DM membership for `Hosted Batch Test` through `ACTIVE -> KICKED -> ACTIVE` on Android build `0.4.0-preqa.15 / 41500`.
+While KICKED, hosted eligibility stopped, no PC sync occurred, no conflicts/outbox work appeared, and the local campaign/PC remained present and viewable. After restoration to ACTIVE, eligibility and unchanged PC synchronization resumed cleanly.
 
-While KICKED:
+Physical testing covered DM revoke/reinstate. Player revoke remains automated evidence and must not be mislabeled as physical.
 
-- active hosted campaign projection became `NO`;
-- eligible campaigns became `0`;
-- hosted PC sync stopped;
-- no conflicts or pending/blocked outbox work appeared;
-- the local campaign and PC remained present and viewable.
-
-After restoration to ACTIVE:
-
-- active hosted campaign projection returned to `YES`;
-- eligibility returned to `1`;
-- the hosted PC returned as unchanged;
-- no conflicts or outbox work appeared.
-
-The membership ended in its original ACTIVE state. Physical testing specifically covered DM revoke/reinstate; Player revoke remains automated evidence and must not be mislabeled as physical.
-
-## Current closure rule
-
-PR #41 is now eligible for normal closure. Verify the documentation-only head in Scaffold, merge only if green and unchanged, then verify post-merge `main`.
-
-Do not add final Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration, generalized RBAC/ACL or unrelated Wave 5 work to PR #41.
+Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Scaffold `35122878536`. PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` passed.
 
 ## Permanent safety rules
 
@@ -82,4 +57,6 @@ Do not add final Kick/Ban UI, invitation/rejoin UX, Campaign Manager administrat
 
 ## Next product boundary
 
-Final moderation/Campaign Manager UI is **not** automatically opened by this validation package. Stop after PR #41 integration unless a separate package is explicitly scoped/authorized.
+No new implementation branch/package is opened by this closure.
+
+Final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration and broader moderation workflows are separate product work. Scope/authorize the next package explicitly before implementation rather than treating it as a continuation of PR #41.
