@@ -2,61 +2,77 @@
 
 **Updated:** 2026-09-16 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Verified integrated behavior main:** `6f7165e6e5ae56a4b1985f037a656bf527b94d01`  
-**Post-merge Scaffold:** `35123027446` — **SUCCESS**  
-**PR #41:** **MERGED**  
-**Membership revoke + Player/DM authorization:** **COMPLETE / INTEGRATED / AUTOMATED VERIFIED / OWNER-PHYSICAL PASS**  
-**Current focused implementation package:** none opened by this closure
+**Verified starting main for current package:** `40b29006052c9986e2d79227a6053f36241de1e6`  
+**Current focused branch:** `wave5/desktop-workbench-shell`  
+**Current PR:** #42  
+**Verified behavior/test head:** `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`  
+**Scaffold:** `35125170321` — **SUCCESS**  
+**Current package:** Wave 5 — Desktop workbench shell + local campaign context  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`  
+**Current gate:** **OWNER WINDOWS DESKTOP MANUAL QA**  
+**Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
-1. `AGENTS.md` — mandatory project operating rules;
-2. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` — latest completed Wave 4 authorization evidence;
-3. this file — practical resume point;
-4. `docs/BRANCH_STATUS.md` — branch lifecycle;
-5. `docs/PROJECT_STATE.md` — global implementation state;
-6. `docs/checkpoints/2026-09-16_MULTI_CLIENT_PC_CONVERGENCE_PHYSICAL_QA_COMPLETE.md` — preceding convergence evidence;
-7. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md` — controlling `$0`, public-repository and secret-hygiene policy.
+1. `AGENTS.md`;
+2. `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md` — exact current gate;
+3. this file;
+4. `docs/BRANCH_STATUS.md`;
+5. `docs/PROJECT_STATE.md`;
+6. `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`;
+7. `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`;
+8. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` for latest completed Wave 4 evidence;
+9. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`.
 
-If older operational prose conflicts with this file or the latest completion checkpoint, the newer completion record controls.
+Newer current-package records control over older operational prose.
 
-## Current Wave 4 state
+## Current sequence
 
 ```text
-remembered Android Descope session/token             COMPLETE / OWNER-PHYSICAL PASS
-owner-facing hosted account/campaign bootstrap       COMPLETE / OWNER-PHYSICAL PASS
-campaign create + durable hosted delivery            COMPLETE / OWNER-PHYSICAL PASS
-PC snapshot push/pull + blocked-row recovery         COMPLETE / OWNER-PHYSICAL PASS
-unchanged-sync/no-op confirmation                    COMPLETE / OWNER-PHYSICAL PASS
-multi-client PC convergence safety                    COMPLETE / OWNER-PHYSICAL PASS
-membership revoke + Player/DM authorization          COMPLETE / OWNER-PHYSICAL PASS
-PR #41 merge + post-merge main                       COMPLETE / VERIFIED
+Wave 4 Player <-> Server                           COMPLETE / INTEGRATED
+membership revoke + Player/DM authorization       COMPLETE / OWNER-PHYSICAL PASS
+        |
+        v
+Wave 5 Desktop shell + Campaign Administration    ACTIVE
+        |
+        v
+desktop workbench + local campaign context        AUTOMATED VERIFIED
+        |
+        v
+OWNER WINDOWS DESKTOP AUDITION                     CURRENT GATE
 ```
 
-## Membership revoke / authorization completion
+## Automated result
 
-Automated coverage proves dynamic Player owner/controller revoke, BANNED inactivity, independent DM authority, DM revoke, hosted-PC preservation and stable `403 FORBIDDEN` behavior.
+The placeholder Desktop window has been replaced with a real persistent workbench using the existing Shared `CampaignRepository` and SQLDelight schema.
 
-The bounded real-DEV physical gate specifically exercised the actual DM membership for `Hosted Batch Test` through `ACTIVE -> KICKED -> ACTIVE` on Android `0.4.0-preqa.15 / 41500`.
+Implemented in this package:
 
-While KICKED, hosted eligibility stopped, no PC sync occurred, no conflicts/outbox work appeared, and the local campaign/PC remained present and viewable. After restoration to ACTIVE, eligibility and unchanged PC synchronization resumed cleanly.
+- Desktop SQLite/JDBC local persistence at owner-profile scope;
+- explicit database-driver lifetime;
+- Dashboard;
+- Campaigns list/create/active selection;
+- Campaign Administration bound to the same active campaign context;
+- approved workbench chrome and stable navigation destinations;
+- persistence-across-reopen regression test.
 
-Physical testing covered DM revoke/reinstate. Player revoke remains automated evidence and must not be mislabeled as physical.
+Desktop and Android still have separate local database files. Hosted Desktop authentication/sync is **not** activated by this package.
 
-Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Scaffold `35122878536`. PR #41 merged as `6f7165e6e5ae56a4b1985f037a656bf527b94d01`; post-merge Scaffold `35123027446` passed.
+Exact head `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4` passed Scaffold `35125170321`, including Shared Desktop tests, Desktop build, Android build/guards, backend checks and hosted database contracts.
+
+## Exact next owner action
+
+Perform the guided Windows Desktop manual QA described in the current checkpoint. Instructions must be delivered one exact step at a time.
+
+Do not merge PR #42 before the user-visible workbench has passed that manual gate.
 
 ## Permanent safety rules
 
-- Repository is intentionally public under D-0075.
-- External-service operating budget remains **USD $0** unless explicitly changed.
-- Never expose database credentials, provider tokens, private keys, authorization headers or session/refresh tokens.
-- Do not reset local databases/app data, clear outboxes, delete PCs/campaigns, or reinstall merely to make QA pass.
-- Membership, campaign role, PC ownership and current control remain distinct.
-- DM authority does not imply PC ownership.
-- Preserve stale-revision, idempotency, tombstone/non-resurrection and no-silent-overwrite guarantees.
-
-## Next product boundary
-
-No new implementation branch/package is opened by this closure.
-
-Final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration and broader moderation workflows are separate product work. Scope/authorize the next package explicitly before implementation rather than treating it as a continuation of PR #41.
+- repository intentionally public;
+- hard external-service budget remains USD $0;
+- never commit or paste secrets/tokens/credentials;
+- do not reset/delete databases, clear outboxes, delete campaign/PC data or reinstall merely to make QA pass;
+- preserve membership/role/ownership/current-control distinctions;
+- preserve stale-revision, idempotency, tombstone/non-resurrection and no-silent-overwrite guarantees;
+- Live Combat belongs to Wave 6;
+- invitation/Kick/Ban/Unban, hosted Desktop sync, Managers, Media/Handouts, System Administration and backup/export remain later bounded packages.

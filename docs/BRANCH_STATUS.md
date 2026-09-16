@@ -3,93 +3,99 @@
 **Updated:** 2026-09-16 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Verified integrated behavior main:** `6f7165e6e5ae56a4b1985f037a656bf527b94d01`  
-**Post-merge Scaffold:** `35123027446` — **SUCCESS**  
-**Current focused branch:** none  
-**PR #41:** **MERGED / CLOSED BY INTEGRATION**  
-**Current lifecycle state:** membership revoke + Player/DM authorization package complete
+**Verified starting main:** `40b29006052c9986e2d79227a6053f36241de1e6`  
+**Current focused branch:** `wave5/desktop-workbench-shell`  
+**Current PR:** #42  
+**Verified behavior/test head:** `c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`  
+**Scaffold:** `35125170321` — **SUCCESS**  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`  
+**Lifecycle state:** automated verified / owner Desktop manual QA pending
 
 This file is the canonical branch-lifecycle map. Branch existence alone never establishes authority.
 
 ## 1. `main` — sole normal integrated-MVP trunk
 
-`main` remains the sole normal development trunk for integrated-MVP work.
+`main` remains the sole normal integrated-MVP trunk. Use short-lived outcome-oriented branches from verified `main`, merge only after proportionate verification, verify post-merge `main`, and refresh durable checkpoints when operational truth changes.
 
-Normal implementation should start from verified remote `main`, use short-lived outcome-oriented branches, merge only after proportionate verification, verify post-merge `main`, and refresh durable checkpoints when operational truth changes.
+Do not create permanent Player/Server/Desktop silos.
 
-Do not create permanent Player/Server/Desktop silos or months-long catch-all integration branches.
+## 2. Current focused branch / PR
 
-## 2. Completed convergence package
+Branch:
 
-PR #40 completed permanent hosted-sync QA diagnostics, safe legacy baseline recovery, explicit reviewed keep-local conflict resolution and bounded multi-client convergence. It merged as `587a000dae7ff9b9f997dd138b0ebbaeca201256`; post-merge Scaffold `35116690562` passed.
-
-## 3. Completed membership revoke / authorization package
+`wave5/desktop-workbench-shell`
 
 PR:
 
-`#41 — test: prove membership revoke and PC authorization boundaries`
+`#42 — feat: establish Desktop workbench shell and local campaign context`
 
-Automated behavior/test head:
+Base:
 
-`a188417f8173573271346246e5cc129dabdf45cc`
+`40b29006052c9986e2d79227a6053f36241de1e6`
 
-Automated Scaffold:
+Verified behavior/test head:
 
-`35118236579` — **SUCCESS**
+`c5e23ebbec495e3aea2b36a4cbe695c9cc586bd4`
 
-Physical completion evidence:
+Scaffold:
 
-`docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md`
+`35125170321` — **SUCCESS**
 
-The real DEV physical gate exercised the exact DM membership for `Hosted Batch Test` through `ACTIVE -> KICKED -> ACTIVE`. While inactive, Android stopped hosted PC eligibility/sync while preserving local campaign/PC data. After reinstatement, eligibility resumed cleanly with no conflicts or pending outbox work.
+The package replaces the placeholder Desktop surface with a persistent workbench using existing Shared Campaign semantics. Desktop owns its own local SQLite file; hosted Desktop synchronization is not part of this package.
 
-Physical coverage specifically exercised DM lifecycle revoke/reinstate. Player owner/controller revoke remains automated contract evidence.
+## 3. Verified package contents
 
-Closure documentation head `8335112cc9721a32b66e294e00c72ccdd7f75b7d` passed Scaffold `35122878536`.
+Included and automated-verified:
 
-PR #41 merged into `main` as:
+- `DesktopDatabaseFactory` / explicit database-handle lifetime;
+- Shared `CampaignRepository` reuse;
+- persistent campaign state across Desktop close/reopen;
+- top toolbar, left navigation, central work area, contextual campaign panel and bottom status strip;
+- functioning Dashboard;
+- functioning Campaigns list/create/active selection;
+- Campaign Administration bound to the active campaign;
+- stable placeholders for later approved destinations.
 
-`6f7165e6e5ae56a4b1985f037a656bf527b94d01`
+The first CI attempt failed only because a deprecated test-only temp-directory helper was rejected. Production Desktop compilation/build succeeded even in that attempt. The test helper was corrected, and the exact repaired head passed completely.
 
-Post-merge Scaffold:
+## 4. Current manual gate
 
-`35123027446` — **SUCCESS**
+PR #42 must remain open until the owner completes the bounded Windows Desktop audition recorded in:
 
-This package is integrated and closed.
+`docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md`
 
-## 4. Current branch state
+The gate verifies launch/usability, campaign create/select behavior, persistence after relaunch and Campaign Administration context consistency.
 
-There is no active focused implementation branch opened by this closure.
+Manual guidance must be one exact step at a time. Do not reset/delete the Desktop database merely to make the gate pass.
 
-The historical branch `wave4/membership-revoke-authorization` is completed evidence only. Do not continue adding unrelated work to it or treat its existence as an active resume point.
+## 5. Explicit package boundary
 
-Start any next package from current verified `main` using a new short-lived outcome-oriented branch after its scope is established.
+Still excluded:
 
-## 5. Safety and authorization invariants
+- invitations/join/rejoin;
+- Kick/Ban/Unban UI;
+- hosted Desktop authentication/full sync;
+- live combat authority/resume/handoff;
+- substantive Managers;
+- Media/Handouts/object storage;
+- System Administration;
+- backup/export/PDF hardening;
+- generalized RBAC/ACL.
 
-Preserve:
+D-0072 and D-0073 remain controlling.
 
-- `ACTIVE`, `KICKED`, `BANNED` lifecycle semantics;
-- membership revoke stopping future hosted access/sync without silently wiping local cached data;
-- membership/role/ownership/current-control distinctions;
-- DM campaign authority distinct from PC ownership;
-- Player PC authority constrained to owner/controller;
-- local-first data preservation on hosted authorization failure;
-- stale-revision, mutation-idempotency, tombstone/non-resurrection and no-silent-overwrite semantics;
-- project-specific authorization rather than generalized RBAC/ACL infrastructure.
+## 6. Completed Wave 4 baseline
 
-## 6. Next product boundary
+PR #40 multi-client convergence and PR #41 membership revoke/authorization are integrated and closed. Do not reopen those branches for Wave 5 work unless later behavior actually touches their contracts.
 
-Final DM Kick/Ban UI, invitation/rejoin UX, Campaign Manager administration and broader moderation workflows are separate product packages.
+## 7. Protected invariants
 
-Do not automatically reactivate `wave4/membership-revoke-authorization` or begin those features without a separately scoped continuation package.
+Preserve local-first persistence, stable identity, membership/role/ownership/current-control distinctions, DM authority distinct from ownership, stale-revision/idempotency/tombstone/no-silent-overwrite semantics, the hard USD $0 policy and public-repository secret hygiene.
 
-## 7. Historical branches
+## 8. Historical branches
 
-`implementation/phase4a-successor-cycle` remains historical/frozen Player evidence. `integration/mvp-baseline-convergence` remains historical convergence evidence. Other completed/frozen refs remain evidence only unless explicitly reactivated.
+Completed/frozen Wave 4 and older branches remain evidence only unless a newer checkpoint explicitly reactivates one. Do not force-move or repurpose them.
 
-Do not force-move or repurpose historical refs.
+## 9. Exact resume rule
 
-## 8. Security / repository visibility
-
-The repository is intentionally public under D-0075. Never store provider/database credentials, bearer/session tokens, private keys or other confidentiality-dependent material in Git or QA logs.
+Continue on `wave5/desktop-workbench-shell`; read the manual-QA checkpoint first. The only current owner action is the guided Windows Desktop audition.
