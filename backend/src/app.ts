@@ -1,4 +1,8 @@
 import { AuthenticationError, type AuthVerifier } from "./auth.ts";
+import {
+  type CampaignAdministrationStore,
+  type CampaignModerationAction,
+} from "./campaignAdministrationStore.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
 import {
   HostedAuthorizationError,
@@ -13,6 +17,7 @@ const CHARACTER_BACKUP_FORMAT = "dnd-custom-aid.character-backup";
 export interface ApiDependencies {
   auth: AuthVerifier;
   campaigns: CampaignStore;
+  campaignAdministration?: CampaignAdministrationStore;
 }
 
 export type ApiHandler = (request: Request) => Promise<Response>;
@@ -28,6 +33,9 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         return jsonResponse({ status: "ok", service: "dnd-custom-aid-api" });
       }
 
+      const campaignMembersMatch = /^\/v1\/campaigns\/([^/]+)\/members$/.exec(path);
+      const campaignMemberModerationMatch =
+        /^\/v1\/campaigns\/([^/]+)\/members\/([^/]+)\/moderation$/.exec(path);
       const campaignPcsMatch = /^\/v1\/campaigns\/([^/]+)\/pcs$/.exec(path);
       const pcSnapshotMatch = /^\/v1\/pcs\/([^/]+)$/.exec(path);
       const knownFixedPath =
@@ -35,7 +43,13 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         path === "/v1/campaigns" ||
         path === "/v1/campaign-memberships";
 
-      if (!knownFixedPath && campaignPcsMatch == null && pcSnapshotMatch == null) {
+      if (
+        !knownFixedPath &&
+        campaignMembersMatch == null &&
+        campaignMemberModerationMatch == null &&
+        campaignPcsMatch == null &&
+        pcSnapshotMatch == null
+      ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
 
@@ -56,6 +70,34 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         requireMethod(request, "GET");
         const memberships = await dependencies.campaigns.listCampaignMemberships(user.id);
         return jsonResponse({ memberships });
+      }
+
+      if (campaignMembersMatch != null) {
+        requireMethod(request, "GET");
+        const campaignId = requireUuid(campaignMembersMatch[1], "campaignId");
+        const administration = requireCampaignAdministration(dependencies);
+        const roster = await administration.listMembers(user.id, campaignId);
+        return jsonResponse(roster);
+      }
+
+      if (campaignMemberModerationMatch != null) {
+        requireMethod(request, "POST");
+        const campaignId = requireUuid(campaignMemberModerationMatch[1], "campaignId");
+        const targetUserId = requireUuid(campaignMemberModerationMatch[2], "userId");
+        const body = await readJsonObject(request);
+        const action = requireCampaignModerationAction(body.action);
+        const administration = requireCampaignAdministration(dependencies);
+        const result = await administration.moderateMember({
+          actorUserId: user.id,
+          campaignId,
+          targetUserId,
+          action,
+        });
+        return jsonResponse({
+          member: result.member,
+          campaignRevision: result.campaignRevision,
+          applied: result.applied,
+        });
       }
 
       if (campaignPcsMatch != null) {
@@ -168,6 +210,14 @@ function normalizePath(pathname: string): string {
   return pathname;
 }
 
+function requireCampaignAdministration(dependencies: ApiDependencies): CampaignAdministrationStore {
+  const administration = dependencies.campaignAdministration;
+  if (administration == null) {
+    throw new Error("Campaign Administration API dependency is not configured.");
+  }
+  return administration;
+}
+
 function requireMethod(request: Request, method: string): void {
   if (request.method !== method) {
     throw methodNotAllowed([method]);
@@ -207,6 +257,18 @@ function requireNonBlankString(value: unknown, field: string): string {
     throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be a non-blank string.`, { field });
   }
   return value.trim();
+}
+
+function requireCampaignModerationAction(value: unknown): CampaignModerationAction {
+  if (value === "KICK" || value === "BAN" || value === "LIFT_BAN") {
+    return value;
+  }
+  throw new ApiProblem(
+    400,
+    "VALIDATION_FAILED",
+    "action must be one of KICK, BAN or LIFT_BAN.",
+    { field: "action" },
+  );
 }
 
 function requireUuid(value: unknown, field: string): Uuid {
