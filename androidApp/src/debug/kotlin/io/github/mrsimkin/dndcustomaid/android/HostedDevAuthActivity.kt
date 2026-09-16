@@ -372,7 +372,6 @@ private fun HostedDevAuthScreen(
                         otpRequested = false
                         code = ""
                         qaLog = ""
-                        lastQaOutcome = null
                         status = "Sesión cerrada en este dispositivo."
                     }
                 },
