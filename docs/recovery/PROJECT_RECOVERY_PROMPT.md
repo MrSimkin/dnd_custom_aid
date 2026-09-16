@@ -39,7 +39,7 @@ Understand at least:
 - branch lifecycle/current PR;
 - completed implementation milestones;
 - provider-neutral API/database/native transport/sync contracts;
-- hosted DEV provider state;
+- hosted DEV provider/deployment state;
 - security and `$0` constraints;
 - CI/manual/provider verification distinctions;
 - current exact implementation package;
@@ -58,10 +58,13 @@ As of 2026-09-16:
 - active branch: `wave5/desktop-hosted-campaign-administration`;
 - active draft PR: #44;
 - PR #44 bounded repository implementation is complete/CI-verified;
-- repository implementation includes Desktop Descope email-OTP/session acquisition, hosted campaign bootstrap, real hosted roster/moderation consumption, diagnostics and font/theme preview settings;
-- the current substantive gate is explicit real DEV Worker deployment/integration, then owner Windows Desktop QA before merge.
+- PR #44 implementation includes Desktop Descope email-OTP/session acquisition, hosted campaign bootstrap, real hosted roster/moderation consumption, diagnostics and font/theme preview settings;
+- the current Campaign Administration Worker code was explicitly deployed to the existing DEV Worker from repository head `a6c0532878e8ef49ddfb894fa71076c1af73587a` after Scaffold `35163179550` passed;
+- Cloudflare reported Worker Version ID `130d35e7-7903-47b2-8203-d74f9ec3db55`;
+- post-deployment `/health` returned 200 and the unauthenticated roster route returned `401 UNAUTHENTICATED`, proving route presence/auth enforcement;
+- the current substantive gate is owner Windows Desktop live-QA preflight, then bounded moderation QA only if a suitable real Player membership exists.
 
-Use `LATEST.md` for exact hashes/runs and skip any item already superseded by newer evidence.
+Use `LATEST.md` for exact current hashes/runs and skip any item already superseded by newer evidence.
 
 ## Do not restart completed foundations
 
@@ -77,7 +80,8 @@ Do not restart or redesign without a concrete defect/new approved requirement:
 - Android hosted-session edge;
 - completed Wave 4 Player <-> Server packages;
 - PR #42 Desktop shell/local campaign;
-- PR #43 hosted membership administration core.
+- PR #43 hosted membership administration core;
+- the already completed Wave 5 DEV Worker deployment, unless later Worker code changes actually require another deploy.
 
 Preserve local-first behavior, stable identities, DM authority distinct from PC ownership, owner distinct from current controller, stale-write rejection, no-silent-overwrite behavior and recovery data.
 
@@ -96,7 +100,15 @@ If authenticated provider capability is unavailable:
 - resume from the owner's non-secret evidence without repeating completed investigation;
 - stop again at the next inaccessible provider action rather than chaining provider tasks.
 
-For current provider-gated continuation, use `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md`.
+Use `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md` for provider-gated work.
+
+## Current owner/manual continuation
+
+If `LATEST.md` still points to the post-deployment PR #44 gate, use:
+
+`docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md`
+
+The first owner QA pass must stop after real roster retrieval and report whether a suitable Player membership exists. Do not mutate an unintended account, invent test data, edit Neon ad hoc or expand PR #44 into invitation/rejoin functionality merely to make Kick/Ban/Lift-Ban testable.
 
 ## Budget and security
 
@@ -104,25 +116,18 @@ External-service operating budget is **USD $0** unless the owner explicitly chan
 
 The GitHub repository is intentionally public. Never commit or paste database credentials, provider admin/deployment tokens, access/refresh/session tokens, private keys or other secrets.
 
-## Hosted DEV environment
-
-The first real DEV provider activation is already complete and historically verified. Neon PostgreSQL, Descope identity and a Cloudflare Worker were activated and the representative authenticated `/v1/me` -> application user -> Neon path was verified.
-
-Do not repeat provider activation merely because the current Worker needs a newer code deployment.
-
-The repository has no automatic Worker deployment workflow. Therefore, repository/CI success does **not** prove that newly implemented Worker routes are live in DEV.
+Known dependency residual: the backend owner-local install continues to report **3 high severity vulnerabilities**. Do not run `npm audit fix --force` blindly; inspect exact packages/reachability/fixed versions in an explicit later hardening pass.
 
 ## Owner/local workflow
 
-Known owner workspace historically includes:
+Known owner workspace includes:
 
 - project root: `D:\DnD_Aid`;
 - local clone: `D:\DnD_Aid\repo\dnd_custom_aid`;
-- owner-only credential file outside the repository: `D:\DnD_Aid\dnd_custom_aid_dev_credentials.md`.
+- owner-only credential file outside the repository: `D:\DnD_Aid\dnd_custom_aid_dev_credentials.md`;
+- portable Desktop QA JDK 17 and Gradle 9.5 under `D:\DnD_Aid\tools\desktop-qa` as recorded in `docs/TEST_DEVICES.md`.
 
 Do not read/copy/commit credential contents. Owner-side commands may reference locally stored values without exposing them.
-
-Known Windows caveat from provider activation: Node `fetch()`/browser were proven-good for the workers.dev endpoint while PowerShell/Windows curl had SChannel TLS trouble. Treat that as historical troubleshooting evidence, not a reason to redesign networking.
 
 ## Owner guidance style
 
@@ -137,7 +142,7 @@ Before implementing, give the owner a concise reconstruction containing:
 - repository/branch/current HEAD/PR;
 - current whole-project stage;
 - major completed milestones;
-- provider status;
+- provider/deployment status;
 - material open risks;
 - exact next package/gate;
 - whether the next action is agent-owned or requires an owner provider/manual handoff.

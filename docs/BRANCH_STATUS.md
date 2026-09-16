@@ -7,10 +7,10 @@
 **Post-merge Scaffold:** `35142092743` — **SUCCESS**  
 **Current focused branch:** `wave5/desktop-hosted-campaign-administration`  
 **Current PR:** #44 — draft  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md`  
-**Latest verified implementation head:** `58dc05933e35d47bc8f65f0249a2a0b74d6206c4`  
-**Latest verified implementation Scaffold:** `35150382923` — **SUCCESS**  
-**Lifecycle state:** repository implementation complete / explicit DEV integration + owner QA pending
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`  
+**Deployed code head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
+**Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
+**Lifecycle state:** repository implementation complete / DEV Worker deployment verified / owner Windows Desktop live QA pending
 
 This file is the canonical branch-lifecycle map. Branch existence alone never establishes authority.
 
@@ -32,7 +32,7 @@ Completed and merged. Owner Windows QA passed persistent Desktop local campaign 
 
 Completed and merged as `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`.
 
-Integrated scope includes active-DM-only member roster, Player `KICK` / `BAN` / `LIFT_BAN`, idempotent/no-op moderation, campaign-revision discipline, provider-neutral Shared Campaign Administration client and hosted database contract `0006`.
+Integrated scope includes active-DM-only member roster, Player `KICK` / `BAN` / `LIFT_BAN`, idempotent/no-op moderation, campaign-revision discipline, provider-neutral Shared Campaign Administration client and hosted database contract coverage.
 
 Do not resume or reopen either completed branch for current implementation.
 
@@ -56,17 +56,19 @@ Package objective:
 
 The package also owns the approved Desktop font catalogue + font/theme preview settings follow-up because this is the next genuine Desktop feature build.
 
-## 4. Verified repository implementation
+## 4. Repository implementation / CI
 
-Verified implementation head:
+Repository implementation is complete and CI-verified for the bounded package.
 
-`58dc05933e35d47bc8f65f0249a2a0b74d6206c4`
+The deployment-prep head:
 
-Scaffold:
+`a6c0532878e8ef49ddfb894fa71076c1af73587a`
 
-`35150382923` — **SUCCESS**.
+passed Scaffold:
 
-Verified repository scope now includes:
+`35163179550` — **SUCCESS**.
+
+Implemented scope includes:
 
 - Desktop-only Descope email OTP/session adapter with provider-neutral Shared token seam;
 - memory-only session/refresh JWT handling and refresh-before-use behavior;
@@ -78,39 +80,50 @@ Verified repository scope now includes:
 - non-secret hosted diagnostics;
 - preview-oriented Desktop font/theme settings;
 - bundled Geist and Mona Sans Condensed Desktop resources with license/provenance records;
-- honest conditional availability for other Android-equivalent named font families;
 - focused auth/moderation/font-preference tests;
 - preservation of local-only campaign operation without hosted auth.
 
-The repository implementation phase is complete enough to advance to external DEV integration. This does not yet establish that the relevant routes are live on the real DEV Worker.
+## 5. DEV deployment — verified
 
-## 5. Current package gate
+The Campaign Administration Worker code was explicitly deployed to the existing DEV Worker:
+
+`dnd-custom-aid-api`
+
+from repository head:
+
+`a6c0532878e8ef49ddfb894fa71076c1af73587a`
+
+Cloudflare deployment Version ID:
+
+`130d35e7-7903-47b2-8203-d74f9ec3db55`
+
+Secret-free post-deployment checks:
+
+- `/health` -> HTTP 200;
+- unauthenticated `/v1/campaigns/<zero-uuid>/members` -> HTTP 401 / `UNAUTHENTICATED`.
+
+The new roster route is therefore live through route recognition and authentication enforcement. Do not claim authenticated Desktop/bootstrap/roster/moderation acceptance yet.
+
+## 6. Current package gate
 
 Current progression:
 
-1. **COMPLETE:** repository implementation and exact-head Scaffold verification;
-2. **NEXT:** inspect and perform only the safe/authorized explicit DEV Worker deployment/integration path;
-3. obtain explicit evidence that the Campaign Administration routes are live and usable on DEV;
-4. perform bounded owner Windows Desktop QA for real auth/bootstrap/roster/moderation plus settings previews/persistence and local-data preservation;
-5. fix any QA/integration defects in narrowly scoped commits with CI verification;
-6. finalize PR documentation and final-head verification as needed;
-7. mark PR ready and merge only after required owner QA passes, with expected-head safety and post-merge `main` verification.
+1. **COMPLETE:** repository implementation and CI verification;
+2. **COMPLETE:** explicit DEV Worker deployment / route-presence verification;
+3. **NEXT:** owner Windows Desktop live-QA preflight using `docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md`;
+4. review real roster evidence;
+5. if a suitable real Player membership exists, run a bounded moderation mutation test;
+6. complete settings/sign-out/relaunch/local-data-preservation QA;
+7. fix any defects in narrowly scoped commits with CI verification;
+8. mark PR ready and merge only after required owner QA passes, with expected-head safety and post-merge `main` verification.
 
-A green repository build alone does not replace real external integration or Desktop visual/behavioral QA.
-
-## 6. Deployment boundary
-
-There is no automatic Cloudflare Worker deployment workflow in the repository. The PR #43 routes are repository/API-contract verified but must not yet be described as live on the real DEV Worker without explicit deployment evidence.
-
-This branch is the first Desktop consumer and therefore owns explicit DEV deployment/integration evidence.
-
-If deployment requires credentials available only in the owner's local/provider environment, finish safe repository work first and stop only at that narrow gate. Never request those credentials in chat or Git.
+Do not perform Kick/Ban/Lift-Ban merely to satisfy a checklist before confirming the intended Player membership is safe to mutate.
 
 ## 7. Authentication boundary
 
-The current Android Descope SDK is Android-specific. Desktop platform code implements the provider-specific authentication boundary outside Shared; Shared continues to receive only the provider-neutral `HostedAccessTokenProvider`.
+Desktop platform code implements provider-specific authentication outside Shared; Shared receives only the provider-neutral `HostedAccessTokenProvider`.
 
-Session and refresh JWTs are secrets and remain memory-only in the bounded implementation. They must not be committed, logged, exposed through diagnostics or stored in ordinary Desktop preferences.
+Session and refresh JWTs are secrets and remain memory-only. They must not be committed, logged, exposed through diagnostics or stored in ordinary Desktop preferences.
 
 Sign-out must not delete local campaign/character state.
 
@@ -130,4 +143,4 @@ This branch does not own invitation creation/revoke/regenerate, kicked-member re
 
 ## 11. Exact resume rule
 
-Resume only on PR #44 / `wave5/desktop-hosted-campaign-administration` from `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_IMPLEMENTED.md` or a newer current-package checkpoint. Treat PR #43 as integrated and its historical pre-merge wording as historical evidence rather than current branch truth.
+Resume only on PR #44 / `wave5/desktop-hosted-campaign-administration` from `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md` or a newer current-package checkpoint. Do not redeploy Cloudflare unless later Worker code actually changes. The current owner action is the bounded Windows Desktop live-QA preflight.
