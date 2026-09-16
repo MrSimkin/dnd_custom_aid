@@ -84,7 +84,7 @@ internal class DesktopPreferencesStore(
     }
 
     fun save(value: DesktopPreferences) {
-        file.parent?.let(Files::createDirectories)
+        file.parent?.let { Files.createDirectories(it) }
         val properties = Properties().apply {
             setProperty(KEY_FONT_SCALE, value.fontScalePercent.toString())
             setProperty(KEY_SPACING_SCALE, value.spacingScalePercent.toString())
