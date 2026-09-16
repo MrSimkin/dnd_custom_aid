@@ -3,16 +3,16 @@
 **Updated:** 2026-09-15 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Provider-neutral implementation checkpoint:** `8248e7e2c0a34c67a4296f4abaf1effb0d76c8c3`  
-**Provider-neutral validation run:** `34985799585` — SUCCESS  
-**Hosted DEV provider activation:** COMPLETE / VERIFIED  
-**Android hosted-session integration:** COMPLETE / VERIFIED / OWNER-PHYSICAL PASS
+**Current focused branch:** `wave4/qa-log-baseline-recovery`  
+**Current PR:** #40  
+**Starting `main` for current package:** `94d27dda71f87cbb6167886b2d55f2b3fd1120dc`  
+**Current QA build:** `0.4.0-preqa.14` / `41400`
 
 This file is the canonical branch-lifecycle map. Branch existence alone never establishes authority.
 
 ## 1. `main` — sole normal integrated-MVP trunk
 
-The former split authority has been reconciled and promoted. `main` is the sole normal development trunk for integrated-MVP work.
+`main` remains the sole normal development trunk for integrated-MVP work.
 
 Normal implementation should:
 
@@ -29,62 +29,63 @@ Do not create permanent `player-main`, `server-main`, `desktop-main` or months-l
 
 Wave 2 — Shared Integrated-MVP Spine — is complete and integrated.
 
-Provider-neutral hosted work is integrated through PR #25, including hosted API/database/native transport, durable outbox, campaign delivery/lifecycle reconciliation, hosted PC snapshots, authorization, revisions/idempotency/conflicts/tombstones and safe reconciliation semantics.
+Provider-neutral hosted work, the first real hosted DEV environment, Android remembered-session acquisition, owner-facing campaign bootstrap, local-first campaign creation/delivery, PC snapshot push/pull, blocked-row recovery and unchanged-sync/no-op confirmation are complete.
 
-The first real hosted DEV environment is activated and verified:
+PR #39 added the durable normalized PC synchronization baseline and the multi-client no-silent-overwrite convergence rules.
 
-- Neon PostgreSQL DEV — active and migration/contracts verified;
-- Descope DEV — real OTP login verified;
-- Cloudflare Worker DEV — deployed and authenticated route verified;
-- real application identity persistence through Neon — verified;
-- representative Workers Free CPU/runtime proof — PASS for the tested authenticated `/v1/me` path.
+The first owner physical convergence attempt after PR #39 was **inconclusive because the app did not expose enough evidence**, not because an implementation defect was proven. The owner observed a generic local conflict while the hosted outbox was empty; this is compatible with a pull-side conflict detected before any PC snapshot is queued.
 
-The first Android hosted-session package is also integrated through PR #30:
+The current focused package is PR #40 on:
 
-- Descope Android SDK initialization — integrated;
-- remembered/refreshable Android Descope session — integrated;
-- Android `HostedAccessTokenProvider` adapter — integrated;
-- real Android authenticated `/v1/me` call — owner-verified;
-- remembered-session reuse after full app restart — owner-verified;
-- logout followed by no remembered session after restart — owner-verified;
-- merged `main` commit `bf5f843066a7c2f8674a4577918156e8a8d2c139`;
-- post-merge Actions `35020281492` / #1898 — SUCCESS.
+`wave4/qa-log-baseline-recovery`
 
-Provider activation and Android session acquisition are no longer the current dependency.
+It adds:
 
-The next meaningful implementation package is **owner-facing hosted account/campaign bootstrap**.
+- a permanent debug QA console with run/copy/share log support;
+- exact campaign/PC convergence diagnostics across initial and final pull phases;
+- explicit campaign-active-vs-hosted-sync wording;
+- a bounded legacy missing-baseline recovery when complete normalized local state already equals complete newer hosted state;
+- continued `SYNC_BASELINE_MISSING` protection whenever local and hosted differ;
+- Android QA build `0.4.0-preqa.14` / `41400`.
+
+Implementation head `cf11c88cf7a424793c40f3d7bcb57b859e058b1e` passed Scaffold `35043186839`, including Shared desktop tests, Android assemble, Desktop build, guard scripts, backend type-check and hosted DB contracts. A later launcher-label-only commit renames the debug launcher to `DnD Aid - QA DEV`; use the final branch run for the physical APK artifact.
 
 ## 3. Current integration branch rule
 
-For the next package:
+Do not start another parallel implementation branch while PR #40 is the active physical-QA package unless a blocking repair requires it.
 
-- branch from current `main`;
-- reuse the existing Descope Android session and `HostedAccessTokenProvider` integration;
-- reuse the existing provider-neutral auth/network/sync seams;
-- connect owner-facing account/campaign bootstrap to the already deployed DEV environment;
-- then connect campaign create/select + durable hosted delivery while preserving local-first behavior;
-- continue to PC snapshot push/pull;
-- prove second-device, offline/reconnect/convergence and revoke/authorization behavior before deeper DM integration.
+The immediate sequence is:
 
-Do not create another parallel networking/auth/sync architecture and do not rebuild the completed mobile session edge.
+1. keep PR #40 open while its final head is automatically verified;
+2. obtain the final debug APK artifact;
+3. install it over the existing phone state without clearing app data;
+4. run the `DnD Aid - QA DEV` hosted synchronization diagnostic;
+5. copy the complete QA log back to the technical-assistant chat;
+6. classify the exact conflict/revision/baseline state from that evidence;
+7. finish the remaining multi-client convergence scenarios only after the diagnostic state is understood;
+8. merge/close the package according to the physical result and project workflow.
 
-The debug-only `DnD Aid - Hosted DEV Auth` activity is a verification harness, not the final Player login UX.
+Do not clear the outbox, reset the database, reinstall from scratch, recreate campaigns/PCs or force a baseline merely to make the test pass.
 
-Secrets remain outside Git. The tested DEV provider resources should be reused rather than recreated.
-
-R2/object storage remains later and should only be activated when Media/Handouts/assets reach object-storage integration after a fresh `$0` review.
+The active campaign selector is local Player state. Hosted synchronization is intended to process all eligible hosted campaigns.
 
 ## 4. Current completion evidence
 
 Current Wave 4 checkpoint:
 
-`docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md`
+`docs/checkpoints/2026-09-15_HOSTED_SYNC_QA_LOG_AND_LEGACY_BASELINE_RECOVERY_READY_FOR_PHYSICAL_QA.md`
+
+Underlying convergence checkpoint:
+
+`docs/checkpoints/2026-09-15_MULTI_CLIENT_PC_CONVERGENCE_SAFETY_READY_FOR_PHYSICAL_QA.md`
+
+Completed campaign/PC delivery evidence:
+
+`docs/checkpoints/2026-09-15_ANDROID_HOSTED_CAMPAIGN_PC_SYNC_COMPLETE.md`
 
 Hosted provider/environment checkpoint:
 
 `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md`
-
-The newer Android session checkpoint supersedes older operational wording that says remembered Android authentication is still the next step. The hosted provider checkpoint remains the authority for provider IDs and activation evidence.
 
 D-0075 remains controlling for the hard `$0` budget, intentional public repository, secret hygiene and owner-guidance contract.
 
@@ -98,7 +99,7 @@ Its runtime/migrations/tests were absorbed into the integrated baseline. The bra
 
 Frozen candidate evidence remains:
 
-- `0.4.0-preqa.13 / 41300`;
+- historical `0.4.0-preqa.13 / 41300`;
 - candidate commit `92aa9b6e94575c0b5a3e13dfe587aa1a625238a4`;
 - Scaffold `34801612526` / #1630 — SUCCESS;
 - targeted physical cross-device revalidation was pending at that historical boundary.
@@ -125,23 +126,24 @@ Frozen QA refs must not be force-moved or repurposed.
 
 For normal implementation:
 
-- branch from current remote `main`;
+- verify current remote `main`, current active PR and final CI before writing;
 - read `AGENTS.md`, `README.md`, `MANIFEST.md`, `docs/PROJECT_STATE.md` and `docs/checkpoints/LATEST.md`;
-- read `docs/checkpoints/2026-09-15_ANDROID_HOSTED_SESSION_INTEGRATION_COMPLETE.md` for the current Wave 4 position and exact next package;
-- read `docs/checkpoints/2026-09-15_HOSTED_DEV_PROVIDER_ACTIVATION_COMPLETE.md` when exact hosted-provider evidence is needed;
-- verify current remote HEAD and latest CI before writing;
-- do **not** restart Shared Spine, campaign lifecycle, hosted PC snapshot, provider activation, Android session acquisition or convergence work;
+- read the current Wave 4 checkpoint above for the exact physical gate;
+- do **not** restart Shared Spine, hosted provider activation, Android session acquisition, campaign bootstrap or already completed PC delivery work;
 - preserve DM authority vs PC ownership distinction;
 - preserve owner vs controller distinction;
 - preserve no-silent-overwrite, stale-revision, idempotency and non-resurrection semantics;
-- return to the owner only for material product/scope/security/privacy/cost/lock-in/destructive-behavior decisions, external account/service actions not already completed, or manual/physical QA gates.
+- treat empty outbox as insufficient evidence of PC cleanliness;
+- return to the owner for the current manual/physical QA gate or genuinely material product/scope/security/privacy/cost/lock-in/destructive-behavior decisions.
 
-If no later checkpoint supersedes the current one, continue with **owner-facing hosted account/campaign bootstrap** using the already activated DEV providers and remembered Android session.
+If no later checkpoint supersedes this one, continue with the **PR #40 diagnostic physical sync**, not membership revoke/authorization work yet.
 
 ## 9. Security / repository visibility
 
 The repository is intentionally **public** under D-0075. `private: false` is expected and is not a discrepancy.
 
-Never store provider/database credentials, bearer/session tokens, private keys or other confidentiality-dependent material in Git.
+Never store provider/database credentials, bearer/session tokens, private keys or other confidentiality-dependent material in Git or in the QA log.
 
-Open security residuals are tracked in the current checkpoints; they do not reopen completed provider-activation or Android-session gates.
+The reusable QA report may contain campaign/PC IDs, names, revisions, baseline state, conflict enums and outbox retry state, but must continue to exclude authentication secrets.
+
+Open security residuals are tracked in the current checkpoints; they do not reopen completed provider/session/bootstrap/campaign/PC packages.
