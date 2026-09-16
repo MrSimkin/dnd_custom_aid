@@ -24,8 +24,11 @@ This gives six available Android test instances in total. Physical and virtual c
 ## Physical tablet
 
 - **Role:** owner physical tablet available for tablet-class QA
-- **Owner-confirmed availability:** 2026-09-16
-- **Model / Android version / system display scale / exact effective viewport:** not yet recorded; do not guess
+- **Model:** Lenovo Tab P11 `TB-J606F`
+- **RAM:** 6 GB
+- **Android:** 11
+- **Owner-confirmed availability/details:** 2026-09-16
+- **System display scale / exact effective viewport:** not yet recorded; do not guess
 
 ## Android Studio emulator inventory
 
