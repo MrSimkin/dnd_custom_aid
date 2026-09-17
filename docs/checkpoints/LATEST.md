@@ -8,7 +8,7 @@
 **Current PR:** #44 — draft  
 **Package branch base:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
 **Current package:** Wave 5 — Desktop hosted authentication/session acquisition + real Campaign Administration consumption  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_PLAYER_FIXTURE_VISIBLE.md`  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_MODERATION_KICK_VERIFIED.md`  
 **Deployed code head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
 **Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
 **DEV Worker deployment:** **VERIFIED**  
@@ -16,20 +16,22 @@
 **Identity mapping:** **RESOLVED — TWO DISTINCT DEV LOGIN IDENTITIES**  
 **Real Desktop Gmail DM QA:** **OTP PASS / BOOTSTRAP PASS / ROSTER PASS / DM GUARD PASS**  
 **PLAYER fixture:** **VISIBLE / ACTIVE / BOTH MODERATION ACTIONS PRESENT**  
-**Current gate:** real Desktop moderation sequence `ACTIVE -> KICKED -> BANNED -> KICKED`, one transition at a time  
+**Real moderation:** **ACTIVE -> KICKED PASS / REVISION 0 -> 1**  
+**Current gate:** real Desktop moderation `KICKED -> BANNED`, then review before Lift Ban  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_PLAYER_FIXTURE_VISIBLE.md`;
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_MODERATION_KICK_VERIFIED.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_ROSTER_DM_GUARD_VERIFIED.md`;
-5. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_MAPPING_RESOLVED.md`;
-6. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`;
-7. `docs/PROJECT_STATE.md`;
-8. `docs/BRANCH_STATUS.md`;
-9. relevant implementation/decision checkpoints as needed.
+4. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_PLAYER_FIXTURE_VISIBLE.md`;
+5. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_ROSTER_DM_GUARD_VERIFIED.md`;
+6. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_MAPPING_RESOLVED.md`;
+7. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`;
+8. `docs/PROJECT_STATE.md`;
+9. `docs/BRANCH_STATUS.md`;
+10. relevant implementation/decision checkpoints as needed.
 
 ## Current sequence
 
@@ -58,18 +60,19 @@ Real hosted roster + DM guard                        PASS
         |
         v
 Reversible ACTIVE PLAYER fixture visible             PASS
-  DM -> ACTIVE / no controls
-  PLAYER -> ACTIVE / Expulsar + Bloquear
-  roster revision = 0
         |
         v
-Real moderation: ACTIVE -> KICKED                    NEXT
+Real moderation: ACTIVE -> KICKED                    PASS
+  revision 0 -> 1
+  DM unchanged
+  Player remains present
+  only Bloquear remains
         |
         v
-Real moderation: KICKED -> BANNED                    PENDING
+Real moderation: KICKED -> BANNED                    NEXT
         |
         v
-Real moderation: BANNED -> KICKED (Lift Ban)         PENDING
+Real moderation: BANNED -> KICKED (Lift Ban)         PENDING REVIEW
         |
         v
 Fixture cleanup + final settings/sign-out/relaunch   REQUIRED BEFORE MERGE
@@ -88,29 +91,33 @@ The owner authenticated Desktop using the historical Gmail DEV identity. Bootstr
 
 Campaign Administration fetched the real hosted roster successfully. The DM row exposed no Player moderation actions.
 
-A bounded QA fixture then added the already-existing Outlook DEV application user as `PLAYER / ACTIVE` in the same hosted campaign. After roster refresh, Desktop showed two hosted members at roster revision `0`:
+A bounded QA fixture added the already-existing Outlook DEV application user as `PLAYER / ACTIVE` in the same hosted campaign. The Desktop roster showed both DM and Player correctly at revision `0`.
 
-- Gmail DEV identity: `DM / ACTIVE`, no moderation controls;
-- Outlook DEV identity: `PLAYER / ACTIVE`, with both `Expulsar` and `Bloquear` controls.
+The owner then exercised the real Desktop `Expulsar` action on the Player. After confirmation and authoritative refresh:
 
-This establishes the correct real precondition for moderation QA.
+- roster revision advanced exactly once from `0` to `1`;
+- DM remained `DM / ACTIVE` and unchanged;
+- Player changed from `PLAYER / ACTIVE` to `PLAYER / KICKED` (`Expulsado`);
+- the Player row remained present;
+- `Expulsar` disappeared;
+- only `Bloquear` remained.
+
+This verifies the real DEV `ACTIVE -> KICKED` moderation path through Desktop -> Worker -> Neon.
 
 ## Current owner/manual gate
 
-Perform moderation through Desktop only, one transition at a time.
+Perform exactly one further Desktop moderation action:
 
-First action only:
+1. click `Bloquear` on the currently `Expulsado` Player row;
+2. accept the confirmation dialog only if the target and action are correct;
+3. wait for server confirmation and authoritative roster refresh;
+4. verify Player status becomes `BANNED` / `Bloqueado`;
+5. verify roster revision advances exactly once from `1` to `2`;
+6. verify DM remains `ACTIVE` and unchanged;
+7. report the new Player row and available buttons;
+8. stop before performing Lift Ban / unban.
 
-1. click `Expulsar` on the ACTIVE Player row;
-2. accept the confirmation dialog if the target and action are correct;
-3. wait for server confirmation/authoritative roster refresh;
-4. verify Player status changes to KICKED/Expulsado;
-5. verify the displayed roster/campaign revision advances exactly once from `0` to `1`;
-6. report the new Player row and available buttons before doing anything else.
-
-Do not click `Bloquear` until the KICK result has been reviewed.
-
-Do not mutate the Gmail DM row and do not manually edit Neon during the moderation sequence unless a defect requires diagnosis.
+Do not manually edit Neon during this moderation sequence unless a defect requires diagnosis.
 
 ## Permanent safety rules
 
