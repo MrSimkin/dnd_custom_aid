@@ -17,7 +17,6 @@ import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,12 +28,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
-import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContent
-import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
-import io.github.mrsimkin.dndcustomaid.shared.content.PlaceKind
-import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.ZoneContent
+import io.github.mrsimkin.dndcustomaid.shared.content.ZoneContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.ZonePayload
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
@@ -44,69 +42,58 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.Revision
 import io.github.mrsimkin.dndcustomaid.shared.spine.RevisionDecision
 import kotlin.uuid.Uuid
 
-private enum class DesktopManagersHubSection(val label: String) {
-    CREATURES_NPCS_HOMEBREW("Criaturas / PNJ / Homebrew"),
-    PLACES_SHOPS("Escenarios / Lugares / Tiendas"),
-    DUNGEONS_ZONES("Mazmorras / Zonas"),
+internal data class DesktopZoneFilters(
+    val query: String = "",
+    val area: String = "",
+    val tag: String = "",
+)
+
+internal fun filterDesktopZones(
+    zones: List<ZoneContent>,
+    filters: DesktopZoneFilters,
+): List<ZoneContent> {
+    val query = filters.query.trim().lowercase()
+    val area = filters.area.trim().lowercase()
+    val tag = filters.tag.trim().lowercase()
+
+    return zones
+        .distinctBy { it.item.identity.id }
+        .filter { content ->
+            area.isEmpty() || content.payload.area.lowercase().contains(area)
+        }
+        .filter { content ->
+            tag.isEmpty() || content.payload.tags.any { it.lowercase().contains(tag) }
+        }
+        .filter { content ->
+            query.isEmpty() || buildList {
+                add(content.item.displayName)
+                add(content.payload.summary)
+                add(content.payload.area)
+                add(content.payload.presentation)
+                add(content.payload.space)
+                add(content.payload.exploration)
+                add(content.payload.encounterBrief)
+                add(content.payload.dmGuidance)
+                add(content.payload.playerSafeText)
+                addAll(content.payload.interactives)
+                addAll(content.payload.clues)
+                addAll(content.payload.checks)
+                addAll(content.payload.consequences)
+                addAll(content.payload.paperReferences)
+                addAll(content.payload.tags)
+            }.any { it.lowercase().contains(query) }
+        }
+        .sortedWith(compareBy({ zoneScopeSortKey(it) }, { it.item.displayName.lowercase() }))
 }
 
-@Composable
-fun DesktopManagersHubScreen(
-    creatureController: DesktopCreatureManagerController,
-    npcController: DesktopNpcManagerController,
-    homebrewRuleController: DesktopHomebrewRuleManagerController,
-    placeController: DesktopPlaceManagerController,
-    activeCampaign: Campaign?,
-    onQaEvent: (String) -> Unit,
-) {
-    var section by remember { mutableStateOf(DesktopManagersHubSection.CREATURES_NPCS_HOMEBREW) }
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DesktopManagersHubSection.entries.forEach { candidate ->
-                if (candidate == section) {
-                    Button(onClick = { section = candidate }) { Text(candidate.label) }
-                } else {
-                    TextButton(onClick = { section = candidate }) { Text(candidate.label) }
-                }
-            }
-        }
-        Divider()
-        when (section) {
-            DesktopManagersHubSection.CREATURES_NPCS_HOMEBREW -> DesktopAuthoringManagersScreen(
-                creatureController = creatureController,
-                npcController = npcController,
-                homebrewRuleController = homebrewRuleController,
-                activeCampaign = activeCampaign,
-                onQaEvent = onQaEvent,
-            )
-            DesktopManagersHubSection.PLACES_SHOPS -> DesktopStageAndSceneManagerScreen(
-                controller = placeController,
-                activeCampaign = activeCampaign,
-                onQaEvent = onQaEvent,
-            )
-            DesktopManagersHubSection.DUNGEONS_ZONES -> DesktopZoneManagerScreen(
-                controller = placeController.zoneManagerController,
-                activeCampaign = activeCampaign,
-                onQaEvent = onQaEvent,
-            )
-        }
-    }
-}
-
-class DesktopPlaceManagerController(
+class DesktopZoneManagerController(
     database: AppDatabase,
     private val nowEpochSeconds: () -> Long = { System.currentTimeMillis() / 1000L },
 ) {
     private val campaignRepository = CampaignRepository(database)
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
-    private val places = PlaceContentRepository(database, reusableContent)
-    internal val sceneManagerController = DesktopSceneManagerController(database, nowEpochSeconds)
-    internal val zoneManagerController = DesktopZoneManagerController(database, nowEpochSeconds)
+    private val zones = ZoneContentRepository(database, reusableContent)
 
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
@@ -130,44 +117,38 @@ class DesktopPlaceManagerController(
             .singleOrNull()
     }
 
-    fun personalPlaces(ownerAccountId: Uuid): List<PlaceContent> =
-        reusableContent.listPersonal(ownerAccountId, ReusableContentFamily.PLACE)
-            .mapNotNull { places.place(it.identity.id) }
+    fun personalZones(ownerAccountId: Uuid): List<ZoneContent> =
+        reusableContent.listPersonal(ownerAccountId, ReusableContentFamily.ZONE)
+            .mapNotNull { zones.zone(it.identity.id) }
 
-    fun campaignPlaces(campaignId: Uuid): List<PlaceContent> =
-        reusableContent.listCampaign(campaignId, ReusableContentFamily.PLACE)
-            .mapNotNull { places.place(it.identity.id) }
+    fun campaignZones(campaignId: Uuid): List<ZoneContent> =
+        reusableContent.listCampaign(campaignId, ReusableContentFamily.ZONE)
+            .mapNotNull { zones.zone(it.identity.id) }
 
-    fun place(id: Uuid): PlaceContent? = places.place(id)
+    fun zone(id: Uuid): ZoneContent? = zones.zone(id)
 
-    fun createPersonal(
-        ownerAccountId: Uuid,
-        displayName: String,
-        kind: PlaceKind = PlaceKind.PLACE,
-    ): PlaceContent = places.createPersonal(
-        ownerAccountId = ownerAccountId,
-        rawDisplayName = displayName,
-        payload = PlacePayload(kind = kind),
-        nowEpochSeconds = nowEpochSeconds(),
-    )
+    fun createPersonal(ownerAccountId: Uuid, displayName: String): ZoneContent =
+        zones.createPersonal(
+            ownerAccountId = ownerAccountId,
+            rawDisplayName = displayName,
+            payload = ZonePayload(),
+            nowEpochSeconds = nowEpochSeconds(),
+        )
 
-    fun createCampaign(
-        campaignId: Uuid,
-        displayName: String,
-        kind: PlaceKind = PlaceKind.PLACE,
-    ): PlaceContent = places.createCampaign(
-        campaignId = campaignId,
-        rawDisplayName = displayName,
-        payload = PlacePayload(kind = kind),
-        nowEpochSeconds = nowEpochSeconds(),
-    )
+    fun createCampaign(campaignId: Uuid, displayName: String): ZoneContent =
+        zones.createCampaign(
+            campaignId = campaignId,
+            rawDisplayName = displayName,
+            payload = ZonePayload(),
+            nowEpochSeconds = nowEpochSeconds(),
+        )
 
     fun update(
         id: Uuid,
         expectedRevision: Revision,
         displayName: String,
-        payload: PlacePayload,
-    ): RevisionDecision = places.update(
+        payload: ZonePayload,
+    ): RevisionDecision = zones.update(
         id = id,
         expectedRevision = expectedRevision,
         rawDisplayName = displayName,
@@ -175,8 +156,8 @@ class DesktopPlaceManagerController(
         updatedAtEpochSeconds = nowEpochSeconds(),
     )
 
-    fun copyPersonalToCampaign(sourceId: Uuid, campaignId: Uuid): PlaceContent =
-        places.copyPersonalToCampaign(
+    fun copyPersonalToCampaign(sourceId: Uuid, campaignId: Uuid): ZoneContent =
+        zones.copyPersonalToCampaign(
             sourceId = sourceId,
             campaignId = campaignId,
             copiedAtEpochSeconds = nowEpochSeconds(),
@@ -184,33 +165,33 @@ class DesktopPlaceManagerController(
 }
 
 @Composable
-internal fun DesktopPlaceManagerScreen(
-    controller: DesktopPlaceManagerController,
+internal fun DesktopZoneManagerScreen(
+    controller: DesktopZoneManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
-    var stageFilters by remember { mutableStateOf(StagePlaceFilters()) }
+    var areaFilter by remember { mutableStateOf("") }
+    var tagFilter by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
-    var newKind by remember { mutableStateOf(PlaceKind.PLACE) }
     var selectedId by remember { mutableStateOf<Uuid?>(null) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
         controller.personalOwnerAccountId()
     }
-    val personalPlaces = remember(refreshVersion, ownerAccountId) {
-        ownerAccountId?.let(controller::personalPlaces).orEmpty()
+    val personalZones = remember(refreshVersion, ownerAccountId) {
+        ownerAccountId?.let(controller::personalZones).orEmpty()
     }
-    val campaignPlaces = remember(refreshVersion, activeCampaign?.id) {
-        activeCampaign?.id?.let(controller::campaignPlaces).orEmpty()
+    val campaignZones = remember(refreshVersion, activeCampaign?.id) {
+        activeCampaign?.id?.let(controller::campaignZones).orEmpty()
     }
     val selected = remember(refreshVersion, selectedId) {
-        selectedId?.let(controller::place)
+        selectedId?.let(controller::zone)
     }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
-        mutableStateOf(selected?.let(PlaceDraft::from))
+        mutableStateOf(selected?.let(ZoneDraft::from))
     }
 
     fun refresh(selectId: Uuid? = selectedId) {
@@ -218,9 +199,9 @@ internal fun DesktopPlaceManagerScreen(
         refreshVersion += 1
     }
 
-    val visiblePlaces = filterStagePlaces(
-        places = personalPlaces + campaignPlaces,
-        filters = stageFilters.copy(query = query),
+    val visibleZones = filterDesktopZones(
+        zones = personalZones + campaignZones,
+        filters = DesktopZoneFilters(query = query, area = areaFilter, tag = tagFilter),
     )
 
     Column(
@@ -228,9 +209,10 @@ internal fun DesktopPlaceManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Escenarios, Lugares y Tiendas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Gestor de Mazmorras / Zonas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
             Text(
-                "La vista Stage organiza los lugares reutilizables existentes; las tiendas siguen siendo lugares especializados y las copias de campaña son independientes.",
+                "Prepara cada Zona como un Zone Brief: PRESENTAR, INTERACTUAR y ENCUENTRO. " +
+                    "Espacio y exploración conservan la orientación topológica sin convertir el gestor en un VTT.",
                 style = MaterialTheme.typography.body1,
             )
         }
@@ -250,58 +232,66 @@ internal fun DesktopPlaceManagerScreen(
             OutlinedTextField(
                 value = newName,
                 onValueChange = { newName = it },
-                label = { Text("Nuevo lugar / tienda") },
+                label = { Text("Nueva zona") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
-            PlaceKind.entries.forEach { kind ->
-                if (newKind == kind) {
-                    Button(onClick = { newKind = kind }) { Text(placeKindLabel(kind)) }
-                } else {
-                    TextButton(onClick = { newKind = kind }) { Text(placeKindLabel(kind)) }
-                }
-            }
             Button(
                 enabled = newName.isNotBlank() && ownerAccountId != null,
                 onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName, newKind) }
+                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
                         .onSuccess { created ->
                             newName = ""
-                            statusMessage = "${placeKindLabel(created.payload.kind)} Personal creado."
-                            onQaEvent("Place Manager: contenido Personal creado ${created.item.identity.id}")
+                            statusMessage = "Zona Personal creada."
+                            onQaEvent("Zone Manager: zona Personal creada ${created.item.identity.id}")
                             refresh(created.item.identity.id)
                         }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el contenido Personal." }
+                        .onFailure { statusMessage = it.message ?: "No se pudo crear la zona Personal." }
                 },
             ) { Text("Crear Personal") }
             Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
-                    runCatching {
-                        controller.createCampaign(requireNotNull(activeCampaign).id, newName, newKind)
-                    }.onSuccess { created ->
-                        newName = ""
-                        statusMessage = "${placeKindLabel(created.payload.kind)} creado en ${activeCampaign?.name}."
-                        onQaEvent("Place Manager: contenido de campaña creado ${created.item.identity.id}")
-                        refresh(created.item.identity.id)
-                    }.onFailure { statusMessage = it.message ?: "No se pudo crear el contenido de campaña." }
+                    runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
+                        .onSuccess { created ->
+                            newName = ""
+                            statusMessage = "Zona creada en ${activeCampaign?.name}."
+                            onQaEvent("Zone Manager: zona de campaña creada ${created.item.identity.id}")
+                            refresh(created.item.identity.id)
+                        }
+                        .onFailure { statusMessage = it.message ?: "No se pudo crear la zona de campaña." }
                 },
             ) { Text("Crear en campaña") }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = areaFilter,
+                onValueChange = { areaFilter = it },
+                label = { Text("Filtrar área") },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
+            OutlinedTextField(
+                value = tagFilter,
+                onValueChange = { tagFilter = it },
+                label = { Text("Filtrar etiqueta") },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
         }
 
         if (ownerAccountId == null) {
             Text(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
+                    "Las zonas de campaña local siguen disponibles.",
                 style = MaterialTheme.typography.caption,
             )
         }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
-
-        StagePlaceFilterControls(
-            filters = stageFilters,
-            onFiltersChange = { stageFilters = it },
-        )
 
         Divider()
 
@@ -309,8 +299,8 @@ internal fun DesktopPlaceManagerScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            PlaceList(
-                places = visiblePlaces,
+            ZoneList(
+                zones = visibleZones,
                 selectedId = selectedId,
                 onSelect = {
                     selectedId = it
@@ -324,11 +314,11 @@ internal fun DesktopPlaceManagerScreen(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un lugar o tienda para abrirlo.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalPlaces.size} • Campaña activa: ${campaignPlaces.size}")
+                    Text("Selecciona una zona para abrirla.", style = MaterialTheme.typography.h6)
+                    Text("Personal: ${personalZones.size} • Campaña activa: ${campaignZones.size}")
                 }
             } else {
-                PlaceEditor(
+                ZoneEditor(
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -343,15 +333,15 @@ internal fun DesktopPlaceManagerScreen(
                         )) {
                             is RevisionDecision.Accepted -> {
                                 statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
-                                onQaEvent("Place Manager: contenido actualizado ${selected.item.identity.id}")
+                                onQaEvent("Zone Manager: zona actualizada ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
                             is RevisionDecision.Stale -> {
-                                statusMessage = "El contenido cambió desde que fue abierto. Se recargó la versión actual."
+                                statusMessage = "La zona cambió desde que fue abierta. Se recargó la versión actual."
                                 refresh(selected.item.identity.id)
                             }
                             is RevisionDecision.Deleted -> {
-                                statusMessage = "El contenido fue eliminado y no puede ser sobrescrito."
+                                statusMessage = "La zona fue eliminada y no puede ser sobrescrita."
                                 refresh(null)
                             }
                         }
@@ -364,10 +354,10 @@ internal fun DesktopPlaceManagerScreen(
                             runCatching { controller.copyPersonalToCampaign(selected.item.identity.id, campaign.id) }
                                 .onSuccess { copied ->
                                     statusMessage = "Copia independiente creada en ${campaign.name}."
-                                    onQaEvent("Place Manager: contenido copiado a campaña ${copied.item.identity.id}")
+                                    onQaEvent("Zone Manager: zona copiada a campaña ${copied.item.identity.id}")
                                     refresh(copied.item.identity.id)
                                 }
-                                .onFailure { statusMessage = it.message ?: "No se pudo copiar el contenido." }
+                                .onFailure { statusMessage = it.message ?: "No se pudo copiar la zona." }
                         }
                     },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -378,20 +368,20 @@ internal fun DesktopPlaceManagerScreen(
 }
 
 @Composable
-private fun PlaceList(
-    places: List<PlaceContent>,
+private fun ZoneList(
+    zones: List<ZoneContent>,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Stage • Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Zonas (${zones.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
         }
-        if (places.isEmpty()) {
-            item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.caption) }
+        if (zones.isEmpty()) {
+            item { Text("No hay zonas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
         }
-        items(places, key = { it.item.identity.id.toString() }) { content ->
+        items(zones, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
@@ -399,9 +389,12 @@ private fun PlaceList(
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text("${placeKindLabel(content.payload.kind)} • ${placeScopeLabel(content)}", style = MaterialTheme.typography.caption)
+                    Text(zoneScopeLabel(content), style = MaterialTheme.typography.caption)
                     if (content.payload.area.isNotBlank()) {
                         Text(content.payload.area, style = MaterialTheme.typography.caption)
+                    }
+                    if (content.payload.summary.isNotBlank()) {
+                        Text(content.payload.summary, style = MaterialTheme.typography.caption)
                     }
                 }
             }
@@ -410,11 +403,11 @@ private fun PlaceList(
 }
 
 @Composable
-private fun PlaceEditor(
-    content: PlaceContent,
-    draft: PlaceDraft,
+private fun ZoneEditor(
+    content: ZoneContent,
+    draft: ZoneDraft,
     activeCampaign: Campaign?,
-    onDraftChange: (PlaceDraft) -> Unit,
+    onDraftChange: (ZoneDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     modifier: Modifier,
@@ -427,9 +420,9 @@ private fun PlaceEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Lugar / Tienda", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                    Text("Editor de Zona", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
                     Text(
-                        "${placeKindLabel(draft.kind)} • ${placeScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
+                        "${zoneScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
                         style = MaterialTheme.typography.caption,
                     )
                     content.item.identity.provenance?.let { provenance ->
@@ -446,35 +439,41 @@ private fun PlaceEditor(
             }
         }
 
-        item { PlaceField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
-        item {
-            Text("Tipo", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                PlaceKind.entries.forEach { kind ->
-                    if (draft.kind == kind) {
-                        Button(onClick = { onDraftChange(draft.copy(kind = kind)) }) { Text(placeKindLabel(kind)) }
-                    } else {
-                        TextButton(onClick = { onDraftChange(draft.copy(kind = kind)) }) { Text(placeKindLabel(kind)) }
-                    }
-                }
-            }
-        }
-        item { PlaceField("Resumen", draft.summary, false, 3) { onDraftChange(draft.copy(summary = it)) } }
-        item { PlaceField("Área / ubicación", draft.area, true) { onDraftChange(draft.copy(area = it)) } }
-        item { PlaceField("Función", draft.function, false, 3) { onDraftChange(draft.copy(function = it)) } }
-        item { PlaceField("Presentación / atmósfera", draft.presentation, false, 4) { onDraftChange(draft.copy(presentation = it)) } }
-        item { PlaceField("Servicios (uno por línea)", draft.services, false, 4) { onDraftChange(draft.copy(services = it)) } }
-        item { PlaceField("Interacciones (una por línea)", draft.interactives, false, 4) { onDraftChange(draft.copy(interactives = it)) } }
-        item { PlaceField("Ganchos (uno por línea)", draft.hooks, false, 4) { onDraftChange(draft.copy(hooks = it)) } }
-        item { PlaceField("Texto seguro para jugadores", draft.playerSafeText, false, 4) { onDraftChange(draft.copy(playerSafeText = it)) } }
-        item { PlaceField("Notas DM", draft.dmNotes, false, 4) { onDraftChange(draft.copy(dmNotes = it)) } }
-        item { PlaceField("Referencias de papel (una por línea)", draft.paperReferences, false, 3) { onDraftChange(draft.copy(paperReferences = it)) } }
-        item { PlaceField("Etiquetas (coma o línea)", draft.tags, false, 3) { onDraftChange(draft.copy(tags = it)) } }
+        item { ZoneSectionHeading("PRESENTAR") }
+        item { ZoneField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
+        item { ZoneField("Resumen", draft.summary, false, 3) { onDraftChange(draft.copy(summary = it)) } }
+        item { ZoneField("Área / ubicación", draft.area, true) { onDraftChange(draft.copy(area = it)) } }
+        item { ZoneField("Presentación / impresión inicial", draft.presentation, false, 4) { onDraftChange(draft.copy(presentation = it)) } }
+        item { ZoneField("Espacio / topología de preparación", draft.space, false, 4) { onDraftChange(draft.copy(space = it)) } }
+        item { ZoneField("Texto seguro para jugadores", draft.playerSafeText, false, 4) { onDraftChange(draft.copy(playerSafeText = it)) } }
+
+        item { ZoneSectionHeading("INTERACTUAR") }
+        item { ZoneField("Exploración / flujo", draft.exploration, false, 4) { onDraftChange(draft.copy(exploration = it)) } }
+        item { ZoneField("Elementos interactivos (uno por línea)", draft.interactives, false, 4) { onDraftChange(draft.copy(interactives = it)) } }
+        item { ZoneField("Pistas (una por línea)", draft.clues, false, 4) { onDraftChange(draft.copy(clues = it)) } }
+        item { ZoneField("Pruebas / checks (una por línea)", draft.checks, false, 4) { onDraftChange(draft.copy(checks = it)) } }
+        item { ZoneField("Consecuencias preparadas (una por línea)", draft.consequences, false, 4) { onDraftChange(draft.copy(consequences = it)) } }
+
+        item { ZoneSectionHeading("ENCUENTRO") }
+        item { ZoneField("Resumen del encuentro", draft.encounterBrief, false, 5) { onDraftChange(draft.copy(encounterBrief = it)) } }
+
+        item { ZoneSectionHeading("APOYO DM") }
+        item { ZoneField("Guía DM", draft.dmGuidance, false, 5) { onDraftChange(draft.copy(dmGuidance = it)) } }
+        item { ZoneField("Referencias de papel (una por línea)", draft.paperReferences, false, 3) { onDraftChange(draft.copy(paperReferences = it)) } }
+        item { ZoneField("Etiquetas (coma o línea)", draft.tags, false, 3) { onDraftChange(draft.copy(tags = it)) } }
     }
 }
 
 @Composable
-private fun PlaceField(
+private fun ZoneSectionHeading(label: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Divider()
+        Text(label, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun ZoneField(
     label: String,
     value: String,
     singleLine: Boolean,
@@ -491,74 +490,73 @@ private fun PlaceField(
     )
 }
 
-private data class PlaceDraft(
+private data class ZoneDraft(
     val displayName: String,
-    val kind: PlaceKind,
     val summary: String,
     val area: String,
-    val function: String,
     val presentation: String,
-    val services: String,
+    val space: String,
+    val exploration: String,
     val interactives: String,
-    val hooks: String,
+    val clues: String,
+    val checks: String,
+    val consequences: String,
+    val encounterBrief: String,
+    val dmGuidance: String,
     val playerSafeText: String,
-    val dmNotes: String,
     val paperReferences: String,
     val tags: String,
 ) {
-    fun toPayload(): PlacePayload = PlacePayload(
-        kind = kind,
+    fun toPayload(): ZonePayload = ZonePayload(
         summary = summary,
         area = area,
-        function = function,
         presentation = presentation,
-        services = parsePlaceLines(services),
-        interactives = parsePlaceLines(interactives),
-        hooks = parsePlaceLines(hooks),
+        space = space,
+        exploration = exploration,
+        interactives = parseZoneLines(interactives),
+        clues = parseZoneLines(clues),
+        checks = parseZoneLines(checks),
+        consequences = parseZoneLines(consequences),
+        encounterBrief = encounterBrief,
+        dmGuidance = dmGuidance,
         playerSafeText = playerSafeText,
-        dmNotes = dmNotes,
-        paperReferences = parsePlaceLines(paperReferences),
+        paperReferences = parseZoneLines(paperReferences),
         tags = tags.split(',', '\n').map(String::trim).filter(String::isNotEmpty),
     )
 
     companion object {
-        fun from(content: PlaceContent): PlaceDraft = PlaceDraft(
+        fun from(content: ZoneContent): ZoneDraft = ZoneDraft(
             displayName = content.item.displayName,
-            kind = content.payload.kind,
             summary = content.payload.summary,
             area = content.payload.area,
-            function = content.payload.function,
             presentation = content.payload.presentation,
-            services = content.payload.services.joinToString("\n"),
+            space = content.payload.space,
+            exploration = content.payload.exploration,
             interactives = content.payload.interactives.joinToString("\n"),
-            hooks = content.payload.hooks.joinToString("\n"),
+            clues = content.payload.clues.joinToString("\n"),
+            checks = content.payload.checks.joinToString("\n"),
+            consequences = content.payload.consequences.joinToString("\n"),
+            encounterBrief = content.payload.encounterBrief,
+            dmGuidance = content.payload.dmGuidance,
             playerSafeText = content.payload.playerSafeText,
-            dmNotes = content.payload.dmNotes,
             paperReferences = content.payload.paperReferences.joinToString("\n"),
             tags = content.payload.tags.joinToString(", "),
         )
     }
 }
 
-private fun parsePlaceLines(raw: String): List<String> =
+private fun parseZoneLines(raw: String): List<String> =
     raw.lines().map(String::trim).filter(String::isNotEmpty)
 
-private fun placeScopeSortKey(content: PlaceContent): Int = when (content.item.identity.scope) {
+private fun zoneScopeSortKey(content: ZoneContent): Int = when (content.item.identity.scope) {
     is ContentScope.Personal -> 0
     is ContentScope.Campaign -> 1
     else -> 2
 }
 
-private fun placeScopeLabel(content: PlaceContent): String = placeScopeLabel(content.item.identity.scope)
-
-private fun placeScopeLabel(scope: ContentScope): String = when (scope) {
+private fun zoneScopeLabel(content: ZoneContent): String = when (content.item.identity.scope) {
     is ContentScope.Personal -> "Personal"
     is ContentScope.Campaign -> "Campaña"
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
-}
-
-private fun placeKindLabel(kind: PlaceKind): String = when (kind) {
-    PlaceKind.PLACE -> "Lugar"
-    PlaceKind.SHOP -> "Tienda"
 }
