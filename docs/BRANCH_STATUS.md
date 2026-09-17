@@ -3,11 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified Wave 6 runtime merge:** `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd`  
-**Post-merge Scaffold:** `35265162945` — SUCCESS  
+**Last verified runtime merge:** `12a62288457ebe5892f90f637fe41c142b094591` (PR #61)  
+**Post-merge Scaffold:** `35267674641` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
-**Current normal work:** Encounter documentation closure, then Wave 7 Desktop Creature/Monster Manager local authoring core
+**Wave 7 lifecycle:** ACTIVE  
+**Current normal work:** Creature Manager documentation closure, then Desktop NPC Manager local authoring core
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -23,62 +24,70 @@ Integrated Wave 6 implementation PRs:
 - #53 lightweight Homebrew/Rule payload persistence;
 - #55 Place payload persistence;
 - #57 Zone payload persistence;
-- #59 Encounter payload persistence, merged as `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd`.
+- #59 Encounter payload persistence.
 
-Encounter validation: push Scaffold `35264310753`, PR Scaffold `35264620723`, post-merge Scaffold `35265162945` — all SUCCESS.
+Integrated Wave 7 implementation PRs:
 
-Do not restart completed Wave 5 or Wave 6 implementation without new defect evidence.
+- #61 Desktop Creature/Monster Manager local authoring core — merged as `12a62288457ebe5892f90f637fe41c142b094591`.
 
-## Completed Wave 5 branches
+Creature Manager validation: push Scaffold `35267065066`, PR Scaffold `35267241770`, post-merge Scaffold `35267674641` — all SUCCESS.
 
-- `wave5/desktop-workbench-shell` — historical, PR #42 merged/owner-QA accepted;
-- `wave5/campaign-membership-administration-core` — historical, PR #43 merged;
-- `wave5/desktop-hosted-campaign-administration` — historical, PR #44 merged/owner-QA accepted.
+Do not restart completed Wave 5, Wave 6, or integrated Creature Manager implementation without new defect evidence.
 
-## Completed Wave 6 implementation branches
+## Completed implementation branches
 
-- `wave6/reusable-content-persistence` — PR #46 merged;
-- `wave6/creature-payload-persistence` — PR #48 merged;
-- `wave6/npc-payload-persistence` — PR #51 merged;
-- `wave6/homebrew-rule-payload-persistence` — PR #53 merged;
-- `wave6/place-payload-persistence` — PR #55 merged;
-- `wave6/zone-payload-persistence` — PR #57 merged;
-- `wave6/encounter-payload-persistence` — PR #59 merged.
+Wave 5 historical branches:
 
-These are historical implementation refs. Their integrated scope belongs to `main`.
+- `wave5/desktop-workbench-shell`;
+- `wave5/campaign-membership-administration-core`;
+- `wave5/desktop-hosted-campaign-administration`.
+
+Wave 6 historical branches:
+
+- `wave6/reusable-content-persistence`;
+- `wave6/creature-payload-persistence`;
+- `wave6/npc-payload-persistence`;
+- `wave6/homebrew-rule-payload-persistence`;
+- `wave6/place-payload-persistence`;
+- `wave6/zone-payload-persistence`;
+- `wave6/encounter-payload-persistence`.
+
+Wave 7 historical implementation branch:
+
+- `wave7/desktop-creature-manager-core` — PR #61 merged.
+
+Integrated scope belongs to `main`; these refs are not continuation authority.
 
 ## Documentation closure branches
 
-Historical closures:
-
-- `docs/wave6-creature-integrated`;
-- `docs/wave6-npc-integrated`;
-- `docs/wave6-homebrew-integrated`;
-- `docs/wave6-place-integrated`;
-- `docs/wave6-zone-integrated`.
+Historical closures include the Wave 6 family closures through `docs/wave6-encounter-integrated`.
 
 Current short-lived closure branch:
 
-- `docs/wave6-encounter-integrated` — records Encounter integration and the Wave 6 -> Wave 7 transition.
+- `docs/wave7-creature-manager-integrated` — records the first Wave 7 Manager integration and the continuation to NPC Manager.
 
 After this closure merges, normal implementation starts from current `main`; do not continue coding on the docs branch.
 
-## Wave 7 branch direction
+## Wave 7 next branch direction
 
-The first selected Wave 7 package is **Desktop Creature/Monster Manager — local authoring core**.
+The next selected package is **Desktop NPC Manager — local authoring core**.
 
-Expected short-lived branch name: `wave7/desktop-creature-manager-core`.
+Expected short-lived branch name:
+
+`wave7/desktop-npc-manager-core`
 
 Initial bounded scope:
 
-- activate the existing Desktop `MANAGERS` destination;
-- browse/search Personal and active-Campaign Creature records;
-- create/open/edit the existing human-complete Creature payload;
-- show scope/provenance;
+- expose NPC authoring within the Desktop Managers surface without introducing a universal Manager framework;
+- browse/search Personal and active-Campaign NPCs;
+- create/open/edit existing Quick/Developed NPC data;
+- keep incomplete NPCs valid and combat mechanics optional;
+- reuse `CreaturePayload` for optional full mechanics;
+- show scope/provenance/revision;
 - explicitly copy Personal -> active Campaign;
-- preserve existing revisions/stale-write/tombstone semantics.
+- preserve revisions/stale-write/tombstone semantics.
 
-Defer Official/SRD catalog integration, import/export, Creator Assistant, media/object storage, hosted reusable-content sync and generalized all-manager abstractions to later concrete packages.
+Defer NPC assistant/AI ideation, import/export, live-improvisation promotion, media/object storage, hosted reusable-content sync and generalized Manager abstractions to later concrete packages.
 
 ## Historical/stale open PRs
 

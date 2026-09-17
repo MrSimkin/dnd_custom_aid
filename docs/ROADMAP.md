@@ -38,42 +38,57 @@ Integrated packages:
 
 The integrated spine preserves stable identity, Personal/Campaign scope, independent Personal -> Campaign copies with retained provenance, optimistic revisions/stale-write rejection, tombstones/non-resurrection and SQLDelight migration/reopen behavior.
 
-PR #59 completes the six reserved reusable families with saved Encounter preparation, Creature/NPC participant references, freeform participants, `EXPECTED / RESERVE / CONDITIONAL` readiness, encounter-local overrides and domain-specific dependency copy/remap/deduplication.
-
-PR #59 merged as `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd`; push Scaffold `35264310753`, PR Scaffold `35264620723`, and post-merge Scaffold `35265162945` passed.
-
 Wave 6 completion does not pre-model all future persistent concepts. Add Scene Spine, richer structured Homebrew families, clocks/readiness, Media/Handouts and live-state models only when their concrete approved package requires them.
 
 ### Wave 7 — Desktop authoring Managers
 
-**ACTIVE NEXT.**
-
-First bounded package:
+**ACTIVE.**
 
 #### Desktop Creature/Monster Manager — local authoring core
 
-Use the existing Desktop `MANAGERS` destination and integrated Creature repository/payload.
+**COMPLETE / INTEGRATED — PR #61.**
+
+Integrated behavior:
+
+- existing Desktop `MANAGERS` destination opens a usable Creature/Monster Manager;
+- browse/search Personal and active-Campaign Creatures;
+- create Personal or active-Campaign Creatures;
+- open/edit the human-complete Creature payload;
+- show scope, provenance and revision;
+- explicitly copy Personal Creature -> active Campaign as an independent object;
+- preserve stale-write/tombstone semantics with atomic name + payload update;
+- keep active campaign context visible while authoring.
+
+Validation:
+
+- final implementation head `38d68dc832188f29c76ec40990297f53a85e9bed`;
+- push Scaffold `35267065066` — SUCCESS;
+- PR Scaffold `35267241770` — SUCCESS;
+- merged as `12a62288457ebe5892f90f637fe41c142b094591`;
+- post-merge Scaffold `35267674641` — SUCCESS.
+
+Still deferred from Creature Manager: Official/SRD catalog browsing, import/export, Creature Creator Assistant/advisory guidance, media/object storage, hosted reusable-content sync, generalized all-domain Manager abstractions and live combat behavior.
+
+#### Desktop NPC Manager — local authoring core
+
+**NEXT BOUNDED PACKAGE.**
+
+Reuse the integrated NPC persistence and D-0072's NPC progression semantics.
 
 Initial scope:
 
-- browse/search Personal Creatures;
-- browse/search active-Campaign Creatures when a campaign is active;
-- create Personal or active-Campaign Creatures;
-- open/edit the existing human-complete Creature payload;
-- show scope and provenance;
-- explicitly copy Personal Creature -> active Campaign;
-- preserve revision/stale-write/tombstone semantics.
+- browse/search Personal NPCs;
+- browse/search active-Campaign NPCs when a campaign is active;
+- create/open/edit Quick and Developed NPC data without requiring a completion score;
+- keep incomplete NPCs valid;
+- optionally add/remove/edit full combat mechanics through the existing `CreaturePayload` model;
+- show scope/provenance/revision;
+- explicitly copy Personal NPC -> active Campaign;
+- preserve optimistic revision/stale-write/tombstone semantics.
 
-Deliberately defer from this first slice:
+Deliberately defer NPC assistant/AI ideation, import/export, preserved-live-improvisation promotion workflow, media/object storage, hosted reusable-content sync and broad Manager framework generalization.
 
-- Official/SRD catalog browsing;
-- import/export;
-- Creature Creator Assistant/advisory design helpers;
-- media/object storage;
-- hosted reusable-content sync;
-- universal all-domain Manager abstractions.
-
-Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: NPC, Homebrew & Rules, Stage/Place/Scene, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Family-specific supporting persistence may be added with the concrete Manager that needs it.
+Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: Homebrew & Rules, Stage/Place/Scene, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Family-specific supporting persistence may be added with the concrete Manager that needs it.
 
 Select/activate object storage only when Media/Handouts/assets actually require it, after a fresh `$0` review.
 

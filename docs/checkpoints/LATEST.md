@@ -2,21 +2,21 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd`  
-**PR #59:** MERGED  
-**Post-merge Scaffold:** `35265162945` — SUCCESS  
+**Last verified integrated runtime merge:** `12a62288457ebe5892f90f637fe41c142b094591`  
+**PR #61:** MERGED  
+**Post-merge Scaffold:** `35267674641` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
-**Integrated reusable families:** Creature, NPC, Homebrew/Rule, Place, Zone, Encounter  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE6_ENCOUNTER_PAYLOAD_INTEGRATED.md`  
-**Current engineering wave:** Wave 7 — Desktop authoring Managers  
-**Next bounded package:** Desktop Creature/Monster Manager — local authoring core  
+**Wave 7:** ACTIVE  
+**Integrated Wave 7 package:** Desktop Creature/Monster Manager local authoring core  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_CREATURE_MANAGER_INTEGRATED.md`  
+**Next bounded package:** Desktop NPC Manager — local authoring core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE6_ENCOUNTER_PAYLOAD_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_CREATURE_MANAGER_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -27,28 +27,39 @@
 ```text
 Wave 4 Player <-> Server                           COMPLETE / INTEGRATED
 Wave 5 Desktop shell/campaign administration      COMPLETE / OWNER-QA PASS / INTEGRATED
-Wave 6 reusable-content foundation                COMPLETE / INTEGRATED
-Wave 6 Creature payload                           COMPLETE / INTEGRATED
-Wave 6 NPC payload                                COMPLETE / INTEGRATED
-Wave 6 Homebrew/Rule payload                      COMPLETE / INTEGRATED
-Wave 6 Place payload                              COMPLETE / INTEGRATED
-Wave 6 Zone payload                               COMPLETE / INTEGRATED
-Wave 6 Encounter payload                          COMPLETE / INTEGRATED
-post-merge Scaffold                               PASS (35265162945)
+Wave 6 reusable-content architecture              COMPLETE / INTEGRATED
+Wave 7 Creature/Monster Manager local core        COMPLETE / INTEGRATED
+post-merge Scaffold                               PASS (35267674641)
         |
         v
-Wave 7 Desktop Creature/Monster Manager local authoring core
+Wave 7 Desktop NPC Manager local authoring core
 ```
 
 ## Practical continuation
 
-Finish and integrate the short-lived Encounter documentation closure branch.
+After the short-lived Creature Manager documentation closure merges, start the NPC Manager from current `main`.
 
-Then start Wave 7 from current `main` with a bounded Creature/Monster Manager slice using the already-integrated `CreatureContentRepository` and existing Desktop `MANAGERS` destination.
+Reuse the integrated `NpcPayload` and `NpcContentRepository` rather than creating a new persistence model.
 
-Initial slice: browse/search Personal + active-Campaign Creatures, create/open/edit the existing Creature payload, display scope/provenance, and explicitly copy Personal -> active Campaign.
+Initial slice:
 
-Do not pull Official/SRD catalog integration, import/export, Creature Creator Assistant, media/object storage, hosted reusable-content sync or a generalized all-Managers framework into the first slice unless concrete implementation evidence requires it.
+- browse/search Personal + active-Campaign NPCs;
+- create/open/edit the existing Quick and Developed NPC fields;
+- preserve incomplete NPCs as valid;
+- keep combat mechanics optional and reuse `CreaturePayload` when present;
+- display scope/provenance/revision;
+- explicitly copy Personal NPC -> active Campaign;
+- preserve stale-write/tombstone behavior.
+
+Do not pull NPC assistant/AI ideation, import/export, live-improvisation promotion, media/object storage, hosted reusable-content sync or a generalized all-Managers framework into this first NPC slice unless concrete implementation evidence requires it.
+
+## Creature Manager integrated evidence
+
+- implementation head `38d68dc832188f29c76ec40990297f53a85e9bed`;
+- push Scaffold `35267065066` — SUCCESS;
+- PR Scaffold `35267241770` — SUCCESS;
+- PR #61 merged as `12a62288457ebe5892f90f637fe41c142b094591`;
+- post-merge Scaffold `35267674641` — SUCCESS.
 
 ## Operating rule
 
