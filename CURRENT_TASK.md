@@ -6,7 +6,7 @@ Last verified: 2026-09-17
 
 - **Wave:** 6 — reusable/persistent content architecture
 - **Current task:** validate merged Zone reusable-content payload + local persistence core
-- **Execution state:** the bounded Zone payload/local-persistence package passed exact-head push and PR validation and PR #57 is now merged into `main`; post-merge Scaffold is registered and waiting; no Encounter implementation has started
+- **Execution state:** the bounded Zone payload/local-persistence package passed exact-head push and PR validation and PR #57 is merged into `main`; post-merge validation is healthy but still waiting on the long Kotlin build/test job; no Zone documentation closure branch has been created and no next Wave 6 implementation package has been selected
 - **Integrated `main`:** `0b73d79e46edb7022ace2a2efd161149d9aefc73`
 - **Zone branch:** `wave6/zone-payload-persistence`
 - **Final Zone branch HEAD:** `5ea8fe49e770557b08418ff6dbf68152916c1305`
@@ -20,7 +20,7 @@ Last verified: 2026-09-17
 - **Push CI:** Scaffold `35262051406` — **SUCCESS**; backend, hosted-database, Kotlin build/tests and Android debug APK upload all **SUCCESS**
 - **Zone PR:** #57 — `feat: add Wave 6 Zone payload persistence` — **MERGED** as `0b73d79e46edb7022ace2a2efd161149d9aefc73` from exact head `5ea8fe49e770557b08418ff6dbf68152916c1305`
 - **Zone PR CI:** Scaffold `35262563057` — **SUCCESS**; backend, hosted-database, Kotlin build/tests and Android debug APK upload all **SUCCESS**
-- **Zone post-merge CI:** Scaffold `35262999144` for exact `main` merge `0b73d79e46edb7022ace2a2efd161149d9aefc73` — **QUEUED**
+- **Zone post-merge CI:** Scaffold `35262999144` for exact `main` merge `0b73d79e46edb7022ace2a2efd161149d9aefc73` — **IN PROGRESS**; backend **SUCCESS**, hosted-database **SUCCESS**, Kotlin currently in `Build and test Kotlin surfaces`, Android debug APK upload pending
 - **Session behavior:** owner wants work kept in bounded pieces where waiting-heavy CI could otherwise cause timeout.
-- **Next action:** inspect post-merge Scaffold `35262999144` once. If green, close the Zone integration checkpoint/documentation before selecting/starting the next Wave 6 implementation package.
+- **Next action:** inspect post-merge Scaffold `35262999144` once after Kotlin completes. If fully green, create the short-lived Zone integration checkpoint/documentation closure branch and update the bounded docs/checkpoint set before selecting/starting the next Wave 6 implementation package.
 - **Do not:** restart completed Zone work, broaden Zone into relationship infrastructure, start Encounter before Zone post-merge validation and documentation closure, start Wave 7 Manager UI, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or a universal arbitrary/executable payload model.
