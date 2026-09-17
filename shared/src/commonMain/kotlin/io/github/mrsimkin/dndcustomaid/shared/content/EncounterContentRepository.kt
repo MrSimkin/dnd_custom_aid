@@ -120,6 +120,36 @@ class EncounterContentRepository(
         return checkNotNull(result)
     }
 
+    fun update(
+        id: Uuid,
+        expectedRevision: Revision,
+        rawDisplayName: String,
+        payload: EncounterPayload,
+        updatedAtEpochSeconds: Long,
+    ): RevisionDecision {
+        val displayName = rawDisplayName.trim()
+        require(displayName.isNotEmpty()) { "Encounter display name must not be blank." }
+        return reusableContent.mutateContent(
+            id = id,
+            expectedRevision = expectedRevision,
+            updatedAtEpochSeconds = updatedAtEpochSeconds,
+        ) { current ->
+            require(current.family == ReusableContentFamily.ENCOUNTER) {
+                "Encounter updates require ENCOUNTER reusable content."
+            }
+            require(this.payload(id) != null) {
+                "Encounter reusable content is missing its persisted payload."
+            }
+            validateParticipantDependencies(payload.participants, current.identity.scope)
+            database.reusableContentQueries.updateReusableContentName(
+                display_name = displayName,
+                updated_at_epoch_seconds = updatedAtEpochSeconds,
+                id = id.toString(),
+            )
+            updatePayloadRow(id, payload)
+        }
+    }
+
     fun updatePayload(
         id: Uuid,
         expectedRevision: Revision,
