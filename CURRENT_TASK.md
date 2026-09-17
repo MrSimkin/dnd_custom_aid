@@ -5,21 +5,22 @@ This file contains **only the current execution state**. Replace it when the act
 Last verified: 2026-09-17
 
 - **Wave:** 6 — reusable/persistent content architecture
-- **Current task:** validate and integrate the implemented Zone reusable-content payload + local persistence core
-- **Execution state:** Place implementation/documentation are fully merged and green; the bounded Zone payload/local-persistence package is implemented as one atomic commit; exact-head push Scaffold is fully green; exact branch diff was re-reviewed unchanged; PR #57 is open and mergeable; PR CI is healthy but still waiting on the long Kotlin build/test job
-- **Integrated `main`:** `e07739366143ff0bfe89669c75563cd9105b640b`
+- **Current task:** validate merged Zone reusable-content payload + local persistence core
+- **Execution state:** the bounded Zone payload/local-persistence package passed exact-head push and PR validation and PR #57 is now merged into `main`; post-merge Scaffold is registered and waiting; no Encounter implementation has started
+- **Integrated `main`:** `0b73d79e46edb7022ace2a2efd161149d9aefc73`
 - **Zone branch:** `wave6/zone-payload-persistence`
-- **Zone branch HEAD:** `5ea8fe49e770557b08418ff6dbf68152916c1305`
+- **Final Zone branch HEAD:** `5ea8fe49e770557b08418ff6dbf68152916c1305`
 - **Zone commit:** `feat: add Wave 6 Zone payload persistence`
 - **Exact diff:** 1 commit, 6 files, +620/-0; five new Zone persistence/test files plus one-line legacy Desktop fixture adjustment
 - **Zone payload:** summary; area; presentation; space; exploration; interactives; clues; checks; consequences; encounter brief; DM guidance; player-safe text; paper references; tags
-- **Zone semantic boundary:** this is the prepared Area / Zone Brief domain from D-0072, preserving presentation / interaction / encounter orientation; it is not live Dungeon Turn movement-zone state
+- **Zone semantic boundary:** prepared Area / Zone Brief domain from D-0072; not live Dungeon Turn movement-zone state
 - **Persistence behavior:** Personal/Campaign create/read/copy/update/tombstone through existing reusable-content identity/provenance/revision seams; independent Personal -> Campaign copy; stale-write rejection; tombstone/non-resurrection; SQLDelight `zone_payload`; migration `23.sqm` with metadata-only `ZONE` backfill; explicit list serialization
-- **Focused tests:** prepared Zone round-trip; independent campaign copy/provenance; stale-write and non-resurrection behavior; migration `23.sqm`; database reopen persistence; legacy Desktop fixture updated to omit the new table when simulating Wave 5
-- **Explicit deferrals:** no Place/NPC/Zone/Encounter relationship/dependency graph; no Encounter dependency-copy machinery; no live Dungeon Turn zone state; no clocks/advisory-trigger engine; no media/object-storage references; no Manager UI; no hosted reusable-content sync; no import/export/AI/provider work; no universal payload abstraction
-- **Push CI:** Scaffold `35262051406` for exact head `5ea8fe49e770557b08418ff6dbf68152916c1305` — **SUCCESS**; backend **SUCCESS**, hosted-database **SUCCESS**, Kotlin build/tests **SUCCESS**, Android debug APK upload **SUCCESS**
-- **Zone PR:** #57 — `feat: add Wave 6 Zone payload persistence` — **OPEN**, non-draft, base `main`, exact head `5ea8fe49e770557b08418ff6dbf68152916c1305`, **MERGEABLE**
-- **Zone PR CI:** Scaffold `35262563057` — **IN PROGRESS**; backend **SUCCESS**, hosted-database **SUCCESS**, Kotlin in `Build and test Kotlin surfaces`, Android debug APK upload pending
+- **Focused tests:** prepared Zone round-trip; independent campaign copy/provenance; stale-write and non-resurrection; migration `23.sqm`; database reopen persistence; legacy Desktop fixture update
+- **Explicit deferrals:** no generalized Place/NPC/Zone/Encounter relationship/dependency graph; no Encounter dependency-copy machinery; no live Dungeon Turn zone state; no clocks/advisory-trigger engine; no media/object-storage references; no Manager UI; no hosted reusable-content sync; no import/export/AI/provider work; no universal payload abstraction
+- **Push CI:** Scaffold `35262051406` — **SUCCESS**; backend, hosted-database, Kotlin build/tests and Android debug APK upload all **SUCCESS**
+- **Zone PR:** #57 — `feat: add Wave 6 Zone payload persistence` — **MERGED** as `0b73d79e46edb7022ace2a2efd161149d9aefc73` from exact head `5ea8fe49e770557b08418ff6dbf68152916c1305`
+- **Zone PR CI:** Scaffold `35262563057` — **SUCCESS**; backend, hosted-database, Kotlin build/tests and Android debug APK upload all **SUCCESS**
+- **Zone post-merge CI:** Scaffold `35262999144` for exact `main` merge `0b73d79e46edb7022ace2a2efd161149d9aefc73` — **QUEUED**
 - **Session behavior:** owner wants work kept in bounded pieces where waiting-heavy CI could otherwise cause timeout.
-- **Next action:** inspect PR Scaffold `35262563057` once after Kotlin completes. If fully green, merge PR #57 using expected head `5ea8fe49e770557b08418ff6dbf68152916c1305`; then validate post-merge before selecting/starting Encounter.
-- **Do not:** broaden Zone into relationship infrastructure, clocks/triggers/media, jump ahead to Encounter implementation before Zone is validated/integrated, start Wave 7 Manager UI, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or a universal arbitrary/executable payload model.
+- **Next action:** inspect post-merge Scaffold `35262999144` once. If green, close the Zone integration checkpoint/documentation before selecting/starting the next Wave 6 implementation package.
+- **Do not:** restart completed Zone work, broaden Zone into relationship infrastructure, start Encounter before Zone post-merge validation and documentation closure, start Wave 7 Manager UI, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or a universal arbitrary/executable payload model.
