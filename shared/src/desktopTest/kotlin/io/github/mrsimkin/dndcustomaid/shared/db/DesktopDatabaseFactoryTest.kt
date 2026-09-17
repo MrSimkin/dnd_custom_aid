@@ -58,6 +58,7 @@ class DesktopDatabaseFactoryTest {
 
             DriverManager.getConnection(jdbcUrl).use { connection ->
                 connection.createStatement().use { statement ->
+                    statement.execute("DROP TABLE scene_payload")
                     statement.execute("DROP TABLE encounter_payload")
                     statement.execute("DROP TABLE zone_payload")
                     statement.execute("DROP TABLE place_payload")
