@@ -48,6 +48,7 @@ fun main() {
     val databaseFactory = DesktopDatabaseFactory()
     val databaseHandle = databaseFactory.create()
     val campaignRepository = CampaignRepository(databaseHandle.database)
+    val creatureManagerController = DesktopCreatureManagerController(databaseHandle.database)
     val preferencesStore = DesktopPreferencesStore()
     val hostedAuthController = DesktopHostedAuthController()
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
@@ -66,6 +67,7 @@ fun main() {
                 DesktopAppTheme(preferences) {
                     DesktopWorkbench(
                         campaignRepository = campaignRepository,
+                        creatureManagerController = creatureManagerController,
                         hostedAuthController = hostedAuthController,
                         hostedCampaignController = hostedCampaignController,
                         preferences = preferences,
@@ -101,6 +103,7 @@ private enum class DesktopDestination(val label: String) {
 @Composable
 private fun DesktopWorkbench(
     campaignRepository: CampaignRepository,
+    creatureManagerController: DesktopCreatureManagerController,
     hostedAuthController: DesktopHostedAuthController,
     hostedCampaignController: DesktopHostedCampaignAdministrationController,
     preferences: DesktopPreferences,
@@ -185,6 +188,12 @@ private fun DesktopWorkbench(
                         onActivate = ::activateCampaign,
                     )
 
+                    DesktopDestination.MANAGERS -> CreatureManagerScreen(
+                        controller = creatureManagerController,
+                        activeCampaign = activeCampaign,
+                        onQaEvent = ::logQa,
+                    )
+
                     DesktopDestination.CAMPAIGN_ADMINISTRATION -> HostedCampaignAdministrationScreen(
                         activeCampaign = activeCampaign,
                         authController = hostedAuthController,
@@ -215,6 +224,7 @@ private fun DesktopWorkbench(
             if (
                 destination == DesktopDestination.DASHBOARD ||
                 destination == DesktopDestination.CAMPAIGNS ||
+                destination == DesktopDestination.MANAGERS ||
                 destination == DesktopDestination.CAMPAIGN_ADMINISTRATION
             ) {
                 Divider(
@@ -323,10 +333,10 @@ private fun DashboardScreen(
                 modifier = Modifier.padding(desktopSpacing(20.dp)),
                 verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp)),
             ) {
-                Text("Paquete Wave 5", style = MaterialTheme.typography.h6)
+                Text("Wave 7 — Gestores de autoría", style = MaterialTheme.typography.h6)
                 Text(
-                    "Desktop mantiene el contexto local persistente y puede conectarse al servicio alojado desde " +
-                        "Administración de campaña. El trabajo local sigue disponible sin autenticación.",
+                    "Desktop mantiene el contexto local persistente, puede conectarse al servicio alojado desde " +
+                        "Administración de campaña y ahora incorpora el primer gestor de contenido: criaturas / monstruos.",
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
                     Button(onClick = onOpenCampaigns) { Text("Abrir campañas") }
@@ -556,7 +566,7 @@ private fun buildQaSnapshot(
     events: List<String>,
 ): String = buildString {
     appendLine("D&D Custom Aid — Desktop QA")
-    appendLine("Paquete: Wave 5 Desktop hosted Campaign Administration")
+    appendLine("Paquete: Wave 7 Desktop Creature/Monster Manager core")
     appendLine("SO: ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
     appendLine("Java: ${System.getProperty("java.version")}")
     appendLine("Base local: ${DesktopDatabaseFactory.defaultDatabaseFile().absolutePath}")
