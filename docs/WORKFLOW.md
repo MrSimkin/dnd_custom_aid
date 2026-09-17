@@ -8,72 +8,29 @@ The repository must distinguish approved product state, implemented state, accep
 
 Never confuse a chat suggestion, old checkpoint, branch name or green CI result with current project truth.
 
-## 2. Current branch model
+## 2. Branch model
 
 Lifecycle is controlled by `docs/BRANCH_STATUS.md`.
 
-The owner has authorized integrated-MVP implementation. The former `main` + Player-successor split has been semantically converged and validated at:
-
-`5bed85cbb3e86ae63eac79149fadc5e56e61b256`
-
-Actions `34917259324` / #1694 — **SUCCESS**.
-
-After promotion, `main` is the normal integrated trunk. The old Player successor remains historical/frozen evidence.
-
-Normal work thereafter uses short-lived outcome-oriented branches from current `main`; shared foundations integrate early; permanent Player/Desktop/Server silos are prohibited unless a later concrete need changes that direction.
+`main` is the sole normal integrated trunk. Normal work uses short-lived outcome-oriented branches from current `main`; shared foundations integrate early; permanent Player/Desktop/Server silos are prohibited unless a later concrete need changes that direction.
 
 ## 3. Owner vs technical responsibility
 
-Ask the owner to decide:
+Ask the owner to decide product behavior/workflow, UX/game semantics, visibility/privacy, MVP scope, destructive/safety behavior and meaningful cost/security/privacy/compatibility/irreversible-lock-in tradeoffs.
 
-- product behavior/workflow;
-- UX/game semantics;
-- visibility/privacy;
-- MVP vs later scope;
-- destructive/safety behavior;
-- meaningful cost, security/privacy, compatibility or irreversible-lock-in tradeoffs.
+Technical agents normally decide and document database/table layout, class/type decomposition, endpoint/request shapes, migrations, internal sync structures, serialization, rendering internals, test architecture, branch/package granularity and reversible provider mechanics inside approved boundaries.
 
-Technical agents normally decide and document:
-
-- database/table layout;
-- class/type decomposition;
-- endpoint/request shapes;
-- migration mechanics;
-- internal sync structures;
-- canonical serialization;
-- PDF-rendering internals inside approved behavior;
-- testing architecture;
-- branch/package granularity;
-- reversible implementation conventions/provider mechanics inside approved boundaries.
-
-Do **not** ask the owner to rubber-stamp low-level engineering choices they cannot meaningfully evaluate.
+Do not ask the owner to rubber-stamp low-level engineering choices.
 
 ## 4. Communication model
 
-Agents perform technical heavy lifting but explain meaningful work in practical terms:
-
-- what changed;
-- why it matters;
-- important approach;
-- owner-relevant consequences/tradeoffs;
-- what was verified;
-- known limitations and next action.
-
-Avoid dumping implementation alternatives on the owner when no owner decision is required.
+Agents perform technical heavy lifting but explain meaningful work in practical terms: what changed, why it matters, the important approach, owner-relevant consequences/tradeoffs, what was verified, known limitations and the exact next action.
 
 ## 5. Product/design state
 
 Current integrated-MVP product definition is closed enough for implementation. Do not reopen foundational product questions merely because coding has begun.
 
-For a genuinely new owner-consequential choice:
-
-1. identify the real product need;
-2. explain realistic owner-relevant alternatives;
-3. recommend one;
-4. obtain owner choice;
-5. record it in Git.
-
-For routine technical choices, decide/document without creating ceremonial approval work.
+For a genuinely new owner-consequential choice, explain realistic alternatives, recommend one, obtain the owner's choice and record it in Git. For routine technical choices, decide/document without ceremonial approval work.
 
 ## 6. Work item lifecycle
 
@@ -84,96 +41,108 @@ Before implementation:
 1. read mandatory continuity files;
 2. identify current branch/topology;
 3. read `PROJECT_STATE`, `LATEST` and applicable decisions/checkpoints;
-4. identify any real owner-action boundary;
+4. identify real owner-action/external-provider boundaries;
 5. identify existing implemented/accepted evidence and material unknowns.
 
 Do not resume from historical `next` prose when current docs supersede it.
 
 ### B — technical design
 
-Choose the simplest safe design satisfying approved behavior. Reuse proven project patterns, avoid generalized infrastructure without measured need, record durable conventions that later contributors need, and escalate only owner-consequential tradeoffs.
+Choose the simplest safe design satisfying approved behavior. Reuse proven project patterns and avoid generalized infrastructure without measured need.
 
 ### C — implement
 
-Within current authorization, agents may write/refactor code, create/update tests, change build/configuration, execute checks, diagnose/repair failures and update technical documentation.
+Within authorization, agents may write/refactor code, create/update tests, change build/configuration, execute checks, diagnose/repair failures and update technical documentation.
 
 Keep batches coherent and outcome-oriented.
 
 ### D — verify
 
-Record exact revision/build, commands/checks, passes/failures, untested areas, environment/device type and evidence type (automated/local/emulator/physical owner).
-
-Never describe unexecuted tests as passed or infer owner acceptance from CI.
+Record exact revision/build, commands/checks, passes/failures, untested areas, environment/device type and evidence type. Never describe unexecuted tests as passed or infer owner acceptance from CI.
 
 ### E — update operative memory
 
-Before meaningful work is complete, update applicable truth:
-
-- `docs/PROJECT_STATE.md`;
-- `docs/checkpoints/LATEST.md` when resume changes;
-- `docs/BRANCH_STATUS.md` when topology changes;
-- decisions only for genuine product/architecture decisions;
-- conventions when durable;
-- product/roadmap/architecture/testing docs when operational truth changes;
-- checkpoints/evidence as appropriate.
-
-A continuation-critical fact must not remain only in chat.
+Before meaningful work is complete, update applicable truth in `PROJECT_STATE`, `LATEST`, `BRANCH_STATUS`, decisions/conventions and relevant roadmap/architecture/testing/checkpoint files. A continuation-critical fact must not remain only in chat.
 
 ### F — owner communication
 
-Explain what now works/changed, what was tested, known limitations, any genuine owner/manual gate, branch/revision and exact next action.
-
-Do not ask the owner to review internal minutiae merely to complete a process checkbox.
+Explain what now works/changed, what was tested, known limitations, any genuine owner/manual/external gate, branch/revision and exact next action.
 
 ### G — integrate
 
-Use short-lived outcome branches from current `main`, integrate shared contracts early, preserve coherent/buildable normal merge points, and leave durable evidence at meaningful milestones.
+Use short-lived outcome branches, preserve coherent/buildable merge points, verify expected heads and leave durable evidence at meaningful milestones.
 
-## 7. Current technical direction
+## 7. External-provider handoff protocol
 
-The active technical handoff is `docs/technical/INTEGRATED_MVP_IMPLEMENTATION_BASELINE.md`.
+Cloudflare, Descope, Neon and other authenticated providers require an explicit capability check.
 
-Current direction includes Ktor shared networking, versioned HTTP/JSON, mutation IDs + revisions, SQLDelight outbox/scoped sync, Neon serverless driver, explicit hosted SQL migrations, JSONB PC snapshots + relational auth/index metadata, Descope token validation + app-owned authorization, R2 recommendation pending activation, versioned JSON import/export, versioned full backup archive and one canonical PC/PDF-export semantic path.
+### If the agent has authenticated provider capability
 
-These are engineering choices unless later evidence creates a material owner-level consequence.
+Proceed only within the already approved scope/security/cost boundary. Do not enable paid/overage resources or expose secrets.
 
-## 8. Current verification posture
+### If the agent does not have authenticated provider capability
 
-The integrated convergence baseline has already passed the successor Player guard suite plus aggregate shared tests, Android build, Desktop build and backend type-check.
+Do **not** keep trying alternate access methods after the limitation is established. Do not convert the work item into a long sequence of speculative provider probes.
 
-As hosted implementation becomes real, add focused tests for migrations, authorization, revisions/idempotency/tombstones, sync, assets, backup, PDF completeness and later combat authority. Prefer invariant tests over arbitrary coverage targets.
+Instead:
+
+1. finish all safe repository/CI work that does not require provider authentication;
+2. identify the **first** unavoidable owner-side provider action;
+3. prepare one owner-action packet containing:
+   - what the action does and why it is needed;
+   - exact ordered commands/clicks;
+   - expected output/visible result;
+   - secrets/values that must not be pasted into chat or Git;
+   - the non-secret evidence the owner should return;
+   - stop/error conditions;
+4. stop at that boundary;
+5. after the owner returns evidence, validate it and continue without repeating completed investigation;
+6. if another inaccessible provider action is later required, stop again and create the next bounded handoff.
+
+Prefer **one external handoff per task**. A task may contain substantial repository work; it does not need to be artificially split into tiny steps merely because an external handoff exists.
+
+Use `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md` when handing continuation to a fresh worker/chat.
+
+## 8. Current technical direction
+
+The active technical architecture includes Ktor shared networking, versioned HTTP/JSON, mutation IDs + revisions, SQLDelight outbox/scoped sync, Neon PostgreSQL, explicit hosted SQL migrations, JSONB PC snapshots + relational auth/index metadata, Descope identity proof + application-owned authorization, versioned JSON import/export, full backup direction and one canonical PC/PDF-export semantic path.
+
+Object storage remains deferred until real asset integration requires it.
+
+## 9. Verification posture
+
+Use focused tests plus Scaffold/integration/manual evidence appropriate to the risk. Prefer invariant tests over arbitrary coverage targets. Real-provider behavior requires real-provider evidence; green repository CI cannot substitute for deployment/integration evidence or owner physical/visual QA.
 
 See `docs/TESTING.md`.
 
-## 9. Failed or partial work
+## 10. Failed or partial work
 
 Partial work is acceptable if clearly recorded. State what completed, what remains, exact failure/blocker, relevant branch/commit and exact next action.
 
-Never hide an unfinished migration, failing test or unresolved manual gate behind a generic `in progress` label.
+Never hide an unfinished migration, failing test or unresolved manual/provider gate behind generic `in progress` wording.
 
-## 10. Current implementation sequence
+## 11. Current implementation sequence
 
 Implementation is **AUTHORIZED and IN PROGRESS**.
 
-Current sequence:
+Current broad sequence:
 
 ```text
-validated baseline convergence
--> promote to main
--> Shared Integrated-MVP Spine
--> hosted foundation
--> Player <-> hosted end-to-end
--> Desktop/admin/content/live waves
+completed convergence/shared/hosted foundations
+-> completed Wave 4 Player <-> Server
+-> Wave 5 Desktop/admin work (ACTIVE)
+-> content/authoring Managers
+-> DM live workspace
 -> combat exchange/handoff
 -> SRD clarification
 -> backup/operator completion
 -> integrated owner QA
 ```
 
-Routine packages proceed without owner rubber-stamping. Return to the owner only for material product/scope/security/privacy/cost/lock-in/destructive-behavior decisions, required external account/service actions or manual/physical QA gates.
+The current detailed continuation is controlled by `docs/checkpoints/LATEST.md`.
 
-## 11. Secrets and credentials
+## 12. Secrets and credentials
 
-Never commit passwords, tokens, API keys, database credentials, production/release signing keys, private certificates or other secrets.
+Never commit or request passwords, OTPs, tokens, API keys, database credentials, production/release signing keys, private certificates or other secrets.
 
-Use secure local/CI/provider secret storage. The sole-admin Desktop may later hold scoped provider credentials locally when useful, but only through suitable OS/protected credential storage, never plaintext tracked files.
+Use secure local/CI/provider secret storage. Owner-side commands should reference locally stored credentials/environment variables without revealing values in chat output.

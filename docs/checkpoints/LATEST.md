@@ -2,97 +2,120 @@
 
 **Updated:** 2026-09-16 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Verified starting main for current package:** `fb113909cb53b2463bd643cae7d2f54f0673fec4`  
-**Current focused branch:** `wave5/campaign-membership-administration-core`  
-**Current PR:** #43  
-**Verified implementation head:** `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c`  
-**Verified implementation Scaffold:** `35140381721` — **SUCCESS**  
-**Current package:** Wave 5 — hosted Campaign membership administration core  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_AUTOMATED_VERIFIED.md`  
-**Current gate:** final documentation-head Scaffold -> merge PR #43 -> post-merge `main` Scaffold  
+**Verified integrated main:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
+**Post-merge Scaffold:** `35142092743` — **SUCCESS**  
+**Current focused branch:** `wave5/desktop-hosted-campaign-administration`  
+**Current PR:** #44  
+**Package branch base:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
+**Current package:** Wave 5 — Desktop hosted authentication/session acquisition + real Campaign Administration consumption  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_OWNER_QA_COMPLETE.md`  
+**Deployed code head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
+**Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
+**DEV Worker deployment:** **VERIFIED**  
+**Worker Version ID:** `130d35e7-7903-47b2-8203-d74f9ec3db55`  
+**Owner Windows QA:** **PASS**  
+**Canonical DEV identity:** **OUTLOOK = OWNER/DM DEFAULT**  
+**Current hosted baseline:** Outlook `DM / ACTIVE`; Gmail no campaign membership; campaign revision `4`; Desktop bootstrap `1 / 1 / 0`  
+**Current gate:** final exact-head CI -> mark PR ready -> merge with expected-head safety -> post-merge verification  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-16_CAMPAIGN_MEMBERSHIP_ADMINISTRATION_CORE_AUTOMATED_VERIFIED.md`;
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_OWNER_QA_COMPLETE.md`;
 3. this file;
-4. `docs/BRANCH_STATUS.md`;
-5. `docs/PROJECT_STATE.md`;
-6. `docs/decisions/D-0072_DM_DESKTOP_PRODUCT_AND_AUTHORING_MANAGERS.md`;
-7. `docs/decisions/D-0073_INTEGRATED_MVP_BOUNDARY_AND_IMPLEMENTATION_GOVERNANCE.md`;
-8. `docs/checkpoints/2026-09-16_DESKTOP_WORKBENCH_SHELL_READY_FOR_MANUAL_QA.md` for the completed first Wave 5 package;
-9. `docs/checkpoints/2026-09-16_MEMBERSHIP_REVOKE_AUTHORIZATION_PHYSICAL_QA_COMPLETE.md` for completed Wave 4 membership evidence;
-10. `docs/decisions/D-0075_ZERO_BUDGET_PROVIDER_POLICY_AND_OWNER_GUIDANCE.md`.
-
-Newer current-package records control over older operational prose.
+4. `docs/PROJECT_STATE.md`;
+5. `docs/BRANCH_STATUS.md`;
+6. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_MODERATION_SEQUENCE_VERIFIED.md`;
+7. `docs/checkpoints/2026-09-16_DEV_CANONICAL_OUTLOOK_MIGRATION_COMPLETE.md`;
+8. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`.
 
 ## Current sequence
 
 ```text
 Wave 4 Player <-> Server                              COMPLETE / INTEGRATED
-membership revoke + Player/DM authorization          COMPLETE / OWNER-PHYSICAL PASS
+Wave 5 Desktop shell + local campaign                 COMPLETE / OWNER-QA PASS / MERGED (#42)
+hosted membership administration core                COMPLETE / MERGED (#43)
         |
         v
-Wave 5 Desktop shell + Campaign Administration       ACTIVE
-        |
-        +-- Desktop workbench + local campaign       COMPLETE / OWNER-QA PASS / MERGED
-        |
-        +-- hosted membership administration core   AUTOMATED VERIFIED / PR #43
+Desktop hosted auth + Campaign Administration        REPO IMPLEMENTED / CI VERIFIED / PR #44
         |
         v
-final doc-head CI -> merge -> post-merge CI          CURRENT GATE
+DEV Worker deployment                                PASS
+        |
+        v
+Real Desktop auth/bootstrap/roster                   PASS
+        |
+        v
+Real moderation sequence                             PASS
+  ACTIVE -> KICKED -> BANNED -> KICKED
+  campaign revision 0 -> 1 -> 2 -> 3
+        |
+        v
+Canonical Outlook DEV owner/DM migration             PASS
+  Outlook -> DM / ACTIVE
+  Gmail -> no current campaign membership
+  campaign revision 3 -> 4
+        |
+        v
+Desktop Outlook canonical-DM verification            PASS
+  bootstrap 1 / 1 / 0
+  roster revision 4
+        |
+        v
+Settings persistence + session/relaunch QA           PASS
+        |
+        v
+Final exact-head CI                                  NEXT
+        |
+        v
+PR ready / merge / post-merge verification
 ```
 
-## Current package result
+## Owner QA result
 
-The repository now contains the backend/database/Shared core for hosted Campaign member administration:
+The complete owner-facing acceptance gate passed on Windows:
 
-- active-DM-only member roster;
-- Player `KICK`, `BAN`, `LIFT_BAN` lifecycle actions;
-- idempotent/no-op moderation;
-- campaign revision changes only for actual lifecycle changes;
-- no membership/PC/owner-controller destruction as a moderation side effect;
-- provider-neutral Shared hosted Campaign Administration client;
-- focused backend and PostgreSQL contract coverage.
+- existing local campaigns preserved;
+- real email-OTP authentication passed;
+- hosted campaign bootstrap/convergence passed;
+- authoritative roster retrieval passed;
+- DM moderation guard passed;
+- Player moderation passed `ACTIVE -> KICKED -> BANNED -> KICKED`;
+- authoritative revision progression passed;
+- Outlook canonical DM migration and real Desktop verification passed at revision `4`;
+- font/theme preview cards are present;
+- settings persist across relaunch;
+- hosted session does not persist across application shutdown;
+- explicit sign-out clears hosted session while preserving local campaign data and settings.
 
-`LIFT_BAN` is intentionally `BANNED -> KICKED`. Invitation/rejoin later owns `KICKED -> ACTIVE`.
+## Canonical DEV identity
 
-Exact implementation head `fcaa533f79332f6a2f13fb06b7f1bb889dd1982c` passed Scaffold `35140381721` across backend, hosted database, Shared/Kotlin, Android guards/build and Desktop build.
+Normal hosted DEV testing uses the Outlook-backed application identity as owner/DM.
 
-No owner/manual gate is required for this backend/shared-only package.
+Gmail is historical/inactive by default and may be used only when a test deliberately requires a secondary identity. Historical Gmail mutation receipts remain untouched.
 
-## Deployment boundary
+## Merge-readiness gate
 
-The repository has no automatic Cloudflare Worker deployment workflow. The new routes are repository/API-contract verified but must **not** be described as already deployed to the real DEV Worker.
+The immediately preceding head `281275638855a1200cecee9f1beef806638d11e6` passed Scaffold `35168371109`.
 
-Real DEV deployment belongs with the first real Desktop-hosted consumer package that needs these routes.
+During readiness review:
 
-## Owner-approved Desktop settings follow-up
+- `main` remained exactly at package base `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`;
+- PR #44 had no unresolved review threads;
+- PR #44 had no conversation comments;
+- no new application code has been added since the deployed/tested implementation head.
 
-At the next genuine Desktop feature build:
-
-- expand the Desktop font catalogue toward the Android-equivalent choices where supported;
-- replace plain Font and Theme selectors with Android-like preview cards/forms so the result can be previewed before selection.
-
-The durable record is `docs/technical/DESKTOP_APPLICATION_SETTINGS_FOLLOWUPS.md`. This requirement does not reorder the roadmap.
-
-## Exact next action
-
-1. Let the final documentation-only PR #43 head pass Scaffold.
-2. If the PR head remains unchanged and CI is green, merge PR #43 to `main`.
-3. Verify post-merge `main` Scaffold.
-4. Start the next bounded Wave 5 package from current `main`: Desktop hosted authentication/session acquisition + real Campaign Administration consumption; deploy/verify the DEV Worker explicitly when those new routes are first needed.
-
-If PR #43 is already merged and post-merge CI is green when this file is read, skip steps 1–3 and continue with step 4.
+Wait for Scaffold on the final readiness-documentation head. If it passes and `main` remains unchanged, mark PR #44 ready and merge with expected-head protection, then verify post-merge `main` and CI.
 
 ## Permanent safety rules
 
 - repository intentionally public;
 - hard external-service budget remains USD $0;
-- never commit or paste secrets/tokens/credentials;
-- do not reset/delete databases, clear outboxes, delete campaign/PC data or reinstall merely to make QA pass;
+- never commit, paste, log or expose secrets/tokens/credentials/OTP codes;
+- preserve historical identity/audit evidence;
 - preserve membership/role/ownership/current-control distinctions;
-- preserve stale-revision, idempotency, tombstone/non-resurrection and no-silent-overwrite guarantees;
-- Live Combat belongs to a later wave;
-- avoid generalized RBAC/ACL or speculative infrastructure.
+- preserve stable identity, stale-revision, idempotency, tombstone/non-resurrection and no-silent-overwrite guarantees;
+- DM authority is not PC ownership;
+- do not redeploy Cloudflare unless Worker code actually changes;
+- do not run `npm audit fix --force` blindly; the known 3 high-severity dependency findings remain a later explicit hardening item.
