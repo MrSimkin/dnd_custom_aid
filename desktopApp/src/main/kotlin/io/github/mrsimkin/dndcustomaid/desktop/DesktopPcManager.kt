@@ -117,7 +117,7 @@ class DesktopPcManagerController(
             .toList()
             .singleOrNull()
 
-    fun details(characterId: Uuid): DesktopPcDetails? {
+    internal fun details(characterId: Uuid): DesktopPcDetails? {
         val character = characters.character(characterId) ?: return null
         val authority = spine.pcAuthority(characterId)
         val metadata = spine.syncMetadata("PC", characterId)
