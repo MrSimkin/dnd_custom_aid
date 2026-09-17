@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime merge:** `12a62288457ebe5892f90f637fe41c142b094591` (PR #61)  
-**Post-merge Scaffold:** `35267674641` — SUCCESS  
+**Last verified runtime merge:** `58a565c3a33a433ce47e7fd4ac1185b5f980644f` (PR #63)  
+**Post-merge Scaffold:** `35270643883` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** Creature Manager documentation closure, then Desktop NPC Manager local authoring core
+**Current normal work:** NPC Manager documentation closure, then Desktop Homebrew & Rules Manager lightweight rules local authoring core
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -28,11 +28,12 @@ Integrated Wave 6 implementation PRs:
 
 Integrated Wave 7 implementation PRs:
 
-- #61 Desktop Creature/Monster Manager local authoring core — merged as `12a62288457ebe5892f90f637fe41c142b094591`.
+- #61 Desktop Creature/Monster Manager local authoring core — merged as `12a62288457ebe5892f90f637fe41c142b094591`;
+- #63 Desktop NPC Manager local authoring core — merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`.
 
-Creature Manager validation: push Scaffold `35267065066`, PR Scaffold `35267241770`, post-merge Scaffold `35267674641` — all SUCCESS.
+NPC Manager validation: push Scaffold `35269013875`, PR Scaffold `35269163375`, post-merge Scaffold `35270643883` — all SUCCESS.
 
-Do not restart completed Wave 5, Wave 6, or integrated Creature Manager implementation without new defect evidence.
+Do not restart completed Wave 5, Wave 6, Creature Manager or NPC Manager implementation without new defect evidence.
 
 ## Completed implementation branches
 
@@ -52,42 +53,42 @@ Wave 6 historical branches:
 - `wave6/zone-payload-persistence`;
 - `wave6/encounter-payload-persistence`.
 
-Wave 7 historical implementation branch:
+Wave 7 historical implementation branches:
 
-- `wave7/desktop-creature-manager-core` — PR #61 merged.
+- `wave7/desktop-creature-manager-core` — PR #61 merged;
+- `wave7/desktop-npc-manager-core` — PR #63 merged.
 
 Integrated scope belongs to `main`; these refs are not continuation authority.
 
 ## Documentation closure branches
 
-Historical closures include the Wave 6 family closures through `docs/wave6-encounter-integrated`.
+Historical/short-lived Wave 7 closure branches:
 
-Current short-lived closure branch:
+- `docs/wave7-creature-manager-integrated` — recorded Creature Manager integration and continuation to NPC Manager;
+- `docs/wave7-npc-manager-integrated` — records NPC Manager integration and continuation to Homebrew & Rules.
 
-- `docs/wave7-creature-manager-integrated` — records the first Wave 7 Manager integration and the continuation to NPC Manager.
-
-After this closure merges, normal implementation starts from current `main`; do not continue coding on the docs branch.
+After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
 ## Wave 7 next branch direction
 
-The next selected package is **Desktop NPC Manager — local authoring core**.
+The next selected package is **Desktop Homebrew & Rules Manager — lightweight rules local authoring core**.
 
 Expected short-lived branch name:
 
-`wave7/desktop-npc-manager-core`
+`wave7/desktop-homebrew-rules-manager-core`
 
 Initial bounded scope:
 
-- expose NPC authoring within the Desktop Managers surface without introducing a universal Manager framework;
-- browse/search Personal and active-Campaign NPCs;
-- create/open/edit existing Quick/Developed NPC data;
-- keep incomplete NPCs valid and combat mechanics optional;
-- reuse `CreaturePayload` for optional full mechanics;
+- expose Homebrew/Rule authoring within the existing Desktop Managers surface without introducing a universal Manager framework;
+- browse/search Personal and active-Campaign Homebrew/Rule records;
+- create/open/edit the integrated lightweight rule data;
+- support title, summary/body, category, rationale, examples, related references, tags, notes and Draft / Active / Retired lifecycle;
 - show scope/provenance/revision;
-- explicitly copy Personal -> active Campaign;
-- preserve revisions/stale-write/tombstone semantics.
+- explicitly copy Personal -> active Campaign as an independent object;
+- save display name + payload atomically under one optimistic revision;
+- preserve stale-write/tombstone semantics and the conservative uniquely-resolvable local DM identity rule.
 
-Defer NPC assistant/AI ideation, import/export, live-improvisation promotion, media/object storage, hosted reusable-content sync and generalized Manager abstractions to later concrete packages.
+Defer structured races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage, hosted reusable-content sync and generalized Manager abstractions to later concrete packages.
 
 ## Historical/stale open PRs
 
