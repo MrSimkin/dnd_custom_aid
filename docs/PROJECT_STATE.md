@@ -3,41 +3,32 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `0b73d79e46edb7022ace2a2efd161149d9aefc73` (PR #57)  
-**Post-merge Scaffold:** `35262999144` — SUCCESS  
+**Last verified runtime/integration merge:** `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd` (PR #59)  
+**Post-merge Scaffold:** `35265162945` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
-**Wave 6 reusable-content persistence foundation:** INTEGRATED  
-**Wave 6 Creature payload persistence:** INTEGRATED  
-**Wave 6 NPC payload persistence:** INTEGRATED  
-**Wave 6 lightweight Homebrew/Rule payload persistence:** INTEGRATED  
-**Wave 6 Place payload persistence:** INTEGRATED  
-**Wave 6 Zone payload persistence:** INTEGRATED  
-**Current normal wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** TO BE SELECTED after Zone documentation closure
+**Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
+**Current normal wave after docs closure:** Wave 7 — Desktop authoring Managers  
+**Next bounded package:** Desktop Creature/Monster Manager — local authoring core
 
 ## 1. Current topology
 
-`main` is the sole normal integrated-MVP trunk. New implementation work uses short-lived outcome-oriented branches from current `main`.
+`main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-PR #46 `feat: add Wave 6 reusable content persistence foundation` merged as `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` succeeded.
+Do not repeat completed Wave 5 work or integrated Wave 6 packages without new defect evidence.
 
-PR #48 `feat: add Wave 6 Creature payload persistence` merged as `5762058645ba8af8fa470dcf185bd2b418af65e9`; replacement Scaffold `35252554882` and post-merge Scaffold `35253188344` succeeded.
+## 2. Integrated Wave 5 baseline
 
-PR #51 `feat: add Wave 6 NPC payload persistence` merged as `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`; push Scaffold `35254216489`, PR Scaffold `35254260799` and post-merge Scaffold `35254527744` all succeeded.
+Wave 5 verified Desktop behavior includes:
 
-PR #53 `feat: add lightweight Homebrew Rule payload persistence` merged as `fc870fe8303b0f9925c479bdc21c388ef5cc8450`; push Scaffold `35256210643`, PR Scaffold `35256230033` and post-merge Scaffold `35256531651` all succeeded.
+- local campaign/workbench persistence;
+- real Descope email-OTP authentication;
+- hosted campaign bootstrap/convergence;
+- authoritative campaign member administration;
+- canonical Outlook DEV owner/DM identity;
+- persisted device-local settings;
+- explicit hosted-session lifecycle and sign-out semantics.
 
-PR #55 `feat: add Wave 6 Place payload persistence` merged as `d978a4191054227a03b32ecca3e7ceadc5d6e869`; push Scaffold `35258393882`, PR Scaffold `35258423034` and post-merge Scaffold `35259027937` all succeeded.
-
-PR #57 `feat: add Wave 6 Zone payload persistence` merged as `0b73d79e46edb7022ace2a2efd161149d9aefc73`; push Scaffold `35262051406`, PR Scaffold `35262563057` and post-merge Scaffold `35262999144` all succeeded.
-
-No completed Wave 5 work or integrated Wave 6 foundation/Creature/NPC/Homebrew/Rule/Place/Zone package should be repeated without new defect evidence.
-
-## 2. Wave 5 acceptance baseline
-
-Wave 5 verified real behavior includes Desktop local campaign/workbench persistence, real Descope email-OTP authentication, hosted campaign bootstrap/convergence, authoritative member roster/moderation, campaign revisions, canonical Outlook DEV owner/DM migration, Desktop hosted bootstrap, persisted device-local settings, explicit hosted-session lifecycle and sign-out semantics.
-
-Historical Gmail mutation/audit evidence remains truthful and unchanged.
+Historical Gmail evidence remains truthful and unchanged.
 
 ## 3. Hosted DEV architecture
 
@@ -51,140 +42,120 @@ Cloudflare Worker/API <---- Descope identity proof
 Neon PostgreSQL
 ```
 
-Existing DEV Worker: `dnd-custom-aid-api` at `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`.
+Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 5 deployment was already performed and verified. Documentation-only and local/shared persistence changes do not require redeployment. Deploy again only if Worker code materially changes or newer evidence specifically requires it.
+No Wave 6 package required Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
 
-## 4. Durable provider rules
+Hard external-service operating budget remains USD $0.
 
-Provider work requires an explicit capability check. If the worker lacks authenticated provider capability, establish that once, stop alternate connection probing, finish safe repo/code/test/CI work, hand the owner one exact bounded action packet, and resume from non-secret evidence.
+## 4. Wave 6 integrated architecture
 
-Never request/paste/commit passwords, OTPs, provider tokens, DB credentials/connection strings, JWTs, private keys/signing credentials or secret environment values.
+The shared reusable-content spine now provides:
 
-Green CI does not prove deployment/auth/provider behavior. Completed real-provider evidence should not be repeated merely because docs changed.
+- `ContentScope` Personal/Campaign semantics;
+- stable reusable-content identity;
+- family/catalog metadata;
+- provenance for independent Personal -> Campaign copies;
+- optimistic revisions and stale-write rejection;
+- tombstones/non-resurrection;
+- sync metadata/invariants;
+- local SQLDelight persistence and migrations;
+- verified reopen/migration behavior.
 
-Normal hosted DEV owner/DM identity is Outlook-backed. Gmail is historical/inactive by default and may be deliberately reused as a secondary identity only when a future multi-user test needs it.
+Approved product semantics remain:
 
-## 5. Wave 6 approved semantic baseline and integrated foundation
+- Personal DM material is reusable;
+- Personal -> Campaign use creates a **new independent Campaign object ID**;
+- provenance may remain visible;
+- later Personal-master edits do not automatically change Campaign copies.
 
-Existing Shared spine provides `ContentScope`, provenance, stable scoped identity, optimistic revisions/stale-write checks, sync metadata/tombstones and local integrated-spine persistence.
+## 5. Integrated reusable families
 
-PR #46 integrated family/catalog metadata for Creature, NPC, Homebrew/Rule, Place, Zone and Encounter; Personal/Campaign creation/listing; explicit independent Personal -> Campaign copies; optimistic revisions/tombstones/non-resurrection; SQLDelight migration `18.sqm`; safe recognized Wave-5 Desktop migration and fail-closed unknown-unversioned handling; and focused tests.
+### Creature — PR #48
 
-Approved product semantics continue to require reusable Personal DM material, explicit independent Campaign copies, provenance visibility and no automatic inheritance/update after copy.
+Human-complete selectively structured Creature payload, local persistence, Personal/Campaign create/read/copy/update/tombstone, migration `19.sqm`, stale-write/non-resurrection and reopen/migration coverage.
 
-## 6. Integrated Creature payload package
+### NPC — PR #51
 
-PR #48 adds a human-complete, selectively structured Creature payload, local SQLDelight payload persistence, Personal/Campaign create/read/copy/update/tombstone behavior, migration `19.sqm` with metadata-only Creature backfill and focused invariant/reopen/migration tests.
+Quick and Developed NPCs are both valid. Combat mechanics are optional and may reuse `CreaturePayload` without hidden duplicate Creature objects. Includes independent copy/provenance and migration `20.sqm`.
 
-The original PR failure was only a synthetic legacy-fixture mismatch; repair commit `8a9ec6425c697472a6c57982acbe8e4001b4fc5d` corrected the fixture without changing production migration semantics.
+### Homebrew/Rule — PR #53
 
-## 7. Integrated NPC payload package
+Lightweight rule/ruling/custom-system record with summary/body/category/rationale/examples/references/tags/notes and `DRAFT / ACTIVE / RETIRED` lifecycle. Includes migration `21.sqm`.
 
-PR #51 adds a human-complete NPC payload while preserving incomplete/Quick NPC validity.
+Structured races/classes/backgrounds/feats/spells/items remain family-appropriate later work rather than one universal arbitrary payload.
 
-Integrated semantics:
+### Place — PR #55
 
-- Quick and Developed NPCs are both valid;
-- combat mechanics are optional;
-- no completion score exists;
-- richer narrative/dossier fields can accumulate incrementally;
-- optional full combat mechanics reuse the existing `CreaturePayload` model;
-- the Creature mechanics are stored inside the NPC payload rather than represented by a hidden duplicate reusable Creature object;
-- Personal -> Campaign copy is independent with retained provenance;
-- later source changes do not mutate campaign copies;
-- stale writes are rejected and tombstoned NPCs cannot be resurrected by stale mutation.
+Canonical Place records with `PLACE` / `SHOP`, summary, area, function, presentation, services/interactives, hooks, player-safe text, DM notes, paper references and tags. Includes migration `22.sqm`.
 
-Persistence scope includes SQLDelight `npc_payload`, migration `20.sqm` with default metadata-only NPC backfill, database-reopen tests, migration-preservation coverage and the bounded synthetic Wave-5 Desktop fixture update.
+Shops remain specialized Places rather than a separate top-level family.
 
-## 8. Integrated lightweight Homebrew/Rule payload package
+### Zone — PR #57
 
-PR #53 adds the self-contained lightweight rule/ruling/custom-system payload approved by D-0072.
+Prepared Zone / Zone Brief records with summary, area/context, presentation, space/layout, exploration, interactives, clues, checks, consequences, encounter orientation, DM guidance, player-safe text, paper references and tags. Includes migration `23.sqm`.
 
-Integrated semantics include:
+Prepared Zone Briefs remain distinct from live Dungeon Turn movement-zone state.
 
-- reusable-content display name as title;
-- summary and human-readable body text;
-- optional category and rationale;
-- examples, related references and tags;
-- optional notes;
-- lifecycle `DRAFT / ACTIVE / RETIRED`;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- independent campaign copies with retained provenance;
-- stale-write rejection and tombstone/non-resurrection semantics.
+### Encounter — PR #59
 
-Persistence scope includes SQLDelight `homebrew_rule_payload`, migration `21.sqm` with metadata-only Homebrew/Rule backfill, explicit list serialization, database-reopen/migration/copy/revision coverage and the bounded synthetic legacy Desktop fixture adjustment.
+Saved/prepared Encounter records with summary, environment, context, DM guidance, participants, tags and notes. Participant entries support Creature/NPC references or freeform entries, quantity, `EXPECTED / RESERVE / CONDITIONAL` readiness, condition text, encounter-local overrides and notes.
 
-Structured races/sub-races, classes/subclasses, backgrounds, feats, spells, ordinary items and magic items remain outside this lightweight record and require family-appropriate models/editors. No universal arbitrary JSON/executable homebrew payload was introduced.
+Personal -> Campaign Encounter copy validates dependencies, copies each unique referenced Personal Creature/NPC once, remaps participant references to independent Campaign IDs and retains provenance without introducing a generalized dependency graph.
 
-## 9. Integrated Place payload package
+Persistence includes migration `24.sqm`, dependency-scope validation, copy/remap/deduplication, revision/tombstone and reopen/migration coverage.
 
-PR #55 establishes canonical reusable Place data while preserving D-0072's rule that Shops are specialized Places rather than a separate top-level content family.
+PR #59 merged as `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd`; push Scaffold `35264310753`, PR Scaffold `35264620723`, and post-merge Scaffold `35265162945` all succeeded.
 
-Integrated semantics include:
+## 6. Wave 6 completion boundary
 
-- `PlaceKind.PLACE` and `PlaceKind.SHOP`;
-- reusable-content display name as the canonical Place name;
-- summary;
-- area/geographic context;
-- function/purpose;
-- presentation/atmosphere text;
-- services and interactives;
-- hooks;
-- player-safe text;
-- DM-only notes;
-- paper references and tags;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- independent campaign copies with retained provenance;
-- stale-write rejection and tombstone/non-resurrection semantics.
+The core Wave 6 reusable-content architecture is complete enough to begin Wave 7 authoring Managers.
 
-Persistence scope includes SQLDelight `place_payload`, migration `22.sqm` with metadata-only Place backfill defaulting to ordinary `PLACE`, explicit list serialization, database-reopen/migration/copy/revision coverage and the bounded synthetic legacy Desktop fixture adjustment.
+This does **not** mean every later persistent concept has already been pre-modeled. Scene Spine, richer structured Homebrew families, clocks/readiness, media/handouts and live-state records should be introduced when their concrete approved Manager/live package requires them.
 
-The package deliberately does not introduce generalized Place <-> NPC/Scene/Zone/Encounter relationship/dependency-copy graphs, clocks, media/object-storage references, automatic reveal/publication behavior or Stage/Place Manager UI.
+Do not extend Wave 6 indefinitely for speculative completeness.
 
-## 10. Integrated Zone payload package
+## 7. Wave 7 entry package
 
-PR #57 establishes canonical reusable prepared Zone / Zone Brief data while preserving D-0072's distinction between authored Area/Zone Brief preparation and live Dungeon Turn movement-zone state.
+First selected package:
 
-Integrated semantics include:
+**Desktop Creature/Monster Manager — local authoring core**
 
-- reusable-content display name as canonical Zone name;
-- summary and area/context;
-- presentation/atmosphere;
-- space/layout description;
-- exploration guidance;
-- interactives;
-- clues;
-- checks;
-- consequences;
-- encounter brief/orientation;
-- DM guidance;
-- player-safe text;
-- paper references and tags;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- independent campaign copies with retained provenance;
-- stale-write rejection and tombstone/non-resurrection semantics.
+Use the existing Desktop `MANAGERS` destination and integrated `CreatureContentRepository`.
 
-Persistence scope includes SQLDelight `zone_payload`, migration `23.sqm` with metadata-only Zone backfill, explicit list serialization, database-reopen/migration/copy/revision coverage and the bounded synthetic legacy Desktop fixture adjustment.
+Initial bounded behavior:
 
-The package deliberately does not introduce generalized Place/NPC/Zone/Encounter relationship/dependency graphs, Encounter dependency-copy machinery, live Dungeon Turn movement-zone state, clocks/triggers, media/object-storage references, hosted reusable-content sync or Dungeon/Zone Manager UI.
+- browse/search Personal Creature records;
+- browse/search active-Campaign Creature records when a campaign is active;
+- create Personal or active-Campaign Creatures;
+- open and edit the existing human-complete Creature payload;
+- display scope and provenance;
+- explicitly copy Personal Creature -> active Campaign;
+- preserve revision/stale-write/tombstone behavior.
 
-## 11. Wave 6 continuation selection
+Deferred from the first slice:
 
-The next bounded Wave 6 implementation package is intentionally **not selected by this documentation closure itself**.
+- Official/SRD catalog browsing;
+- import/export;
+- Creature Creator Assistant/advisory balancing helpers;
+- media attachments/object storage;
+- hosted reusable-content synchronization;
+- generalized framework for every Manager.
 
-After this closure is merged, re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated foundation + Creature + NPC + Homebrew/Rule + Place + Zone state. Encounter is now the remaining reserved rich reusable family, but its first package should remain bounded and must not prematurely force the entire future relationship/dependency graph.
+Those are later Wave 7 packages unless a concrete dependency proves otherwise.
 
-Under the coherent-task continuation rule, routine safe green boundaries after this closure do not require separate owner confirmation.
+## 8. Security/provider boundaries
 
-## 12. Security/cost residuals
+Repository is intentionally public. Never request, paste or commit secrets, credentials, OTPs, tokens, DB connection strings, JWTs or private keys.
 
-Hard external-service operating budget remains USD $0. Repository is intentionally public. Object-storage provider selection remains deferred.
+Green CI does not prove provider/deployment behavior. Do not repeat completed provider verification merely because docs/local persistence changed.
 
-Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect packages/reachability/fixed versions when a relevant hardening package is scheduled.
+Object-storage provider selection remains deferred until Media/Handouts/assets concretely require it.
 
-## 13. Resume rule
+Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect package reachability and available fixed versions when a relevant hardening package is scheduled.
 
-Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, relevant D-0071/D-0072/D-0073/D-0075 records and `docs/ROADMAP.md`.
+## 9. Resume rule
 
-Finish the Zone documentation closure. Then resume from current `main`, select the next bounded dependency-safe Wave 6 continuation package from current authority and proceed autonomously through routine safe gates. Do not rebuild prior Wave 6 packages, introduce generalized relationship graphs prematurely, generalize all content into one universal abstraction, or redeploy Cloudflare for documentation/local-persistence work.
+Read `docs/checkpoints/LATEST.md`, the referenced Encounter checkpoint, `docs/BRANCH_STATUS.md`, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
+
+Finish the Encounter documentation closure, then resume Wave 7 from current `main` with the Desktop Creature/Monster Manager local authoring core. Routine safe green boundaries do not require separate owner confirmation.
