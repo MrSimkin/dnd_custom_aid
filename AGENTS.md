@@ -30,7 +30,7 @@ Switch away from English only when the owner explicitly requests a language chan
 
 This rule applies to explanations, progress updates, technical discussion and final responses. Repository content may retain existing terminology where changing it would be unnecessary or harmful.
 
-## 3. Current-task discipline and interruption recovery
+## 3. Current-task discipline, coherent continuation and interruption recovery
 
 `CURRENT_TASK.md` is the volatile execution pointer. It must contain only the current Wave/task/execution state and exact resume information. Replace it when the active state changes; do not turn it into a historical log.
 
@@ -39,16 +39,22 @@ Update `CURRENT_TASK.md` at meaningful durable boundaries, including when:
 - a branch/package becomes the active task;
 - a commit is pushed;
 - a PR is opened;
-- CI is running at a stop boundary, fails or passes materially;
+- CI is running at a real stop boundary, fails or passes materially;
 - a PR is merged;
 - an owner/provider action becomes the next unavoidable step;
 - a task completes and a new current task is selected.
+
+Durable boundaries are for recovery and traceability; they are **not** automatic owner-confirmation boundaries.
+
+Within an already-authorized coherent package, continue autonomously through routine safe steps when gates are green and scope/risk has not materially changed. A normal sequence such as implementation -> push CI -> PR -> PR CI -> merge -> post-merge CI -> checkpoint/documentation closure must not be split into separate turns merely to ask the owner to say `go` at every step.
+
+Stop for owner intervention only when there is a genuine boundary: a material failure requiring judgment, a consequential product/scope/UX/game/privacy/cost/security/compatibility/lock-in decision, a destructive ambiguity, an authenticated provider/manual action, or a genuinely long-running asynchronous wait with no other safe useful work available.
 
 For interruption recovery follow `docs/recovery/INTERRUPTION_RECOVERY.md`.
 
 Core recovery rule: resume from the first unfinished action after the last completed durable boundary. Do not repeat completed implementation, tests, pushes, PR creation, merges or provider actions without new evidence that repetition is necessary.
 
-CI is an async checkpoint boundary. Inspect once. If still running, record run ID/SHA/status in `CURRENT_TASK.md` and stop the bounded task. Do not use sleep loops or repeated polling.
+CI is an asynchronous gate. Inspect at meaningful points; do not use sleep loops or rapid repeated polling. If complete, act on the result and continue the coherent task automatically. If still running, first perform any independent safe/useful work that does not assume the result. A later single recheck in the same task/session is allowed after such progress or when enough time has naturally passed. Only when CI is still running and there is genuinely nothing else safe/useful to do should it become a stop boundary; then record run ID/SHA/status in `CURRENT_TASK.md` before stopping.
 
 ## 4. Current stage
 
@@ -162,8 +168,8 @@ For substantial work:
 6. implement the smallest coherent technical batch;
 7. run focused checks and aggregate CI proportionate to risk;
 8. update durable operative-memory documentation when integrated truth changes;
-9. update `CURRENT_TASK.md` whenever the live execution boundary changes;
-10. leave clean Git evidence and open/update PR as appropriate;
-11. continue autonomously until a genuine owner/manual/provider/async boundary.
+9. update `CURRENT_TASK.md` whenever the live execution boundary changes materially or before a real stop boundary;
+10. leave clean Git evidence and open/update/merge PRs as appropriate when their gates are green;
+11. continue autonomously across routine safe boundaries until a genuine owner/manual/provider/failure/async-wait boundary.
 
-Do not stop simply because one safe subtask completed if the coherent package can continue, and do not expand speculatively beyond it.
+Do not stop simply because one safe subtask completed if the coherent package can continue, do not require owner confirmation at every durable boundary, and do not expand speculatively beyond the authorized package.
