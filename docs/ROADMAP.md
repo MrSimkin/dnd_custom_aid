@@ -54,7 +54,7 @@ Do not redeploy the Worker merely because documentation advances.
 
 ### Wave 6 — reusable/persistent content architecture
 
-**ACTIVE — FIRST FOUNDATION PACKAGE INTEGRATED.**
+**ACTIVE — FOUNDATION + CREATURE PAYLOAD INTEGRATED; NPC PAYLOAD CORE NEXT.**
 
 PR #46 integrated the bounded reusable-content persistence foundation on top of the existing Shared `ContentScope`, provenance, revision and tombstone primitives. It includes:
 
@@ -68,16 +68,30 @@ PR #46 integrated the bounded reusable-content persistence foundation on top of 
 
 PR #46 merged as `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
 
-The next bounded Wave 6 package must be determined from current architecture, decisions and implementation seams at resume time. Do not assume a later package already exists.
+PR #48 then integrated the first domain-specific payload package:
 
-Still deliberately outside the integrated foundation:
+- human-complete, selectively structured Creature payload;
+- local SQLDelight Creature payload persistence linked to reusable-content identity;
+- Personal/Campaign Creature creation/read;
+- explicit Personal -> Campaign independent copy/provenance;
+- payload mutation through existing revision/stale-write/tombstone semantics;
+- migration `19.sqm` with safe metadata-only Creature backfill;
+- focused persistence/invariant tests;
+- bounded repair of the synthetic legacy Desktop migration fixture, with production migration logic unchanged.
+
+PR #48 merged as `5762058645ba8af8fa470dcf185bd2b418af65e9`; post-merge Scaffold `35253188344` passed.
+
+The next bounded Wave 6 package is **NPC payload + local persistence core**. It should preserve Quick/Developed NPC validity without mandatory combat mechanics and reuse the Creature/stat-block machinery when full combat mechanics are present.
+
+Still deliberately outside these integrated packages:
 
 - large Manager UI;
 - hosted reusable-content sync;
 - object storage/provider activation;
+- import/export and AI helper workflows;
 - a universal executable content payload model.
 
-Domain-specific payloads should build on the foundation rather than being forced into one giant universal abstraction.
+Domain-specific payloads should continue to build on the foundation rather than being forced into one giant universal abstraction.
 
 ### Wave 7 — Desktop authoring Managers
 
