@@ -8,20 +8,20 @@
 **Current PR:** #44 — draft  
 **Package branch base:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
 **Current package:** Wave 5 — Desktop hosted authentication/session acquisition + real Campaign Administration consumption  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_CONTINUITY_INVESTIGATION.md`  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_MAPPING_RESOLVED.md`  
 **Deployed code head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
 **Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
 **DEV Worker deployment:** **VERIFIED**  
 **Worker Version ID:** `130d35e7-7903-47b2-8203-d74f9ec3db55`  
-**Desktop live-QA preflight:** **OTP AUTH PASS / LOCAL DATA PASS / ZERO HOSTED CAMPAIGNS**  
-**Neon discovery:** **CURRENT DESKTOP USER HAS NO MEMBERSHIP / HISTORICAL DM MEMBERSHIP STILL ACTIVE**  
-**Current gate:** read-only Descope identity-continuity audit; no identity, membership or moderation mutation yet  
+**Desktop live-QA preflight:** **OTP AUTH PASS / LOCAL DATA PASS / ZERO HOSTED CAMPAIGNS UNDER OUTLOOK DEV IDENTITY**  
+**Identity mapping:** **RESOLVED — TWO DISTINCT DEV LOGIN IDENTITIES, NO DUPLICATE-IDENTITY DEFECT SHOWN**  
+**Current gate:** Desktop re-authentication with historical Gmail DM identity, hosted bootstrap + roster read only; no moderation mutation yet  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_CONTINUITY_INVESTIGATION.md`;
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_MAPPING_RESOLVED.md`;
 3. this file;
 4. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_QA_PREFLIGHT_ZERO_CAMPAIGNS.md`;
 5. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`;
@@ -48,23 +48,24 @@ DEV Worker deployment                                VERIFIED
 Windows Desktop live-QA preflight                    PARTIAL PASS
   launch/local data -> PASS
   real email OTP login -> PASS
-  hosted bootstrap -> 0 hosted campaigns
+  Outlook DEV identity -> 0 hosted campaigns
         |
         v
-Read-only Neon identity/membership discovery         COMPLETE
-  Desktop app_user -> no membership
-  historical app_user -> ACTIVE DM on Hosted Batch Test
+Neon + Descope identity discovery                    COMPLETE
+  Outlook app_user -> no memberships
+  historical Gmail app_user -> ACTIVE DM on Hosted Batch Test
+  two distinct Descope users/login IDs -> confirmed
         |
         v
-Read-only Descope identity continuity audit          NEXT
-        |
-        +--> determine why same email produced different Descope subjects over time
+Desktop sign-out + Gmail DM login                    NEXT
         |
         v
-Identity repair/test-data decision                    BLOCKED UNTIL DESCOPE EVIDENCE
+Hosted bootstrap + roster retrieval                  READ-ONLY QA
+        |
+        +--> if only DM exists, stop and create bounded reversible Player fixture separately
         |
         v
-Real roster + bounded moderation QA                  PENDING
+Bounded moderation QA                                PENDING
         |
         v
 Final settings/sign-out/relaunch QA                  REQUIRED BEFORE MERGE
@@ -84,39 +85,33 @@ Secret-free post-deployment probes passed:
 - `GET /health` -> `200`;
 - unauthenticated Campaign Administration roster route -> `401 UNAUTHENTICATED`.
 
-## Desktop/Neon QA result so far
+## Desktop/identity QA result so far
 
 Windows Desktop launched normally, preserved the existing local campaign and successfully authenticated through the real Descope email-OTP flow.
 
-Bootstrap returned zero hosted campaigns because the current Desktop-authenticated application user has no membership rows.
+Bootstrap returned zero hosted campaigns under the Outlook DEV login because the corresponding application user has no membership rows. This is valid behavior.
 
-Read-only Neon discovery established:
+Read-only Neon + Descope discovery established that the historical Wave 4 hosted DM state belongs to the separate Gmail DEV login. That application user still has ACTIVE DM membership in hosted campaign `31762fa9-b01a-4f3d-80e5-877a07c63e62` (`Hosted Batch Test`), which remains undeleted at revision 0.
 
-- current Desktop application user `f34bc5f0-4d35-4d09-b771-505b3851440c` has no campaign membership;
-- historical application user `4ba0f476-2eba-4eff-b4e0-78bb9372a8b4` still has ACTIVE DM membership in hosted campaign `31762fa9-b01a-4f3d-80e5-877a07c63e62` (`Hosted Batch Test`);
-- the hosted campaign remains undeleted at revision 0.
+The provider shows two enabled users with distinct login IDs and distinct immutable user IDs. The apparent cross-platform identity split is therefore resolved as test-account separation, not evidence that Desktop created a duplicate identity.
 
-The owner confirmed the same email address was used for the earlier Android hosted/Descope QA and the current Desktop OTP login.
+Do not patch authentication code, merge provider users or migrate memberships based on the earlier same-email recollection.
 
-Android and Desktop use the same Descope project ID and Worker. Backend identity resolution maps JWT `sub` to UNIQUE `app_user.descope_subject`, so the two application users imply different Descope subjects were observed over time.
+## Current owner/manual gate
 
-The current Desktop REST OTP endpoints match Descope's documented Sign-Up-or-In/Verify flow. Do not patch auth code or insert membership rows merely to make QA proceed.
+No external database/provider mutation is needed.
 
-## Current owner/provider gate
+In the Desktop app:
 
-Use the existing Descope DEV project's **Users** page read-only.
+1. sign out of the current Outlook-backed hosted session;
+2. sign in with the historical Gmail DEV identity through normal email OTP;
+3. let bootstrap complete;
+4. confirm `Hosted Batch Test` appears as hosted context;
+5. retrieve the hosted member roster;
+6. report roles/statuses/buttons;
+7. do not click Kick/Ban/Lift Ban yet.
 
-Search for the exact email used in both Android and Desktop QA and report:
-
-1. number of matching current users;
-2. whether the exact email is present as a Login ID for each match;
-3. current status;
-4. creation date/time if visible;
-5. any visible login-ID spelling/case/alias difference.
-
-Do not edit, merge, disable, delete, invite or recreate users. Do not create a Management Key for this investigation.
-
-A plausible current hypothesis is historical Descope user deletion/recreation: the same email could then create a new immutable Descope user ID while old Neon application rows remain. Treat this as a hypothesis until the Descope user table confirms or contradicts it.
+If only the DM row is present, stop. The next step will be a separately reviewed, reversible QA fixture using an already-existing DEV application user as PLAYER rather than inventing another account.
 
 ## Permanent safety rules
 
@@ -124,7 +119,6 @@ A plausible current hypothesis is historical Descope user deletion/recreation: t
 - hard external-service budget remains USD $0;
 - never commit, paste, log or expose secrets/tokens/credentials/OTP codes;
 - do not reset/delete databases, local campaigns, PCs, outboxes or application state to make QA pass;
-- do not mutate Descope identity or Neon membership while identity continuity is unresolved;
 - preserve membership/role/ownership/current-control distinctions;
 - preserve stable identity, stale-revision, idempotency, tombstone/non-resurrection and no-silent-overwrite guarantees;
 - DM authority is not PC ownership;
