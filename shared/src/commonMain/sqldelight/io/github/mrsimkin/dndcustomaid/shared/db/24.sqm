@@ -1,0 +1,32 @@
+CREATE TABLE encounter_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    summary TEXT NOT NULL,
+    environment TEXT NOT NULL,
+    encounter_context TEXT NOT NULL,
+    dm_guidance TEXT NOT NULL,
+    participants_json TEXT NOT NULL,
+    tags_json TEXT NOT NULL,
+    notes TEXT NOT NULL
+);
+
+INSERT INTO encounter_payload(
+    content_id,
+    summary,
+    environment,
+    encounter_context,
+    dm_guidance,
+    participants_json,
+    tags_json,
+    notes
+)
+SELECT
+    id,
+    '',
+    '',
+    '',
+    '',
+    '[]',
+    '[]',
+    ''
+FROM reusable_content
+WHERE family = 'ENCOUNTER';
