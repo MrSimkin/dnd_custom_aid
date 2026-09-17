@@ -112,11 +112,30 @@ class ReusableContentRepository(
         updatedAtEpochSeconds: Long,
     ): RevisionDecision {
         val displayName = normalizeName(rawDisplayName)
+        return mutateContent(
+            id = id,
+            expectedRevision = expectedRevision,
+            updatedAtEpochSeconds = updatedAtEpochSeconds,
+        ) {
+            database.reusableContentQueries.updateReusableContentName(
+                display_name = displayName,
+                updated_at_epoch_seconds = updatedAtEpochSeconds,
+                id = id.toString(),
+            )
+        }
+    }
+
+    internal fun mutateContent(
+        id: Uuid,
+        expectedRevision: Revision,
+        updatedAtEpochSeconds: Long,
+        mutation: (ReusableContentItem) -> Unit,
+    ): RevisionDecision {
         var result: RevisionDecision? = null
 
         database.transaction {
             val current = requireNotNull(content(id, includeDeleted = true)) {
-                "Reusable content must exist before it can be renamed."
+                "Reusable content must exist before it can be mutated."
             }
             require(updatedAtEpochSeconds >= current.updatedAtEpochSeconds) {
                 "Updated timestamp must not move backwards."
@@ -128,8 +147,8 @@ class ReusableContentRepository(
             )
             val decision = metadata.checkMutation(expectedRevision)
             if (decision is RevisionDecision.Accepted) {
-                database.reusableContentQueries.updateReusableContentName(
-                    display_name = displayName,
+                mutation(current)
+                database.reusableContentQueries.touchReusableContent(
                     updated_at_epoch_seconds = updatedAtEpochSeconds,
                     id = id.toString(),
                 )
