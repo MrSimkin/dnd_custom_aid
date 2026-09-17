@@ -3,19 +3,19 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240` (PR #67)  
-**Post-merge Scaffold:** `35279329344` — SUCCESS  
+**Last verified runtime/integration merge:** `a99f03bf53637494695cc39b39d077ea1ef61ada` (PR #69)  
+**Post-merge Scaffold:** `35280636549` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core  
-**Next bounded package:** Desktop Stage Manager — Place retrieval/organization core
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager place retrieval/organization core  
+**Next bounded package:** Adventure/Scene Spine — lightweight local core
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager or Place/Shop Manager work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager or Stage retrieval work without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -37,7 +37,7 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place Manager packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
+Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
 
 Hard external-service operating budget remains USD $0.
 
@@ -82,45 +82,61 @@ The lightweight Homebrew Manager does not claim completion of structured races/c
 
 ### Place/Shop Manager
 
-PR #67 integrated the fourth concrete Desktop Manager using the existing Wave 6 Place persistence.
+PR #67 integrated the fourth concrete Desktop Manager using the existing Wave 6 Place persistence. It supports Personal/Campaign Place browse/search/create/open/edit, `PLACE` / `SHOP` specialization, full current Place payload authoring, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic display-name + payload updates.
 
-It supports:
+Validation: implementation `f4bb75f4b2872ebc6a1dc4302cd4890367e4618c`; push `35278740631`; PR `35279052405`; merge `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`; post-merge `35279329344` — SUCCESS.
 
-- Personal and active-Campaign Place browse/search/create/open/edit;
-- both existing `PLACE` and `SHOP` kinds, with Shop remaining a specialized Place;
-- full current Place payload authoring: summary, area, function, presentation, services, interactives, hooks, player-safe text, DM notes, paper references and tags;
-- scope, provenance and revision visibility;
-- explicit Personal -> Campaign independent copy;
-- atomic display-name + payload update under one optimistic revision.
+### Stage Manager — Place retrieval/organization core
 
-Personal authoring uses the same conservative uniquely-resolvable local DM identity rule as the preceding Managers. Stale/deleted writes cannot overwrite or resurrect content, and Campaign copies remain independent after copy.
+PR #69 integrated the fifth concrete Wave 7 package without adding a Stage persistence model.
+
+The existing Place/Shop authoring surface now also provides Stage-oriented retrieval:
+
+- kind filter: all / Place / Shop;
+- scope filter: all / Personal / Campaign;
+- area, function and tag filters;
+- full-text retrieval across the existing Place payload;
+- deterministic Name / Area / Recent ordering;
+- Stage framing while preserving the existing Place editor and copy flows.
+
+The package reuses existing Place persistence, so all Personal/Campaign copy, provenance, atomic update, optimistic revision, stale-write and tombstone/non-resurrection semantics remain unchanged.
 
 Validation:
 
-- implementation head `f4bb75f4b2872ebc6a1dc4302cd4890367e4618c`;
-- push Scaffold `35278740631` — SUCCESS;
-- PR Scaffold `35279052405` — SUCCESS;
-- PR #67 merged as `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`;
-- post-merge Scaffold `35279329344` — SUCCESS.
+- implementation head `a01eb18a8385807d973c9f2059ff32779c0f6897`;
+- push Scaffold `35280359257` — SUCCESS;
+- PR Scaffold `35280486923` — SUCCESS;
+- PR #69 merged as `a99f03bf53637494695cc39b39d077ea1ef61ada`;
+- post-merge Scaffold `35280636549` — SUCCESS.
 
 No database migration, Worker change or provider action was required.
 
-## 6. Next Wave 7 package — Desktop Stage Manager
+## 6. Next Wave 7 package — Adventure/Scene Spine
 
-Next bounded package: **Desktop Stage Manager — Place retrieval/organization core**.
+Next bounded package: **Adventure/Scene Spine — lightweight local core**.
 
-Build on the integrated Place/Shop Manager and existing Place persistence. Do not create a separate Stage persistence family merely to organize Places. The current Place payload already contains kind, summary, area, function, presentation, services, interactives, hooks, player-safe text, DM notes, paper references and tags; reusable-content metadata provides scope/provenance/revision and timestamps.
+Source inspection confirms Scene is genuinely absent rather than merely hidden from the UI:
 
-Initial scope:
+- `ReusableContentFamily` currently contains Creature, NPC, Homebrew/Rule, Place, Zone and Encounter only;
+- there is no Scene payload repository or Scene SQL schema;
+- the shared spine package provides generic identity/revision/scope primitives, not a Scene domain model;
+- current SQLDelight payload migrations run through `24.sqm` for Encounter;
+- the generic reusable-content table is already family-agnostic.
 
-- present Places/Shops as the Stage preparation collection;
-- richer retrieval/filter/grouping using existing Place data, especially kind, area, function, tags, scope and recent updates;
-- preserve existing Place create/open/edit/copy semantics and atomic optimistic-revision saves;
-- keep active Campaign context visible;
-- make only the smallest refactor necessary to share Place behavior;
-- focused coverage for retrieval/filtering and stable state/selection.
+The Scene package should introduce only the minimum concrete persistence/model/UI surface required for D-0072's lightweight orientation spine.
 
-Do not pull Scene Spine into this package. D-0072's lightweight Adventure/Scene Spine is the following concrete package. Current source has no `SCENE` reusable-content family, no Scene payload repository and no Scene schema, so that later package must own any minimal Scene persistence extension explicitly.
+Initial principles:
+
+- title/display name and purpose/summary;
+- possible next Scenes;
+- only lightweight references actually needed by the concrete preparation/navigation flow;
+- Personal and Campaign scope using the proven reusable-content semantics;
+- explicit Personal -> Campaign independent copy;
+- optimistic revisions, stale-write rejection and tombstone/non-resurrection;
+- minimal Desktop browse/create/edit/copy authoring;
+- focused migration/persistence/revision/copy tests.
+
+Do not turn Scene into a quest engine. Do not pre-model clocks, media storage, generalized dependency graphs or live-state orchestration. Keep cross-domain reference semantics deliberately narrow and evidence-driven.
 
 Dungeon/Zone, Encounter, PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
 
@@ -138,4 +154,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with the Desktop Stage Manager — Place retrieval/organization core. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with the Adventure/Scene Spine — lightweight local core. Routine safe green boundaries do not require separate owner confirmation.
