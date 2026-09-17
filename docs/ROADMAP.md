@@ -71,24 +71,50 @@ Still deferred from Creature Manager: Official/SRD catalog browsing, import/expo
 
 #### Desktop NPC Manager — local authoring core
 
-**NEXT BOUNDED PACKAGE.**
+**COMPLETE / INTEGRATED — PR #63.**
 
-Reuse the integrated NPC persistence and D-0072's NPC progression semantics.
+Integrated behavior:
 
-Initial scope:
-
-- browse/search Personal NPCs;
-- browse/search active-Campaign NPCs when a campaign is active;
-- create/open/edit Quick and Developed NPC data without requiring a completion score;
+- concrete NPC selector/editor alongside Creature/Monster inside Desktop `MANAGERS`;
+- browse/search Personal and active-Campaign NPCs;
+- create Personal or active-Campaign NPCs;
+- open/edit existing Quick and Developed NPC data without requiring a completion score;
 - keep incomplete NPCs valid;
 - optionally add/remove/edit full combat mechanics through the existing `CreaturePayload` model;
 - show scope/provenance/revision;
-- explicitly copy Personal NPC -> active Campaign;
-- preserve optimistic revision/stale-write/tombstone semantics.
+- explicitly copy Personal NPC -> active Campaign as an independent object;
+- preserve optimistic revision/stale-write/tombstone semantics with atomic name + payload update.
 
-Deliberately defer NPC assistant/AI ideation, import/export, preserved-live-improvisation promotion workflow, media/object storage, hosted reusable-content sync and broad Manager framework generalization.
+Validation:
 
-Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: Homebrew & Rules, Stage/Place/Scene, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Family-specific supporting persistence may be added with the concrete Manager that needs it.
+- final implementation head `58b680e71ec59c871854eb9c083ff2bc6906fe88`;
+- push Scaffold `35269013875` — SUCCESS;
+- PR Scaffold `35269163375` — SUCCESS;
+- merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`;
+- post-merge Scaffold `35270643883` — SUCCESS.
+
+Still deferred from NPC Manager: NPC assistant/AI ideation, import/export, preserved-live-improvisation promotion workflow, media/object storage, hosted reusable-content sync and broad Manager framework generalization.
+
+#### Desktop Homebrew & Rules Manager — lightweight rules local authoring core
+
+**NEXT BOUNDED PACKAGE.**
+
+Reuse the integrated lightweight Homebrew/Rule persistence from Wave 6 and implement the smallest concrete D-0072 authoring slice first.
+
+Initial scope:
+
+- browse/search Personal Homebrew/Rule records;
+- browse/search active-Campaign Homebrew/Rule records when a campaign is active;
+- create/open/edit title plus summary/body/category/rationale/examples/related references/tags/notes;
+- expose the existing Draft / Active / Retired lifecycle;
+- show scope/provenance/revision;
+- explicitly copy Personal -> active Campaign as an independent object;
+- preserve optimistic revision/stale-write/tombstone semantics with atomic name + payload update;
+- reuse the conservative uniquely-resolvable local DM identity rule already proven by Creature/NPC Managers.
+
+Deliberately defer structured races/sub-races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage, hosted reusable-content sync and broad Manager framework generalization. These remain approved D-0072 product direction but require later concrete packages rather than speculative pre-modeling.
+
+Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: Stage/Place/Scene, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Family-specific supporting persistence may be added with the concrete Manager that needs it.
 
 Select/activate object storage only when Media/Handouts/assets actually require it, after a fresh `$0` review.
 

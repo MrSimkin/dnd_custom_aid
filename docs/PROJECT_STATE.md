@@ -3,19 +3,19 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `12a62288457ebe5892f90f637fe41c142b094591` (PR #61)  
-**Post-merge Scaffold:** `35267674641` — SUCCESS  
+**Last verified runtime/integration merge:** `58a565c3a33a433ce47e7fd4ac1185b5f980644f` (PR #63)  
+**Post-merge Scaffold:** `35270643883` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 package:** Desktop Creature/Monster Manager local authoring core  
-**Next bounded package:** Desktop NPC Manager — local authoring core
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager local authoring cores  
+**Next bounded package:** Desktop Homebrew & Rules Manager — lightweight rules local authoring core
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6 or integrated Wave 7 Creature Manager work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager or NPC Manager work without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -37,7 +37,7 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-No Wave 6 or first Wave 7 Manager package required Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
+Wave 6 and the integrated Wave 7 Creature/NPC Manager packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
 
 Hard external-service operating budget remains USD $0.
 
@@ -58,54 +58,66 @@ Integrated reusable families:
 
 Encounter dependency copy/remap remains domain-specific; no generalized dependency graph was introduced.
 
-## 5. Wave 7 integrated package — Creature/Monster Manager
+## 5. Wave 7 integrated Managers
 
-PR #61 integrates the first visible Desktop authoring Manager.
+### Creature/Monster Manager
 
-The existing Desktop `MANAGERS` destination now supports:
-
-- browse/search Personal and active-Campaign Creatures;
-- create Personal or active-Campaign Creatures;
-- open/edit the existing human-complete Creature/stat-block payload;
-- scope, provenance and revision visibility;
-- explicit Personal -> active Campaign independent copy;
-- active campaign context while authoring.
-
-Display name + Creature payload save atomically under one optimistic revision. Stale/deleted writes cannot silently overwrite or resurrect content.
-
-Personal authoring uses only a uniquely resolvable locally persisted active DM account; ambiguity disables Personal creation rather than guessing. Campaign-local authoring remains available.
+PR #61 integrated the first visible Desktop authoring Manager. It supports Personal + active-Campaign Creature browsing/search, create/open/edit, scope/provenance/revision visibility and explicit Personal -> Campaign independent copy. Display name + Creature payload save atomically under one optimistic revision.
 
 Validation:
 
 - implementation head `38d68dc832188f29c76ec40990297f53a85e9bed`;
 - push Scaffold `35267065066` — SUCCESS;
 - PR Scaffold `35267241770` — SUCCESS;
-- PR #61 merged as `12a62288457ebe5892f90f637fe41c142b094591`;
+- merged as `12a62288457ebe5892f90f637fe41c142b094591`;
 - post-merge Scaffold `35267674641` — SUCCESS.
 
-Official/SRD browsing, import/export, Creature Creator Assistant/advisory balancing, media/object storage, hosted reusable-content sync, generalized all-Manager abstractions and live combat remain deferred.
+### NPC Manager
 
-## 6. Next Wave 7 package — Desktop NPC Manager
+PR #63 integrated the second concrete Desktop Manager in the existing `MANAGERS` surface.
 
-Next bounded package: **Desktop NPC Manager — local authoring core**.
+It supports:
 
-Reuse the integrated `NpcPayload` / `NpcContentRepository` and D-0072 semantics:
+- browse/search Personal and active-Campaign NPCs;
+- create Personal or Campaign NPCs;
+- edit the existing Quick and Developed NPC payload while keeping incomplete NPCs valid;
+- optional combat mechanics through the existing `CreaturePayload` stat-block model;
+- scope, provenance and revision visibility;
+- explicit Personal -> Campaign independent copy;
+- atomic display-name + NPC-payload update under one optimistic revision.
 
-- Quick NPC -> Developed NPC -> optional combat mechanics;
-- incomplete NPCs remain valid;
-- combat mechanics are optional and reuse `CreaturePayload`;
-- Personal/Campaign independence and provenance remain unchanged.
+Personal authoring uses the same conservative uniquely-resolvable local DM identity rule as the Creature Manager. Stale/deleted writes cannot overwrite or resurrect content. Campaign copies remain independent after copy, including when the Personal master later changes or removes combat mechanics.
+
+Validation:
+
+- implementation head `58b680e71ec59c871854eb9c083ff2bc6906fe88`;
+- push Scaffold `35269013875` — SUCCESS;
+- PR Scaffold `35269163375` — SUCCESS;
+- PR #63 merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`;
+- post-merge Scaffold `35270643883` — SUCCESS.
+
+Creature/NPC assistant features, import/export, preserved-live-improvisation promotion, media/object storage, hosted reusable-content sync and generalized all-Manager abstractions remain deferred to later concrete packages.
+
+## 6. Next Wave 7 package — Desktop Homebrew & Rules Manager
+
+Next bounded package: **Desktop Homebrew & Rules Manager — lightweight rules local authoring core**.
+
+Reuse the integrated `HomebrewRulePayload` / `HomebrewRuleContentRepository` and D-0072 lightweight-rule semantics rather than expanding persistence prematurely.
 
 Initial scope:
 
-- browse/search Personal + active-Campaign NPCs;
-- create/open/edit Quick and Developed NPC fields;
-- optionally add/remove/edit combat mechanics;
+- browse/search Personal + active-Campaign Homebrew/Rule records;
+- create/open/edit the existing lightweight rule payload;
+- edit summary/body/category/rationale/examples/related references/tags/notes;
+- expose Draft / Active / Retired lifecycle;
 - show scope/provenance/revision;
-- explicit Personal -> active Campaign copy;
-- preserve stale-write/tombstone behavior.
+- explicit Personal -> active Campaign independent copy;
+- atomic display-name + payload update through the existing optimistic revision spine;
+- preserve stale-write/tombstone behavior and the same conservative Personal-owner identity rule used by Creature/NPC Managers.
 
-Defer NPC assistant/AI ideation, import/export, live-improvisation promotion workflow, media/object storage, hosted reusable-content sync and broad Manager generalization.
+No schema migration should be introduced unless implementation evidence proves the integrated Wave 6 payload insufficient for this slice.
+
+Defer structured races/sub-races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, hosted reusable-content sync and broad Manager generalization. Those remain part of the wider D-0072 product direction but are not required to prove the first lightweight rules Manager slice.
 
 ## 7. Security/provider boundaries
 
@@ -119,6 +131,6 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 ## 8. Resume rule
 
-Read `docs/checkpoints/LATEST.md`, the referenced Creature Manager checkpoint, `docs/BRANCH_STATUS.md`, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
+Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with the Desktop NPC Manager local authoring core. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with the Desktop Homebrew & Rules Manager lightweight rules local authoring core. Routine safe green boundaries do not require separate owner confirmation.

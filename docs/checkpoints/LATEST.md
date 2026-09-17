@@ -2,21 +2,21 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `12a62288457ebe5892f90f637fe41c142b094591`  
-**PR #61:** MERGED  
-**Post-merge Scaffold:** `35267674641` — SUCCESS  
+**Last verified integrated runtime merge:** `58a565c3a33a433ce47e7fd4ac1185b5f980644f`  
+**PR #63:** MERGED  
+**Post-merge Scaffold:** `35270643883` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE  
-**Integrated Wave 7 package:** Desktop Creature/Monster Manager local authoring core  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_CREATURE_MANAGER_INTEGRATED.md`  
-**Next bounded package:** Desktop NPC Manager — local authoring core  
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager local authoring cores  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_NPC_MANAGER_INTEGRATED.md`  
+**Next bounded package:** Desktop Homebrew & Rules Manager — lightweight rules local authoring core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE7_CREATURE_MANAGER_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_NPC_MANAGER_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -29,37 +29,38 @@ Wave 4 Player <-> Server                           COMPLETE / INTEGRATED
 Wave 5 Desktop shell/campaign administration      COMPLETE / OWNER-QA PASS / INTEGRATED
 Wave 6 reusable-content architecture              COMPLETE / INTEGRATED
 Wave 7 Creature/Monster Manager local core        COMPLETE / INTEGRATED
-post-merge Scaffold                               PASS (35267674641)
+Wave 7 NPC Manager local core                     COMPLETE / INTEGRATED
+post-merge Scaffold                               PASS (35270643883)
         |
         v
-Wave 7 Desktop NPC Manager local authoring core
+Wave 7 Homebrew & Rules Manager — lightweight rules local core
 ```
 
 ## Practical continuation
 
-After the short-lived Creature Manager documentation closure merges, start the NPC Manager from current `main`.
+After the short-lived NPC Manager documentation closure merges, start the Homebrew & Rules Manager from current `main`.
 
-Reuse the integrated `NpcPayload` and `NpcContentRepository` rather than creating a new persistence model.
+Reuse the integrated `HomebrewRulePayload` and `HomebrewRuleContentRepository` rather than creating a new persistence family.
 
 Initial slice:
 
-- browse/search Personal + active-Campaign NPCs;
-- create/open/edit the existing Quick and Developed NPC fields;
-- preserve incomplete NPCs as valid;
-- keep combat mechanics optional and reuse `CreaturePayload` when present;
+- browse/search Personal + active-Campaign Homebrew/Rule records;
+- create/open/edit title plus summary/body/category/rationale/examples/related references/tags/notes;
+- expose the existing Draft / Active / Retired lifecycle;
 - display scope/provenance/revision;
-- explicitly copy Personal NPC -> active Campaign;
-- preserve stale-write/tombstone behavior.
+- explicitly copy Personal -> active Campaign as an independent object;
+- save display name + payload atomically under one optimistic revision;
+- preserve stale-write/tombstone semantics and the same conservative Personal-owner identity rule used by Creature/NPC Managers.
 
-Do not pull NPC assistant/AI ideation, import/export, live-improvisation promotion, media/object storage, hosted reusable-content sync or a generalized all-Managers framework into this first NPC slice unless concrete implementation evidence requires it.
+Do not pull structured races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage, hosted reusable-content sync or a generalized all-Managers framework into this first Homebrew slice unless concrete implementation evidence requires it.
 
-## Creature Manager integrated evidence
+## NPC Manager integrated evidence
 
-- implementation head `38d68dc832188f29c76ec40990297f53a85e9bed`;
-- push Scaffold `35267065066` — SUCCESS;
-- PR Scaffold `35267241770` — SUCCESS;
-- PR #61 merged as `12a62288457ebe5892f90f637fe41c142b094591`;
-- post-merge Scaffold `35267674641` — SUCCESS.
+- implementation head `58b680e71ec59c871854eb9c083ff2bc6906fe88`;
+- push Scaffold `35269013875` — SUCCESS;
+- PR Scaffold `35269163375` — SUCCESS;
+- PR #63 merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`;
+- post-merge Scaffold `35270643883` — SUCCESS.
 
 ## Operating rule
 
