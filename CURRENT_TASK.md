@@ -6,7 +6,7 @@ Last verified: 2026-09-17
 
 - **Wave:** 6 — reusable/persistent content architecture
 - **Current task:** validate and integrate the implemented Encounter reusable-content payload + local persistence core
-- **Execution state:** Zone implementation and Zone documentation closure are fully merged and green. Encounter is implemented as one atomic commit, reviewed against exact `main`, push-validated green, and opened as PR #59. PR #59 is mergeable and its exact-head PR Scaffold is currently running; no Encounter merge has occurred yet.
+- **Execution state:** Zone implementation and Zone documentation closure are fully merged and green. Encounter is implemented as one atomic commit, reviewed against exact `main`, push-validated green, and opened as PR #59. PR #59 is mergeable; its exact-head PR Scaffold is healthy but still waiting on the long Kotlin build/test job, so this is the current genuine async gate.
 - **Integrated `main`:** `739f437c02059af9616c88da8ef9abbc7afbd9dc`
 - **Zone implementation:** PR #57 — **MERGED** as `0b73d79e46edb7022ace2a2efd161149d9aefc73`; push Scaffold `35262051406`, PR Scaffold `35262563057`, post-merge Scaffold `35262999144` — all **SUCCESS**
 - **Zone documentation closure:** PR #58 — **MERGED** as `739f437c02059af9616c88da8ef9abbc7afbd9dc` from exact head `4f8654a32b4a901d1b30429a63ee503cac7b7f29`; PR Scaffold `35263592437` — **SUCCESS**; post-merge Scaffold `35263788412` — **SUCCESS**, including backend, hosted-database, Kotlin build/tests and Android debug APK upload
@@ -21,7 +21,7 @@ Last verified: 2026-09-17
 - **Explicit deferrals:** no live encounter/combat state; no Place/Zone/rule/clock/handout generalized link graph; no clocks/advisory triggers; no archive/live lifecycle machinery; no Manager UI; no hosted reusable-content sync; no import/export/AI/provider/object-storage work; no generalized dependency framework; no universal payload abstraction.
 - **Encounter push CI:** Scaffold `35264310753` for exact head `cc4e339775b2b34920a46d581bebe83759570a45` — **SUCCESS**; backend, hosted-database, Kotlin build/tests and Android debug APK upload all **SUCCESS**
 - **Encounter PR:** #59 — `feat: add Wave 6 Encounter payload persistence` — **OPEN**, non-draft, base `main`, exact head `cc4e339775b2b34920a46d581bebe83759570a45`, **MERGEABLE**
-- **Encounter PR CI:** Scaffold `35264620723` — **IN PROGRESS** at last check; Kotlin/hosted-database/backend jobs have started and no failure evidence is present yet
+- **Encounter PR CI:** Scaffold `35264620723` — **IN PROGRESS**; backend **SUCCESS**, hosted-database **SUCCESS**, Kotlin currently in `Build and test Kotlin surfaces`, Android debug APK upload pending; no failure evidence
 - **Repository auto-merge capability:** attempted for PR #59 to reduce owner intervention, but GitHub rejected it because auto-merge is not enabled for this repository. Do not retry unless repository settings deliberately change.
 - **Next action:** inspect PR Scaffold `35264620723` after natural progress. If fully green, merge PR #59 using exact expected head `cc4e339775b2b34920a46d581bebe83759570a45`, then continue through post-merge validation and Encounter documentation closure automatically. If a concrete failure appears, repair only that failure.
 - **Do not:** restart completed Zone work, broaden Encounter into live combat or a generic graph/dependency engine, start Wave 7 Manager UI prematurely, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or a universal arbitrary/executable payload model.
