@@ -1,137 +1,76 @@
 # Development and Review Workflow
 
-This file defines the approved AI-led implementation workflow with owner-controlled product decisions and Git-based operative memory.
-
 ## 1. Guiding principle
 
-The repository must distinguish approved product state, implemented state, accepted/manual state, work in progress, recommendations, unresolved questions, verification actually performed and branch lifecycle.
-
-Never confuse a chat suggestion, old checkpoint, branch name or green CI result with current project truth.
+Git must distinguish approved product state, implemented state, accepted/manual state, work in progress, verification actually performed and branch lifecycle. Never confuse chat memory, an old checkpoint, a branch name or green CI with current project truth.
 
 ## 2. Branch model
 
-Lifecycle is controlled by `docs/BRANCH_STATUS.md`.
+`main` is the sole normal integrated trunk. Use short-lived outcome-oriented branches from current `main`; shared foundations integrate early. Permanent Player/Desktop/Server/provider silos are prohibited absent a concrete later need.
 
-`main` is the sole normal integrated trunk. Normal work uses short-lived outcome-oriented branches from current `main`; shared foundations integrate early; permanent Player/Desktop/Server silos are prohibited unless a later concrete need changes that direction.
+Wave 5 is complete/integrated. Normal continuation is Wave 6 reusable/persistent content architecture.
 
 ## 3. Owner vs technical responsibility
 
-Ask the owner to decide product behavior/workflow, UX/game semantics, visibility/privacy, MVP scope, destructive/safety behavior and meaningful cost/security/privacy/compatibility/irreversible-lock-in tradeoffs.
+Ask the owner for product behavior/workflow, UX/game semantics, privacy/visibility, MVP scope, destructive/safety behavior and meaningful cost/security/compatibility/irreversible-lock-in tradeoffs.
 
-Technical agents normally decide and document database/table layout, class/type decomposition, endpoint/request shapes, migrations, internal sync structures, serialization, rendering internals, test architecture, branch/package granularity and reversible provider mechanics inside approved boundaries.
+Technical agents normally decide schema/table layout, class/type decomposition, endpoint/request shapes, migrations, internal sync structures, serialization, rendering internals, tests and branch/package granularity. Do not ask for ceremonial approval of routine engineering.
 
-Do not ask the owner to rubber-stamp low-level engineering choices.
-
-## 4. Communication model
-
-Agents perform technical heavy lifting but explain meaningful work in practical terms: what changed, why it matters, the important approach, owner-relevant consequences/tradeoffs, what was verified, known limitations and the exact next action.
-
-## 5. Product/design state
-
-Current integrated-MVP product definition is closed enough for implementation. Do not reopen foundational product questions merely because coding has begun.
-
-For a genuinely new owner-consequential choice, explain realistic alternatives, recommend one, obtain the owner's choice and record it in Git. For routine technical choices, decide/document without ceremonial approval work.
-
-## 6. Work item lifecycle
-
-### A — establish authority
+## 4. Work lifecycle
 
 Before implementation:
 
-1. read mandatory continuity files;
-2. identify current branch/topology;
-3. read `PROJECT_STATE`, `LATEST` and applicable decisions/checkpoints;
-4. identify real owner-action/external-provider boundaries;
-5. identify existing implemented/accepted evidence and material unknowns.
+1. verify remote repository/branch/PR/CI state;
+2. read mandatory authority files and current checkpoint;
+3. separate approved semantics, implemented constraints, routine engineering and genuine unresolved owner choices;
+4. identify real provider/manual boundaries.
 
-Do not resume from historical `next` prose when current docs supersede it.
+Then choose the simplest safe design, implement the smallest coherent batch, run focused + aggregate checks appropriate to risk, update operative memory, leave durable Git evidence, integrate through the normal branch/PR workflow, and continue until a genuine owner/manual/provider boundary.
 
-### B — technical design
+Historical checkpoints remain evidence, not automatic `next` instructions.
 
-Choose the simplest safe design satisfying approved behavior. Reuse proven project patterns and avoid generalized infrastructure without measured need.
+## 5. Verification discipline
 
-### C — implement
+Record exact revision/build, checks executed, results, untested areas and evidence type. Never claim a test was run when it was not. CI, real-provider evidence and owner physical/manual QA are different evidence classes.
 
-Within authorization, agents may write/refactor code, create/update tests, change build/configuration, execute checks, diagnose/repair failures and update technical documentation.
+Green CI cannot establish provider deployment/auth behavior. Conversely, provider work that was completed/tested/recorded must not be repeated merely because documentation changed.
 
-Keep batches coherent and outcome-oriented.
+## 6. External-provider capability protocol
 
-### D — verify
+For Cloudflare, Descope, Neon or another authenticated provider:
 
-Record exact revision/build, commands/checks, passes/failures, untested areas, environment/device type and evidence type. Never describe unexecuted tests as passed or infer owner acceptance from CI.
+1. determine whether the current environment has actual authenticated capability for the required action;
+2. if yes, proceed only inside approved scope/security/cost boundaries;
+3. if no, stop trying alternate plugins/MCP/browser/API-token/dashboard routes once that is established;
+4. finish all safe repository/code/test/CI preparation;
+5. identify the first unavoidable owner provider action;
+6. provide one exact owner-action packet with what/why/where, ordered commands/clicks, expected result, secrets not to share, non-secret evidence to return, stop/error conditions and billing/security/destructive warnings;
+7. stop at that boundary and resume from returned non-secret evidence without repeating completed work.
 
-### E — update operative memory
+Prefer one external handoff per task. Provider inability does not require artificial micro-packaging of safe engineering.
 
-Before meaningful work is complete, update applicable truth in `PROJECT_STATE`, `LATEST`, `BRANCH_STATUS`, decisions/conventions and relevant roadmap/architecture/testing/checkpoint files. A continuation-critical fact must not remain only in chat.
+## 7. Current provider baseline
 
-### F — owner communication
+Existing DEV Worker: `dnd-custom-aid-api` at `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`.
 
-Explain what now works/changed, what was tested, known limitations, any genuine owner/manual/external gate, branch/revision and exact next action.
+Wave 5 deployment is already verified. Do not create a replacement Worker or redeploy it for documentation-only changes. Redeploy only when Worker code materially changes or newer evidence requires it, preserving configured secrets.
 
-### G — integrate
+Normal DEV owner/DM identity is Outlook-backed. Gmail is historical/inactive by default; preserve historical evidence.
 
-Use short-lived outcome branches, preserve coherent/buildable merge points, verify expected heads and leave durable evidence at meaningful milestones.
+## 8. Secrets/cost
 
-## 7. External-provider handoff protocol
+Never request or commit passwords, OTPs, provider/API/deployment tokens, DB passwords/connection strings, JWTs, private keys, signing credentials or secret environment values.
 
-Cloudflare, Descope, Neon and other authenticated providers require an explicit capability check.
+External-service operating budget is USD $0 unless explicitly changed. New provider/resource activation requires current verification of payment method, quotas, hard caps/overage, region/data location and migration/lock-in. Object storage remains deferred until assets actually require it.
 
-### If the agent has authenticated provider capability
-
-Proceed only within the already approved scope/security/cost boundary. Do not enable paid/overage resources or expose secrets.
-
-### If the agent does not have authenticated provider capability
-
-Do **not** keep trying alternate access methods after the limitation is established. Do not convert the work item into a long sequence of speculative provider probes.
-
-Instead:
-
-1. finish all safe repository/CI work that does not require provider authentication;
-2. identify the **first** unavoidable owner-side provider action;
-3. prepare one owner-action packet containing:
-   - what the action does and why it is needed;
-   - exact ordered commands/clicks;
-   - expected output/visible result;
-   - secrets/values that must not be pasted into chat or Git;
-   - the non-secret evidence the owner should return;
-   - stop/error conditions;
-4. stop at that boundary;
-5. after the owner returns evidence, validate it and continue without repeating completed investigation;
-6. if another inaccessible provider action is later required, stop again and create the next bounded handoff.
-
-Prefer **one external handoff per task**. A task may contain substantial repository work; it does not need to be artificially split into tiny steps merely because an external handoff exists.
-
-Use `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md` when handing continuation to a fresh worker/chat.
-
-## 8. Current technical direction
-
-The active technical architecture includes Ktor shared networking, versioned HTTP/JSON, mutation IDs + revisions, SQLDelight outbox/scoped sync, Neon PostgreSQL, explicit hosted SQL migrations, JSONB PC snapshots + relational auth/index metadata, Descope identity proof + application-owned authorization, versioned JSON import/export, full backup direction and one canonical PC/PDF-export semantic path.
-
-Object storage remains deferred until real asset integration requires it.
-
-## 9. Verification posture
-
-Use focused tests plus Scaffold/integration/manual evidence appropriate to the risk. Prefer invariant tests over arbitrary coverage targets. Real-provider behavior requires real-provider evidence; green repository CI cannot substitute for deployment/integration evidence or owner physical/visual QA.
-
-See `docs/TESTING.md`.
-
-## 10. Failed or partial work
-
-Partial work is acceptable if clearly recorded. State what completed, what remains, exact failure/blocker, relevant branch/commit and exact next action.
-
-Never hide an unfinished migration, failing test or unresolved manual/provider gate behind generic `in progress` wording.
-
-## 11. Current implementation sequence
-
-Implementation is **AUTHORIZED and IN PROGRESS**.
-
-Current broad sequence:
+## 9. Current implementation sequence
 
 ```text
-completed convergence/shared/hosted foundations
+completed baseline/shared/hosted foundations
 -> completed Wave 4 Player <-> Server
--> Wave 5 Desktop/admin work (ACTIVE)
--> content/authoring Managers
+-> completed Wave 5 Desktop + Campaign Administration
+-> NOW Wave 6 reusable/persistent content architecture
+-> Wave 7 authoring Managers
 -> DM live workspace
 -> combat exchange/handoff
 -> SRD clarification
@@ -139,10 +78,4 @@ completed convergence/shared/hosted foundations
 -> integrated owner QA
 ```
 
-The current detailed continuation is controlled by `docs/checkpoints/LATEST.md`.
-
-## 12. Secrets and credentials
-
-Never commit or request passwords, OTPs, tokens, API keys, database credentials, production/release signing keys, private certificates or other secrets.
-
-Use secure local/CI/provider secret storage. Owner-side commands should reference locally stored credentials/environment variables without revealing values in chat output.
+For current exact continuation, use `docs/checkpoints/LATEST.md`.
