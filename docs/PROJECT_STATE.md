@@ -3,15 +3,16 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `fc870fe8303b0f9925c479bdc21c388ef5cc8450` (PR #53)  
-**Post-merge Scaffold:** `35256531651` — SUCCESS  
+**Last verified runtime/integration merge:** `d978a4191054227a03b32ecca3e7ceadc5d6e869` (PR #55)  
+**Post-merge Scaffold:** `35259027937` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 reusable-content persistence foundation:** INTEGRATED  
 **Wave 6 Creature payload persistence:** INTEGRATED  
 **Wave 6 NPC payload persistence:** INTEGRATED  
 **Wave 6 lightweight Homebrew/Rule payload persistence:** INTEGRATED  
+**Wave 6 Place payload persistence:** INTEGRATED  
 **Current normal wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** Place payload + local persistence core
+**Next bounded package:** TO BE SELECTED after Place documentation closure
 
 ## 1. Current topology
 
@@ -25,7 +26,9 @@ PR #51 `feat: add Wave 6 NPC payload persistence` merged as `1aebc6d6b769d0da59b
 
 PR #53 `feat: add lightweight Homebrew Rule payload persistence` merged as `fc870fe8303b0f9925c479bdc21c388ef5cc8450`; push Scaffold `35256210643`, PR Scaffold `35256230033` and post-merge Scaffold `35256531651` all succeeded.
 
-No completed Wave 5 work, reusable-content foundation, Creature payload, NPC payload or Homebrew/Rule payload work should be repeated without new defect evidence.
+PR #55 `feat: add Wave 6 Place payload persistence` merged as `d978a4191054227a03b32ecca3e7ceadc5d6e869`; push Scaffold `35258393882`, PR Scaffold `35258423034` and post-merge Scaffold `35259027937` all succeeded.
+
+No completed Wave 5 work, reusable-content foundation, Creature payload, NPC payload, Homebrew/Rule payload or Place payload work should be repeated without new defect evidence.
 
 ## 2. Wave 5 acceptance baseline
 
@@ -111,40 +114,45 @@ Persistence scope includes SQLDelight `homebrew_rule_payload`, migration `21.sqm
 
 Structured races/sub-races, classes/subclasses, backgrounds, feats, spells, ordinary items and magic items remain outside this lightweight record and require family-appropriate models/editors. No universal arbitrary JSON/executable homebrew payload was introduced.
 
-## 9. Wave 6 continuation — Place payload core
+## 9. Integrated Place payload package
 
-The next bounded package is **Place payload + local persistence core** using `ReusableContentFamily.PLACE`.
+PR #55 establishes canonical reusable Place data while preserving D-0072's rule that Shops are specialized Places rather than a separate top-level content family.
 
-The first Place package should establish a canonical reusable Place record while preserving D-0072's rule that a Shop is a specialized Place rather than a separate top-level system.
+Integrated semantics include:
 
-Keep the initial package self-contained around human-facing retrieval/presentation data such as:
-
+- `PlaceKind.PLACE` and `PlaceKind.SHOP`;
+- reusable-content display name as the canonical Place name;
 - summary;
-- area or geographic context;
-- function;
+- area/geographic context;
+- function/purpose;
 - presentation/atmosphere text;
-- services/interactives;
+- services and interactives;
 - hooks;
 - player-safe text;
 - DM-only notes;
-- paper references;
-- tags;
-- a simple Place kind sufficient to represent ordinary Places and Shops without a second top-level content family.
+- paper references and tags;
+- Personal/Campaign create/read/copy/update/tombstone behavior;
+- independent campaign copies with retained provenance;
+- stale-write rejection and tombstone/non-resurrection semantics.
 
-Exact field decomposition and serialization are delegated engineering decisions.
+Persistence scope includes SQLDelight `place_payload`, migration `22.sqm` with metadata-only Place backfill defaulting to ordinary `PLACE`, explicit list serialization, database-reopen/migration/copy/revision coverage and the bounded synthetic legacy Desktop fixture adjustment.
 
-Reuse the integrated Personal/Campaign create/read/copy/update/tombstone and revision/provenance seams.
+The package deliberately does not introduce generalized Place <-> NPC/Scene/Zone/Encounter relationship/dependency-copy graphs, clocks, media/object-storage references, automatic reveal/publication behavior or Stage/Place Manager UI.
 
-Do **not** introduce generalized Place <-> NPC/Scene/Zone/Encounter dependency-copy graphs, clocks, media/object-storage references or automatic reveal/publication behavior in this first payload. Those relationships should be introduced deliberately in later bounded packages when a dependent domain actually requires them.
+## 10. Wave 6 continuation selection
 
-## 10. Security/cost residuals
+The next bounded Wave 6 implementation package is intentionally **not selected by this documentation closure**.
+
+After this closure is merged, re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated foundation + Creature + NPC + Homebrew/Rule + Place state. Do not infer the next package solely from branch order, and do not create a new implementation branch until that selection is explicit.
+
+## 11. Security/cost residuals
 
 Hard external-service operating budget remains USD $0. Repository is intentionally public. Object-storage provider selection remains deferred.
 
 Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect packages/reachability/fixed versions when a relevant hardening package is scheduled.
 
-## 11. Resume rule
+## 12. Resume rule
 
 Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, relevant D-0071/D-0072/D-0073/D-0075 records and `docs/ROADMAP.md`.
 
-Resume from current `main` on a new short-lived branch for the Place payload + local persistence core. Reuse the integrated reusable-content seams; do not rebuild prior Wave 6 packages, introduce generalized relationship graphs prematurely, generalize all content into one universal abstraction, or redeploy Cloudflare for local/shared persistence work.
+Finish the Place documentation closure. Then resume from current `main`, select one bounded dependency-safe Wave 6 continuation package from current authority, and create a short-lived outcome branch only for that selected scope. Do not rebuild prior Wave 6 packages, introduce generalized relationship graphs prematurely, generalize all content into one universal abstraction, or redeploy Cloudflare for documentation/local-persistence work.
