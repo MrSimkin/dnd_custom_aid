@@ -3,19 +3,19 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `a99f03bf53637494695cc39b39d077ea1ef61ada` (PR #69)  
-**Post-merge Scaffold:** `35280636549` — SUCCESS  
+**Last verified runtime/integration merge:** `a84a8857102806f8a9ac588545167d697ea8a311` (PR #71)  
+**Post-merge Scaffold:** `35282483851` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager place retrieval/organization core  
-**Next bounded package:** Adventure/Scene Spine — lightweight local core
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine  
+**Next bounded package:** Desktop Dungeon/Zone Manager — local Zone Brief authoring core
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager or Stage retrieval work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval or Scene Spine work without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -37,11 +37,11 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
+Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
 
 Hard external-service operating budget remains USD $0.
 
-## 4. Wave 6 integrated architecture
+## 4. Reusable-content architecture
 
 The shared reusable-content spine provides Personal/Campaign scope, stable identity, family metadata, provenance for independent Personal -> Campaign copies, optimistic revisions/stale-write rejection, tombstones/non-resurrection, sync metadata/invariants, SQLDelight persistence and verified migrations/reopen behavior.
 
@@ -54,91 +54,110 @@ Integrated reusable families:
 - Homebrew/Rule — PR #53, migration `21.sqm`;
 - Place — PR #55, migration `22.sqm`;
 - Zone — PR #57, migration `23.sqm`;
-- Encounter — PR #59, migration `24.sqm`.
+- Encounter — PR #59, migration `24.sqm`;
+- Scene — PR #71, migration `25.sqm`.
 
-Encounter dependency copy/remap remains domain-specific; no generalized dependency graph was introduced. Scene is not currently a reusable-content family and must not be assumed to exist.
+Encounter dependency copy/remap remains domain-specific; no generalized dependency graph was introduced. Scene possible-next-scene cues and preparation references are intentionally human-readable strings in the current lightweight orientation model.
 
-## 5. Wave 7 integrated Managers
+## 5. Wave 7 integrated Managers and preparation surfaces
 
 ### Creature/Monster Manager
 
-PR #61 integrated the first visible Desktop authoring Manager. It supports Personal + active-Campaign Creature browsing/search, create/open/edit, scope/provenance/revision visibility and explicit Personal -> Campaign independent copy. Display name + Creature payload save atomically under one optimistic revision.
+PR #61 integrated Personal + active-Campaign Creature browse/search/create/edit, scope/provenance/revision visibility, explicit independent Personal -> Campaign copy and atomic display-name + payload updates.
 
 Validation: implementation `38d68dc832188f29c76ec40990297f53a85e9bed`; push `35267065066`; PR `35267241770`; merge `12a62288457ebe5892f90f637fe41c142b094591`; post-merge `35267674641` — SUCCESS.
 
 ### NPC Manager
 
-PR #63 integrated the second concrete Desktop Manager. It supports Personal/Campaign browse, create and edit for Quick -> Developed NPC data, optional combat mechanics through `CreaturePayload`, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic name + payload updates. Incomplete NPCs remain valid.
+PR #63 integrated Personal/Campaign browse/create/edit for Quick -> Developed NPC data, optional combat mechanics through `CreaturePayload`, provenance/revision visibility, explicit independent copy and atomic name + payload updates.
 
 Validation: implementation `58b680e71ec59c871854eb9c083ff2bc6906fe88`; push `35269013875`; PR `35269163375`; merge `58a565c3a33a433ce47e7fd4ac1185b5f980644f`; post-merge `35270643883` — SUCCESS.
 
 ### Homebrew & Rules Manager
 
-PR #65 integrated the third concrete Desktop Manager using the existing lightweight Homebrew/Rule persistence. It supports Personal/active-Campaign browse/search/create/edit, Draft / Active / Retired lifecycle, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic name + payload updates.
+PR #65 integrated the lightweight rule-record core: Personal/active-Campaign browse/search/create/edit, Draft / Active / Retired lifecycle, provenance/revision visibility, explicit independent copy and atomic name + payload updates.
 
 Validation: implementation `17f4cd686114f734ab0bc50f453de9d579a52c79`; push `35272269481`; PR `35272560206`; merge `6febe3f936593999834189b92aeda9d209385fa7`; post-merge `35277359425` — SUCCESS.
 
-The lightweight Homebrew Manager does not claim completion of structured races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage, hosted reusable-content sync or generalized Manager abstractions.
+Structured races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage and hosted reusable-content sync remain later work.
 
 ### Place/Shop Manager
 
-PR #67 integrated the fourth concrete Desktop Manager using the existing Wave 6 Place persistence. It supports Personal/Campaign Place browse/search/create/open/edit, `PLACE` / `SHOP` specialization, full current Place payload authoring, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic display-name + payload updates.
+PR #67 integrated Personal/Campaign Place browse/search/create/open/edit, `PLACE` / `SHOP` specialization, full existing Place payload authoring, provenance/revision visibility, explicit independent copy and atomic display-name + payload update.
 
 Validation: implementation `f4bb75f4b2872ebc6a1dc4302cd4890367e4618c`; push `35278740631`; PR `35279052405`; merge `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`; post-merge `35279329344` — SUCCESS.
 
 ### Stage Manager — Place retrieval/organization core
 
-PR #69 integrated the fifth concrete Wave 7 package without adding a Stage persistence model.
+PR #69 added Stage-oriented retrieval over the existing Place/Shop family without duplicate Stage persistence: kind/scope/area/function/tag filters, full-text retrieval and deterministic Name / Area / Recent ordering while preserving the Place editor/copy flows.
 
-The existing Place/Shop authoring surface now also provides Stage-oriented retrieval:
+Validation: implementation `a01eb18a8385807d973c9f2059ff32779c0f6897`; push `35280359257`; PR `35280486923`; merge `a99f03bf53637494695cc39b39d077ea1ef61ada`; post-merge `35280636549` — SUCCESS.
 
-- kind filter: all / Place / Shop;
-- scope filter: all / Personal / Campaign;
-- area, function and tag filters;
-- full-text retrieval across the existing Place payload;
-- deterministic Name / Area / Recent ordering;
-- Stage framing while preserving the existing Place editor and copy flows.
+### Adventure/Scene Spine — lightweight local core
 
-The package reuses existing Place persistence, so all Personal/Campaign copy, provenance, atomic update, optimistic revision, stale-write and tombstone/non-resurrection semantics remain unchanged.
+PR #71 integrated the lightweight Scene orientation model and Desktop authoring surface.
+
+Scene now supports:
+
+- title/display name;
+- purpose;
+- possible next Scene cues;
+- preparation references/links;
+- DM notes;
+- Personal and active-Campaign browse/search/create/open/edit;
+- explicit Personal -> Campaign independent copy;
+- scope/provenance/revision visibility;
+- atomic title + payload update.
+
+Persistence adds `ReusableContentFamily.SCENE`, `ScenePayload` / `SceneContent`, `SceneContentRepository`, `scene_payload` and migration `25.sqm`. Migration/reopen, stale-write, copy independence and tombstone/non-resurrection are covered by focused tests. The legacy-unversioned Desktop migration fixture was updated for the new current payload table; production normalization logic remains unchanged.
 
 Validation:
 
-- implementation head `a01eb18a8385807d973c9f2059ff32779c0f6897`;
-- push Scaffold `35280359257` — SUCCESS;
-- PR Scaffold `35280486923` — SUCCESS;
-- PR #69 merged as `a99f03bf53637494695cc39b39d077ea1ef61ada`;
-- post-merge Scaffold `35280636549` — SUCCESS.
+- final implementation head `face568e7985125975731fef5e275e333ef79b9d`;
+- push Scaffold `35281913166` — SUCCESS;
+- PR Scaffold `35282188319` — SUCCESS;
+- PR #71 merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
+- post-merge Scaffold `35282483851` — SUCCESS.
 
-No database migration, Worker change or provider action was required.
+Scene remains orientation, not a quest engine. There is no recursive Scene copy/remap, generalized dependency graph, clock/readiness model or live-state orchestration.
 
-## 6. Next Wave 7 package — Adventure/Scene Spine
+## 6. Next Wave 7 package — Desktop Dungeon/Zone Manager
 
-Next bounded package: **Adventure/Scene Spine — lightweight local core**.
+Next bounded package: **Desktop Dungeon/Zone Manager — local Zone Brief authoring core**.
 
-Source inspection confirms Scene is genuinely absent rather than merely hidden from the UI:
+D-0072 places Dungeon/Zone preparation immediately after Stage/Scene. Wave 6 already integrated Zone persistence and the current `ZonePayload` contains:
 
-- `ReusableContentFamily` currently contains Creature, NPC, Homebrew/Rule, Place, Zone and Encounter only;
-- there is no Scene payload repository or Scene SQL schema;
-- the shared spine package provides generic identity/revision/scope primitives, not a Scene domain model;
-- current SQLDelight payload migrations run through `24.sqm` for Encounter;
-- the generic reusable-content table is already family-agnostic.
+- summary;
+- area;
+- presentation;
+- space;
+- exploration;
+- interactives;
+- clues;
+- checks;
+- consequences;
+- encounter brief;
+- DM guidance;
+- player-safe text;
+- paper references;
+- tags.
 
-The Scene package should introduce only the minimum concrete persistence/model/UI surface required for D-0072's lightweight orientation spine.
+`ZoneContentRepository` already supports Personal/Campaign creation, explicit independent copy, payload update and tombstone, but lacks the atomic display-name + payload update used by the other visible Managers. No Desktop Zone Manager currently exists.
 
-Initial principles:
+Initial bounded scope:
 
-- title/display name and purpose/summary;
-- possible next Scenes;
-- only lightweight references actually needed by the concrete preparation/navigation flow;
-- Personal and Campaign scope using the proven reusable-content semantics;
-- explicit Personal -> Campaign independent copy;
-- optimistic revisions, stale-write rejection and tombstone/non-resurrection;
-- minimal Desktop browse/create/edit/copy authoring;
-- focused migration/persistence/revision/copy tests.
+- Personal + active-Campaign Zone browse/search/create/open/edit;
+- present the editor through the approved **PRESENTAR / INTERACTUAR / ENCUENTRO** Zone Brief grouping while retaining the richer existing fields;
+- retrieve/filter by area/tags/search;
+- explicit Personal -> Campaign independent copy with provenance;
+- add atomic display-name + Zone payload update under one optimistic revision;
+- preserve stale-write rejection and tombstone/non-resurrection;
+- focused repository/controller coverage;
+- integrate into the existing Desktop Managers surface with active Campaign context visible.
 
-Do not turn Scene into a quest engine. Do not pre-model clocks, media storage, generalized dependency graphs or live-state orchestration. Keep cross-domain reference semantics deliberately narrow and evidence-driven.
+The current `space` and `exploration` fields can preserve topology/flow preparation in this first slice. Do not introduce tactical geometry, VTT maps, generalized graph infrastructure, clocks/readiness or automatic fictional consequences merely to build the initial Manager.
 
-Dungeon/Zone, Encounter, PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
+Encounter Manager, PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
 
 ## 7. Security/provider boundaries
 
@@ -154,4 +173,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with the Adventure/Scene Spine — lightweight local core. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with the Desktop Dungeon/Zone Manager — local Zone Brief authoring core. Routine safe green boundaries do not require separate owner confirmation.
