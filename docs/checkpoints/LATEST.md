@@ -2,56 +2,57 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `0b73d79e46edb7022ace2a2efd161149d9aefc73`  
-**PR #57:** MERGED  
-**Post-merge Scaffold:** `35262999144` — SUCCESS  
+**Last verified integrated runtime merge:** `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd`  
+**PR #59:** MERGED  
+**Post-merge Scaffold:** `35265162945` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
-**Wave 6 reusable-content persistence foundation:** INTEGRATED  
-**Wave 6 Creature payload persistence:** INTEGRATED  
-**Wave 6 NPC payload persistence:** INTEGRATED  
-**Wave 6 lightweight Homebrew/Rule payload persistence:** INTEGRATED  
-**Wave 6 Place payload persistence:** INTEGRATED  
-**Wave 6 Zone payload persistence:** INTEGRATED  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE6_ZONE_PAYLOAD_INTEGRATED.md`  
-**Current wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** TO BE SELECTED after Zone documentation closure  
+**Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
+**Integrated reusable families:** Creature, NPC, Homebrew/Rule, Place, Zone, Encounter  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE6_ENCOUNTER_PAYLOAD_INTEGRATED.md`  
+**Current engineering wave:** Wave 7 — Desktop authoring Managers  
+**Next bounded package:** Desktop Creature/Monster Manager — local authoring core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE6_ZONE_PAYLOAD_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE6_ENCOUNTER_PAYLOAD_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
 6. `docs/ROADMAP.md`.
 
-## Current sequence
+## Integrated sequence
 
 ```text
 Wave 4 Player <-> Server                           COMPLETE / INTEGRATED
-Wave 5 Desktop shell/local campaign               COMPLETE / OWNER-QA PASS / MERGED (#42)
-hosted membership administration core             COMPLETE / MERGED (#43)
-Desktop hosted Campaign Administration            COMPLETE / OWNER-QA PASS / MERGED (#44)
-Wave 6 reusable-content persistence foundation    COMPLETE / MERGED (#46)
-Wave 6 Creature payload persistence               COMPLETE / MERGED (#48)
-Wave 6 NPC payload persistence                    COMPLETE / MERGED (#51)
-Wave 6 Homebrew/Rule payload persistence          COMPLETE / MERGED (#53)
-Wave 6 Place payload persistence                  COMPLETE / MERGED (#55)
-Wave 6 Zone payload persistence                   COMPLETE / MERGED (#57)
-post-merge Scaffold                               PASS (35262999144)
+Wave 5 Desktop shell/campaign administration      COMPLETE / OWNER-QA PASS / INTEGRATED
+Wave 6 reusable-content foundation                COMPLETE / INTEGRATED
+Wave 6 Creature payload                           COMPLETE / INTEGRATED
+Wave 6 NPC payload                                COMPLETE / INTEGRATED
+Wave 6 Homebrew/Rule payload                      COMPLETE / INTEGRATED
+Wave 6 Place payload                              COMPLETE / INTEGRATED
+Wave 6 Zone payload                               COMPLETE / INTEGRATED
+Wave 6 Encounter payload                          COMPLETE / INTEGRATED
+post-merge Scaffold                               PASS (35265162945)
         |
         v
-Select next dependency-safe bounded Wave 6 package after this docs closure
+Wave 7 Desktop Creature/Monster Manager local authoring core
 ```
 
 ## Practical continuation
 
-Finish and integrate the short-lived Zone documentation closure branch.
+Finish and integrate the short-lived Encounter documentation closure branch.
 
-After that integration, re-read current D-0072/D-0073 authority and select the next dependency-safe bounded Wave 6 package from the integrated foundation + Creature + NPC + Homebrew/Rule + Place + Zone state. Encounter is the remaining reserved rich reusable family, but its first bounded package should not prematurely pull in the full future relationship/dependency graph unless the approved requirement concretely needs it.
+Then start Wave 7 from current `main` with a bounded Creature/Monster Manager slice using the already-integrated `CreatureContentRepository` and existing Desktop `MANAGERS` destination.
 
-Under the coherent-task continuation rule, routine green boundaries do not require separate owner confirmation. Continue through normal safe engineering steps automatically until a genuine owner/product/risk/provider/failure/async-wait boundary appears.
+Initial slice: browse/search Personal + active-Campaign Creatures, create/open/edit the existing Creature payload, display scope/provenance, and explicitly copy Personal -> active Campaign.
+
+Do not pull Official/SRD catalog integration, import/export, Creature Creator Assistant, media/object storage, hosted reusable-content sync or a generalized all-Managers framework into the first slice unless concrete implementation evidence requires it.
+
+## Operating rule
+
+Routine green engineering boundaries do not require owner confirmation. Continue autonomously through branch/commit/CI/PR/merge/post-merge/docs closure while scope and risk remain unchanged. Stop only for a real failure/judgment issue, owner product/scope/risk decision, provider/manual action, destructive/cost/security ambiguity, or genuine async wait with nothing safe/useful left to do.
 
 ## Permanent safety rules
 
@@ -63,5 +64,5 @@ Under the coherent-task continuation rule, routine green boundaries do not requi
 - preserve stable identity, revisions/stale-write rejection, idempotency, tombstones/non-resurrection and explicit conflicts;
 - DM authority is not PC ownership;
 - do not redeploy Cloudflare unless Worker code materially changes or new evidence requires it;
-- object-storage provider selection remains deferred;
+- object-storage provider selection remains deferred until a concrete Media/Handouts requirement;
 - do not run `npm audit fix --force` blindly.

@@ -4,7 +4,7 @@ This roadmap defines the current dependency-driven implementation sequence. Deta
 
 ## Foundation and integrated baseline
 
-Phases 0–3, Phase 4A Player foundation, and Waves 1–3 of the integrated MVP are complete for their recorded scope.
+Phases 0–3, Phase 4A Player foundation, and Waves 1–5 of the integrated MVP are complete for their recorded scope.
 
 Approved technical foundation remains Kotlin/Compose Android, Kotlin + Compose Multiplatform Desktop, SQLite/SQLDelight local persistence, Ktor Client, TypeScript Cloudflare Worker/API, Neon PostgreSQL and Descope identity proof. Object-storage provider selection remains deferred until Media/Handouts/assets require it.
 
@@ -24,101 +24,56 @@ Waves 1–4 are complete/integrated for their recorded scope. Wave 5 Desktop she
 
 ### Wave 6 — reusable/persistent content architecture
 
-**ACTIVE — FOUNDATION + CREATURE + NPC + LIGHTWEIGHT HOMEBREW/RULE + PLACE + ZONE PAYLOADS INTEGRATED; NEXT BOUNDED PACKAGE TO BE SELECTED AFTER ZONE DOC CLOSURE.**
+**COMPLETE FOR CORE REUSABLE-CONTENT ARCHITECTURE / INTEGRATED.**
 
-PR #46 integrated the reusable-content persistence foundation:
+Integrated packages:
 
-- family/catalog metadata for Creature, NPC, Homebrew/Rule, Place, Zone and Encounter;
-- Personal/Campaign creation/listing;
-- explicit Personal -> Campaign independent copy with retained provenance;
-- optimistic revision/tombstone/non-resurrection behavior;
-- SQLDelight migration `18.sqm`;
-- recognized Wave-5 Desktop migration/fail-closed unknown-unversioned handling;
-- focused invariant/migration/reopen tests.
+- reusable-content foundation — PR #46;
+- Creature payload — PR #48;
+- NPC payload — PR #51;
+- lightweight Homebrew/Rule payload — PR #53;
+- Place payload — PR #55;
+- Zone payload — PR #57;
+- Encounter payload — PR #59.
 
-PR #46 merged as `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
+The integrated spine preserves stable identity, Personal/Campaign scope, independent Personal -> Campaign copies with retained provenance, optimistic revisions/stale-write rejection, tombstones/non-resurrection and SQLDelight migration/reopen behavior.
 
-PR #48 integrated Creature payload persistence:
+PR #59 completes the six reserved reusable families with saved Encounter preparation, Creature/NPC participant references, freeform participants, `EXPECTED / RESERVE / CONDITIONAL` readiness, encounter-local overrides and domain-specific dependency copy/remap/deduplication.
 
-- human-complete, selectively structured Creature payload;
-- local SQLDelight persistence linked to reusable-content identity;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- migration `19.sqm` with metadata-only Creature backfill;
-- focused invariant/migration/reopen tests.
+PR #59 merged as `81303bf875457bd1fa0a9ce70d7a4e71eaad9edd`; push Scaffold `35264310753`, PR Scaffold `35264620723`, and post-merge Scaffold `35265162945` passed.
 
-PR #48 merged as `5762058645ba8af8fa470dcf185bd2b418af65e9`; post-merge Scaffold `35253188344` passed.
-
-PR #51 integrated NPC payload persistence:
-
-- Quick and Developed NPCs both valid without mandatory combat mechanics;
-- human-facing narrative/dossier payload with no completion score;
-- optional full combat mechanics reusing the existing `CreaturePayload` model;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- independent campaign copies with retained provenance;
-- SQLDelight `npc_payload` persistence and migration `20.sqm` with metadata-only NPC backfill;
-- stale-write/non-resurrection, migration and database-reopen coverage;
-- bounded synthetic legacy Desktop fixture update.
-
-PR #51 merged as `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`; push Scaffold `35254216489`, PR Scaffold `35254260799`, and post-merge Scaffold `35254527744` passed.
-
-PR #53 integrated lightweight Homebrew/Rule payload persistence:
-
-- self-contained rule/ruling/custom-system payload;
-- summary/body, optional category/rationale, examples, related references, tags and optional notes;
-- lifecycle `DRAFT / ACTIVE / RETIRED`;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- independent campaign copies with retained provenance;
-- SQLDelight `homebrew_rule_payload` persistence and migration `21.sqm` with metadata-only backfill;
-- explicit list serialization plus stale-write/non-resurrection, migration and database-reopen coverage;
-- bounded synthetic legacy Desktop fixture update.
-
-PR #53 merged as `fc870fe8303b0f9925c479bdc21c388ef5cc8450`; push Scaffold `35256210643`, PR Scaffold `35256230033`, and post-merge Scaffold `35256531651` passed.
-
-PR #55 integrated Place payload persistence:
-
-- canonical reusable Place data using `ReusableContentFamily.PLACE`;
-- `PlaceKind.PLACE` plus `PlaceKind.SHOP`, preserving Shops as specialized Places rather than a separate top-level system;
-- summary, area/geographic context, function/purpose, presentation text, services/interactives, hooks, player-safe text, DM-only notes, paper references and tags;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- independent campaign copies with retained provenance;
-- SQLDelight `place_payload` persistence and migration `22.sqm` with metadata-only Place backfill;
-- explicit list serialization plus stale-write/non-resurrection, migration and database-reopen coverage;
-- bounded synthetic legacy Desktop fixture update.
-
-PR #55 merged as `d978a4191054227a03b32ecca3e7ceadc5d6e869`; push Scaffold `35258393882`, PR Scaffold `35258423034`, and post-merge Scaffold `35259027937` passed.
-
-PR #57 integrated prepared Zone / Zone Brief payload persistence:
-
-- canonical reusable Zone data using `ReusableContentFamily.ZONE`;
-- summary, area/context, presentation/atmosphere, space/layout, exploration, interactives, clues, checks, consequences, encounter brief, DM guidance, player-safe text, paper references and tags;
-- preserved distinction between authored Zone Brief preparation and live Dungeon Turn movement-zone state;
-- Personal/Campaign create/read/copy/update/tombstone behavior;
-- independent campaign copies with retained provenance;
-- SQLDelight `zone_payload` persistence and migration `23.sqm` with metadata-only Zone backfill;
-- explicit list serialization plus stale-write/non-resurrection, migration and database-reopen coverage;
-- bounded synthetic legacy Desktop fixture update.
-
-PR #57 merged as `0b73d79e46edb7022ace2a2efd161149d9aefc73`; push Scaffold `35262051406`, PR Scaffold `35262563057`, and post-merge Scaffold `35262999144` passed.
-
-The next bounded Wave 6 implementation package is intentionally selected only after the Zone documentation closure is integrated. Re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated state. Encounter is now the remaining reserved rich reusable family, but its first package must stay bounded and should not prematurely force the entire future relationship/dependency graph.
-
-Still deliberately outside the completed payload packages unless a later bounded scope explicitly requires them:
-
-- large Manager UI;
-- hosted reusable-content sync;
-- object storage/provider activation;
-- import/export and AI helper workflows;
-- generalized relationship/dependency graphs before a concrete need;
-- automatic reveal/publication behavior;
-- live Dungeon Turn zone state;
-- clocks/advisory triggers not yet required by a selected domain package;
-- a universal executable content payload model.
-
-Under the coherent-task continuation rule, routine safe green boundaries do not require separate owner confirmation; continue through PR/CI/merge/docs closure and subsequent delegated engineering until a genuine owner/risk/provider/failure/async-wait boundary appears.
+Wave 6 completion does not pre-model all future persistent concepts. Add Scene Spine, richer structured Homebrew families, clocks/readiness, Media/Handouts and live-state models only when their concrete approved package requires them.
 
 ### Wave 7 — Desktop authoring Managers
 
-Implement Monster/Creature Creator, NPC, Homebrew & Rules, Stage/Place, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts workflows on the relevant Wave 6 foundations.
+**ACTIVE NEXT.**
+
+First bounded package:
+
+#### Desktop Creature/Monster Manager — local authoring core
+
+Use the existing Desktop `MANAGERS` destination and integrated Creature repository/payload.
+
+Initial scope:
+
+- browse/search Personal Creatures;
+- browse/search active-Campaign Creatures when a campaign is active;
+- create Personal or active-Campaign Creatures;
+- open/edit the existing human-complete Creature payload;
+- show scope and provenance;
+- explicitly copy Personal Creature -> active Campaign;
+- preserve revision/stale-write/tombstone semantics.
+
+Deliberately defer from this first slice:
+
+- Official/SRD catalog browsing;
+- import/export;
+- Creature Creator Assistant/advisory design helpers;
+- media/object storage;
+- hosted reusable-content sync;
+- universal all-domain Manager abstractions.
+
+Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: NPC, Homebrew & Rules, Stage/Place/Scene, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Family-specific supporting persistence may be added with the concrete Manager that needs it.
 
 Select/activate object storage only when Media/Handouts/assets actually require it, after a fresh `$0` review.
 
@@ -140,7 +95,7 @@ Complete verifiable server backup/export and meaningful recovery/admin tooling.
 
 ### Wave 12 — integrated owner-facing QA
 
-Exercise representative Player + Server + DM flows end-to-end.
+Exercise representative Player + Server + DM flows end-to-end, including campaign/invite/PC sync, authored Creature/NPC/Place/Zone/Encounter content, live tablet play, Desktop authority resume, public combat projection, PC audit/correction, backup/export and official-SRD clarification.
 
 ## Security across waves
 
@@ -148,4 +103,4 @@ Maintain fail-closed authorization, object-level authorization, replay/idempoten
 
 ## Git/provider rule
 
-Use short-lived outcome branches from current `main`; integrate shared foundations early. When a required provider action is inaccessible, finish safe repo work and stop at one bounded owner handoff instead of retrying access paths.
+Use short-lived outcome branches from current `main`; integrate shared foundations early when later work depends on them. Routine safe green boundaries do not require owner confirmation. When a required provider action is inaccessible, finish safe repo work and stop at one bounded owner handoff instead of retrying access paths.
