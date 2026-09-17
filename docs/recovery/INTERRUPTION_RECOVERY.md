@@ -18,7 +18,8 @@ The objective is to recover in minutes without repeating completed work.
 6. Resume from the **first unfinished action after that boundary**.
 7. Do not repeat completed investigation, implementation, tests, pushes, PRs, merges or provider actions unless new evidence shows they must be repeated.
 8. Read deeper project files only when the current task requires them.
-9. Before stopping again after a material state change, replace `CURRENT_TASK.md` with the new current execution state.
+9. Continue through routine safe follow-on steps automatically when scope/risk has not changed; durable boundaries are recovery markers, not owner-confirmation requirements.
+10. Before stopping again after a material state change, replace `CURRENT_TASK.md` with the new current execution state.
 
 ## Conflict rule
 
@@ -28,14 +29,26 @@ Correct `CURRENT_TASK.md` before continuing.
 
 ## CI rule
 
-Never burn a session waiting for GitHub Actions.
+Never burn a session on rapid GitHub Actions polling, but also do not fragment a coherent task merely because CI is asynchronous.
 
-- Inspect the relevant run once.
-- If completed, act on the result.
-- If still running, record run ID, SHA and status in `CURRENT_TASK.md` and end the bounded task.
-- No `sleep` loops and no repeated polling.
+- Inspect the relevant run at a meaningful gate.
+- If completed, act on the result and continue the authorized task automatically.
+- If still running, perform any independent safe/useful work that does not assume the result.
+- A later single recheck in the same task/session is allowed after such progress or when enough time has naturally passed.
+- Do not use `sleep` loops or rapid repeated polling.
+- Only when CI is still running and there is genuinely nothing else safe/useful to do should it become the stop boundary; then record run ID, SHA and status in `CURRENT_TASK.md` before ending the turn.
 
 If CI failed, inspect only enough evidence to identify the failing job/step. Repair only failures clearly attributable to the current authorized package. Do not turn a focused repair into a new feature package.
+
+## Coherent continuation rule
+
+After recovery, do not make the owner manually advance every routine boundary.
+
+For an already-authorized package, continue through the normal safe sequence when gates pass, such as:
+
+`implementation -> push CI -> PR -> PR CI -> merge -> post-merge CI -> documentation/checkpoint closure`.
+
+Stop only for a genuine owner decision, material failure, provider/manual action, destructive/cost/security ambiguity, scope expansion, or a real async waiting boundary with nothing else useful to do.
 
 ## Provider/manual boundary
 
@@ -57,6 +70,6 @@ Recovery is complete when you can state, from current Git evidence:
 - active branch/PR/head, if any;
 - latest relevant CI state;
 - last completed durable boundary;
-- exactly one next unfinished action.
+- next unfinished action or coherent sequence.
 
-At that point, continue the task instead of performing more archaeology.
+At that point, continue the task instead of performing more archaeology or asking for confirmation at every routine boundary.
