@@ -24,7 +24,7 @@ Waves 1–4 are complete/integrated for their recorded scope. Wave 5 Desktop she
 
 ### Wave 6 — reusable/persistent content architecture
 
-**ACTIVE — FOUNDATION + CREATURE + NPC + LIGHTWEIGHT HOMEBREW/RULE + PLACE PAYLOADS INTEGRATED; NEXT BOUNDED PACKAGE TO BE SELECTED AFTER PLACE DOC CLOSURE.**
+**ACTIVE — FOUNDATION + CREATURE + NPC + LIGHTWEIGHT HOMEBREW/RULE + PLACE + ZONE PAYLOADS INTEGRATED; NEXT BOUNDED PACKAGE TO BE SELECTED AFTER ZONE DOC CLOSURE.**
 
 PR #46 integrated the reusable-content persistence foundation:
 
@@ -87,7 +87,20 @@ PR #55 integrated Place payload persistence:
 
 PR #55 merged as `d978a4191054227a03b32ecca3e7ceadc5d6e869`; push Scaffold `35258393882`, PR Scaffold `35258423034`, and post-merge Scaffold `35259027937` passed.
 
-The next bounded Wave 6 implementation package is intentionally **not selected by this documentation closure**. After the Place closure is integrated, re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated state rather than inferring it from branch order.
+PR #57 integrated prepared Zone / Zone Brief payload persistence:
+
+- canonical reusable Zone data using `ReusableContentFamily.ZONE`;
+- summary, area/context, presentation/atmosphere, space/layout, exploration, interactives, clues, checks, consequences, encounter brief, DM guidance, player-safe text, paper references and tags;
+- preserved distinction between authored Zone Brief preparation and live Dungeon Turn movement-zone state;
+- Personal/Campaign create/read/copy/update/tombstone behavior;
+- independent campaign copies with retained provenance;
+- SQLDelight `zone_payload` persistence and migration `23.sqm` with metadata-only Zone backfill;
+- explicit list serialization plus stale-write/non-resurrection, migration and database-reopen coverage;
+- bounded synthetic legacy Desktop fixture update.
+
+PR #57 merged as `0b73d79e46edb7022ace2a2efd161149d9aefc73`; push Scaffold `35262051406`, PR Scaffold `35262563057`, and post-merge Scaffold `35262999144` passed.
+
+The next bounded Wave 6 implementation package is intentionally selected only after the Zone documentation closure is integrated. Re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated state. Encounter is now the remaining reserved rich reusable family, but its first package must stay bounded and should not prematurely force the entire future relationship/dependency graph.
 
 Still deliberately outside the completed payload packages unless a later bounded scope explicitly requires them:
 
@@ -97,8 +110,11 @@ Still deliberately outside the completed payload packages unless a later bounded
 - import/export and AI helper workflows;
 - generalized relationship/dependency graphs before a concrete need;
 - automatic reveal/publication behavior;
-- clocks/media semantics not yet required by a selected domain;
+- live Dungeon Turn zone state;
+- clocks/advisory triggers not yet required by a selected domain package;
 - a universal executable content payload model.
+
+Under the coherent-task continuation rule, routine safe green boundaries do not require separate owner confirmation; continue through PR/CI/merge/docs closure and subsequent delegated engineering until a genuine owner/risk/provider/failure/async-wait boundary appears.
 
 ### Wave 7 — Desktop authoring Managers
 
