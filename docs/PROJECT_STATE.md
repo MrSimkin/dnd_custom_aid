@@ -3,16 +3,17 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `d978a4191054227a03b32ecca3e7ceadc5d6e869` (PR #55)  
-**Post-merge Scaffold:** `35259027937` — SUCCESS  
+**Last verified runtime/integration merge:** `0b73d79e46edb7022ace2a2efd161149d9aefc73` (PR #57)  
+**Post-merge Scaffold:** `35262999144` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 reusable-content persistence foundation:** INTEGRATED  
 **Wave 6 Creature payload persistence:** INTEGRATED  
 **Wave 6 NPC payload persistence:** INTEGRATED  
 **Wave 6 lightweight Homebrew/Rule payload persistence:** INTEGRATED  
 **Wave 6 Place payload persistence:** INTEGRATED  
+**Wave 6 Zone payload persistence:** INTEGRATED  
 **Current normal wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** TO BE SELECTED after Place documentation closure
+**Next bounded package:** TO BE SELECTED after Zone documentation closure
 
 ## 1. Current topology
 
@@ -28,7 +29,9 @@ PR #53 `feat: add lightweight Homebrew Rule payload persistence` merged as `fc87
 
 PR #55 `feat: add Wave 6 Place payload persistence` merged as `d978a4191054227a03b32ecca3e7ceadc5d6e869`; push Scaffold `35258393882`, PR Scaffold `35258423034` and post-merge Scaffold `35259027937` all succeeded.
 
-No completed Wave 5 work, reusable-content foundation, Creature payload, NPC payload, Homebrew/Rule payload or Place payload work should be repeated without new defect evidence.
+PR #57 `feat: add Wave 6 Zone payload persistence` merged as `0b73d79e46edb7022ace2a2efd161149d9aefc73`; push Scaffold `35262051406`, PR Scaffold `35262563057` and post-merge Scaffold `35262999144` all succeeded.
+
+No completed Wave 5 work or integrated Wave 6 foundation/Creature/NPC/Homebrew/Rule/Place/Zone package should be repeated without new defect evidence.
 
 ## 2. Wave 5 acceptance baseline
 
@@ -139,20 +142,49 @@ Persistence scope includes SQLDelight `place_payload`, migration `22.sqm` with m
 
 The package deliberately does not introduce generalized Place <-> NPC/Scene/Zone/Encounter relationship/dependency-copy graphs, clocks, media/object-storage references, automatic reveal/publication behavior or Stage/Place Manager UI.
 
-## 10. Wave 6 continuation selection
+## 10. Integrated Zone payload package
 
-The next bounded Wave 6 implementation package is intentionally **not selected by this documentation closure**.
+PR #57 establishes canonical reusable prepared Zone / Zone Brief data while preserving D-0072's distinction between authored Area/Zone Brief preparation and live Dungeon Turn movement-zone state.
 
-After this closure is merged, re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated foundation + Creature + NPC + Homebrew/Rule + Place state. Do not infer the next package solely from branch order, and do not create a new implementation branch until that selection is explicit.
+Integrated semantics include:
 
-## 11. Security/cost residuals
+- reusable-content display name as canonical Zone name;
+- summary and area/context;
+- presentation/atmosphere;
+- space/layout description;
+- exploration guidance;
+- interactives;
+- clues;
+- checks;
+- consequences;
+- encounter brief/orientation;
+- DM guidance;
+- player-safe text;
+- paper references and tags;
+- Personal/Campaign create/read/copy/update/tombstone behavior;
+- independent campaign copies with retained provenance;
+- stale-write rejection and tombstone/non-resurrection semantics.
+
+Persistence scope includes SQLDelight `zone_payload`, migration `23.sqm` with metadata-only Zone backfill, explicit list serialization, database-reopen/migration/copy/revision coverage and the bounded synthetic legacy Desktop fixture adjustment.
+
+The package deliberately does not introduce generalized Place/NPC/Zone/Encounter relationship/dependency graphs, Encounter dependency-copy machinery, live Dungeon Turn movement-zone state, clocks/triggers, media/object-storage references, hosted reusable-content sync or Dungeon/Zone Manager UI.
+
+## 11. Wave 6 continuation selection
+
+The next bounded Wave 6 implementation package is intentionally **not selected by this documentation closure itself**.
+
+After this closure is merged, re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated foundation + Creature + NPC + Homebrew/Rule + Place + Zone state. Encounter is now the remaining reserved rich reusable family, but its first package should remain bounded and must not prematurely force the entire future relationship/dependency graph.
+
+Under the coherent-task continuation rule, routine safe green boundaries after this closure do not require separate owner confirmation.
+
+## 12. Security/cost residuals
 
 Hard external-service operating budget remains USD $0. Repository is intentionally public. Object-storage provider selection remains deferred.
 
 Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect packages/reachability/fixed versions when a relevant hardening package is scheduled.
 
-## 12. Resume rule
+## 13. Resume rule
 
 Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, relevant D-0071/D-0072/D-0073/D-0075 records and `docs/ROADMAP.md`.
 
-Finish the Place documentation closure. Then resume from current `main`, select one bounded dependency-safe Wave 6 continuation package from current authority, and create a short-lived outcome branch only for that selected scope. Do not rebuild prior Wave 6 packages, introduce generalized relationship graphs prematurely, generalize all content into one universal abstraction, or redeploy Cloudflare for documentation/local-persistence work.
+Finish the Zone documentation closure. Then resume from current `main`, select the next bounded dependency-safe Wave 6 continuation package from current authority and proceed autonomously through routine safe gates. Do not rebuild prior Wave 6 packages, introduce generalized relationship graphs prematurely, generalize all content into one universal abstraction, or redeploy Cloudflare for documentation/local-persistence work.
