@@ -50,6 +50,7 @@ fun main() {
     val campaignRepository = CampaignRepository(databaseHandle.database)
     val creatureManagerController = DesktopCreatureManagerController(databaseHandle.database)
     val npcManagerController = DesktopNpcManagerController(databaseHandle.database)
+    val homebrewRuleManagerController = DesktopHomebrewRuleManagerController(databaseHandle.database)
     val preferencesStore = DesktopPreferencesStore()
     val hostedAuthController = DesktopHostedAuthController()
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
@@ -70,6 +71,7 @@ fun main() {
                         campaignRepository = campaignRepository,
                         creatureManagerController = creatureManagerController,
                         npcManagerController = npcManagerController,
+                        homebrewRuleManagerController = homebrewRuleManagerController,
                         hostedAuthController = hostedAuthController,
                         hostedCampaignController = hostedCampaignController,
                         preferences = preferences,
@@ -107,6 +109,7 @@ private fun DesktopWorkbench(
     campaignRepository: CampaignRepository,
     creatureManagerController: DesktopCreatureManagerController,
     npcManagerController: DesktopNpcManagerController,
+    homebrewRuleManagerController: DesktopHomebrewRuleManagerController,
     hostedAuthController: DesktopHostedAuthController,
     hostedCampaignController: DesktopHostedCampaignAdministrationController,
     preferences: DesktopPreferences,
@@ -191,9 +194,10 @@ private fun DesktopWorkbench(
                         onActivate = ::activateCampaign,
                     )
 
-                    DesktopDestination.MANAGERS -> DesktopManagersScreen(
+                    DesktopDestination.MANAGERS -> DesktopAuthoringManagersScreen(
                         creatureController = creatureManagerController,
                         npcController = npcManagerController,
+                        homebrewRuleController = homebrewRuleManagerController,
                         activeCampaign = activeCampaign,
                         onQaEvent = ::logQa,
                     )
@@ -340,7 +344,7 @@ private fun DashboardScreen(
                 Text("Wave 7 — Gestores de autoría", style = MaterialTheme.typography.h6)
                 Text(
                     "Desktop mantiene el contexto local persistente, puede conectarse al servicio alojado desde " +
-                        "Administración de campaña y ahora incorpora gestores locales para criaturas / monstruos y PNJ.",
+                        "Administración de campaña y ahora incorpora gestores locales para criaturas / monstruos, PNJ y reglas Homebrew.",
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
                     Button(onClick = onOpenCampaigns) { Text("Abrir campañas") }
@@ -570,7 +574,7 @@ private fun buildQaSnapshot(
     events: List<String>,
 ): String = buildString {
     appendLine("D&D Custom Aid — Desktop QA")
-    appendLine("Paquete: Wave 7 Desktop authoring Managers — Creature + NPC local cores")
+    appendLine("Paquete: Wave 7 Desktop authoring Managers — Creature + NPC + Homebrew/Rules local cores")
     appendLine("SO: ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
     appendLine("Java: ${System.getProperty("java.version")}")
     appendLine("Base local: ${DesktopDatabaseFactory.defaultDatabaseFile().absolutePath}")
