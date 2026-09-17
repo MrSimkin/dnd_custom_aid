@@ -46,7 +46,7 @@ import kotlin.uuid.Uuid
 
 private enum class DesktopManagersHubSection(val label: String) {
     CREATURES_NPCS_HOMEBREW("Criaturas / PNJ / Homebrew"),
-    PLACES_SHOPS("Lugares / Tiendas"),
+    PLACES_SHOPS("Escenarios / Lugares / Tiendas"),
 }
 
 @Composable
@@ -183,6 +183,7 @@ private fun DesktopPlaceManagerScreen(
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
+    var stageFilters by remember { mutableStateOf(StagePlaceFilters()) }
     var newName by remember { mutableStateOf("") }
     var newKind by remember { mutableStateOf(PlaceKind.PLACE) }
     var selectedId by remember { mutableStateOf<Uuid?>(null) }
@@ -209,36 +210,19 @@ private fun DesktopPlaceManagerScreen(
         refreshVersion += 1
     }
 
-    val normalizedQuery = query.trim().lowercase()
-    val visiblePlaces = (personalPlaces + campaignPlaces)
-        .distinctBy { it.item.identity.id }
-        .filter { content ->
-            normalizedQuery.isEmpty() || buildList {
-                add(content.item.displayName)
-                add(content.payload.kind.name)
-                add(content.payload.summary)
-                add(content.payload.area)
-                add(content.payload.function)
-                add(content.payload.presentation)
-                add(content.payload.playerSafeText)
-                add(content.payload.dmNotes)
-                addAll(content.payload.services)
-                addAll(content.payload.interactives)
-                addAll(content.payload.hooks)
-                addAll(content.payload.paperReferences)
-                addAll(content.payload.tags)
-            }.any { it.lowercase().contains(normalizedQuery) }
-        }
-        .sortedWith(compareBy({ placeScopeSortKey(it) }, { it.item.displayName.lowercase() }))
+    val visiblePlaces = filterStagePlaces(
+        places = personalPlaces + campaignPlaces,
+        filters = stageFilters.copy(query = query),
+    )
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Lugares y Tiendas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Gestor de Escenarios, Lugares y Tiendas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
             Text(
-                "Lugares reutilizables locales. Las tiendas son lugares especializados y las copias de campaña son independientes.",
+                "La vista Stage organiza los lugares reutilizables existentes; las tiendas siguen siendo lugares especializados y las copias de campaña son independientes.",
                 style = MaterialTheme.typography.body1,
             )
         }
@@ -305,6 +289,11 @@ private fun DesktopPlaceManagerScreen(
             )
         }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+
+        StagePlaceFilterControls(
+            filters = stageFilters,
+            onFiltersChange = { stageFilters = it },
+        )
 
         Divider()
 
@@ -389,7 +378,7 @@ private fun PlaceList(
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Stage • Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
         }
         if (places.isEmpty()) {
             item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.caption) }
