@@ -114,32 +114,49 @@ Validation: implementation `1a8b875a567ed73fbcceee73872ec59702b4b3f0`; push `352
 
 #### Encounter Manager / Encounter Creator — local authoring core
 
-**NEXT BOUNDED PACKAGE.**
+**COMPLETE / INTEGRATED — PR #75.**
 
-Wave 6 already integrated Encounter persistence in PR #59 / migration `24.sqm`, so the first Manager should reuse that foundation unless concrete evidence requires a schema change.
+The first Desktop Encounter Manager is integrated on top of the existing Wave 6 Encounter persistence with no schema migration.
 
-Current `EncounterPayload` includes summary, environment, context, DM guidance, participants, tags and notes. Each participant supports an optional Creature/NPC reusable-content reference or label, quantity, readiness (`EXPECTED`, `RESERVE`, `CONDITIONAL`), condition text, overrides and notes.
-
-`EncounterContentRepository` already validates dependency family/scope and its Personal -> Campaign Encounter copy performs domain-specific Creature/NPC dependency copy/remapping while deduplicating repeated source dependency IDs.
-
-Initial scope:
+Integrated behavior:
 
 - Personal + active-Campaign Encounter browse/search/create/open/edit;
-- participant authoring using existing Creature/NPC references plus label-only participants;
-- expose quantity/readiness/condition/overrides/notes;
-- explicit Personal -> Campaign independent copy preserving current dependency-copy/remap behavior;
-- atomic display-name + Encounter payload update under one optimistic revision;
-- stale-write rejection and tombstone/non-resurrection;
-- focused repository/controller tests;
-- integrate into the current Desktop Managers surface with active Campaign context visible.
+- full-text/tag filtering;
+- participant authoring using same-scope Creature/NPC choices or freeform groups;
+- quantity, Expected / Reserve / Conditional readiness, condition, encounter-specific overrides and notes;
+- explicit independent Personal -> Campaign Encounter copy preserving current Creature/NPC dependency copy/remap and deduplication semantics;
+- atomic display-name + payload update under optimistic revision semantics;
+- stale-write, dependency, copy and tombstone/non-resurrection coverage;
+- dedicated `Encuentros` route in the Desktop Managers hub.
 
-Do not create generalized dependency graph infrastructure, live initiative/combat state, encounter-balancing AI, hosted reusable-content synchronization or provider work merely to complete the bounded Encounter Manager core.
+Saved Encounter preparation remains separate from live initiative/combat state. No generalized dependency graph or encounter-balancing authority was introduced.
+
+Validation: initial implementation `91d744a66e3ff18ee9190c41d4dbb3970ca412fe`; initial push `35286844850` exposed one corrected Kotlin visibility mismatch; final implementation `a68f62897d6178f1da1c19deb2721ea04abc837a`; corrected push `35287257508` SUCCESS; PR `35287507268` SUCCESS; merge `7000535b78df2b2a7149b019796ff3d5903fdb3d`; post-merge `35287713130` SUCCESS.
+
+#### PC Manager / Audit — Desktop inspection/audit core
+
+**NEXT BOUNDED PACKAGE.**
+
+D-0072 defines Desktop PC Manager as a DM inspection, audit and administration surface over the canonical PC records used by the Player App, not as a second Desktop character-builder.
+
+Initial direction:
+
+- inspect/reuse existing PC persistence, authority, synchronization and history structures before adding schema;
+- campaign PC overview/retrieval and complete DM inspection;
+- distinguish data freshness from sync freshness where supported;
+- meaningful grouped audit/history;
+- explicit DM correction/edit paths that preserve history and authority semantics;
+- maintain the separation of campaign membership, PC ownership and PC control;
+- focused inspection/authority/correction tests.
+
+Approved later responsibilities include ownership/controller administration, freeze/unfreeze, lifecycle administration, duplication and D-0074 PC Sheet PDF export. The exact sequencing inside PC Manager should follow evidence from the existing architecture.
+
+Do not create a parallel Desktop character model, silently impersonate the Player or destructively erase audit history.
 
 #### Later Wave 7 packages
 
 After Encounter Manager / Encounter Creator, continue with the remaining approved concrete surfaces in dependency order:
 
-- PC Manager / Audit;
 - Media / Handouts;
 - deferred richer Homebrew families and other explicit gaps where still required.
 

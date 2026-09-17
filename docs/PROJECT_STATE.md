@@ -3,19 +3,19 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `5be90a994f453e5444ecf00762cd72407cfe790a` (PR #73)  
-**Post-merge Scaffold:** `35285629973` — SUCCESS  
+**Last verified runtime/integration merge:** `7000535b78df2b2a7149b019796ff3d5903fdb3d` (PR #75)  
+**Post-merge Scaffold:** `35287713130` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core  
-**Next bounded package:** Encounter Manager / Encounter Creator — local authoring core
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core  
+**Next bounded package:** PC Manager / Audit — Desktop inspection/audit core
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine or Dungeon/Zone Manager work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager or Encounter Manager work without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -37,7 +37,7 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
+Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone/Encounter packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
 
 Hard external-service operating budget remains USD $0.
 
@@ -126,38 +126,56 @@ Validation:
 - PR #73 merged as `5be90a994f453e5444ecf00762cd72407cfe790a`;
 - post-merge Scaffold `35285629973` — SUCCESS.
 
-## 6. Next Wave 7 package — Encounter Manager / Encounter Creator
+### Desktop Encounter Manager / Encounter Creator — local authoring core
 
-Next bounded package: **Encounter Manager / Encounter Creator — local authoring core**.
+PR #75 integrated the first Desktop Encounter Manager on top of the existing Wave 6 Encounter persistence. No schema migration was required.
 
-Wave 6 already integrated Encounter persistence and the current `EncounterPayload` contains:
-
-- summary;
-- environment;
-- context;
-- DM guidance;
-- participants;
-- tags;
-- notes.
-
-Each `EncounterParticipant` can use a Creature/NPC `sourceContentId` or a free-text label and carries quantity, readiness (`EXPECTED`, `RESERVE`, `CONDITIONAL`), condition, overrides and notes.
-
-`EncounterContentRepository` already supports Personal/Campaign creation, read, explicit Personal -> Campaign copy, payload update and tombstone. It validates Creature/NPC dependency family/scope. Personal -> Campaign Encounter copy already performs domain-specific Creature/NPC dependency copy/remapping and deduplicates repeated dependency IDs. It currently lacks the atomic display-name + payload update used by the visible Managers.
-
-Initial bounded scope:
+Integrated behavior:
 
 - Personal + active-Campaign Encounter browse/search/create/open/edit;
-- participant authoring using the existing Creature/NPC dependency model plus label-only participants;
-- expose quantity/readiness/condition/overrides/notes;
-- explicit Personal -> Campaign independent copy while preserving current dependency-copy/remap semantics;
-- add atomic display-name + Encounter payload update under one optimistic revision;
-- preserve stale-write rejection and tombstone/non-resurrection;
-- focused repository/controller coverage;
-- integrate into the existing Desktop Managers surface with active Campaign context visible.
+- full-text and tag filtering;
+- participant authoring through same-scope Creature/NPC selection or freeform label-only groups;
+- quantity plus `EXPECTED` / `RESERVE` / `CONDITIONAL` readiness, condition, encounter-specific overrides and notes;
+- explicit Personal -> Campaign independent Encounter copy preserving the existing domain-specific Creature/NPC dependency copy/remap and repeated-dependency deduplication behavior;
+- atomic display-name + Encounter payload update under one optimistic revision;
+- focused dependency, stale-write, copy and tombstone/non-resurrection coverage;
+- dedicated `Encuentros` route in the Desktop Managers hub.
 
-Do not introduce generalized dependency graph infrastructure, live initiative/combat state, automated encounter balancing, hosted reusable-content synchronization or provider changes merely to complete this first Manager core.
+The initial branch push exposed one Kotlin visibility mismatch between a public controller method and an internal Desktop participant-source UI type. The follow-up commit only aligned visibility; the corrected push, PR and post-merge gates all passed.
 
-PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
+Validation:
+
+- initial implementation head `91d744a66e3ff18ee9190c41d4dbb3970ca412fe`;
+- initial push Scaffold `35286844850` — FAILED on the visibility mismatch;
+- final implementation head `a68f62897d6178f1da1c19deb2721ea04abc837a`;
+- corrected push Scaffold `35287257508` — SUCCESS;
+- PR Scaffold `35287507268` — SUCCESS;
+- PR #75 merged as `7000535b78df2b2a7149b019796ff3d5903fdb3d`;
+- post-merge Scaffold `35287713130` — SUCCESS.
+
+Saved Encounters remain preparation, not live initiative/combat working state. No generalized dependency graph, encounter-balancing authority, hosted reusable-content synchronization or provider change was introduced.
+
+## 6. Next Wave 7 package — PC Manager / Audit
+
+Next bounded package: **PC Manager / Audit — Desktop inspection/audit core**.
+
+D-0072 defines this as a DM-side inspection, audit and administration surface over the same canonical PC records used by the Player App. Desktop must not become a second Player character-builder and DM actions must not silently impersonate the Player.
+
+Before changing persistence, inspect and reuse the existing canonical PC, authority, synchronization and history structures.
+
+Initial bounded direction:
+
+- campaign PC overview and retrieval;
+- complete DM inspection of canonical PC data;
+- expose available data-freshness and sync-freshness evidence distinctly;
+- review meaningful grouped audit/history already represented by the project;
+- explicit DM correction/edit entry points that preserve history and authority semantics;
+- keep campaign membership, PC ownership and PC control distinct;
+- focused controller/domain coverage around inspection, authority and correction boundaries.
+
+Freeze/unfreeze, lifecycle administration, ownership/controller administration, duplication and PDF export remain approved D-0072/D-0074 responsibilities, but the exact first implementation package should follow evidence from the existing PC architecture rather than inventing parallel structures.
+
+Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
 
 ## 7. Security/provider boundaries
 
@@ -173,4 +191,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with Encounter Manager / Encounter Creator — local authoring core. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with PC Manager / Audit — Desktop inspection/audit core. Routine safe green boundaries do not require separate owner confirmation.
