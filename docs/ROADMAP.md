@@ -54,17 +54,34 @@ Do not redeploy the Worker merely because documentation advances.
 
 ### Wave 6 — reusable/persistent content architecture
 
-**NEXT / ACTIVE DIRECTION.**
+**ACTIVE — FIRST FOUNDATION PACKAGE INTEGRATED.**
 
-Establish durable reusable-content persistence before rich Managers. Reuse existing Shared `ContentScope`, provenance, revision and tombstone primitives.
+PR #46 integrated the bounded reusable-content persistence foundation on top of the existing Shared `ContentScope`, provenance, revision and tombstone primitives. It includes:
 
-First package should provide a bounded reusable-content envelope/catalog, local SQLDelight persistence/migration, explicit Personal -> Campaign independent copy, optimistic update/tombstone/non-resurrection behavior, listing by scope/family and invariant/migration tests.
+- reusable-content family/catalog metadata for Creature, NPC, Homebrew/Rule, Place, Zone and Encounter;
+- Personal and Campaign creation/listing;
+- explicit Personal -> Campaign independent copy with retained provenance;
+- optimistic revision/tombstone/non-resurrection behavior;
+- local SQLDelight persistence and migration `18.sqm`;
+- safe Desktop migration from the recognized unversioned Wave-5 schema and fail-closed refusal of unknown unversioned databases;
+- invariant, migration and Desktop reopen/migration tests.
 
-Do not force Monster/NPC/Homebrew/Place/Encounter payloads into one giant universal model. Do not add large Manager UI, hosted sync or object storage to the first package unless implementation proves they are strictly required.
+PR #46 merged as `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
+
+The next bounded Wave 6 package must be determined from current architecture, decisions and implementation seams at resume time. Do not assume a later package already exists.
+
+Still deliberately outside the integrated foundation:
+
+- large Manager UI;
+- hosted reusable-content sync;
+- object storage/provider activation;
+- a universal executable content payload model.
+
+Domain-specific payloads should build on the foundation rather than being forced into one giant universal abstraction.
 
 ### Wave 7 — Desktop authoring Managers
 
-Implement Monster/Creature Creator, NPC, Homebrew & Rules, Stage/Place, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts workflows on the Wave 6 foundation.
+Implement Monster/Creature Creator, NPC, Homebrew & Rules, Stage/Place, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts workflows on the relevant Wave 6 foundations.
 
 Select/activate object storage only when Media/Handouts/assets actually require it, after a fresh `$0` review.
 
