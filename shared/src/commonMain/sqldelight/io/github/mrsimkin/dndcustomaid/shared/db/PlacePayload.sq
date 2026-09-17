@@ -1,0 +1,54 @@
+CREATE TABLE place_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL CHECK (kind IN ('PLACE', 'SHOP')),
+    summary TEXT NOT NULL,
+    area TEXT NOT NULL,
+    function TEXT NOT NULL,
+    presentation TEXT NOT NULL,
+    services_json TEXT NOT NULL,
+    interactives_json TEXT NOT NULL,
+    hooks_json TEXT NOT NULL,
+    player_safe_text TEXT NOT NULL,
+    dm_notes TEXT NOT NULL,
+    paper_references_json TEXT NOT NULL,
+    tags_json TEXT NOT NULL
+);
+
+insertPlacePayload:
+INSERT INTO place_payload(
+    content_id,
+    kind,
+    summary,
+    area,
+    function,
+    presentation,
+    services_json,
+    interactives_json,
+    hooks_json,
+    player_safe_text,
+    dm_notes,
+    paper_references_json,
+    tags_json
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectPlacePayloadByContentId:
+SELECT *
+FROM place_payload
+WHERE content_id = ?;
+
+updatePlacePayload:
+UPDATE place_payload
+SET kind = ?,
+    summary = ?,
+    area = ?,
+    function = ?,
+    presentation = ?,
+    services_json = ?,
+    interactives_json = ?,
+    hooks_json = ?,
+    player_safe_text = ?,
+    dm_notes = ?,
+    paper_references_json = ?,
+    tags_json = ?
+WHERE content_id = ?;
