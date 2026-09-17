@@ -1,52 +1,44 @@
 # Project State — global repository navigation
 
-**Last verified:** 2026-09-16 (Chile local time)  
-**Owner integrated-MVP implementation authorization:** **GRANTED**  
+**Last reconstructed:** 2026-09-17 (Chile local time)  
+**Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Verified current main:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
-**Verified post-merge Scaffold:** `35142092743` — **SUCCESS**  
-**Current focused branch:** `wave5/desktop-hosted-campaign-administration`  
-**Current PR:** #44  
-**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_OWNER_QA_COMPLETE.md`  
-**Deployed repository head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
-**Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
-**DEV Worker deployment:** **VERIFIED**  
-**Owner Windows QA:** **PASS**
+**Last verified runtime/integration merge:** `306377df1a453f531af4b670d2b231c88a3c9419` (PR #44)  
+**Post-merge Scaffold:** `35168920031` — SUCCESS  
+**Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
+**Next normal wave:** Wave 6 — reusable/persistent content architecture
 
-## 1. Current authority/topology
+## 1. Current topology
 
-`main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches and reintegrates only after proportionate verification.
+`main` is the sole normal integrated-MVP trunk. New implementation work uses short-lived outcome-oriented branches from current `main`.
 
-`docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle. Historical checkpoints remain evidence for the state that existed when they were written.
+PR #44 `feat: add Desktop hosted campaign administration` is merged. Its final branch head was `20f62b110df80759b5e90d083253b3b87716ff31`; exact-head pre-merge Scaffold `35168771704` succeeded; merge commit is `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` succeeded with backend, hosted-database and Kotlin/build/test/APK jobs green.
 
-PR #42 and PR #43 are complete and merged. PR #44 contains the bounded Desktop hosted Campaign Administration package. Repository implementation, real DEV Worker deployment and full owner Windows acceptance QA are complete. The only remaining package gate is final exact-head CI followed by PR-ready/merge/post-merge verification.
+No Wave 5 application/provider work should be repeated without new defect evidence.
 
-## 2. Integrated foundation
+## 2. Wave 5 acceptance baseline
 
-The integrated foundation includes:
+Wave 5 verified real behavior includes:
 
-- account/global identity;
-- Campaign;
-- Membership + campaign role;
-- PC owner vs current controller;
-- stable object identities;
-- monotonic revisions and stale-write semantics;
-- tombstones/non-resurrection semantics;
-- durable local hosted outbox;
-- authenticated hosted account/campaign bootstrap;
-- explicit membership lifecycle (`ACTIVE`, `KICKED`, `BANNED`);
-- hosted PC snapshot read/write;
-- active-membership plus DM-or-owner/controller server-side PC authorization;
-- mutation idempotency and optimistic revisions;
-- local-first PC delivery/reconciliation;
-- explicit reviewed conflict resolution;
-- permanent hosted-sync QA diagnostics;
-- persistent Desktop local SQLite campaign context/workbench shell;
-- active-DM-only hosted Campaign Administration roster and moderation API/client contract.
+- Desktop local campaign/workbench persistence;
+- real Descope email-OTP authentication;
+- hosted campaign bootstrap/convergence;
+- authoritative member roster;
+- DM rows protected from Player moderation;
+- Player moderation `ACTIVE -> KICKED -> BANNED -> KICKED`;
+- authoritative campaign revisions `0 -> 1 -> 2 -> 3`;
+- `LIFT_BAN = BANNED -> KICKED`;
+- canonical Outlook DEV owner/DM migration, final campaign revision `4`;
+- Outlook roster `DM / ACTIVE`, Gmail no current campaign membership;
+- Outlook Desktop bootstrap `1 hosted / 1 applied / 0 conflicts`;
+- font/theme visual previews and persisted device-local settings;
+- hosted session intentionally not persisted across application shutdown;
+- Outlook reauthentication after relaunch;
+- explicit sign-out clearing hosted state without deleting local campaigns/settings.
+
+Historical Gmail mutation/audit evidence remains truthful and unchanged.
 
 ## 3. Hosted DEV architecture
-
-Verified architecture remains:
 
 ```text
 Android / Desktop clients
@@ -58,111 +50,54 @@ Cloudflare Worker/API <---- Descope identity proof
 Neon PostgreSQL
 ```
 
-Native clients do not hold database credentials. The hard external-service operating budget remains USD $0 unless the owner explicitly changes it.
+Existing DEV Worker: `dnd-custom-aid-api` at `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`.
 
-The current Cloudflare Worker is `dnd-custom-aid-api` at `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`.
+Wave 5 deployment was already performed and verified. Documentation-only changes do not require redeployment. Deploy again only if Worker code materially changes or newer evidence specifically requires it.
 
-The Wave 5 Campaign Administration code was explicitly deployed from repository head `a6c0532878e8ef49ddfb894fa71076c1af73587a`; Cloudflare reported Version ID `130d35e7-7903-47b2-8203-d74f9ec3db55`.
+## 4. Durable provider rules
 
-Deployment evidence passed `/health -> 200` and unauthenticated roster-route recognition/auth enforcement -> `401 UNAUTHENTICATED`.
+Provider work requires an explicit capability check. If the worker lacks authenticated provider capability, establish that once, stop alternate connection probing, finish safe repo/code/test/CI work, hand the owner one exact bounded action packet, and resume from non-secret evidence.
 
-Authenticated real Desktop behavior is now also verified end-to-end against the live Worker and Neon database.
+Never request/paste/commit passwords, OTPs, provider tokens, DB credentials/connection strings, JWTs, private keys/signing credentials or secret environment values.
 
-## 4. Completed Wave 5 predecessor packages
+Green CI does not prove deployment/auth/provider behavior. Completed real-provider evidence should not be repeated merely because docs changed.
 
-### Package A — Desktop shell/local campaign — complete
+Normal hosted DEV owner/DM identity is Outlook-backed. Gmail is historical/inactive by default and may be deliberately reused as a secondary identity only when a future multi-user test needs it.
 
-PR #42 merged as `fb113909cb53b2463bd643cae7d2f54f0673fec4`. Owner Windows QA passed persistent Desktop local campaign state/context, Spanish product UI, Application Settings and bounded QA diagnostics.
+## 5. Wave 6 approved semantic baseline
 
-### Package B — hosted Campaign membership administration core — complete
+Existing Shared spine already provides:
 
-PR #43 merged as `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`.
+- `ContentScope` with Personal/Campaign/System/Official variants;
+- `CopyProvenance`;
+- `ScopedObjectIdentity.independentCampaignCopy()` assigning a new object ID and retained provenance;
+- `Revision` / stale-write checks;
+- sync metadata/tombstone semantics;
+- local integrated-spine persistence for accounts/memberships/PC authority/object sync state.
 
-Integrated behavior includes ACTIVE-DM-only roster, Player `KICK` / `BAN` / `LIFT_BAN`, idempotent/no-op moderation, campaign-revision discipline, provider-neutral Shared client and hosted database contract coverage.
+Approved product semantics further require reusable Personal DM material, explicit Personal -> Campaign independent copies, provenance visibility, no automatic inheritance/update after copy, recoverable/tombstoned durable content where applicable, and dependency-aware copies for reusable Encounters when needed.
 
-## 5. Wave 5 package C — PR #44
+## 6. Recommended first Wave 6 package
 
-Package objective:
+Build a bounded reusable-content persistence foundation on top of the existing spine:
 
-**Desktop hosted authentication/session acquisition + real Campaign Administration consumption**
+- reusable-content identity/family/scope/provenance envelope;
+- local SQLDelight persistence and migration;
+- explicit independent Personal -> Campaign copy operation;
+- optimistic revision/tombstone/non-resurrection behavior;
+- scope/family browsing primitives needed by later Managers;
+- invariant/migration tests.
 
-Implemented and verified:
+Do not build large Manager UI, hosted sync, object storage, or a universal executable rules model in this first package. Domain-specific Monster/NPC/Homebrew/Place/Encounter payload schemas should build on the foundation rather than being forced into one giant universal abstraction.
 
-- Desktop-specific Descope email-OTP/session adapter through `HostedAccessTokenProvider`;
-- memory-only session/refresh JWT handling with refresh-before-use and fail-closed clearing;
-- hosted auth/session UX without disabling local-only work;
-- hosted account/campaign discovery and canonical bootstrap;
-- real hosted member-roster UI;
-- Player-only Kick/Ban/Lift-Ban UI with confirmation, server authority and authoritative refresh;
-- no DM-row moderation affordances;
-- non-secret diagnostics;
-- font/theme preview settings follow-up;
-- bundled Geist and Mona Sans Condensed with provenance/licensing;
-- focused auth/moderation/preference/fallback tests.
+No owner product decision or external-provider handoff is currently required for this package.
 
-## 6. Owner Windows QA — complete
+## 7. Security/cost residuals
 
-The owner physically verified:
+Hard external-service operating budget remains USD $0. Repository is intentionally public. Object-storage provider selection remains deferred.
 
-- Desktop launch and preservation of existing local campaigns;
-- real DEV OTP login;
-- hosted bootstrap and roster retrieval;
-- DM moderation guard;
-- real moderation `ACTIVE -> KICKED -> BANNED -> KICKED` with revisions `0 -> 1 -> 2 -> 3`;
-- canonical Outlook owner/DM migration at revision `4`;
-- Outlook Desktop bootstrap `1 hosted / 1 applied / 0 conflicts` and `DM / ACTIVE` roster at revision `4`;
-- Gmail absent from the current roster;
-- font/theme visual preview cards;
-- device-local preference persistence across application relaunch;
-- memory-only hosted session behavior: application relaunch starts signed out;
-- Outlook reauthentication restores the hosted DM context;
-- explicit sign-out clears hosted session while preserving local campaign data and settings.
+Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect packages/reachability/fixed versions when a relevant hardening package is scheduled.
 
-Normal hosted DEV owner/DM testing now uses the Outlook-backed application identity. Gmail is historical/inactive by default and may be used only when a deliberate multi-user test requires a secondary identity. Historical Gmail mutation receipts remain truthful and untouched.
+## 8. Resume rule
 
-## 7. Current package gate
-
-1. **COMPLETE:** repository implementation and CI verification;
-2. **COMPLETE:** explicit DEV Worker deployment / route verification;
-3. **COMPLETE:** real Desktop auth/bootstrap/roster QA;
-4. **COMPLETE:** real moderation sequence QA;
-5. **COMPLETE:** canonical Outlook DEV identity migration + Desktop verification;
-6. **COMPLETE:** settings persistence and sign-out/relaunch/local-data-preservation QA;
-7. **NEXT:** exact-head Scaffold on final readiness documentation;
-8. if green and `main` remains unchanged, mark PR #44 ready and merge with expected-head protection;
-9. verify post-merge `main` and post-merge CI;
-10. advance to the next Wave 5 package.
-
-## 8. Authentication/session rules
-
-Desktop keeps provider-specific Descope code outside Shared; Shared remains provider-neutral.
-
-Session/refresh JWTs remain memory-only and must not be logged, exposed through diagnostics, committed or persisted in ordinary Desktop preferences. Sign-out clears hosted session state without deleting local campaign/character state. Real Windows QA confirmed those behaviors.
-
-## 9. Campaign Administration rules
-
-For a real hosted active-DM campaign, Desktop displays the authoritative roster, exposes moderation only for Player rows, preserves `LIFT_BAN = BANNED -> KICKED`, waits for server confirmation, refreshes authoritative state after success, and surfaces errors without silently changing local truth. Real DEV QA confirmed the full approved moderation state machine.
-
-## 10. Explicit current-package non-goals
-
-PR #44 does not own invitations/rejoin, co-DM administration, role editing, PC Manager/Audit, ownership/control shortcuts, full new PC sync architecture, Managers, Media/Handouts/object storage, Live Combat, System Administration, backup/export/PDF hardening, broad Player redesign or generalized RBAC/ACL.
-
-## 11. Security / operating residuals
-
-D-0075 remains controlling: repository intentionally public, hard USD $0 external-service budget, never commit secrets, and paid/overage commitments require explicit owner approval.
-
-The known owner-local backend install continues to report **3 high severity npm vulnerabilities**. Do not run `npm audit fix --force` blindly; inspect exact packages/reachability/fixed versions in a later explicit security-hardening pass.
-
-Preserve fail-closed authorization, least privilege, local-first safety, stable identities, stale-revision protection, idempotency, tombstones/non-resurrection and no-silent-overwrite guarantees.
-
-## 12. Resume rule
-
-Read, in order:
-
-1. `docs/checkpoints/LATEST.md`;
-2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_OWNER_QA_COMPLETE.md`;
-3. `docs/BRANCH_STATUS.md`;
-4. this file;
-5. earlier package checkpoints only as needed.
-
-Do not redeploy Cloudflare unless Worker code changes. The current action is final exact-head CI and PR #44 merge readiness.
+Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, then the relevant D-0071/D-0072/D-0073/D-0075 records. Start Wave 6 from current `main` on a short-lived outcome branch. Do not resume old Wave 5 branches or redeploy Cloudflare for documentation changes.
