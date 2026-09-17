@@ -1,0 +1,30 @@
+CREATE TABLE scene_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    purpose TEXT NOT NULL,
+    possible_next_scenes_json TEXT NOT NULL,
+    references_json TEXT NOT NULL,
+    notes TEXT NOT NULL
+);
+
+insertScenePayload:
+INSERT INTO scene_payload(
+    content_id,
+    purpose,
+    possible_next_scenes_json,
+    references_json,
+    notes
+)
+VALUES (?, ?, ?, ?, ?);
+
+selectScenePayloadByContentId:
+SELECT *
+FROM scene_payload
+WHERE content_id = ?;
+
+updateScenePayload:
+UPDATE scene_payload
+SET purpose = ?,
+    possible_next_scenes_json = ?,
+    references_json = ?,
+    notes = ?
+WHERE content_id = ?;
