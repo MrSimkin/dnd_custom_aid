@@ -95,6 +95,36 @@ class NpcContentRepository(
         return checkNotNull(result)
     }
 
+    fun update(
+        id: Uuid,
+        expectedRevision: Revision,
+        rawDisplayName: String,
+        payload: NpcPayload,
+        updatedAtEpochSeconds: Long,
+    ): RevisionDecision {
+        val displayName = rawDisplayName.trim()
+        require(displayName.isNotEmpty()) { "NPC display name must not be blank." }
+
+        return reusableContent.mutateContent(
+            id = id,
+            expectedRevision = expectedRevision,
+            updatedAtEpochSeconds = updatedAtEpochSeconds,
+        ) { current ->
+            require(current.family == ReusableContentFamily.NPC) {
+                "NPC updates require NPC reusable content."
+            }
+            require(this.payload(id) != null) {
+                "NPC reusable content is missing its persisted NPC payload."
+            }
+            database.reusableContentQueries.updateReusableContentName(
+                display_name = displayName,
+                updated_at_epoch_seconds = updatedAtEpochSeconds,
+                id = id.toString(),
+            )
+            updatePayloadRow(id, payload)
+        }
+    }
+
     fun updatePayload(
         id: Uuid,
         expectedRevision: Revision,
