@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime merge:** `a84a8857102806f8a9ac588545167d697ea8a311` (PR #71)  
-**Post-merge Scaffold:** `35282483851` — SUCCESS  
+**Last verified runtime merge:** `5be90a994f453e5444ecf00762cd72407cfe790a` (PR #73)  
+**Post-merge Scaffold:** `35285629973` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** Scene Spine documentation closure, then Desktop Dungeon/Zone Manager — local Zone Brief authoring core
+**Current normal work:** Dungeon/Zone Manager documentation closure, then Encounter Manager / Encounter Creator — local authoring core
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -33,11 +33,12 @@ Integrated Wave 7 implementation PRs:
 - #65 Desktop Homebrew & Rules Manager lightweight local authoring core — merged as `6febe3f936593999834189b92aeda9d209385fa7`;
 - #67 Desktop Place/Shop Manager local authoring core — merged as `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`;
 - #69 Desktop Stage Manager Place retrieval/organization core — merged as `a99f03bf53637494695cc39b39d077ea1ef61ada`;
-- #71 Adventure/Scene Spine lightweight local core — merged as `a84a8857102806f8a9ac588545167d697ea8a311`.
+- #71 Adventure/Scene Spine lightweight local core — merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
+- #73 Desktop Dungeon/Zone Manager local authoring core — merged as `5be90a994f453e5444ecf00762cd72407cfe790a`.
 
-Scene Spine validation: push Scaffold `35281913166`, PR Scaffold `35282188319`, post-merge Scaffold `35282483851` — all SUCCESS.
+Dungeon/Zone Manager validation: push Scaffold `35285060523`, PR Scaffold `35285359440`, post-merge Scaffold `35285629973` — all SUCCESS.
 
-Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval or Scene Spine implementation without new defect evidence.
+Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine or Dungeon/Zone Manager implementation without new defect evidence.
 
 ## Completed implementation branches
 
@@ -64,7 +65,8 @@ Wave 7 historical implementation branches:
 - `wave7/desktop-homebrew-rules-manager-core` — PR #65 merged;
 - `wave7/desktop-place-shop-manager-core` — PR #67 merged;
 - `wave7/desktop-stage-manager-core` — PR #69 merged;
-- `wave7/adventure-scene-spine-core` — PR #71 merged.
+- `wave7/adventure-scene-spine-core` — PR #71 merged;
+- `wave7/desktop-dungeon-zone-manager-core` — PR #73 merged.
 
 Integrated scope belongs to `main`; these refs are not continuation authority.
 
@@ -77,34 +79,35 @@ Historical/short-lived Wave 7 closure branches:
 - `docs/wave7-homebrew-rules-manager-integrated` — Homebrew & Rules -> Place/Shop;
 - `docs/wave7-place-shop-manager-integrated` — Place/Shop -> Stage;
 - `docs/wave7-stage-manager-integrated` — Stage -> Adventure/Scene Spine;
-- `docs/wave7-scene-spine-integrated` — Scene Spine -> Dungeon/Zone Manager.
+- `docs/wave7-scene-spine-integrated` — Scene Spine -> Dungeon/Zone Manager;
+- `docs/wave7-dungeon-zone-manager-integrated` — Dungeon/Zone Manager -> Encounter Manager / Encounter Creator.
 
 After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
 ## Wave 7 next branch direction
 
-The next selected package is **Desktop Dungeon/Zone Manager — local Zone Brief authoring core**.
+The next selected package is **Encounter Manager / Encounter Creator — local authoring core**.
 
 Expected short-lived branch name:
 
-`wave7/desktop-dungeon-zone-manager-core`
+`wave7/desktop-encounter-manager-core`
 
-Wave 6 already integrated `ZonePayload` / `ZoneContentRepository` and migration `23.sqm`; no new Zone schema is expected for this first Manager slice.
+Wave 6 already integrated `EncounterPayload` / `EncounterContentRepository` and migration `24.sqm`; no new Encounter schema is expected for this first Manager slice unless implementation evidence proves otherwise.
 
-Initial bounded direction:
+Current bounded direction:
 
-- Personal + active-Campaign Zone browse/search/create/open/edit;
-- organize the editor around **PRESENTAR / INTERACTUAR / ENCUENTRO** while retaining summary, area, presentation, space, exploration, interactives, clues, checks, consequences, encounter brief, DM guidance, player-safe text, paper references and tags;
-- area/tag/search retrieval;
-- explicit Personal -> Campaign independent copy with provenance;
-- add an atomic display-name + Zone payload update operation under one optimistic revision;
+- Personal + active-Campaign Encounter browse/search/create/open/edit;
+- participant authoring using existing Creature/NPC dependency references plus label-only participants;
+- expose quantity, readiness (`EXPECTED` / `RESERVE` / `CONDITIONAL`), condition, overrides and notes;
+- explicit Personal -> Campaign independent Encounter copy while preserving the current domain-specific Creature/NPC dependency copy/remap and deduplication semantics;
+- add atomic display-name + Encounter payload update under one optimistic revision;
 - preserve stale-write rejection and tombstone/non-resurrection;
 - focused repository/controller coverage;
 - integrate into the existing Desktop Managers surface with active Campaign context visible.
 
-Do not introduce tactical geometry, VTT maps, generalized graph abstractions, clocks/readiness machinery or automatic fictional consequences in this bounded package. Use the existing `space` / `exploration` fields for current topology/flow preparation unless a concrete later requirement proves a stronger structure is needed.
+Do not introduce generalized dependency graph abstractions, live initiative/combat state, encounter-balancing AI, hosted reusable-content synchronization or provider changes in this bounded package.
 
-Encounter Manager, PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later concrete packages.
+PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later concrete packages.
 
 ## Historical/stale open PRs
 

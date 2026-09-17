@@ -3,19 +3,19 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `a84a8857102806f8a9ac588545167d697ea8a311` (PR #71)  
-**Post-merge Scaffold:** `35282483851` — SUCCESS  
+**Last verified runtime/integration merge:** `5be90a994f453e5444ecf00762cd72407cfe790a` (PR #73)  
+**Post-merge Scaffold:** `35285629973` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine  
-**Next bounded package:** Desktop Dungeon/Zone Manager — local Zone Brief authoring core
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core  
+**Next bounded package:** Encounter Manager / Encounter Creator — local authoring core
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval or Scene Spine work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine or Dungeon/Zone Manager work without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -37,7 +37,7 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
+Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
 
 Hard external-service operating budget remains USD $0.
 
@@ -95,69 +95,69 @@ Validation: implementation `a01eb18a8385807d973c9f2059ff32779c0f6897`; push `352
 
 ### Adventure/Scene Spine — lightweight local core
 
-PR #71 integrated the lightweight Scene orientation model and Desktop authoring surface.
+PR #71 integrated the lightweight Scene orientation model and Desktop authoring surface: title, purpose, possible-next-scene cues, preparation references, DM notes, Personal/active-Campaign authoring, explicit independent copy and atomic title + payload update.
 
-Scene now supports:
+Persistence adds `ReusableContentFamily.SCENE`, `ScenePayload` / `SceneContent`, `SceneContentRepository`, `scene_payload` and migration `25.sqm`. Scene remains orientation, not a quest engine.
 
-- title/display name;
-- purpose;
-- possible next Scene cues;
-- preparation references/links;
-- DM notes;
-- Personal and active-Campaign browse/search/create/open/edit;
-- explicit Personal -> Campaign independent copy;
-- scope/provenance/revision visibility;
-- atomic title + payload update.
+Validation: final implementation `face568e7985125975731fef5e275e333ef79b9d`; push `35281913166`; PR `35282188319`; merge `a84a8857102806f8a9ac588545167d697ea8a311`; post-merge `35282483851` — SUCCESS.
 
-Persistence adds `ReusableContentFamily.SCENE`, `ScenePayload` / `SceneContent`, `SceneContentRepository`, `scene_payload` and migration `25.sqm`. Migration/reopen, stale-write, copy independence and tombstone/non-resurrection are covered by focused tests. The legacy-unversioned Desktop migration fixture was updated for the new current payload table; production normalization logic remains unchanged.
+### Desktop Dungeon/Zone Manager — local Zone Brief authoring core
+
+PR #73 integrated the first Desktop Zone Manager on top of the existing Wave 6 Zone persistence. No schema migration was required.
+
+Integrated behavior:
+
+- Personal + active-Campaign Zone browse/search/create/open/edit;
+- area/tag/full-text filtering with deterministic Personal-before-Campaign browsing;
+- editor grouping around **PRESENTAR / INTERACTUAR / ENCUENTRO**, plus DM support fields;
+- full existing Zone payload authoring: summary, area, presentation, space, exploration, interactives, clues, checks, consequences, encounter brief, DM guidance, player-safe text, paper references and tags;
+- explicit Personal -> Campaign independent copy with provenance;
+- atomic display-name + Zone payload update under one optimistic revision;
+- focused stale-write, copy-independence and tombstone/non-resurrection coverage;
+- dedicated `Mazmorras / Zonas` route in the existing Desktop Managers hub.
+
+The `space` and `exploration` fields carry the current topology/flow preparation. Tactical geometry, VTT maps, generalized graph infrastructure, clocks/readiness and automated fictional consequences remain outside this bounded Manager core.
 
 Validation:
 
-- final implementation head `face568e7985125975731fef5e275e333ef79b9d`;
-- push Scaffold `35281913166` — SUCCESS;
-- PR Scaffold `35282188319` — SUCCESS;
-- PR #71 merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
-- post-merge Scaffold `35282483851` — SUCCESS.
+- implementation head `1a8b875a567ed73fbcceee73872ec59702b4b3f0`;
+- push Scaffold `35285060523` — SUCCESS;
+- PR Scaffold `35285359440` — SUCCESS;
+- PR #73 merged as `5be90a994f453e5444ecf00762cd72407cfe790a`;
+- post-merge Scaffold `35285629973` — SUCCESS.
 
-Scene remains orientation, not a quest engine. There is no recursive Scene copy/remap, generalized dependency graph, clock/readiness model or live-state orchestration.
+## 6. Next Wave 7 package — Encounter Manager / Encounter Creator
 
-## 6. Next Wave 7 package — Desktop Dungeon/Zone Manager
+Next bounded package: **Encounter Manager / Encounter Creator — local authoring core**.
 
-Next bounded package: **Desktop Dungeon/Zone Manager — local Zone Brief authoring core**.
-
-D-0072 places Dungeon/Zone preparation immediately after Stage/Scene. Wave 6 already integrated Zone persistence and the current `ZonePayload` contains:
+Wave 6 already integrated Encounter persistence and the current `EncounterPayload` contains:
 
 - summary;
-- area;
-- presentation;
-- space;
-- exploration;
-- interactives;
-- clues;
-- checks;
-- consequences;
-- encounter brief;
+- environment;
+- context;
 - DM guidance;
-- player-safe text;
-- paper references;
-- tags.
+- participants;
+- tags;
+- notes.
 
-`ZoneContentRepository` already supports Personal/Campaign creation, explicit independent copy, payload update and tombstone, but lacks the atomic display-name + payload update used by the other visible Managers. No Desktop Zone Manager currently exists.
+Each `EncounterParticipant` can use a Creature/NPC `sourceContentId` or a free-text label and carries quantity, readiness (`EXPECTED`, `RESERVE`, `CONDITIONAL`), condition, overrides and notes.
+
+`EncounterContentRepository` already supports Personal/Campaign creation, read, explicit Personal -> Campaign copy, payload update and tombstone. It validates Creature/NPC dependency family/scope. Personal -> Campaign Encounter copy already performs domain-specific Creature/NPC dependency copy/remapping and deduplicates repeated dependency IDs. It currently lacks the atomic display-name + payload update used by the visible Managers.
 
 Initial bounded scope:
 
-- Personal + active-Campaign Zone browse/search/create/open/edit;
-- present the editor through the approved **PRESENTAR / INTERACTUAR / ENCUENTRO** Zone Brief grouping while retaining the richer existing fields;
-- retrieve/filter by area/tags/search;
-- explicit Personal -> Campaign independent copy with provenance;
-- add atomic display-name + Zone payload update under one optimistic revision;
+- Personal + active-Campaign Encounter browse/search/create/open/edit;
+- participant authoring using the existing Creature/NPC dependency model plus label-only participants;
+- expose quantity/readiness/condition/overrides/notes;
+- explicit Personal -> Campaign independent copy while preserving current dependency-copy/remap semantics;
+- add atomic display-name + Encounter payload update under one optimistic revision;
 - preserve stale-write rejection and tombstone/non-resurrection;
 - focused repository/controller coverage;
 - integrate into the existing Desktop Managers surface with active Campaign context visible.
 
-The current `space` and `exploration` fields can preserve topology/flow preparation in this first slice. Do not introduce tactical geometry, VTT maps, generalized graph infrastructure, clocks/readiness or automatic fictional consequences merely to build the initial Manager.
+Do not introduce generalized dependency graph infrastructure, live initiative/combat state, automated encounter balancing, hosted reusable-content synchronization or provider changes merely to complete this first Manager core.
 
-Encounter Manager, PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
+PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
 
 ## 7. Security/provider boundaries
 
@@ -173,4 +173,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with the Desktop Dungeon/Zone Manager — local Zone Brief authoring core. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with Encounter Manager / Encounter Creator — local authoring core. Routine safe green boundaries do not require separate owner confirmation.
