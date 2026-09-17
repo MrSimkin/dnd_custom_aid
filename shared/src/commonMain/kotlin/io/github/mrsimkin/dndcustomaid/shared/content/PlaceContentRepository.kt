@@ -95,6 +95,36 @@ class PlaceContentRepository(
         return checkNotNull(result)
     }
 
+    fun update(
+        id: Uuid,
+        expectedRevision: Revision,
+        rawDisplayName: String,
+        payload: PlacePayload,
+        updatedAtEpochSeconds: Long,
+    ): RevisionDecision {
+        val displayName = rawDisplayName.trim()
+        require(displayName.isNotEmpty()) { "Place display name must not be blank." }
+
+        return reusableContent.mutateContent(
+            id = id,
+            expectedRevision = expectedRevision,
+            updatedAtEpochSeconds = updatedAtEpochSeconds,
+        ) { current ->
+            require(current.family == ReusableContentFamily.PLACE) {
+                "Place updates require PLACE reusable content."
+            }
+            require(this.payload(id) != null) {
+                "Place reusable content is missing its persisted payload."
+            }
+            database.reusableContentQueries.updateReusableContentName(
+                display_name = displayName,
+                updated_at_epoch_seconds = updatedAtEpochSeconds,
+                id = id.toString(),
+            )
+            updatePayloadRow(id, payload)
+        }
+    }
+
     fun updatePayload(
         id: Uuid,
         expectedRevision: Revision,
