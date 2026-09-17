@@ -33,7 +33,9 @@ Integrated-MVP implementation is authorized and in progress.
 
 Wave 4 Player <-> Server is complete/integrated for its recorded scope. Wave 5 Desktop shell + Campaign Administration is complete, owner-QA accepted and integrated through PR #44 merge commit `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed.
 
-Normal continuation is now Wave 6 reusable/persistent content architecture. Do not restart PR #42/#43/#44, completed Wave 4 packages, provider activation, or Wave 5 owner QA without new evidence of a real defect.
+Wave 6 reusable/persistent content architecture is active. Its first bounded reusable-content persistence foundation is integrated through PR #46 merge commit `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
+
+Normal continuation remains Wave 6, but the next bounded package must be determined from current architecture, decisions and roadmap. Do not restart PR #42/#43/#44/#46, completed Wave 4 packages, provider activation, Wave 5 owner QA or the integrated Wave 6 foundation without new evidence of a real defect.
 
 ## 3. Product/architecture invariants
 
@@ -51,7 +53,7 @@ Preserve:
 - DM campaign authority distinct from PC ownership; PC owner distinct from current controller;
 - provider-neutral Shared seams where useful.
 
-For reusable DM content, approved semantics include Personal reusable material, explicit Personal -> Campaign copy, a new independent campaign object identity, retained provenance, and no automatic inheritance/update relationship after copy.
+For reusable DM content, approved semantics include Personal reusable material, explicit Personal -> Campaign copy, a new independent campaign object identity, retained provenance, and no automatic inheritance/update relationship after copy. The integrated Wave 6 foundation now persists and tests these core local semantics for its recorded scope.
 
 Do not add generalized CRDT/sync engines, microservices, event buses, enterprise IAM/RBAC/ACL, exhaustive event sourcing, WebSockets/realtime, or enterprise observability without a concrete approved need.
 

@@ -12,7 +12,9 @@ This file maps current project-control authority so a fresh human or AI can resu
 - the checkpoint referenced by `LATEST.md` — milestone evidence;
 - approved detailed decisions under `docs/decisions/`.
 
-Wave 5 is complete/integrated. PR #44 merged as `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed all jobs. The next normal implementation wave is Wave 6 reusable/persistent content architecture.
+Wave 5 is complete/integrated. PR #44 merged as `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed all jobs.
+
+Wave 6 reusable/persistent content architecture is active. Its first reusable-content persistence foundation is integrated through PR #46 merge `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed. The next bounded Wave 6 package must be determined from current authority rather than assumed from stale branch history.
 
 ## Start/resume files
 
@@ -37,13 +39,13 @@ Wave 5 is complete/integrated. PR #44 merged as `306377df1a453f531af4b670d2b231c
 - D-0074 — PC Sheet PDF export;
 - D-0075 — hard `$0` provider policy, public repo and owner guidance.
 
-D-0072/D-0073 already approve the Wave 6 Personal -> Campaign independent-copy/provenance model; routine schema/class/test details are delegated engineering.
+D-0072/D-0073 approve the Wave 6 Personal -> Campaign independent-copy/provenance model; routine schema/class/test details remain delegated engineering.
 
 ## Implemented areas
 
-- `shared/` — Kotlin Multiplatform domain/persistence/networking/sync foundations, including integrated spine scope/provenance/revision primitives, hosted transport/outbox and PC convergence;
+- `shared/` — Kotlin Multiplatform domain/persistence/networking/sync foundations, including integrated spine scope/provenance/revision primitives and the Wave 6 local reusable-content catalog/persistence foundation;
 - `androidApp/` — Player runtime with real hosted auth/campaign/PC synchronization for the recorded Wave 4 scope;
-- `desktopApp/` — persistent local workbench plus real hosted authentication/Campaign Administration integrated in Wave 5;
+- `desktopApp/` — persistent local workbench plus real hosted authentication/Campaign Administration integrated in Wave 5, with safe local DB migration support for the Wave 6 foundation;
 - `backend/` — TypeScript Worker/API with identity verification and application-owned authorization;
 - `database/` — hosted PostgreSQL migrations/contracts;
 - `scripts/` — permanent guard scripts;
@@ -57,9 +59,11 @@ Wave 2 Shared Integrated-MVP Spine                COMPLETE
 Wave 3 hosted foundation / real DEV activation    COMPLETE
 Wave 4 Player <-> Server                          COMPLETE
 Wave 5 Desktop shell + Campaign Administration    COMPLETE / OWNER-QA ACCEPTED / INTEGRATED
-Wave 6 reusable/persistent content architecture   NEXT
-Wave 7 Desktop authoring Managers                 AFTER WAVE 6 FOUNDATION
+Wave 6 reusable/persistent content architecture   ACTIVE — FOUNDATION INTEGRATED (#46)
+Wave 7 Desktop authoring Managers                 AFTER RELEVANT WAVE 6 FOUNDATIONS
 ```
+
+The next Wave 6 implementation package is not predeclared by this manifest. Determine it from the current architecture, decisions and roadmap.
 
 ## Provider/cost/security memory
 

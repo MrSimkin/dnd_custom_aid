@@ -3,18 +3,19 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `306377df1a453f531af4b670d2b231c88a3c9419` (PR #44)  
-**Post-merge Scaffold:** `35168920031` — SUCCESS  
+**Last verified runtime/integration merge:** `013abbb9e57af0ba04fe1e8b678e8ed29522bedd` (PR #46)  
+**Post-merge Scaffold:** `35220099721` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
-**Next normal wave:** Wave 6 — reusable/persistent content architecture
+**Wave 6 reusable-content persistence foundation:** INTEGRATED  
+**Current normal wave:** Wave 6 — reusable/persistent content architecture continues
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New implementation work uses short-lived outcome-oriented branches from current `main`.
 
-PR #44 `feat: add Desktop hosted campaign administration` is merged. Its final branch head was `20f62b110df80759b5e90d083253b3b87716ff31`; exact-head pre-merge Scaffold `35168771704` succeeded; merge commit is `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` succeeded with backend, hosted-database and Kotlin/build/test/APK jobs green.
+PR #46 `feat: add Wave 6 reusable content persistence foundation` is merged. Its final branch head was `008b196ec1fc36cbd637cfbb8b2b4915109ddc8d`; exact-head Scaffold `35219548535` succeeded; the PR-triggered Scaffold `35219863619` also succeeded; merge commit is `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` succeeded.
 
-No Wave 5 application/provider work should be repeated without new defect evidence.
+No Wave 5 application/provider work or Wave 6 foundation work should be repeated without new defect evidence.
 
 ## 2. Wave 5 acceptance baseline
 
@@ -64,7 +65,7 @@ Green CI does not prove deployment/auth/provider behavior. Completed real-provid
 
 Normal hosted DEV owner/DM identity is Outlook-backed. Gmail is historical/inactive by default and may be deliberately reused as a secondary identity only when a future multi-user test needs it.
 
-## 5. Wave 6 approved semantic baseline
+## 5. Wave 6 approved semantic baseline and integrated foundation
 
 Existing Shared spine already provides:
 
@@ -75,22 +76,31 @@ Existing Shared spine already provides:
 - sync metadata/tombstone semantics;
 - local integrated-spine persistence for accounts/memberships/PC authority/object sync state.
 
-Approved product semantics further require reusable Personal DM material, explicit Personal -> Campaign independent copies, provenance visibility, no automatic inheritance/update after copy, recoverable/tombstoned durable content where applicable, and dependency-aware copies for reusable Encounters when needed.
+PR #46 integrated the first bounded Wave 6 reusable-content persistence foundation:
 
-## 6. Recommended first Wave 6 package
+- family/catalog metadata for Creature, NPC, Homebrew/Rule, Place, Zone and Encounter;
+- Personal and Campaign scoped creation/listing;
+- explicit independent Personal -> Campaign copy retaining provenance;
+- optimistic revisions, stale-write rejection, tombstones and non-resurrection behavior;
+- local SQLDelight persistence and migration `18.sqm`;
+- safe Desktop migration from the verified unversioned Wave-5 local schema;
+- fail-closed refusal of unknown unversioned Desktop databases;
+- invariant, migration and Desktop reopen/migration tests.
 
-Build a bounded reusable-content persistence foundation on top of the existing spine:
+Approved product semantics continue to require reusable Personal DM material, explicit independent Campaign copies, provenance visibility and no automatic inheritance/update after copy.
 
-- reusable-content identity/family/scope/provenance envelope;
-- local SQLDelight persistence and migration;
-- explicit independent Personal -> Campaign copy operation;
-- optimistic revision/tombstone/non-resurrection behavior;
-- scope/family browsing primitives needed by later Managers;
-- invariant/migration tests.
+## 6. Wave 6 continuation
 
-Do not build large Manager UI, hosted sync, object storage, or a universal executable rules model in this first package. Domain-specific Monster/NPC/Homebrew/Place/Encounter payload schemas should build on the foundation rather than being forced into one giant universal abstraction.
+Wave 6 remains active. The next bounded package must be selected from the current architecture, decisions and roadmap at resume time; this document does not predeclare a later implementation as existing.
 
-No owner product decision or external-provider handoff is currently required for this package.
+The first foundation deliberately did **not** implement:
+
+- large Manager UI;
+- hosted reusable-content sync;
+- object-storage/provider activation;
+- a universal executable content payload model.
+
+Those areas remain future work unless a later integrated checkpoint supersedes this state. Domain-specific payloads should build on the integrated foundation rather than forcing all reusable content into one giant abstraction.
 
 ## 7. Security/cost residuals
 
@@ -100,4 +110,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 ## 8. Resume rule
 
-Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, then the relevant D-0071/D-0072/D-0073/D-0075 records. Start Wave 6 from current `main` on a short-lived outcome branch. Do not resume old Wave 5 branches or redeploy Cloudflare for documentation changes.
+Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, then the relevant D-0071/D-0072/D-0073/D-0075 records and `docs/ROADMAP.md`. Resume Wave 6 from current `main` on a short-lived outcome branch after determining the next bounded package. Do not resume old Wave 5 branches, rebuild the integrated Wave 6 foundation, or redeploy Cloudflare for documentation changes.

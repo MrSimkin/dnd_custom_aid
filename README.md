@@ -24,7 +24,9 @@ Wave 5 — Desktop shell + hosted Campaign Administration — is **COMPLETE / OW
 
 Do not restart Wave 5 or redeploy its already verified Cloudflare Worker merely because documentation changed.
 
-The next normal implementation direction is **Wave 6 — reusable/persistent content architecture**. Build the reusable-content semantics/persistence foundation before large Wave 7 Desktop Managers.
+Wave 6 is now active with its first reusable-content persistence foundation **INTEGRATED** through PR #46, merge `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
+
+Wave 6 continues from that foundation. Determine the next bounded package from current architecture, decisions and roadmap; do not rebuild the foundation and do not assume a later package already exists.
 
 ## Architecture snapshot
 

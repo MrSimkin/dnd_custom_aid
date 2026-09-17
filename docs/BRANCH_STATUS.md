@@ -3,10 +3,11 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified Wave 5 merge:** `306377df1a453f531af4b670d2b231c88a3c9419`  
-**Post-merge Scaffold:** `35168920031` — SUCCESS  
+**Last verified Wave 6 foundation merge:** `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`  
+**Post-merge Scaffold:** `35220099721` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
-**Next normal work:** short-lived Wave 6 branch from current `main`
+**Wave 6 foundation lifecycle:** COMPLETE / INTEGRATED  
+**Current normal work:** determine the next bounded Wave 6 package from current `main`
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -14,7 +15,7 @@ This file controls branch lifecycle. Branch existence alone never establishes au
 
 `main` is the sole normal integrated-MVP trunk and normal continuation point.
 
-PR #42, #43 and #44 Wave 5 packages are complete/merged. PR #44 merge commit `306377df1a453f531af4b670d2b231c88a3c9419` passed post-merge Scaffold `35168920031`.
+PR #42, #43 and #44 Wave 5 packages are complete/merged. PR #46 `feat: add Wave 6 reusable content persistence foundation` is also merged; merge commit `013abbb9e57af0ba04fe1e8b678e8ed29522bedd` passed post-merge Scaffold `35220099721`.
 
 ## Completed Wave 5 branches
 
@@ -24,11 +25,17 @@ PR #42, #43 and #44 Wave 5 packages are complete/merged. PR #44 merge commit `30
 
 Do not resume them for normal implementation.
 
+## Completed Wave 6 foundation branch
+
+- `wave6/reusable-content-persistence` — historical implementation ref, PR #46 merged.
+
+Do not resume it for new work. The integrated foundation is now part of `main`.
+
 ## Wave 6 branch rule
 
-Create a short-lived outcome-oriented branch from current `main` for the first reusable-content architecture package. Do not create permanent Player/Server/Desktop/provider-specific silos.
+Wave 6 remains active. Determine the next bounded package from the current architecture, decisions and roadmap, then create a new short-lived outcome-oriented branch from current `main`.
 
-The first package is reusable-content local persistence built on existing Shared scope/provenance/revision/tombstone primitives; Wave 7 Manager UI follows after that foundation.
+Do not create permanent Player/Server/Desktop/provider-specific silos, and do not assume a later Wave 6 implementation already exists merely because the foundation is integrated.
 
 ## Historical/stale open PRs
 
@@ -38,11 +45,11 @@ PR #36 and PR #37 are older Wave 4-era items. They are not current continuation 
 
 During 2026-09-17 reconstruction:
 
-- `__noop_should_not_create__` was 0 ahead / 2 behind `main`, with no PR;
-- `__should_not_create__` was 0 ahead / 59 behind `main`, with no PR.
+- `__noop_should_not_create__` was verified with no unique project work and no PR;
+- `__should_not_create__` was verified with no unique project work and no PR.
 
-They have no unique project work and are non-authoritative. Safe deletion is optional housekeeping and not a development blocker. Do not delete legitimate historical implementation branches merely because they are inactive.
+They are non-authoritative. Safe deletion is optional housekeeping and not a development blocker. Do not delete legitimate historical implementation branches merely because they are inactive.
 
 ## Exact resume rule
 
-Resume from current `main` and `docs/checkpoints/2026-09-17_WAVE5_INTEGRATED_WAVE6_READY.md`. Do not redeploy Cloudflare for documentation-only changes. Proceed to Wave 6 unless newer Git evidence supersedes this state.
+Resume from current `main` and `docs/checkpoints/2026-09-17_WAVE6_REUSABLE_CONTENT_FOUNDATION_INTEGRATED.md`. Do not redeploy Cloudflare for documentation-only changes. Determine the next bounded Wave 6 package from current authority before implementation.
