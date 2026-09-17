@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime merge:** `5be90a994f453e5444ecf00762cd72407cfe790a` (PR #73)  
-**Post-merge Scaffold:** `35285629973` — SUCCESS  
+**Last verified runtime merge:** `7000535b78df2b2a7149b019796ff3d5903fdb3d` (PR #75)  
+**Post-merge Scaffold:** `35287713130` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** Dungeon/Zone Manager documentation closure, then Encounter Manager / Encounter Creator — local authoring core
+**Current normal work:** Encounter Manager documentation closure, then PC Manager / Audit — Desktop inspection/audit core
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -34,11 +34,12 @@ Integrated Wave 7 implementation PRs:
 - #67 Desktop Place/Shop Manager local authoring core — merged as `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`;
 - #69 Desktop Stage Manager Place retrieval/organization core — merged as `a99f03bf53637494695cc39b39d077ea1ef61ada`;
 - #71 Adventure/Scene Spine lightweight local core — merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
-- #73 Desktop Dungeon/Zone Manager local authoring core — merged as `5be90a994f453e5444ecf00762cd72407cfe790a`.
+- #73 Desktop Dungeon/Zone Manager local authoring core — merged as `5be90a994f453e5444ecf00762cd72407cfe790a`;
+- #75 Desktop Encounter Manager local authoring core — merged as `7000535b78df2b2a7149b019796ff3d5903fdb3d`.
 
-Dungeon/Zone Manager validation: push Scaffold `35285060523`, PR Scaffold `35285359440`, post-merge Scaffold `35285629973` — all SUCCESS.
+Encounter Manager validation: corrected push Scaffold `35287257508`, PR Scaffold `35287507268`, post-merge Scaffold `35287713130` — all SUCCESS. Initial push `35286844850` failed only on the corrected Kotlin visibility mismatch.
 
-Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine or Dungeon/Zone Manager implementation without new defect evidence.
+Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager or Encounter Manager implementation without new defect evidence.
 
 ## Completed implementation branches
 
@@ -66,7 +67,8 @@ Wave 7 historical implementation branches:
 - `wave7/desktop-place-shop-manager-core` — PR #67 merged;
 - `wave7/desktop-stage-manager-core` — PR #69 merged;
 - `wave7/adventure-scene-spine-core` — PR #71 merged;
-- `wave7/desktop-dungeon-zone-manager-core` — PR #73 merged.
+- `wave7/desktop-dungeon-zone-manager-core` — PR #73 merged;
+- `wave7/desktop-encounter-manager-core` — PR #75 merged.
 
 Integrated scope belongs to `main`; these refs are not continuation authority.
 
@@ -80,34 +82,36 @@ Historical/short-lived Wave 7 closure branches:
 - `docs/wave7-place-shop-manager-integrated` — Place/Shop -> Stage;
 - `docs/wave7-stage-manager-integrated` — Stage -> Adventure/Scene Spine;
 - `docs/wave7-scene-spine-integrated` — Scene Spine -> Dungeon/Zone Manager;
-- `docs/wave7-dungeon-zone-manager-integrated` — Dungeon/Zone Manager -> Encounter Manager / Encounter Creator.
+- `docs/wave7-dungeon-zone-manager-integrated` — Dungeon/Zone Manager -> Encounter Manager / Encounter Creator;
+- `docs/wave7-encounter-manager-integrated` — Encounter Manager -> PC Manager / Audit.
 
 After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
 ## Wave 7 next branch direction
 
-The next selected package is **Encounter Manager / Encounter Creator — local authoring core**.
+The next selected package is **PC Manager / Audit — Desktop inspection/audit core**.
 
 Expected short-lived branch name:
 
-`wave7/desktop-encounter-manager-core`
+`wave7/desktop-pc-manager-audit-core`
 
-Wave 6 already integrated `EncounterPayload` / `EncounterContentRepository` and migration `24.sqm`; no new Encounter schema is expected for this first Manager slice unless implementation evidence proves otherwise.
+D-0072 requires PC Manager to operate over the same canonical PC records used by Player rather than creating a separate Desktop character model.
 
 Current bounded direction:
 
-- Personal + active-Campaign Encounter browse/search/create/open/edit;
-- participant authoring using existing Creature/NPC dependency references plus label-only participants;
-- expose quantity, readiness (`EXPECTED` / `RESERVE` / `CONDITIONAL`), condition, overrides and notes;
-- explicit Personal -> Campaign independent Encounter copy while preserving the current domain-specific Creature/NPC dependency copy/remap and deduplication semantics;
-- add atomic display-name + Encounter payload update under one optimistic revision;
-- preserve stale-write rejection and tombstone/non-resurrection;
-- focused repository/controller coverage;
-- integrate into the existing Desktop Managers surface with active Campaign context visible.
+- inspect the existing PC persistence, authority, sync and history surfaces before adding schema;
+- campaign PC overview/retrieval and complete DM inspection;
+- distinguish data freshness from sync freshness where current evidence supports those concepts;
+- expose meaningful grouped audit/history already available;
+- implement explicit DM correction/edit paths only through preserved-history and authority-safe mechanisms;
+- keep campaign membership, PC ownership and PC control separate;
+- focused tests around inspection, authority and correction boundaries.
 
-Do not introduce generalized dependency graph abstractions, live initiative/combat state, encounter-balancing AI, hosted reusable-content synchronization or provider changes in this bounded package.
+Do not build a second Desktop character-builder, silently impersonate the Player, destructively rewrite history, or conflate DM role with PC ownership/control.
 
-PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later concrete packages.
+Freeze/unfreeze, lifecycle administration, ownership/controller administration, duplication and PC Sheet PDF export remain approved responsibilities, but should be scheduled from concrete existing architecture rather than speculative parallel models.
+
+Media/Handouts and deferred richer Homebrew families remain later concrete packages.
 
 ## Historical/stale open PRs
 

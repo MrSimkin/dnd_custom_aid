@@ -2,21 +2,21 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `5be90a994f453e5444ecf00762cd72407cfe790a`  
-**PR #73:** MERGED  
-**Post-merge Scaffold:** `35285629973` — SUCCESS  
+**Last verified integrated runtime merge:** `7000535b78df2b2a7149b019796ff3d5903fdb3d`  
+**PR #75:** MERGED  
+**Post-merge Scaffold:** `35287713130` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_DUNGEON_ZONE_MANAGER_INTEGRATED.md`  
-**Next bounded package:** Encounter Manager / Encounter Creator — local authoring core  
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_ENCOUNTER_MANAGER_INTEGRATED.md`  
+**Next bounded package:** PC Manager / Audit — Desktop inspection/audit core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE7_DUNGEON_ZONE_MANAGER_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_ENCOUNTER_MANAGER_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -35,40 +35,42 @@ Wave 7 Place/Shop Manager local core               COMPLETE / INTEGRATED
 Wave 7 Stage Manager retrieval/organization core   COMPLETE / INTEGRATED
 Wave 7 Adventure/Scene Spine lightweight core      COMPLETE / INTEGRATED
 Wave 7 Desktop Dungeon/Zone Manager local core     COMPLETE / INTEGRATED
-post-merge Scaffold                                PASS (35285629973)
+Wave 7 Encounter Manager local core                COMPLETE / INTEGRATED
+post-merge Scaffold                                PASS (35287713130)
         |
         v
-Wave 7 Encounter Manager / Encounter Creator — local authoring core
+Wave 7 PC Manager / Audit — Desktop inspection/audit core
 ```
 
 ## Practical continuation
 
-Start the Encounter Manager / Encounter Creator from current `main` after this short-lived documentation closure merges.
+Start the **PC Manager / Audit — Desktop inspection/audit core** from current `main` after this short-lived Encounter documentation closure merges.
 
-Existing Encounter persistence is already integrated from Wave 6 and should remain the foundation for the first Desktop Manager. `EncounterPayload` contains summary, environment, context, DM guidance, participants, tags and notes.
+D-0072 defines Desktop PC Manager as a DM inspection, audit and administration surface over the same canonical PC records used by the Player App. It is **not** a second Desktop character-builder and must not silently impersonate the Player.
 
-Encounter participants already support optional Creature/NPC source content IDs or a free-text label, quantity, `EXPECTED` / `RESERVE` / `CONDITIONAL` readiness, condition text, overrides and notes. The repository validates source family/scope and its Personal -> Campaign copy performs domain-specific Creature/NPC dependency copy/remapping while deduplicating repeated dependencies.
+Before adding new persistence, inspect the already-integrated PC, authority, history and synchronization surfaces and reuse them wherever they satisfy the approved workflow.
 
-Initial Encounter slice:
+Initial bounded direction:
 
-- Personal + active-Campaign Encounter browse/search/create/open/edit;
-- participant editing using the existing Creature/NPC dependency model plus label-only participants;
-- expose quantity/readiness/condition/overrides/notes without inventing live combat semantics;
-- explicit independent Personal -> Campaign Encounter copy preserving current dependency copy/remap behavior;
-- atomic display-name + Encounter payload save under one optimistic revision;
-- stale-write rejection and tombstone/non-resurrection;
-- focused controller/repository coverage;
-- integrate into the existing Desktop Managers surface with active Campaign context visible.
+- campaign PC overview and retrieval;
+- complete DM inspection of the existing canonical PC record;
+- visible distinction between PC data freshness and synchronization freshness where existing evidence supports it;
+- review of meaningful grouped audit/history already available in the project;
+- explicit DM correction entry points using the project’s preserved-history/authority rules rather than direct destructive overwrite;
+- preserve the separation between campaign membership, PC ownership and PC control;
+- focused Desktop/controller tests around inspection, authority and correction boundaries.
 
-Do not add live initiative/combat state, generalized dependency graphs, automated encounter balancing, hosted reusable-content sync or provider work unless a concrete approved requirement demands it.
+Do not turn this first slice into a second character-builder, erase audit history, conflate DM role with PC ownership/control, or add speculative generalized administration infrastructure.
 
-## Dungeon/Zone Manager integrated evidence
+## Encounter Manager integrated evidence
 
-- implementation head `1a8b875a567ed73fbcceee73872ec59702b4b3f0`;
-- push Scaffold `35285060523` — SUCCESS;
-- PR Scaffold `35285359440` — SUCCESS;
-- PR #73 merged as `5be90a994f453e5444ecf00762cd72407cfe790a`;
-- post-merge Scaffold `35285629973` — SUCCESS.
+- initial implementation head `91d744a66e3ff18ee9190c41d4dbb3970ca412fe`;
+- initial push Scaffold `35286844850` — FAILED on one Kotlin visibility mismatch;
+- corrected/final implementation head `a68f62897d6178f1da1c19deb2721ea04abc837a`;
+- corrected push Scaffold `35287257508` — SUCCESS;
+- PR Scaffold `35287507268` — SUCCESS;
+- PR #75 merged as `7000535b78df2b2a7149b019796ff3d5903fdb3d`;
+- post-merge Scaffold `35287713130` — SUCCESS.
 
 ## Operating rule
 
