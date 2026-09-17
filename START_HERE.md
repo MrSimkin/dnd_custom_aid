@@ -15,7 +15,7 @@ Only switch away from English when the owner explicitly requests a language chan
 Read and verify in this order:
 
 1. `CURRENT_TASK.md` — the one-page volatile execution pointer.
-2. Verify the remote Git state named there: current `main`, active branch/PR/head SHA and latest relevant CI state. Do this once; do not poll.
+2. Verify the remote Git state named there: current `main`, active branch/PR/head SHA and latest relevant CI state. Do this once; do not poll rapidly.
 3. `AGENTS.md` — mandatory operating, security, cost and workflow rules.
 4. `docs/PROJECT_STATE.md` — integrated whole-project truth.
 5. `docs/checkpoints/LATEST.md` and its referenced checkpoint only when milestone context is needed.
@@ -45,17 +45,30 @@ Git wins.
 
 Verify the current remote state, update `CURRENT_TASK.md` to match reality, then continue from the first unfinished action.
 
+## Coherent-task continuation rule
+
+Routine safe engineering boundaries are **not** owner-confirmation boundaries.
+
+Within an already-authorized coherent package, continue autonomously through the normal sequence when each gate is green and scope/risk has not changed, for example:
+
+`implementation -> push CI -> PR -> PR CI -> merge -> post-merge CI -> checkpoint/documentation closure -> next already-delegated planning/implementation step`.
+
+Do **not** artificially split that sequence into separate turns merely because a commit, PR, CI result or merge created a durable boundary. Durable boundaries exist for recovery and traceability, not to force the owner to keep saying `go`.
+
+Stop and ask/hand off only when a real boundary appears: a material failure requiring judgment, a consequential owner-level product/scope/risk decision, an authenticated provider/manual action, destructive/cost/security uncertainty, or a genuinely long-running asynchronous wait with no other safe useful work available.
+
 ## Async CI rule
 
-CI is a checkpoint boundary, not something to wait on indefinitely.
+CI is an asynchronous gate, not a reason either to poll continuously or to fragment every normal workflow.
 
-- Inspect once.
-- If complete, act on the result.
-- If still running, record run ID/SHA/status in `CURRENT_TASK.md` and stop that bounded task.
-- Do not use repeated polling or `sleep` loops.
+- Inspect at a meaningful gate.
+- If complete, act on the result and continue the coherent task automatically.
+- If still running, do any independent safe/useful work that does not assume the result.
+- A later single recheck in the same task/session is allowed after such progress or when enough time has naturally passed; do not use rapid repeated polling or `sleep` loops.
+- If CI is still running and there is genuinely nothing else safe/useful to do, record run ID/SHA/status in `CURRENT_TASK.md` and stop at that actual waiting boundary.
 
 ## Before ending meaningful work
 
 When the execution state changes materially, update `CURRENT_TASK.md` before stopping so the next chat can resume without archaeology.
 
-Examples: branch created, commit pushed, PR opened, CI failed, CI running at stop boundary, PR merged, owner/provider action required, or task completed and next task identified.
+Examples: branch created, commit pushed, PR opened, CI failed, CI running at a real stop boundary, PR merged, owner/provider action required, or task completed and next task identified.
