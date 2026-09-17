@@ -1,0 +1,100 @@
+CREATE TABLE reusable_content (
+    id TEXT NOT NULL PRIMARY KEY,
+    family TEXT NOT NULL CHECK (length(trim(family)) > 0),
+    display_name TEXT NOT NULL CHECK (length(trim(display_name)) > 0),
+    scope_kind TEXT NOT NULL CHECK (scope_kind IN ('PERSONAL', 'CAMPAIGN')),
+    scope_ref TEXT NOT NULL CHECK (length(trim(scope_ref)) > 0),
+    source_object_id TEXT,
+    source_scope_kind TEXT CHECK (
+        source_scope_kind IS NULL OR source_scope_kind IN ('PERSONAL', 'CAMPAIGN', 'SYSTEM', 'OFFICIAL')
+    ),
+    source_scope_ref TEXT,
+    copied_at_epoch_seconds INTEGER CHECK (
+        copied_at_epoch_seconds IS NULL OR copied_at_epoch_seconds >= 0
+    ),
+    created_at_epoch_seconds INTEGER NOT NULL CHECK (created_at_epoch_seconds >= 0),
+    updated_at_epoch_seconds INTEGER NOT NULL CHECK (
+        updated_at_epoch_seconds >= created_at_epoch_seconds
+    ),
+    CHECK (
+        (source_object_id IS NULL AND source_scope_kind IS NULL AND source_scope_ref IS NULL AND copied_at_epoch_seconds IS NULL)
+        OR
+        (source_object_id IS NOT NULL AND source_scope_kind IS NOT NULL)
+    )
+);
+
+CREATE INDEX reusable_content_scope_idx
+ON reusable_content(scope_kind, scope_ref, family, display_name, id);
+
+insertReusableContent:
+INSERT INTO reusable_content(
+    id,
+    family,
+    display_name,
+    scope_kind,
+    scope_ref,
+    source_object_id,
+    source_scope_kind,
+    source_scope_ref,
+    copied_at_epoch_seconds,
+    created_at_epoch_seconds,
+    updated_at_epoch_seconds
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectReusableContentById:
+SELECT
+    content.id,
+    content.family,
+    content.display_name,
+    content.scope_kind,
+    content.scope_ref,
+    content.source_object_id,
+    content.source_scope_kind,
+    content.source_scope_ref,
+    content.copied_at_epoch_seconds,
+    content.created_at_epoch_seconds,
+    content.updated_at_epoch_seconds,
+    sync.revision,
+    sync.deleted_at_epoch_seconds
+FROM reusable_content AS content
+JOIN object_sync_state AS sync
+    ON sync.object_type = 'REUSABLE_CONTENT'
+   AND sync.object_id = content.id
+WHERE content.id = ?;
+
+selectActiveReusableContentByScope:
+SELECT
+    content.id,
+    content.family,
+    content.display_name,
+    content.scope_kind,
+    content.scope_ref,
+    content.source_object_id,
+    content.source_scope_kind,
+    content.source_scope_ref,
+    content.copied_at_epoch_seconds,
+    content.created_at_epoch_seconds,
+    content.updated_at_epoch_seconds,
+    sync.revision,
+    sync.deleted_at_epoch_seconds
+FROM reusable_content AS content
+JOIN object_sync_state AS sync
+    ON sync.object_type = 'REUSABLE_CONTENT'
+   AND sync.object_id = content.id
+WHERE content.scope_kind = :scope_kind
+  AND content.scope_ref = :scope_ref
+  AND (:family IS NULL OR content.family = :family)
+  AND sync.deleted_at_epoch_seconds IS NULL
+ORDER BY content.display_name COLLATE NOCASE, content.id;
+
+updateReusableContentName:
+UPDATE reusable_content
+SET display_name = ?,
+    updated_at_epoch_seconds = ?
+WHERE id = ?;
+
+touchReusableContent:
+UPDATE reusable_content
+SET updated_at_epoch_seconds = ?
+WHERE id = ?;
