@@ -6,7 +6,7 @@ Last verified: 2026-09-17
 
 - **Wave:** 6 — reusable/persistent content architecture
 - **Current task:** close integrated Place payload checkpoint/documentation
-- **Execution state:** Place implementation is fully integrated and post-merge validated green; the bounded Place documentation/checkpoint closure passed exact diff review and PR #56 is now open; no merge has been performed and no next Wave 6 implementation package has been selected
+- **Execution state:** Place implementation is fully integrated and post-merge validated green; the bounded Place documentation/checkpoint closure passed exact diff review; PR #56 is open, mergeable and exact-head CI is fully green; no merge has been performed and no next Wave 6 implementation package has been selected
 - **Integrated `main`:** `d978a4191054227a03b32ecca3e7ceadc5d6e869`
 - **Place implementation branch:** `wave6/place-payload-persistence`
 - **Final Place branch HEAD:** `99fe6151c253803dd3dffdc6a16fbf6058133c47`
@@ -15,11 +15,11 @@ Last verified: 2026-09-17
 - **Place documentation branch:** `docs/wave6-place-integrated`
 - **Place documentation HEAD:** `0e3d53bff69480cb3039876acabb59eb09fa4907`
 - **Place documentation exact diff:** 1 commit, 5 documentation files; new `docs/checkpoints/2026-09-17_WAVE6_PLACE_PAYLOAD_INTEGRATED.md` plus updates to `docs/checkpoints/LATEST.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md` and `docs/ROADMAP.md`; 167 additions / 54 deletions; no implementation files changed
-- **Place documentation PR:** #56 — `docs: record Wave 6 Place integration and continuation boundary` — **OPEN**, non-draft, base `main`, exact head `0e3d53bff69480cb3039876acabb59eb09fa4907`
-- **Initial PR mergeability:** GitHub reported `mergeable: false` immediately at creation; treat as provisional until rechecked after GitHub computes mergeability/CI
+- **Place documentation PR:** #56 — `docs: record Wave 6 Place integration and continuation boundary` — **OPEN**, non-draft, base `main`, exact head `0e3d53bff69480cb3039876acabb59eb09fa4907`, **MERGEABLE**
+- **Place documentation PR CI:** Scaffold `35260196818` — **SUCCESS**; backend **SUCCESS**, hosted-database **SUCCESS**, Kotlin **SUCCESS**, Android debug APK upload **SUCCESS**
 - **Documentation continuation rule recorded:** Place is integrated; the next bounded Wave 6 implementation package is intentionally not selected by this closure and must be selected from current D-0072/D-0073 authority after the docs closure is integrated
 - **Integrated Place scope:** typed `PlaceKind` (`PLACE` / specialized `SHOP`); summary, area, function, presentation, services/interactives, hooks, player-safe text, DM notes, paper references and tags; Personal/Campaign create/read/copy/update/tombstone behavior through existing identity/provenance/revision seams; SQLDelight `place_payload`; migration `22.sqm`; metadata-only PLACE backfill; focused round-trip/copy/stale-write/non-resurrection/migration/reopen tests; one-line legacy Desktop fixture adjustment
 - **Explicit deferrals:** no Place/NPC/Scene/Zone/Encounter relationship/dependency graph; no clocks; no media/object-storage references; no automatic reveal/publication behavior; no Manager UI; no hosted reusable-content sync/import-export/AI/provider work
 - **Session behavior:** owner wants continuation split into small bounded pieces to avoid another timeout.
-- **Next action:** inspect PR #56 mergeability and its exact-head Scaffold only. If green/mergeable, merge in a later bounded piece; do not select/start the next Wave 6 implementation package before the Place docs closure is integrated.
+- **Next action:** merge PR #56 in the next bounded piece using expected head `0e3d53bff69480cb3039876acabb59eb09fa4907`; do not select/start the next Wave 6 implementation package in the same piece.
 - **Do not:** restart completed Place implementation, broaden Place into relationship/dependency infrastructure, start Wave 7 Manager UI, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or a universal payload abstraction.
