@@ -1,0 +1,38 @@
+CREATE TABLE homebrew_rule_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    summary TEXT NOT NULL,
+    body TEXT NOT NULL,
+    category TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    examples_json TEXT NOT NULL,
+    related_references_json TEXT NOT NULL,
+    tags_json TEXT NOT NULL,
+    lifecycle TEXT NOT NULL CHECK (lifecycle IN ('DRAFT', 'ACTIVE', 'RETIRED')),
+    notes TEXT NOT NULL
+);
+
+INSERT INTO homebrew_rule_payload(
+    content_id,
+    summary,
+    body,
+    category,
+    rationale,
+    examples_json,
+    related_references_json,
+    tags_json,
+    lifecycle,
+    notes
+)
+SELECT
+    id,
+    '',
+    '',
+    '',
+    '',
+    '[]',
+    '[]',
+    '[]',
+    'DRAFT',
+    ''
+FROM reusable_content
+WHERE family = 'HOMEBREW_RULE';

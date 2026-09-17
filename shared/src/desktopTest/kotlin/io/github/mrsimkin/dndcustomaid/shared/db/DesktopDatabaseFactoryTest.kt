@@ -58,6 +58,7 @@ class DesktopDatabaseFactoryTest {
 
             DriverManager.getConnection(jdbcUrl).use { connection ->
                 connection.createStatement().use { statement ->
+                    statement.execute("DROP TABLE homebrew_rule_payload")
                     statement.execute("DROP TABLE npc_payload")
                     statement.execute("DROP TABLE creature_payload")
                     statement.execute("DROP TABLE reusable_content")
