@@ -1,0 +1,53 @@
+CREATE TABLE zone_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    summary TEXT NOT NULL,
+    area TEXT NOT NULL,
+    presentation TEXT NOT NULL,
+    space TEXT NOT NULL,
+    exploration TEXT NOT NULL,
+    interactives_json TEXT NOT NULL,
+    clues_json TEXT NOT NULL,
+    checks_json TEXT NOT NULL,
+    consequences_json TEXT NOT NULL,
+    encounter_brief TEXT NOT NULL,
+    dm_guidance TEXT NOT NULL,
+    player_safe_text TEXT NOT NULL,
+    paper_references_json TEXT NOT NULL,
+    tags_json TEXT NOT NULL
+);
+
+INSERT INTO zone_payload(
+    content_id,
+    summary,
+    area,
+    presentation,
+    space,
+    exploration,
+    interactives_json,
+    clues_json,
+    checks_json,
+    consequences_json,
+    encounter_brief,
+    dm_guidance,
+    player_safe_text,
+    paper_references_json,
+    tags_json
+)
+SELECT
+    id,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '[]',
+    '[]',
+    '[]',
+    '[]',
+    '',
+    '',
+    '',
+    '[]',
+    '[]'
+FROM reusable_content
+WHERE family = 'ZONE';
