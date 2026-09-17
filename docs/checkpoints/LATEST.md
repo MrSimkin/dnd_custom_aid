@@ -2,21 +2,21 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `58a565c3a33a433ce47e7fd4ac1185b5f980644f`  
-**PR #63:** MERGED  
-**Post-merge Scaffold:** `35270643883` — SUCCESS  
+**Last verified integrated runtime merge:** `6febe3f936593999834189b92aeda9d209385fa7`  
+**PR #65:** MERGED  
+**Post-merge Scaffold:** `35277359425` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager local authoring cores  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_NPC_MANAGER_INTEGRATED.md`  
-**Next bounded package:** Desktop Homebrew & Rules Manager — lightweight rules local authoring core  
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local authoring cores  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_HOMEBREW_RULES_MANAGER_INTEGRATED.md`  
+**Next bounded package:** Desktop Place/Shop Manager — local authoring core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE7_NPC_MANAGER_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_HOMEBREW_RULES_MANAGER_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -30,37 +30,38 @@ Wave 5 Desktop shell/campaign administration      COMPLETE / OWNER-QA PASS / INT
 Wave 6 reusable-content architecture              COMPLETE / INTEGRATED
 Wave 7 Creature/Monster Manager local core        COMPLETE / INTEGRATED
 Wave 7 NPC Manager local core                     COMPLETE / INTEGRATED
-post-merge Scaffold                               PASS (35270643883)
+Wave 7 Homebrew & Rules lightweight local core    COMPLETE / INTEGRATED
+post-merge Scaffold                               PASS (35277359425)
         |
         v
-Wave 7 Homebrew & Rules Manager — lightweight rules local core
+Wave 7 Place/Shop Manager — local authoring core
 ```
 
 ## Practical continuation
 
-After the short-lived NPC Manager documentation closure merges, start the Homebrew & Rules Manager from current `main`.
+After the short-lived Homebrew & Rules documentation closure merges, start the Place/Shop Manager from current `main`.
 
-Reuse the integrated `HomebrewRulePayload` and `HomebrewRuleContentRepository` rather than creating a new persistence family.
+Reuse the integrated Wave 6 Place persistence family rather than creating a new family. D-0072 treats Shops as specialized Places; first expose the existing Place model and add Shop-specific behavior only if the persisted payload already supports it or concrete implementation evidence requires a bounded extension.
 
 Initial slice:
 
-- browse/search Personal + active-Campaign Homebrew/Rule records;
-- create/open/edit title plus summary/body/category/rationale/examples/related references/tags/notes;
-- expose the existing Draft / Active / Retired lifecycle;
+- browse/search Personal + active-Campaign Places;
+- create/open/edit the existing Place payload;
 - display scope/provenance/revision;
 - explicitly copy Personal -> active Campaign as an independent object;
 - save display name + payload atomically under one optimistic revision;
-- preserve stale-write/tombstone semantics and the same conservative Personal-owner identity rule used by Creature/NPC Managers.
+- preserve stale-write/tombstone semantics and the same conservative Personal-owner identity rule used by the preceding Managers;
+- focused controller coverage for persistence, atomic edit, stale-write rejection, provenance and copy independence.
 
-Do not pull structured races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage, hosted reusable-content sync or a generalized all-Managers framework into this first Homebrew slice unless concrete implementation evidence requires it.
+Do not pull Scene Spine into this first package. Scene persistence is not yet an integrated reusable-content family and belongs with a later concrete Stage/Scene package rather than speculative pre-modeling.
 
-## NPC Manager integrated evidence
+## Homebrew & Rules Manager integrated evidence
 
-- implementation head `58b680e71ec59c871854eb9c083ff2bc6906fe88`;
-- push Scaffold `35269013875` — SUCCESS;
-- PR Scaffold `35269163375` — SUCCESS;
-- PR #63 merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`;
-- post-merge Scaffold `35270643883` — SUCCESS.
+- implementation head `17f4cd686114f734ab0bc50f453de9d579a52c79`;
+- push Scaffold `35272269481` — SUCCESS;
+- PR Scaffold `35272560206` — SUCCESS;
+- PR #65 merged as `6febe3f936593999834189b92aeda9d209385fa7`;
+- post-merge Scaffold `35277359425` — SUCCESS.
 
 ## Operating rule
 

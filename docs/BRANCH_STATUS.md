@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime merge:** `58a565c3a33a433ce47e7fd4ac1185b5f980644f` (PR #63)  
-**Post-merge Scaffold:** `35270643883` — SUCCESS  
+**Last verified runtime merge:** `6febe3f936593999834189b92aeda9d209385fa7` (PR #65)  
+**Post-merge Scaffold:** `35277359425` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** NPC Manager documentation closure, then Desktop Homebrew & Rules Manager lightweight rules local authoring core
+**Current normal work:** Homebrew & Rules Manager documentation closure, then Desktop Place/Shop Manager local authoring core
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -29,11 +29,12 @@ Integrated Wave 6 implementation PRs:
 Integrated Wave 7 implementation PRs:
 
 - #61 Desktop Creature/Monster Manager local authoring core — merged as `12a62288457ebe5892f90f637fe41c142b094591`;
-- #63 Desktop NPC Manager local authoring core — merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`.
+- #63 Desktop NPC Manager local authoring core — merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`;
+- #65 Desktop Homebrew & Rules Manager lightweight local authoring core — merged as `6febe3f936593999834189b92aeda9d209385fa7`.
 
-NPC Manager validation: push Scaffold `35269013875`, PR Scaffold `35269163375`, post-merge Scaffold `35270643883` — all SUCCESS.
+Homebrew Manager validation: push Scaffold `35272269481`, PR Scaffold `35272560206`, post-merge Scaffold `35277359425` — all SUCCESS.
 
-Do not restart completed Wave 5, Wave 6, Creature Manager or NPC Manager implementation without new defect evidence.
+Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager or Homebrew/Rules Manager implementation without new defect evidence.
 
 ## Completed implementation branches
 
@@ -56,7 +57,8 @@ Wave 6 historical branches:
 Wave 7 historical implementation branches:
 
 - `wave7/desktop-creature-manager-core` — PR #61 merged;
-- `wave7/desktop-npc-manager-core` — PR #63 merged.
+- `wave7/desktop-npc-manager-core` — PR #63 merged;
+- `wave7/desktop-homebrew-rules-manager-core` — PR #65 merged.
 
 Integrated scope belongs to `main`; these refs are not continuation authority.
 
@@ -65,30 +67,32 @@ Integrated scope belongs to `main`; these refs are not continuation authority.
 Historical/short-lived Wave 7 closure branches:
 
 - `docs/wave7-creature-manager-integrated` — recorded Creature Manager integration and continuation to NPC Manager;
-- `docs/wave7-npc-manager-integrated` — records NPC Manager integration and continuation to Homebrew & Rules.
+- `docs/wave7-npc-manager-integrated` — recorded NPC Manager integration and continuation to Homebrew & Rules;
+- `docs/wave7-homebrew-rules-manager-integrated` — records Homebrew & Rules integration and continuation to Place/Shop.
 
 After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
 ## Wave 7 next branch direction
 
-The next selected package is **Desktop Homebrew & Rules Manager — lightweight rules local authoring core**.
+The next selected package is **Desktop Place/Shop Manager — local authoring core**.
 
 Expected short-lived branch name:
 
-`wave7/desktop-homebrew-rules-manager-core`
+`wave7/desktop-place-shop-manager-core`
 
 Initial bounded scope:
 
-- expose Homebrew/Rule authoring within the existing Desktop Managers surface without introducing a universal Manager framework;
-- browse/search Personal and active-Campaign Homebrew/Rule records;
-- create/open/edit the integrated lightweight rule data;
-- support title, summary/body, category, rationale, examples, related references, tags, notes and Draft / Active / Retired lifecycle;
+- expose Place authoring within the existing Desktop Managers surface without introducing a universal Manager framework;
+- browse/search Personal and active-Campaign Places;
+- create/open/edit the integrated Place data;
+- expose Shop specialization only where the existing Place payload supports it, or where concrete implementation evidence requires a bounded extension;
 - show scope/provenance/revision;
 - explicitly copy Personal -> active Campaign as an independent object;
 - save display name + payload atomically under one optimistic revision;
-- preserve stale-write/tombstone semantics and the conservative uniquely-resolvable local DM identity rule.
+- preserve stale-write/tombstone semantics and the conservative uniquely-resolvable local DM identity rule;
+- add focused controller tests for persistence, atomic edit, stale rejection, provenance and independent copy behavior.
 
-Defer structured races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage, hosted reusable-content sync and generalized Manager abstractions to later concrete packages.
+Do not pull Scene Spine into this first Place package. Dungeon/Zone, Encounter, PC Manager/Audit, Media/Handouts, richer Stage/Scene work and deferred richer Homebrew families remain later concrete packages.
 
 ## Historical/stale open PRs
 
