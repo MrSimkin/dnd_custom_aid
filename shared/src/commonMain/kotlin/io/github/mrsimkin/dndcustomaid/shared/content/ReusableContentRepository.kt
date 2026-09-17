@@ -207,7 +207,7 @@ class ReusableContentRepository(
                 family = family.name,
                 display_name = displayName,
                 scope_kind = scope.kind,
-                scope_ref = scope.ref,
+                scope_ref = requireNotNull(scope.ref),
                 source_object_id = provenance?.sourceObjectId?.toString(),
                 source_scope_kind = sourceScope?.kind,
                 source_scope_ref = sourceScope?.ref,
@@ -232,7 +232,7 @@ class ReusableContentRepository(
         val encoded = encodeScope(scope, authoredOnly = true)
         return database.reusableContentQueries.selectActiveReusableContentByScope(
             scope_kind = encoded.kind,
-            scope_ref = encoded.ref,
+            scope_ref = requireNotNull(encoded.ref),
             family = family?.name,
             mapper = ::mapItem,
         ).executeAsList()
