@@ -5,18 +5,16 @@ This file contains **only the current execution state**. Replace it when the act
 Last verified: 2026-09-17
 
 - **Wave:** 6 — reusable/persistent content architecture
-- **Current task:** lightweight Homebrew/Rule reusable-content payload + local persistence core
-- **Execution state:** NPC implementation and documentation closure are integrated/green; Homebrew/Rule implementation is complete as one bounded commit, branch and PR #53 are open, and push/PR Scaffold validation is running
-- **Integrated `main`:** `5ede8c6050cc5d597f3fd53020fb79659052f1ab`
-- **NPC implementation:** PR #51 merged as `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`; post-merge Scaffold `35254527744` — **SUCCESS**
-- **NPC documentation closure:** PR #52 merged as `5ede8c6050cc5d597f3fd53020fb79659052f1ab`; PR Scaffold `35255027154` — **SUCCESS**; post-merge Scaffold `35255226417` — **SUCCESS**
-- **Active branch:** `wave6/homebrew-rule-payload-persistence`
-- **Branch HEAD:** `0ef3b3466582482fc89f3025c1adf50a5fd40580`
-- **PR:** #53 — `feat: add lightweight Homebrew Rule payload persistence` — **OPEN**
-- **Homebrew/Rule scope:** typed `DRAFT / ACTIVE / RETIRED` lifecycle; summary/body plus optional category/rationale, examples, related references and tags; Personal/Campaign create/read/copy; optimistic revision/stale-write/tombstone behavior; SQLDelight payload table; migration `21.sqm`; legacy Desktop fixture adjustment; focused persistence/copy/revision/migration/reopen tests
-- **Exact diff:** 6 files, +574/-0; no unrelated project files
-- **Push CI:** Scaffold `35256210643` — **IN PROGRESS** at latest inspection
-- **PR CI:** Scaffold `35256230033` — **IN PROGRESS** at latest inspection
-- **Session override:** owner explicitly authorized polling/continuing past the normal async-CI stop rule for this session, until timeout risk becomes reasonably high. This does not permanently change the repository protocol.
-- **Next action:** continue push/PR validation; if a bounded Homebrew-package failure appears, repair only that failure; if exact-head/PR CI is green and PR #53 remains mergeable, merge it, validate post-merge `main`, then record the Homebrew/Rule integration checkpoint before selecting the next Wave 6 package.
-- **Do not:** flatten structured races/classes/subclasses/backgrounds/feats/spells/items into this lightweight rule payload, introduce Place/Zone/Encounter dependency graphs, start Manager UI, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or a universal payload abstraction.
+- **Current task:** close integrated lightweight Homebrew/Rule payload package, then continue with Place payload + local persistence core
+- **Execution state:** Homebrew/Rule implementation is merged after green push and PR validation; post-merge Scaffold is running on the exact merge commit
+- **Integrated `main`:** `fc870fe8303b0f9925c479bdc21c388ef5cc8450`
+- **Homebrew implementation branch:** `wave6/homebrew-rule-payload-persistence`
+- **Final Homebrew branch HEAD:** `0ef3b3466582482fc89f3025c1adf50a5fd40580`
+- **Homebrew PR:** #53 — `feat: add lightweight Homebrew Rule payload persistence` — **MERGED** as `fc870fe8303b0f9925c479bdc21c388ef5cc8450`
+- **Homebrew validation:** push Scaffold `35256210643` — **SUCCESS**; PR Scaffold `35256230033` — **SUCCESS**
+- **Post-merge validation:** Scaffold `35256531651` for `fc870fe8303b0f9925c479bdc21c388ef5cc8450` — **IN PROGRESS** at latest inspection; backend and hosted-database are already **SUCCESS**, Kotlin is in `Build and test Kotlin surfaces`
+- **Integrated Homebrew/Rule scope:** typed `DRAFT / ACTIVE / RETIRED` lifecycle; summary/body plus optional category/rationale, examples, related references, tags and notes; Personal/Campaign create/read/copy/update/tombstone behavior through existing reusable-content identity/provenance/revision seams; SQLDelight `homebrew_rule_payload`; migration `21.sqm`; metadata-only Homebrew backfill; legacy Desktop fixture adjustment; focused persistence/copy/revision/migration/reopen tests
+- **Next bounded package after green closure:** Place payload + local persistence core using `ReusableContentFamily.PLACE`; begin with canonical/self-contained Place data and Shop-as-specialized-Place semantics, while deferring cross-object Place/NPC/Scene/Zone/Encounter dependency-copy graphs to a later explicit relationship package
+- **Session override:** owner explicitly authorized polling/continuing past the normal async-CI stop rule for this session, until timeout/time-risk or unproductive waiting becomes reasonably high. This does not permanently change repository protocol.
+- **Next action:** inspect post-merge Scaffold `35256531651`; if green, create and merge the Homebrew integration checkpoint/documentation closure naming Place payload persistence as the next bounded Wave 6 package. If the run fails, inspect only the exact attributable failure before changing anything. If it remains in the same long-running Kotlin step, stop cleanly rather than spending the session on repeated idle polling.
+- **Do not:** restart completed Homebrew implementation, flatten structured races/classes/subclasses/backgrounds/feats/spells/items into the lightweight rule payload, start Manager UI, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or introduce a generalized dependency graph/universal payload abstraction.
