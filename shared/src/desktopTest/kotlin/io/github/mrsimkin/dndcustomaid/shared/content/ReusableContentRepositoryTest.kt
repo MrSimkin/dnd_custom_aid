@@ -137,6 +137,17 @@ class ReusableContentRepositoryTest {
             DriverManager.getConnection(jdbcUrl).use { connection ->
                 connection.createStatement().use { statement ->
                     statement.executeUpdate("CREATE TABLE campaign (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL)")
+                    statement.executeUpdate(
+                        """
+                        CREATE TABLE object_sync_state (
+                            object_type TEXT NOT NULL,
+                            object_id TEXT NOT NULL,
+                            revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0),
+                            deleted_at_epoch_seconds INTEGER,
+                            PRIMARY KEY(object_type, object_id)
+                        )
+                        """.trimIndent(),
+                    )
                     statement.executeUpdate("INSERT INTO campaign(id, name) VALUES ('$campaignId', 'Legacy Campaign')")
                 }
             }
