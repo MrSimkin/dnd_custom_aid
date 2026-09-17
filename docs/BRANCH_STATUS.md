@@ -3,13 +3,14 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified Wave 6 NPC merge:** `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`  
-**Post-merge Scaffold:** `35254527744` — SUCCESS  
+**Last verified Wave 6 Homebrew/Rule merge:** `fc870fe8303b0f9925c479bdc21c388ef5cc8450`  
+**Post-merge Scaffold:** `35256531651` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 foundation lifecycle:** COMPLETE / INTEGRATED  
 **Wave 6 Creature payload lifecycle:** COMPLETE / INTEGRATED  
 **Wave 6 NPC payload lifecycle:** COMPLETE / INTEGRATED  
-**Current normal work:** lightweight Homebrew/Rule payload + local persistence core from current `main`
+**Wave 6 Homebrew/Rule payload lifecycle:** COMPLETE / INTEGRATED  
+**Current normal work:** Place payload + local persistence core from current `main`
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -17,7 +18,7 @@ This file controls branch lifecycle. Branch existence alone never establishes au
 
 `main` is the sole normal integrated-MVP trunk and normal continuation point.
 
-PR #46 integrated the Wave 6 reusable-content persistence foundation. PR #48 integrated Creature payload persistence. PR #51 `feat: add Wave 6 NPC payload persistence` is merged as `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`; post-merge Scaffold `35254527744` passed.
+PR #46 integrated the Wave 6 reusable-content persistence foundation. PR #48 integrated Creature payload persistence. PR #51 integrated NPC payload persistence. PR #53 `feat: add lightweight Homebrew Rule payload persistence` is merged as `fc870fe8303b0f9925c479bdc21c388ef5cc8450`; post-merge Scaffold `35256531651` passed.
 
 ## Completed Wave 5 branches
 
@@ -31,24 +32,28 @@ Do not resume them for normal implementation.
 
 - `wave6/reusable-content-persistence` — historical implementation ref, PR #46 merged;
 - `wave6/creature-payload-persistence` — historical implementation ref, PR #48 merged;
-- `wave6/npc-payload-persistence` — historical implementation ref, PR #51 merged.
+- `wave6/npc-payload-persistence` — historical implementation ref, PR #51 merged;
+- `wave6/homebrew-rule-payload-persistence` — historical implementation ref, PR #53 merged.
 
 Do not resume these branches for new work. Their integrated scope is part of `main`.
 
 ## Current Wave 6 branch rule
 
-After the NPC documentation closure is merged, create a new short-lived outcome-oriented branch from current `main` for the **lightweight Homebrew/Rule payload + local persistence core**.
+After the Homebrew/Rule documentation closure is merged, create a new short-lived outcome-oriented branch from current `main` for the **Place payload + local persistence core**.
 
-Use `ReusableContentFamily.HOMEBREW_RULE`. Keep the first payload self-contained around rule/ruling/custom-system content with summary/body, optional category/rationale, examples, related references, tags and `DRAFT / ACTIVE / RETIRED` lifecycle.
+Use `ReusableContentFamily.PLACE`. The first Place payload should establish canonical reusable Place data while preserving the approved rule that a Shop is a specialized Place, not a separate top-level content family/system.
 
-Do not treat structured races/classes/subclasses/backgrounds/feats/spells/items as generic rule text merely to fit this package. Do not introduce Place/Zone/Encounter relationship graphs here.
+Keep this first package self-contained around human-facing retrieval/presentation data. Exact low-level fields are delegated engineering work, but useful bounded content includes summary, area/geographic context, function, presentation text, services/interactives, hooks, player-safe text, DM-only notes, paper references, tags and a simple Place kind supporting ordinary Places and Shops.
 
-Do not create permanent Player/Server/Desktop/provider-specific silos. Do not pull Wave 7 Manager UI, hosted reusable-content sync, import/export/AI helper work, object storage or provider activation into this bounded package.
+Do not introduce generalized Place <-> NPC/Scene/Zone/Encounter dependency-copy graphs, clocks, media/object-storage references, automatic reveal/publication behavior or Wave 7 Manager UI in this first Place package.
+
+Do not create permanent Player/Server/Desktop/provider-specific silos. Do not pull hosted reusable-content sync, import/export/AI helper work, object storage or provider activation into this bounded package.
 
 ## Documentation closure branches
 
 - `docs/wave6-creature-integrated` — historical after PR #50 merge;
-- `docs/wave6-npc-integrated` — current short-lived documentation/checkpoint branch recording PR #51 integration and the Homebrew/Rule continuation point.
+- `docs/wave6-npc-integrated` — historical after PR #52 merge;
+- `docs/wave6-homebrew-integrated` — current short-lived documentation/checkpoint branch recording PR #53 integration and the Place continuation point.
 
 ## Historical/stale open PRs
 
@@ -60,4 +65,4 @@ PR #36 and PR #37 are older Wave 4-era items. They are not current continuation 
 
 ## Exact resume rule
 
-After the NPC documentation closure is merged, resume from current `main` and `docs/checkpoints/2026-09-17_WAVE6_NPC_PAYLOAD_INTEGRATED.md`. Create a new short-lived Wave 6 Homebrew/Rule payload branch and continue the local/shared persistence architecture. Do not redeploy Cloudflare for documentation or local/shared persistence-only changes.
+After the Homebrew/Rule documentation closure is merged, resume from current `main` and `docs/checkpoints/2026-09-17_WAVE6_HOMEBREW_RULE_PAYLOAD_INTEGRATED.md`. Create a new short-lived Wave 6 Place payload branch and continue the local/shared persistence architecture. Do not redeploy Cloudflare for documentation or local/shared persistence-only changes.

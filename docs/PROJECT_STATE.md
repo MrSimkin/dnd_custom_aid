@@ -3,14 +3,15 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a` (PR #51)  
-**Post-merge Scaffold:** `35254527744` — SUCCESS  
+**Last verified runtime/integration merge:** `fc870fe8303b0f9925c479bdc21c388ef5cc8450` (PR #53)  
+**Post-merge Scaffold:** `35256531651` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 reusable-content persistence foundation:** INTEGRATED  
 **Wave 6 Creature payload persistence:** INTEGRATED  
 **Wave 6 NPC payload persistence:** INTEGRATED  
+**Wave 6 lightweight Homebrew/Rule payload persistence:** INTEGRATED  
 **Current normal wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** lightweight Homebrew/Rule payload + local persistence core
+**Next bounded package:** Place payload + local persistence core
 
 ## 1. Current topology
 
@@ -22,7 +23,9 @@ PR #48 `feat: add Wave 6 Creature payload persistence` merged as `5762058645ba8a
 
 PR #51 `feat: add Wave 6 NPC payload persistence` merged as `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`; push Scaffold `35254216489`, PR Scaffold `35254260799` and post-merge Scaffold `35254527744` all succeeded.
 
-No completed Wave 5 work, reusable-content foundation, Creature payload or NPC payload work should be repeated without new defect evidence.
+PR #53 `feat: add lightweight Homebrew Rule payload persistence` merged as `fc870fe8303b0f9925c479bdc21c388ef5cc8450`; push Scaffold `35256210643`, PR Scaffold `35256230033` and post-merge Scaffold `35256531651` all succeeded.
+
+No completed Wave 5 work, reusable-content foundation, Creature payload, NPC payload or Homebrew/Rule payload work should be repeated without new defect evidence.
 
 ## 2. Wave 5 acceptance baseline
 
@@ -88,37 +91,60 @@ Integrated semantics:
 
 Persistence scope includes SQLDelight `npc_payload`, migration `20.sqm` with default metadata-only NPC backfill, database-reopen tests, migration-preservation coverage and the bounded synthetic Wave-5 Desktop fixture update.
 
-## 8. Wave 6 continuation — lightweight Homebrew/Rule core
+## 8. Integrated lightweight Homebrew/Rule payload package
 
-The next bounded package is **Homebrew/Rule payload + local persistence core** using `ReusableContentFamily.HOMEBREW_RULE`.
+PR #53 adds the self-contained lightweight rule/ruling/custom-system payload approved by D-0072.
 
-Required first-package shape from D-0072:
+Integrated semantics include:
 
-- title remains the reusable-content display name;
+- reusable-content display name as title;
+- summary and human-readable body text;
+- optional category and rationale;
+- examples, related references and tags;
+- optional notes;
+- lifecycle `DRAFT / ACTIVE / RETIRED`;
+- Personal/Campaign create/read/copy/update/tombstone behavior;
+- independent campaign copies with retained provenance;
+- stale-write rejection and tombstone/non-resurrection semantics.
+
+Persistence scope includes SQLDelight `homebrew_rule_payload`, migration `21.sqm` with metadata-only Homebrew/Rule backfill, explicit list serialization, database-reopen/migration/copy/revision coverage and the bounded synthetic legacy Desktop fixture adjustment.
+
+Structured races/sub-races, classes/subclasses, backgrounds, feats, spells, ordinary items and magic items remain outside this lightweight record and require family-appropriate models/editors. No universal arbitrary JSON/executable homebrew payload was introduced.
+
+## 9. Wave 6 continuation — Place payload core
+
+The next bounded package is **Place payload + local persistence core** using `ReusableContentFamily.PLACE`.
+
+The first Place package should establish a canonical reusable Place record while preserving D-0072's rule that a Shop is a specialized Place rather than a separate top-level system.
+
+Keep the initial package self-contained around human-facing retrieval/presentation data such as:
+
 - summary;
-- rich/human-readable body text;
-- optional category;
-- optional rationale;
-- examples;
-- related references;
+- area or geographic context;
+- function;
+- presentation/atmosphere text;
+- services/interactives;
+- hooks;
+- player-safe text;
+- DM-only notes;
+- paper references;
 - tags;
-- simple lifecycle `DRAFT / ACTIVE / RETIRED`;
-- optional notes if useful.
+- a simple Place kind sufficient to represent ordinary Places and Shops without a second top-level content family.
+
+Exact field decomposition and serialization are delegated engineering decisions.
 
 Reuse the integrated Personal/Campaign create/read/copy/update/tombstone and revision/provenance seams.
 
-Do **not** collapse structured races/classes/subclasses/backgrounds/feats/spells/items/magic items into this lightweight rule record. D-0072 explicitly calls for family-appropriate editors/structure; those are later bounded payload packages rather than a universal JSON model.
+Do **not** introduce generalized Place <-> NPC/Scene/Zone/Encounter dependency-copy graphs, clocks, media/object-storage references or automatic reveal/publication behavior in this first payload. Those relationships should be introduced deliberately in later bounded packages when a dependent domain actually requires them.
 
-Do not introduce Place/Zone/Encounter relationship/dependency graphs here. The lightweight rule record is deliberately selected next because it is self-contained; relationship semantics should be introduced when a domain actually requires them.
-
-## 9. Security/cost residuals
+## 10. Security/cost residuals
 
 Hard external-service operating budget remains USD $0. Repository is intentionally public. Object-storage provider selection remains deferred.
 
 Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect packages/reachability/fixed versions when a relevant hardening package is scheduled.
 
-## 10. Resume rule
+## 11. Resume rule
 
 Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, relevant D-0071/D-0072/D-0073/D-0075 records and `docs/ROADMAP.md`.
 
-Resume from current `main` on a new short-lived branch for the lightweight Homebrew/Rule payload + local persistence core. Reuse the integrated reusable-content seams; do not rebuild prior Wave 6 packages, generalize all content into one universal abstraction, or redeploy Cloudflare for local/shared persistence work.
+Resume from current `main` on a new short-lived branch for the Place payload + local persistence core. Reuse the integrated reusable-content seams; do not rebuild prior Wave 6 packages, introduce generalized relationship graphs prematurely, generalize all content into one universal abstraction, or redeploy Cloudflare for local/shared persistence work.
