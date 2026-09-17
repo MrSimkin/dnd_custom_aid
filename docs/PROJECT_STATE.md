@@ -3,43 +3,30 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `5762058645ba8af8fa470dcf185bd2b418af65e9` (PR #48)  
-**Post-merge Scaffold:** `35253188344` — SUCCESS  
+**Last verified runtime/integration merge:** `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a` (PR #51)  
+**Post-merge Scaffold:** `35254527744` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 reusable-content persistence foundation:** INTEGRATED  
 **Wave 6 Creature payload persistence:** INTEGRATED  
+**Wave 6 NPC payload persistence:** INTEGRATED  
 **Current normal wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** NPC payload + local persistence core
+**Next bounded package:** lightweight Homebrew/Rule payload + local persistence core
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New implementation work uses short-lived outcome-oriented branches from current `main`.
 
-PR #46 `feat: add Wave 6 reusable content persistence foundation` is merged as `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` succeeded.
+PR #46 `feat: add Wave 6 reusable content persistence foundation` merged as `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` succeeded.
 
-PR #48 `feat: add Wave 6 Creature payload persistence` is merged. Its final branch head was `8a9ec6425c697472a6c57982acbe8e4001b4fc5d`; replacement PR Scaffold `35252554882` succeeded; merge commit is `5762058645ba8af8fa470dcf185bd2b418af65e9`; post-merge Scaffold `35253188344` succeeded.
+PR #48 `feat: add Wave 6 Creature payload persistence` merged as `5762058645ba8af8fa470dcf185bd2b418af65e9`; replacement Scaffold `35252554882` and post-merge Scaffold `35253188344` succeeded.
 
-No Wave 5 application/provider work, Wave 6 reusable-content foundation work, or integrated Creature payload work should be repeated without new defect evidence.
+PR #51 `feat: add Wave 6 NPC payload persistence` merged as `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`; push Scaffold `35254216489`, PR Scaffold `35254260799` and post-merge Scaffold `35254527744` all succeeded.
+
+No completed Wave 5 work, reusable-content foundation, Creature payload or NPC payload work should be repeated without new defect evidence.
 
 ## 2. Wave 5 acceptance baseline
 
-Wave 5 verified real behavior includes:
-
-- Desktop local campaign/workbench persistence;
-- real Descope email-OTP authentication;
-- hosted campaign bootstrap/convergence;
-- authoritative member roster;
-- DM rows protected from Player moderation;
-- Player moderation `ACTIVE -> KICKED -> BANNED -> KICKED`;
-- authoritative campaign revisions `0 -> 1 -> 2 -> 3`;
-- `LIFT_BAN = BANNED -> KICKED`;
-- canonical Outlook DEV owner/DM migration, final campaign revision `4`;
-- Outlook roster `DM / ACTIVE`, Gmail no current campaign membership;
-- Outlook Desktop bootstrap `1 hosted / 1 applied / 0 conflicts`;
-- font/theme visual previews and persisted device-local settings;
-- hosted session intentionally not persisted across application shutdown;
-- Outlook reauthentication after relaunch;
-- explicit sign-out clearing hosted state without deleting local campaigns/settings.
+Wave 5 verified real behavior includes Desktop local campaign/workbench persistence, real Descope email-OTP authentication, hosted campaign bootstrap/convergence, authoritative member roster/moderation, campaign revisions, canonical Outlook DEV owner/DM migration, Desktop hosted bootstrap, persisted device-local settings, explicit hosted-session lifecycle and sign-out semantics.
 
 Historical Gmail mutation/audit evidence remains truthful and unchanged.
 
@@ -71,68 +58,67 @@ Normal hosted DEV owner/DM identity is Outlook-backed. Gmail is historical/inact
 
 ## 5. Wave 6 approved semantic baseline and integrated foundation
 
-Existing Shared spine provides:
+Existing Shared spine provides `ContentScope`, provenance, stable scoped identity, optimistic revisions/stale-write checks, sync metadata/tombstones and local integrated-spine persistence.
 
-- `ContentScope` with Personal/Campaign/System/Official variants;
-- `CopyProvenance`;
-- `ScopedObjectIdentity.independentCampaignCopy()` assigning a new object ID and retained provenance;
-- `Revision` / stale-write checks;
-- sync metadata/tombstone semantics;
-- local integrated-spine persistence for accounts/memberships/PC authority/object sync state.
-
-PR #46 integrated the first bounded Wave 6 reusable-content persistence foundation:
-
-- family/catalog metadata for Creature, NPC, Homebrew/Rule, Place, Zone and Encounter;
-- Personal and Campaign scoped creation/listing;
-- explicit independent Personal -> Campaign copy retaining provenance;
-- optimistic revisions, stale-write rejection, tombstones and non-resurrection behavior;
-- local SQLDelight persistence and migration `18.sqm`;
-- safe Desktop migration from the verified unversioned Wave-5 local schema;
-- fail-closed refusal of unknown unversioned Desktop databases;
-- invariant, migration and Desktop reopen/migration tests.
+PR #46 integrated family/catalog metadata for Creature, NPC, Homebrew/Rule, Place, Zone and Encounter; Personal/Campaign creation/listing; explicit independent Personal -> Campaign copies; optimistic revisions/tombstones/non-resurrection; SQLDelight migration `18.sqm`; safe recognized Wave-5 Desktop migration and fail-closed unknown-unversioned handling; and focused tests.
 
 Approved product semantics continue to require reusable Personal DM material, explicit independent Campaign copies, provenance visibility and no automatic inheritance/update after copy.
 
 ## 6. Integrated Creature payload package
 
-PR #48 builds the first domain-specific payload on that foundation without introducing a universal executable content model.
+PR #48 adds a human-complete, selectively structured Creature payload, local SQLDelight payload persistence, Personal/Campaign create/read/copy/update/tombstone behavior, migration `19.sqm` with metadata-only Creature backfill and focused invariant/reopen/migration tests.
 
-Integrated scope includes:
+The original PR failure was only a synthetic legacy-fixture mismatch; repair commit `8a9ec6425c697472a6c57982acbe8e4001b4fc5d` corrected the fixture without changing production migration semantics.
 
-- human-complete, selectively structured Creature payload/domain representation;
-- local SQLDelight Creature payload persistence linked to reusable-content identity;
-- Personal/Campaign Creature creation and read flows;
-- explicit Personal -> Campaign copy retaining provenance and creating an independent campaign object;
-- payload mutation through the existing optimistic revision/stale-write/tombstone semantics;
-- migration `19.sqm` with safe metadata-only Creature backfill;
-- focused persistence and invariant tests.
+## 7. Integrated NPC payload package
 
-The original PR CI exposed only a synthetic Desktop legacy-fixture mismatch. Repair commit `8a9ec6425c697472a6c57982acbe8e4001b4fc5d` corrected the test fixture to remove the newly introduced `creature_payload` table when simulating a pre-Wave-6 database; production migration logic was not changed. Replacement and post-merge CI both passed.
+PR #51 adds a human-complete NPC payload while preserving incomplete/Quick NPC validity.
 
-## 7. Wave 6 continuation — NPC payload core
+Integrated semantics:
 
-The next bounded package is **NPC payload + local persistence core**.
+- Quick and Developed NPCs are both valid;
+- combat mechanics are optional;
+- no completion score exists;
+- richer narrative/dossier fields can accumulate incrementally;
+- optional full combat mechanics reuse the existing `CreaturePayload` model;
+- the Creature mechanics are stored inside the NPC payload rather than represented by a hidden duplicate reusable Creature object;
+- Personal -> Campaign copy is independent with retained provenance;
+- later source changes do not mutate campaign copies;
+- stale writes are rejected and tombstoned NPCs cannot be resurrected by stale mutation.
 
-Required semantic shape from D-0072:
+Persistence scope includes SQLDelight `npc_payload`, migration `20.sqm` with default metadata-only NPC backfill, database-reopen tests, migration-preservation coverage and the bounded synthetic Wave-5 Desktop fixture update.
 
-- Quick NPC and Developed NPC are both first-class valid states;
-- no combat stat block is required for a valid NPC;
-- human-facing identity, concept, appearance, personality/manner, wants/fears/needs, offers, limits/refusals, relationships/context and notes may exist without combat mechanics;
-- richer Developed NPC material may add motivations, values, relationships, history, secrets, knowledge, goals, resources, affiliations, places, adventure/scene links and DM guidance;
-- optional full combat mechanics should reuse the Creature/stat-block machinery rather than introduce a second incompatible combat representation;
-- there is no completion score or requirement to fill every field;
-- Personal -> Campaign copies remain independent after explicit copy/use, with retained provenance.
+## 8. Wave 6 continuation — lightweight Homebrew/Rule core
 
-Keep this package bounded to domain payload + local persistence/revision/copy behavior. It does **not** include large NPC Manager UI, import/export, AI helper flows, hosted reusable-content sync, object storage or provider activation.
+The next bounded package is **Homebrew/Rule payload + local persistence core** using `ReusableContentFamily.HOMEBREW_RULE`.
 
-## 8. Security/cost residuals
+Required first-package shape from D-0072:
+
+- title remains the reusable-content display name;
+- summary;
+- rich/human-readable body text;
+- optional category;
+- optional rationale;
+- examples;
+- related references;
+- tags;
+- simple lifecycle `DRAFT / ACTIVE / RETIRED`;
+- optional notes if useful.
+
+Reuse the integrated Personal/Campaign create/read/copy/update/tombstone and revision/provenance seams.
+
+Do **not** collapse structured races/classes/subclasses/backgrounds/feats/spells/items/magic items into this lightweight rule record. D-0072 explicitly calls for family-appropriate editors/structure; those are later bounded payload packages rather than a universal JSON model.
+
+Do not introduce Place/Zone/Encounter relationship/dependency graphs here. The lightweight rule record is deliberately selected next because it is self-contained; relationship semantics should be introduced when a domain actually requires them.
+
+## 9. Security/cost residuals
 
 Hard external-service operating budget remains USD $0. Repository is intentionally public. Object-storage provider selection remains deferred.
 
 Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect packages/reachability/fixed versions when a relevant hardening package is scheduled.
 
-## 9. Resume rule
+## 10. Resume rule
 
 Read `docs/checkpoints/LATEST.md`, its referenced checkpoint, `docs/BRANCH_STATUS.md`, relevant D-0071/D-0072/D-0073/D-0075 records and `docs/ROADMAP.md`.
 
-Resume from current `main` on a new short-lived branch for the NPC payload + local persistence core. Reuse the integrated reusable-content and Creature seams; do not rebuild prior Wave 6 packages, force all domain payloads into a universal abstraction, or redeploy Cloudflare for local/shared persistence work.
+Resume from current `main` on a new short-lived branch for the lightweight Homebrew/Rule payload + local persistence core. Reuse the integrated reusable-content seams; do not rebuild prior Wave 6 packages, generalize all content into one universal abstraction, or redeploy Cloudflare for local/shared persistence work.
