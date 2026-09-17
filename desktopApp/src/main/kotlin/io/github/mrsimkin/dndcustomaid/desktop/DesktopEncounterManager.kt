@@ -131,7 +131,7 @@ class DesktopEncounterManagerController(
 
     fun encounter(id: Uuid): EncounterContent? = encounters.encounter(id)
 
-    fun participantSources(scope: ContentScope): List<DesktopEncounterParticipantSource> {
+    internal fun participantSources(scope: ContentScope): List<DesktopEncounterParticipantSource> {
         val items = when (scope) {
             is ContentScope.Personal ->
                 reusableContent.listPersonal(scope.ownerAccountId, ReusableContentFamily.CREATURE) +
