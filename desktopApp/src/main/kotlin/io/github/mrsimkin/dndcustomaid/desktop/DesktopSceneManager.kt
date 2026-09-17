@@ -29,12 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
-import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContent
-import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
-import io.github.mrsimkin.dndcustomaid.shared.content.PlaceKind
-import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.SceneContent
+import io.github.mrsimkin.dndcustomaid.shared.content.SceneContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.ScenePayload
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
@@ -44,28 +43,25 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.Revision
 import io.github.mrsimkin.dndcustomaid.shared.spine.RevisionDecision
 import kotlin.uuid.Uuid
 
-private enum class DesktopManagersHubSection(val label: String) {
-    CREATURES_NPCS_HOMEBREW("Criaturas / PNJ / Homebrew"),
-    PLACES_SHOPS("Escenarios / Lugares / Tiendas"),
+private enum class DesktopStageContentSection(val label: String) {
+    PLACES_SHOPS("Stage • Lugares / Tiendas"),
+    SCENES("Aventura / Escenas"),
 }
 
 @Composable
-fun DesktopManagersHubScreen(
-    creatureController: DesktopCreatureManagerController,
-    npcController: DesktopNpcManagerController,
-    homebrewRuleController: DesktopHomebrewRuleManagerController,
-    placeController: DesktopPlaceManagerController,
+internal fun DesktopStageAndSceneManagerScreen(
+    controller: DesktopPlaceManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
 ) {
-    var section by remember { mutableStateOf(DesktopManagersHubSection.CREATURES_NPCS_HOMEBREW) }
+    var section by remember { mutableStateOf(DesktopStageContentSection.PLACES_SHOPS) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DesktopManagersHubSection.entries.forEach { candidate ->
+            DesktopStageContentSection.entries.forEach { candidate ->
                 if (candidate == section) {
                     Button(onClick = { section = candidate }) { Text(candidate.label) }
                 } else {
@@ -75,15 +71,13 @@ fun DesktopManagersHubScreen(
         }
         Divider()
         when (section) {
-            DesktopManagersHubSection.CREATURES_NPCS_HOMEBREW -> DesktopAuthoringManagersScreen(
-                creatureController = creatureController,
-                npcController = npcController,
-                homebrewRuleController = homebrewRuleController,
+            DesktopStageContentSection.PLACES_SHOPS -> DesktopPlaceManagerScreen(
+                controller = controller,
                 activeCampaign = activeCampaign,
                 onQaEvent = onQaEvent,
             )
-            DesktopManagersHubSection.PLACES_SHOPS -> DesktopStageAndSceneManagerScreen(
-                controller = placeController,
+            DesktopStageContentSection.SCENES -> DesktopSceneManagerScreen(
+                controller = controller.sceneManagerController,
                 activeCampaign = activeCampaign,
                 onQaEvent = onQaEvent,
             )
@@ -91,15 +85,14 @@ fun DesktopManagersHubScreen(
     }
 }
 
-class DesktopPlaceManagerController(
+class DesktopSceneManagerController(
     database: AppDatabase,
     private val nowEpochSeconds: () -> Long = { System.currentTimeMillis() / 1000L },
 ) {
     private val campaignRepository = CampaignRepository(database)
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
-    private val places = PlaceContentRepository(database, reusableContent)
-    internal val sceneManagerController = DesktopSceneManagerController(database, nowEpochSeconds)
+    private val scenes = SceneContentRepository(database, reusableContent)
 
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
@@ -123,44 +116,38 @@ class DesktopPlaceManagerController(
             .singleOrNull()
     }
 
-    fun personalPlaces(ownerAccountId: Uuid): List<PlaceContent> =
-        reusableContent.listPersonal(ownerAccountId, ReusableContentFamily.PLACE)
-            .mapNotNull { places.place(it.identity.id) }
+    fun personalScenes(ownerAccountId: Uuid): List<SceneContent> =
+        reusableContent.listPersonal(ownerAccountId, ReusableContentFamily.SCENE)
+            .mapNotNull { scenes.scene(it.identity.id) }
 
-    fun campaignPlaces(campaignId: Uuid): List<PlaceContent> =
-        reusableContent.listCampaign(campaignId, ReusableContentFamily.PLACE)
-            .mapNotNull { places.place(it.identity.id) }
+    fun campaignScenes(campaignId: Uuid): List<SceneContent> =
+        reusableContent.listCampaign(campaignId, ReusableContentFamily.SCENE)
+            .mapNotNull { scenes.scene(it.identity.id) }
 
-    fun place(id: Uuid): PlaceContent? = places.place(id)
+    fun scene(id: Uuid): SceneContent? = scenes.scene(id)
 
-    fun createPersonal(
-        ownerAccountId: Uuid,
-        displayName: String,
-        kind: PlaceKind = PlaceKind.PLACE,
-    ): PlaceContent = places.createPersonal(
-        ownerAccountId = ownerAccountId,
-        rawDisplayName = displayName,
-        payload = PlacePayload(kind = kind),
-        nowEpochSeconds = nowEpochSeconds(),
-    )
+    fun createPersonal(ownerAccountId: Uuid, displayName: String): SceneContent =
+        scenes.createPersonal(
+            ownerAccountId = ownerAccountId,
+            rawDisplayName = displayName,
+            payload = ScenePayload(),
+            nowEpochSeconds = nowEpochSeconds(),
+        )
 
-    fun createCampaign(
-        campaignId: Uuid,
-        displayName: String,
-        kind: PlaceKind = PlaceKind.PLACE,
-    ): PlaceContent = places.createCampaign(
-        campaignId = campaignId,
-        rawDisplayName = displayName,
-        payload = PlacePayload(kind = kind),
-        nowEpochSeconds = nowEpochSeconds(),
-    )
+    fun createCampaign(campaignId: Uuid, displayName: String): SceneContent =
+        scenes.createCampaign(
+            campaignId = campaignId,
+            rawDisplayName = displayName,
+            payload = ScenePayload(),
+            nowEpochSeconds = nowEpochSeconds(),
+        )
 
     fun update(
         id: Uuid,
         expectedRevision: Revision,
         displayName: String,
-        payload: PlacePayload,
-    ): RevisionDecision = places.update(
+        payload: ScenePayload,
+    ): RevisionDecision = scenes.update(
         id = id,
         expectedRevision = expectedRevision,
         rawDisplayName = displayName,
@@ -168,8 +155,8 @@ class DesktopPlaceManagerController(
         updatedAtEpochSeconds = nowEpochSeconds(),
     )
 
-    fun copyPersonalToCampaign(sourceId: Uuid, campaignId: Uuid): PlaceContent =
-        places.copyPersonalToCampaign(
+    fun copyPersonalToCampaign(sourceId: Uuid, campaignId: Uuid): SceneContent =
+        scenes.copyPersonalToCampaign(
             sourceId = sourceId,
             campaignId = campaignId,
             copiedAtEpochSeconds = nowEpochSeconds(),
@@ -177,33 +164,31 @@ class DesktopPlaceManagerController(
 }
 
 @Composable
-internal fun DesktopPlaceManagerScreen(
-    controller: DesktopPlaceManagerController,
+internal fun DesktopSceneManagerScreen(
+    controller: DesktopSceneManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
-    var stageFilters by remember { mutableStateOf(StagePlaceFilters()) }
     var newName by remember { mutableStateOf("") }
-    var newKind by remember { mutableStateOf(PlaceKind.PLACE) }
     var selectedId by remember { mutableStateOf<Uuid?>(null) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
         controller.personalOwnerAccountId()
     }
-    val personalPlaces = remember(refreshVersion, ownerAccountId) {
-        ownerAccountId?.let(controller::personalPlaces).orEmpty()
+    val personalScenes = remember(refreshVersion, ownerAccountId) {
+        ownerAccountId?.let(controller::personalScenes).orEmpty()
     }
-    val campaignPlaces = remember(refreshVersion, activeCampaign?.id) {
-        activeCampaign?.id?.let(controller::campaignPlaces).orEmpty()
+    val campaignScenes = remember(refreshVersion, activeCampaign?.id) {
+        activeCampaign?.id?.let(controller::campaignScenes).orEmpty()
     }
     val selected = remember(refreshVersion, selectedId) {
-        selectedId?.let(controller::place)
+        selectedId?.let(controller::scene)
     }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
-        mutableStateOf(selected?.let(PlaceDraft::from))
+        mutableStateOf(selected?.let(SceneDraft::from))
     }
 
     fun refresh(selectId: Uuid? = selectedId) {
@@ -211,19 +196,28 @@ internal fun DesktopPlaceManagerScreen(
         refreshVersion += 1
     }
 
-    val visiblePlaces = filterStagePlaces(
-        places = personalPlaces + campaignPlaces,
-        filters = stageFilters.copy(query = query),
-    )
+    val normalizedQuery = query.trim().lowercase()
+    val visibleScenes = (personalScenes + campaignScenes)
+        .distinctBy { it.item.identity.id }
+        .filter { content ->
+            normalizedQuery.isEmpty() || buildList {
+                add(content.item.displayName)
+                add(content.payload.purpose)
+                add(content.payload.notes)
+                addAll(content.payload.possibleNextScenes)
+                addAll(content.payload.references)
+            }.any { it.lowercase().contains(normalizedQuery) }
+        }
+        .sortedWith(compareBy({ sceneScopeSortKey(it) }, { it.item.displayName.lowercase() }))
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Escenarios, Lugares y Tiendas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Adventure / Scene Spine", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
             Text(
-                "La vista Stage organiza los lugares reutilizables existentes; las tiendas siguen siendo lugares especializados y las copias de campaña son independientes.",
+                "Orientación ligera: propósito, posibles escenas siguientes y referencias. No es un motor de quests ni de estado vivo.",
                 style = MaterialTheme.typography.body1,
             )
         }
@@ -243,41 +237,34 @@ internal fun DesktopPlaceManagerScreen(
             OutlinedTextField(
                 value = newName,
                 onValueChange = { newName = it },
-                label = { Text("Nuevo lugar / tienda") },
+                label = { Text("Nueva escena") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
             )
-            PlaceKind.entries.forEach { kind ->
-                if (newKind == kind) {
-                    Button(onClick = { newKind = kind }) { Text(placeKindLabel(kind)) }
-                } else {
-                    TextButton(onClick = { newKind = kind }) { Text(placeKindLabel(kind)) }
-                }
-            }
             Button(
                 enabled = newName.isNotBlank() && ownerAccountId != null,
                 onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName, newKind) }
+                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
                         .onSuccess { created ->
                             newName = ""
-                            statusMessage = "${placeKindLabel(created.payload.kind)} Personal creado."
-                            onQaEvent("Place Manager: contenido Personal creado ${created.item.identity.id}")
+                            statusMessage = "Escena Personal creada."
+                            onQaEvent("Scene Manager: escena Personal creada ${created.item.identity.id}")
                             refresh(created.item.identity.id)
                         }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el contenido Personal." }
+                        .onFailure { statusMessage = it.message ?: "No se pudo crear la escena Personal." }
                 },
             ) { Text("Crear Personal") }
             Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
-                    runCatching {
-                        controller.createCampaign(requireNotNull(activeCampaign).id, newName, newKind)
-                    }.onSuccess { created ->
-                        newName = ""
-                        statusMessage = "${placeKindLabel(created.payload.kind)} creado en ${activeCampaign?.name}."
-                        onQaEvent("Place Manager: contenido de campaña creado ${created.item.identity.id}")
-                        refresh(created.item.identity.id)
-                    }.onFailure { statusMessage = it.message ?: "No se pudo crear el contenido de campaña." }
+                    runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
+                        .onSuccess { created ->
+                            newName = ""
+                            statusMessage = "Escena creada en ${activeCampaign?.name}."
+                            onQaEvent("Scene Manager: escena de campaña creada ${created.item.identity.id}")
+                            refresh(created.item.identity.id)
+                        }
+                        .onFailure { statusMessage = it.message ?: "No se pudo crear la escena de campaña." }
                 },
             ) { Text("Crear en campaña") }
         }
@@ -285,16 +272,11 @@ internal fun DesktopPlaceManagerScreen(
         if (ownerAccountId == null) {
             Text(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
+                    "Las escenas de campaña local siguen disponibles.",
                 style = MaterialTheme.typography.caption,
             )
         }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
-
-        StagePlaceFilterControls(
-            filters = stageFilters,
-            onFiltersChange = { stageFilters = it },
-        )
 
         Divider()
 
@@ -302,8 +284,8 @@ internal fun DesktopPlaceManagerScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            PlaceList(
-                places = visiblePlaces,
+            SceneList(
+                scenes = visibleScenes,
                 selectedId = selectedId,
                 onSelect = {
                     selectedId = it
@@ -317,11 +299,11 @@ internal fun DesktopPlaceManagerScreen(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un lugar o tienda para abrirlo.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalPlaces.size} • Campaña activa: ${campaignPlaces.size}")
+                    Text("Selecciona una escena para abrirla.", style = MaterialTheme.typography.h6)
+                    Text("Personal: ${personalScenes.size} • Campaña activa: ${campaignScenes.size}")
                 }
             } else {
-                PlaceEditor(
+                SceneEditor(
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -336,15 +318,15 @@ internal fun DesktopPlaceManagerScreen(
                         )) {
                             is RevisionDecision.Accepted -> {
                                 statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
-                                onQaEvent("Place Manager: contenido actualizado ${selected.item.identity.id}")
+                                onQaEvent("Scene Manager: escena actualizada ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
                             is RevisionDecision.Stale -> {
-                                statusMessage = "El contenido cambió desde que fue abierto. Se recargó la versión actual."
+                                statusMessage = "La escena cambió desde que fue abierta. Se recargó la versión actual."
                                 refresh(selected.item.identity.id)
                             }
                             is RevisionDecision.Deleted -> {
-                                statusMessage = "El contenido fue eliminado y no puede ser sobrescrito."
+                                statusMessage = "La escena fue eliminada y no puede ser sobrescrita."
                                 refresh(null)
                             }
                         }
@@ -357,10 +339,10 @@ internal fun DesktopPlaceManagerScreen(
                             runCatching { controller.copyPersonalToCampaign(selected.item.identity.id, campaign.id) }
                                 .onSuccess { copied ->
                                     statusMessage = "Copia independiente creada en ${campaign.name}."
-                                    onQaEvent("Place Manager: contenido copiado a campaña ${copied.item.identity.id}")
+                                    onQaEvent("Scene Manager: escena copiada a campaña ${copied.item.identity.id}")
                                     refresh(copied.item.identity.id)
                                 }
-                                .onFailure { statusMessage = it.message ?: "No se pudo copiar el contenido." }
+                                .onFailure { statusMessage = it.message ?: "No se pudo copiar la escena." }
                         }
                     },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -371,20 +353,20 @@ internal fun DesktopPlaceManagerScreen(
 }
 
 @Composable
-private fun PlaceList(
-    places: List<PlaceContent>,
+private fun SceneList(
+    scenes: List<SceneContent>,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Stage • Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Escenas (${scenes.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
         }
-        if (places.isEmpty()) {
-            item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.caption) }
+        if (scenes.isEmpty()) {
+            item { Text("No hay escenas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
         }
-        items(places, key = { it.item.identity.id.toString() }) { content ->
+        items(scenes, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
@@ -392,9 +374,9 @@ private fun PlaceList(
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text("${placeKindLabel(content.payload.kind)} • ${placeScopeLabel(content)}", style = MaterialTheme.typography.caption)
-                    if (content.payload.area.isNotBlank()) {
-                        Text(content.payload.area, style = MaterialTheme.typography.caption)
+                    Text(sceneScopeLabel(content), style = MaterialTheme.typography.caption)
+                    if (content.payload.purpose.isNotBlank()) {
+                        Text(content.payload.purpose, style = MaterialTheme.typography.caption)
                     }
                 }
             }
@@ -403,11 +385,11 @@ private fun PlaceList(
 }
 
 @Composable
-private fun PlaceEditor(
-    content: PlaceContent,
-    draft: PlaceDraft,
+private fun SceneEditor(
+    content: SceneContent,
+    draft: SceneDraft,
     activeCampaign: Campaign?,
-    onDraftChange: (PlaceDraft) -> Unit,
+    onDraftChange: (SceneDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     modifier: Modifier,
@@ -420,9 +402,9 @@ private fun PlaceEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Lugar / Tienda", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                    Text("Editor de Escena", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
                     Text(
-                        "${placeKindLabel(draft.kind)} • ${placeScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
+                        "${sceneScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
                         style = MaterialTheme.typography.caption,
                     )
                     content.item.identity.provenance?.let { provenance ->
@@ -439,35 +421,30 @@ private fun PlaceEditor(
             }
         }
 
-        item { PlaceField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
+        item { SceneField("Título", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
+        item { SceneField("Propósito", draft.purpose, false, 4) { onDraftChange(draft.copy(purpose = it)) } }
         item {
-            Text("Tipo", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                PlaceKind.entries.forEach { kind ->
-                    if (draft.kind == kind) {
-                        Button(onClick = { onDraftChange(draft.copy(kind = kind)) }) { Text(placeKindLabel(kind)) }
-                    } else {
-                        TextButton(onClick = { onDraftChange(draft.copy(kind = kind)) }) { Text(placeKindLabel(kind)) }
-                    }
-                }
-            }
+            SceneField(
+                "Posibles escenas siguientes (una por línea)",
+                draft.possibleNextScenes,
+                false,
+                5,
+            ) { onDraftChange(draft.copy(possibleNextScenes = it)) }
         }
-        item { PlaceField("Resumen", draft.summary, false, 3) { onDraftChange(draft.copy(summary = it)) } }
-        item { PlaceField("Área / ubicación", draft.area, true) { onDraftChange(draft.copy(area = it)) } }
-        item { PlaceField("Función", draft.function, false, 3) { onDraftChange(draft.copy(function = it)) } }
-        item { PlaceField("Presentación / atmósfera", draft.presentation, false, 4) { onDraftChange(draft.copy(presentation = it)) } }
-        item { PlaceField("Servicios (uno por línea)", draft.services, false, 4) { onDraftChange(draft.copy(services = it)) } }
-        item { PlaceField("Interacciones (una por línea)", draft.interactives, false, 4) { onDraftChange(draft.copy(interactives = it)) } }
-        item { PlaceField("Ganchos (uno por línea)", draft.hooks, false, 4) { onDraftChange(draft.copy(hooks = it)) } }
-        item { PlaceField("Texto seguro para jugadores", draft.playerSafeText, false, 4) { onDraftChange(draft.copy(playerSafeText = it)) } }
-        item { PlaceField("Notas DM", draft.dmNotes, false, 4) { onDraftChange(draft.copy(dmNotes = it)) } }
-        item { PlaceField("Referencias de papel (una por línea)", draft.paperReferences, false, 3) { onDraftChange(draft.copy(paperReferences = it)) } }
-        item { PlaceField("Etiquetas (coma o línea)", draft.tags, false, 3) { onDraftChange(draft.copy(tags = it)) } }
+        item {
+            SceneField(
+                "Referencias / enlaces de preparación (una por línea)",
+                draft.references,
+                false,
+                5,
+            ) { onDraftChange(draft.copy(references = it)) }
+        }
+        item { SceneField("Notas DM", draft.notes, false, 5) { onDraftChange(draft.copy(notes = it)) } }
     }
 }
 
 @Composable
-private fun PlaceField(
+private fun SceneField(
     label: String,
     value: String,
     singleLine: Boolean,
@@ -484,74 +461,43 @@ private fun PlaceField(
     )
 }
 
-private data class PlaceDraft(
+private data class SceneDraft(
     val displayName: String,
-    val kind: PlaceKind,
-    val summary: String,
-    val area: String,
-    val function: String,
-    val presentation: String,
-    val services: String,
-    val interactives: String,
-    val hooks: String,
-    val playerSafeText: String,
-    val dmNotes: String,
-    val paperReferences: String,
-    val tags: String,
+    val purpose: String,
+    val possibleNextScenes: String,
+    val references: String,
+    val notes: String,
 ) {
-    fun toPayload(): PlacePayload = PlacePayload(
-        kind = kind,
-        summary = summary,
-        area = area,
-        function = function,
-        presentation = presentation,
-        services = parsePlaceLines(services),
-        interactives = parsePlaceLines(interactives),
-        hooks = parsePlaceLines(hooks),
-        playerSafeText = playerSafeText,
-        dmNotes = dmNotes,
-        paperReferences = parsePlaceLines(paperReferences),
-        tags = tags.split(',', '\n').map(String::trim).filter(String::isNotEmpty),
+    fun toPayload(): ScenePayload = ScenePayload(
+        purpose = purpose,
+        possibleNextScenes = parseSceneLines(possibleNextScenes),
+        references = parseSceneLines(references),
+        notes = notes,
     )
 
     companion object {
-        fun from(content: PlaceContent): PlaceDraft = PlaceDraft(
+        fun from(content: SceneContent): SceneDraft = SceneDraft(
             displayName = content.item.displayName,
-            kind = content.payload.kind,
-            summary = content.payload.summary,
-            area = content.payload.area,
-            function = content.payload.function,
-            presentation = content.payload.presentation,
-            services = content.payload.services.joinToString("\n"),
-            interactives = content.payload.interactives.joinToString("\n"),
-            hooks = content.payload.hooks.joinToString("\n"),
-            playerSafeText = content.payload.playerSafeText,
-            dmNotes = content.payload.dmNotes,
-            paperReferences = content.payload.paperReferences.joinToString("\n"),
-            tags = content.payload.tags.joinToString(", "),
+            purpose = content.payload.purpose,
+            possibleNextScenes = content.payload.possibleNextScenes.joinToString("\n"),
+            references = content.payload.references.joinToString("\n"),
+            notes = content.payload.notes,
         )
     }
 }
 
-private fun parsePlaceLines(raw: String): List<String> =
+private fun parseSceneLines(raw: String): List<String> =
     raw.lines().map(String::trim).filter(String::isNotEmpty)
 
-private fun placeScopeSortKey(content: PlaceContent): Int = when (content.item.identity.scope) {
+private fun sceneScopeSortKey(content: SceneContent): Int = when (content.item.identity.scope) {
     is ContentScope.Personal -> 0
     is ContentScope.Campaign -> 1
     else -> 2
 }
 
-private fun placeScopeLabel(content: PlaceContent): String = placeScopeLabel(content.item.identity.scope)
-
-private fun placeScopeLabel(scope: ContentScope): String = when (scope) {
+private fun sceneScopeLabel(content: SceneContent): String = when (content.item.identity.scope) {
     is ContentScope.Personal -> "Personal"
     is ContentScope.Campaign -> "Campaña"
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
-}
-
-private fun placeKindLabel(kind: PlaceKind): String = when (kind) {
-    PlaceKind.PLACE -> "Lugar"
-    PlaceKind.SHOP -> "Tienda"
 }

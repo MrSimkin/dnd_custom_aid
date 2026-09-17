@@ -1,0 +1,23 @@
+CREATE TABLE scene_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    purpose TEXT NOT NULL,
+    possible_next_scenes_json TEXT NOT NULL,
+    references_json TEXT NOT NULL,
+    notes TEXT NOT NULL
+);
+
+INSERT INTO scene_payload(
+    content_id,
+    purpose,
+    possible_next_scenes_json,
+    references_json,
+    notes
+)
+SELECT
+    id,
+    '',
+    '[]',
+    '[]',
+    ''
+FROM reusable_content
+WHERE family = 'SCENE';
