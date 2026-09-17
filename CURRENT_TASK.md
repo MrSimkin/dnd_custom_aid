@@ -5,16 +5,18 @@ This file contains **only the current execution state**. Replace it when the act
 Last verified: 2026-09-17
 
 - **Wave:** 6 — reusable/persistent content architecture
-- **Current task:** NPC reusable-content payload + local persistence core
-- **Execution state:** Creature package and its documentation closure are integrated/green; NPC implementation is complete in one atomic branch commit, PR #51 is open, and Scaffold validation is running
-- **Integrated `main`:** `bea3695f1c6ab21548183447422f35554bec0c45`
-- **Creature package:** PR #48 merged as `5762058645ba8af8fa470dcf185bd2b418af65e9`; post-merge Scaffold `35253188344` — **SUCCESS**
-- **Creature documentation closure:** PR #50 merged as `bea3695f1c6ab21548183447422f35554bec0c45`; post-merge Scaffold `35253993095` — **SUCCESS**
-- **Active branch:** `wave6/npc-payload-persistence`
-- **Branch HEAD:** `ce2f956324eedefaf4c4f34d4f4c462b49387eae`
-- **PR:** #51 — `feat: add Wave 6 NPC payload persistence` — **OPEN**
-- **NPC scope:** Quick/Developed NPC payloads remain valid without combat mechanics; optional combat mechanics reuse serialized `CreaturePayload`; Personal/Campaign create/read/copy; revision/stale-write/tombstone behavior; SQLDelight `npc_payload`; migration `20.sqm`; legacy Desktop fixture update; focused migration/reopen/invariant tests
-- **Push CI:** Scaffold run `35254216489` for SHA `ce2f956324eedefaf4c4f34d4f4c462b49387eae` — **IN PROGRESS** at the latest inspection; backend and hosted-database jobs already succeeded, Kotlin job still running
+- **Current task:** close integrated NPC payload package, then begin lightweight Homebrew/Rule payload core
+- **Execution state:** NPC implementation is merged and fully green; NPC documentation/checkpoint closure is complete on branch and PR #52 is open; its Scaffold had not yet registered at the first inspection
+- **Integrated `main`:** `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`
+- **NPC implementation branch:** `wave6/npc-payload-persistence`
+- **Final NPC branch HEAD:** `ce2f956324eedefaf4c4f34d4f4c462b49387eae`
+- **NPC PR:** #51 — `feat: add Wave 6 NPC payload persistence` — **MERGED** as `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`
+- **NPC validation:** push Scaffold `35254216489` — SUCCESS; PR Scaffold `35254260799` — SUCCESS; post-merge Scaffold `35254527744` — SUCCESS
+- **NPC documentation branch:** `docs/wave6-npc-integrated`
+- **NPC documentation HEAD:** `c603d60b41c0ba46aa5e302745d554008a02d84b`
+- **NPC documentation PR:** #52 — `docs: record Wave 6 NPC integration and Homebrew continuation` — **OPEN**
+- **PR #52 CI:** no workflow run registered at the first post-open inspection
+- **Next bounded implementation:** lightweight Homebrew/Rule payload + local persistence core using `ReusableContentFamily.HOMEBREW_RULE`; summary/body, optional category/rationale, examples, related references, tags, simple `DRAFT / ACTIVE / RETIRED` lifecycle; reuse Personal/Campaign identity/provenance/revision/tombstone seams
 - **Session override:** owner explicitly authorized polling/continuing past the normal async-CI stop rule for this session, until timeout risk becomes reasonably high. This does not permanently change the repository protocol.
-- **Next action:** continue observing PR #51 validation; if a bounded NPC-package failure appears, repair only that failure; if exact-head/PR CI is green and the PR remains mergeable, merge #51, validate post-merge `main`, then record the NPC integration checkpoint before selecting another Wave 6 package.
-- **Do not:** widen this package into NPC Manager UI, import/export, AI helpers, hosted reusable-content sync, object storage/provider work, dependency graphs, or a universal payload abstraction.
+- **Next action:** validate and merge PR #52 when green; validate documentation merge on `main`; then branch from that current `main` and implement the lightweight Homebrew/Rule payload package atomically. If time risk becomes material, record exact branch/head/PR/CI and stop cleanly.
+- **Do not:** flatten structured races/classes/subclasses/backgrounds/feats/spells/items into the lightweight rule payload, introduce Place/Zone/Encounter dependency graphs, start Manager UI, hosted reusable-content sync, import/export/AI helpers, object storage/provider work, or a universal payload abstraction.
