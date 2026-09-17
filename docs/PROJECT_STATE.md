@@ -6,11 +6,12 @@
 **Verified current main:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
 **Verified post-merge Scaffold:** `35142092743` — **SUCCESS**  
 **Current focused branch:** `wave5/desktop-hosted-campaign-administration`  
-**Current PR:** #44 — draft  
-**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`  
+**Current PR:** #44  
+**Current package checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_OWNER_QA_COMPLETE.md`  
 **Deployed repository head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
 **Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
-**DEV Worker deployment:** **VERIFIED**
+**DEV Worker deployment:** **VERIFIED**  
+**Owner Windows QA:** **PASS**
 
 ## 1. Current authority/topology
 
@@ -18,7 +19,7 @@
 
 `docs/checkpoints/LATEST.md` controls the practical resume point. `docs/BRANCH_STATUS.md` controls branch lifecycle. Historical checkpoints remain evidence for the state that existed when they were written.
 
-PR #43 is complete and merged. Draft PR #44 contains the bounded Desktop hosted Campaign Administration package. Repository implementation and DEV Worker deployment are now verified; real Windows Desktop integration/owner QA remains pending.
+PR #42 and PR #43 are complete and merged. PR #44 contains the bounded Desktop hosted Campaign Administration package. Repository implementation, real DEV Worker deployment and full owner Windows acceptance QA are complete. The only remaining package gate is final exact-head CI followed by PR-ready/merge/post-merge verification.
 
 ## 2. Integrated foundation
 
@@ -61,50 +62,31 @@ Native clients do not hold database credentials. The hard external-service opera
 
 The current Cloudflare Worker is `dnd-custom-aid-api` at `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev`.
 
-The Wave 5 Campaign Administration code was explicitly redeployed from repository head `a6c0532878e8ef49ddfb894fa71076c1af73587a`. Cloudflare reported Version ID `130d35e7-7903-47b2-8203-d74f9ec3db55`.
+The Wave 5 Campaign Administration code was explicitly deployed from repository head `a6c0532878e8ef49ddfb894fa71076c1af73587a`; Cloudflare reported Version ID `130d35e7-7903-47b2-8203-d74f9ec3db55`.
 
-Post-deployment secret-free evidence:
+Deployment evidence passed `/health -> 200` and unauthenticated roster-route recognition/auth enforcement -> `401 UNAUTHENTICATED`.
 
-- `/health` -> HTTP 200;
-- unauthenticated `/v1/campaigns/<zero-uuid>/members` -> HTTP 401 / `UNAUTHENTICATED`.
+Authenticated real Desktop behavior is now also verified end-to-end against the live Worker and Neon database.
 
-Therefore the new roster route is live through route recognition/auth enforcement. This is not yet evidence that authenticated Desktop bootstrap/roster/moderation works end-to-end.
+## 4. Completed Wave 5 predecessor packages
 
-## 4. Completed predecessor packages
+### Package A — Desktop shell/local campaign — complete
 
-### Wave 4 Player <-> Server — complete
+PR #42 merged as `fb113909cb53b2463bd643cae7d2f54f0673fec4`. Owner Windows QA passed persistent Desktop local campaign state/context, Spanish product UI, Application Settings and bounded QA diagnostics.
 
-Integrated for remembered authentication, campaign bootstrap/delivery, PC push/pull, multi-client convergence, explicit conflict resolution and membership revoke/reinstate authorization behavior.
+### Package B — hosted Campaign membership administration core — complete
 
-### Wave 5 package A — Desktop shell/local campaign — complete
+PR #43 merged as `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`.
 
-PR #42 merged as `fb113909cb53b2463bd643cae7d2f54f0673fec4`; post-merge Scaffold `35138029472` passed.
+Integrated behavior includes ACTIVE-DM-only roster, Player `KICK` / `BAN` / `LIFT_BAN`, idempotent/no-op moderation, campaign-revision discipline, provider-neutral Shared client and hosted database contract coverage.
 
-Owner Windows Desktop QA passed workbench launch, local campaign persistence/context, Spanish product language, persistent Application Settings and QA/diagnostic copy surface.
+## 5. Wave 5 package C — PR #44
 
-### Wave 5 package B — hosted Campaign membership administration core — complete
-
-PR #43 merged as `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`; post-merge Scaffold `35142092743` passed.
-
-Integrated behavior includes:
-
-- ACTIVE-DM-only hosted member roster;
-- member account display identity, role and lifecycle status;
-- Player `KICK`, `BAN`, `LIFT_BAN` actions;
-- `LIFT_BAN = BANNED -> KICKED`;
-- idempotent/no-op moderation;
-- campaign revision changes only for real lifecycle changes;
-- no membership-row/PC/owner-controller destruction;
-- provider-neutral Shared Campaign Administration client;
-- focused backend/Shared/PostgreSQL contract verification.
-
-## 5. Wave 5 package C — current PR #44
-
-Current package:
+Package objective:
 
 **Desktop hosted authentication/session acquisition + real Campaign Administration consumption**
 
-Implemented and CI-verified:
+Implemented and verified:
 
 - Desktop-specific Descope email-OTP/session adapter through `HostedAccessTokenProvider`;
 - memory-only session/refresh JWT handling with refresh-before-use and fail-closed clearing;
@@ -118,50 +100,54 @@ Implemented and CI-verified:
 - bundled Geist and Mona Sans Condensed with provenance/licensing;
 - focused auth/moderation/preference/fallback tests.
 
-DEV Worker deployment is now verified. Remaining acceptance is real Desktop behavior.
+## 6. Owner Windows QA — complete
 
-## 6. Current owner QA gate
+The owner physically verified:
 
-Use:
+- Desktop launch and preservation of existing local campaigns;
+- real DEV OTP login;
+- hosted bootstrap and roster retrieval;
+- DM moderation guard;
+- real moderation `ACTIVE -> KICKED -> BANNED -> KICKED` with revisions `0 -> 1 -> 2 -> 3`;
+- canonical Outlook owner/DM migration at revision `4`;
+- Outlook Desktop bootstrap `1 hosted / 1 applied / 0 conflicts` and `DM / ACTIVE` roster at revision `4`;
+- Gmail absent from the current roster;
+- font/theme visual preview cards;
+- device-local preference persistence across application relaunch;
+- memory-only hosted session behavior: application relaunch starts signed out;
+- Outlook reauthentication restores the hosted DM context;
+- explicit sign-out clears hosted session while preserving local campaign data and settings.
 
-`docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md`
+Normal hosted DEV owner/DM testing now uses the Outlook-backed application identity. Gmail is historical/inactive by default and may be used only when a deliberate multi-user test requires a secondary identity. Historical Gmail mutation receipts remain truthful and untouched.
 
-The immediate owner preflight must verify:
+## 7. Current package gate
 
-1. Desktop launches using the already-proven Windows QA toolchain;
-2. existing local campaign data remains present;
-3. real DEV email-OTP login succeeds without exposing OTP/JWT values;
-4. hosted bootstrap/canonical campaign context succeeds;
-5. real hosted roster loads;
-6. DM rows have no Player moderation controls;
-7. whether a suitable real Player row exists and which moderation actions are visible;
-8. font/theme preview surfaces are present.
+1. **COMPLETE:** repository implementation and CI verification;
+2. **COMPLETE:** explicit DEV Worker deployment / route verification;
+3. **COMPLETE:** real Desktop auth/bootstrap/roster QA;
+4. **COMPLETE:** real moderation sequence QA;
+5. **COMPLETE:** canonical Outlook DEV identity migration + Desktop verification;
+6. **COMPLETE:** settings persistence and sign-out/relaunch/local-data-preservation QA;
+7. **NEXT:** exact-head Scaffold on final readiness documentation;
+8. if green and `main` remains unchanged, mark PR #44 ready and merge with expected-head protection;
+9. verify post-merge `main` and post-merge CI;
+10. advance to the next Wave 5 package.
 
-Do not perform moderation mutations until the roster evidence is reviewed. If no suitable Player exists, stop instead of inventing data, editing Neon ad hoc or expanding this package into invitation/rejoin functionality.
-
-## 7. Authentication/session rules
+## 8. Authentication/session rules
 
 Desktop keeps provider-specific Descope code outside Shared; Shared remains provider-neutral.
 
-Session/refresh JWTs remain memory-only and must not be logged, exposed through diagnostics, committed or persisted in ordinary Desktop preferences. Sign-out clears hosted session state without deleting local campaign/character state.
+Session/refresh JWTs remain memory-only and must not be logged, exposed through diagnostics, committed or persisted in ordinary Desktop preferences. Sign-out clears hosted session state without deleting local campaign/character state. Real Windows QA confirmed those behaviors.
 
-## 8. Campaign Administration rules
+## 9. Campaign Administration rules
 
-For a real hosted active-DM campaign, the Desktop surface must:
+For a real hosted active-DM campaign, Desktop displays the authoritative roster, exposes moderation only for Player rows, preserves `LIFT_BAN = BANNED -> KICKED`, waits for server confirmation, refreshes authoritative state after success, and surfaces errors without silently changing local truth. Real DEV QA confirmed the full approved moderation state machine.
 
-- display the authoritative roster;
-- use human display names where available;
-- expose moderation only for Player rows;
-- preserve `LIFT_BAN = BANNED -> KICKED`;
-- wait for server confirmation;
-- refresh authoritative roster state after success;
-- surface errors without silently changing local truth.
+## 10. Explicit current-package non-goals
 
-## 9. Explicit current-package non-goals
+PR #44 does not own invitations/rejoin, co-DM administration, role editing, PC Manager/Audit, ownership/control shortcuts, full new PC sync architecture, Managers, Media/Handouts/object storage, Live Combat, System Administration, backup/export/PDF hardening, broad Player redesign or generalized RBAC/ACL.
 
-Do not expand PR #44 into invitations/rejoin, co-DM administration, PC Manager/Audit, ownership/control shortcuts, full new PC sync architecture, Managers, Media/Handouts/object storage, Live Combat, System Administration, backup/export/PDF hardening, broad Player redesign or generalized RBAC/ACL.
-
-## 10. Security / operating residuals
+## 11. Security / operating residuals
 
 D-0075 remains controlling: repository intentionally public, hard USD $0 external-service budget, never commit secrets, and paid/overage commitments require explicit owner approval.
 
@@ -169,17 +155,14 @@ The known owner-local backend install continues to report **3 high severity npm 
 
 Preserve fail-closed authorization, least privilege, local-first safety, stable identities, stale-revision protection, idempotency, tombstones/non-resurrection and no-silent-overwrite guarantees.
 
-Do not delete/reset local data or hosted data merely to make QA pass.
-
-## 11. Resume rule
+## 12. Resume rule
 
 Read, in order:
 
 1. `docs/checkpoints/LATEST.md`;
-2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`;
-3. `docs/technical/DESKTOP_HOSTED_CAMPAIGN_ADMINISTRATION_QA_HANDOFF.md`;
-4. `docs/BRANCH_STATUS.md`;
-5. this file;
-6. the implementation checkpoint and D-0072/D-0073/D-0075 as needed.
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_OWNER_QA_COMPLETE.md`;
+3. `docs/BRANCH_STATUS.md`;
+4. this file;
+5. earlier package checkpoints only as needed.
 
-Continue on `wave5/desktop-hosted-campaign-administration`. Do not redeploy Cloudflare again unless later code changes require it. The current substantive gate is owner Windows Desktop live-QA preflight.
+Do not redeploy Cloudflare unless Worker code changes. The current action is final exact-head CI and PR #44 merge readiness.
