@@ -8,26 +8,28 @@
 **Current PR:** #44 — draft  
 **Package branch base:** `f58ae3a2c48f79383f96d42b5a4c098b1fdd8ded`  
 **Current package:** Wave 5 — Desktop hosted authentication/session acquisition + real Campaign Administration consumption  
-**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_ROSTER_DM_GUARD_VERIFIED.md`  
+**Current checkpoint:** `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_PLAYER_FIXTURE_VISIBLE.md`  
 **Deployed code head:** `a6c0532878e8ef49ddfb894fa71076c1af73587a`  
 **Deployed-head Scaffold:** `35163179550` — **SUCCESS**  
 **DEV Worker deployment:** **VERIFIED**  
 **Worker Version ID:** `130d35e7-7903-47b2-8203-d74f9ec3db55`  
 **Identity mapping:** **RESOLVED — TWO DISTINCT DEV LOGIN IDENTITIES**  
 **Real Desktop Gmail DM QA:** **OTP PASS / BOOTSTRAP PASS / ROSTER PASS / DM GUARD PASS**  
-**Current gate:** bounded reversible Neon PLAYER QA fixture using the existing Outlook DEV app_user; then real Kick/Ban/Lift-Ban UI QA  
+**PLAYER fixture:** **VISIBLE / ACTIVE / BOTH MODERATION ACTIONS PRESENT**  
+**Current gate:** real Desktop moderation sequence `ACTIVE -> KICKED -> BANNED -> KICKED`, one transition at a time  
 **Owner implementation authorization:** **GRANTED**
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_ROSTER_DM_GUARD_VERIFIED.md`;
+2. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_PLAYER_FIXTURE_VISIBLE.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_MAPPING_RESOLVED.md`;
-5. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`;
-6. `docs/PROJECT_STATE.md`;
-7. `docs/BRANCH_STATUS.md`;
-8. relevant implementation/decision checkpoints as needed.
+4. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_ROSTER_DM_GUARD_VERIFIED.md`;
+5. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_IDENTITY_MAPPING_RESOLVED.md`;
+6. `docs/checkpoints/2026-09-16_DESKTOP_HOSTED_DEV_DEPLOYMENT_VERIFIED.md`;
+7. `docs/PROJECT_STATE.md`;
+8. `docs/BRANCH_STATUS.md`;
+9. relevant implementation/decision checkpoints as needed.
 
 ## Current sequence
 
@@ -47,29 +49,30 @@ Desktop Outlook login / zero-membership behavior     PASS / EXPECTED
         |
         v
 Identity mapping                                     RESOLVED
-  Outlook DEV identity -> app_user with no memberships
-  Gmail DEV identity   -> historical ACTIVE DM on Hosted Batch Test
         |
         v
 Desktop Gmail DM login + bootstrap                   PASS
-  hosted campaigns = 1
-  applied = 1
-  conflicts = 0
         |
         v
-Real hosted roster retrieval                         PASS
+Real hosted roster + DM guard                        PASS
+        |
+        v
+Reversible ACTIVE PLAYER fixture visible             PASS
+  DM -> ACTIVE / no controls
+  PLAYER -> ACTIVE / Expulsar + Bloquear
   roster revision = 0
-  exactly one DM row
-  no moderation controls on DM row
         |
         v
-Create reversible PLAYER QA fixture                  NEXT OWNER/NEON ACTION
+Real moderation: ACTIVE -> KICKED                    NEXT
         |
         v
-Real Kick/Ban/Lift-Ban UI QA                         PENDING
+Real moderation: KICKED -> BANNED                    PENDING
         |
         v
-Final settings/sign-out/relaunch QA                  REQUIRED BEFORE MERGE
+Real moderation: BANNED -> KICKED (Lift Ban)         PENDING
+        |
+        v
+Fixture cleanup + final settings/sign-out/relaunch   REQUIRED BEFORE MERGE
         |
         v
 PR readiness / merge / post-merge verification
@@ -81,32 +84,33 @@ The owner authenticated Desktop using the historical Gmail DEV identity. Bootstr
 
 `Campañas alojadas: 1 · aplicadas: 1 · conflictos: 0`
 
-`Hosted Batch Test` appeared in the Desktop campaign surface. The hosted membership resolved as DM / ACTIVE.
+`Hosted Batch Test` appeared in Desktop and resolved as DM / ACTIVE.
 
-Campaign Administration fetched the real hosted roster successfully. The UI showed roster revision `0` and exactly one hosted member row: the existing DM membership. The DM row exposed no Player moderation actions and explicitly stated that Player moderation actions do not apply to DM members.
+Campaign Administration fetched the real hosted roster successfully. The DM row exposed no Player moderation actions.
 
-This verifies real authenticated Desktop -> Worker -> Neon Campaign Administration roster behavior and the DM moderation guard.
+A bounded QA fixture then added the already-existing Outlook DEV application user as `PLAYER / ACTIVE` in the same hosted campaign. After roster refresh, Desktop showed two hosted members at roster revision `0`:
 
-## Current owner/provider gate
+- Gmail DEV identity: `DM / ACTIVE`, no moderation controls;
+- Outlook DEV identity: `PLAYER / ACTIVE`, with both `Expulsar` and `Bloquear` controls.
 
-The hosted roster has no Player membership, so moderation cannot yet be exercised.
+This establishes the correct real precondition for moderation QA.
 
-Use the already-existing Outlook DEV application user as a reversible QA PLAYER fixture in `Hosted Batch Test`.
+## Current owner/manual gate
 
-The fixture must:
+Perform moderation through Desktop only, one transition at a time.
 
-- add only one `campaign_membership` row;
-- use the existing Outlook `app_user`;
-- role = `PLAYER`;
-- initial status = `ACTIVE`;
-- preserve the existing Gmail DM row unchanged;
-- create no new Descope user, campaign, PC or provider resource;
-- be verified immediately after insertion;
-- remain removable after QA.
+First action only:
 
-Do not alter the DM membership and do not perform unrelated database cleanup.
+1. click `Expulsar` on the ACTIVE Player row;
+2. accept the confirmation dialog if the target and action are correct;
+3. wait for server confirmation/authoritative roster refresh;
+4. verify Player status changes to KICKED/Expulsado;
+5. verify the displayed roster/campaign revision advances exactly once from `0` to `1`;
+6. report the new Player row and available buttons before doing anything else.
 
-After the Player row is visible in Desktop, perform moderation through the Desktop UI only, with authoritative roster refresh after each step.
+Do not click `Bloquear` until the KICK result has been reviewed.
+
+Do not mutate the Gmail DM row and do not manually edit Neon during the moderation sequence unless a defect requires diagnosis.
 
 ## Permanent safety rules
 
