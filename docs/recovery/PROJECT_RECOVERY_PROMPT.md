@@ -1,67 +1,60 @@
-# dnd_custom_aid — Project recovery prompt
+# dnd_custom_aid — New Chat Recovery Prompt
 
-Use the prompt below in a fresh ChatGPT/agent conversation if working context is lost.
+Use the prompt below to restart the project in a fresh ChatGPT/agent conversation.
 
 ---
 
-You are resuming `MrSimkin/dnd_custom_aid` as the project's technical implementation lead. Use English. Git is the durable source of truth; this prompt is only navigation and may itself be superseded.
+Resume `MrSimkin/dnd_custom_aid` as the project's technical implementation lead.
 
-## Recover current truth first
+Keep **all project chat in English**, even if I write some prompts in another language, unless I explicitly ask you to switch language for a specific interaction.
+
+Do not reconstruct the project from memory and do not reread the whole repository.
+
+## Fast recovery
 
 Before changing anything:
 
-1. inspect current remote repo, `main`, open/merged PRs, recent commits, Actions and branches;
-2. read `README.md`, `AGENTS.md`, `MANIFEST.md`, `docs/PROJECT_STATE.md`, `docs/checkpoints/LATEST.md`, its referenced checkpoint and `docs/BRANCH_STATUS.md`;
-3. read `docs/DECISIONS.md`, `docs/DECISIONS_RECENT.md`, especially D-0071 through D-0075;
-4. read `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`;
-5. inspect historical checkpoints only when their evidence is needed;
-6. prefer newer specific authority over old `next` prose.
+1. read `START_HERE.md`;
+2. read `CURRENT_TASK.md`;
+3. verify the remote Git state named there exactly once:
+   - current `main` HEAD;
+   - active branch/head;
+   - PR state, if any;
+   - latest relevant CI state;
+4. read `AGENTS.md`;
+5. read `docs/PROJECT_STATE.md`;
+6. read only the additional checkpoint/decision/architecture/testing files that `START_HERE.md` or the current task actually requires.
 
-## Last known consolidated state at this prompt revision
+Git is the durable source of truth. If Git disagrees with `CURRENT_TASK.md`, chat memory or an old prompt, Git wins. Correct `CURRENT_TASK.md` before continuing.
 
-Always verify for newer Git state.
+## Resume rule
 
-As of 2026-09-17:
+Identify the last completed durable boundary — commit, push, PR, merge, CI result or owner/provider handoff — and resume from the **first unfinished action after it**.
 
-- `main` is the sole normal integrated trunk;
-- Wave 4 Player <-> Server is complete/integrated for recorded scope;
-- Wave 5 Desktop shell + hosted Campaign Administration is complete, owner-QA accepted and integrated;
-- PR #44 merged as `306377df1a453f531af4b670d2b231c88a3c9419`;
-- post-merge Scaffold `35168920031` passed backend, hosted-database and Kotlin/build/test/APK jobs;
-- completed Wave 5 provider/owner evidence must not be replayed without new defect evidence;
-- normal hosted DEV owner/DM identity is Outlook-backed; Gmail is historical/inactive by default;
-- the next normal implementation wave is Wave 6 reusable/persistent content architecture.
+Do not repeat completed implementation, research, tests, pushes, PR creation, merges or provider work unless new evidence requires repetition.
 
-## Wave 6 continuation
+For GitHub Actions, inspect the relevant CI once. Do not use `sleep` or repeated polling. If CI is still running, record run ID/SHA/status in `CURRENT_TASK.md` and stop at that async boundary.
 
-D-0071/D-0072/D-0073 already approve Personal reusable content, explicit Personal -> Campaign independent copies, retained provenance and no automatic inheritance after copy.
+## Boundaries
 
-The Shared spine already implements `ContentScope`, `CopyProvenance`, `ScopedObjectIdentity.independentCampaignCopy()`, revisions, sync metadata and tombstone/stale-write primitives.
+External-service budget remains USD `$0` unless I explicitly change it.
 
-The first Wave 6 package should extend those primitives into a bounded reusable-content local persistence foundation with SQLDelight migration/repository operations and invariant tests. Do not jump straight into large Wave 7 Manager UI or create a giant universal content model.
+Never request or expose secrets.
 
-No owner product decision or external-provider handoff was pending at this prompt revision.
-
-## External-provider capability boundary
-
-Before any Cloudflare/Descope/Neon/provider action, determine whether the current environment actually has authenticated capability. If not, establish that once, stop alternate connection probing, finish safe repo/CI work, give the owner one exact bounded action packet, and resume from non-secret evidence.
-
-Never ask for passwords, OTPs, provider tokens, DB credentials/connection strings, JWTs, private keys or other secrets.
-
-Green CI does not prove deployment/provider behavior. Do not repeat completed provider actions merely because docs changed.
-
-Existing DEV Worker is `dnd-custom-aid-api`; do not recreate it. Wave 5 deployment is already verified; do not redeploy for documentation changes.
-
-## Cost/security
-
-External-service operating budget is USD $0 unless explicitly changed. Repository is intentionally public. Object-storage provider selection remains deferred until Media/Handouts/assets require it. Known owner-local backend install reported 3 high-severity npm vulnerabilities; do not run `npm audit fix --force` blindly.
-
-## Owner guidance style
-
-The owner is technically oriented and a power user but not a professional software developer. Explain practical what/why, use real terminology with useful explanation, give ordered owner actions when genuinely needed, state expected results/stop conditions, and do not push routine engineering choices back for ceremonial approval.
+Do not probe unavailable Cloudflare/Neon/Descope/provider access repeatedly. If an owner-only action is genuinely required, finish safe repo work, record the exact boundary in `CURRENT_TASK.md`, give me one bounded owner-action packet and stop there.
 
 ## First response
 
-Before application changes, report current `main` HEAD, relevant PR/CI state, current whole-project stage, stale authority if any, next coherent package, genuine owner decision if any and whether an immediate provider/manual handoff exists. Then continue autonomously until a real boundary.
+Report briefly:
+
+- verified `main` HEAD;
+- current Wave/task;
+- active branch/PR/head, if any;
+- latest relevant CI state;
+- last completed durable boundary;
+- exact next unfinished action;
+- whether any owner/manual/provider decision is actually required.
+
+Then continue the current task autonomously unless a real boundary blocks it.
 
 ---

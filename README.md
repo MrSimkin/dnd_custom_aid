@@ -2,31 +2,33 @@
 
 Personal/small-scale tabletop RPG assistant beginning with D&D, with Android Player/DM live use, a native Desktop DM application, and hosted/shared services.
 
-## Start here
+## Start or resume here
 
-This repository is the project's durable source of truth and operative memory. A fresh human or AI worker should read, in order:
+Do **not** reconstruct the project by reading the repository from top to bottom.
 
-1. `AGENTS.md`;
-2. `MANIFEST.md`;
-3. `docs/PROJECT_STATE.md`;
-4. `docs/checkpoints/LATEST.md` and the checkpoint it references;
-5. `docs/BRANCH_STATUS.md`;
-6. `docs/DECISIONS.md`, `docs/DECISIONS_RECENT.md` and relevant detailed decisions;
-7. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`.
+Use the fast path:
 
-Historical checkpoints remain evidence for their time, not automatic resume instructions.
+1. `START_HERE.md`;
+2. `CURRENT_TASK.md`;
+3. verify the remote Git state named there;
+4. `AGENTS.md`;
+5. only the deeper authority files directly required by the current task.
 
-## Current project position
+`START_HERE.md` defines the complete restart order and interruption procedure.
+
+`CURRENT_TASK.md` is deliberately volatile: it records only the task currently in execution, including the exact branch/PR/CI resume point. Durable integrated truth remains in `docs/PROJECT_STATE.md` and checkpoints.
+
+Project chat stays in **English** unless the owner explicitly requests another language for a specific interaction.
+
+## Current integrated project position
 
 `main` is the sole normal integrated-MVP trunk.
 
-Wave 5 — Desktop shell + hosted Campaign Administration — is **COMPLETE / OWNER-QA ACCEPTED / INTEGRATED**. PR #44 (`feat: add Desktop hosted campaign administration`) merged as `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed backend, hosted-database and Kotlin/build/test/APK jobs.
+Wave 5 — Desktop shell + hosted Campaign Administration — is **COMPLETE / OWNER-QA ACCEPTED / INTEGRATED**. PR #44 merged as `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed.
 
-Do not restart Wave 5 or redeploy its already verified Cloudflare Worker merely because documentation changed.
+Wave 6 reusable/persistent content architecture is active. Its first reusable-content persistence foundation is integrated through PR #46, merge `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
 
-Wave 6 is now active with its first reusable-content persistence foundation **INTEGRATED** through PR #46, merge `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
-
-Wave 6 continues from that foundation. Determine the next bounded package from current architecture, decisions and roadmap; do not rebuild the foundation and do not assume a later package already exists.
+The live unintegrated Wave 6 execution point belongs in `CURRENT_TASK.md`, not in this README.
 
 ## Architecture snapshot
 
@@ -48,14 +50,14 @@ Current stack/direction:
 
 ## External-provider boundary
 
-Cloudflare, Descope, Neon and future providers are authenticated capability boundaries. If the current worker lacks authenticated capability for a required provider action, establish that once, finish all safe repo/CI work, provide one exact owner-action packet, and stop at that boundary. Do not probe alternate plugins/browser/token paths repeatedly.
+Cloudflare, Descope, Neon and future providers are authenticated capability boundaries. If the current worker lacks required authenticated capability, establish that once, finish safe repo/CI work, provide one exact owner-action packet and stop at that boundary. Do not repeatedly probe alternate access paths.
 
-Never ask for or commit passwords, OTPs, API/deployment tokens, DB credentials, connection strings, session/access/refresh JWTs, private keys or provider credential files.
+Never ask for or commit passwords, OTPs, API/deployment tokens, DB credentials, connection strings, JWTs, private keys or provider credential files.
 
-Repository CI and real-provider evidence are different. Green CI does not prove deployment or real authentication; once provider behavior has been tested and durably recorded, do not repeat it just because docs changed.
+Repository CI and real-provider evidence are different. Green CI does not prove deployment/provider behavior.
 
 ## Cost/security
 
-The external-service operating budget is **USD $0** unless the owner explicitly changes it. Do not enable paid plans, overage, paid add-ons or billing commitments without explicit owner approval. The repository is intentionally public; secrets never belong in Git.
+The external-service operating budget is **USD $0** unless the owner explicitly changes it. The repository is intentionally public; secrets never belong in Git.
 
-See `AGENTS.md`, `docs/WORKFLOW.md`, and `docs/recovery/EXTERNAL_PROVIDER_HANDOFF_PROMPT.md` for the controlling workflow.
+See `START_HERE.md`, `AGENTS.md`, `MANIFEST.md`, and `docs/recovery/INTERRUPTION_RECOVERY.md` for the controlling operating workflow.
