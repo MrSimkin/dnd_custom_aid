@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime merge:** `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240` (PR #67)  
-**Post-merge Scaffold:** `35279329344` — SUCCESS  
+**Last verified runtime merge:** `a99f03bf53637494695cc39b39d077ea1ef61ada` (PR #69)  
+**Post-merge Scaffold:** `35280636549` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** Place/Shop Manager documentation closure, then Desktop Stage Manager — Place retrieval/organization core
+**Current normal work:** Stage Manager documentation closure, then Adventure/Scene Spine — lightweight local core
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -31,11 +31,12 @@ Integrated Wave 7 implementation PRs:
 - #61 Desktop Creature/Monster Manager local authoring core — merged as `12a62288457ebe5892f90f637fe41c142b094591`;
 - #63 Desktop NPC Manager local authoring core — merged as `58a565c3a33a433ce47e7fd4ac1185b5f980644f`;
 - #65 Desktop Homebrew & Rules Manager lightweight local authoring core — merged as `6febe3f936593999834189b92aeda9d209385fa7`;
-- #67 Desktop Place/Shop Manager local authoring core — merged as `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`.
+- #67 Desktop Place/Shop Manager local authoring core — merged as `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`;
+- #69 Desktop Stage Manager Place retrieval/organization core — merged as `a99f03bf53637494695cc39b39d077ea1ef61ada`.
 
-Place/Shop Manager validation: push Scaffold `35278740631`, PR Scaffold `35279052405`, post-merge Scaffold `35279329344` — all SUCCESS.
+Stage Manager validation: push Scaffold `35280359257`, PR Scaffold `35280486923`, post-merge Scaffold `35280636549` — all SUCCESS.
 
-Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager or Place/Shop Manager implementation without new defect evidence.
+Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager or Stage retrieval implementation without new defect evidence.
 
 ## Completed implementation branches
 
@@ -60,7 +61,8 @@ Wave 7 historical implementation branches:
 - `wave7/desktop-creature-manager-core` — PR #61 merged;
 - `wave7/desktop-npc-manager-core` — PR #63 merged;
 - `wave7/desktop-homebrew-rules-manager-core` — PR #65 merged;
-- `wave7/desktop-place-shop-manager-core` — PR #67 merged.
+- `wave7/desktop-place-shop-manager-core` — PR #67 merged;
+- `wave7/desktop-stage-manager-core` — PR #69 merged.
 
 Integrated scope belongs to `main`; these refs are not continuation authority.
 
@@ -68,32 +70,36 @@ Integrated scope belongs to `main`; these refs are not continuation authority.
 
 Historical/short-lived Wave 7 closure branches:
 
-- `docs/wave7-creature-manager-integrated` — recorded Creature Manager integration and continuation to NPC Manager;
-- `docs/wave7-npc-manager-integrated` — recorded NPC Manager integration and continuation to Homebrew & Rules;
-- `docs/wave7-homebrew-rules-manager-integrated` — recorded Homebrew & Rules integration and continuation to Place/Shop;
-- `docs/wave7-place-shop-manager-integrated` — records Place/Shop integration and continuation to Stage Manager.
+- `docs/wave7-creature-manager-integrated` — Creature -> NPC;
+- `docs/wave7-npc-manager-integrated` — NPC -> Homebrew & Rules;
+- `docs/wave7-homebrew-rules-manager-integrated` — Homebrew & Rules -> Place/Shop;
+- `docs/wave7-place-shop-manager-integrated` — Place/Shop -> Stage;
+- `docs/wave7-stage-manager-integrated` — Stage -> Adventure/Scene Spine.
 
 After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
 ## Wave 7 next branch direction
 
-The next selected package is **Desktop Stage Manager — Place retrieval/organization core**.
+The next selected package is **Adventure/Scene Spine — lightweight local core**.
 
 Expected short-lived branch name:
 
-`wave7/desktop-stage-manager-core`
+`wave7/adventure-scene-spine-core`
 
-Initial bounded scope:
+Source inspection confirms no Scene reusable-content family, repository or schema currently exists. The next package may therefore introduce the minimal Scene persistence extension explicitly, using the proven reusable-content identity/scope/revision/copy semantics.
 
-- build the Stage preparation collection over the already-integrated Place/Shop content rather than inventing a parallel Stage persistence family;
-- provide richer retrieval/filter/grouping for Places/Shops by existing fields such as kind, area, function, tags and scope, plus recent-update ordering from reusable-content metadata;
-- preserve current Place create/open/edit and explicit Personal -> active Campaign independent-copy flows;
-- preserve atomic display-name + payload saves, optimistic revisions, stale-write rejection and tombstone/non-resurrection semantics;
-- keep active Campaign context visible;
-- make only the smallest sharing/refactor needed to reuse existing Place behavior;
-- add focused coverage for retrieval/filtering and stable selection/state.
+Initial bounded direction:
 
-Do not pull Scene Spine into this Stage package. Current source has no `SCENE` reusable-content family, Scene repository or Scene schema. D-0072's lightweight Adventure/Scene Spine is the following concrete package and should own any minimal persistence extension explicitly.
+- lightweight Scene orientation, not quest-engine behavior;
+- title/display name and purpose/summary;
+- possible next Scenes;
+- only the cross-domain references concretely required for preparation/navigation;
+- Personal and Campaign authoring with explicit independent Personal -> Campaign copy;
+- optimistic revisions, stale-write rejection and tombstone/non-resurrection;
+- minimal Desktop browse/create/edit/copy surface;
+- focused migration/persistence/revision/copy coverage.
+
+Do not pre-model clocks, media/object storage, generalized dependency graphs or live-state orchestration. Keep references narrow and evidence-driven.
 
 Dungeon/Zone, Encounter, PC Manager/Audit, Media/Handouts and deferred richer Homebrew families remain later concrete packages.
 
