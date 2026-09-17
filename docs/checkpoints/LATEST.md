@@ -2,23 +2,24 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `fc870fe8303b0f9925c479bdc21c388ef5cc8450`  
-**PR #53:** MERGED  
-**Post-merge Scaffold:** `35256531651` — SUCCESS  
+**Last verified integrated runtime merge:** `d978a4191054227a03b32ecca3e7ceadc5d6e869`  
+**PR #55:** MERGED  
+**Post-merge Scaffold:** `35259027937` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 reusable-content persistence foundation:** INTEGRATED  
 **Wave 6 Creature payload persistence:** INTEGRATED  
 **Wave 6 NPC payload persistence:** INTEGRATED  
 **Wave 6 lightweight Homebrew/Rule payload persistence:** INTEGRATED  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE6_HOMEBREW_RULE_PAYLOAD_INTEGRATED.md`  
+**Wave 6 Place payload persistence:** INTEGRATED  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE6_PLACE_PAYLOAD_INTEGRATED.md`  
 **Current wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** Place payload + local persistence core  
+**Next bounded package:** TO BE SELECTED after Place documentation closure  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE6_HOMEBREW_RULE_PAYLOAD_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE6_PLACE_PAYLOAD_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -35,21 +36,20 @@ Wave 6 reusable-content persistence foundation    COMPLETE / MERGED (#46)
 Wave 6 Creature payload persistence               COMPLETE / MERGED (#48)
 Wave 6 NPC payload persistence                    COMPLETE / MERGED (#51)
 Wave 6 Homebrew/Rule payload persistence          COMPLETE / MERGED (#53)
-post-merge Scaffold                               PASS (35256531651)
+Wave 6 Place payload persistence                  COMPLETE / MERGED (#55)
+post-merge Scaffold                               PASS (35259027937)
         |
         v
-Wave 6 Place payload + local persistence core     NEXT
+Select next dependency-safe bounded Wave 6 package after this docs closure
 ```
 
 ## Practical continuation
 
-Resume from current `main` and create a short-lived outcome-oriented branch for the Place payload + local persistence core using `ReusableContentFamily.PLACE`.
+Finish the short-lived Place documentation closure branch and integrate it into `main`.
 
-The first Place package should establish a canonical reusable Place record and preserve the approved rule that a Shop is a specialized Place rather than a separate top-level system. Keep the payload self-contained around human-facing retrieval/presentation data such as summary, area/geographic context, function, presentation text, services/interactives, hooks, player-safe text, DM-only notes, paper references and tags; exact low-level decomposition remains delegated engineering work.
+After that integration, do not infer the next implementation package from branch order alone. Re-read current D-0072/D-0073 authority and select one dependency-safe bounded Wave 6 package from the now-integrated foundation + Creature + NPC + Homebrew/Rule + Place state.
 
-Do not introduce generalized Place <-> NPC/Scene/Zone/Encounter dependency-copy graphs, clocks, media/object-storage references or automatic reveal/publication behavior in this first Place package. Introduce those relationships deliberately once the canonical Place record exists and a concrete dependent domain requires them.
-
-No immediate owner decision or provider handoff is required.
+No next implementation branch has been created by this closure, and no immediate owner decision or provider handoff is required.
 
 ## Permanent safety rules
 

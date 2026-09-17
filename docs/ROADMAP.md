@@ -24,7 +24,7 @@ Waves 1–4 are complete/integrated for their recorded scope. Wave 5 Desktop she
 
 ### Wave 6 — reusable/persistent content architecture
 
-**ACTIVE — FOUNDATION + CREATURE + NPC + LIGHTWEIGHT HOMEBREW/RULE PAYLOADS INTEGRATED; PLACE CORE NEXT.**
+**ACTIVE — FOUNDATION + CREATURE + NPC + LIGHTWEIGHT HOMEBREW/RULE + PLACE PAYLOADS INTEGRATED; NEXT BOUNDED PACKAGE TO BE SELECTED AFTER PLACE DOC CLOSURE.**
 
 PR #46 integrated the reusable-content persistence foundation:
 
@@ -74,21 +74,30 @@ PR #53 integrated lightweight Homebrew/Rule payload persistence:
 
 PR #53 merged as `fc870fe8303b0f9925c479bdc21c388ef5cc8450`; push Scaffold `35256210643`, PR Scaffold `35256230033`, and post-merge Scaffold `35256531651` passed.
 
-The next bounded Wave 6 package is **Place payload + local persistence core** using `ReusableContentFamily.PLACE`.
+PR #55 integrated Place payload persistence:
 
-The first Place package should establish canonical reusable Place data while preserving D-0072's rule that a Shop is a specialized Place rather than a separate top-level system. Keep the payload self-contained around human-facing retrieval/presentation data such as summary, area/geographic context, function, presentation text, services/interactives, hooks, player-safe text, DM-only notes, paper references, tags and a simple Place kind. Exact field decomposition remains delegated engineering work.
+- canonical reusable Place data using `ReusableContentFamily.PLACE`;
+- `PlaceKind.PLACE` plus `PlaceKind.SHOP`, preserving Shops as specialized Places rather than a separate top-level system;
+- summary, area/geographic context, function/purpose, presentation text, services/interactives, hooks, player-safe text, DM-only notes, paper references and tags;
+- Personal/Campaign create/read/copy/update/tombstone behavior;
+- independent campaign copies with retained provenance;
+- SQLDelight `place_payload` persistence and migration `22.sqm` with metadata-only Place backfill;
+- explicit list serialization plus stale-write/non-resurrection, migration and database-reopen coverage;
+- bounded synthetic legacy Desktop fixture update.
 
-Do not introduce generalized Place <-> NPC/Scene/Zone/Encounter dependency-copy graphs, clocks, media/object-storage references or automatic reveal/publication behavior in this first Place package. Relationship semantics should be introduced only when a concrete dependent domain requires them.
+PR #55 merged as `d978a4191054227a03b32ecca3e7ceadc5d6e869`; push Scaffold `35258393882`, PR Scaffold `35258423034`, and post-merge Scaffold `35259027937` passed.
 
-Structured races/classes/subclasses/backgrounds/feats/spells/items also remain family-specific future work; do not flatten them into the lightweight Homebrew/Rule record.
+The next bounded Wave 6 implementation package is intentionally **not selected by this documentation closure**. After the Place closure is integrated, re-read current D-0072/D-0073 authority and select one dependency-safe package from the integrated state rather than inferring it from branch order.
 
-Still deliberately outside current Wave 6 payload packages:
+Still deliberately outside the completed payload packages unless a later bounded scope explicitly requires them:
 
 - large Manager UI;
 - hosted reusable-content sync;
 - object storage/provider activation;
 - import/export and AI helper workflows;
 - generalized relationship/dependency graphs before a concrete need;
+- automatic reveal/publication behavior;
+- clocks/media semantics not yet required by a selected domain;
 - a universal executable content payload model.
 
 ### Wave 7 — Desktop authoring Managers
