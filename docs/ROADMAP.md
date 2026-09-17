@@ -26,19 +26,16 @@ Waves 1–4 are complete/integrated for their recorded scope. Wave 5 Desktop she
 
 **COMPLETE FOR CORE REUSABLE-CONTENT ARCHITECTURE / INTEGRATED.**
 
-Integrated packages:
+Integrated payload families and migrations:
 
-- reusable-content foundation — PR #46;
-- Creature payload — PR #48;
-- NPC payload — PR #51;
-- lightweight Homebrew/Rule payload — PR #53;
-- Place payload — PR #55;
-- Zone payload — PR #57;
-- Encounter payload — PR #59.
+- Creature — PR #48 / `19.sqm`;
+- NPC — PR #51 / `20.sqm`;
+- lightweight Homebrew/Rule — PR #53 / `21.sqm`;
+- Place — PR #55 / `22.sqm`;
+- Zone — PR #57 / `23.sqm`;
+- Encounter — PR #59 / `24.sqm`.
 
 The integrated spine preserves stable identity, Personal/Campaign scope, independent Personal -> Campaign copies with retained provenance, optimistic revisions/stale-write rejection, tombstones/non-resurrection and SQLDelight migration/reopen behavior.
-
-Wave 6 completion does not pre-model all future persistent concepts. Add Scene Spine, richer structured Homebrew families, clocks/readiness, Media/Handouts and live-state models only when their concrete approved package requires them.
 
 ### Wave 7 — Desktop authoring Managers
 
@@ -48,90 +45,100 @@ Wave 6 completion does not pre-model all future persistent concepts. Add Scene S
 
 **COMPLETE / INTEGRATED — PR #61.**
 
-Integrated behavior includes Personal and active-Campaign browse/search/create/edit, human-complete Creature payload authoring, scope/provenance/revision visibility, explicit independent Personal -> Campaign copy and atomic display-name + payload updates under optimistic revision semantics.
+Personal/Campaign browse/search/create/edit, Creature payload authoring, scope/provenance/revision visibility, explicit independent copy and atomic display-name + payload update are integrated.
 
-Validation: implementation `38d68dc832188f29c76ec40990297f53a85e9bed`; push `35267065066` SUCCESS; PR `35267241770` SUCCESS; merge `12a62288457ebe5892f90f637fe41c142b094591`; post-merge `35267674641` SUCCESS.
-
-Still deferred: Official/SRD catalog browsing, import/export, Creature Creator Assistant/advisory guidance, media/object storage, hosted reusable-content sync, generalized all-domain Manager abstractions and live combat behavior.
+Validation: implementation `38d68dc832188f29c76ec40990297f53a85e9bed`; push `35267065066`; PR `35267241770`; merge `12a62288457ebe5892f90f637fe41c142b094591`; post-merge `35267674641` — SUCCESS.
 
 #### Desktop NPC Manager — local authoring core
 
 **COMPLETE / INTEGRATED — PR #63.**
 
-Integrated behavior includes Personal/Campaign browse, create and edit for Quick -> Developed NPC data, optional combat mechanics through the existing `CreaturePayload`, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic display-name + payload updates.
+Quick -> Developed NPC authoring, optional Creature mechanics, Personal/Campaign scope, provenance/revision visibility, explicit independent copy and atomic name + payload update are integrated.
 
-Validation: implementation `58b680e71ec59c871854eb9c083ff2bc6906fe88`; push `35269013875` SUCCESS; PR `35269163375` SUCCESS; merge `58a565c3a33a433ce47e7fd4ac1185b5f980644f`; post-merge `35270643883` SUCCESS.
+Validation: implementation `58b680e71ec59c871854eb9c083ff2bc6906fe88`; push `35269013875`; PR `35269163375`; merge `58a565c3a33a433ce47e7fd4ac1185b5f980644f`; post-merge `35270643883` — SUCCESS.
 
-Still deferred: NPC assistant/AI ideation, import/export, preserved-live-improvisation promotion workflow, media/object storage, hosted reusable-content sync and broad Manager framework generalization.
-
-#### Desktop Homebrew & Rules Manager — lightweight rules local authoring core
+#### Desktop Homebrew & Rules Manager — lightweight rules local core
 
 **COMPLETE / INTEGRATED — PR #65.**
 
-Integrated behavior includes Personal/active-Campaign browse/search/create/edit, Draft / Active / Retired lifecycle, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic name + payload updates.
+Lightweight rule browse/search/create/edit, Draft / Active / Retired lifecycle, provenance/revision visibility, explicit independent copy and atomic name + payload update are integrated.
 
-Validation: implementation `17f4cd686114f734ab0bc50f453de9d579a52c79`; push `35272269481` SUCCESS; PR `35272560206` SUCCESS; merge `6febe3f936593999834189b92aeda9d209385fa7`; post-merge `35277359425` SUCCESS.
+Validation: implementation `17f4cd686114f734ab0bc50f453de9d579a52c79`; push `35272269481`; PR `35272560206`; merge `6febe3f936593999834189b92aeda9d209385fa7`; post-merge `35277359425` — SUCCESS.
 
-Structured races/sub-races/classes/subclasses/backgrounds/feats/spells/items, official/SRD customization, import/export, homebrew-aware AI, media/object storage, hosted reusable-content sync and broad Manager generalization remain later concrete work.
+Structured races/classes/subclasses/backgrounds/feats/spells/items, import/export, official/SRD customization, media/object storage, hosted reusable-content sync and homebrew-aware AI remain deferred concrete work.
 
 #### Desktop Place/Shop Manager — local authoring core
 
 **COMPLETE / INTEGRATED — PR #67.**
 
-Integrated behavior includes Personal and active-Campaign Place browse/search/create/open/edit, `PLACE` / `SHOP` specialization, full existing Place payload authoring, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic display-name + payload update.
+Personal/Campaign Place authoring, `PLACE` / `SHOP` specialization, full current payload editing, provenance/revision visibility, explicit independent copy and atomic name + payload update are integrated.
 
-Validation: implementation `f4bb75f4b2872ebc6a1dc4302cd4890367e4618c`; push `35278740631` SUCCESS; PR `35279052405` SUCCESS; merge `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`; post-merge `35279329344` SUCCESS.
-
-No database migration, Worker deployment or provider action was required.
+Validation: implementation `f4bb75f4b2872ebc6a1dc4302cd4890367e4618c`; push `35278740631`; PR `35279052405`; merge `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`; post-merge `35279329344` — SUCCESS.
 
 #### Desktop Stage Manager — Place retrieval/organization core
 
 **COMPLETE / INTEGRATED — PR #69.**
 
-The existing Place/Shop Manager now also provides the first Stage preparation surface without duplicate Stage persistence.
+Stage-oriented retrieval over Places/Shops is integrated without duplicate Stage persistence: kind/scope/area/function/tag filtering, full-text retrieval and Name / Area / Recent ordering.
 
-Integrated behavior:
-
-- Stage-oriented presentation of existing Places/Shops;
-- filters for Place/Shop kind and Personal/Campaign scope;
-- area, function and tag filtering;
-- full-text retrieval across the existing Place payload;
-- deterministic Name / Area / Recent ordering;
-- unchanged Place create/open/edit and explicit Personal -> Campaign independent-copy flows;
-- unchanged atomic optimistic-revision saves, stale-write rejection and tombstone/non-resurrection behavior.
-
-Validation:
-
-- implementation head `a01eb18a8385807d973c9f2059ff32779c0f6897`;
-- push Scaffold `35280359257` — SUCCESS;
-- PR Scaffold `35280486923` — SUCCESS;
-- merged as `a99f03bf53637494695cc39b39d077ea1ef61ada`;
-- post-merge Scaffold `35280636549` — SUCCESS.
-
-No Stage persistence family, schema migration, Worker deployment or provider action was added.
+Validation: implementation `a01eb18a8385807d973c9f2059ff32779c0f6897`; push `35280359257`; PR `35280486923`; merge `a99f03bf53637494695cc39b39d077ea1ef61ada`; post-merge `35280636549` — SUCCESS.
 
 #### Adventure/Scene Spine — lightweight local core
 
+**COMPLETE / INTEGRATED — PR #71.**
+
+The lightweight D-0072 orientation spine is now persisted and authorable on Desktop.
+
+Integrated behavior:
+
+- `SCENE` reusable-content family;
+- Scene title/display name, purpose, possible next Scene cues, preparation references and DM notes;
+- Personal + active-Campaign browse/search/create/open/edit;
+- explicit independent Personal -> Campaign copy with provenance;
+- atomic title + payload update under optimistic revision semantics;
+- stale-write rejection and tombstone/non-resurrection;
+- SQLDelight `scene_payload` plus migration `25.sqm` and migration/reopen coverage;
+- Adventure/Scenes surface alongside the existing Stage Place/Shop surface.
+
+`possibleNextScenes` and references remain human-readable strings. This package intentionally does not implement executable quest state, recursive dependency remapping, generalized graph infrastructure, clocks/readiness or live-state orchestration.
+
+Validation:
+
+- final implementation head `face568e7985125975731fef5e275e333ef79b9d`;
+- push Scaffold `35281913166` — SUCCESS;
+- PR Scaffold `35282188319` — SUCCESS;
+- merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
+- post-merge Scaffold `35282483851` — SUCCESS.
+
+#### Desktop Dungeon/Zone Manager — local Zone Brief authoring core
+
 **NEXT BOUNDED PACKAGE.**
 
-Add D-0072's lightweight Adventure/Scene Spine as its own concrete package. Current source does not contain a `SCENE` reusable-content family, Scene payload repository or Scene schema; any minimal persistence extension therefore belongs explicitly to this package.
+D-0072 places Dungeon/Zone preparation after Stage/Scene. Existing Wave 6 Zone persistence already provides the fields needed for a useful first Manager, so this package should remain schema-free unless concrete implementation evidence requires otherwise.
 
-Keep the Scene model lightweight and orientation-focused rather than quest-engine behavior. Initial principles:
+Current `ZonePayload` includes summary, area, presentation, space, exploration, interactives, clues, checks, consequences, encounter brief, DM guidance, player-safe text, paper references and tags.
 
-- title/display name and purpose/summary;
-- possible next Scenes;
-- only lightweight references concretely required by preparation/navigation;
-- Personal and Campaign scope using the proven reusable-content spine;
-- explicit independent Personal -> Campaign copy with provenance;
-- optimistic revisions, stale-write rejection and tombstone/non-resurrection;
-- minimal Desktop browse/create/edit/copy authoring surface;
-- focused SQLDelight migration/reopen plus persistence/revision/copy coverage.
+Initial scope:
 
-The generic `reusable_content` table is already family-agnostic, while current payload migrations run through `24.sqm` for Encounter. Prefer the smallest Scene-specific payload extension consistent with those proven patterns.
+- Personal + active-Campaign Zone browse/search/create/open/edit;
+- editor framing around the approved **PRESENTAR / INTERACTUAR / ENCUENTRO** Zone Brief grouping while retaining the richer existing fields;
+- area/tag/search retrieval;
+- explicit Personal -> Campaign independent copy with provenance;
+- add atomic display-name + Zone payload update under one optimistic revision;
+- preserve stale-write rejection and tombstone/non-resurrection;
+- focused repository/controller tests;
+- integrate into the current Desktop Managers surface with active Campaign context visible.
 
-Do not pre-model clocks, media/object storage, generalized dependency graphs or live-state orchestration. Do not turn Scene into a quest engine. Keep cross-domain reference semantics deliberately narrow and add only what the concrete Scene flow requires.
+The existing `space` / `exploration` fields may hold topology/flow preparation in this first slice. Do not create tactical geometry or VTT maps, generalized graph infrastructure, clocks/readiness or automatic fictional consequences merely to complete the bounded Manager core.
 
-Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Deferred richer Homebrew families remain separate concrete packages rather than speculative pre-modeling.
+#### Later Wave 7 packages
+
+After Dungeon/Zone, continue with the remaining approved concrete surfaces in dependency order:
+
+- Encounter Manager / Encounter Creator;
+- PC Manager / Audit;
+- Media / Handouts;
+- deferred richer Homebrew families and other explicit gaps where still required.
 
 Select/activate object storage only when Media/Handouts/assets actually require it, after a fresh `$0` review.
 
@@ -153,7 +160,7 @@ Complete verifiable server backup/export and meaningful recovery/admin tooling.
 
 ### Wave 12 — integrated owner-facing QA
 
-Exercise representative Player + Server + DM flows end-to-end, including campaign/invite/PC sync, authored Creature/NPC/Place/Zone/Encounter content, live tablet play, Desktop authority resume, public combat projection, PC audit/correction, backup/export and official-SRD clarification.
+Exercise representative Player + Server + DM flows end-to-end, including campaign/invite/PC sync, authored Creature/NPC/Place/Zone/Encounter/Scene content, live tablet play, Desktop authority resume, public combat projection, PC audit/correction, backup/export and official-SRD clarification.
 
 ## Security across waves
 

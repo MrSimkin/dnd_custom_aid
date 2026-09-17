@@ -2,21 +2,21 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `a99f03bf53637494695cc39b39d077ea1ef61ada`  
-**PR #69:** MERGED  
-**Post-merge Scaffold:** `35280636549` — SUCCESS  
+**Last verified integrated runtime merge:** `a84a8857102806f8a9ac588545167d697ea8a311`  
+**PR #71:** MERGED  
+**Post-merge Scaffold:** `35282483851` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager place retrieval/organization core  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_STAGE_MANAGER_INTEGRATED.md`  
-**Next bounded package:** Adventure/Scene Spine — lightweight local core  
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_SCENE_SPINE_INTEGRATED.md`  
+**Next bounded package:** Desktop Dungeon/Zone Manager — local Zone Brief authoring core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE7_STAGE_MANAGER_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_SCENE_SPINE_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -33,38 +33,39 @@ Wave 7 NPC Manager local core                     COMPLETE / INTEGRATED
 Wave 7 Homebrew & Rules lightweight local core    COMPLETE / INTEGRATED
 Wave 7 Place/Shop Manager local core              COMPLETE / INTEGRATED
 Wave 7 Stage Manager retrieval/organization core  COMPLETE / INTEGRATED
-post-merge Scaffold                               PASS (35280636549)
+Wave 7 Adventure/Scene Spine lightweight core     COMPLETE / INTEGRATED
+post-merge Scaffold                               PASS (35282483851)
         |
         v
-Wave 7 Adventure/Scene Spine — lightweight local core
+Wave 7 Desktop Dungeon/Zone Manager — local Zone Brief authoring core
 ```
 
 ## Practical continuation
 
-After the short-lived Stage documentation closure merges, start the Adventure/Scene Spine package from current `main`.
+After the short-lived Scene documentation closure merges, start the Dungeon/Zone Manager from current `main`.
 
-Source inspection confirms Scene is not already implemented: there is no `SCENE` reusable-content family, Scene payload repository or Scene SQL schema. The generic reusable-content spine is family-agnostic and current payload migrations run through `24.sqm` for Encounter.
+Existing Zone persistence is already integrated from Wave 6 and is rich enough for a useful first Desktop Manager without a schema migration. The current `ZonePayload` contains summary, area, presentation, space, exploration, interactives, clues, checks, consequences, encounter brief, DM guidance, player-safe text, paper references and tags.
 
-Initial Scene package principles:
+Initial Dungeon/Zone slice:
 
-- lightweight orientation, not a quest engine;
-- title/display name and purpose/summary;
-- possible next Scenes;
-- only the lightweight references needed by the concrete preparation/navigation flow;
-- Personal/Campaign scope and explicit independent Personal -> Campaign copy using existing reusable-content semantics;
-- optimistic revisions, stale-write rejection and tombstone/non-resurrection;
-- minimal Desktop browse/create/edit/copy surface;
-- focused migration/persistence/revision/copy coverage.
+- Personal + active-Campaign Zone browse/search/create/open/edit;
+- editor framing around the approved **PRESENTAR / INTERACTUAR / ENCUENTRO** Zone Brief groupings while retaining all existing richer fields;
+- area/tag/search retrieval;
+- explicit independent Personal -> Campaign copy with provenance;
+- atomic display-name + payload save under one optimistic revision;
+- stale-write rejection and tombstone/non-resurrection;
+- focused controller/repository coverage;
+- integrate into the existing Desktop Managers surface with active Campaign context visible.
 
-Do not pre-model clocks, media storage, generalized dependency graphs or live-state orchestration. Add only the minimum persistence/schema surface that the concrete Scene package requires.
+The current `space` / `exploration` fields may carry flow/topology preparation in this bounded slice. Do not introduce tactical geometry, VTT maps, generalized graph infrastructure, clocks/readiness, automated fictional consequences or provider work unless a concrete later requirement justifies them.
 
-## Stage Manager integrated evidence
+## Scene Spine integrated evidence
 
-- implementation head `a01eb18a8385807d973c9f2059ff32779c0f6897`;
-- push Scaffold `35280359257` — SUCCESS;
-- PR Scaffold `35280486923` — SUCCESS;
-- PR #69 merged as `a99f03bf53637494695cc39b39d077ea1ef61ada`;
-- post-merge Scaffold `35280636549` — SUCCESS.
+- implementation head `face568e7985125975731fef5e275e333ef79b9d`;
+- push Scaffold `35281913166` — SUCCESS;
+- PR Scaffold `35282188319` — SUCCESS;
+- PR #71 merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
+- post-merge Scaffold `35282483851` — SUCCESS.
 
 ## Operating rule
 
