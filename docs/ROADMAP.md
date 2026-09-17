@@ -87,55 +87,58 @@ Validation: implementation `a01eb18a8385807d973c9f2059ff32779c0f6897`; push `352
 
 **COMPLETE / INTEGRATED — PR #71.**
 
-The lightweight D-0072 orientation spine is now persisted and authorable on Desktop.
+The lightweight D-0072 orientation spine is persisted and authorable on Desktop with Scene title, purpose, possible-next-scene cues, preparation references, DM notes, Personal/Campaign authoring, explicit independent copy and atomic title + payload updates. `possibleNextScenes` and references remain human-readable strings rather than executable quest state.
 
-Integrated behavior:
-
-- `SCENE` reusable-content family;
-- Scene title/display name, purpose, possible next Scene cues, preparation references and DM notes;
-- Personal + active-Campaign browse/search/create/open/edit;
-- explicit independent Personal -> Campaign copy with provenance;
-- atomic title + payload update under optimistic revision semantics;
-- stale-write rejection and tombstone/non-resurrection;
-- SQLDelight `scene_payload` plus migration `25.sqm` and migration/reopen coverage;
-- Adventure/Scenes surface alongside the existing Stage Place/Shop surface.
-
-`possibleNextScenes` and references remain human-readable strings. This package intentionally does not implement executable quest state, recursive dependency remapping, generalized graph infrastructure, clocks/readiness or live-state orchestration.
-
-Validation:
-
-- final implementation head `face568e7985125975731fef5e275e333ef79b9d`;
-- push Scaffold `35281913166` — SUCCESS;
-- PR Scaffold `35282188319` — SUCCESS;
-- merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
-- post-merge Scaffold `35282483851` — SUCCESS.
+Validation: final implementation `face568e7985125975731fef5e275e333ef79b9d`; push `35281913166`; PR `35282188319`; merge `a84a8857102806f8a9ac588545167d697ea8a311`; post-merge `35282483851` — SUCCESS.
 
 #### Desktop Dungeon/Zone Manager — local Zone Brief authoring core
 
+**COMPLETE / INTEGRATED — PR #73.**
+
+The first Desktop Zone Manager is integrated on top of the existing Wave 6 Zone persistence with no schema migration.
+
+Integrated behavior:
+
+- Personal + active-Campaign Zone browse/search/create/open/edit;
+- area/tag/full-text filtering;
+- editor framing around **PRESENTAR / INTERACTUAR / ENCUENTRO** plus DM support fields;
+- complete existing Zone payload authoring;
+- explicit independent Personal -> Campaign copy with provenance;
+- atomic display-name + Zone payload update;
+- stale-write rejection and tombstone/non-resurrection coverage;
+- dedicated `Mazmorras / Zonas` route in the Desktop Managers hub.
+
+Existing `space` / `exploration` fields hold current topology/flow preparation. Tactical geometry, VTT maps, generalized graph infrastructure, clocks/readiness and automatic fictional consequences were not introduced.
+
+Validation: implementation `1a8b875a567ed73fbcceee73872ec59702b4b3f0`; push `35285060523`; PR `35285359440`; merge `5be90a994f453e5444ecf00762cd72407cfe790a`; post-merge `35285629973` — SUCCESS.
+
+#### Encounter Manager / Encounter Creator — local authoring core
+
 **NEXT BOUNDED PACKAGE.**
 
-D-0072 places Dungeon/Zone preparation after Stage/Scene. Existing Wave 6 Zone persistence already provides the fields needed for a useful first Manager, so this package should remain schema-free unless concrete implementation evidence requires otherwise.
+Wave 6 already integrated Encounter persistence in PR #59 / migration `24.sqm`, so the first Manager should reuse that foundation unless concrete evidence requires a schema change.
 
-Current `ZonePayload` includes summary, area, presentation, space, exploration, interactives, clues, checks, consequences, encounter brief, DM guidance, player-safe text, paper references and tags.
+Current `EncounterPayload` includes summary, environment, context, DM guidance, participants, tags and notes. Each participant supports an optional Creature/NPC reusable-content reference or label, quantity, readiness (`EXPECTED`, `RESERVE`, `CONDITIONAL`), condition text, overrides and notes.
+
+`EncounterContentRepository` already validates dependency family/scope and its Personal -> Campaign Encounter copy performs domain-specific Creature/NPC dependency copy/remapping while deduplicating repeated source dependency IDs.
 
 Initial scope:
 
-- Personal + active-Campaign Zone browse/search/create/open/edit;
-- editor framing around the approved **PRESENTAR / INTERACTUAR / ENCUENTRO** Zone Brief grouping while retaining the richer existing fields;
-- area/tag/search retrieval;
-- explicit Personal -> Campaign independent copy with provenance;
-- add atomic display-name + Zone payload update under one optimistic revision;
-- preserve stale-write rejection and tombstone/non-resurrection;
+- Personal + active-Campaign Encounter browse/search/create/open/edit;
+- participant authoring using existing Creature/NPC references plus label-only participants;
+- expose quantity/readiness/condition/overrides/notes;
+- explicit Personal -> Campaign independent copy preserving current dependency-copy/remap behavior;
+- atomic display-name + Encounter payload update under one optimistic revision;
+- stale-write rejection and tombstone/non-resurrection;
 - focused repository/controller tests;
 - integrate into the current Desktop Managers surface with active Campaign context visible.
 
-The existing `space` / `exploration` fields may hold topology/flow preparation in this first slice. Do not create tactical geometry or VTT maps, generalized graph infrastructure, clocks/readiness or automatic fictional consequences merely to complete the bounded Manager core.
+Do not create generalized dependency graph infrastructure, live initiative/combat state, encounter-balancing AI, hosted reusable-content synchronization or provider work merely to complete the bounded Encounter Manager core.
 
 #### Later Wave 7 packages
 
-After Dungeon/Zone, continue with the remaining approved concrete surfaces in dependency order:
+After Encounter Manager / Encounter Creator, continue with the remaining approved concrete surfaces in dependency order:
 
-- Encounter Manager / Encounter Creator;
 - PC Manager / Audit;
 - Media / Handouts;
 - deferred richer Homebrew families and other explicit gaps where still required.
