@@ -51,6 +51,7 @@ fun main() {
     val creatureManagerController = DesktopCreatureManagerController(databaseHandle.database)
     val npcManagerController = DesktopNpcManagerController(databaseHandle.database)
     val homebrewRuleManagerController = DesktopHomebrewRuleManagerController(databaseHandle.database)
+    val placeManagerController = DesktopPlaceManagerController(databaseHandle.database)
     val preferencesStore = DesktopPreferencesStore()
     val hostedAuthController = DesktopHostedAuthController()
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
@@ -72,6 +73,7 @@ fun main() {
                         creatureManagerController = creatureManagerController,
                         npcManagerController = npcManagerController,
                         homebrewRuleManagerController = homebrewRuleManagerController,
+                        placeManagerController = placeManagerController,
                         hostedAuthController = hostedAuthController,
                         hostedCampaignController = hostedCampaignController,
                         preferences = preferences,
@@ -110,6 +112,7 @@ private fun DesktopWorkbench(
     creatureManagerController: DesktopCreatureManagerController,
     npcManagerController: DesktopNpcManagerController,
     homebrewRuleManagerController: DesktopHomebrewRuleManagerController,
+    placeManagerController: DesktopPlaceManagerController,
     hostedAuthController: DesktopHostedAuthController,
     hostedCampaignController: DesktopHostedCampaignAdministrationController,
     preferences: DesktopPreferences,
@@ -194,10 +197,11 @@ private fun DesktopWorkbench(
                         onActivate = ::activateCampaign,
                     )
 
-                    DesktopDestination.MANAGERS -> DesktopAuthoringManagersScreen(
+                    DesktopDestination.MANAGERS -> DesktopManagersHubScreen(
                         creatureController = creatureManagerController,
                         npcController = npcManagerController,
                         homebrewRuleController = homebrewRuleManagerController,
+                        placeController = placeManagerController,
                         activeCampaign = activeCampaign,
                         onQaEvent = ::logQa,
                     )
