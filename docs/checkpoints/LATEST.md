@@ -2,22 +2,23 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `1aebc6d6b769d0da59b4dfd6e13a1ce52ccbb99a`  
-**PR #51:** MERGED  
-**Post-merge Scaffold:** `35254527744` — SUCCESS  
+**Last verified integrated runtime merge:** `fc870fe8303b0f9925c479bdc21c388ef5cc8450`  
+**PR #53:** MERGED  
+**Post-merge Scaffold:** `35256531651` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 reusable-content persistence foundation:** INTEGRATED  
 **Wave 6 Creature payload persistence:** INTEGRATED  
 **Wave 6 NPC payload persistence:** INTEGRATED  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE6_NPC_PAYLOAD_INTEGRATED.md`  
+**Wave 6 lightweight Homebrew/Rule payload persistence:** INTEGRATED  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE6_HOMEBREW_RULE_PAYLOAD_INTEGRATED.md`  
 **Current wave:** Wave 6 — reusable/persistent content architecture continues  
-**Next bounded package:** lightweight Homebrew/Rule payload + local persistence core  
+**Next bounded package:** Place payload + local persistence core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE6_NPC_PAYLOAD_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE6_HOMEBREW_RULE_PAYLOAD_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -33,21 +34,20 @@ Desktop hosted Campaign Administration            COMPLETE / OWNER-QA PASS / MER
 Wave 6 reusable-content persistence foundation    COMPLETE / MERGED (#46)
 Wave 6 Creature payload persistence               COMPLETE / MERGED (#48)
 Wave 6 NPC payload persistence                    COMPLETE / MERGED (#51)
-post-merge Scaffold                               PASS (35254527744)
+Wave 6 Homebrew/Rule payload persistence          COMPLETE / MERGED (#53)
+post-merge Scaffold                               PASS (35256531651)
         |
         v
-Wave 6 lightweight Homebrew/Rule payload core     NEXT
+Wave 6 Place payload + local persistence core     NEXT
 ```
 
 ## Practical continuation
 
-Resume from current `main` and create a short-lived outcome-oriented branch for the lightweight Homebrew/Rule payload + local persistence core.
+Resume from current `main` and create a short-lived outcome-oriented branch for the Place payload + local persistence core using `ReusableContentFamily.PLACE`.
 
-Use `ReusableContentFamily.HOMEBREW_RULE` for a self-contained rule/ruling/custom-system payload with summary/body, optional category/rationale, examples, related references, tags and the simple `DRAFT / ACTIVE / RETIRED` lifecycle approved by D-0072.
+The first Place package should establish a canonical reusable Place record and preserve the approved rule that a Shop is a specialized Place rather than a separate top-level system. Keep the payload self-contained around human-facing retrieval/presentation data such as summary, area/geographic context, function, presentation text, services/interactives, hooks, player-safe text, DM-only notes, paper references and tags; exact low-level decomposition remains delegated engineering work.
 
-Keep structured race/class/subclass/background/feat/spell/item families outside this bounded package; they need family-appropriate structure rather than one universal record.
-
-Keep Place/Zone/Encounter dependency/reference graphs outside this package as well. Introduce relationship semantics deliberately when those domains require them.
+Do not introduce generalized Place <-> NPC/Scene/Zone/Encounter dependency-copy graphs, clocks, media/object-storage references or automatic reveal/publication behavior in this first Place package. Introduce those relationships deliberately once the canonical Place record exists and a concrete dependent domain requires them.
 
 No immediate owner decision or provider handoff is required.
 
