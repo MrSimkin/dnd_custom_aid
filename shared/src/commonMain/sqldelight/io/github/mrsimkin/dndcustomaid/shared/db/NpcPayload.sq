@@ -1,0 +1,87 @@
+CREATE TABLE npc_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    concept_role TEXT NOT NULL,
+    appearance_first_impression TEXT NOT NULL,
+    personality_manner TEXT NOT NULL,
+    wants_fears_needs TEXT NOT NULL,
+    can_offer TEXT NOT NULL,
+    limits_refusals TEXT NOT NULL,
+    relationship_context TEXT NOT NULL,
+    identity_details TEXT NOT NULL,
+    voice_mannerisms TEXT NOT NULL,
+    motivations TEXT NOT NULL,
+    values_beliefs TEXT NOT NULL,
+    relationships TEXT NOT NULL,
+    history TEXT NOT NULL,
+    secrets TEXT NOT NULL,
+    knowledge TEXT NOT NULL,
+    goals TEXT NOT NULL,
+    resources TEXT NOT NULL,
+    affiliations TEXT NOT NULL,
+    places TEXT NOT NULL,
+    adventure_scene_links TEXT NOT NULL,
+    dm_guidance TEXT NOT NULL,
+    combat_payload_json TEXT,
+    notes TEXT NOT NULL
+);
+
+insertNpcPayload:
+INSERT INTO npc_payload(
+    content_id,
+    concept_role,
+    appearance_first_impression,
+    personality_manner,
+    wants_fears_needs,
+    can_offer,
+    limits_refusals,
+    relationship_context,
+    identity_details,
+    voice_mannerisms,
+    motivations,
+    values_beliefs,
+    relationships,
+    history,
+    secrets,
+    knowledge,
+    goals,
+    resources,
+    affiliations,
+    places,
+    adventure_scene_links,
+    dm_guidance,
+    combat_payload_json,
+    notes
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectNpcPayloadByContentId:
+SELECT *
+FROM npc_payload
+WHERE content_id = ?;
+
+updateNpcPayload:
+UPDATE npc_payload
+SET concept_role = ?,
+    appearance_first_impression = ?,
+    personality_manner = ?,
+    wants_fears_needs = ?,
+    can_offer = ?,
+    limits_refusals = ?,
+    relationship_context = ?,
+    identity_details = ?,
+    voice_mannerisms = ?,
+    motivations = ?,
+    values_beliefs = ?,
+    relationships = ?,
+    history = ?,
+    secrets = ?,
+    knowledge = ?,
+    goals = ?,
+    resources = ?,
+    affiliations = ?,
+    places = ?,
+    adventure_scene_links = ?,
+    dm_guidance = ?,
+    combat_payload_json = ?,
+    notes = ?
+WHERE content_id = ?;
