@@ -58,7 +58,7 @@ Still deferred: Official/SRD catalog browsing, import/export, Creature Creator A
 
 **COMPLETE / INTEGRATED — PR #63.**
 
-Integrated behavior includes Personal and active-Campaign browse/search/create/edit, Quick -> Developed NPC progression without completion scoring, optional combat mechanics through the existing `CreaturePayload`, scope/provenance/revision visibility, explicit independent Personal -> Campaign copy and atomic display-name + payload updates.
+Integrated behavior includes Personal/Campaign browse, create and edit for Quick -> Developed NPC data, optional combat mechanics through the existing `CreaturePayload`, scope/provenance/revision visibility, explicit Personal -> Campaign independent copy and atomic display-name + payload updates.
 
 Validation: implementation `58b680e71ec59c871854eb9c083ff2bc6906fe88`; push `35269013875` SUCCESS; PR `35269163375` SUCCESS; merge `58a565c3a33a433ce47e7fd4ac1185b5f980644f`; post-merge `35270643883` SUCCESS.
 
@@ -90,25 +90,54 @@ This is the lightweight rule-record core, not completion of the full D-0072 Home
 
 #### Desktop Place/Shop Manager — local authoring core
 
+**COMPLETE / INTEGRATED — PR #67.**
+
+Integrated behavior:
+
+- browse/search Personal and active-Campaign Places;
+- create/open/edit the complete existing Place payload;
+- explicit `PLACE` / `SHOP` specialization, with Shop remaining a specialized Place rather than a separate persistence family;
+- author summary, area, function, presentation, services, interactives, hooks, player-safe text, DM notes, paper references and tags;
+- scope/provenance/revision visibility;
+- explicit independent Personal -> Campaign copy;
+- optimistic revision/stale-write/tombstone semantics with atomic name + payload update;
+- same conservative uniquely-resolvable local DM identity rule used by the preceding Managers.
+
+Validation:
+
+- final implementation head `f4bb75f4b2872ebc6a1dc4302cd4890367e4618c`;
+- push Scaffold `35278740631` — SUCCESS;
+- PR Scaffold `35279052405` — SUCCESS;
+- merged as `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`;
+- post-merge Scaffold `35279329344` — SUCCESS.
+
+No database migration, Worker deployment or provider action was required. Still deferred: Stage-level retrieval/organization, Scene Spine, linked-NPC and media-rich extensions not present in the current Place payload, hosted reusable-content sync and broad Manager generalization.
+
+#### Desktop Stage Manager — Place retrieval/organization core
+
 **NEXT BOUNDED PACKAGE.**
 
-Reuse the integrated Place persistence from Wave 6 and implement the smallest concrete D-0072 Stage/Place authoring slice first. D-0072 treats Shops as specialized Places; do not create a parallel Shop persistence family without concrete evidence that the integrated Place model cannot represent the required first slice.
+Build the first Stage preparation surface on the already-integrated Place/Shop Manager rather than creating duplicate Stage records. The current Place model already carries the data needed for a useful first Stage collection: kind, summary, area, function, presentation, services/interactives, hooks, player-safe text, DM notes, paper references and tags; reusable-content metadata provides scope/provenance/revision and update timestamps.
 
 Initial scope:
 
-- browse/search Personal Places;
-- browse/search active-Campaign Places when a campaign is active;
-- create/open/edit the existing Place payload;
-- expose Shop specialization only where the persisted Place model supports it or a bounded concrete extension is required;
-- show scope/provenance/revision;
-- explicitly copy Personal -> active Campaign as an independent object;
-- preserve optimistic revision/stale-write/tombstone semantics with atomic name + payload update;
-- reuse the conservative uniquely-resolvable local DM identity rule already proven by Creature/NPC/Homebrew Managers;
-- add focused controller coverage for persistence, atomic edit, stale rejection, provenance and copy independence.
+- present Places/Shops as the Stage preparation collection;
+- provide richer retrieval/filter/grouping by existing fields such as kind, area, function, tags and scope, plus recent-update ordering;
+- preserve existing Place browse/create/open/edit and explicit Personal -> Campaign independent-copy semantics;
+- preserve atomic optimistic-revision saves, stale-write rejection and tombstone/non-resurrection behavior;
+- keep active Campaign context visible;
+- make only the smallest sharing/refactor needed to reuse existing Place authoring behavior;
+- add focused coverage for retrieval/filtering and stable selection/state.
 
-Do not pull Scene Spine into this first Place package. Scene persistence is not yet an integrated reusable-content family and should be introduced only with a concrete Stage/Scene package.
+Do not add a separate Stage persistence family for this package. Do not pull Scene Spine into it.
 
-Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: richer Stage/Scene, Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Deferred richer Homebrew families remain separate concrete packages rather than speculative pre-modeling.
+#### Adventure/Scene Spine — later bounded package
+
+After the Stage retrieval/organization core, add D-0072's lightweight Adventure/Scene Spine as its own concrete package. Current source does not contain a `SCENE` reusable-content family, Scene payload repository or Scene schema; any minimal persistence extension therefore belongs explicitly to that package.
+
+Keep the Scene model lightweight: orientation rather than quest-engine behavior, supporting the minimum approved title/purpose/possible-next-scenes and references needed by the concrete implementation. Do not pre-model clocks, handouts, generalized dependency graphs or live-state behavior unless that package concretely requires them.
+
+Later Wave 7 packages implement the remaining approved authoring surfaces from D-0072: Dungeon/Zone, Encounter, PC Manager/Audit and Media/Handouts. Deferred richer Homebrew families remain separate concrete packages rather than speculative pre-modeling.
 
 Select/activate object storage only when Media/Handouts/assets actually require it, after a fresh `$0` review.
 

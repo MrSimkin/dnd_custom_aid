@@ -2,21 +2,21 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `6febe3f936593999834189b92aeda9d209385fa7`  
-**PR #65:** MERGED  
-**Post-merge Scaffold:** `35277359425` — SUCCESS  
+**Last verified integrated runtime merge:** `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`  
+**PR #67:** MERGED  
+**Post-merge Scaffold:** `35279329344` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local authoring cores  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_HOMEBREW_RULES_MANAGER_INTEGRATED.md`  
-**Next bounded package:** Desktop Place/Shop Manager — local authoring core  
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_PLACE_SHOP_MANAGER_INTEGRATED.md`  
+**Next bounded package:** Desktop Stage Manager — Place retrieval/organization core  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE7_HOMEBREW_RULES_MANAGER_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_PLACE_SHOP_MANAGER_INTEGRATED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -31,37 +31,37 @@ Wave 6 reusable-content architecture              COMPLETE / INTEGRATED
 Wave 7 Creature/Monster Manager local core        COMPLETE / INTEGRATED
 Wave 7 NPC Manager local core                     COMPLETE / INTEGRATED
 Wave 7 Homebrew & Rules lightweight local core    COMPLETE / INTEGRATED
-post-merge Scaffold                               PASS (35277359425)
+Wave 7 Place/Shop Manager local core              COMPLETE / INTEGRATED
+post-merge Scaffold                               PASS (35279329344)
         |
         v
-Wave 7 Place/Shop Manager — local authoring core
+Wave 7 Stage Manager — Place retrieval/organization core
 ```
 
 ## Practical continuation
 
-After the short-lived Homebrew & Rules documentation closure merges, start the Place/Shop Manager from current `main`.
+After the short-lived Place/Shop documentation closure merges, start the Stage Manager from current `main`.
 
-Reuse the integrated Wave 6 Place persistence family rather than creating a new family. D-0072 treats Shops as specialized Places; first expose the existing Place model and add Shop-specific behavior only if the persisted payload already supports it or concrete implementation evidence requires a bounded extension.
+Build on the integrated Place/Shop Manager rather than introducing a duplicate Stage persistence family. The existing Place payload already provides kind, summary, area, function, presentation, services, interactives, hooks, player-safe text, DM notes, paper references and tags; reusable-content metadata provides scope/provenance/revision and update timestamps.
 
-Initial slice:
+Initial Stage slice:
 
-- browse/search Personal + active-Campaign Places;
-- create/open/edit the existing Place payload;
-- display scope/provenance/revision;
-- explicitly copy Personal -> active Campaign as an independent object;
-- save display name + payload atomically under one optimistic revision;
-- preserve stale-write/tombstone semantics and the same conservative Personal-owner identity rule used by the preceding Managers;
-- focused controller coverage for persistence, atomic edit, stale-write rejection, provenance and copy independence.
+- present Places/Shops as the Stage preparation collection;
+- richer retrieval/filter/grouping by kind, area, function, tags, scope and recent updates;
+- preserve existing create/open/edit/copy behavior and optimistic revision/tombstone guarantees;
+- keep active Campaign context visible;
+- make only the smallest refactor needed to share existing Place behavior;
+- focused coverage for retrieval/filtering and stable selection/state.
 
-Do not pull Scene Spine into this first package. Scene persistence is not yet an integrated reusable-content family and belongs with a later concrete Stage/Scene package rather than speculative pre-modeling.
+Do not pull Scene Spine into this package. D-0072's lightweight Adventure/Scene Spine remains the following bounded package. Current source has no Scene reusable-content family, so its later persistence extension must be introduced explicitly with that concrete package rather than pre-modeled here.
 
-## Homebrew & Rules Manager integrated evidence
+## Place/Shop Manager integrated evidence
 
-- implementation head `17f4cd686114f734ab0bc50f453de9d579a52c79`;
-- push Scaffold `35272269481` — SUCCESS;
-- PR Scaffold `35272560206` — SUCCESS;
-- PR #65 merged as `6febe3f936593999834189b92aeda9d209385fa7`;
-- post-merge Scaffold `35277359425` — SUCCESS.
+- implementation head `f4bb75f4b2872ebc6a1dc4302cd4890367e4618c`;
+- push Scaffold `35278740631` — SUCCESS;
+- PR Scaffold `35279052405` — SUCCESS;
+- PR #67 merged as `8be8ec82702a782c65b2d6aedf9bbe4b5b58f240`;
+- post-merge Scaffold `35279329344` — SUCCESS.
 
 ## Operating rule
 
