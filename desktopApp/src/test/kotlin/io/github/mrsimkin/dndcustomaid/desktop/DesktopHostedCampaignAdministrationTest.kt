@@ -51,6 +51,43 @@ class DesktopHostedCampaignAdministrationTest {
     }
 
     @Test
+    fun pcAuthorityEligibilityUsesOnlyActiveMembersInDeterministicOrder() {
+        val dmId = Uuid.parse("11111111-1111-4111-8111-111111111110")
+        val secondPlayerId = Uuid.parse("11111111-1111-4111-8111-111111111112")
+        val members = listOf(
+            HostedCampaignMember(
+                userId = playerId,
+                displayName = "Zed",
+                role = CampaignRole.PLAYER,
+                status = CampaignMembershipStatus.ACTIVE,
+            ),
+            HostedCampaignMember(
+                userId = Uuid.parse("11111111-1111-4111-8111-111111111113"),
+                displayName = "Banned",
+                role = CampaignRole.PLAYER,
+                status = CampaignMembershipStatus.BANNED,
+            ),
+            HostedCampaignMember(
+                userId = dmId,
+                displayName = "Alyra",
+                role = CampaignRole.DM,
+                status = CampaignMembershipStatus.ACTIVE,
+            ),
+            HostedCampaignMember(
+                userId = secondPlayerId,
+                displayName = null,
+                role = CampaignRole.PLAYER,
+                status = CampaignMembershipStatus.ACTIVE,
+            ),
+        )
+
+        assertEquals(
+            listOf(secondPlayerId, dmId, playerId),
+            eligiblePcAuthorityMembers(members).map { it.userId },
+        )
+    }
+
+    @Test
     fun dmNeverReceivesPlayerModerationActions() {
         CampaignMembershipStatus.entries.forEach { status ->
             assertTrue(
