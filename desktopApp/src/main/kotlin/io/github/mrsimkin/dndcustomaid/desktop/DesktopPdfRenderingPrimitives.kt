@@ -75,9 +75,19 @@ internal class DesktopPdfFontRegistry(
         return loadedFonts.getOrPut(path) { loadRequired(path) }
     }
 
+    fun symbolFont(): PDFont =
+        loadedFonts.getOrPut(APPROVED_SYMBOL_FONT_RESOURCE) {
+            loadRequired(APPROVED_SYMBOL_FONT_RESOURCE)
+        }
+
     private fun loadRequired(path: String): PDFont {
         val input = resourceLoader(path) ?: error("Required PDF font resource is unavailable: $path")
         return input.use { PDType0Font.load(document, it, true) }
+    }
+
+    private companion object {
+        const val APPROVED_SYMBOL_FONT_RESOURCE =
+            "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
     }
 }
 
@@ -169,6 +179,13 @@ internal enum class PdfMarkerKind {
     CROSS,
     DIAMOND_OUTLINE,
     DIAMOND_FILLED,
+    STAR_OUTLINE,
+    STAR_FILLED,
+}
+
+internal enum class PdfSymbolFamily {
+    V1_DERIVED,
+    V3_DERIVED,
 }
 
 internal enum class PdfImageFitMode {
@@ -242,55 +259,28 @@ internal class DesktopPdfRenderingPrimitives(
         sizePt: Float,
         kind: PdfMarkerKind,
         lineWidthPt: Float = 0.8f,
+        family: PdfSymbolFamily = PdfSymbolFamily.V3_DERIVED,
     ) {
         require(sizePt > 0f)
         require(lineWidthPt > 0f)
-        val half = sizePt / 2f
+
+        val glyph = approvedSymbolGlyph(kind, family)
+        val font = fonts.symbolFont()
+        val designWidth = (glyph.xMax - glyph.xMin).toFloat()
+        val designHeight = (glyph.yMax - glyph.yMin).toFloat()
+        val fontSizePt = sizePt * SYMBOL_FONT_UNITS_PER_EM / max(designWidth, designHeight)
+        val originX = centerX -
+            ((glyph.xMin + glyph.xMax) / 2f / SYMBOL_FONT_UNITS_PER_EM) * fontSizePt
+        val originY = centerY -
+            ((glyph.yMin + glyph.yMax) / 2f / SYMBOL_FONT_UNITS_PER_EM) * fontSizePt
 
         stream.saveGraphicsState()
-        stream.setStrokingColor(Color.BLACK)
         stream.setNonStrokingColor(Color.BLACK)
-        stream.setLineWidth(lineWidthPt)
-        when (kind) {
-            PdfMarkerKind.CIRCLE_OUTLINE -> circle(stream, centerX, centerY, half, filled = false)
-            PdfMarkerKind.CIRCLE_FILLED -> circle(stream, centerX, centerY, half, filled = true)
-            PdfMarkerKind.DOUBLE_CIRCLE -> {
-                circle(stream, centerX, centerY, half, filled = false)
-                circle(stream, centerX, centerY, half * 0.58f, filled = false)
-            }
-            PdfMarkerKind.SQUARE_OUTLINE -> {
-                stream.addRect(centerX - half, centerY - half, sizePt, sizePt)
-                stream.stroke()
-            }
-            PdfMarkerKind.SQUARE_FILLED -> {
-                stream.addRect(centerX - half, centerY - half, sizePt, sizePt)
-                stream.fill()
-            }
-            PdfMarkerKind.CHECK -> {
-                appTrainingCheck(stream, centerX, centerY, sizePt, 0f)
-            }
-            PdfMarkerKind.DOUBLE_CHECK -> {
-                appTrainingCheck(stream, centerX, centerY, sizePt, -0.12f)
-                appTrainingCheck(stream, centerX, centerY, sizePt, 0.12f)
-            }
-            PdfMarkerKind.CROSS -> {
-                stream.moveTo(centerX - half * 0.68f, centerY - half * 0.68f)
-                stream.lineTo(centerX + half * 0.68f, centerY + half * 0.68f)
-                stream.moveTo(centerX - half * 0.68f, centerY + half * 0.68f)
-                stream.lineTo(centerX + half * 0.68f, centerY - half * 0.68f)
-                stream.stroke()
-            }
-            PdfMarkerKind.DIAMOND_OUTLINE,
-            PdfMarkerKind.DIAMOND_FILLED,
-            -> {
-                stream.moveTo(centerX, centerY + half)
-                stream.lineTo(centerX + half, centerY)
-                stream.lineTo(centerX, centerY - half)
-                stream.lineTo(centerX - half, centerY)
-                stream.closePath()
-                if (kind == PdfMarkerKind.DIAMOND_FILLED) stream.fill() else stream.stroke()
-            }
-        }
+        stream.beginText()
+        stream.setFont(font, fontSizePt)
+        stream.newLineAtOffset(originX, originY)
+        stream.showText(String(Character.toChars(glyph.codePoint)))
+        stream.endText()
         stream.restoreGraphicsState()
     }
 
@@ -363,6 +353,49 @@ internal class DesktopPdfRenderingPrimitives(
             stream.stroke()
         }
         stream.restoreGraphicsState()
+    }
+
+    private data class ApprovedSymbolGlyph(
+        val codePoint: Int,
+        val xMin: Int,
+        val yMin: Int,
+        val xMax: Int,
+        val yMax: Int,
+    )
+
+    private fun approvedSymbolGlyph(
+        kind: PdfMarkerKind,
+        family: PdfSymbolFamily,
+    ): ApprovedSymbolGlyph = when (family) {
+        PdfSymbolFamily.V1_DERIVED -> when (kind) {
+            PdfMarkerKind.CIRCLE_OUTLINE -> ApprovedSymbolGlyph(0xE200, 0, 0, 1600, 1600)
+            PdfMarkerKind.CIRCLE_FILLED -> ApprovedSymbolGlyph(0xE201, 0, 0, 1600, 1600)
+            PdfMarkerKind.DOUBLE_CIRCLE -> ApprovedSymbolGlyph(0xE202, 100, 100, 1500, 1500)
+            PdfMarkerKind.SQUARE_OUTLINE -> ApprovedSymbolGlyph(0xE203, 0, 0, 1600, 1600)
+            PdfMarkerKind.SQUARE_FILLED -> ApprovedSymbolGlyph(0xE204, 0, 0, 1600, 1600)
+            PdfMarkerKind.DIAMOND_OUTLINE -> ApprovedSymbolGlyph(0xE207, 40, 40, 1560, 1560)
+            PdfMarkerKind.DIAMOND_FILLED -> ApprovedSymbolGlyph(0xE208, 40, 40, 1560, 1560)
+            PdfMarkerKind.STAR_OUTLINE -> ApprovedSymbolGlyph(0xE20D, 77, 185, 1523, 1560)
+            PdfMarkerKind.STAR_FILLED -> ApprovedSymbolGlyph(0xE20E, 77, 185, 1523, 1560)
+            PdfMarkerKind.CHECK -> ApprovedSymbolGlyph(0xE211, 285, 400, 1350, 1306)
+            PdfMarkerKind.DOUBLE_CHECK -> ApprovedSymbolGlyph(0xE212, 390, 289, 1237, 1358)
+            PdfMarkerKind.CROSS -> ApprovedSymbolGlyph(0xE215, 0, 0, 1600, 1600)
+        }
+
+        PdfSymbolFamily.V3_DERIVED -> when (kind) {
+            PdfMarkerKind.CIRCLE_OUTLINE -> ApprovedSymbolGlyph(0xE300, 100, 100, 1500, 1500)
+            PdfMarkerKind.CIRCLE_FILLED -> ApprovedSymbolGlyph(0xE301, 100, 100, 1500, 1500)
+            PdfMarkerKind.DOUBLE_CIRCLE -> ApprovedSymbolGlyph(0xE302, 100, 100, 1500, 1500)
+            PdfMarkerKind.SQUARE_OUTLINE -> ApprovedSymbolGlyph(0xE303, 100, 100, 1500, 1500)
+            PdfMarkerKind.SQUARE_FILLED -> ApprovedSymbolGlyph(0xE304, 100, 100, 1500, 1500)
+            PdfMarkerKind.DIAMOND_OUTLINE -> ApprovedSymbolGlyph(0xE307, 80, 80, 1520, 1520)
+            PdfMarkerKind.DIAMOND_FILLED -> ApprovedSymbolGlyph(0xE308, 80, 80, 1520, 1520)
+            PdfMarkerKind.STAR_OUTLINE -> ApprovedSymbolGlyph(0xE30D, 115, 218, 1485, 1520)
+            PdfMarkerKind.STAR_FILLED -> ApprovedSymbolGlyph(0xE30E, 115, 218, 1485, 1520)
+            PdfMarkerKind.CHECK -> ApprovedSymbolGlyph(0xE311, 296, 422, 1338, 1296)
+            PdfMarkerKind.DOUBLE_CHECK -> ApprovedSymbolGlyph(0xE312, 399, 299, 1228, 1354)
+            PdfMarkerKind.CROSS -> ApprovedSymbolGlyph(0xE315, 65, 65, 1535, 1535)
+        }
     }
 
     private fun fitLayout(
@@ -548,5 +581,6 @@ internal class DesktopPdfRenderingPrimitives(
         const val DEFAULT_ASCENT_UNITS = 800f
         const val DEFAULT_DESCENT_UNITS = -200f
         const val CIRCLE_KAPPA = 0.5522848f
+        const val SYMBOL_FONT_UNITS_PER_EM = 2048f
     }
 }

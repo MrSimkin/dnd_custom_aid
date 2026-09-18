@@ -71,11 +71,14 @@ internal class DesktopPcSheetTemplateProofRenderer(
                 }
 
                 val page = document.getPage(0)
+                val primitives = DesktopPdfRenderingPrimitives(
+                    DesktopPdfFontRegistry(document, resourceLoader = resourceLoader),
+                )
                 PDPageContentStream(document, page, AppendMode.APPEND, true, true).use { stream ->
                     when (plan.request.visualFamily) {
-                        PcSheetVisualFamily.CUSTOM_V1 -> drawCustomV1(stream, plan)
-                        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> drawCustomV2PerAttribute(stream, plan)
-                        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> drawCustomV2PerAbility(stream, plan)
+                        PcSheetVisualFamily.CUSTOM_V1 -> drawCustomV1(stream, primitives, plan)
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> drawCustomV2PerAttribute(stream, primitives, plan)
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> drawCustomV2PerAbility(stream, primitives, plan)
                         PcSheetVisualFamily.CLASSIC_DND_STYLE -> error("Classic is not an owner-template proof.")
                     }
                 }
@@ -86,6 +89,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
 
     private fun drawCustomV1(
         stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
         val aggregate = plan.snapshot.aggregate
@@ -105,7 +109,9 @@ internal class DesktopPcSheetTemplateProofRenderer(
         stream.centerTextPx(685f, 270f, sheet.maxHp.toString(), 12f, 100f, bold = true)
         stream.centerTextPx(827f, 334f, sheet.currentHp.toString(), 13f, 100f, bold = true)
         stream.centerTextPx(395f, 405f, sheet.speed.toString(), 12f, 100f, bold = true)
-        if (sheet.inspiration) stream.centerTextPx(540f, 405f, "X", 12f, 80f, bold = true)
+        if (sheet.inspiration) {
+            markerPx(stream, primitives, 540f, 405f, 21f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V1_DERIVED)
+        }
         stream.centerTextPx(685f, 405f, hitDiceSummary(plan), 9f, 105f, bold = true)
 
         val abilityColumns = listOf(
@@ -121,14 +127,15 @@ internal class DesktopPcSheetTemplateProofRenderer(
             stream.centerTextPx(x + 55f, 590f, signed(sheet.abilityModifier(ability)), 8.5f, 55f, bold = true)
         }
 
-        drawCustomV1ChecksAndTotals(stream, plan)
-        drawCustomV1Spellcasting(stream, plan)
+        drawCustomV1ChecksAndTotals(stream, primitives, plan)
+        drawCustomV1Spellcasting(stream, primitives, plan)
         drawCustomV1Attacks(stream, plan)
         drawCustomV1Traits(stream, plan)
     }
 
     private fun drawCustomV1ChecksAndTotals(
         stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
@@ -179,13 +186,15 @@ internal class DesktopPcSheetTemplateProofRenderer(
         )
         columns.forEach { column ->
             val save = sheet.savingThrow(column.ability)
-            if (save.proficient) stream.centerTextPx(column.checkboxX, 632f, "X", 6.5f, 18f, bold = true)
+            if (save.proficient) {
+                markerPx(stream, primitives, column.checkboxX, 632f, 13f, PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED)
+            }
             stream.textPx(column.valueX, 622f, signed(sheet.savingThrowTotal(column.ability)), 6.5f, 45f)
             column.skills.forEachIndexed { index, skill ->
                 val y = 652f + index * 30f
                 val state = sheet.skill(skill)
-                if (state.training != SkillTraining.NONE) {
-                    stream.centerTextPx(column.checkboxX, y + 9f, "X", 6.5f, 18f, bold = true)
+                skillMarkerKind(state.training)?.let { kind ->
+                    markerPx(stream, primitives, column.checkboxX, y + 9f, 13f, kind, PdfSymbolFamily.V1_DERIVED)
                 }
                 stream.textPx(column.valueX, y, signed(sheet.skillTotal(skill)), 6.5f, 45f)
             }
@@ -194,6 +203,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
 
     private fun drawCustomV1Spellcasting(
         stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
@@ -211,7 +221,10 @@ internal class DesktopPcSheetTemplateProofRenderer(
             stream.centerTextPx(112f, y, slot.totalSlots.toString(), 7.5f, 45f, bold = true)
             val spentCenters = listOf(174f, 202f, 230f, 258f)
             repeat(slot.spentSlots.coerceAtMost(spentCenters.size)) { index ->
-                stream.centerTextPx(spentCenters[index], y + 2f, "X", 6f, 20f, bold = true)
+                markerPx(
+                    stream, primitives, spentCenters[index], y + 2f, 12f,
+                    PdfMarkerKind.CIRCLE_FILLED, PdfSymbolFamily.V1_DERIVED,
+                )
             }
         }
     }
@@ -254,9 +267,10 @@ internal class DesktopPcSheetTemplateProofRenderer(
 
     private fun drawCustomV2PerAttribute(
         stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
-        drawCustomV2Common(stream, plan, nameCenterY = 315f, pageTwoVariant = false)
+        drawCustomV2Common(stream, primitives, plan, nameCenterY = 315f, pageTwoVariant = false)
         val sheet = plan.snapshot.aggregate.sheet
 
         val abilityRows = listOf(
@@ -319,11 +333,13 @@ internal class DesktopPcSheetTemplateProofRenderer(
         )
         rows.forEach { row ->
             val save = sheet.savingThrow(row.ability)
-            if (save.proficient) stream.centerTextPx(204f, row.saveY + 7f, "X", 6f, 18f, bold = true)
+            if (save.proficient) {
+                markerPx(stream, primitives, 204f, row.saveY + 7f, 12f, PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED)
+            }
             stream.textPx(315f, row.saveY, signed(sheet.savingThrowTotal(row.ability)), 6.2f, 45f)
             row.skills.forEach { (skill, y) ->
-                if (sheet.skill(skill).training != SkillTraining.NONE) {
-                    stream.centerTextPx(204f, y + 7f, "X", 6f, 18f, bold = true)
+                skillMarkerKind(sheet.skill(skill).training)?.let { kind ->
+                    markerPx(stream, primitives, 204f, y + 7f, 12f, kind, PdfSymbolFamily.V3_DERIVED)
                 }
                 stream.textPx(315f, y, signed(sheet.skillTotal(skill)), 6.2f, 45f)
             }
@@ -332,9 +348,10 @@ internal class DesktopPcSheetTemplateProofRenderer(
 
     private fun drawCustomV2PerAbility(
         stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
-        drawCustomV2Common(stream, plan, nameCenterY = 365f, pageTwoVariant = true)
+        drawCustomV2Common(stream, primitives, plan, nameCenterY = 365f, pageTwoVariant = true)
         val sheet = plan.snapshot.aggregate.sheet
         val abilityRows = listOf(
             CharacterAbility.STRENGTH to 345f,
@@ -352,14 +369,16 @@ internal class DesktopPcSheetTemplateProofRenderer(
         CharacterAbility.entries.forEachIndexed { index, ability ->
             val y = 347f + index * 31f
             val save = sheet.savingThrow(ability)
-            if (save.proficient) stream.centerTextPx(204f, y + 7f, "X", 6f, 18f, bold = true)
+            if (save.proficient) {
+                markerPx(stream, primitives, 204f, y + 7f, 12f, PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED)
+            }
             stream.textPx(320f, y, signed(sheet.savingThrowTotal(ability)), 6.2f, 42f)
         }
 
         V2_PER_ABILITY_SKILL_ORDER.forEachIndexed { index, skill ->
             val y = 590f + index * 29f
-            if (sheet.skill(skill).training != SkillTraining.NONE) {
-                stream.centerTextPx(204f, y + 7f, "X", 6f, 18f, bold = true)
+            skillMarkerKind(sheet.skill(skill).training)?.let { kind ->
+                markerPx(stream, primitives, 204f, y + 7f, 12f, kind, PdfSymbolFamily.V3_DERIVED)
             }
             stream.textPx(320f, y, signed(sheet.skillTotal(skill)), 6.1f, 42f)
         }
@@ -367,6 +386,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
 
     private fun drawCustomV2Common(
         stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
         nameCenterY: Float,
         pageTwoVariant: Boolean,
@@ -386,10 +406,14 @@ internal class DesktopPcSheetTemplateProofRenderer(
 
         if (pageTwoVariant) {
             stream.centerTextPx(100f, 225f, signed(sheet.finalProficiencyBonus), 10f, 135f, bold = true)
-            if (sheet.inspiration) stream.centerTextPx(260f, 225f, "X", 10f, 135f, bold = true)
+            if (sheet.inspiration) {
+                markerPx(stream, primitives, 260f, 225f, 20f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V3_DERIVED)
+            }
         } else {
             stream.centerTextPx(505f, 420f, signed(sheet.finalProficiencyBonus), 10f, 135f, bold = true)
-            if (sheet.inspiration) stream.centerTextPx(650f, 420f, "X", 10f, 135f, bold = true)
+            if (sheet.inspiration) {
+                markerPx(stream, primitives, 650f, 420f, 20f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V3_DERIVED)
+            }
         }
 
         sheet.combatEntries
@@ -435,7 +459,10 @@ internal class DesktopPcSheetTemplateProofRenderer(
             stream.centerTextPx(101f, y, slot.totalSlots.toString(), 7f, 42f, bold = true)
             val spentCenters = listOf(128f, 154f, 180f, 206f)
             repeat(slot.spentSlots.coerceAtMost(spentCenters.size)) { index ->
-                stream.centerTextPx(spentCenters[index], y + 2f, "X", 5.7f, 18f, bold = true)
+                markerPx(
+                    stream, primitives, spentCenters[index], y + 2f, 11.5f,
+                    PdfMarkerKind.CIRCLE_FILLED, PdfSymbolFamily.V3_DERIVED,
+                )
             }
         }
     }
@@ -491,6 +518,31 @@ internal class DesktopPcSheetTemplateProofRenderer(
                 ?.abbreviation
                 .orEmpty()
         }.orEmpty()
+    }
+
+    private fun skillMarkerKind(training: SkillTraining): PdfMarkerKind? = when (training) {
+        SkillTraining.NONE -> null
+        SkillTraining.PROFICIENT -> PdfMarkerKind.CHECK
+        SkillTraining.EXPERTISE -> PdfMarkerKind.DOUBLE_CHECK
+    }
+
+    private fun markerPx(
+        stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
+        centerXPx: Float,
+        centerYPx: Float,
+        sizePx: Float,
+        kind: PdfMarkerKind,
+        family: PdfSymbolFamily,
+    ) {
+        primitives.drawMarker(
+            stream = stream,
+            centerX = centerXPx * PAGE_WIDTH_PT / REFERENCE_WIDTH_PX,
+            centerY = PAGE_HEIGHT_PT - centerYPx * PAGE_HEIGHT_PT / REFERENCE_HEIGHT_PX,
+            sizePt = sizePx * PAGE_WIDTH_PT / REFERENCE_WIDTH_PX,
+            kind = kind,
+            family = family,
+        )
     }
 
     private fun signed(value: Int): String = if (value >= 0) "+$value" else value.toString()

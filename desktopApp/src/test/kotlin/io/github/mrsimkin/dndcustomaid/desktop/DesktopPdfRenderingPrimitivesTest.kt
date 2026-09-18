@@ -269,12 +269,12 @@ class DesktopPdfRenderingPrimitivesTest {
 
         heading(stream, primitives, PdfRect(36f, 308f, 540f, 18f), "Marcadores vectoriales — candidatos", PdfTypographyRole.PRIMARY_VALUE, 10f)
         PdfMarkerKind.entries.forEachIndexed { index, kind ->
-            val x = 52f + index * 57f
+            val x = 52f + index * 46f
             primitives.drawMarker(stream, x, 270f, 13f, kind, 0.9f)
             primitives.drawTextBox(
                 stream,
                 PdfTextBoxSpec(
-                    rect = PdfRect(x - 25f, 238f, 50f, 22f),
+                    rect = PdfRect(x - 20f, 238f, 40f, 22f),
                     text = (index + 1).toString(),
                     role = PdfTypographyRole.NUMERIC_COMPACT,
                     preferredSizePt = 7f,
@@ -297,7 +297,7 @@ class DesktopPdfRenderingPrimitivesTest {
             stream,
             primitives,
             PdfRect(36f, 156f, 540f, 24f),
-            "Font del owner: publicación autorizada; binario original pendiente de re-adjuntar y verificar por SHA-256.",
+            "Font del owner: v8 aprobado/congelado; marcadores renderizados desde el TTF aprobado.",
             PdfTypographyRole.COMPACT_TABLE,
             7.5f,
         )

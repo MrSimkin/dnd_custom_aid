@@ -125,7 +125,10 @@ internal class DesktopPcSheetWholeDraftRenderer(
         inventory.filter { it.special }.take(10).forEachIndexed { index, item ->
             val y = 940f + index * 35f
             if (item.equipped || item.attuned) {
-                markerPx(stream, primitives, 208f, y + 15f, 15f, PdfMarkerKind.CHECK)
+                markerPx(
+                    stream, primitives, 208f, y + 15f, 15f,
+                    PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED,
+                )
             }
             drawTableText(stream, primitives, 255f, y, 170f, 30f, item.name, 6.7f)
             val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
@@ -185,7 +188,10 @@ internal class DesktopPcSheetWholeDraftRenderer(
         inventory.filter { it.special }.take(10).forEachIndexed { index, item ->
             val y = 970f + index * 34f
             if (item.equipped || item.attuned) {
-                markerPx(stream, primitives, 165f, y + 13f, 14f, PdfMarkerKind.CHECK)
+                markerPx(
+                    stream, primitives, 165f, y + 13f, 14f,
+                    PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED,
+                )
             }
             drawTableText(stream, primitives, 180f, y, 345f, 28f, item.name, 6.4f)
             val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
@@ -218,6 +224,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                         block.headerY + 14f,
                         13f,
                         PdfMarkerKind.CIRCLE_FILLED,
+                        symbolFamily(plan),
                     )
                 }
             }
@@ -228,7 +235,10 @@ internal class DesktopPcSheetWholeDraftRenderer(
                 .forEachIndexed { index, spell ->
                     val rowY = block.firstRowY + index * block.rowStep
                     if (spell.sourceAssociations.any { it.prepared }) {
-                        markerPx(stream, primitives, block.checkX, rowY + 10f, 12f, PdfMarkerKind.CHECK)
+                        markerPx(
+                            stream, primitives, block.checkX, rowY + 10f, 12f,
+                            PdfMarkerKind.CHECK, symbolFamily(plan),
+                        )
                     }
                     drawTableText(
                         stream, primitives,
@@ -346,6 +356,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
         centerYPx: Float,
         sizePx: Float,
         kind: PdfMarkerKind,
+        family: PdfSymbolFamily,
     ) {
         primitives.drawMarker(
             stream = stream,
@@ -354,8 +365,16 @@ internal class DesktopPcSheetWholeDraftRenderer(
             sizePt = sizePx * PX_TO_PT,
             kind = kind,
             lineWidthPt = 0.8f,
+            family = family,
         )
     }
+
+    private fun symbolFamily(plan: PcSheetPdfRenderPlan): PdfSymbolFamily =
+        if (plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1) {
+            PdfSymbolFamily.V1_DERIVED
+        } else {
+            PdfSymbolFamily.V3_DERIVED
+        }
 
     private fun rectPx(
         xPx: Float,
