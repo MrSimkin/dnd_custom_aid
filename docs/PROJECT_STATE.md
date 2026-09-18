@@ -1,22 +1,47 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-17 (Chile local time)  
+**Last reconstructed:** 2026-09-18 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `f6350d34087aae55d5247f2ba23153814eeed04b` (PC Sheet PDF foundation PR #83)  
+**Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
 **Post-merge Scaffold:** `35295050340` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Next bounded package:** PC Sheet PDF Export — local renderer + authoritative template mapping
+**Current active package:** PC Sheet PDF Export — whole-export renderer foundation redesign after rejected Round 1 visual proof
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
 Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit, PC authority repository work or the PC Sheet PDF semantic foundation without new defect evidence.
+
+### Current active PDF branch / pause state
+
+Active branch: `wave7/pc-sheet-pdf-renderer-template-proof`. Draft PR: **#85**.
+
+The first populated MAIN-page proof was technically green but **owner visual QA rejected it**. The rejection is substantive: alignment, typography, marker rendering and sparse dummy data are not acceptable. Do not resume by coordinate-nudging or by treating the existing proof as a near-final mapping.
+
+Owner-approved continuation is **whole-export-first architecture with incremental structured QA**:
+
+- survey all Custom pages plus Classic / Extended / Spellbook requirements;
+- settle the PDFBox major version before visual baselines;
+- build metric-based text/layout primitives, family-aware typography roles and reusable marker primitives;
+- use normal + dense deterministic fixtures;
+- run a primitive QA gate;
+- implement the complete export;
+- review section-by-section / parameter-by-parameter, then page/family/end-to-end.
+
+Owner-created `Para-hoja-de-pj` was inspected and is a first-class symbol-font candidate. A reproducible v2 generator and mapping are stored at:
+
+- `scripts/fonts/expand_para_hoja_de_pj_v2.py`;
+- `docs/reference/Para_Hoja_de_PJ_Symbols_v2_MAPPING.md`.
+
+Font binaries remain outside the public repository while it is public. The project is private/personal-use; the owner intends to make the repository private when the project is complete.
+
+Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
 ## 2. Integrated Wave 5 baseline
 
