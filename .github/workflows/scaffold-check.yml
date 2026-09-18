@@ -107,3 +107,4 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f database/tests/0004_pc_dm_authority_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0005_membership_revoke_authorization_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0006_campaign_membership_administration_contract.sql
+          psql -v ON_ERROR_STOP=1 -f database/tests/0007_pc_authority_administration_contract.sql
