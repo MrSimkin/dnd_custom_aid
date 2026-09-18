@@ -14,11 +14,13 @@ import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import java.awt.Color
 import java.io.InputStream
 import java.io.OutputStream
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode
 import org.apache.pdfbox.pdmodel.font.PDFont
 import org.apache.pdfbox.pdmodel.font.PDType1Font
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts
 
 /**
  * Development renderer used to prove measured overlays against the owner's authoritative Custom
@@ -56,7 +58,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
             ?: error("PC sheet template resource is unavailable: $classpathPath")
 
         template.use { input ->
-            PDDocument.load(input).use { document ->
+            Loader.loadPDF(input.readBytes()).use { document ->
                 val sourceIndex = sourcePageNumber - 1
                 require(sourceIndex in 0 until document.numberOfPages) {
                     "Template page $sourcePageNumber does not exist in $templatePath."
@@ -544,7 +546,11 @@ internal class DesktopPcSheetTemplateProofRenderer(
     ) {
         val cleaned = text.trim()
         if (cleaned.isEmpty()) return
-        val font = if (bold) PDType1Font.HELVETICA_BOLD else PDType1Font.HELVETICA
+        val font = if (bold) {
+            PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD)
+        } else {
+            PDType1Font(Standard14Fonts.FontName.HELVETICA)
+        }
         val maxWidthPt = maxWidthPx * PAGE_WIDTH_PT / REFERENCE_WIDTH_PX
         val fittedSize = fitFontSize(font, cleaned, fontSizePt, maxWidthPt)
         val xPt = xPx * PAGE_WIDTH_PT / REFERENCE_WIDTH_PX
@@ -567,7 +573,11 @@ internal class DesktopPcSheetTemplateProofRenderer(
     ) {
         val cleaned = text.trim()
         if (cleaned.isEmpty()) return
-        val font = if (bold) PDType1Font.HELVETICA_BOLD else PDType1Font.HELVETICA
+        val font = if (bold) {
+            PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD)
+        } else {
+            PDType1Font(Standard14Fonts.FontName.HELVETICA)
+        }
         val maxWidthPt = maxWidthPx * PAGE_WIDTH_PT / REFERENCE_WIDTH_PX
         val fittedSize = fitFontSize(font, cleaned, fontSizePt, maxWidthPt)
         val widthPt = font.getStringWidth(cleaned) / 1000f * fittedSize

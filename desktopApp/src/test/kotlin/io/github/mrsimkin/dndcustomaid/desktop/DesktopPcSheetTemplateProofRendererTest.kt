@@ -34,6 +34,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -64,7 +65,7 @@ class DesktopPcSheetTemplateProofRendererTest {
             val pdf = File(proofDir, "$fileStem.pdf")
             pdf.outputStream().use { renderer.renderMainPage(plan, it) }
 
-            PDDocument.load(pdf).use { document ->
+            Loader.loadPDF(pdf).use { document ->
                 assertEquals(1, document.numberOfPages)
                 val extracted = PDFTextStripper().getText(document)
                 assertTrue(extracted.contains("Aster Vale"))
