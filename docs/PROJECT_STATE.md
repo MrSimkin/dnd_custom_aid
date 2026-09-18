@@ -3,19 +3,19 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `7000535b78df2b2a7149b019796ff3d5903fdb3d` (PR #75)  
-**Post-merge Scaffold:** `35287713130` — SUCCESS  
+**Last verified runtime/integration merge:** `e14784390971f2e27025dd2fff1f5000658eb2f0` (PR #77)  
+**Post-merge Scaffold:** `35289703289` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core  
-**Next bounded package:** PC Manager / Audit — Desktop inspection/audit core
+**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core  
+**Next bounded package:** PC Manager ownership/controller administration core
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager or Encounter Manager work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager or PC Manager inspection/audit core work without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -37,7 +37,7 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone/Encounter packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
+Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone/Encounter/PC-audit packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
 
 Hard external-service operating budget remains USD $0.
 
@@ -155,27 +155,62 @@ Validation:
 
 Saved Encounters remain preparation, not live initiative/combat working state. No generalized dependency graph, encounter-balancing authority, hosted reusable-content synchronization or provider change was introduced.
 
-## 6. Next Wave 7 package — PC Manager / Audit
+### Desktop PC Manager / Audit — inspection and audited correction core
 
-Next bounded package: **PC Manager / Audit — Desktop inspection/audit core**.
+PR #77 integrated the first PC Manager/Audit slice over the same canonical PC data used by Player. No new local schema was required.
 
-D-0072 defines this as a DM-side inspection, audit and administration surface over the same canonical PC records used by the Player App. Desktop must not become a second Player character-builder and DM actions must not silently impersonate the Player.
+Integrated behavior:
 
-Before changing persistence, inspect and reuse the existing canonical PC, authority, synchronization and history structures.
+- `Personajes jugadores` is now a real Desktop destination;
+- active-Campaign PC browse/search;
+- inspection of the canonical core Character sheet plus Closure and Successor aggregates;
+- PC owner and controller shown independently from campaign DM role;
+- local data timestamp, sync revision, durable baseline revision and pending outbox state shown as distinct evidence;
+- existing reconciliation checkpoints surfaced as grouped history;
+- explicit `Correct / Edit as DM` flow for bounded core fields;
+- DM correction requires active DM campaign membership, preserves PC/campaign identity and owner/controller authority, appends a `Corrección DM` checkpoint with reason/change summary, exports the resulting canonical aggregate and queues the existing optimistic hosted PC snapshot mutation;
+- correction refuses to proceed while another PC snapshot mutation still requires resolution;
+- focused shared/domain and Desktop controller tests.
+
+The initial branch push exposed one Kotlin visibility mismatch between a public controller method and an internal Desktop details model. The follow-up commit aligned visibility only.
+
+Validation:
+
+- initial implementation head `2d792abaa843734acd2a1226f91d2e86e7b2b929`;
+- initial push Scaffold `35288970002` — FAILED on the visibility mismatch;
+- final implementation head `50132cdb295097ac4a7ab91c4d766b900eeb7771`;
+- corrected push Scaffold `35289198415` — SUCCESS;
+- PR Scaffold `35289424011` — SUCCESS;
+- PR #77 merged as `e14784390971f2e27025dd2fff1f5000658eb2f0`;
+- post-merge Scaffold `35289703289` — SUCCESS.
+
+This slice does not create a second Desktop character model, a generalized audit/event-sourcing framework, a new local schema, automatic Player impersonation or direct sync bypass.
+
+## 6. Next Wave 7 package — PC Manager ownership/controller administration
+
+Next bounded package: **PC Manager ownership/controller administration core**.
+
+Repository evidence:
+
+- hosted PC rows/snapshots already carry distinct nullable owner/controller IDs;
+- local `IntegratedSpineRepository.setPcAuthority` already enforces active campaign membership;
+- campaign DM authority does not imply PC ownership/control;
+- the hosted API currently exposes PC snapshot read/write but no explicit authority-administration mutation.
 
 Initial bounded direction:
 
-- campaign PC overview and retrieval;
-- complete DM inspection of canonical PC data;
-- expose available data-freshness and sync-freshness evidence distinctly;
-- review meaningful grouped audit/history already represented by the project;
-- explicit DM correction/edit entry points that preserve history and authority semantics;
-- keep campaign membership, PC ownership and PC control distinct;
-- focused controller/domain coverage around inspection, authority and correction boundaries.
+- add a dedicated DM-only hosted authority mutation;
+- update owner and controller independently, including explicit unassignment where the current model permits it;
+- only active members of the same campaign are eligible authority targets;
+- reject non-DM, inactive/cross-campaign targets and missing/tombstoned PCs;
+- return authoritative PC authority state and converge local `pc_authority` from that response;
+- add shared client + Desktop administration controls;
+- preserve PC snapshot revision/content unless the authority contract requires a clearly documented revision rule;
+- focused backend/database/shared/Desktop coverage.
 
-Freeze/unfreeze, lifecycle administration, ownership/controller administration, duplication and PDF export remain approved D-0072/D-0074 responsibilities, but the exact first implementation package should follow evidence from the existing PC architecture rather than inventing parallel structures.
+This is an authority-administration package, not a Player editor expansion.
 
-Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
+Freeze/unfreeze semantics, broader lifecycle administration, duplication and D-0074 PC Sheet PDF export remain later PC Manager responsibilities. Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
 
 ## 7. Security/provider boundaries
 
@@ -191,4 +226,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with PC Manager / Audit — Desktop inspection/audit core. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with PC Manager ownership/controller administration core. Routine safe green boundaries do not require separate owner confirmation.

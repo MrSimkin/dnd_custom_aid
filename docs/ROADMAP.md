@@ -135,27 +135,45 @@ Validation: initial implementation `91d744a66e3ff18ee9190c41d4dbb3970ca412fe`; i
 
 #### PC Manager / Audit — Desktop inspection/audit core
 
+**INSPECTION/AUDIT CORE COMPLETE / INTEGRATED — PR #77.**
+
+The first Desktop PC Manager slice now operates over the same canonical Player PC data rather than introducing a parallel Desktop character model.
+
+Integrated behavior:
+
+- campaign PC browse/search through the existing reserved `Personajes jugadores` destination;
+- complete read inspection of the canonical Character sheet plus Closure and Successor aggregates;
+- explicit owner/controller display independent from DM role;
+- distinct local data timestamp, sync revision, baseline revision and outbox status;
+- reconciliation checkpoint history;
+- explicit audited DM core-field correction;
+- correction reason + field-change summary stored as a `Corrección DM` reconciliation checkpoint;
+- correction queues the canonical hosted PC snapshot at the current sync revision and refuses to stack another PC mutation while one still needs resolution;
+- owner/controller authority is preserved during DM correction.
+
+Validation: initial implementation `2d792abaa843734acd2a1226f91d2e86e7b2b929`; initial push `35288970002` exposed one corrected Kotlin visibility mismatch; final implementation `50132cdb295097ac4a7ab91c4d766b900eeb7771`; corrected push `35289198415` SUCCESS; PR `35289424011` SUCCESS; merge `e14784390971f2e27025dd2fff1f5000658eb2f0`; post-merge `35289703289` SUCCESS.
+
+##### PC Manager ownership/controller administration core
+
 **NEXT BOUNDED PACKAGE.**
 
-D-0072 defines Desktop PC Manager as a DM inspection, audit and administration surface over the canonical PC records used by the Player App, not as a second Desktop character-builder.
+The hosted PC model already stores distinct nullable owner and controller IDs, and local authority persistence already validates active campaign membership. The missing piece is an explicit authoritative hosted administration mutation.
 
-Initial direction:
+Next direction:
 
-- inspect/reuse existing PC persistence, authority, synchronization and history structures before adding schema;
-- campaign PC overview/retrieval and complete DM inspection;
-- distinguish data freshness from sync freshness where supported;
-- meaningful grouped audit/history;
-- explicit DM correction/edit paths that preserve history and authority semantics;
-- maintain the separation of campaign membership, PC ownership and PC control;
-- focused inspection/authority/correction tests.
+- dedicated DM-only owner/controller administration contract;
+- owner/controller changed independently, with explicit unassignment where supported;
+- eligible targets restricted to active members of the same campaign;
+- fail closed for non-DM actors, inactive/cross-campaign targets and missing/tombstoned PCs;
+- shared hosted client + Desktop administration controls;
+- local authority converges from the authoritative response;
+- no silent ownership inference from DM role and no PC sheet mutation as an authority side effect.
 
-Approved later responsibilities include ownership/controller administration, freeze/unfreeze, lifecycle administration, duplication and D-0074 PC Sheet PDF export. The exact sequencing inside PC Manager should follow evidence from the existing architecture.
-
-Do not create a parallel Desktop character model, silently impersonate the Player or destructively erase audit history.
+Freeze/unfreeze semantics, broader lifecycle administration, duplication and D-0074 PC Sheet PDF export remain later PC Manager responsibilities.
 
 #### Later Wave 7 packages
 
-After Encounter Manager / Encounter Creator, continue with the remaining approved concrete surfaces in dependency order:
+After the remaining bounded PC Manager responsibilities, continue with the remaining approved concrete surfaces in dependency order:
 
 - Media / Handouts;
 - deferred richer Homebrew families and other explicit gaps where still required.
