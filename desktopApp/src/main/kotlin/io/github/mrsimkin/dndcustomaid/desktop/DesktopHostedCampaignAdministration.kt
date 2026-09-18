@@ -12,6 +12,9 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMember
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMemberRoster
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignModerationAction
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignModerationResult
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcAuthorityAdministrationClient
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcAuthorityUpdate
+import io.github.mrsimkin.dndcustomaid.shared.spine.AccountIdentity
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembership
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
@@ -26,7 +29,7 @@ import kotlin.uuid.Uuid
  * that controller, and delegates canonical campaign convergence to HostedCampaignBootstrapService.
  */
 internal class DesktopHostedCampaignAdministrationController(
-    database: AppDatabase,
+    private val database: AppDatabase,
     accessTokens: DesktopHostedAuthController,
     private val apiClient: HostedApiClient = HostedApiClient(
         baseUrl = DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL,
@@ -34,6 +37,11 @@ internal class DesktopHostedCampaignAdministrationController(
     ),
     private val administrationClient: HostedCampaignAdministrationClient =
         HostedCampaignAdministrationClient(
+            baseUrl = DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL,
+            accessTokens = accessTokens,
+        ),
+    private val pcAuthorityClient: HostedPcAuthorityAdministrationClient =
+        HostedPcAuthorityAdministrationClient(
             baseUrl = DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL,
             accessTokens = accessTokens,
         ),
@@ -46,8 +54,52 @@ internal class DesktopHostedCampaignAdministrationController(
     fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =
         spine.membership(campaignId, accountId)
 
-    suspend fun roster(campaignId: Uuid): HostedCampaignMemberRoster =
-        administrationClient.members(campaignId)
+    suspend fun roster(campaignId: Uuid): HostedCampaignMemberRoster {
+        val roster = administrationClient.members(campaignId)
+        require(roster.campaignId == campaignId) {
+            "Hosted campaign roster identity did not match the requested campaign."
+        }
+        database.transaction {
+            roster.members.forEach { member ->
+                val existingAccount = spine.account(member.userId)
+                spine.upsertAccount(
+                    AccountIdentity(
+                        id = member.userId,
+                        externalSubject = existingAccount?.externalSubject,
+                        displayName = member.displayName,
+                    ),
+                )
+                spine.upsertMembership(
+                    CampaignMembership(
+                        campaignId = campaignId,
+                        accountId = member.userId,
+                        role = member.role,
+                        status = member.status,
+                    ),
+                )
+            }
+        }
+        return roster
+    }
+
+    suspend fun setPcAuthority(
+        campaignId: Uuid,
+        pcId: Uuid,
+        ownerAccountId: Uuid?,
+        controllerAccountId: Uuid?,
+    ): HostedPcAuthorityUpdate {
+        // Hydrate current membership/account state before the hosted mutation so a successful
+        // server update can always converge locally without a second network request afterward.
+        roster(campaignId)
+        val result = pcAuthorityClient.setAuthority(
+            campaignId = campaignId,
+            pcId = pcId,
+            ownerUserId = ownerAccountId,
+            controllerUserId = controllerAccountId,
+        )
+        spine.setPcAuthority(result.authority)
+        return result
+    }
 
     suspend fun moderate(
         campaignId: Uuid,
@@ -63,6 +115,7 @@ internal class DesktopHostedCampaignAdministrationController(
     fun close() {
         apiClient.close()
         administrationClient.close()
+        pcAuthorityClient.close()
     }
 }
 
