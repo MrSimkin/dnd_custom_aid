@@ -6,6 +6,12 @@ plugins {
 
 kotlin {
     jvmToolchain(17)
+
+    sourceSets {
+        main {
+            resources.srcDir(rootProject.file("assets"))
+        }
+    }
 }
 
 dependencies {
@@ -14,6 +20,7 @@ dependencies {
     implementation(libs.compose.multiplatform.material)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.core)
+    implementation(libs.pdfbox)
     testImplementation(kotlin("test"))
 }
 
