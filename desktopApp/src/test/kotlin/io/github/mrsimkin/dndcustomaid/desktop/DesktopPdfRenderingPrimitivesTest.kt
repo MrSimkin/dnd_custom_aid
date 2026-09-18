@@ -297,7 +297,7 @@ class DesktopPdfRenderingPrimitivesTest {
             stream,
             primitives,
             PdfRect(36f, 156f, 540f, 24f),
-            "El font de símbolos del owner se compara aparte: su binario privado no vive en el repo público.",
+            "Font del owner: publicación autorizada; binario original pendiente de re-adjuntar y verificar por SHA-256.",
             PdfTypographyRole.COMPACT_TABLE,
             7.5f,
         )

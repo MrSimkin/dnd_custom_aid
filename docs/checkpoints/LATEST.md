@@ -9,7 +9,7 @@
 **Current active branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
 **Draft PR:** #85 — OPEN / DRAFT / **DO NOT MERGE**  
 **PC Sheet PDF visual QA:** ROUND 1 **REJECTED**  
-**Current checkpoint:** `docs/checkpoints/2026-09-18_WAVE7_PC_SHEET_PDF_RENDERER_RESEARCH_PAUSE.md`
+**Current checkpoint:** `docs/checkpoints/2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`
 
 ## Read first on resume
 
@@ -70,15 +70,25 @@ No original or generated TTF binary is committed while the repository remains pu
 
 ## Next substantive work
 
-1. settle PDFBox 2.0.37 vs current 3.x **before visual baselines**;
-2. validate font resources and family-aware typography roles;
-3. implement metric-based text/layout primitives;
-4. compare native PDF vector markers with the owner symbol-font candidate;
-5. implement wrapping/fitting/readability-floor behavior;
-6. create normal + dense deterministic fixtures;
-7. generate a primitive-QA artifact;
-8. conduct structured owner QA using PASS / CHANGE / N/A;
-9. expand to the complete export only from the accepted foundation.
+The renderer foundation has now moved past the original research-only pause:
+
+1. PDFBox 3.0.8 is settled for this package;
+2. metric-based text/layout, wrapping/overflow, vector markers, repeated rows and portrait Fit/Crop primitives exist;
+3. Fira Sans / Barlow Condensed Bold / Kalam Bold are bundled as deterministic **QA candidates**, not approved final typography;
+4. a dedicated handwritten/script role exists;
+5. adaptive vs fixed font-size behavior is explicit;
+6. the app-derived single-check / double-check training grammar exists in the vector marker set;
+7. `Para-hoja-de-pj` now has versioned repository architecture and a v3 generator/guide; original v1 binary publication is authorized but awaits re-attachment/hash verification.
+
+The immediate gate is **structured owner Primitive QA** focused on typography, per-element scale, condensed-font readability, handwritten treatment and marker variants.
+
+Do not resume broad full-page mapping until that primitive typography/symbol gate is accepted.
+
+## Owner typography feedback applied
+
+The owner accepted the direction so far with changes recorded in `2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`.
+
+Latest fully green implementation Scaffold before this documentation/text correction: `35359508972` at `4d4c2fae3d6b483c5e508886783fda37076f2d81`.
 
 ## Mandatory owner gate
 

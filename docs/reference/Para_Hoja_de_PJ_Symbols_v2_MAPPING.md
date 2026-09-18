@@ -75,3 +75,10 @@ python scripts/fonts/expand_para_hoja_de_pj_v2.py "Para Hj De Pj.ttf" "Para Hoja
 Requires Python plus `fonttools`.
 
 The generator is intentionally deterministic for the supplied original font. If the symbol set evolves, update both the generator and this mapping together.
+
+
+## Later owner authorization
+
+On 2026-09-18 the owner explicitly authorized publishing the original owner-authored font and versioned derivatives in the public development repository.
+
+Therefore the earlier v2 note saying the TTF binaries should remain outside the public repo is historical, not current policy. The v2 mapping itself remains unchanged and preserved as a versioned record. New work continues under `assets/fonts/owner/para-hoja-de-pj/`.

@@ -115,25 +115,26 @@ Current state:
 - current strategy is whole-export-first renderer architecture with incremental structured QA;
 - renderer research has been recorded before any further broad mapping attempt;
 - owner-created `Para-hoja-de-pj` font has been inspected;
-- symbol-font v2 mapping/generator are now reproducible in Git, but TTF binaries remain outside the public repo.
+- symbol-font v2 remains preserved; owner publication is now authorized and v1/v2/v3 repository directories/guides exist;
+- v3 adds the app-derived double-check candidate; the original owner TTF still needs to be re-attached and SHA-256 verified before binaries are populated.
 
 Do not resume by polishing the existing page-one coordinates in isolation.
 
 Next continuation sequence:
 
-1. settle PDFBox 2.0.37 vs 3.x before establishing owner-approved visual baselines;
-2. validate concrete font resources and family-aware typography roles;
-3. implement metric-based `TextMetrics/TextBox`-style primitives;
-4. implement/compare semantic marker rendering using direct PDF vectors and the owner symbol-font candidate;
-5. implement wrapping/fitting/readability-floor behavior;
-6. create normal + dense deterministic QA fixtures;
-7. generate a **primitive QA sheet**;
-8. obtain structured owner QA on primitives;
-9. implement all required pages/families with the accepted foundation;
-10. perform section → page → family → end-to-end QA.
+1. visually review the owner-directed typography QA candidates;
+2. review large Attribute/modifier sizing versus ordinary/compact values;
+3. review adaptive-size fields versus deliberately fixed ruled-line text;
+4. review Barlow Condensed Bold specifically for readability at realistic print scale;
+5. review Kalam Bold as the handwritten/script name candidate;
+6. review single-check and app-derived double-check marker variants;
+7. re-attach/verify the owner's original `Para-hoja-de-pj` TTF when available, then generate/version v2/v3 binaries in their repository folders;
+8. only after Primitive QA acceptance, expand to all required pages/families;
+9. perform section -> page -> family -> end-to-end QA.
 
 Relevant durable records:
 
+- `docs/checkpoints/2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`;
 - `docs/checkpoints/2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`;
 - `docs/checkpoints/2026-09-17_PC_SHEET_PDF_WHOLE_EXPORT_RENDERER_QA_STRATEGY.md`;
 - `docs/checkpoints/2026-09-17_PC_SHEET_PDF_RENDERER_FOUNDATION_RESEARCH.md`;
