@@ -140,7 +140,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                 val y = V1_SPECIAL_ROW_Y[rowIndex]
                 if (item.equipped || item.attuned) {
                     markerPx(
-                        stream, primitives, 208f, y + 15f, 15f,
+                        stream, primitives, 234.5f, y + 13.5f, 10f,
                         PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED,
                     )
                 }
@@ -204,7 +204,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                 val y = V2_SPECIAL_ROW_Y[rowIndex]
                 if (item.equipped || item.attuned) {
                     markerPx(
-                        stream, primitives, 165f, y + 14f, 14f,
+                        stream, primitives, 183.5f, y + 15f, 10f,
                         PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED,
                     )
                 }
@@ -223,7 +223,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
         val slots = sheet.spellSlots.associateBy { it.level }
         val spellsByLevel = sheet.spells.groupBy { it.level }
 
-        SPELL_BLOCKS.forEach { block ->
+        spellBlocks(plan).forEach { block ->
             val slot = slots[block.level]
             if (block.level > 0 && slot != null) {
                 drawTableText(
@@ -251,7 +251,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                     val rowY = block.firstRowY + index * block.rowStep
                     if (spell.sourceAssociations.any { it.prepared }) {
                         markerPx(
-                            stream, primitives, block.checkX, rowY + 10f, 12f,
+                            stream, primitives, block.checkX, rowY + 10f, 10f,
                             PdfMarkerKind.CHECK, symbolFamily(plan),
                         )
                     }
@@ -425,6 +425,13 @@ internal class DesktopPcSheetWholeDraftRenderer(
             PdfSymbolFamily.V3_DERIVED
         }
 
+    private fun spellBlocks(plan: PcSheetPdfRenderPlan): List<SpellBlock> =
+        if (plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1) {
+            V1_SPELL_BLOCKS
+        } else {
+            V2_SPELL_BLOCKS
+        }
+
     private fun rectPx(
         xPx: Float,
         topYPx: Float,
@@ -486,17 +493,30 @@ internal class DesktopPcSheetWholeDraftRenderer(
             "pies",
         )
 
-        val SPELL_BLOCKS = listOf(
-            SpellBlock(0, 0f, 0f, 0f, 55f, 72f, 285f, 225f, 35f, 8),
-            SpellBlock(1, 128f, 180f, 590f, 55f, 72f, 285f, 645f, 35f, 10),
-            SpellBlock(2, 128f, 180f, 1090f, 55f, 72f, 285f, 1145f, 35f, 9),
-            SpellBlock(3, 465f, 520f, 175f, 390f, 407f, 285f, 230f, 35f, 10),
-            SpellBlock(4, 465f, 520f, 650f, 390f, 407f, 285f, 705f, 35f, 10),
-            SpellBlock(5, 465f, 520f, 1120f, 390f, 407f, 285f, 1175f, 35f, 8),
-            SpellBlock(6, 805f, 860f, 175f, 730f, 747f, 285f, 230f, 35f, 8),
-            SpellBlock(7, 805f, 860f, 565f, 730f, 747f, 285f, 625f, 35f, 6),
-            SpellBlock(8, 805f, 860f, 925f, 730f, 747f, 285f, 985f, 35f, 6),
-            SpellBlock(9, 805f, 860f, 1245f, 730f, 747f, 285f, 1305f, 35f, 5),
+        val V1_SPELL_BLOCKS = listOf(
+            SpellBlock(0, 0f, 0f, 0f, 55f, 72f, 285f, 225f, 40f, 8),
+            SpellBlock(1, 115f, 194f, 596.5f, 64.5f, 77f, 330f, 655.5f, 40f, 10),
+            SpellBlock(2, 115f, 194f, 1089.5f, 64.5f, 77f, 330f, 1148.5f, 40f, 9),
+            SpellBlock(3, 489f, 568f, 177f, 439f, 451f, 330f, 235.5f, 40f, 10),
+            SpellBlock(4, 489f, 568f, 655.5f, 439f, 451f, 330f, 713.5f, 40f, 10),
+            SpellBlock(5, 489f, 568f, 1127.5f, 439f, 451f, 330f, 1186.5f, 40f, 8),
+            SpellBlock(6, 875f, 953f, 177f, 824.5f, 837f, 330f, 235.5f, 40f, 8),
+            SpellBlock(7, 875f, 953f, 574f, 824.5f, 837f, 330f, 632.5f, 40f, 6),
+            SpellBlock(8, 875f, 953f, 931f, 824.5f, 837f, 330f, 989.5f, 40f, 6),
+            SpellBlock(9, 875f, 953f, 1248.5f, 824.5f, 837f, 330f, 1307.5f, 40f, 5),
+        )
+
+        val V2_SPELL_BLOCKS = listOf(
+            SpellBlock(0, 0f, 0f, 0f, 55f, 72f, 285f, 225f, 34f, 8),
+            SpellBlock(1, 86.5f, 165f, 642f, 36.5f, 49f, 358f, 691.5f, 34f, 10),
+            SpellBlock(2, 86.5f, 165f, 1106.5f, 36.5f, 49f, 358f, 1156.5f, 34f, 9),
+            SpellBlock(3, 478f, 557f, 177f, 427.5f, 440f, 358f, 226.5f, 34f, 10),
+            SpellBlock(4, 478f, 557f, 642f, 427.5f, 440f, 358f, 691.5f, 34f, 10),
+            SpellBlock(5, 478f, 557f, 1106.5f, 427.5f, 440f, 358f, 1156.5f, 34f, 8),
+            SpellBlock(6, 869f, 948f, 177f, 818.5f, 831f, 358f, 226.5f, 34f, 8),
+            SpellBlock(7, 869f, 948f, 545.5f, 818.5f, 831f, 358f, 594.5f, 34f, 6),
+            SpellBlock(8, 869f, 948f, 908.5f, 818.5f, 831f, 358f, 957.5f, 34f, 6),
+            SpellBlock(9, 869f, 948f, 1242.5f, 818.5f, 831f, 358f, 1292.5f, 34f, 5),
         )
     }
 }
