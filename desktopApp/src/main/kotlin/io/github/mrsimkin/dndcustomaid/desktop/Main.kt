@@ -52,6 +52,7 @@ fun main() {
     val npcManagerController = DesktopNpcManagerController(databaseHandle.database)
     val homebrewRuleManagerController = DesktopHomebrewRuleManagerController(databaseHandle.database)
     val placeManagerController = DesktopPlaceManagerController(databaseHandle.database)
+    val pcManagerController = DesktopPcManagerController(databaseHandle.database)
     val preferencesStore = DesktopPreferencesStore()
     val hostedAuthController = DesktopHostedAuthController()
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
@@ -74,6 +75,7 @@ fun main() {
                         npcManagerController = npcManagerController,
                         homebrewRuleManagerController = homebrewRuleManagerController,
                         placeManagerController = placeManagerController,
+                        pcManagerController = pcManagerController,
                         hostedAuthController = hostedAuthController,
                         hostedCampaignController = hostedCampaignController,
                         preferences = preferences,
@@ -113,6 +115,7 @@ private fun DesktopWorkbench(
     npcManagerController: DesktopNpcManagerController,
     homebrewRuleManagerController: DesktopHomebrewRuleManagerController,
     placeManagerController: DesktopPlaceManagerController,
+    pcManagerController: DesktopPcManagerController,
     hostedAuthController: DesktopHostedAuthController,
     hostedCampaignController: DesktopHostedCampaignAdministrationController,
     preferences: DesktopPreferences,
@@ -197,6 +200,12 @@ private fun DesktopWorkbench(
                         onActivate = ::activateCampaign,
                     )
 
+                    DesktopDestination.PLAYER_CHARACTERS -> DesktopPcManagerScreen(
+                        controller = pcManagerController,
+                        activeCampaign = activeCampaign,
+                        onQaEvent = ::logQa,
+                    )
+
                     DesktopDestination.MANAGERS -> DesktopManagersHubScreen(
                         creatureController = creatureManagerController,
                         npcController = npcManagerController,
@@ -236,6 +245,7 @@ private fun DesktopWorkbench(
             if (
                 destination == DesktopDestination.DASHBOARD ||
                 destination == DesktopDestination.CAMPAIGNS ||
+                destination == DesktopDestination.PLAYER_CHARACTERS ||
                 destination == DesktopDestination.MANAGERS ||
                 destination == DesktopDestination.CAMPAIGN_ADMINISTRATION
             ) {
