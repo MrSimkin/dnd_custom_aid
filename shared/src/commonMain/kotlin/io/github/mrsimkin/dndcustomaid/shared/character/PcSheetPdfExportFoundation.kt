@@ -212,22 +212,28 @@ object PcSheetPdfExportPlanner {
         sources: PcSheetExportSources,
     ): PcSheetPdfRenderPlan {
         val notices = mutableListOf<PcSheetExportNotice>()
-        val selectedAggregate = when (request.stateSelection) {
-            PcSheetExportStateSelection.PERMANENT -> sources.permanent
-            PcSheetExportStateSelection.CURRENT_SNAPSHOT -> sources.currentSnapshot ?: sources.permanent.also {
-                notices += PcSheetExportNotice(
-                    code = PcSheetExportNoticeCode.CURRENT_SNAPSHOT_UNAVAILABLE,
-                    message = "No separate current snapshot was supplied; the durable character state will be exported.",
-                )
+        val (selectedAggregate, effectiveState) = when (request.stateSelection) {
+            PcSheetExportStateSelection.PERMANENT -> sources.permanent to PcSheetExportStateSelection.PERMANENT
+            PcSheetExportStateSelection.CURRENT_SNAPSHOT -> {
+                val current = sources.currentSnapshot
+                if (current != null) {
+                    current to PcSheetExportStateSelection.CURRENT_SNAPSHOT
+                } else {
+                    notices += PcSheetExportNotice(
+                        code = PcSheetExportNoticeCode.CURRENT_SNAPSHOT_UNAVAILABLE,
+                        message = "No hay un estado actual separado disponible; se exportará el estado permanente del personaje.",
+                    )
+                    sources.permanent to PcSheetExportStateSelection.PERMANENT
+                }
             }
         }
 
         val portraitRef = selectedAggregate.closure.portraitRef?.trim()?.takeIf { it.isNotEmpty() }
-        val portraitAvailable = portraitRef == null || portraitRef in sources.locallyAvailablePortraitRefs
+        val portraitAvailable = portraitRef != null && portraitRef in sources.locallyAvailablePortraitRefs
         if (portraitRef != null && !portraitAvailable) {
             notices += PcSheetExportNotice(
                 code = PcSheetExportNoticeCode.PORTRAIT_NOT_AVAILABLE_LOCALLY,
-                message = "The character portrait is not available locally; export must continue with a blank portrait area.",
+                message = "El retrato del personaje no está disponible localmente; la exportación continuará con el área de retrato en blanco.",
             )
         }
 
@@ -252,7 +258,7 @@ object PcSheetPdfExportPlanner {
             if (request.includeSpellDescriptions && selectedAggregate.sheet.spells.isEmpty()) {
                 notices += PcSheetExportNotice(
                     code = PcSheetExportNoticeCode.SPELLBOOK_REQUESTED_WITHOUT_ATTACHED_SPELLS,
-                    message = "Spell descriptions were requested, but the character has no attached spells.",
+                    message = "Se solicitaron descripciones de conjuros, pero el personaje no tiene conjuros asociados.",
                 )
             }
             null
@@ -261,7 +267,7 @@ object PcSheetPdfExportPlanner {
         return PcSheetPdfRenderPlan(
             request = request,
             snapshot = PcSheetExportSnapshot(
-                selectedState = request.stateSelection,
+                selectedState = effectiveState,
                 aggregate = selectedAggregate,
                 customStatistics = customStatistics,
                 portrait = PcSheetPortraitPlan(
