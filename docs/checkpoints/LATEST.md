@@ -9,7 +9,7 @@
 **Current active branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
 **Draft PR:** #85 — OPEN / DRAFT / **DO NOT MERGE**  
 **PC Sheet PDF visual QA:** ROUND 1 **REJECTED**  
-**Current checkpoint:** `docs/checkpoints/2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`
+**Current checkpoint:** `docs/checkpoints/2026-09-18_PDF_PRIMITIVE_QA_OWNER_FEEDBACK_APPLIED.md`
 
 ## Read first on resume
 
