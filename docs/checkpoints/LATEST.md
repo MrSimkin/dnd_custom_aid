@@ -8,8 +8,10 @@
 **Wave 7:** ACTIVE  
 **Current active branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
 **Draft PR:** #85 — OPEN / DRAFT / **DO NOT MERGE**  
-**PC Sheet PDF visual QA:** ROUND 1 **REJECTED**  
-**Current checkpoint:** `docs/checkpoints/2026-09-18_PDF_PRIMITIVE_QA_OWNER_FEEDBACK_APPLIED.md`
+**Primitive PDF QA:** **OWNER ACCEPTED**  
+**Full PC Sheet PDF visual QA:** PENDING — no visual family approved  
+**Para Hoja de PJ v4 visual QA:** PENDING  
+**Current checkpoint:** `docs/checkpoints/2026-09-18_PARA_HOJA_DE_PJ_V4_PUBLISHED_PRIMITIVE_QA_ACCEPTED.md`
 
 ## Read first on resume
 
@@ -57,46 +59,58 @@ Do not resume with isolated coordinate nudging on page 1.
 
 ## Symbol-font continuity
 
-The owner created the original `Para-hoja-de-pj` symbol font and provided it for inspection.
+The exact owner-authored 2007 `Para Hj De Pj.ttf` is now published as immutable archival v1 after byte-level verification:
 
-A v2 candidate has been investigated locally and may continue to evolve as real renderer requirements appear.
+- SHA-256 `d0c0d50ad8ed33064e3af89b0976933b9eba8ead2d26234011c1a3233c246658`;
+- Git blob `67cf8eb51dbcee7b4c68c8ef7e9e238ce010271c`;
+- publication commit `87525f4f3648343a76c0192bc50a74e08740b396`.
 
-Public-repo reproducibility:
+v2/v3 remain preserved historical renderer candidates.
 
-- `scripts/fonts/expand_para_hoja_de_pj_v2.py`;
-- `docs/reference/Para_Hoja_de_PJ_Symbols_v2_MAPPING.md`.
+The current v4 redesign candidate is also published:
 
-No original or generated TTF binary is committed while the repository remains public.
+- compiled TTF Git blob `cfc04ea4fb0ce53e8ee41c72df7e6281ef329c4a`;
+- deterministic source/builder at `scripts/fonts/para-hoja-de-pj/v4/build_para_hoja_de_pj_v4.py`;
+- complete mapping/use guide at `assets/fonts/owner/para-hoja-de-pj/v4/GUIDE.md`;
+- local deterministic rebuild matches the committed v4 byte-for-byte.
+
+v4 preserves historical A-E/a-e meanings, adds coordinated legacy-refined and modern-clean families, renderer PUA aliases and the app grammar **Competent = one check; Expertise/Pericia = double check**.
+
+v4 is technically validated but **not yet owner-approved visually**.
 
 ## Next substantive work
 
-The renderer foundation has now moved past the original research-only pause:
+The shared renderer primitives have passed the owner Primitive PDF QA gate. Renderer work may now proceed beyond that gate.
 
-1. PDFBox 3.0.8 is settled for this package;
-2. metric-based text/layout, wrapping/overflow, vector markers, repeated rows and portrait Fit/Crop primitives exist;
-3. Fira Sans / Barlow Condensed Bold / Kalam Bold are bundled as deterministic **QA candidates**, not approved final typography;
-4. a dedicated handwritten/script role exists;
-5. adaptive vs fixed font-size behavior is explicit;
-6. the app-derived single-check / double-check training grammar exists in the vector marker set;
-7. `Para-hoja-de-pj` now has versioned repository architecture and a v3 generator/guide; original v1 binary publication is authorized but awaits re-attachment/hash verification.
+Current bounded continuation:
 
-The immediate gate is **structured owner Primitive QA** focused on typography, per-element scale, condensed-font readability, handwritten treatment and marker variants.
+1. present and resolve the separate Para Hoja de PJ v4 visual specimen gate;
+2. continue complete populated rendering across Classic, Custom v1, Custom v2 per Attribute and Custom v2 per Ability using the accepted primitive foundation;
+3. keep typography candidates/family choices subject to their remaining visual QA;
+4. perform structured section -> page -> family -> end-to-end QA;
+5. keep PR #85 draft until the remaining visual/functional gates are satisfied.
 
-Do not resume broad full-page mapping until that primitive typography/symbol gate is accepted.
+The v4 font review does not re-close the renderer Primitive QA gate. If v4 artwork needs changes after publication, preserve v4 and create the next versioned derivative rather than silently replacing the published binary.
 
-## Owner typography feedback applied
+## Owner Primitive QA accepted
 
-The owner accepted the direction so far with changes recorded in `2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`.
+The owner accepted the Primitive PDF QA after the recorded typography/marker corrections. The accepted foundation includes metric-based text/layout, explicit adaptive vs fixed sizing, repeated rows, portrait Fit/Crop behavior, deterministic typography candidates, vector markers and the single/double-check training grammar.
 
-Latest fully green implementation Scaffold before this documentation/text correction: `35359508972` at `4d4c2fae3d6b483c5e508886783fda37076f2d81`.
+The exact owner font and v4 publication state is recorded in `2026-09-18_PARA_HOJA_DE_PJ_V4_PUBLISHED_PRIMITIVE_QA_ACCEPTED.md`.
+
+A final Scaffold run on the synchronized publication/documentation head is still required before treating this state as clean/stable automation evidence.
 
 ## Mandatory owner gate
 
-No PC Sheet PDF visual family is approved.
+No complete PC Sheet PDF visual family is approved.
 
-PR #85 remains draft and must not merge until the appropriate visual/functional gates are satisfied.
+The immediate owner decision is the **Para Hoja de PJ v4 visual specimen**. Technical reproducibility does not approve its artwork.
+
+PR #85 remains draft and must not merge until the remaining visual/functional gates are satisfied.
 
 ## Owner orchestration alert — DO NOT TRIGGER YET
+
+Primitive QA is now accepted, but this alert remains pending while the newly published v4 artwork is at its explicit owner visual gate and the final synchronized Scaffold evidence has not yet been confirmed. Do not fan out on top of a font candidate that may still require a versioned follow-up.
 
 ### Purpose of this alert
 

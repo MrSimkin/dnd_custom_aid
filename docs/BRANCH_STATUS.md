@@ -108,41 +108,39 @@ Draft PR:
 
 Current state:
 
-- initial PDFBox/template-overlay proof exists and CI generation evidence is green;
-- owner visual QA Round 1 is **REJECTED**;
-- Custom v1 MAIN, Custom v2 per Attribute MAIN and Custom v2 per Ability MAIN are **not approved**;
-- rejected proof remains historical/diagnostic evidence only;
-- current strategy is whole-export-first renderer architecture with incremental structured QA;
-- renderer research has been recorded before any further broad mapping attempt;
-- owner-created `Para-hoja-de-pj` font has been inspected;
-- symbol-font v2 remains preserved; owner publication is now authorized and v1/v2/v3 repository directories/guides exist;
-- v3 adds the app-derived double-check candidate; the original owner TTF still needs to be re-attached and SHA-256 verified before binaries are populated.
+- the initial page-one proof remains historical/diagnostic evidence after owner Round 1 rejection;
+- the renderer strategy remains whole-export-first with structured section/page/family/end-to-end QA;
+- PDFBox 3.0.8 and the reusable renderer primitive foundation are established;
+- **owner Primitive PDF QA is accepted** and renderer work may proceed beyond that gate;
+- no complete Classic / Custom v1 / Custom v2 visual family is approved;
+- the exact owner-authored v1 TTF is published byte-for-byte after authoritative SHA-256 verification;
+- v4 is published as a modern redesign with deterministic TTX-backed source/build, complete mapping guide, legacy-refined + modern-clean families and PUA aliases;
+- v4 technical validation is complete; **v4 visual specimen approval is still pending**;
+- PR #85 remains DRAFT / DO NOT MERGE.
 
-Do not resume by polishing the existing page-one coordinates in isolation.
+Do not return to blind page-one coordinate polishing.
 
 Next continuation sequence:
 
-1. visually review the owner-directed typography QA candidates;
-2. review large Attribute/modifier sizing versus ordinary/compact values;
-3. review adaptive-size fields versus deliberately fixed ruled-line text;
-4. review Barlow Condensed Bold specifically for readability at realistic print scale;
-5. review Kalam Bold as the handwritten/script name candidate;
-6. review single-check and app-derived double-check marker variants;
-7. re-attach/verify the owner's original `Para-hoja-de-pj` TTF when available, then generate/version v2/v3 binaries in their repository folders;
-8. only after Primitive QA acceptance, expand to all required pages/families;
-9. perform section -> page -> family -> end-to-end QA.
+1. owner reviews the Para Hoja de PJ v4 visual specimen;
+2. if the published v4 artwork needs changes, preserve v4 and create the next versioned derivative rather than replacing it;
+3. continue populated renderer implementation across all required pages/families using the accepted primitive foundation;
+4. use the symbol-font candidate only within its documented visual-approval status;
+5. perform section -> page -> family -> end-to-end QA;
+6. do not merge PR #85 until the remaining family/functional gates are satisfied.
 
 Relevant durable records:
 
+- `docs/checkpoints/2026-09-18_PARA_HOJA_DE_PJ_V4_PUBLISHED_PRIMITIVE_QA_ACCEPTED.md`;
 - `docs/checkpoints/2026-09-18_PDF_PRIMITIVE_QA_OWNER_FEEDBACK_APPLIED.md`;
 - `docs/checkpoints/2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`;
 - `docs/checkpoints/2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`;
 - `docs/checkpoints/2026-09-17_PC_SHEET_PDF_WHOLE_EXPORT_RENDERER_QA_STRATEGY.md`;
 - `docs/checkpoints/2026-09-17_PC_SHEET_PDF_RENDERER_FOUNDATION_RESEARCH.md`;
 - `docs/checkpoints/2026-09-18_REPOSITORY_VISIBILITY_AND_PDF_FONT_ASSET_POLICY.md`;
-- `docs/checkpoints/2026-09-18_OWNER_SYMBOL_FONT_INSPECTION_AND_V2_CANDIDATE.md`;
-- `docs/reference/Para_Hoja_de_PJ_Symbols_v2_MAPPING.md`;
-- `scripts/fonts/expand_para_hoja_de_pj_v2.py`.
+- `assets/fonts/owner/para-hoja-de-pj/README.md`;
+- `assets/fonts/owner/para-hoja-de-pj/v4/GUIDE.md`;
+- `scripts/fonts/para-hoja-de-pj/v4/build_para_hoja_de_pj_v4.py`.
 
 No visual family is approved. No merge is authorized.
 

@@ -18,28 +18,23 @@
 
 Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit, PC authority repository work or the PC Sheet PDF semantic foundation without new defect evidence.
 
-### Current active PDF branch / pause state
+### Current active PDF branch / renderer state
 
 Active branch: `wave7/pc-sheet-pdf-renderer-template-proof`. Draft PR: **#85**.
 
-The first populated MAIN-page proof was technically green but **owner visual QA rejected it**. The rejection is substantive: alignment, typography, marker rendering and sparse dummy data are not acceptable. Do not resume by coordinate-nudging or by treating the existing proof as a near-final mapping.
+The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation is whole-export-first architecture with structured incremental QA rather than coordinate nudging.
 
-Owner-approved continuation is **whole-export-first architecture with incremental structured QA**:
+The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 
-- survey all Custom pages plus Classic / Extended / Spellbook requirements;
-- settle the PDFBox major version before visual baselines;
-- build metric-based text/layout primitives, family-aware typography roles and reusable marker primitives;
-- use normal + dense deterministic fixtures;
-- run a primitive QA gate;
-- implement the complete export;
-- review section-by-section / parameter-by-parameter, then page/family/end-to-end.
+- PDFBox 3.0.8;
+- metric-based text/layout, explicit adaptive vs fixed font sizing and measured wrapping/overflow;
+- repeated-row/table and portrait Fit/Crop primitives;
+- deterministic sans/condensed/handwritten typography candidates;
+- native vector markers and the app single-check / double-check training grammar.
 
-Owner-created `Para-hoja-de-pj` was inspected and is a first-class symbol-font candidate. A reproducible v2 generator and mapping are stored at:
+The exact owner-authored `Para-hoja-de-pj` v1 is now committed as immutable provenance after SHA-256 verification. v4 is published as a contemporary redesign with legacy-refined and modern-clean families, stable renderer PUA aliases, complete documentation and a deterministic TTX-backed builder.
 
-- `scripts/fonts/expand_para_hoja_de_pj_v2.py`;
-- `docs/reference/Para_Hoja_de_PJ_Symbols_v2_MAPPING.md`.
-
-Font binaries remain outside the public repository while it is public. The project is private/personal-use; the owner intends to make the repository private when the project is complete.
+The v4 build is technically validated and reproducible, but its **visual specimen remains an owner gate**. No complete Classic / Custom v1 / Custom v2 visual family is approved.
 
 Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
