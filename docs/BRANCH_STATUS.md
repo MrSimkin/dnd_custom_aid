@@ -1,14 +1,14 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-17 (Chile local time)  
+**Updated:** 2026-09-18 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `f6350d34087aae55d5247f2ba23153814eeed04b` (PC Sheet PDF foundation PR #83)  
+**Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
 **Post-merge Scaffold:** `35295050340` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — local renderer + authoritative template mapping
+**Current normal work:** PC Sheet PDF Export — renderer-foundation redesign / structured QA preparation
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -98,27 +98,51 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-The PC Sheet PDF Export shared semantic/render-plan foundation is integrated in PR #83.
-
-The next implementation-ready package is **PC Sheet PDF Export — local renderer + authoritative template mapping** under D-0074.
-
-Expected short-lived branch name:
+Active branch:
 
 `wave7/pc-sheet-pdf-renderer-template-proof`
 
-Functional boundary:
+Draft PR:
 
-- consume the existing shared render plan rather than inventing new PC/export semantics;
-- generate static PDF output locally/offline;
-- use the owner's actual Custom v1/v2 PDFs as authoritative base pages;
-- preserve the v2 page-1 / page-2 alternative mapping already encoded in the shared plan;
-- establish concrete field placement/template metadata and rendering primitives;
-- add generated/Extended pages only where the approved D-0074 modes require them;
-- do not call the visual family approved until the owner has seen a populated dummy-data example.
+**#85 — do not merge**
 
-The Classic family is independently designed. Custom v1/v2 are not to be unnecessarily redrawn from scratch.
+Current state:
 
-Do not invent freeze/unfreeze semantics. D-0072 requires freeze/unfreeze, but current durable records do not define what freezing blocks and there is no existing freeze field/contract.
+- initial PDFBox/template-overlay proof exists and CI generation evidence is green;
+- owner visual QA Round 1 is **REJECTED**;
+- Custom v1 MAIN, Custom v2 per Attribute MAIN and Custom v2 per Ability MAIN are **not approved**;
+- rejected proof remains historical/diagnostic evidence only;
+- current strategy is whole-export-first renderer architecture with incremental structured QA;
+- renderer research has been recorded before any further broad mapping attempt;
+- owner-created `Para-hoja-de-pj` font has been inspected;
+- symbol-font v2 mapping/generator are now reproducible in Git, but TTF binaries remain outside the public repo.
+
+Do not resume by polishing the existing page-one coordinates in isolation.
+
+Next continuation sequence:
+
+1. settle PDFBox 2.0.37 vs 3.x before establishing owner-approved visual baselines;
+2. validate concrete font resources and family-aware typography roles;
+3. implement metric-based `TextMetrics/TextBox`-style primitives;
+4. implement/compare semantic marker rendering using direct PDF vectors and the owner symbol-font candidate;
+5. implement wrapping/fitting/readability-floor behavior;
+6. create normal + dense deterministic QA fixtures;
+7. generate a **primitive QA sheet**;
+8. obtain structured owner QA on primitives;
+9. implement all required pages/families with the accepted foundation;
+10. perform section → page → family → end-to-end QA.
+
+Relevant durable records:
+
+- `docs/checkpoints/2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`;
+- `docs/checkpoints/2026-09-17_PC_SHEET_PDF_WHOLE_EXPORT_RENDERER_QA_STRATEGY.md`;
+- `docs/checkpoints/2026-09-17_PC_SHEET_PDF_RENDERER_FOUNDATION_RESEARCH.md`;
+- `docs/checkpoints/2026-09-18_REPOSITORY_VISIBILITY_AND_PDF_FONT_ASSET_POLICY.md`;
+- `docs/checkpoints/2026-09-18_OWNER_SYMBOL_FONT_INSPECTION_AND_V2_CANDIDATE.md`;
+- `docs/reference/Para_Hoja_de_PJ_Symbols_v2_MAPPING.md`;
+- `scripts/fonts/expand_para_hoja_de_pj_v2.py`.
+
+No visual family is approved. No merge is authorized.
 
 ## Historical/stale open PRs
 
