@@ -3,20 +3,20 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `8693f834e9f663fcabcfad33c0c6afc193486ae5` (docs closure PR #80)  
-**Post-merge Scaffold:** `35292356409` — SUCCESS  
+**Last verified integrated `main`:** `f6350d34087aae55d5247f2ba23153814eeed04b` (PC Sheet PDF foundation PR #83)  
+**Post-merge Scaffold:** `35295050340` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core  
+**Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Next bounded package:** PC Sheet PDF Export — shared semantic/render-plan foundation
+**Next bounded package:** PC Sheet PDF Export — local renderer + authoritative template mapping
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit or PC authority repository work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit, PC authority repository work or the PC Sheet PDF semantic foundation without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -265,4 +265,12 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with PC Sheet PDF Export — shared semantic/render-plan foundation. PC authority repository integration and its DEV deployment gate are closed. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with PC Sheet PDF Export — local renderer + authoritative template mapping. The semantic/render-plan foundation is integrated; the next code must consume it rather than rebuilding export semantics. Routine safe green boundaries do not require separate owner confirmation.
+
+### PC Sheet PDF Export — shared semantic/render-plan foundation
+
+PR #83 integrated the D-0074 platform-neutral export plan over canonical PC data. The foundation covers state selection, visual-family selection, authoritative v1/v2 template-page mapping, custom-stat modes, overflow routes, portrait behavior and the optional attached-spell Spellbook contract. It does not render physical PDFs yet.
+
+Validation: final implementation head `dea22b0823d6c4ad54e24839943d5952e2020392`; push Scaffold `35294590552` SUCCESS; PR Scaffold `35294792657` SUCCESS; merge `f6350d34087aae55d5247f2ba23153814eeed04b`; post-merge Scaffold `35295050340` SUCCESS.
+
+Custom v1/v2 source PDFs remain authoritative. Populated dummy-data examples are a mandatory owner approval gate when visual rendering reaches reviewable output.

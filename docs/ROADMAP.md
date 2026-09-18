@@ -179,21 +179,36 @@ DEV deployment verification is closed. Owner-executed `npm run deploy` published
 
 ##### PC Sheet PDF Export — shared semantic/render-plan foundation
 
+**COMPLETE / INTEGRATED — PR #83.**
+
+Integrated behavior:
+
+- canonical read-only export aggregate over Character Sheet + Closure + Successor state;
+- Permanent vs Current Snapshot selection with explicit fallback notice when no separate current aggregate exists;
+- the four D-0074 visual families;
+- authoritative Custom v1/v2 source-template page mappings;
+- custom Attribute/custom Skill projection using existing shared calculations;
+- Extended Page / App Modified / combined custom-stat semantics;
+- overflow routing contracts without hard-coding physical geometry;
+- portrait Crop-to-fill / Fit-entire-image planning with missing-local-asset continuation;
+- optional attached-spell Spellbook planning preserving all recorded casting-source relationships and source-specific derived values.
+
+Validation: final head `dea22b0823d6c4ad54e24839943d5952e2020392`; push Scaffold `35294590552` SUCCESS; PR Scaffold `35294792657` SUCCESS; merge `f6350d34087aae55d5247f2ba23153814eeed04b`; post-merge Scaffold `35295050340` SUCCESS.
+
+No renderer, persistence migration, backend/provider change or export UI was introduced.
+
+##### PC Sheet PDF Export — local renderer + authoritative template mapping
+
 **NEXT BOUNDED PACKAGE.**
 
-D-0074 is approved and sufficiently detailed to proceed without inventing product semantics.
+Build the first physical static-PDF renderer on top of the integrated shared plan:
 
-Initial bounded direction:
-
-- canonical export snapshot;
-- Permanent vs Current Snapshot export state;
-- visual-family choice model;
-- custom Attribute/Ability presentation modes;
-- render-plan/overflow/Extended-page semantics;
-- optional portrait input behavior;
-- optional appended Spellbook contract;
-- shared/platform-neutral semantics before detailed renderer geometry where practical;
-- preserve fully local/offline generation.
+- local/offline generation;
+- owner v1/v2 PDFs used as authoritative base pages;
+- concrete field/template placement metadata and renderer primitives;
+- generated/Extended-page support where D-0074 requires it;
+- keep Classic independently designed;
+- preserve the mandatory owner visual gate: populated dummy-data examples must be reviewed before any visual family is considered approved.
 
 Freeze/unfreeze remains an approved requirement but is not implementation-ready: no current freeze field/contract exists and D-0072 does not define what PC operations freezing blocks. Do not invent this behavior.
 

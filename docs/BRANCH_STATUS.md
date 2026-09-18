@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `8693f834e9f663fcabcfad33c0c6afc193486ae5` (docs closure PR #80)  
-**Post-merge Scaffold:** `35292356409` — SUCCESS  
+**Last verified integrated `main`:** `f6350d34087aae55d5247f2ba23153814eeed04b` (PC Sheet PDF foundation PR #83)  
+**Post-merge Scaffold:** `35295050340` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — shared semantic/render-plan foundation
+**Current normal work:** PC Sheet PDF Export — local renderer + authoritative template mapping
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -37,7 +37,8 @@ Integrated Wave 7 implementation PRs:
 - #73 Desktop Dungeon/Zone Manager local authoring core — merged as `5be90a994f453e5444ecf00762cd72407cfe790a`;
 - #75 Desktop Encounter Manager local authoring core — merged as `7000535b78df2b2a7149b019796ff3d5903fdb3d`;
 - #77 Desktop PC Manager inspection/audit core — merged as `e14784390971f2e27025dd2fff1f5000658eb2f0`;
-- #79 PC ownership/controller administration repository core — merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`.
+- #79 PC ownership/controller administration repository core — merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`;
+- #83 PC Sheet PDF Export shared semantic/render-plan foundation — merged as `f6350d34087aae55d5247f2ba23153814eeed04b`.
 
 PC authority administration validation: corrected push Scaffold `35291183960`, PR Scaffold `35291417403`, post-merge Scaffold `35291685597` — all SUCCESS. Initial push `35290905581` failed on narrow backend row-typing and Kotlin visibility compile issues while the hosted-database contract passed.
 
@@ -72,7 +73,8 @@ Wave 7 historical implementation branches:
 - `wave7/desktop-dungeon-zone-manager-core` — PR #73 merged;
 - `wave7/desktop-encounter-manager-core` — PR #75 merged;
 - `wave7/desktop-pc-manager-audit-core` — PR #77 merged;
-- `wave7/desktop-pc-authority-administration-core` — PR #79 merged.
+- `wave7/desktop-pc-authority-administration-core` — PR #79 merged;
+- `wave7/pc-sheet-pdf-export-foundation` — PR #83 merged.
 
 Integrated scope belongs to `main`; these refs are not continuation authority.
 
@@ -89,28 +91,34 @@ Historical/short-lived Wave 7 closure branches:
 - `docs/wave7-dungeon-zone-manager-integrated` — Dungeon/Zone Manager -> Encounter Manager / Encounter Creator;
 - `docs/wave7-encounter-manager-integrated` — Encounter Manager -> PC Manager / Audit;
 - `docs/wave7-pc-manager-audit-integrated` — PC Manager inspection/audit -> ownership/controller administration;
-- `docs/wave7-pc-authority-repo-integrated` — authority repository merge -> provider deployment gate.
+- `docs/wave7-pc-authority-repo-integrated` — authority repository merge -> provider deployment gate;
+- `docs/wave7-pc-sheet-pdf-foundation-integrated` — PDF semantic foundation -> physical renderer/template mapping.
 
 After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
 ## Current branch direction
 
-The PC authority repository package and its DEV deployment gate are closed.
+The PC Sheet PDF Export shared semantic/render-plan foundation is integrated in PR #83.
 
-Deployment evidence:
-
-- `dnd-custom-aid-api` Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`;
-- `/health` -> 200;
-- existing protected Campaign-members route -> 401 unauthenticated;
-- new protected PC-authority route -> 401 unauthenticated.
-
-The next implementation-ready package is **PC Sheet PDF Export — shared semantic/render-plan foundation** under D-0074.
+The next implementation-ready package is **PC Sheet PDF Export — local renderer + authoritative template mapping** under D-0074.
 
 Expected short-lived branch name:
 
-`wave7/pc-sheet-pdf-export-foundation`
+`wave7/pc-sheet-pdf-renderer-template-proof`
 
-Do not invent freeze/unfreeze semantics. D-0072 requires freeze/unfreeze, but current durable records do not define what freezing blocks and there is no existing freeze field/contract. That product behavior requires explicit definition before implementation.
+Functional boundary:
+
+- consume the existing shared render plan rather than inventing new PC/export semantics;
+- generate static PDF output locally/offline;
+- use the owner's actual Custom v1/v2 PDFs as authoritative base pages;
+- preserve the v2 page-1 / page-2 alternative mapping already encoded in the shared plan;
+- establish concrete field placement/template metadata and rendering primitives;
+- add generated/Extended pages only where the approved D-0074 modes require them;
+- do not call the visual family approved until the owner has seen a populated dummy-data example.
+
+The Classic family is independently designed. Custom v1/v2 are not to be unnecessarily redrawn from scratch.
+
+Do not invent freeze/unfreeze semantics. D-0072 requires freeze/unfreeze, but current durable records do not define what freezing blocks and there is no existing freeze field/contract.
 
 ## Historical/stale open PRs
 
