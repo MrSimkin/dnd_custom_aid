@@ -98,27 +98,122 @@ PR #85 remains draft and must not merge until the appropriate visual/functional 
 
 ## Owner orchestration alert — DO NOT TRIGGER YET
 
-This alert exists so the owner does not have to remember when parallel work becomes safe.
+### Purpose of this alert
 
-Trigger it only when **all** of the following are true:
+The owner is **not expected to remember when parallel development becomes appropriate**, nor to design the technical split himself.
+
+This alert exists so the current Worker explicitly stops at the right moment and tells the owner, in simple language, exactly what to do next.
+
+### When this alert becomes active
+
+Trigger this alert only when **all** of these are true:
 
 - the owner has accepted the current Primitive QA;
-- any changes requested during that QA have been applied;
-- the resulting shared renderer/primitives foundation is green and stable;
-- that shared foundation is no longer expected to keep changing underneath the next pieces of work;
-- preferably, that stable foundation has been integrated into `main`, so every future worker can start from the same agreed version.
+- every correction requested during that QA has been applied;
+- the shared renderer/primitives foundation is green and stable;
+- the foundation is no longer expected to keep changing underneath the next pieces of work;
+- the work has reached a clean common starting point for several independent follow-up tasks;
+- preferably, that common starting point has already been integrated into `main`. If it has not, the Worker must explicitly confirm that there is still one unambiguous stable starting revision that every future worker can use.
 
-When those conditions are satisfied, **do not automatically continue into the next broad implementation package**.
+Do **not** trigger this merely because automated tests are green, because Primitive QA has started, or because one visual example looks promising.
 
-Tell the owner clearly:
+If the shared foundation is still being reviewed, corrected, rejected or materially redesigned, continue the current work normally and keep this alert pending.
 
-> **SAFE ORCHESTRATION POINT REACHED — introduce the orchestrator before continuing downstream work.**
+### What the current Worker must tell the owner
 
-Then explain, in plain language:
+When the conditions above are satisfied, **do not automatically begin the next broad implementation package**.
 
-> The common groundwork is now stable enough that the next stage can safely be divided among several Work chats. This is the moment to create a fresh orchestrator chat. The orchestrator should decide which pieces can be worked on independently, give each worker a separate bounded task, and later bring those finished pieces back together before the next round of parallel work.
+Tell the owner prominently:
 
-Do **not** trigger this alert merely because automated tests are green, because Primitive QA has started, or because one visual example looks promising. If the shared foundation is still being reviewed, corrected or rejected, continue the current work normally and keep the alert pending.
+> **SAFE ORCHESTRATION POINT REACHED — this is the moment to introduce the orchestrator.**
+
+Then explain in plain language:
+
+> The common groundwork is now stable. From this point onward, some of the remaining work can be safely divided among several Work chats so they can progress in parallel. You do not need to decide the technical split yourself. The next step is to create one new Work chat whose only initial job is to act as the orchestrator: it will inspect the current repository, decide which tasks can safely run in parallel, prepare the individual worker instructions, and later coordinate bringing their results back together.
+
+### What the owner must do — step by step
+
+The Worker must give these instructions to the owner in this order:
+
+1. **Do not ask the current Worker to continue into the next large development package.** The current stage has reached the handoff point.
+
+2. **Open one new ChatGPT chat in Work mode.** This new chat will be the orchestrator. Do not create all the parallel worker chats yet.
+
+3. **Copy and paste the orchestrator prompt supplied by the current Worker.** The owner should not have to edit technical details, branch names, commit identifiers or file ownership manually.
+
+4. **Let the orchestrator inspect the current repository before dividing anything.** It must reconstruct the real current state from GitHub, not from assumptions or old chat memory.
+
+5. **The orchestrator must then propose the first safe parallel split in simple language.** It must explain to the owner:
+   - how many worker chats are useful now;
+   - what each worker will do;
+   - why those pieces can safely proceed at the same time;
+   - what work must remain sequential;
+   - what the next consolidation point will be.
+
+6. **Only after that explanation, the orchestrator must provide one complete copy-paste prompt for each worker chat.** The owner can then open the required Work chats and paste those prompts one by one.
+
+7. **Each worker works only on its assigned piece.** The owner should not need to coordinate technical overlap manually. The worker prompts and orchestrator must handle that boundary.
+
+8. **When the parallel workers finish, return to the orchestrator.** The owner should simply tell it that the assigned workers have completed their work. The orchestrator should inspect GitHub itself, verify what actually landed, and coordinate the consolidation/integration step.
+
+9. **After consolidation and verification, the orchestrator decides whether another parallel round is safe.** If so, repeat the same pattern:
+   - divide;
+   - parallel work;
+   - consolidate;
+   - verify;
+   - divide again.
+
+10. **If the project reaches another owner decision or QA gate, parallel expansion pauses again.** Resolve the shared decision first, establish a new stable common base, and only then fan out again.
+
+The owner is not expected to understand or manually manage Git branching strategy, file ownership, merge ordering or integration mechanics. Those are responsibilities of the orchestrator and technical workers. The owner remains responsible for product choices, visual/UX approval, scope, and other decisions that genuinely require owner judgment.
+
+### Mandatory deliverable when this alert triggers
+
+The current Worker must **not merely say "create an orchestrator."**
+
+In the same message that triggers this alert, it must provide the owner with a **complete, ready-to-copy orchestrator prompt** tailored to the repository state at that moment.
+
+That prompt must tell the future orchestrator to:
+
+- work from the actual current GitHub state and verify it first;
+- act as coordinator/integrator rather than immediately implementing everything itself;
+- identify dependency boundaries before creating parallel work;
+- use separate bounded worker branches/tasks when appropriate;
+- prevent two workers from unknowingly changing the same shared foundation;
+- keep product/owner decisions with the owner;
+- consolidate completed work at sensible checkpoints rather than waiting for one giant final merge;
+- verify the combined result before starting the next fan-out;
+- explain its plan and owner actions in clear layman terms;
+- generate the exact copy-paste prompts the owner needs for each worker;
+- stop and ask the owner only when a genuine owner-level decision, QA gate, cost/security issue or other meaningful boundary is reached.
+
+The prompt supplied at trigger time must include the **actual current repository state**, including the correct stable base and current relevant project checkpoint. Do not leave placeholders that require the owner to discover technical information himself.
+
+### Simple mental model for the owner
+
+When the alert triggers, the intended workflow is:
+
+```text
+finish shared groundwork
+        ↓
+YOU receive this alert
+        ↓
+open ONE new Work chat: the orchestrator
+        ↓
+orchestrator divides the next work
+        ↓
+you open the worker chats using its ready-made prompts
+        ↓
+workers progress in parallel
+        ↓
+return to orchestrator
+        ↓
+orchestrator consolidates and verifies
+        ↓
+repeat when another safe parallel split exists
+```
+
+The objective is to reduce elapsed development time **without making the owner become the technical project manager**.
 
 ## Permanent safety / operating constraints
 
