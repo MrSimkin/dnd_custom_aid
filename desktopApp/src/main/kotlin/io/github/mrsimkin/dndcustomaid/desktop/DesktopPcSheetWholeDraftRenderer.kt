@@ -112,28 +112,42 @@ internal class DesktopPcSheetWholeDraftRenderer(
             drawTableText(stream, primitives, 55f, y, 725f, 30f, inventoryLine(item), 7.2f)
         }
 
-        sheet.currencies.sortedBy { it.sortOrder }.take(5).forEachIndexed { index, currency ->
-            val y = 220f + index * 72f
-            drawTableText(stream, primitives, 900f, y, 125f, 30f, currency.amount.toString(), 8f, centered = true)
-        }
-
-        val valuables = plan.snapshot.aggregate.successor.preferences.valuablesText.trim()
-        if (valuables.isNotEmpty()) {
-            drawBlock(stream, primitives, 805f, 570f, 235f, 245f, valuables, 7f, 5)
-        }
-
-        inventory.filter { it.special }.take(10).forEachIndexed { index, item ->
-            val y = 940f + index * 35f
-            if (item.equipped || item.attuned) {
-                markerPx(
-                    stream, primitives, 208f, y + 15f, 15f,
-                    PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED,
+        val currenciesByKey = sheet.currencies.associateBy { it.key.lowercase() }
+        V1_CURRENCY_FIELDS.forEach { field ->
+            currenciesByKey[field.key]?.let { currency ->
+                drawTableText(
+                    stream, primitives,
+                    field.x, field.y, field.width, 28f,
+                    currency.amount.toString(), 8f, centered = true,
                 )
             }
-            drawTableText(stream, primitives, 255f, y, 170f, 30f, item.name, 6.7f)
-            val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
-            drawTableText(stream, primitives, 440f, y, 600f, 30f, detail, 6.5f)
         }
+
+        val valuables = plan.snapshot.aggregate.successor.preferences.valuablesText
+            .split(';')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        valuables.take(V1_VALUABLE_ROW_Y.size).forEachIndexed { index, valuable ->
+            drawBlock(
+                stream, primitives,
+                910f, V1_VALUABLE_ROW_Y[index], 175f, 36f,
+                valuable, 6.2f, 2,
+            )
+        }
+
+        positionedSpecialItems(inventory.filter { it.special }, V1_SPECIAL_ROW_Y.size)
+            .forEach { (rowIndex, item) ->
+                val y = V1_SPECIAL_ROW_Y[rowIndex]
+                if (item.equipped || item.attuned) {
+                    markerPx(
+                        stream, primitives, 208f, y + 15f, 15f,
+                        PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED,
+                    )
+                }
+                drawTableText(stream, primitives, 255f, y, 205f, 30f, item.name, 6.7f)
+                val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
+                drawTableText(stream, primitives, 485f, y, 550f, 30f, detail, 6.5f)
+            }
     }
 
     private fun drawV1Narrative(
@@ -149,17 +163,17 @@ internal class DesktopPcSheetWholeDraftRenderer(
         val notes = notesText(plan)
 
         drawBlock(
-            stream, primitives, 50f, 205f, 315f, 170f,
+            stream, primitives, 50f, 210f, 315f, 120f,
             listOf(background.name, background.summary).filter { it.isNotBlank() }.joinToString(" - "),
-            7.4f, 6,
+            7.4f, 4,
         )
-        drawBlock(stream, primitives, 50f, 440f, 315f, 180f, background.personalityTraits, 7.2f, 6)
-        drawBlock(stream, primitives, 50f, 690f, 315f, 175f, background.ideals, 7.2f, 6)
-        drawBlock(stream, primitives, 50f, 935f, 315f, 175f, background.bonds, 7.2f, 6)
-        drawBlock(stream, primitives, 50f, 1180f, 315f, 175f, background.flaws, 7.2f, 6)
-        drawBlock(stream, primitives, 390f, 205f, 650f, 390f, traitText, 6.8f, 12)
-        drawBlock(stream, primitives, 390f, 690f, 650f, 305f, background.story, 7f, 10)
-        drawBlock(stream, primitives, 390f, 1080f, 650f, 270f, notes, 6.8f, 9)
+        drawBlock(stream, primitives, 50f, 465f, 315f, 205f, background.personalityTraits, 7.2f, 7)
+        drawBlock(stream, primitives, 50f, 745f, 315f, 190f, background.ideals, 7.2f, 6)
+        drawBlock(stream, primitives, 50f, 1020f, 315f, 190f, background.bonds, 7.2f, 6)
+        drawBlock(stream, primitives, 50f, 1300f, 315f, 190f, background.flaws, 7.2f, 6)
+        drawBlock(stream, primitives, 390f, 215f, 650f, 445f, traitText, 6.8f, 14)
+        drawBlock(stream, primitives, 390f, 755f, 650f, 335f, background.story, 7f, 11)
+        drawBlock(stream, primitives, 390f, 1190f, 650f, 300f, notes, 6.8f, 10)
     }
 
     private fun drawV2EquipmentAndNarrative(
@@ -172,31 +186,32 @@ internal class DesktopPcSheetWholeDraftRenderer(
         val inventory = sheet.inventoryItems.sortedBy { it.sortOrder }
 
         inventory.take(20).forEachIndexed { index, item ->
-            val y = 205f + index * 30f
-            drawTableText(stream, primitives, 25f, y, 485f, 26f, inventoryLine(item), 6.4f)
+            val y = 195f + index * 34f
+            drawTableText(stream, primitives, 25f, y, 485f, 28f, inventoryLine(item), 6.4f)
         }
 
         drawBlock(
-            stream, primitives, 535f, 200f, 525f, 80f,
+            stream, primitives, 535f, 205f, 525f, 70f,
             listOf(background.name, background.summary).filter { it.isNotBlank() }.joinToString(" - "),
             7f, 3,
         )
-        drawBlock(stream, primitives, 535f, 320f, 525f, 80f, background.bonds, 6.8f, 3)
-        drawBlock(stream, primitives, 535f, 435f, 525f, 80f, background.ideals, 6.8f, 3)
-        drawBlock(stream, primitives, 535f, 545f, 525f, 350f, background.story, 6.8f, 12)
+        drawBlock(stream, primitives, 535f, 335f, 525f, 85f, background.bonds, 6.8f, 3)
+        drawBlock(stream, primitives, 535f, 480f, 525f, 80f, background.ideals, 6.8f, 3)
+        drawBlock(stream, primitives, 535f, 620f, 525f, 335f, background.story, 6.8f, 12)
 
-        inventory.filter { it.special }.take(10).forEachIndexed { index, item ->
-            val y = 970f + index * 34f
-            if (item.equipped || item.attuned) {
-                markerPx(
-                    stream, primitives, 165f, y + 13f, 14f,
-                    PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED,
-                )
+        positionedSpecialItems(inventory.filter { it.special }, V2_SPECIAL_ROW_Y.size)
+            .forEach { (rowIndex, item) ->
+                val y = V2_SPECIAL_ROW_Y[rowIndex]
+                if (item.equipped || item.attuned) {
+                    markerPx(
+                        stream, primitives, 165f, y + 14f, 14f,
+                        PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED,
+                    )
+                }
+                drawTableText(stream, primitives, 180f, y, 390f, 28f, item.name, 6.4f)
+                val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
+                drawTableText(stream, primitives, 600f, y, 570f, 28f, detail, 6.2f)
             }
-            drawTableText(stream, primitives, 180f, y, 345f, 28f, item.name, 6.4f)
-            val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
-            drawTableText(stream, primitives, 540f, y, 520f, 28f, detail, 6.2f)
-        }
     }
 
     private fun drawSpellList(
@@ -277,6 +292,40 @@ internal class DesktopPcSheetWholeDraftRenderer(
         append(item.name)
         item.location?.takeIf { it.isNotBlank() }?.let { append(" - ").append(it) }
         item.weightLb?.let { append(" - ").append(it).append(" lb") }
+    }
+
+    private fun positionedSpecialItems(
+        items: List<CharacterInventoryItem>,
+        rowCount: Int,
+    ): List<Pair<Int, CharacterInventoryItem>> {
+        val available = (0 until rowCount).toMutableSet()
+        val positioned = mutableListOf<Pair<Int, CharacterInventoryItem>>()
+        items.take(rowCount).forEach { item ->
+            val preferred = specialLocationRow(item.location)
+                ?.takeIf { it in available }
+            val fallback = available
+                .filter { it >= SPECIAL_LOCATION_LABELS.size }
+                .minOrNull()
+                ?: available.minOrNull()
+            val row = preferred ?: fallback ?: return@forEach
+            available.remove(row)
+            positioned += row to item
+        }
+        return positioned.sortedBy { it.first }
+    }
+
+    private fun specialLocationRow(location: String?): Int? {
+        val normalized = location
+            ?.lowercase()
+            ?.replace('á', 'a')
+            ?.replace('é', 'e')
+            ?.replace('í', 'i')
+            ?.replace('ó', 'o')
+            ?.replace('ú', 'u')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+            .orEmpty()
+        return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
     }
 
     private fun splitNearMiddle(text: String): Pair<String, String> {
@@ -388,6 +437,13 @@ internal class DesktopPcSheetWholeDraftRenderer(
         height = heightPx * PX_TO_PT,
     )
 
+    private data class CurrencyField(
+        val key: String,
+        val x: Float,
+        val y: Float,
+        val width: Float,
+    )
+
     private data class SpellBlock(
         val level: Int,
         val headerTotalX: Float,
@@ -405,17 +461,42 @@ internal class DesktopPcSheetWholeDraftRenderer(
         const val PAGE_HEIGHT_PT = 792f
         const val PX_TO_PT = 0.5f
 
+        val V1_CURRENCY_FIELDS = listOf(
+            CurrencyField("pt", 1050f, 188f, 130f),
+            CurrencyField("po", 1050f, 228f, 130f),
+            CurrencyField("pp", 1050f, 268f, 130f),
+            CurrencyField("pc", 1050f, 308f, 130f),
+            CurrencyField("pe", 1050f, 348f, 130f),
+        )
+
+        val V1_VALUABLE_ROW_Y = listOf(615f, 655f, 695f, 735f, 775f, 815f, 855f)
+        val V1_SPECIAL_ROW_Y = List(13) { index -> 1015f + index * 40f }
+        val V2_SPECIAL_ROW_Y = List(13) { index -> 1055f + index * 34f }
+
+        val SPECIAL_LOCATION_LABELS = listOf(
+            "cabeza",
+            "rostro",
+            "cuello",
+            "mano izquierda",
+            "mano derecha",
+            "brazo izquierdo",
+            "brazo derecho",
+            "pecho",
+            "piernas",
+            "pies",
+        )
+
         val SPELL_BLOCKS = listOf(
             SpellBlock(0, 0f, 0f, 0f, 55f, 72f, 285f, 225f, 35f, 8),
-            SpellBlock(1, 128f, 180f, 548f, 55f, 72f, 285f, 585f, 35f, 10),
-            SpellBlock(2, 128f, 180f, 1042f, 55f, 72f, 285f, 1080f, 35f, 9),
-            SpellBlock(3, 465f, 520f, 175f, 390f, 407f, 285f, 215f, 35f, 10),
-            SpellBlock(4, 465f, 520f, 610f, 390f, 407f, 285f, 650f, 35f, 10),
-            SpellBlock(5, 465f, 520f, 1058f, 390f, 407f, 285f, 1095f, 35f, 8),
-            SpellBlock(6, 805f, 860f, 175f, 730f, 747f, 285f, 215f, 35f, 8),
-            SpellBlock(7, 805f, 860f, 560f, 730f, 747f, 285f, 600f, 35f, 6),
-            SpellBlock(8, 805f, 860f, 875f, 730f, 747f, 285f, 915f, 35f, 6),
-            SpellBlock(9, 805f, 860f, 1190f, 730f, 747f, 285f, 1230f, 35f, 5),
+            SpellBlock(1, 128f, 180f, 590f, 55f, 72f, 285f, 645f, 35f, 10),
+            SpellBlock(2, 128f, 180f, 1090f, 55f, 72f, 285f, 1145f, 35f, 9),
+            SpellBlock(3, 465f, 520f, 175f, 390f, 407f, 285f, 230f, 35f, 10),
+            SpellBlock(4, 465f, 520f, 650f, 390f, 407f, 285f, 705f, 35f, 10),
+            SpellBlock(5, 465f, 520f, 1120f, 390f, 407f, 285f, 1175f, 35f, 8),
+            SpellBlock(6, 805f, 860f, 175f, 730f, 747f, 285f, 230f, 35f, 8),
+            SpellBlock(7, 805f, 860f, 565f, 730f, 747f, 285f, 625f, 35f, 6),
+            SpellBlock(8, 805f, 860f, 925f, 730f, 747f, 285f, 985f, 35f, 6),
+            SpellBlock(9, 805f, 860f, 1245f, 730f, 747f, 285f, 1305f, 35f, 5),
         )
     }
 }
