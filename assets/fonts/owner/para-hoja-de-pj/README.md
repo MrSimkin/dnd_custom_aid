@@ -23,7 +23,8 @@ On 2026-09-18 the owner explicitly authorized this project to publish the origin
 | `v4` | Preserved rejected redesign candidate | Earlier modern coherent redesign attempt | TTF and deterministic builder preserved unchanged | **Technically valid; owner visual direction rejected; historical record only** |
 | `v5` | Preserved almost-final candidate | Exact-v1 + v1-derived and v3-derived complete symbol families, earlier checks/marked containers/numerals | Deterministic builder + TTF + guide + diagnostic/reference PDF preserved unchanged | **Superseded by v6 after owner visual feedback** |
 | `v6` | Preserved almost-final candidate | Clean checks and first full-span mark/numeral redesign; later owner feedback found remaining 3/5/6/8/9 and marked-container defects | Deterministic builder + TTF + guide + 30-page diagnostic/reference PDF preserved unchanged | **Superseded by v7 after owner visual feedback** |
-| `v7` | Current final visual candidate | v6 design contract plus redrawn 3/5/6/8/9 and shape-aware marked-container spans derived from each real inner contour | Deterministic builder + TTF + guide + 30-page diagnostic/reference PDF | **Technical QA passed; owner final visual approval pending** |
+| `v7` | Preserved immediate predecessor | Accepted symbol/mark system plus the previous numeral set; only 6/9 remained to correct | Deterministic builder + TTF + guide + 30-page diagnostic/reference PDF preserved unchanged | **Superseded by approved v8** |
+| `v8` | **APPROVED / FROZEN** | v7 preserved exactly except for final lighter ordinary 6/9 forms | Deterministic builder + TTF + guide + 30-page diagnostic/reference PDF | **Owner-approved; technical/visual QA passed; font gate closed** |
 
 ## v1 archival identity
 
@@ -75,7 +76,7 @@ v6 preserves v5 and corrects the three owner-identified remaining issues: the si
 v6 is technically validated and deterministic. It remains an owner visual-approval gate until the final diagnostic/reference PDF is explicitly accepted. v5 remains preserved unchanged as provenance and is not the current visual target.
 
 
-## v7 current final candidate
+## v7 preserved prior candidate
 
 - file: `v7/Para Hoja de PJ Symbols v7.ttf`;
 - SHA-256: `242d4d6507a9fc93d549bfa57cc42dd7ece571b5a6b5a6d83a9124ac7927a14c`;
@@ -87,3 +88,19 @@ v6 is technically validated and deterministic. It remains an owner visual-approv
 v7 preserves the accepted v6 check geometry and the established v1/v3 mapping contract. It redraws ordinary numerals 3, 5, 6, 8 and 9 and replaces generic scaling for marked containers with shape-aware span construction. Each slash, backslash, X, asterisk, plus and minus is derived from the real fillable inner contour of the target shape, including the asymmetric historical oval. This removes the v6 white wedges/outline overlaps and the visibly short or overlong strokes while retaining full-looking marks.
 
 v7 is technically validated and deterministic. It remains an owner visual-approval gate until the final diagnostic/reference PDF is explicitly accepted. v6 remains preserved unchanged as provenance and is not the current visual target.
+
+
+## v8 approved / frozen
+
+- file: `v8/Para Hoja de PJ Symbols v8.ttf`;
+- SHA-256: `f8f7eeed331be34ea08da23bb165f200c8313e1ba670667466ad8e1aebf77d8b`;
+- deterministic builder: `scripts/fonts/para-hoja-de-pj/v8/build_para_hoja_de_pj_v8.py`;
+- complete mapping/use guide: `v8/GUIDE.md`;
+- approved diagnostic/reference artifact: `v8/DIAGNOSTIC_REFERENCE.pdf`;
+- 291 glyphs / 502 cmap mappings.
+
+The owner approved v7 except for ordinary numerals 6 and 9 and explicitly pre-authorized automatic font approval once those two were corrected. v8 changes exactly those two glyphs and no others. The new 6/9 use a lighter closed bowl plus restrained sweep so their apparent weight matches the accepted ordinary numeral family. A glyph-by-glyph comparison against v7 confirmed only `std_digit_6` and `std_digit_9` changed.
+
+The v8 deterministic rebuild is byte-identical, the 30-page PDF preflight passes, and the critical numeral page was visually verified in both PDFium and Poppler. Therefore the stated approval condition is satisfied: **v8 is the approved/frozen font version and the font gate is closed**.
+
+v1 remains immutable archival provenance. v4-v7 remain preserved historical candidates. Future font changes require v9 rather than rewriting v8. Renderer integration into production PC-sheet layouts and PR merge remain separate changes.
