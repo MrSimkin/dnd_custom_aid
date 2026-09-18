@@ -172,7 +172,7 @@ class DesktopPcManagerController(
 }
 
 @Composable
-fun DesktopPcManagerScreen(
+internal fun DesktopPcManagerScreen(
     controller: DesktopPcManagerController,
     hostedController: DesktopHostedCampaignAdministrationController,
     activeCampaign: Campaign?,
