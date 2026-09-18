@@ -96,6 +96,30 @@ No PC Sheet PDF visual family is approved.
 
 PR #85 remains draft and must not merge until the appropriate visual/functional gates are satisfied.
 
+## Owner orchestration alert — DO NOT TRIGGER YET
+
+This alert exists so the owner does not have to remember when parallel work becomes safe.
+
+Trigger it only when **all** of the following are true:
+
+- the owner has accepted the current Primitive QA;
+- any changes requested during that QA have been applied;
+- the resulting shared renderer/primitives foundation is green and stable;
+- that shared foundation is no longer expected to keep changing underneath the next pieces of work;
+- preferably, that stable foundation has been integrated into `main`, so every future worker can start from the same agreed version.
+
+When those conditions are satisfied, **do not automatically continue into the next broad implementation package**.
+
+Tell the owner clearly:
+
+> **SAFE ORCHESTRATION POINT REACHED — introduce the orchestrator before continuing downstream work.**
+
+Then explain, in plain language:
+
+> The common groundwork is now stable enough that the next stage can safely be divided among several Work chats. This is the moment to create a fresh orchestrator chat. The orchestrator should decide which pieces can be worked on independently, give each worker a separate bounded task, and later bring those finished pieces back together before the next round of parallel work.
+
+Do **not** trigger this alert merely because automated tests are green, because Primitive QA has started, or because one visual example looks promising. If the shared foundation is still being reviewed, corrected or rejected, continue the current work normally and keep the alert pending.
+
 ## Permanent safety / operating constraints
 
 - current repo intentionally public during development; owner intends private repo at project completion;
