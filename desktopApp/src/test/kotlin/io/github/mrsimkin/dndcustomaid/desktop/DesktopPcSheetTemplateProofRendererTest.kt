@@ -42,7 +42,7 @@ import org.apache.pdfbox.text.PDFTextStripper
 class DesktopPcSheetTemplateProofRendererTest {
     @Test
     fun generatesReviewableCustomMainPageProofsFromAuthoritativeOwnerTemplates() {
-        val proofDir = File("build/pc-sheet-proofs").apply { mkdirs() }
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetTemplateProofRenderer()
         val aggregate = representativeAggregate()
 
