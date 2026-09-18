@@ -75,7 +75,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 val extracted = PDFTextStripper().getText(document)
                 assertTrue(extracted.contains("Aster Vale"))
                 assertTrue(extracted.contains("Mochila de expedición"))
-                assertTrue(extracted.contains("Curiosidad académica"))
+                assertTrue(extracted.contains("Sabio de la Academia"))
                 assertTrue(extracted.contains("Escudo"))
 
                 val pdfRenderer = PDFRenderer(document)
