@@ -274,6 +274,27 @@ It should be implemented after the shared PC/domain state is coherent enough to 
 
 Integrated QA must cover representative exports across the supported visual families, custom-stat modes, portrait modes, Permanent/Current state, overflow/Extended pages, offline generation, Save/Share and optional Spellbook.
 
+### 14.1 Mandatory owner template-approval gate
+
+This approval does **not** happen during the semantic/render-plan foundation work.
+
+When implementation reaches the visual/template-rendering stage, each supported PC Sheet visual family must be presented to the project owner as a rendered example populated with representative **dummy character data** before that template family is considered visually/functionally approved.
+
+Required approval examples:
+
+1. Classic D&D-style — independently designed by the application;
+2. Custom v1 — rendered from the owner's actual `assets/character-sheets/templates/Hoja de PJ - 5.0 - Simkin.pdf` source template;
+3. Custom v2 — per Attribute — rendered from the corresponding first-page variant in the owner's actual `Hoja de PJ v2 - 5.0 - Simkin.pdf`;
+4. Custom v2 — per Ability — rendered from the alternative first-page variant in that same owner template.
+
+For Custom v1/v2, the owner PDFs are the authoritative base templates and are not to be unnecessarily recreated from scratch. Generated/adapted geometry is used only where the approved Modified/Extended behavior requires it, and those generated pages must remain visually coherent with the selected owner template family.
+
+The examples should contain enough realistic dummy content to expose layout behavior rather than showing an empty form. Where relevant, the approval set should also demonstrate overflow/Extended-page behavior and other family-specific presentation choices.
+
+A template family may be implemented iteratively, but it is not owner-approved merely because automated tests pass or an empty/template-only PDF renders successfully. Owner review of a populated example is a mandatory visual/product gate at the appropriate rendering stage.
+
+This gate is for approving presentation and usability. It does not require using a real user's character data.
+
 ---
 
 ## 15. Current gate
