@@ -124,7 +124,6 @@ internal data class PdfTextBoxSpec(
     val role: PdfTypographyRole,
     val preferredSizePt: Float,
     val minimumSizePt: Float,
-    val fontSizeMode: PdfFontSizeMode = PdfFontSizeMode.ADAPTIVE_TO_FIT,
     val horizontalAlignment: PdfHorizontalAlignment = PdfHorizontalAlignment.LEFT,
     val verticalAlignment: PdfVerticalAlignment = PdfVerticalAlignment.CENTER,
     val wrapPolicy: PdfWrapPolicy = PdfWrapPolicy.SINGLE_LINE,
@@ -132,6 +131,7 @@ internal data class PdfTextBoxSpec(
     val horizontalPaddingPt: Float = 2f,
     val verticalPaddingPt: Float = 1f,
     val lineHeightMultiplier: Float = 1.12f,
+    val fontSizeMode: PdfFontSizeMode = PdfFontSizeMode.ADAPTIVE_TO_FIT,
 ) {
     init {
         require(preferredSizePt > 0f)
