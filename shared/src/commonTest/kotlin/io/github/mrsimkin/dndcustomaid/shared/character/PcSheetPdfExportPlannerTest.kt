@@ -73,6 +73,7 @@ class PcSheetPdfExportPlannerTest {
             PcSheetExportSources(permanent = permanent),
         )
         assertEquals(30, fallback.snapshot.aggregate.sheet.currentHp)
+        assertEquals(PcSheetExportStateSelection.PERMANENT, fallback.snapshot.selectedState)
         assertEquals(
             PcSheetExportNoticeCode.CURRENT_SNAPSHOT_UNAVAILABLE,
             fallback.notices.single().code,
@@ -183,10 +184,10 @@ class PcSheetPdfExportPlannerTest {
         val shieldEntry = spellbook.entries.single { it.spell.name == "Shield" }
         assertEquals(listOf("Wizard", "Magic Initiate"), shieldEntry.sources.map { it.sourceName })
         assertEquals(listOf(true, false), shieldEntry.sources.map { it.prepared })
-        assertEquals(14, shieldEntry.sources[0].saveDc)
-        assertEquals(6, shieldEntry.sources[0].spellAttackModifier)
-        assertEquals(15, shieldEntry.sources[1].saveDc)
-        assertEquals(8, shieldEntry.sources[1].spellAttackModifier)
+        assertEquals(15, shieldEntry.sources[0].saveDc)
+        assertEquals(7, shieldEntry.sources[0].spellAttackModifier)
+        assertEquals(16, shieldEntry.sources[1].saveDc)
+        assertEquals(9, shieldEntry.sources[1].spellAttackModifier)
         assertTrue(spellbook.entries.single { it.spell.name == "Absorb Elements" }.sources.isEmpty())
     }
 
