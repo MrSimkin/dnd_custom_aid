@@ -2,21 +2,22 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated runtime merge:** `e14784390971f2e27025dd2fff1f5000658eb2f0`  
-**PR #77:** MERGED  
-**Post-merge Scaffold:** `35289703289` — SUCCESS  
+**Last verified integrated repository merge:** `2e12400ee18026c702d6727793a3aea5d23d07b4`  
+**PR #79:** MERGED  
+**Post-merge Scaffold:** `35291685597` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_PC_MANAGER_AUDIT_CORE_INTEGRATED.md`  
-**Next bounded package:** PC Manager ownership/controller administration core  
+**Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_PC_AUTHORITY_REPO_INTEGRATED_PROVIDER_PENDING.md`  
+**Immediate gate:** deploy and verify the merged DEV Worker authority route  
+**Next code package after provider closure:** PC Sheet PDF Export — shared semantic/render-plan foundation  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE7_PC_MANAGER_AUDIT_CORE_INTEGRATED.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_PC_AUTHORITY_REPO_INTEGRATED_PROVIDER_PENDING.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -37,49 +38,53 @@ Wave 7 Adventure/Scene Spine lightweight core      COMPLETE / INTEGRATED
 Wave 7 Desktop Dungeon/Zone Manager local core     COMPLETE / INTEGRATED
 Wave 7 Encounter Manager local core                COMPLETE / INTEGRATED
 Wave 7 PC Manager inspection/audit core             COMPLETE / INTEGRATED
-post-merge Scaffold                                PASS (35289703289)
+Wave 7 PC authority administration repository core   COMPLETE / MERGED
+post-merge Scaffold                                PASS (35291685597)
         |
         v
-Wave 7 PC Manager ownership/controller administration core
+DEV Worker deploy + live verification               REQUIRED / PENDING
+        |
+        v
+PC Sheet PDF Export shared semantic/render-plan foundation
 ```
 
 ## Practical continuation
 
-Start the **PC Manager ownership/controller administration core** from current `main` after this short-lived PC Manager documentation closure merges.
+The **PC Manager ownership/controller administration repository package is merged and green**, but the new hosted route is not yet declared operational in DEV because the Cloudflare Worker has not been redeployed from this merged code.
 
-The first PC Manager/Audit slice is integrated and must not be rebuilt. It now provides campaign PC retrieval/search, complete canonical/closure/successor inspection, explicit authority visibility, distinct local-data vs synchronization freshness, reconciliation history and an explicit audited DM core-field correction flow.
+Immediate bounded gate:
 
-Repository evidence shows the next concrete PC gap clearly:
+- deploy the existing DEV Worker `dnd-custom-aid-api` from current `main@2e12400ee18026c702d6727793a3aea5d23d07b4`;
+- verify the deployed Worker still passes `/health`;
+- verify the authority route exists and preserves fail-closed authentication/authorization behavior;
+- do not paste provider credentials or tokens into chat/Git;
+- hard external-service budget remains USD $0.
 
-- hosted PC snapshots already expose `ownerUserId` and `controllerUserId`;
-- local `IntegratedSpineRepository` already persists PC authority and validates active campaign membership;
-- DM campaign authority remains separate from ownership/control;
-- the hosted API currently has no explicit PC authority-administration endpoint.
+Repository evidence already integrated:
 
-Therefore the next bounded slice should add **explicit DM-only ownership/controller administration** rather than creating another character editor or jumping to unrelated infrastructure.
+- DM-only hosted authority mutation;
+- owner/controller assignment remains independent and nullable;
+- every non-null target must be an active member of the same campaign;
+- non-DM, inactive/cross-campaign, missing-PC and tombstoned-PC cases fail closed;
+- authority mutation does not alter PC snapshot content or revision;
+- explicit nulls are preserved on the hosted wire for intentional unassignment;
+- authoritative hosted response drives local `PcAuthority` convergence;
+- Desktop PC Manager exposes explicit property/control administration.
 
-Initial direction:
+Once DEV deployment/verification is closed, the next ready implementation package should be **PC Sheet PDF Export — shared semantic/render-plan foundation** under D-0074. D-0074 is fully product-defined and local/offline by design.
 
-- authoritative hosted endpoint/contract for changing PC owner and controller independently;
-- eligible targets limited to active campaign members;
-- preserve nullable/unassigned authority where allowed by the existing model;
-- fail closed for non-DM, inactive membership, cross-campaign targets and unknown PCs;
-- shared client + Desktop controller flow;
-- converge local `pc_authority` only from the authoritative result;
-- focused backend/database/shared/Desktop tests;
-- deploy Worker only if the merged backend change requires it, under the existing USD $0 boundary.
+Do **not** invent freeze/unfreeze semantics merely to continue coding. D-0072 requires that capability, but the current repository has no freeze field/contract and the approved records do not define what freezing must block. That product behavior needs an explicit definition before implementation. Broader lifecycle/duplication can be sequenced separately.
 
-Freeze/unfreeze semantics, broader lifecycle administration, duplication and D-0074 PDF export remain later PC Manager responsibilities. Do not conflate them with ownership/control merely to enlarge this package.
+## PC authority repository integration evidence
 
-## PC Manager inspection/audit integrated evidence
-
-- initial implementation head `2d792abaa843734acd2a1226f91d2e86e7b2b929`;
-- initial push Scaffold `35288970002` — FAILED on one Kotlin visibility mismatch;
-- corrected/final implementation head `50132cdb295097ac4a7ab91c4d766b900eeb7771`;
-- corrected push Scaffold `35289198415` — SUCCESS;
-- PR Scaffold `35289424011` — SUCCESS;
-- PR #77 merged as `e14784390971f2e27025dd2fff1f5000658eb2f0`;
-- post-merge Scaffold `35289703289` — SUCCESS.
+- initial implementation head `5de58771702dd2f1f548ca00f066318c630bb622`;
+- initial push Scaffold `35290905581` — FAILED in backend/Kotlin compile checks while hosted-database contract passed;
+- final/corrected implementation head `418ac19d4d247cfbf19d6fb7f9b158df5c900bdc`;
+- corrected push Scaffold `35291183960` — SUCCESS;
+- PR Scaffold `35291417403` — SUCCESS;
+- PR #79 merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`;
+- post-merge Scaffold `35291685597` — SUCCESS;
+- DEV Worker deployment/verification — **PENDING** because provider deployment access is not available in the current execution environment.
 
 ## Operating rule
 
