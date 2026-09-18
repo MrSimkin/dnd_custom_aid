@@ -3,19 +3,20 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime/integration merge:** `e14784390971f2e27025dd2fff1f5000658eb2f0` (PR #77)  
-**Post-merge Scaffold:** `35289703289` — SUCCESS  
+**Last verified repository/integration merge:** `2e12400ee18026c702d6727793a3aea5d23d07b4` (PR #79)  
+**Post-merge Scaffold:** `35291685597` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
-**Integrated Wave 7 packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core  
-**Next bounded package:** PC Manager ownership/controller administration core
+**Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core  
+**Immediate provider gate:** DEV Worker deploy + live verification of PC authority route  
+**Next code package after provider closure:** PC Sheet PDF Export — shared semantic/render-plan foundation
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
-Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager or PC Manager inspection/audit core work without new defect evidence.
+Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit or PC authority repository work without new defect evidence.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -37,7 +38,7 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 6 and the integrated Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone/Encounter/PC-audit packages did not require Worker changes or redeployment. Deploy again only when Worker code materially changes or newer evidence requires it.
+Wave 6 and the earlier Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone/Encounter/PC-audit packages did not require Worker changes. PR #79 **does materially change Worker/API code**, so the existing DEV Worker must be redeployed and verified before PC authority administration is called operational.
 
 Hard external-service operating budget remains USD $0.
 
@@ -186,31 +187,67 @@ Validation:
 
 This slice does not create a second Desktop character model, a generalized audit/event-sourcing framework, a new local schema, automatic Player impersonation or direct sync bypass.
 
-## 6. Next Wave 7 package — PC Manager ownership/controller administration
+### PC Manager ownership/controller administration — repository core
 
-Next bounded package: **PC Manager ownership/controller administration core**.
+PR #79 merged the explicit ownership/controller administration core. No hosted database migration was required; the existing nullable `pc.owner_user_id` and `pc.controller_user_id` columns are reused.
 
-Repository evidence:
+Integrated repository behavior:
 
-- hosted PC rows/snapshots already carry distinct nullable owner/controller IDs;
-- local `IntegratedSpineRepository.setPcAuthority` already enforces active campaign membership;
-- campaign DM authority does not imply PC ownership/control;
-- the hosted API currently exposes PC snapshot read/write but no explicit authority-administration mutation.
+- dedicated `PUT /v1/pcs/{pcId}/authority` route;
+- authenticated actor must be an active campaign DM;
+- owner/controller are changed independently and may be explicitly unassigned;
+- omitted authority fields are invalid, preventing accidental partial-clear semantics;
+- every non-null target must be an active member of the same campaign;
+- cross-campaign/inactive targets fail closed;
+- missing PC -> typed 404; tombstoned PC -> typed 410;
+- repeat of the same authority state is an idempotent no-op;
+- authority mutation does not alter PC snapshot JSON or its optimistic synchronization revision;
+- shared Kotlin hosted client preserves explicit JSON nulls even though the normal hosted serializer omits nullable null properties;
+- Desktop Campaign Administration hydrates hosted roster/account/membership state before local convergence;
+- Desktop PC Manager exposes explicit owner/controller controls using active campaign-member choices;
+- local `PcAuthority` is updated from the authoritative hosted response.
 
-Initial bounded direction:
+Validation:
 
-- add a dedicated DM-only hosted authority mutation;
-- update owner and controller independently, including explicit unassignment where the current model permits it;
-- only active members of the same campaign are eligible authority targets;
-- reject non-DM, inactive/cross-campaign targets and missing/tombstoned PCs;
-- return authoritative PC authority state and converge local `pc_authority` from that response;
-- add shared client + Desktop administration controls;
-- preserve PC snapshot revision/content unless the authority contract requires a clearly documented revision rule;
-- focused backend/database/shared/Desktop coverage.
+- initial implementation head `5de58771702dd2f1f548ca00f066318c630bb622`;
+- initial push Scaffold `35290905581` — FAILED on narrow backend query-row typing and Kotlin visibility compile issues; hosted database contract passed;
+- final head `418ac19d4d247cfbf19d6fb7f9b158df5c900bdc`;
+- corrected push Scaffold `35291183960` — SUCCESS;
+- PR Scaffold `35291417403` — SUCCESS;
+- PR #79 merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`;
+- post-merge Scaffold `35291685597` — SUCCESS.
 
-This is an authority-administration package, not a Player editor expansion.
+### Provider gate — required before operational closure
 
-Freeze/unfreeze semantics, broader lifecycle administration, duplication and D-0074 PC Sheet PDF export remain later PC Manager responsibilities. Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
+The Worker/API changed materially in PR #79. Repository integration is green, but the DEV Worker `dnd-custom-aid-api` has not been redeployed/verified by this execution environment.
+
+Required bounded provider handoff:
+
+- deploy current `main@2e12400ee18026c702d6727793a3aea5d23d07b4` Worker code;
+- verify `/health`;
+- verify the new authority route is deployed and authentication remains fail closed;
+- preserve USD $0 and secret-handling rules.
+
+Until that is done, PC authority administration is **repository-integrated but not DEV-runtime verified**.
+
+## 6. Next code package after provider closure — PC Sheet PDF Export shared foundation
+
+D-0074 fully closes the PC Sheet PDF product definition. The canonical PC model is now coherent enough to start a shared export-semantics/render-plan foundation without waiting on Media/object storage.
+
+Initial bounded direction after provider closure:
+
+- canonical export snapshot abstraction over the existing PC data;
+- Permanent vs Current Snapshot selection contract;
+- visual-family selection model: Classic, Custom v1, Custom v2 per Attribute, Custom v2 per Ability;
+- custom-stat presentation modes and overflow/Extended-page render-plan semantics;
+- portrait behavior represented as optional local/cached input rather than network dependency;
+- optional Spellbook inclusion contract;
+- platform-neutral render plan first; actual platform PDF renderer/coordinates follow in separate bounded work where helpful;
+- preserve local/offline generation and one canonical PC across Player/DM surfaces.
+
+D-0072 freeze/unfreeze remains required but currently lacks a concrete product contract in the repository: there is no freeze field and no approved definition of what operations freezing blocks. Do not invent that behavior. Broader lifecycle administration and duplication should also remain separate from the PDF foundation.
+
+Media/Handouts and deferred richer Homebrew families remain later Wave 7 packages.
 
 ## 7. Security/provider boundaries
 
@@ -226,4 +263,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with PC Manager ownership/controller administration core. Routine safe green boundaries do not require separate owner confirmation.
+Resume first with the bounded DEV Worker deploy/verification gate for PC authority administration. After provider closure, continue with PC Sheet PDF Export — shared semantic/render-plan foundation. Routine safe green boundaries do not require separate owner confirmation.

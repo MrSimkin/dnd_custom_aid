@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified runtime merge:** `e14784390971f2e27025dd2fff1f5000658eb2f0` (PR #77)  
-**Post-merge Scaffold:** `35289703289` — SUCCESS  
+**Last verified repository merge:** `2e12400ee18026c702d6727793a3aea5d23d07b4` (PR #79)  
+**Post-merge Scaffold:** `35291685597` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Manager inspection/audit documentation closure, then PC Manager ownership/controller administration core
+**Current normal work:** PC authority repository documentation closure; DEV Worker deploy/verification remains the immediate provider gate
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -36,11 +36,12 @@ Integrated Wave 7 implementation PRs:
 - #71 Adventure/Scene Spine lightweight local core — merged as `a84a8857102806f8a9ac588545167d697ea8a311`;
 - #73 Desktop Dungeon/Zone Manager local authoring core — merged as `5be90a994f453e5444ecf00762cd72407cfe790a`;
 - #75 Desktop Encounter Manager local authoring core — merged as `7000535b78df2b2a7149b019796ff3d5903fdb3d`;
-- #77 Desktop PC Manager inspection/audit core — merged as `e14784390971f2e27025dd2fff1f5000658eb2f0`.
+- #77 Desktop PC Manager inspection/audit core — merged as `e14784390971f2e27025dd2fff1f5000658eb2f0`;
+- #79 PC ownership/controller administration repository core — merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`.
 
-PC Manager inspection/audit validation: corrected push Scaffold `35289198415`, PR Scaffold `35289424011`, post-merge Scaffold `35289703289` — all SUCCESS. Initial push `35288970002` failed only on the corrected Kotlin visibility mismatch.
+PC authority administration validation: corrected push Scaffold `35291183960`, PR Scaffold `35291417403`, post-merge Scaffold `35291685597` — all SUCCESS. Initial push `35290905581` failed on narrow backend row-typing and Kotlin visibility compile issues while the hosted-database contract passed.
 
-Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager or PC Manager inspection/audit implementation without new defect evidence.
+Do not restart completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit or PC authority repository implementation without new defect evidence.
 
 ## Completed implementation branches
 
@@ -70,7 +71,8 @@ Wave 7 historical implementation branches:
 - `wave7/adventure-scene-spine-core` — PR #71 merged;
 - `wave7/desktop-dungeon-zone-manager-core` — PR #73 merged;
 - `wave7/desktop-encounter-manager-core` — PR #75 merged;
-- `wave7/desktop-pc-manager-audit-core` — PR #77 merged.
+- `wave7/desktop-pc-manager-audit-core` — PR #77 merged;
+- `wave7/desktop-pc-authority-administration-core` — PR #79 merged.
 
 Integrated scope belongs to `main`; these refs are not continuation authority.
 
@@ -86,38 +88,31 @@ Historical/short-lived Wave 7 closure branches:
 - `docs/wave7-scene-spine-integrated` — Scene Spine -> Dungeon/Zone Manager;
 - `docs/wave7-dungeon-zone-manager-integrated` — Dungeon/Zone Manager -> Encounter Manager / Encounter Creator;
 - `docs/wave7-encounter-manager-integrated` — Encounter Manager -> PC Manager / Audit;
-- `docs/wave7-pc-manager-audit-integrated` — PC Manager inspection/audit -> ownership/controller administration.
+- `docs/wave7-pc-manager-audit-integrated` — PC Manager inspection/audit -> ownership/controller administration;
+- `docs/wave7-pc-authority-repo-integrated` — authority repository merge -> provider deployment gate.
 
 After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
-## Wave 7 next branch direction
+## Immediate provider gate and next branch direction
 
-The next selected package is **PC Manager ownership/controller administration core**.
+The PC authority repository package is merged. **Do not start a replacement authority branch.**
 
-Expected short-lived branch name:
+Immediate required provider action:
 
-`wave7/desktop-pc-authority-administration-core`
+- deploy the existing DEV Worker `dnd-custom-aid-api` from current `main@2e12400ee18026c702d6727793a3aea5d23d07b4`;
+- verify health and new authority-route availability;
+- preserve fail-closed authentication and USD $0;
+- do not expose credentials/tokens.
 
-Current evidence makes the gap concrete:
+Provider access is not available in the current execution environment, so this is the single bounded handoff.
 
-- hosted PC state already contains distinct `owner_user_id` and `controller_user_id`;
-- local PC authority persistence already validates active campaign membership;
-- DM role, PC ownership and current control are intentionally separate;
-- no dedicated hosted authority-administration endpoint exists yet.
+After provider closure, the next implementation-ready package is **PC Sheet PDF Export — shared semantic/render-plan foundation** under D-0074.
 
-Bounded direction:
+Expected short-lived branch name after deployment verification:
 
-- DM-only authoritative owner/controller mutation;
-- independent owner/controller assignment and explicit unassignment where allowed;
-- same-campaign active-member validation;
-- fail-closed authorization and missing/tombstoned-PC handling;
-- shared hosted client and Desktop controls;
-- local convergence only from authoritative response;
-- focused backend/database/shared/Desktop tests.
+`wave7/pc-sheet-pdf-export-foundation`
 
-Do not silently infer ownership from DM role, assign inactive/cross-campaign accounts, mutate PC sheet data as a side effect, or fold freeze/lifecycle semantics into this package.
-
-Freeze/unfreeze, broader lifecycle administration, duplication and PC Sheet PDF export remain later PC Manager work. Media/Handouts and deferred richer Homebrew families follow as separate packages.
+Do not invent freeze/unfreeze semantics. D-0072 requires freeze/unfreeze, but current durable records do not define what freezing blocks and there is no existing freeze field/contract. That product behavior requires explicit definition before implementation.
 
 ## Historical/stale open PRs
 

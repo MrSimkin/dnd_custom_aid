@@ -155,21 +155,47 @@ Validation: initial implementation `2d792abaa843734acd2a1226f91d2e86e7b2b929`; i
 
 ##### PC Manager ownership/controller administration core
 
-**NEXT BOUNDED PACKAGE.**
+**REPOSITORY CORE COMPLETE / MERGED — PR #79. DEV WORKER DEPLOYMENT PENDING.**
 
-The hosted PC model already stores distinct nullable owner and controller IDs, and local authority persistence already validates active campaign membership. The missing piece is an explicit authoritative hosted administration mutation.
+Integrated repository behavior:
 
-Next direction:
+- dedicated DM-only hosted authority mutation;
+- owner/controller assignment remains independent from campaign role and from each other;
+- explicit nullable unassignment;
+- omitted owner/controller fields rejected;
+- non-null targets restricted to active same-campaign members;
+- fail-closed non-DM/inactive/cross-campaign handling;
+- typed missing/tombstoned PC behavior;
+- idempotent same-state update;
+- authority changes leave PC snapshot content/revision untouched;
+- explicit-null hosted wire handling;
+- shared hosted client and Desktop PC Manager controls;
+- local authority convergence from authoritative hosted response;
+- backend API, PostgreSQL contract, shared-client and Desktop eligibility coverage.
 
-- dedicated DM-only owner/controller administration contract;
-- owner/controller changed independently, with explicit unassignment where supported;
-- eligible targets restricted to active members of the same campaign;
-- fail closed for non-DM actors, inactive/cross-campaign targets and missing/tombstoned PCs;
-- shared hosted client + Desktop administration controls;
-- local authority converges from the authoritative response;
-- no silent ownership inference from DM role and no PC sheet mutation as an authority side effect.
+Validation: initial head `5de58771702dd2f1f548ca00f066318c630bb622`; initial push `35290905581` failed on corrected backend row-typing and Kotlin visibility compile issues while hosted DB passed; final head `418ac19d4d247cfbf19d6fb7f9b158df5c900bdc`; corrected push `35291183960` SUCCESS; PR `35291417403` SUCCESS; merge `2e12400ee18026c702d6727793a3aea5d23d07b4`; post-merge `35291685597` SUCCESS.
 
-Freeze/unfreeze semantics, broader lifecycle administration, duplication and D-0074 PC Sheet PDF export remain later PC Manager responsibilities.
+Because Worker/API code changed materially, the package is not declared DEV-runtime complete until `dnd-custom-aid-api` is redeployed and verified.
+
+##### PC Sheet PDF Export — shared semantic/render-plan foundation
+
+**NEXT IMPLEMENTATION-READY PACKAGE AFTER PROVIDER CLOSURE.**
+
+D-0074 is approved and sufficiently detailed to proceed without inventing product semantics.
+
+Initial bounded direction:
+
+- canonical export snapshot;
+- Permanent vs Current Snapshot export state;
+- visual-family choice model;
+- custom Attribute/Ability presentation modes;
+- render-plan/overflow/Extended-page semantics;
+- optional portrait input behavior;
+- optional appended Spellbook contract;
+- shared/platform-neutral semantics before detailed renderer geometry where practical;
+- preserve fully local/offline generation.
+
+Freeze/unfreeze remains an approved requirement but is not implementation-ready: no current freeze field/contract exists and D-0072 does not define what PC operations freezing blocks. Do not invent this behavior.
 
 #### Later Wave 7 packages
 
