@@ -21,6 +21,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
  */
 internal enum class PdfTypographyRole {
     CHARACTER_NAME,
+    HANDWRITTEN_NAME,
     PRIMARY_VALUE,
     SECONDARY_VALUE,
     BODY,
@@ -45,23 +46,19 @@ internal data class PdfTypographyTheme(
 }
 
 internal val PRIMITIVE_QA_TYPOGRAPHY_THEME = PdfTypographyTheme(
-    id = "primitive-qa-bundled-candidates",
-    resourcesByRole = PdfTypographyRole.entries.associateWith { role ->
-        when (role) {
-            PdfTypographyRole.CHARACTER_NAME,
-            PdfTypographyRole.PRIMARY_VALUE,
-            PdfTypographyRole.BODY,
-            PdfTypographyRole.NOTE_TEXT,
-            PdfTypographyRole.SPELL_NAME,
-            -> "fonts/geist_vf.ttf"
-
-            PdfTypographyRole.SECONDARY_VALUE,
-            PdfTypographyRole.COMPACT_TABLE,
-            PdfTypographyRole.NUMERIC_COMPACT,
-            PdfTypographyRole.OPTIONAL_DECORATIVE,
-            -> "fonts/mona_sans_condensed_vf.ttf"
-        }
-    },
+    id = "primitive-qa-owner-directed-candidates-v2",
+    resourcesByRole = mapOf(
+        PdfTypographyRole.CHARACTER_NAME to "fonts/pdf/text/FiraSans-SemiBold.ttf",
+        PdfTypographyRole.HANDWRITTEN_NAME to "fonts/pdf/text/Kalam-Bold.ttf",
+        PdfTypographyRole.PRIMARY_VALUE to "fonts/pdf/text/FiraSans-SemiBold.ttf",
+        PdfTypographyRole.SECONDARY_VALUE to "fonts/pdf/text/FiraSans-Regular.ttf",
+        PdfTypographyRole.BODY to "fonts/pdf/text/FiraSans-Regular.ttf",
+        PdfTypographyRole.COMPACT_TABLE to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
+        PdfTypographyRole.NUMERIC_COMPACT to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
+        PdfTypographyRole.NOTE_TEXT to "fonts/pdf/text/FiraSans-Regular.ttf",
+        PdfTypographyRole.SPELL_NAME to "fonts/pdf/text/FiraSans-SemiBold.ttf",
+        PdfTypographyRole.OPTIONAL_DECORATIVE to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
+    ),
 )
 
 internal class DesktopPdfFontRegistry(
@@ -116,12 +113,18 @@ internal enum class PdfWrapPolicy {
     WORD_WRAP,
 }
 
+internal enum class PdfFontSizeMode {
+    ADAPTIVE_TO_FIT,
+    FIXED,
+}
+
 internal data class PdfTextBoxSpec(
     val rect: PdfRect,
     val text: String,
     val role: PdfTypographyRole,
     val preferredSizePt: Float,
     val minimumSizePt: Float,
+    val fontSizeMode: PdfFontSizeMode = PdfFontSizeMode.ADAPTIVE_TO_FIT,
     val horizontalAlignment: PdfHorizontalAlignment = PdfHorizontalAlignment.LEFT,
     val verticalAlignment: PdfVerticalAlignment = PdfVerticalAlignment.CENTER,
     val wrapPolicy: PdfWrapPolicy = PdfWrapPolicy.SINGLE_LINE,
@@ -134,6 +137,11 @@ internal data class PdfTextBoxSpec(
         require(preferredSizePt > 0f)
         require(minimumSizePt > 0f)
         require(preferredSizePt >= minimumSizePt)
+        if (fontSizeMode == PdfFontSizeMode.FIXED) {
+            require(kotlin.math.abs(preferredSizePt - minimumSizePt) < 0.001f) {
+                "FIXED font-size boxes must use the same preferred and minimum size."
+            }
+        }
         require(maximumLines > 0)
         require(horizontalPaddingPt >= 0f)
         require(verticalPaddingPt >= 0f)
@@ -157,6 +165,7 @@ internal enum class PdfMarkerKind {
     SQUARE_OUTLINE,
     SQUARE_FILLED,
     CHECK,
+    DOUBLE_CHECK,
     CROSS,
     DIAMOND_OUTLINE,
     DIAMOND_FILLED,
@@ -258,10 +267,11 @@ internal class DesktopPdfRenderingPrimitives(
                 stream.fill()
             }
             PdfMarkerKind.CHECK -> {
-                stream.moveTo(centerX - half * 0.78f, centerY - half * 0.03f)
-                stream.lineTo(centerX - half * 0.20f, centerY - half * 0.66f)
-                stream.lineTo(centerX + half * 0.84f, centerY + half * 0.70f)
-                stream.stroke()
+                appTrainingCheck(stream, centerX, centerY, sizePt, 0f)
+            }
+            PdfMarkerKind.DOUBLE_CHECK -> {
+                appTrainingCheck(stream, centerX, centerY, sizePt, -0.12f)
+                appTrainingCheck(stream, centerX, centerY, sizePt, 0.12f)
             }
             PdfMarkerKind.CROSS -> {
                 stream.moveTo(centerX - half * 0.68f, centerY - half * 0.68f)
@@ -366,9 +376,14 @@ internal class DesktopPdfRenderingPrimitives(
             return PdfTextLayoutResult(emptyList(), text, spec.minimumSizePt, spec.minimumSizePt)
         }
 
+        val minimumCandidateSize = if (spec.fontSizeMode == PdfFontSizeMode.FIXED) {
+            spec.preferredSizePt
+        } else {
+            spec.minimumSizePt
+        }
         var size = spec.preferredSizePt
-        while (size + SIZE_EPSILON >= spec.minimumSizePt) {
-            val candidateSize = max(spec.minimumSizePt, size)
+        while (size + SIZE_EPSILON >= minimumCandidateSize) {
+            val candidateSize = max(minimumCandidateSize, size)
             val allLines = wrap(font, text, candidateSize, availableWidth, spec.wrapPolicy)
             val lineAdvance = metrics(font, candidateSize).height * spec.lineHeightMultiplier
             val capacity = lineCapacity(font, candidateSize, lineAdvance, availableHeight, spec.maximumLines)
@@ -376,11 +391,11 @@ internal class DesktopPdfRenderingPrimitives(
             if (widthFits && allLines.size <= capacity) {
                 return PdfTextLayoutResult(allLines, null, candidateSize, lineAdvance)
             }
-            if (candidateSize <= spec.minimumSizePt + SIZE_EPSILON) break
+            if (candidateSize <= minimumCandidateSize + SIZE_EPSILON) break
             size -= SIZE_STEP_PT
         }
 
-        val finalSize = spec.minimumSizePt
+        val finalSize = minimumCandidateSize
         val allLines = wrap(font, text, finalSize, availableWidth, spec.wrapPolicy)
         val lineAdvance = metrics(font, finalSize).height * spec.lineHeightMultiplier
         val capacity = lineCapacity(font, finalSize, lineAdvance, availableHeight, spec.maximumLines)
@@ -482,6 +497,24 @@ internal class DesktopPdfRenderingPrimitives(
 
     private fun textWidth(font: PDFont, text: String, fontSizePt: Float): Float =
         if (text.isEmpty()) 0f else font.getStringWidth(text) / 1000f * fontSizePt
+
+    private fun appTrainingCheck(
+        stream: PDPageContentStream,
+        centerX: Float,
+        centerY: Float,
+        sizePt: Float,
+        offsetY: Float,
+    ) {
+        val left = centerX - sizePt / 2f
+        val bottom = centerY - sizePt / 2f
+        fun x(fraction: Float): Float = left + sizePt * fraction
+        fun yFromTop(fraction: Float): Float = bottom + sizePt * (1f - fraction)
+
+        stream.moveTo(x(0.12f), yFromTop(0.48f + offsetY))
+        stream.lineTo(x(0.40f), yFromTop(0.72f + offsetY))
+        stream.lineTo(x(0.88f), yFromTop(0.22f + offsetY))
+        stream.stroke()
+    }
 
     private fun circle(
         stream: PDPageContentStream,

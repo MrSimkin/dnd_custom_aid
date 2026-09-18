@@ -64,3 +64,12 @@ This decision supplements:
 - `2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`.
 
 It does not alter the current visual QA rejection or authorize merging PR #85.
+
+
+## Superseding owner authorization — 2026-09-18
+
+The owner now explicitly authorizes the project to commit the original owner-authored `Para-hoja-de-pj` binary to the public development repository and to publish modified/versioned derivatives there.
+
+This supersedes only the earlier precaution against committing this **owner-authored** font. Restrictions on third-party proprietary fonts remain unchanged.
+
+Every owner-font iteration must live in its own version subfolder, preserve earlier versions, include a human-readable mapping/use guide, and record provenance/version information.

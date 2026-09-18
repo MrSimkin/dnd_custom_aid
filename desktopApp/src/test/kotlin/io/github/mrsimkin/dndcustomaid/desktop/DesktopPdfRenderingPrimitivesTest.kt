@@ -52,6 +52,7 @@ class DesktopPdfRenderingPrimitivesTest {
             assertTrue(extracted.contains("overflow detectado"))
             assertTrue(extracted.contains("Tabla repetible"))
             assertTrue(extracted.contains("Retrato: Fit vs Crop"))
+            assertTrue(extracted.contains("Aster Vale"))
 
             val renderer = PDFRenderer(document)
             val firstPng = File(proofDir, "renderer-primitives-qa.png")
@@ -109,6 +110,31 @@ class DesktopPdfRenderingPrimitivesTest {
                 )
                 assertFalse(result.hasOverflow)
                 assertTrue(result.renderedLines.isNotEmpty())
+            }
+        }
+    }
+
+    @Test
+    fun fixedRuledLineTextKeepsItsConfiguredSizeAndReportsOverflow() {
+        PDDocument().use { document ->
+            val page = PDPage(PDRectangle.LETTER)
+            document.addPage(page)
+            val primitives = DesktopPdfRenderingPrimitives(DesktopPdfFontRegistry(document))
+            PDPageContentStream(document, page).use { stream ->
+                val result = primitives.drawTextBox(
+                    stream,
+                    PdfTextBoxSpec(
+                        rect = PdfRect(40f, 700f, 95f, 16f),
+                        text = "Línea reglada con contenido demasiado extenso",
+                        role = PdfTypographyRole.BODY,
+                        preferredSizePt = 8f,
+                        minimumSizePt = 8f,
+                        fontSizeMode = PdfFontSizeMode.FIXED,
+                        wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
+                    ),
+                )
+                assertTrue(result.hasOverflow)
+                assertTrue(kotlin.math.abs(result.fontSizePt - 8f) < 0.001f)
             }
         }
     }
@@ -338,8 +364,32 @@ class DesktopPdfRenderingPrimitivesTest {
         assertTrue(crop.drawWidth >= cropRect.width)
         assertTrue(crop.drawHeight >= cropRect.height)
 
-        heading(stream, primitives, PdfRect(56f, 256f, 220f, 22f), "FIT ENTIRE — imagen completa", PdfTypographyRole.COMPACT_TABLE, 8f)
-        heading(stream, primitives, PdfRect(336f, 256f, 220f, 22f), "CROP FILL — marco completo", PdfTypographyRole.COMPACT_TABLE, 8f)
+        primitives.drawTextBox(
+            stream,
+            PdfTextBoxSpec(
+                rect = PdfRect(56f, 257f, 220f, 28f),
+                text = "Aster Vale",
+                role = PdfTypographyRole.HANDWRITTEN_NAME,
+                preferredSizePt = 16f,
+                minimumSizePt = 12f,
+                horizontalAlignment = PdfHorizontalAlignment.CENTER,
+                verticalAlignment = PdfVerticalAlignment.CENTER,
+            ),
+        )
+        primitives.drawTextBox(
+            stream,
+            PdfTextBoxSpec(
+                rect = PdfRect(336f, 257f, 220f, 28f),
+                text = "Aster Vale",
+                role = PdfTypographyRole.HANDWRITTEN_NAME,
+                preferredSizePt = 16f,
+                minimumSizePt = 12f,
+                horizontalAlignment = PdfHorizontalAlignment.CENTER,
+                verticalAlignment = PdfVerticalAlignment.CENTER,
+            ),
+        )
+        heading(stream, primitives, PdfRect(56f, 238f, 220f, 18f), "FIT ENTIRE — imagen completa", PdfTypographyRole.COMPACT_TABLE, 8f)
+        heading(stream, primitives, PdfRect(336f, 238f, 220f, 18f), "CROP FILL — marco completo", PdfTypographyRole.COMPACT_TABLE, 8f)
 
         heading(
             stream,
