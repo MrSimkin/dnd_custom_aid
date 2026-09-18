@@ -504,7 +504,7 @@ export class NeonCampaignStore implements CampaignStore {
         AND m.role = 'DM'
         AND m.status = 'ACTIVE'
         AND c.deleted_at IS NULL
-    `;
+    ` as unknown as Array<Record<string, unknown>>;
     if (actorRows.length !== 1) {
       throw new HostedAuthorizationError();
     }
@@ -536,7 +536,7 @@ export class NeonCampaignStore implements CampaignStore {
         WHERE m.campaign_id = ${input.campaignId}::uuid
           AND m.user_id = ${targetUserId}::uuid
           AND m.status = 'ACTIVE'
-      `;
+      ` as unknown as Array<Record<string, unknown>>;
       if (targetRows.length !== 1) {
         throw new HostedAuthorizationError();
       }
