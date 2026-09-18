@@ -226,7 +226,7 @@ class DesktopPdfRenderingPrimitivesTest {
                 preferredSizePt = 9f,
                 minimumSizePt = 7f,
                 wrapPolicy = PdfWrapPolicy.WORD_WRAP,
-                maximumLines = 2,
+                maximumLines = 1,
                 horizontalPaddingPt = 4f,
                 verticalPaddingPt = 4f,
             ),
