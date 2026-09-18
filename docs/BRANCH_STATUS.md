@@ -3,12 +3,12 @@
 **Updated:** 2026-09-17 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified repository merge:** `2e12400ee18026c702d6727793a3aea5d23d07b4` (PR #79)  
-**Post-merge Scaffold:** `35291685597` — SUCCESS  
+**Last verified integrated `main`:** `8693f834e9f663fcabcfad33c0c6afc193486ae5` (docs closure PR #80)  
+**Post-merge Scaffold:** `35292356409` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC authority repository documentation closure; DEV Worker deploy/verification remains the immediate provider gate
+**Current normal work:** PC Sheet PDF Export — shared semantic/render-plan foundation
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -93,22 +93,20 @@ Historical/short-lived Wave 7 closure branches:
 
 After a closure merges, normal implementation starts from current `main`; do not continue coding on a docs branch.
 
-## Immediate provider gate and next branch direction
+## Current branch direction
 
-The PC authority repository package is merged. **Do not start a replacement authority branch.**
+The PC authority repository package and its DEV deployment gate are closed.
 
-Immediate required provider action:
+Deployment evidence:
 
-- deploy the existing DEV Worker `dnd-custom-aid-api` from current `main@2e12400ee18026c702d6727793a3aea5d23d07b4`;
-- verify health and new authority-route availability;
-- preserve fail-closed authentication and USD $0;
-- do not expose credentials/tokens.
+- `dnd-custom-aid-api` Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`;
+- `/health` -> 200;
+- existing protected Campaign-members route -> 401 unauthenticated;
+- new protected PC-authority route -> 401 unauthenticated.
 
-Provider access is not available in the current execution environment, so this is the single bounded handoff.
+The next implementation-ready package is **PC Sheet PDF Export — shared semantic/render-plan foundation** under D-0074.
 
-After provider closure, the next implementation-ready package is **PC Sheet PDF Export — shared semantic/render-plan foundation** under D-0074.
-
-Expected short-lived branch name after deployment verification:
+Expected short-lived branch name:
 
 `wave7/pc-sheet-pdf-export-foundation`
 

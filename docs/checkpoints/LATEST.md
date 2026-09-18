@@ -2,22 +2,22 @@
 
 **Updated:** 2026-09-17 (Chile local time)  
 **Normal implementation trunk:** `main`  
-**Last verified integrated repository merge:** `2e12400ee18026c702d6727793a3aea5d23d07b4`  
-**PR #79:** MERGED  
-**Post-merge Scaffold:** `35291685597` — SUCCESS  
+**Last verified integrated `main`:** `8693f834e9f663fcabcfad33c0c6afc193486ae5`  
+**Latest closure PR #80:** MERGED  
+**Post-merge Scaffold:** `35292356409` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core  
-**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_PC_AUTHORITY_REPO_INTEGRATED_PROVIDER_PENDING.md`  
-**Immediate gate:** deploy and verify the merged DEV Worker authority route  
-**Next code package after provider closure:** PC Sheet PDF Export — shared semantic/render-plan foundation  
+**Current checkpoint:** `docs/checkpoints/2026-09-17_WAVE7_PC_AUTHORITY_DEV_VERIFIED.md`  
+**PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
+**Next bounded package:** PC Sheet PDF Export — shared semantic/render-plan foundation  
 **Owner implementation authorization:** GRANTED
 
 ## Read first
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-17_WAVE7_PC_AUTHORITY_REPO_INTEGRATED_PROVIDER_PENDING.md`;
+2. `docs/checkpoints/2026-09-17_WAVE7_PC_AUTHORITY_DEV_VERIFIED.md`;
 3. `docs/PROJECT_STATE.md`;
 4. `docs/BRANCH_STATUS.md`;
 5. D-0071, D-0072, D-0073 and D-0075;
@@ -42,7 +42,7 @@ Wave 7 PC authority administration repository core   COMPLETE / MERGED
 post-merge Scaffold                                PASS (35291685597)
         |
         v
-DEV Worker deploy + live verification               REQUIRED / PENDING
+DEV Worker deploy + route/auth-boundary verification COMPLETE / VERIFIED
         |
         v
 PC Sheet PDF Export shared semantic/render-plan foundation
@@ -50,30 +50,23 @@ PC Sheet PDF Export shared semantic/render-plan foundation
 
 ## Practical continuation
 
-The **PC Manager ownership/controller administration repository package is merged and green**, but the new hosted route is not yet declared operational in DEV because the Cloudflare Worker has not been redeployed from this merged code.
+The **PC Manager ownership/controller administration package is repository-integrated and its DEV deployment gate is closed**.
 
-Immediate bounded gate:
+Owner-executed verification from the project laptop at `D:\DnD_Aid\repo\dnd_custom_aid\backend`:
 
-- deploy the existing DEV Worker `dnd-custom-aid-api` from current `main@2e12400ee18026c702d6727793a3aea5d23d07b4`;
-- verify the deployed Worker still passes `/health`;
-- verify the authority route exists and preserves fail-closed authentication/authorization behavior;
-- do not paste provider credentials or tokens into chat/Git;
-- hard external-service budget remains USD $0.
+- `npm run deploy` deployed `dnd-custom-aid-api`;
+- Cloudflare reported Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`;
+- `GET /health` -> HTTP `200` with `{"status":"ok","service":"dnd-custom-aid-api"}`;
+- unauthenticated Campaign Administration route -> HTTP `401 UNAUTHENTICATED`;
+- unauthenticated PC authority route -> HTTP `401 UNAUTHENTICATED`.
 
-Repository evidence already integrated:
+That proves the new Worker version is live, the service is healthy, the pre-existing protected route remains present, the new PC authority route is present, and both protected routes still fail closed at the authentication boundary.
 
-- DM-only hosted authority mutation;
-- owner/controller assignment remains independent and nullable;
-- every non-null target must be an active member of the same campaign;
-- non-DM, inactive/cross-campaign, missing-PC and tombstoned-PC cases fail closed;
-- authority mutation does not alter PC snapshot content or revision;
-- explicit nulls are preserved on the hosted wire for intentional unassignment;
-- authoritative hosted response drives local `PcAuthority` convergence;
-- Desktop PC Manager exposes explicit property/control administration.
+This deployment check did **not** exercise an authenticated authority mutation against live DEV data; repository/API/database/shared/Desktop tests remain the evidence for the mutation semantics themselves.
 
-Once DEV deployment/verification is closed, the next ready implementation package should be **PC Sheet PDF Export — shared semantic/render-plan foundation** under D-0074. D-0074 is fully product-defined and local/offline by design.
+The next implementation-ready package is **PC Sheet PDF Export — shared semantic/render-plan foundation** under D-0074.
 
-Do **not** invent freeze/unfreeze semantics merely to continue coding. D-0072 requires that capability, but the current repository has no freeze field/contract and the approved records do not define what freezing must block. That product behavior needs an explicit definition before implementation. Broader lifecycle/duplication can be sequenced separately.
+Do **not** invent freeze/unfreeze semantics merely to continue coding. D-0072 requires that capability, but the current repository has no freeze field/contract and the approved records do not define what freezing must block.
 
 ## PC authority repository integration evidence
 
@@ -84,7 +77,9 @@ Do **not** invent freeze/unfreeze semantics merely to continue coding. D-0072 re
 - PR Scaffold `35291417403` — SUCCESS;
 - PR #79 merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`;
 - post-merge Scaffold `35291685597` — SUCCESS;
-- DEV Worker deployment/verification — **PENDING** because provider deployment access is not available in the current execution environment.
+- docs closure PR #80 merged as `8693f834e9f663fcabcfad33c0c6afc193486ae5`; post-merge Scaffold `35292356409` — SUCCESS;
+- DEV Worker deployment — **VERIFIED** by owner execution; Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`;
+- live checks — `/health` 200, old protected Campaign route 401, new protected PC authority route 401.
 
 ## Operating rule
 

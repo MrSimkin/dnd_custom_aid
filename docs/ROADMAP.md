@@ -155,7 +155,7 @@ Validation: initial implementation `2d792abaa843734acd2a1226f91d2e86e7b2b929`; i
 
 ##### PC Manager ownership/controller administration core
 
-**REPOSITORY CORE COMPLETE / MERGED — PR #79. DEV WORKER DEPLOYMENT PENDING.**
+**COMPLETE / INTEGRATED / DEV DEPLOYMENT VERIFIED — PR #79.**
 
 Integrated repository behavior:
 
@@ -175,11 +175,11 @@ Integrated repository behavior:
 
 Validation: initial head `5de58771702dd2f1f548ca00f066318c630bb622`; initial push `35290905581` failed on corrected backend row-typing and Kotlin visibility compile issues while hosted DB passed; final head `418ac19d4d247cfbf19d6fb7f9b158df5c900bdc`; corrected push `35291183960` SUCCESS; PR `35291417403` SUCCESS; merge `2e12400ee18026c702d6727793a3aea5d23d07b4`; post-merge `35291685597` SUCCESS.
 
-Because Worker/API code changed materially, the package is not declared DEV-runtime complete until `dnd-custom-aid-api` is redeployed and verified.
+DEV deployment verification is closed. Owner-executed `npm run deploy` published Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`; `/health` returned 200, while both the existing Campaign-members route and new PC-authority route returned the expected 401 `UNAUTHENTICATED` without credentials. This verifies live route presence and fail-closed authentication. Authenticated mutation semantics remain covered by repository tests rather than this smoke check.
 
 ##### PC Sheet PDF Export — shared semantic/render-plan foundation
 
-**NEXT IMPLEMENTATION-READY PACKAGE AFTER PROVIDER CLOSURE.**
+**NEXT BOUNDED PACKAGE.**
 
 D-0074 is approved and sufficiently detailed to proceed without inventing product semantics.
 
