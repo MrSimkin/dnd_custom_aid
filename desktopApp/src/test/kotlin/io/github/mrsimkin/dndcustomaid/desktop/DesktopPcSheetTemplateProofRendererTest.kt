@@ -152,7 +152,7 @@ class DesktopPcSheetTemplateProofRendererTest {
         )
         val traits = traitNames.mapIndexed { index, name ->
             CharacterTrait(
-                id = Uuid.random(),
+                id = uuid("40000000-0000-0000-0000-00000000000" + (index + 1)),
                 name = name,
                 source = "Prueba PDF",
                 type = if (index < 2) CharacterTraitType.SPECIES_RACE else CharacterTraitType.CLASS,
