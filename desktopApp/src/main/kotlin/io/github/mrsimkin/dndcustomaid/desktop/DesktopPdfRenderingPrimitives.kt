@@ -10,6 +10,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.font.PDFont
 import org.apache.pdfbox.pdmodel.font.PDType0Font
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 
 /**
  * Reusable PDF rendering primitives for PC-sheet export.
@@ -30,28 +31,51 @@ internal enum class PdfTypographyRole {
     OPTIONAL_DECORATIVE,
 }
 
+internal data class PdfTypographyTheme(
+    val id: String,
+    val resourcesByRole: Map<PdfTypographyRole, String>,
+) {
+    init {
+        require(PdfTypographyRole.entries.all { it in resourcesByRole }) {
+            "Every PDF typography role must resolve to an explicit font resource."
+        }
+    }
+
+    fun resourcePath(role: PdfTypographyRole): String = requireNotNull(resourcesByRole[role])
+}
+
+internal val PRIMITIVE_QA_TYPOGRAPHY_THEME = PdfTypographyTheme(
+    id = "primitive-qa-bundled-candidates",
+    resourcesByRole = PdfTypographyRole.entries.associateWith { role ->
+        when (role) {
+            PdfTypographyRole.CHARACTER_NAME,
+            PdfTypographyRole.PRIMARY_VALUE,
+            PdfTypographyRole.BODY,
+            PdfTypographyRole.NOTE_TEXT,
+            PdfTypographyRole.SPELL_NAME,
+            -> "fonts/geist_vf.ttf"
+
+            PdfTypographyRole.SECONDARY_VALUE,
+            PdfTypographyRole.COMPACT_TABLE,
+            PdfTypographyRole.NUMERIC_COMPACT,
+            PdfTypographyRole.OPTIONAL_DECORATIVE,
+            -> "fonts/mona_sans_condensed_vf.ttf"
+        }
+    },
+)
+
 internal class DesktopPdfFontRegistry(
     private val document: PDDocument,
+    private val theme: PdfTypographyTheme = PRIMITIVE_QA_TYPOGRAPHY_THEME,
     private val resourceLoader: (String) -> InputStream? = { path ->
         DesktopPdfFontRegistry::class.java.classLoader.getResourceAsStream(path)
     },
 ) {
-    private val geist by lazy { loadRequired("fonts/geist_vf.ttf") }
-    private val monaCondensed by lazy { loadRequired("fonts/mona_sans_condensed_vf.ttf") }
+    private val loadedFonts = mutableMapOf<String, PDFont>()
 
-    fun font(role: PdfTypographyRole): PDFont = when (role) {
-        PdfTypographyRole.CHARACTER_NAME,
-        PdfTypographyRole.PRIMARY_VALUE,
-        PdfTypographyRole.BODY,
-        PdfTypographyRole.NOTE_TEXT,
-        PdfTypographyRole.SPELL_NAME,
-        -> geist
-
-        PdfTypographyRole.SECONDARY_VALUE,
-        PdfTypographyRole.COMPACT_TABLE,
-        PdfTypographyRole.NUMERIC_COMPACT,
-        PdfTypographyRole.OPTIONAL_DECORATIVE,
-        -> monaCondensed
+    fun font(role: PdfTypographyRole): PDFont {
+        val path = theme.resourcePath(role)
+        return loadedFonts.getOrPut(path) { loadRequired(path) }
     }
 
     private fun loadRequired(path: String): PDFont {
@@ -137,6 +161,19 @@ internal enum class PdfMarkerKind {
     DIAMOND_OUTLINE,
     DIAMOND_FILLED,
 }
+
+internal enum class PdfImageFitMode {
+    FIT_ENTIRE,
+    CROP_FILL,
+}
+
+internal data class PdfImagePlacementResult(
+    val drawX: Float,
+    val drawY: Float,
+    val drawWidth: Float,
+    val drawHeight: Float,
+    val cropped: Boolean,
+)
 
 internal class DesktopPdfRenderingPrimitives(
     private val fonts: DesktopPdfFontRegistry,
@@ -245,6 +282,45 @@ internal class DesktopPdfRenderingPrimitives(
             }
         }
         stream.restoreGraphicsState()
+    }
+
+    fun drawImage(
+        stream: PDPageContentStream,
+        image: PDImageXObject,
+        rect: PdfRect,
+        mode: PdfImageFitMode,
+    ): PdfImagePlacementResult {
+        require(rect.width > 0f)
+        require(rect.height > 0f)
+        require(image.width > 0)
+        require(image.height > 0)
+
+        val scaleX = rect.width / image.width.toFloat()
+        val scaleY = rect.height / image.height.toFloat()
+        val scale = when (mode) {
+            PdfImageFitMode.FIT_ENTIRE -> min(scaleX, scaleY)
+            PdfImageFitMode.CROP_FILL -> max(scaleX, scaleY)
+        }
+        val drawWidth = image.width * scale
+        val drawHeight = image.height * scale
+        val drawX = rect.x + (rect.width - drawWidth) / 2f
+        val drawY = rect.y + (rect.height - drawHeight) / 2f
+
+        stream.saveGraphicsState()
+        if (mode == PdfImageFitMode.CROP_FILL) {
+            stream.addRect(rect.x, rect.y, rect.width, rect.height)
+            stream.clip()
+        }
+        stream.drawImage(image, drawX, drawY, drawWidth, drawHeight)
+        stream.restoreGraphicsState()
+
+        return PdfImagePlacementResult(
+            drawX = drawX,
+            drawY = drawY,
+            drawWidth = drawWidth,
+            drawHeight = drawHeight,
+            cropped = mode == PdfImageFitMode.CROP_FILL,
+        )
     }
 
     fun drawGrid(
