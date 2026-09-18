@@ -21,7 +21,8 @@ On 2026-09-18 the owner explicitly authorized this project to publish the origin
 | `v2` | Historical renderer candidate | Preserve legacy mappings and add initial renderer PUA aliases | Reproducible legacy-expansion generator + mapping guide retained | Historical candidate; not current visual target |
 | `v3` | Historical renderer candidate | Add the app-derived single/double-check training grammar while preserving prior mappings | Reproducible generator + guide retained | Historical candidate; superseded by v4 redesign direction |
 | `v4` | Preserved rejected redesign candidate | Earlier modern coherent redesign attempt | TTF and deterministic builder preserved unchanged | **Technically valid; owner visual direction rejected; historical record only** |
-| `v5` | Current final visual candidate | Exact-v1 + v1-derived and v3-derived complete symbol families, canonical checks, marked containers and ordinary characters | Deterministic builder + TTF + guide + diagnostic/reference PDF | **Technical QA passed; owner final visual approval pending** |
+| `v5` | Preserved almost-final candidate | Exact-v1 + v1-derived and v3-derived complete symbol families, earlier checks/marked containers/numerals | Deterministic builder + TTF + guide + diagnostic/reference PDF preserved unchanged | **Superseded by v6 after owner visual feedback** |
+| `v6` | Current final visual candidate | Clean stroke-based checks, full-span marked containers, redesigned ordinary numerals; prior v1/v3 families preserved | Deterministic builder + TTF + guide + 30-page diagnostic/reference PDF | **Technical QA passed; owner final visual approval pending** |
 
 ## v1 archival identity
 
@@ -57,3 +58,17 @@ The v4 binary is technically valid and reproducible, but its visual design remai
 v5 restores the agreed two-language design contract: historical A-E/a-e use the exact v1 geometry; new symbols have a v1-derived family; the historical concepts and new symbols also have a v3-derived geometric family. The single check is a conventional checkmark and Expertise/Pericia is two normal checks stacked vertically. Fillable/container shapes include precomposed /, \\, X, *, +, -, check and dot states. Ordinary digits and common punctuation/operators are also included.
 
 v5 is technically validated and deterministic. It remains an owner visual-approval gate until the final diagnostic/reference PDF is explicitly accepted. v4 is preserved unchanged as historical provenance and is not the current visual target.
+
+
+## v6 current final candidate
+
+- file: `v6/Para Hoja de PJ Symbols v6.ttf`;
+- SHA-256: `b23cc8ce806ba5e6e6039fc1b24f8457bf91c726d6ecfc43451868d90b2ef02f`;
+- deterministic builder: `scripts/fonts/para-hoja-de-pj/v6/build_para_hoja_de_pj_v6.py`;
+- complete mapping/use guide: `v6/GUIDE.md`;
+- owner visual-QA artifact: `v6/DIAGNOSTIC_REFERENCE.pdf`;
+- 291 glyphs / 502 cmap mappings.
+
+v6 preserves v5 and corrects the three owner-identified remaining issues: the single/double checks are rebuilt from a clean stroke-based conventional check; marked containers use full-span interior marks rather than miniature punctuation; and digits 0-9 are redesigned as ordinary rounded/sans numerals rather than display-like figures. Historical A-E/a-e remain exact v1 geometry, including the non-uniform historical oval.
+
+v6 is technically validated and deterministic. It remains an owner visual-approval gate until the final diagnostic/reference PDF is explicitly accepted. v5 remains preserved unchanged as provenance and is not the current visual target.
