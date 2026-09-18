@@ -10,14 +10,10 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import kotlin.uuid.Uuid
-
-@Serializable
-private data class PutPcAuthorityRequest(
-    val campaignId: Uuid,
-    val ownerUserId: Uuid?,
-    val controllerUserId: Uuid?,
-)
 
 @Serializable
 private data class HostedPcAuthorityState(
@@ -63,12 +59,18 @@ class HostedPcAuthorityAdministrationClient(
         val response = httpClient.put("$apiBaseUrl/v1/pcs/$pcId/authority") {
             bearerAuth(token)
             contentType(ContentType.Application.Json)
+            // hostedWireJson intentionally omits nullable null properties globally.
+            // Authority uses full replacement semantics, so explicit JsonNull values are required
+            // to distinguish "unassign" from a malformed omitted field.
             setBody(
-                PutPcAuthorityRequest(
-                    campaignId = campaignId,
-                    ownerUserId = ownerUserId,
-                    controllerUserId = controllerUserId,
-                ),
+                buildJsonObject {
+                    put("campaignId", JsonPrimitive(campaignId.toString()))
+                    put("ownerUserId", ownerUserId?.let { JsonPrimitive(it.toString()) } ?: JsonNull)
+                    put(
+                        "controllerUserId",
+                        controllerUserId?.let { JsonPrimitive(it.toString()) } ?: JsonNull,
+                    )
+                },
             )
         }
         ensureSuccess(response)
