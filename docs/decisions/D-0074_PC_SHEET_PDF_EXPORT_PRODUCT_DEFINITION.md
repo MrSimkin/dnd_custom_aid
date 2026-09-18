@@ -282,10 +282,12 @@ When implementation reaches the visual/template-rendering stage, each supported 
 
 Required approval examples:
 
-1. Classic D&D-style;
-2. Custom v1;
-3. Custom v2 — per Attribute;
-4. Custom v2 — per Ability.
+1. Classic D&D-style — independently designed by the application;
+2. Custom v1 — rendered from the owner's actual `assets/character-sheets/templates/Hoja de PJ - 5.0 - Simkin.pdf` source template;
+3. Custom v2 — per Attribute — rendered from the corresponding first-page variant in the owner's actual `Hoja de PJ v2 - 5.0 - Simkin.pdf`;
+4. Custom v2 — per Ability — rendered from the alternative first-page variant in that same owner template.
+
+For Custom v1/v2, the owner PDFs are the authoritative base templates and are not to be unnecessarily recreated from scratch. Generated/adapted geometry is used only where the approved Modified/Extended behavior requires it, and those generated pages must remain visually coherent with the selected owner template family.
 
 The examples should contain enough realistic dummy content to expose layout behavior rather than showing an empty form. Where relevant, the approval set should also demonstrate overflow/Extended-page behavior and other family-specific presentation choices.
 
