@@ -7,6 +7,7 @@ import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
 import {
   HostedAuthorizationError,
   HostedObjectGoneError,
+  HostedObjectNotFoundError,
   MutationReuseError,
   StaleRevisionError,
   type CampaignStore,
@@ -37,6 +38,7 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const campaignMemberModerationMatch =
         /^\/v1\/campaigns\/([^/]+)\/members\/([^/]+)\/moderation$/.exec(path);
       const campaignPcsMatch = /^\/v1\/campaigns\/([^/]+)\/pcs$/.exec(path);
+      const pcAuthorityMatch = /^\/v1\/pcs\/([^/]+)\/authority$/.exec(path);
       const pcSnapshotMatch = /^\/v1\/pcs\/([^/]+)$/.exec(path);
       const knownFixedPath =
         path === "/v1/me" ||
@@ -48,6 +50,7 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         campaignMembersMatch == null &&
         campaignMemberModerationMatch == null &&
         campaignPcsMatch == null &&
+        pcAuthorityMatch == null &&
         pcSnapshotMatch == null
       ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
@@ -105,6 +108,31 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         const campaignId = requireUuid(campaignPcsMatch[1], "campaignId");
         const pcs = await dependencies.campaigns.listPcSnapshots(user.id, campaignId);
         return jsonResponse({ pcs });
+      }
+
+      if (pcAuthorityMatch != null) {
+        requireMethod(request, "PUT");
+        const pcId = requireUuid(pcAuthorityMatch[1], "pcId");
+        const body = await readJsonObject(request);
+        const campaignId = requireUuid(body.campaignId, "campaignId");
+        const ownerUserId = requireNullableUuidField(body, "ownerUserId");
+        const controllerUserId = requireNullableUuidField(body, "controllerUserId");
+        const result = await dependencies.campaigns.setPcAuthority({
+          actorUserId: user.id,
+          pcId,
+          campaignId,
+          ownerUserId,
+          controllerUserId,
+        });
+        return jsonResponse({
+          authority: {
+            pcId: result.authority.pcId,
+            campaignId: result.authority.campaignId,
+            ownerUserId: result.authority.ownerUserId,
+            controllerUserId: result.authority.controllerUserId,
+          },
+          applied: result.applied,
+        });
       }
 
       if (pcSnapshotMatch != null) {
@@ -278,6 +306,17 @@ function requireUuid(value: unknown, field: string): Uuid {
   return value.toLowerCase();
 }
 
+function requireNullableUuidField(body: Record<string, unknown>, field: string): Uuid | null {
+  if (!Object.prototype.hasOwnProperty.call(body, field)) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be explicitly provided as a UUID or null.`, { field });
+  }
+  const value = body[field];
+  if (value === null) {
+    return null;
+  }
+  return requireUuid(value, field);
+}
+
 function requireNonNegativeInteger(value: unknown, field: string): number {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
     throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be a non-negative safe integer.`, { field });
@@ -314,6 +353,9 @@ function errorResponse(error: unknown): Response {
   }
   if (error instanceof HostedObjectGoneError) {
     return jsonError(410, "GONE", error.message);
+  }
+  if (error instanceof HostedObjectNotFoundError) {
+    return jsonError(404, "NOT_FOUND", error.message);
   }
 
   console.error("Unhandled API error", error);

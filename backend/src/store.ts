@@ -65,12 +65,33 @@ export interface PutPcSnapshotResult {
   applied: boolean;
 }
 
+export interface PcAuthorityState {
+  pcId: Uuid;
+  campaignId: Uuid;
+  ownerUserId: Uuid | null;
+  controllerUserId: Uuid | null;
+}
+
+export interface SetPcAuthorityInput {
+  actorUserId: Uuid;
+  pcId: Uuid;
+  campaignId: Uuid;
+  ownerUserId: Uuid | null;
+  controllerUserId: Uuid | null;
+}
+
+export interface SetPcAuthorityResult {
+  authority: PcAuthorityState;
+  applied: boolean;
+}
+
 export interface CampaignStore {
   resolveUser(externalSubject: string, displayName: string | null): Promise<AppUser>;
   listCampaigns(userId: Uuid): Promise<CampaignSummary[]>;
   listCampaignMemberships(userId: Uuid): Promise<CampaignMembershipState[]>;
   createCampaign(input: CreateCampaignInput): Promise<CreateCampaignResult>;
   listPcSnapshots(userId: Uuid, campaignId: Uuid): Promise<PcSnapshotState[]>;
+  setPcAuthority(input: SetPcAuthorityInput): Promise<SetPcAuthorityResult>;
   putPcSnapshot(input: PutPcSnapshotInput): Promise<PutPcSnapshotResult>;
 }
 
@@ -102,6 +123,13 @@ export class HostedObjectGoneError extends Error {
   constructor() {
     super("The hosted object has been deleted.");
     this.name = "HostedObjectGoneError";
+  }
+}
+
+export class HostedObjectNotFoundError extends Error {
+  constructor() {
+    super("The hosted object was not found.");
+    this.name = "HostedObjectNotFoundError";
   }
 }
 
@@ -147,6 +175,19 @@ interface PcMutationDiagnosticRow {
   owner_user_id: string | null;
   controller_user_id: string | null;
   revision: string;
+  deleted: boolean;
+}
+
+interface PcAuthorityRow {
+  pc_id: string;
+  campaign_id: string;
+  owner_user_id: string | null;
+  controller_user_id: string | null;
+  applied: boolean;
+}
+
+interface PcAuthorityDiagnosticRow {
+  campaign_id: string;
   deleted: boolean;
 }
 
@@ -355,6 +396,153 @@ export class NeonCampaignStore implements CampaignStore {
     `;
     const rows = rawRows as unknown as PcSnapshotRow[];
     return rows.map(mapPcSnapshotRow);
+  }
+
+  async setPcAuthority(input: SetPcAuthorityInput): Promise<SetPcAuthorityResult> {
+    const objectLockKey = `PC_AUTHORITY:${input.pcId}`;
+    const [, resultRows] = await this.sql.transaction((txn) => [
+      txn`SELECT pg_advisory_xact_lock(hashtextextended(${objectLockKey}, 0))`,
+      txn`
+        WITH actor AS (
+          SELECT 1
+          FROM campaign_membership m
+          JOIN campaign c ON c.id = m.campaign_id
+          WHERE m.campaign_id = ${input.campaignId}::uuid
+            AND m.user_id = ${input.actorUserId}::uuid
+            AND m.role = 'DM'
+            AND m.status = 'ACTIVE'
+            AND c.deleted_at IS NULL
+        ),
+        owner_allowed AS (
+          SELECT 1
+          WHERE ${input.ownerUserId}::uuid IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM campaign_membership m
+               WHERE m.campaign_id = ${input.campaignId}::uuid
+                 AND m.user_id = ${input.ownerUserId}::uuid
+                 AND m.status = 'ACTIVE'
+             )
+        ),
+        controller_allowed AS (
+          SELECT 1
+          WHERE ${input.controllerUserId}::uuid IS NULL
+             OR EXISTS (
+               SELECT 1
+               FROM campaign_membership m
+               WHERE m.campaign_id = ${input.campaignId}::uuid
+                 AND m.user_id = ${input.controllerUserId}::uuid
+                 AND m.status = 'ACTIVE'
+             )
+        ),
+        existing_pc AS (
+          SELECT p.*
+          FROM pc p
+          JOIN campaign c ON c.id = p.campaign_id
+          WHERE p.id = ${input.pcId}::uuid
+            AND p.campaign_id = ${input.campaignId}::uuid
+            AND p.deleted_at IS NULL
+            AND c.deleted_at IS NULL
+        ),
+        updated_pc AS (
+          UPDATE pc p
+          SET owner_user_id = ${input.ownerUserId}::uuid,
+              controller_user_id = ${input.controllerUserId}::uuid,
+              updated_at = now()
+          WHERE p.id = ${input.pcId}::uuid
+            AND p.campaign_id = ${input.campaignId}::uuid
+            AND p.deleted_at IS NULL
+            AND EXISTS (SELECT 1 FROM actor)
+            AND EXISTS (SELECT 1 FROM owner_allowed)
+            AND EXISTS (SELECT 1 FROM controller_allowed)
+            AND (
+              p.owner_user_id IS DISTINCT FROM ${input.ownerUserId}::uuid
+              OR p.controller_user_id IS DISTINCT FROM ${input.controllerUserId}::uuid
+            )
+          RETURNING p.*, true AS applied
+        ),
+        unchanged_pc AS (
+          SELECT p.*, false AS applied
+          FROM existing_pc p
+          WHERE EXISTS (SELECT 1 FROM actor)
+            AND EXISTS (SELECT 1 FROM owner_allowed)
+            AND EXISTS (SELECT 1 FROM controller_allowed)
+            AND NOT EXISTS (SELECT 1 FROM updated_pc)
+        )
+        SELECT
+          result.id::text AS pc_id,
+          result.campaign_id::text AS campaign_id,
+          result.owner_user_id::text AS owner_user_id,
+          result.controller_user_id::text AS controller_user_id,
+          result.applied
+        FROM (
+          SELECT * FROM updated_pc
+          UNION ALL
+          SELECT * FROM unchanged_pc
+        ) result
+      `,
+    ], { isolationLevel: "ReadCommitted" });
+
+    const rows = resultRows as unknown as PcAuthorityRow[];
+    if (rows.length !== 1) {
+      await this.throwPcAuthorityFailure(input);
+    }
+    const row = requireSingle(rows, "PC authority mutation returned an unexpected result count.");
+    return {
+      authority: mapPcAuthorityRow(row),
+      applied: row.applied === true,
+    };
+  }
+
+  private async throwPcAuthorityFailure(input: SetPcAuthorityInput): Promise<never> {
+    const actorRows = await this.sql`
+      SELECT 1
+      FROM campaign_membership m
+      JOIN campaign c ON c.id = m.campaign_id
+      WHERE m.campaign_id = ${input.campaignId}::uuid
+        AND m.user_id = ${input.actorUserId}::uuid
+        AND m.role = 'DM'
+        AND m.status = 'ACTIVE'
+        AND c.deleted_at IS NULL
+    ` as unknown as Array<Record<string, unknown>>;
+    if (actorRows.length !== 1) {
+      throw new HostedAuthorizationError();
+    }
+
+    const pcRows = await this.sql`
+      SELECT
+        p.campaign_id::text AS campaign_id,
+        (p.deleted_at IS NOT NULL) AS deleted
+      FROM pc p
+      WHERE p.id = ${input.pcId}::uuid
+    ` as unknown as PcAuthorityDiagnosticRow[];
+
+    if (pcRows.length === 0) {
+      throw new HostedObjectNotFoundError();
+    }
+    const pc = requireSingle(pcRows, "PC identity unexpectedly resolved to multiple rows.");
+    if (pc.campaign_id !== input.campaignId) {
+      throw new HostedAuthorizationError();
+    }
+    if (pc.deleted) {
+      throw new HostedObjectGoneError();
+    }
+
+    for (const targetUserId of [input.ownerUserId, input.controllerUserId]) {
+      if (targetUserId == null) continue;
+      const targetRows = await this.sql`
+        SELECT 1
+        FROM campaign_membership m
+        WHERE m.campaign_id = ${input.campaignId}::uuid
+          AND m.user_id = ${targetUserId}::uuid
+          AND m.status = 'ACTIVE'
+      ` as unknown as Array<Record<string, unknown>>;
+      if (targetRows.length !== 1) {
+        throw new HostedAuthorizationError();
+      }
+    }
+
+    throw new Error("PC authority mutation could not be applied after passing authorization checks.");
   }
 
   async putPcSnapshot(input: PutPcSnapshotInput): Promise<PutPcSnapshotResult> {
@@ -592,6 +780,15 @@ function mapCampaignRow(row: CampaignRow): CampaignSummary {
     name: row.name,
     role: row.role,
     revision: parseRevision(row.revision),
+  };
+}
+
+function mapPcAuthorityRow(row: PcAuthorityRow): PcAuthorityState {
+  return {
+    pcId: row.pc_id,
+    campaignId: row.campaign_id,
+    ownerUserId: row.owner_user_id,
+    controllerUserId: row.controller_user_id,
   };
 }
 
