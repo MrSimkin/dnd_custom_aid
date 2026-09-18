@@ -202,6 +202,7 @@ private fun DesktopWorkbench(
 
                     DesktopDestination.PLAYER_CHARACTERS -> DesktopPcManagerScreen(
                         controller = pcManagerController,
+                        hostedController = hostedCampaignController,
                         activeCampaign = activeCampaign,
                         onQaEvent = ::logQa,
                     )
