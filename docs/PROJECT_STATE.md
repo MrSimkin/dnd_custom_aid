@@ -3,14 +3,14 @@
 **Last reconstructed:** 2026-09-17 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified repository/integration merge:** `2e12400ee18026c702d6727793a3aea5d23d07b4` (PR #79)  
-**Post-merge Scaffold:** `35291685597` — SUCCESS  
+**Last verified integrated `main`:** `8693f834e9f663fcabcfad33c0c6afc193486ae5` (docs closure PR #80)  
+**Post-merge Scaffold:** `35292356409` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core  
-**Immediate provider gate:** DEV Worker deploy + live verification of PC authority route  
-**Next code package after provider closure:** PC Sheet PDF Export — shared semantic/render-plan foundation
+**PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
+**Next bounded package:** PC Sheet PDF Export — shared semantic/render-plan foundation
 
 ## 1. Current topology
 
@@ -38,7 +38,7 @@ Neon PostgreSQL
 
 Existing DEV Worker: `dnd-custom-aid-api`.
 
-Wave 6 and the earlier Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone/Encounter/PC-audit packages did not require Worker changes. PR #79 **does materially change Worker/API code**, so the existing DEV Worker must be redeployed and verified before PC authority administration is called operational.
+Wave 6 and the earlier Wave 7 Creature/NPC/Homebrew/Place/Stage/Scene/Zone/Encounter/PC-audit packages did not require Worker changes. PR #79 materially changed Worker/API code and has now been deployed to DEV. Owner-executed checks verified Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`, `/health` = 200, and both the existing Campaign-members route and new PC-authority route = 401 when unauthenticated.
 
 Hard external-service operating budget remains USD $0.
 
@@ -217,20 +217,22 @@ Validation:
 - PR #79 merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`;
 - post-merge Scaffold `35291685597` — SUCCESS.
 
-### Provider gate — required before operational closure
+### DEV provider verification — CLOSED
 
-The Worker/API changed materially in PR #79. Repository integration is green, but the DEV Worker `dnd-custom-aid-api` has not been redeployed/verified by this execution environment.
+The Worker/API change from PR #79 is deployed to the existing DEV Worker `dnd-custom-aid-api`.
 
-Required bounded provider handoff:
+Owner-executed deployment evidence:
 
-- deploy current `main@2e12400ee18026c702d6727793a3aea5d23d07b4` Worker code;
-- verify `/health`;
-- verify the new authority route is deployed and authentication remains fail closed;
-- preserve USD $0 and secret-handling rules.
+- local project path: `D:\DnD_Aid\repo\dnd_custom_aid\backend`;
+- `npm run deploy` succeeded;
+- deployed Worker version: `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`;
+- `GET /health` -> 200 / normal service-health JSON;
+- unauthenticated `GET /v1/campaigns/00000000-0000-0000-0000-000000000000/members` -> 401 / `UNAUTHENTICATED`;
+- unauthenticated `GET /v1/pcs/00000000-0000-0000-0000-000000000000/authority` -> 401 / `UNAUTHENTICATED`.
 
-Until that is done, PC authority administration is **repository-integrated but not DEV-runtime verified**.
+This closes the deployment/route-presence/auth-boundary gate. An authenticated live authority mutation was not part of this deployment smoke check; its semantics remain covered by repository tests.
 
-## 6. Next code package after provider closure — PC Sheet PDF Export shared foundation
+## 6. Next bounded package — PC Sheet PDF Export shared foundation
 
 D-0074 fully closes the PC Sheet PDF product definition. The canonical PC model is now coherent enough to start a shared export-semantics/render-plan foundation without waiting on Media/object storage.
 
@@ -263,4 +265,4 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume first with the bounded DEV Worker deploy/verification gate for PC authority administration. After provider closure, continue with PC Sheet PDF Export — shared semantic/render-plan foundation. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from current `main` with PC Sheet PDF Export — shared semantic/render-plan foundation. PC authority repository integration and its DEV deployment gate are closed. Routine safe green boundaries do not require separate owner confirmation.
