@@ -51,6 +51,14 @@ jobs:
           name: dnd-custom-aid-debug-apk
           path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
           if-no-files-found: error
+      - name: Upload PC sheet source renders
+        uses: actions/upload-artifact@v7
+        with:
+          name: pc-sheet-source-renders
+          path: |
+            assets/character-sheets/templates/renders/original/page-*.png
+            assets/character-sheets/templates/renders/v2/page-*.png
+          if-no-files-found: error
 
   backend:
     runs-on: ubuntu-latest
