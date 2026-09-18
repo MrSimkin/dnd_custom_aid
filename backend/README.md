@@ -12,6 +12,7 @@ Current implemented foundation:
 - `POST /v1/campaigns` creates an independently identified campaign, makes the creator its DM, and uses a mutation UUID for retry-safe idempotency;
 - `GET /v1/campaigns/{campaignId}/members` returns the active-DM-authorized hosted member roster;
 - `POST /v1/campaigns/{campaignId}/members/{userId}/moderation` applies server-authoritative Player `KICK`, `BAN`, or `LIFT_BAN` actions;
+- `PUT /v1/pcs/{pcId}/authority` lets an active campaign DM explicitly replace nullable PC owner/controller authority using active same-campaign members without mutating the PC snapshot revision/content;
 - Neon PostgreSQL is accessed through the edge-compatible `@neondatabase/serverless` HTTP driver;
 - API, authentication and Campaign Administration boundaries have deterministic tests.
 
@@ -49,11 +50,13 @@ After deployment, a secret-free public route-presence check can distinguish the 
 ```bash
 node -e "fetch('https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/health').then(async r => console.log(r.status, await r.text()))"
 node -e "fetch('https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/v1/campaigns/00000000-0000-0000-0000-000000000000/members').then(async r => console.log(r.status, await r.text()))"
+node -e "fetch('https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/v1/pcs/00000000-0000-0000-0000-000000000000/authority').then(async r => console.log(r.status, await r.text()))"
 ```
 
 Expected after the current Worker code is live:
 
 - `/health` -> HTTP `200` with the normal service health JSON;
-- the unauthenticated Campaign Administration route -> HTTP `401` / `UNAUTHENTICATED`.
+- the unauthenticated Campaign Administration route -> HTTP `401` / `UNAUTHENTICATED`;
+- the unauthenticated PC authority route -> HTTP `401` / `UNAUTHENTICATED`.
 
-The second check is intentionally unauthenticated. A `401` means the route is recognized and reached the authentication boundary; a `404` would indicate that the deployed Worker still does not contain that route.
+The protected-route checks are intentionally unauthenticated. A `401` means the route is recognized and reached the authentication boundary; a `404` on the PC authority route would indicate that the deployed Worker still predates PR #79.
