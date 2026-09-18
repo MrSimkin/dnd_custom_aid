@@ -29,3 +29,11 @@ compose.desktop {
         mainClass = "io.github.mrsimkin.dndcustomaid.desktop.MainKt"
     }
 }
+
+
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    systemProperty(
+        "pcSheetProofDir",
+        layout.buildDirectory.dir("pc-sheet-proofs").get().asFile.absolutePath,
+    )
+}
