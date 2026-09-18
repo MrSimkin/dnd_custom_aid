@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +37,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMember
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedMutationType
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcDmCorrectionService
@@ -52,6 +54,7 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.Revision
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
 internal data class DesktopPcSyncAudit(
@@ -72,6 +75,17 @@ internal data class DesktopPcDetails(
     val controller: AccountIdentity?,
     val sync: DesktopPcSyncAudit,
 )
+
+internal fun eligiblePcAuthorityMembers(
+    members: List<HostedCampaignMember>,
+): List<HostedCampaignMember> = members
+    .filter { it.status == CampaignMembershipStatus.ACTIVE }
+    .distinctBy { it.userId }
+    .sortedWith(
+        compareBy<HostedCampaignMember> {
+            it.displayName?.trim()?.lowercase().orEmpty()
+        }.thenBy { it.userId.toString() },
+    )
 
 internal fun filterDesktopPcs(
     characters: List<CharacterSheet>,
@@ -160,6 +174,7 @@ class DesktopPcManagerController(
 @Composable
 fun DesktopPcManagerScreen(
     controller: DesktopPcManagerController,
+    hostedController: DesktopHostedCampaignAdministrationController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
 ) {
@@ -169,6 +184,12 @@ fun DesktopPcManagerScreen(
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var correctionMode by remember { mutableStateOf(false) }
     var correctionReason by remember { mutableStateOf("") }
+    var authorityMode by remember { mutableStateOf(false) }
+    var authorityLoading by remember { mutableStateOf(false) }
+    var authorityMembers by remember { mutableStateOf<List<HostedCampaignMember>>(emptyList()) }
+    var selectedOwnerId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedControllerId by remember { mutableStateOf<Uuid?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     if (activeCampaign == null) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -234,6 +255,10 @@ fun DesktopPcManagerScreen(
                             selectedId = character.id
                             correctionMode = false
                             correctionReason = ""
+                            authorityMode = false
+                            authorityMembers = emptyList()
+                            selectedOwnerId = null
+                            selectedControllerId = null
                             statusMessage = null
                         },
                         elevation = if (selected) 6.dp else 1.dp,
@@ -278,7 +303,7 @@ fun DesktopPcManagerScreen(
                                     style = MaterialTheme.typography.caption,
                                 )
                             }
-                            if (!correctionMode) {
+                            if (!correctionMode && !authorityMode) {
                                 Button(
                                     enabled = dmAccountId != null &&
                                         details.sync.deletedAtEpochSeconds == null &&
@@ -304,8 +329,93 @@ fun DesktopPcManagerScreen(
                             PcAuditLine("Controlador", pcAccountLabel(details.controller, details.authority?.controllerAccountId))
                             PcAuditLine(
                                 "Regla",
-                                "El rol DM no otorga propiedad ni control. Una corrección DM no modifica estos campos.",
+                                "El rol DM no otorga propiedad ni control. La asignación es una acción administrativa explícita.",
                             )
+
+                            if (!authorityMode) {
+                                Button(
+                                    enabled = !authorityLoading && details.sync.deletedAtEpochSeconds == null,
+                                    onClick = {
+                                        correctionMode = false
+                                        authorityLoading = true
+                                        statusMessage = "Cargando miembros activos de la campaña…"
+                                        coroutineScope.launch {
+                                            runCatching {
+                                                hostedController.roster(activeCampaign.id)
+                                            }.onSuccess { roster ->
+                                                authorityMembers = eligiblePcAuthorityMembers(roster.members)
+                                                selectedOwnerId = details.authority?.ownerAccountId
+                                                selectedControllerId = details.authority?.controllerAccountId
+                                                authorityMode = true
+                                                statusMessage = null
+                                            }.onFailure { error ->
+                                                statusMessage = desktopHostedErrorMessage(error)
+                                            }
+                                            authorityLoading = false
+                                        }
+                                    },
+                                ) {
+                                    Text(if (authorityLoading) "Cargando…" else "Administrar propiedad / control")
+                                }
+                            } else {
+                                PcAuthoritySelector(
+                                    label = "Propietario",
+                                    members = authorityMembers,
+                                    selectedId = selectedOwnerId,
+                                    onSelect = { selectedOwnerId = it },
+                                )
+                                PcAuthoritySelector(
+                                    label = "Controlador actual",
+                                    members = authorityMembers,
+                                    selectedId = selectedControllerId,
+                                    onSelect = { selectedControllerId = it },
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Button(
+                                        enabled = !authorityLoading,
+                                        onClick = {
+                                            authorityLoading = true
+                                            statusMessage = "Guardando autoridad del PC…"
+                                            coroutineScope.launch {
+                                                runCatching {
+                                                    hostedController.setPcAuthority(
+                                                        campaignId = activeCampaign.id,
+                                                        pcId = details.character.id,
+                                                        ownerAccountId = selectedOwnerId,
+                                                        controllerAccountId = selectedControllerId,
+                                                    )
+                                                }.onSuccess { result ->
+                                                    val action = if (result.applied) "actualizada" else "sin cambios"
+                                                    statusMessage = "Autoridad del PC " + action + "."
+                                                    onQaEvent(
+                                                        "PC Manager: autoridad " + result.authority.characterId + " " + action,
+                                                    )
+                                                    authorityMode = false
+                                                    authorityMembers = emptyList()
+                                                    refresh(details.character.id)
+                                                }.onFailure { error ->
+                                                    statusMessage = desktopHostedErrorMessage(error)
+                                                }
+                                                authorityLoading = false
+                                            }
+                                        },
+                                    ) {
+                                        Text(if (authorityLoading) "Guardando…" else "Guardar propiedad / control")
+                                    }
+                                    TextButton(
+                                        enabled = !authorityLoading,
+                                        onClick = {
+                                            authorityMode = false
+                                            authorityMembers = emptyList()
+                                            selectedOwnerId = null
+                                            selectedControllerId = null
+                                            statusMessage = null
+                                        },
+                                    ) {
+                                        Text("Cancelar")
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -397,6 +507,36 @@ fun DesktopPcManagerScreen(
                     item { PcSuccessorInspection(details.successor) }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PcAuthoritySelector(
+    label: String,
+    members: List<HostedCampaignMember>,
+    selectedId: Uuid?,
+    onSelect: (Uuid?) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (selectedId == null) {
+                Button(onClick = { onSelect(null) }) { Text("Sin asignar") }
+            } else {
+                TextButton(onClick = { onSelect(null) }) { Text("Sin asignar") }
+            }
+            members.forEach { member ->
+                val memberLabel = hostedMemberLabel(member)
+                if (selectedId == member.userId) {
+                    Button(onClick = { onSelect(member.userId) }) { Text(memberLabel) }
+                } else {
+                    TextButton(onClick = { onSelect(member.userId) }) { Text(memberLabel) }
+                }
+            }
+        }
+        if (members.isEmpty()) {
+            Text("No hay miembros activos elegibles.", style = MaterialTheme.typography.caption)
         }
     }
 }
