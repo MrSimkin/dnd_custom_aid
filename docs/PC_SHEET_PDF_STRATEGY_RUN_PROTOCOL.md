@@ -455,3 +455,26 @@ Operating rule remains:
 - continue to expand and repair in the same run when diagnostic clarity is preserved;
 - independently audit every generated draft;
 - PR #85 remains **DRAFT / DO NOT MERGE** until a complete owner-reviewed visual family is ready.
+
+
+---
+
+## 8. Owner approval gate — Custom v1 first draft
+
+**Date:** 2026-09-19  
+**Status:** OWNER APPROVED
+
+After Run 6, the owner explicitly approved the **first Custom v1 draft** and confirmed that no strategy change was needed.
+
+This establishes:
+
+- Strategy 1 / Hybrid remains the selected renderer strategy;
+- the Run-6 Custom v1 result is the owner-approved first-draft visual baseline;
+- Runs 1–6 are considered a successful convergence sequence for Custom v1;
+- the section-isolated Form/OCG architecture remains the approved direction for future renderer work.
+
+This approval does not automatically approve Custom v2 or Classic, does not merge PR #85, and does not remove future regression/audit requirements.
+
+Durable approval checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_FIRST_DRAFT_OWNER_APPROVED.md`
