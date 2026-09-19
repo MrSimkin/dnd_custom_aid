@@ -363,18 +363,25 @@ class DesktopPcSheetHybridStrategyRun7Test {
 
     private fun drawValuables(s: PDFormContentStream, fonts: Fonts) {
         VALUABLE_RULE_Y.zip(VALUABLES).forEach { (y, entry) ->
-            textAboveRule(s, fonts.regular, Rule(407.5f, 522f, y), entry.first, 9.0f, 8.5f, 2.4f, 1.5f)
-            centeredAboveRule(s, fonts.semibold, Rule(535f, 589.5f, y), entry.second, 9.5f, 2.4f)
+            textAboveRule(s, fonts.regular, Rule(453.402f, 546.945f, y), entry.first, 9.0f, 8.5f, 2.4f, 1.5f)
+            centeredAboveRule(s, fonts.semibold, Rule(549.779f, 583.795f, y), entry.second, 9.5f, 2.4f)
         }
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, fonts: Fonts) {
-        SPECIAL_RULE_Y.zip(SPECIAL_EQUIPMENT).forEach { (y, entry) ->
+        SPECIAL_RULE_Y.zip(SPECIAL_EQUIPMENT).forEachIndexed { index, (y, entry) ->
             if (entry.checked) {
-                glyphInRect(s, fonts.symbol, 0xE211, TopRect(112.4f, y - 12.287f, 9.669f, 12.287f), 0.6f, 0.6f, opticalX = 0.65f)
+                glyphInRect(
+                    s,
+                    fonts.symbol,
+                    0xE211,
+                    TopRect(113.244f, SPECIAL_CHECK_TOP[index], 9.669f, 12.287f),
+                    0.6f,
+                    0.6f,
+                )
             }
             textAboveRule(s, fonts.regular, Rule(127.5f, 210f, y), entry.name, 9.0f, 8.5f, 2.4f, 1.5f)
-            textAboveRule(s, fonts.regular, Rule(215f, 517.5f, y), entry.description, 9.0f, 8.5f, 2.4f, 1.5f)
+            textAboveRule(s, fonts.regular, Rule(240.803f, 583.795f, y), entry.description, 9.0f, 8.5f, 2.4f, 1.5f)
         }
     }
 
@@ -672,11 +679,11 @@ class DesktopPcSheetHybridStrategyRun7Test {
         val FLAWS_RULES = listOf(665.5f, 685f, 704f, 725f, 743.5f, 764.5f).map { Rule(25f, 181f, it) }
         val STORY_RULE_Y = listOf(387.996f, 407.839f, 427.681f, 447.524f)
         val NARRATIVE_NOTES_RULES = listOf(606f, 625.5f, 645.5f, 665.5f, 685f, 705f, 725f, 744.5f, 764.5f)
-            .map { Rule(192.5f, 517.5f, it) }
+            .map { Rule(215.291f, 583.795f, it) }
 
         val OTHER_TRAIT_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f)
         val OTHER_TRAIT_RULES = OTHER_TRAIT_Y.flatMap { y ->
-            listOf(Rule(192.5f, 352.5f, y), Rule(365f, 517.5f, y))
+            listOf(Rule(215.291f, 396.708f, y), Rule(402.378f, 583.795f, y))
         }
         val OTHER_TRAITS = listOf(
             "Visión en la oscuridad", "Trance",
@@ -691,7 +698,7 @@ class DesktopPcSheetHybridStrategyRun7Test {
         )
 
         val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
-        val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 152.5f to 262.5f, 277.5f to 390f)
+        val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a,b) -> Rule(a,b,y) } }
         val EQUIPMENT_ITEMS = listOf(
             "Mochila de expedición", "Libro de conjuros", "3 x Pociones",
@@ -711,6 +718,10 @@ class DesktopPcSheetHybridStrategyRun7Test {
             "Mosaico con sello azul" to "25",
         )
         val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
+        val SPECIAL_CHECK_TOP = listOf(
+            508.770f, 528.612f, 548.455f, 568.297f, 588.140f, 607.982f,
+            627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
+        )
         val SPECIAL_EQUIPMENT = listOf(
             SpecialEquipmentEntry("Diadema del Archivo", "Marca ceremonial de acceso.", true),
             SpecialEquipmentEntry("Monóculo rúnico", "Ayuda a inspeccionar glifos finos.", true),
@@ -747,7 +758,7 @@ class DesktopPcSheetHybridStrategyRun7Test {
 
         val NOTES_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f)
         val NOTES_LEFT_RULES = NOTES_Y.map { Rule(25f, 267.5f, it) }
-        val NOTES_RIGHT_RULES = NOTES_Y.map { Rule(277.5f, 520f, it) }
+        val NOTES_RIGHT_RULES = NOTES_Y.map { Rule(311.669f, 583.795f, it) }
         const val NOTES_LEFT_TEXT =
             "Contactar a Maestra Elenya al regresar a Liria. No entregar el mapa original a terceros. Preparar tinta resistente al agua antes de entrar en las ruinas. Revisar el corredor norte antes de acampar. La puerta con sello azul responde al mismo patrón visto en la torre. Mantener una copia separada del alfabeto parcial. Registrar la posición de cada piedra marcada y comprobar si las distancias forman una secuencia."
         const val NOTES_RIGHT_TEXT =
