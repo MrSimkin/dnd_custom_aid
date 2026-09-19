@@ -899,3 +899,46 @@ Implement and audit **Custom v2 — per Ability** using:
 - approved shared pages unchanged.
 
 PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 16. Custom v2 — per Ability Run 1
+
+**Result:** PASS FOR OWNER REVIEW
+
+Implementation:
+
+- commit `75c61966312dc745f1d3763631060cdb96db6dae`;
+- Scaffold `35470243545` / run #2754 — SUCCESS.
+
+The per-Ability draft uses:
+
+- source page 2 as its unique first page;
+- the owner-approved v2 shared pages unchanged.
+
+First-page-specific geometry includes:
+
+- tall portrait;
+- upper-left proficiency / Inspiration;
+- six score/modifier blocks using the approved ellipse treatment;
+- centralized saving throws;
+- centralized skills;
+- approved family-specific v8 check optical offsets.
+
+Shared-page regression proof:
+
+- Equipment/Narrative: 0% pixel change;
+- Spells: 0%;
+- Notes: 0%.
+
+Independent audit found no local first-page defect requiring another run before owner review.
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ABILITY_HYBRID_RUN1.md`
+
+Current gate:
+
+- mandatory owner review of Custom v2 — per Ability;
+- PR #85 remains **DRAFT / DO NOT MERGE**.
