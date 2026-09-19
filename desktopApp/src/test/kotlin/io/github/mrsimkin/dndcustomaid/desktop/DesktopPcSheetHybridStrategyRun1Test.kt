@@ -79,7 +79,7 @@ class DesktopPcSheetHybridStrategyRun1Test {
     private fun overlay(doc: PDDocument, page: PDPage, fonts: Fonts, kind: Kind): PDFormXObject {
         val form = PDFormXObject(doc).apply {
             resources = PDResources()
-            bbox = PDRectangle(page.cropBox.width, page.cropBox.height)
+            setBBox(PDRectangle(page.cropBox.width, page.cropBox.height))
         }
         PDFormContentStream(form).use { s ->
             s.setNonStrokingColor(Color.BLACK)
