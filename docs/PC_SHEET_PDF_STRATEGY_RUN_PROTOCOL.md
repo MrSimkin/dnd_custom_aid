@@ -675,3 +675,68 @@ No further Custom-v1 visual experimentation is required unless the owner explici
 The project may now proceed to the next development step.
 
 PR #85 remains **DRAFT / DO NOT MERGE** until its broader scope/closure gate is resolved.
+
+
+---
+
+## 13. Custom v2 visual phase — per-Attribute Runs 1–2
+
+Custom v2 reuses Strategy 1 / Hybrid without reopening rendering-strategy research.
+
+Source structure:
+
+- page 1 = per Attribute first-page variant;
+- page 2 = per Ability first-page variant;
+- pages 3–5 = shared v2 pages.
+
+Durable source geometry analysis:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_SOURCE_GEOMETRY_ANALYSIS.md`
+
+### Per-Attribute Run 1
+
+Result:
+
+**technical PASS / strong visual partial PASS**
+
+Independent audit found only local Y-placement defects:
+
+- portrait figure entered the lower banner;
+- handwritten portrait name overlapped the crown ornament;
+- first Historia line overlapped the printed heading.
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ATTRIBUTE_HYBRID_RUN1.md`
+
+### Per-Attribute Run 2
+
+Result:
+
+**PASS FOR OWNER REVIEW**
+
+Corrections were limited to:
+
+- portrait figure vertical extent;
+- portrait-name placement;
+- Historia first content rule.
+
+Differential audit vs Run 1:
+
+- page 1 changed only in portrait/name region;
+- page 2 changed only in Historia;
+- pages 3 and 4: 0% pixel change.
+
+Final Run-2 scaffold:
+
+`35467797642` / run #2731 — SUCCESS
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ATTRIBUTE_HYBRID_RUN2.md`
+
+Current gate:
+
+- mandatory owner review of Custom v2 — per Attribute;
+- shared pages should remain unchanged for the per-Ability variant unless owner review identifies a shared-page issue;
+- PR #85 remains **DRAFT / DO NOT MERGE**.
