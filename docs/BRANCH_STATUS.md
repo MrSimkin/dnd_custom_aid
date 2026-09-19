@@ -1,14 +1,14 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-17 (Chile local time)  
+**Updated:** 2026-09-18 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `f6350d34087aae55d5247f2ba23153814eeed04b` (PC Sheet PDF foundation PR #83)  
+**Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
 **Post-merge Scaffold:** `35295050340` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — local renderer + authoritative template mapping
+**Current normal work:** PC Sheet PDF Export — renderer-foundation redesign / structured QA preparation
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -98,27 +98,51 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-The PC Sheet PDF Export shared semantic/render-plan foundation is integrated in PR #83.
-
-The next implementation-ready package is **PC Sheet PDF Export — local renderer + authoritative template mapping** under D-0074.
-
-Expected short-lived branch name:
+Active branch:
 
 `wave7/pc-sheet-pdf-renderer-template-proof`
 
-Functional boundary:
+Draft PR:
 
-- consume the existing shared render plan rather than inventing new PC/export semantics;
-- generate static PDF output locally/offline;
-- use the owner's actual Custom v1/v2 PDFs as authoritative base pages;
-- preserve the v2 page-1 / page-2 alternative mapping already encoded in the shared plan;
-- establish concrete field placement/template metadata and rendering primitives;
-- add generated/Extended pages only where the approved D-0074 modes require them;
-- do not call the visual family approved until the owner has seen a populated dummy-data example.
+**#85 — do not merge**
 
-The Classic family is independently designed. Custom v1/v2 are not to be unnecessarily redrawn from scratch.
+Current state:
 
-Do not invent freeze/unfreeze semantics. D-0072 requires freeze/unfreeze, but current durable records do not define what freezing blocks and there is no existing freeze field/contract.
+- the initial page-one proof remains historical/diagnostic evidence after owner Round 1 rejection;
+- the renderer strategy remains whole-export-first with structured section/page/family/end-to-end QA;
+- PDFBox 3.0.8 and the reusable renderer primitive foundation are established;
+- **owner Primitive PDF QA is accepted** and renderer work may proceed beyond that gate;
+- no complete Classic / Custom v1 / Custom v2 visual family is approved;
+- the exact owner-authored v1 TTF is published byte-for-byte after authoritative SHA-256 verification;
+- v4 is published as a modern redesign with deterministic TTX-backed source/build, complete mapping guide, legacy-refined + modern-clean families and PUA aliases;
+- v4 technical validation is complete; **v4 visual specimen approval is still pending**;
+- PR #85 remains DRAFT / DO NOT MERGE.
+
+Do not return to blind page-one coordinate polishing.
+
+Next continuation sequence:
+
+1. owner reviews the Para Hoja de PJ v4 visual specimen;
+2. if the published v4 artwork needs changes, preserve v4 and create the next versioned derivative rather than replacing it;
+3. continue populated renderer implementation across all required pages/families using the accepted primitive foundation;
+4. use the symbol-font candidate only within its documented visual-approval status;
+5. perform section -> page -> family -> end-to-end QA;
+6. do not merge PR #85 until the remaining family/functional gates are satisfied.
+
+Relevant durable records:
+
+- `docs/checkpoints/2026-09-18_PARA_HOJA_DE_PJ_V4_PUBLISHED_PRIMITIVE_QA_ACCEPTED.md`;
+- `docs/checkpoints/2026-09-18_PDF_PRIMITIVE_QA_OWNER_FEEDBACK_APPLIED.md`;
+- `docs/checkpoints/2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`;
+- `docs/checkpoints/2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`;
+- `docs/checkpoints/2026-09-17_PC_SHEET_PDF_WHOLE_EXPORT_RENDERER_QA_STRATEGY.md`;
+- `docs/checkpoints/2026-09-17_PC_SHEET_PDF_RENDERER_FOUNDATION_RESEARCH.md`;
+- `docs/checkpoints/2026-09-18_REPOSITORY_VISIBILITY_AND_PDF_FONT_ASSET_POLICY.md`;
+- `assets/fonts/owner/para-hoja-de-pj/README.md`;
+- `assets/fonts/owner/para-hoja-de-pj/v4/GUIDE.md`;
+- `scripts/fonts/para-hoja-de-pj/v4/build_para_hoja_de_pj_v4.py`.
+
+No visual family is approved. No merge is authorized.
 
 ## Historical/stale open PRs
 
