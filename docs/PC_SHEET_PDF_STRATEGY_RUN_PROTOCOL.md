@@ -370,34 +370,88 @@ Checkpoint:
 
 ---
 
-## 7. Current state before Run 6
+### Run 6 — Measured skill calibration + continued expansion
+
+**Result:** technical PASS / strong experimental visual PASS.
+
+Repairs:
+- skill checkboxes now use measured authoritative source glyph rectangles;
+- skill numeric values use measured source line segments;
+- `Trato con Animales` no longer collides with its value;
+- `Siguiente Nivel` uses the true source rule;
+- `Puntos de Experiencia` was added on its true source rule.
+
+Expanded coverage:
+- Core Stats: Initiative, Proficiency Bonus, Max HP, Current HP, Speed, Hit Dice;
+- Spellcasting Summary: Save DC, attack modifier, spellcasting ability;
+- Rasgos second row / three columns;
+- page-2 Historia sample.
+
+Architecture:
+- at least sixteen independent semantic OCG/Form layers;
+- Skills subdivided by ability column.
+
+Regression:
+- spell semantics remain stable;
+- Defense, abilities, portrait name, attacks and background fields remain stable.
+
+Coverage caveat:
+- Inspiration is not yet populated/tested in the new Core Stats layer.
+
+Checkpoint:
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_HYBRID_STRATEGY_RUN6.md`
+
+---
+
+## 7. Current state after Run 6
 
 Active strategy: **Strategy 1 — Hybrid**
 
-Known-good mechanics to preserve:
+Current confidence:
+- Strategy architecture: strong;
+- section/box isolation: proven;
+- exact-source geometry workflow: proven for spell checks, skill checks, numeric skill lines and Identification rules;
+- font embedding: stable;
+- cross-renderer behavior: stable;
+- complete Custom-family approval: **not yet reached**.
+
+Known-good mechanics/semantics to preserve:
 
 - authoritative source template;
-- independent section layers;
+- independent semantic section layers;
+- subdivide difficult sections further when useful;
 - full font embedding;
-- Fira/Kalam/v8 roles;
-- native-point geometry;
+- Fira/Kalam/v8 role direction;
+- native PDF-point geometry;
 - metric-based marker fit;
-- metric-based ruled-text baseline;
-- 15 pt `ESPACIOS`;
-- no spent-slot generation;
-- no cantrip preparation marks;
-- Run-5 Defense/Attributes/Portrait/Rasgos/Background/Attack results.
+- metric-based ruled-text baselines;
+- measured source target rectangles/lines instead of guessed centers;
+- 15 pt `ESPACIOS` direction;
+- `ESPACIOS GASTADOS` remains empty;
+- cantrips receive no preparation marks;
+- Defense / attributes / portrait name / attacks / page-2 background fields;
+- measured skill columns;
+- XP / Next Level Identification placement;
+- Core Stats tested values;
+- spellcasting summary;
+- two Rasgos rows;
+- short Historia sample.
 
-Known defects to repair:
+Current known coverage gap:
 
-1. skill checkbox target geometry;
-2. skill value-line geometry for long labels;
-3. Identification `Siguiente Nivel` real rule geometry.
+1. Inspiration has not yet been populated/tested in the new Core Stats layer.
 
-Run 6 policy:
+Recommended future expansion candidates:
 
-- repair the three known defects;
-- **also expand to additional fields/sections**;
-- keep new additions independently layered;
-- audit every new section and all known-good regressions;
-- do not merge PR #85 merely because Run 6 passes.
+- Inspiration marker;
+- saving-throw checks + values using exact-source geometry;
+- additional spell levels while preserving spell semantics;
+- more Historia / Otros Rasgos y Atributos;
+- selected Notes content;
+- additional Rasgos rows;
+- later, migration of the proven primitives into production renderer code.
+
+Operating rule remains:
+- continue to expand and repair in the same run when diagnostic clarity is preserved;
+- independently audit every generated draft;
+- PR #85 remains **DRAFT / DO NOT MERGE** until a complete owner-reviewed visual family is ready.
