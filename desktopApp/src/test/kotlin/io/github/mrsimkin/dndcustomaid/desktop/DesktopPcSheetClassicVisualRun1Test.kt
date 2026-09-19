@@ -89,7 +89,7 @@ class DesktopPcSheetClassicVisualRun1Test {
 
             section(s, p, 24f, 476f, 160f, 92f, "PROFICIENCY")
             miniStat(s, p, 32f, 505f, 66f, 46f, "BONUS", "+3")
-            miniStat(s, p, 104f, 505f, 72f, 46f, "INSPIRATION", "★")
+            markerStat(s, p, 104f, 505f, 72f, 46f, "INSPIRATION", PdfMarkerKind.STAR_FILLED)
 
             section(s, p, 196f, 94f, 198f, 206f, "SAVING THROWS")
             val saves = listOf(
@@ -463,6 +463,30 @@ class DesktopPcSheetClassicVisualRun1Test {
             align = PdfHorizontalAlignment.CENTER)
         text(s, p, x + 4f, top + 15f, width - 8f, height - 18f, value, PdfTypographyRole.PRIMARY_VALUE, 15f, 10f,
             align = PdfHorizontalAlignment.CENTER)
+    }
+
+    private fun markerStat(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        label: String,
+        kind: PdfMarkerKind,
+    ) {
+        fillRect(s, x, top, width, height, CARD_FILL)
+        strokeRect(s, x, top, width, height, 0.7f)
+        text(s, p, x + 3f, top + 3f, width - 6f, 12f, label, PdfTypographyRole.OPTIONAL_DECORATIVE, 6.8f, 6f,
+            align = PdfHorizontalAlignment.CENTER)
+        p.drawMarker(
+            s,
+            centerX = x + width / 2f,
+            centerY = H - top - 31f,
+            sizePt = 13f,
+            kind = kind,
+            family = PdfSymbolFamily.V1_DERIVED,
+        )
     }
 
     private fun row(
