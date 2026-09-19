@@ -1016,9 +1016,9 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
     private val V2_NOTES_RULE_Y = List(20) { 104f + it * 17f }
     private val V2_NOTES_LEFT_RULES = V2_NOTES_RULE_Y.map { Rule(14f, 302.5f, it) }
     private val V2_NOTES_RIGHT_RULES = V2_NOTES_RULE_Y.map { Rule(309f, 597.5f, it) }
-    private const val V2_NOTES_LEFT_TEXT =
+    private val V2_NOTES_LEFT_TEXT =
         "Contactar a Maestra Elenya al regresar a Liria. No entregar el mapa original a terceros. Preparar tinta resistente al agua. Revisar el corredor norte antes de acampar. La puerta con sello azul responde al mismo patrón visto en la torre. Mantener una copia separada del alfabeto parcial. Registrar cada piedra marcada y comprobar las distancias."
-    private const val V2_NOTES_RIGHT_TEXT =
+    private val V2_NOTES_RIGHT_TEXT =
         "Pista: el sello azul aparece también en las monedas halladas en la torre. Comparar el alfabeto de la puerta norte con las notas del profesor Vael. Ruta: entrada oeste, cámara de columnas, escalera rota, galería azul y archivo inferior. Materiales: tinta, tiza, viales, espejo, cuerda y una linterna adicional."
 
     private companion object {
