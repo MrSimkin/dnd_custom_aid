@@ -853,3 +853,49 @@ Checkpoint:
 `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ATTRIBUTE_RUN3_RUN4_CALIBRATION.md`
 
 PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 15. Custom v2 — per Attribute owner approval / shared-page freeze
+
+**Owner status:** APPROVED / FROZEN  
+**Date:** 2026-09-19
+
+Approved rendering state:
+
+- commit: `03c3155301196eaab1229afb4827c46f8acf04cc`;
+- Scaffold: `35469291933` / run #2739 — SUCCESS;
+- PDF: `hybrid-custom-v2-attribute-run4-composite.pdf`;
+- overlay: `hybrid-custom-v2-attribute-run4-overlay-only.pdf`.
+
+Owner approval checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ATTRIBUTE_RUN4_OWNER_APPROVED.md`
+
+Stable v2 pointer:
+
+`docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`
+
+### Shared-page freeze
+
+The owner-approved per-Attribute artifact also freezes the current v2 common pages:
+
+- source page 3 — Equipment / Narrative;
+- source page 4 — Spells;
+- source page 5 — Notes.
+
+These shared pages are the approved common baseline for the per-Ability variant.
+
+Per-Ability work should reuse them unchanged and focus on source page 2.
+
+Any shared-page modification requires a new explicit delta, independent audit, and owner review.
+
+### Current next gate
+
+Implement and audit **Custom v2 — per Ability** using:
+
+- source page 2 as the alternative first page;
+- approved shared pages unchanged.
+
+PR #85 remains **DRAFT / DO NOT MERGE**.
