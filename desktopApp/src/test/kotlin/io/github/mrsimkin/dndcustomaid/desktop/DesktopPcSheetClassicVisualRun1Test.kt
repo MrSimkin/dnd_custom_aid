@@ -71,6 +71,9 @@ class DesktopPcSheetClassicVisualRun1Test {
                 .writeText(overflowDiagnostics.joinToString("\n"))
         }
         assertTrue(pdf.length() > 10_000L)
+        check(overflowDiagnostics.isEmpty()) {
+            "Classic Run 1 text overflow(s):\n" + overflowDiagnostics.joinToString("\n")
+        }
     }
 
     private fun drawMain(doc: PDDocument, p: DesktopPdfRenderingPrimitives) {
@@ -256,9 +259,9 @@ class DesktopPcSheetClassicVisualRun1Test {
             pageHeader(s, p, "Aster Vale", "CLASSIC  •  SPELL LIST", "Wizard spellcasting • INT 18 • Save DC 15 • Attack +7")
 
             section(s, p, 24f, 96f, 564f, 70f, "SPELLCASTING")
-            miniStat(s, p, 34f, 126f, 92f, 30f, "ABILITY", "INT")
-            miniStat(s, p, 132f, 126f, 92f, 30f, "SAVE DC", "15")
-            miniStat(s, p, 230f, 126f, 92f, 30f, "ATTACK", "+7")
+            miniStat(s, p, 34f, 126f, 92f, 34f, "ABILITY", "INT")
+            miniStat(s, p, 132f, 126f, 92f, 34f, "SAVE DC", "15")
+            miniStat(s, p, 230f, 126f, 92f, 34f, "ATTACK", "+7")
             text(s, p, 340f, 124f, 238f, 34f, "Prepared checks are shown at left. Spent slots intentionally stay blank on generated sheets.",
                 PdfTypographyRole.BODY, 8.2f, 7.2f, wrap = true, maxLines = 2)
 
@@ -266,7 +269,7 @@ class DesktopPcSheetClassicVisualRun1Test {
             val slots = listOf("1" to "4", "2" to "3", "3" to "3", "4" to "3", "5" to "2", "6" to "1", "7" to "1", "8" to "1", "9" to "1")
             slots.forEachIndexed { i, (level, total) ->
                 val x = 34f + i * 59.8f
-                miniStat(s, p, x, 208f, 52f, 30f, "L$level", total)
+                miniStat(s, p, x, 208f, 52f, 34f, "L$level", total)
             }
 
             val columns = listOf(24f, 214f, 404f)
@@ -378,7 +381,7 @@ class DesktopPcSheetClassicVisualRun1Test {
     ) {
         fillRect(s, 24f, 24f, 564f, 56f, HEADER_FILL)
         strokeRect(s, 24f, 24f, 564f, 56f, 1.1f)
-        text(s, p, 36f, 32f, 260f, 28f, name, PdfTypographyRole.CHARACTER_NAME, 22f, 18f)
+        text(s, p, 36f, 28f, 260f, 42f, name, PdfTypographyRole.CHARACTER_NAME, 20f, 16f)
         text(s, p, 306f, 31f, 270f, 18f, title, PdfTypographyRole.OPTIONAL_DECORATIVE, 12f, 10f,
             align = PdfHorizontalAlignment.RIGHT)
         text(s, p, 306f, 52f, 270f, 16f, subtitle, PdfTypographyRole.BODY, 8f, 7f,
