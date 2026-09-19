@@ -638,7 +638,10 @@ class DesktopPcSheetClassicVisualRun1Test {
                 verticalPaddingPt = 0.5f,
             ),
         )
-        check(!result.hasOverflow) { "Classic Run 1 overflow in '$value': ${result.overflowText}" }
+        if (result.hasOverflow) {
+            System.err.println("CLASSIC_RUN1_OVERFLOW value='$value' overflow='${result.overflowText}'")
+            error("Classic Run 1 overflow in '$value': ${result.overflowText}")
+        }
     }
 
     private fun footer(
