@@ -92,45 +92,46 @@ internal class DesktopPcSheetTemplateProofRenderer(
         val sheet = aggregate.sheet
         val closure = aggregate.closure
 
-        drawPortraitPlaceholder(stream, primitives, 820f, 58f, 210f, 250f)
+        // Measured against the actual upper portrait rectangle, leaving the decorative name banner visible.
+        drawPortraitPlaceholder(stream, primitives, 915f, 65f, 250f, 275f)
 
-        fillOnRulePx(stream, primitives, 575f, 265f, 107f, classSummary(plan), 9.5f)
-        fillOnRulePx(stream, primitives, 575f, 265f, 146f, sheet.background.race, 9.5f)
+        fillOnRulePx(stream, primitives, 620f, 260f, 106f, classSummary(plan), 9.5f)
+        fillOnRulePx(stream, primitives, 620f, 260f, 146f, sheet.background.race, 9.5f)
         if (closure.progressMode == CharacterProgressMode.EXPERIENCE) {
-            fillOnRulePx(stream, primitives, 175f, 210f, 225f, closure.experiencePoints.toString(), 9f)
+            fillOnRulePx(stream, primitives, 275f, 185f, 225f, closure.experiencePoints.toString(), 9.5f)
         }
         fillCenteredTextPx(
-            stream, primitives, 1005f, 410f, sheet.name,
+            stream, primitives, 1042f, 410f, sheet.name,
             13f, 250f, PdfTypographyRole.HANDWRITTEN_NAME,
         )
 
-        fillCenteredTextPx(stream, primitives, 115f, 332f, sheet.armorClass.toString(), 22f, 105f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 395f, 270f, signed(sheet.initiativeModifier), 16f, 100f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 540f, 270f, signed(sheet.finalProficiencyBonus), 16f, 100f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 685f, 270f, sheet.maxHp.toString(), 17f, 100f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 827f, 334f, sheet.currentHp.toString(), 22f, 100f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 395f, 405f, sheet.speed.toString(), 16f, 100f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 115f, 335f, sheet.armorClass.toString(), 22f, 105f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 399.5f, 276f, signed(sheet.initiativeModifier), 17f, 105f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 541.5f, 276f, signed(sheet.finalProficiencyBonus), 17f, 105f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 682.5f, 276f, sheet.maxHp.toString(), 18f, 105f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 824.5f, 347f, sheet.currentHp.toString(), 23f, 105f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 399.5f, 412f, sheet.speed.toString(), 17f, 105f, PdfTypographyRole.PRIMARY_VALUE)
         if (sheet.inspiration) {
-            markerPx(stream, primitives, 540f, 405f, 18f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V1_DERIVED)
+            markerPx(stream, primitives, 541.5f, 412f, 30f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V1_DERIVED)
         }
-        fillCenteredTextPx(stream, primitives, 685f, 405f, hitDiceSummary(plan), 11f, 105f, PdfTypographyRole.SECONDARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 682.5f, 412f, hitDiceSummary(plan), 12f, 108f, PdfTypographyRole.SECONDARY_VALUE)
 
-        val abilityColumns = listOf(
-            CharacterAbility.STRENGTH to 115f,
-            CharacterAbility.DEXTERITY to 305f,
-            CharacterAbility.CONSTITUTION to 495f,
-            CharacterAbility.INTELLIGENCE to 685f,
-            CharacterAbility.WISDOM to 875f,
-            CharacterAbility.CHARISMA to 1065f,
+        val abilityPlacements = listOf(
+            Triple(CharacterAbility.STRENGTH, 116f, 170f),
+            Triple(CharacterAbility.DEXTERITY, 308.5f, 368.5f),
+            Triple(CharacterAbility.CONSTITUTION, 501.5f, 561f),
+            Triple(CharacterAbility.INTELLIGENCE, 694.5f, 753.5f),
+            Triple(CharacterAbility.WISDOM, 891f, 946.5f),
+            Triple(CharacterAbility.CHARISMA, 1079.5f, 1139f),
         )
-        abilityColumns.forEach { (ability, x) ->
+        abilityPlacements.forEach { (ability, scoreX, modifierX) ->
             fillCenteredTextPx(
-                stream, primitives, x, 570f,
-                sheet.abilityScore(ability).toString(), 18f, 85f, PdfTypographyRole.PRIMARY_VALUE,
+                stream, primitives, scoreX, 566.5f,
+                sheet.abilityScore(ability).toString(), 19f, 90f, PdfTypographyRole.PRIMARY_VALUE,
             )
             fillCenteredTextPx(
-                stream, primitives, x + 55f, 590f,
-                signed(sheet.abilityModifier(ability)), 10.5f, 55f, PdfTypographyRole.SECONDARY_VALUE,
+                stream, primitives, modifierX, 586f,
+                signed(sheet.abilityModifier(ability)), 11f, 52f, PdfTypographyRole.SECONDARY_VALUE,
             )
         }
 
@@ -194,16 +195,16 @@ internal class DesktopPcSheetTemplateProofRenderer(
         columns.forEach { column ->
             val save = sheet.savingThrow(column.ability)
             if (save.proficient) {
-                markerPx(stream, primitives, column.checkboxX, 632f, 10f, PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED)
+                markerPx(stream, primitives, column.checkboxX, 632f, 14f, PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED)
             }
-            fillTextPx(stream, primitives, column.valueX, 622f, signed(sheet.savingThrowTotal(column.ability)), 7.5f, 45f)
+            fillTextPx(stream, primitives, column.valueX, 622f, signed(sheet.savingThrowTotal(column.ability)), 7.8f, 45f)
             column.skills.forEachIndexed { index, skill ->
                 val y = 652f + index * 30f
                 val state = sheet.skill(skill)
                 skillMarkerKind(state.training)?.let { kind ->
-                    markerPx(stream, primitives, column.checkboxX, y + 9f, 10f, kind, PdfSymbolFamily.V1_DERIVED)
+                    markerPx(stream, primitives, column.checkboxX, y + 9f, 14f, kind, PdfSymbolFamily.V1_DERIVED)
                 }
-                fillTextPx(stream, primitives, column.valueX, y, signed(sheet.skillTotal(skill)), 7.5f, 45f)
+                fillTextPx(stream, primitives, column.valueX, y, signed(sheet.skillTotal(skill)), 7.8f, 45f)
             }
         }
     }
@@ -216,25 +217,28 @@ internal class DesktopPcSheetTemplateProofRenderer(
         val sheet = plan.snapshot.aggregate.sheet
         val (saveDc, attack, ability) = spellcastingSummary(plan)
         saveDc?.let {
-            fillCenteredTextPx(stream, primitives, 300f, 858f, it.toString(), 13f, 95f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 348.5f, 880.5f, it.toString(), 16f, 105f, PdfTypographyRole.PRIMARY_VALUE)
         }
         attack?.let {
-            fillCenteredTextPx(stream, primitives, 300f, 1012f, signed(it), 13f, 95f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 349.5f, 1031.5f, signed(it), 16f, 105f, PdfTypographyRole.PRIMARY_VALUE)
         }
         ability.takeIf { it.isNotBlank() }?.let {
-            fillCenteredTextPx(stream, primitives, 300f, 1152f, it, 11.5f, 95f, PdfTypographyRole.SECONDARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 348.5f, 1175f, it, 14f, 105f, PdfTypographyRole.SECONDARY_VALUE)
         }
 
         val slots = sheet.spellSlots.associateBy { it.level }
         for (level in 1..9) {
             val slot = slots[level] ?: continue
-            val y = 898f + (level - 1) * 39f
-            fillCenteredTextPx(stream, primitives, 112f, y, slot.totalSlots.toString(), 9f, 45f, PdfTypographyRole.NUMERIC_COMPACT)
-            val spentCenters = listOf(174f, 202f, 230f, 258f)
-            repeat(slot.spentSlots.coerceAtMost(spentCenters.size)) { index ->
+            val rowCenterY = V1_SLOT_CENTER_Y[level - 1]
+            fillCenteredTextPx(
+                stream, primitives, 125f, rowCenterY,
+                slot.totalSlots.toString(), 10.5f, 50f, PdfTypographyRole.NUMERIC_COMPACT,
+            )
+            repeat(slot.spentSlots.coerceAtMost(V1_SLOT_SPENT_CENTER_X.size)) { index ->
                 markerPx(
-                    stream, primitives, spentCenters[index], y + 2f, 12f,
-                    PdfMarkerKind.CIRCLE_FILLED, PdfSymbolFamily.V1_DERIVED,
+                    stream, primitives,
+                    V1_SLOT_SPENT_CENTER_X[index], rowCenterY, 20f,
+                    PdfMarkerKind.OVAL_FILLED, PdfSymbolFamily.V1_DERIVED,
                 )
             }
         }
@@ -250,10 +254,10 @@ internal class DesktopPcSheetTemplateProofRenderer(
             .take(V1_ATTACK_RULE_Y.size)
             .forEachIndexed { index, entry ->
                 val ruleY = V1_ATTACK_RULE_Y[index]
-                fillOnRulePx(stream, primitives, 365f, 260f, ruleY, entry.name, 7.8f)
-                fillOnRulePx(stream, primitives, 630f, 105f, ruleY, entry.rangeText.orEmpty(), 7.4f)
-                fillOnRulePx(stream, primitives, 742f, 115f, ruleY, entry.attackModifier?.let(::signed).orEmpty(), 7.8f)
-                fillOnRulePx(stream, primitives, 865f, 300f, ruleY, entry.damageEffect, 7.4f)
+                fillOnRulePx(stream, primitives, 440f, 260f, ruleY, entry.name, 7.8f)
+                fillOnRulePx(stream, primitives, 718f, 105f, ruleY, entry.rangeText.orEmpty(), 7.4f)
+                fillOnRulePx(stream, primitives, 840f, 90f, ruleY, entry.attackModifier?.let(::signed).orEmpty(), 7.8f)
+                fillOnRulePx(stream, primitives, 950f, 205f, ruleY, entry.damageEffect, 7.4f)
             }
     }
 
@@ -288,16 +292,16 @@ internal class DesktopPcSheetTemplateProofRenderer(
         val sheet = plan.snapshot.aggregate.sheet
 
         val abilityRows = listOf(
-            CharacterAbility.STRENGTH to 270f,
-            CharacterAbility.DEXTERITY to 420f,
-            CharacterAbility.CONSTITUTION to 585f,
-            CharacterAbility.INTELLIGENCE to 740f,
-            CharacterAbility.WISDOM to 895f,
-            CharacterAbility.CHARISMA to 1050f,
+            Triple(CharacterAbility.STRENGTH, 273f, 300.5f),
+            Triple(CharacterAbility.DEXTERITY, 431.5f, 460.5f),
+            Triple(CharacterAbility.CONSTITUTION, 591.5f, 620.5f),
+            Triple(CharacterAbility.INTELLIGENCE, 751.5f, 780f),
+            Triple(CharacterAbility.WISDOM, 911.5f, 939.5f),
+            Triple(CharacterAbility.CHARISMA, 1070.5f, 1099.5f),
         )
-        abilityRows.forEach { (ability, y) ->
-            fillCenteredTextPx(stream, primitives, 80f, y, sheet.abilityScore(ability).toString(), 18f, 85f, PdfTypographyRole.PRIMARY_VALUE)
-            fillCenteredTextPx(stream, primitives, 140f, y + 15f, signed(sheet.abilityModifier(ability)), 10.5f, 60f, PdfTypographyRole.SECONDARY_VALUE)
+        abilityRows.forEach { (ability, scoreY, modifierY) ->
+            fillCenteredTextPx(stream, primitives, 87.5f, scoreY, sheet.abilityScore(ability).toString(), 19f, 100f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 143f, modifierY, signed(sheet.abilityModifier(ability)), 11f, 74f, PdfTypographyRole.SECONDARY_VALUE)
         }
 
         val rows = listOf(
@@ -348,14 +352,14 @@ internal class DesktopPcSheetTemplateProofRenderer(
         rows.forEach { row ->
             val save = sheet.savingThrow(row.ability)
             if (save.proficient) {
-                markerPx(stream, primitives, 204f, row.saveY + 7f, 9.5f, PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED)
+                markerPx(stream, primitives, 205.5f, row.saveY + 7f, 13f, PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED)
             }
-            fillTextPx(stream, primitives, 315f, row.saveY, signed(sheet.savingThrowTotal(row.ability)), 7.2f, 45f)
+            fillTextPx(stream, primitives, 315f, row.saveY, signed(sheet.savingThrowTotal(row.ability)), 7.4f, 45f)
             row.skills.forEach { (skill, y) ->
                 skillMarkerKind(sheet.skill(skill).training)?.let { kind ->
-                    markerPx(stream, primitives, 204f, y + 7f, 9.5f, kind, PdfSymbolFamily.V3_DERIVED)
+                    markerPx(stream, primitives, 205.5f, y + 7f, 13f, kind, PdfSymbolFamily.V3_DERIVED)
                 }
-                fillTextPx(stream, primitives, 315f, y, signed(sheet.skillTotal(skill)), 7.2f, 45f)
+                fillTextPx(stream, primitives, 315f, y, signed(sheet.skillTotal(skill)), 7.4f, 45f)
             }
         }
     }
@@ -368,33 +372,33 @@ internal class DesktopPcSheetTemplateProofRenderer(
         drawCustomV2Common(stream, primitives, plan, nameCenterY = 365f, pageTwoVariant = true)
         val sheet = plan.snapshot.aggregate.sheet
         val abilityRows = listOf(
-            CharacterAbility.STRENGTH to 345f,
-            CharacterAbility.DEXTERITY to 485f,
-            CharacterAbility.CONSTITUTION to 625f,
-            CharacterAbility.INTELLIGENCE to 770f,
-            CharacterAbility.WISDOM to 925f,
-            CharacterAbility.CHARISMA to 1070f,
+            Triple(CharacterAbility.STRENGTH, 362f, 395.5f),
+            Triple(CharacterAbility.DEXTERITY, 505f, 538.5f),
+            Triple(CharacterAbility.CONSTITUTION, 650f, 683f),
+            Triple(CharacterAbility.INTELLIGENCE, 794f, 828f),
+            Triple(CharacterAbility.WISDOM, 939f, 972.5f),
+            Triple(CharacterAbility.CHARISMA, 1083.5f, 1117f),
         )
-        abilityRows.forEach { (ability, y) ->
-            fillCenteredTextPx(stream, primitives, 80f, y, sheet.abilityScore(ability).toString(), 18f, 85f, PdfTypographyRole.PRIMARY_VALUE)
-            fillCenteredTextPx(stream, primitives, 140f, y + 20f, signed(sheet.abilityModifier(ability)), 10.5f, 60f, PdfTypographyRole.SECONDARY_VALUE)
+        abilityRows.forEach { (ability, scoreY, modifierY) ->
+            fillCenteredTextPx(stream, primitives, 87.5f, scoreY, sheet.abilityScore(ability).toString(), 19f, 100f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 143f, modifierY, signed(sheet.abilityModifier(ability)), 11f, 74f, PdfTypographyRole.SECONDARY_VALUE)
         }
 
         CharacterAbility.entries.forEachIndexed { index, ability ->
             val y = 347f + index * 31f
             val save = sheet.savingThrow(ability)
             if (save.proficient) {
-                markerPx(stream, primitives, 204f, y + 7f, 9.5f, PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED)
+                markerPx(stream, primitives, 204.5f, y + 7f, 13f, PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED)
             }
-            fillTextPx(stream, primitives, 320f, y, signed(sheet.savingThrowTotal(ability)), 7.2f, 42f)
+            fillTextPx(stream, primitives, 320f, y, signed(sheet.savingThrowTotal(ability)), 7.4f, 42f)
         }
 
         V2_PER_ABILITY_SKILL_ORDER.forEachIndexed { index, skill ->
             val y = 590f + index * 29f
             skillMarkerKind(sheet.skill(skill).training)?.let { kind ->
-                markerPx(stream, primitives, 204f, y + 7f, 9.5f, kind, PdfSymbolFamily.V3_DERIVED)
+                markerPx(stream, primitives, 204.5f, y + 7f, 13f, kind, PdfSymbolFamily.V3_DERIVED)
             }
-            fillTextPx(stream, primitives, 320f, y, signed(sheet.skillTotal(skill)), 7.1f, 42f)
+            fillTextPx(stream, primitives, 320f, y, signed(sheet.skillTotal(skill)), 7.3f, 42f)
         }
     }
 
@@ -407,30 +411,34 @@ internal class DesktopPcSheetTemplateProofRenderer(
     ) {
         val sheet = plan.snapshot.aggregate.sheet
 
-        drawPortraitPlaceholder(stream, primitives, 350f, 60f, 235f, 185f)
-        fillOnRulePx(stream, primitives, 790f, 280f, 94f, classSummary(plan), 10f)
-        fillOnRulePx(stream, primitives, 790f, 280f, 136f, sheet.background.race, 10f)
+        if (pageTwoVariant) {
+            drawPortraitPlaceholder(stream, primitives, 375f, 62f, 315f, 290f)
+        } else {
+            drawPortraitPlaceholder(stream, primitives, 375f, 62f, 315f, 210f)
+        }
+        fillOnRulePx(stream, primitives, 890f, 295f, 93f, classSummary(plan), 10f)
+        fillOnRulePx(stream, primitives, 780f, 405f, 135f, sheet.background.race, 10f)
         fillCenteredTextPx(
-            stream, primitives, 520f, nameCenterY, sheet.name,
-            13f, 245f, PdfTypographyRole.HANDWRITTEN_NAME,
+            stream, primitives, 532f, nameCenterY, sheet.name,
+            13f, 255f, PdfTypographyRole.HANDWRITTEN_NAME,
         )
 
-        fillCenteredTextPx(stream, primitives, 850f, 220f, sheet.armorClass.toString(), 16f, 105f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 970f, 220f, hitDiceSummary(plan), 10.5f, 125f, PdfTypographyRole.SECONDARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 1120f, 220f, sheet.maxHp.toString(), 16f, 105f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 850f, 315f, signed(sheet.initiativeModifier), 15f, 105f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 1035f, 325f, sheet.currentHp.toString(), 20f, 200f, PdfTypographyRole.PRIMARY_VALUE)
-        fillCenteredTextPx(stream, primitives, 850f, 420f, sheet.speed.toString(), 15f, 105f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 789f, 230.5f, sheet.armorClass.toString(), 17f, 120f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 957.5f, 225f, hitDiceSummary(plan), 11f, 130f, PdfTypographyRole.SECONDARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 1122.5f, 225f, sheet.maxHp.toString(), 17f, 120f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 789f, 318.5f, signed(sheet.initiativeModifier), 16f, 120f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 1037f, 355f, sheet.currentHp.toString(), 21f, 250f, PdfTypographyRole.PRIMARY_VALUE)
+        fillCenteredTextPx(stream, primitives, 788.5f, 406.5f, sheet.speed.toString(), 16f, 120f, PdfTypographyRole.PRIMARY_VALUE)
 
         if (pageTwoVariant) {
-            fillCenteredTextPx(stream, primitives, 100f, 225f, signed(sheet.finalProficiencyBonus), 13f, 135f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 108.5f, 225f, signed(sheet.finalProficiencyBonus), 14f, 145f, PdfTypographyRole.PRIMARY_VALUE)
             if (sheet.inspiration) {
-                markerPx(stream, primitives, 260f, 225f, 17f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V3_DERIVED)
+                markerPx(stream, primitives, 272f, 220.5f, 30f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V3_DERIVED)
             }
         } else {
-            fillCenteredTextPx(stream, primitives, 505f, 420f, signed(sheet.finalProficiencyBonus), 13f, 135f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 448.5f, 412f, signed(sheet.finalProficiencyBonus), 14f, 145f, PdfTypographyRole.PRIMARY_VALUE)
             if (sheet.inspiration) {
-                markerPx(stream, primitives, 650f, 420f, 17f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V3_DERIVED)
+                markerPx(stream, primitives, 618f, 412f, 30f, PdfMarkerKind.STAR_FILLED, PdfSymbolFamily.V3_DERIVED)
             }
         }
 
@@ -443,9 +451,9 @@ internal class DesktopPcSheetTemplateProofRenderer(
                     append(entry.name)
                     entry.rangeText?.takeIf { it.isNotBlank() }?.let { append(" (").append(it).append(")") }
                 }
-                fillOnRulePx(stream, primitives, 330f, 485f, ruleY, name, 7.7f)
-                fillOnRulePx(stream, primitives, 820f, 120f, ruleY, entry.attackModifier?.let(::signed).orEmpty(), 7.8f)
-                fillOnRulePx(stream, primitives, 950f, 235f, ruleY, entry.damageEffect, 7.5f)
+                fillOnRulePx(stream, primitives, 370f, 440f, ruleY, name, 7.7f)
+                fillOnRulePx(stream, primitives, 825f, 75f, ruleY, entry.attackModifier?.let(::signed).orEmpty(), 7.8f)
+                fillOnRulePx(stream, primitives, 915f, 275f, ruleY, entry.damageEffect, 7.5f)
             }
 
         sheet.traits
@@ -456,8 +464,8 @@ internal class DesktopPcSheetTemplateProofRenderer(
                 val row = index / 2
                 fillOnRulePx(
                     stream, primitives,
-                    330f + column * 390f,
-                    350f,
+                    370f + column * 420f,
+                    400f,
                     V2_TRAIT_RULE_Y[row],
                     trait.name,
                     7.5f,
@@ -466,25 +474,28 @@ internal class DesktopPcSheetTemplateProofRenderer(
 
         val (saveDc, attack, ability) = spellcastingSummary(plan)
         saveDc?.let {
-            fillCenteredTextPx(stream, primitives, 265f, 1245f, it.toString(), 12f, 100f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 292.5f, 1234f, it.toString(), 14f, 115f, PdfTypographyRole.PRIMARY_VALUE)
         }
         attack?.let {
-            fillCenteredTextPx(stream, primitives, 265f, 1370f, signed(it), 12f, 100f, PdfTypographyRole.PRIMARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 292.5f, 1353f, signed(it), 14f, 115f, PdfTypographyRole.PRIMARY_VALUE)
         }
         ability.takeIf { it.isNotBlank() }?.let {
-            fillCenteredTextPx(stream, primitives, 265f, 1495f, it, 11f, 100f, PdfTypographyRole.SECONDARY_VALUE)
+            fillCenteredTextPx(stream, primitives, 292.5f, 1472f, it, 12.5f, 115f, PdfTypographyRole.SECONDARY_VALUE)
         }
 
         val slots = sheet.spellSlots.associateBy { it.level }
         for (level in 1..9) {
             val slot = slots[level] ?: continue
-            val y = 1235f + (level - 1) * 32f
-            fillCenteredTextPx(stream, primitives, 101f, y, slot.totalSlots.toString(), 8.5f, 42f, PdfTypographyRole.NUMERIC_COMPACT)
-            val spentCenters = listOf(128f, 154f, 180f, 206f)
-            repeat(slot.spentSlots.coerceAtMost(spentCenters.size)) { index ->
+            val rowCenterY = V2_SLOT_FIRST_CENTER_Y + (level - 1) * V2_SLOT_ROW_STEP
+            fillCenteredTextPx(
+                stream, primitives, 101f, rowCenterY,
+                slot.totalSlots.toString(), 9f, 44f, PdfTypographyRole.NUMERIC_COMPACT,
+            )
+            repeat(slot.spentSlots.coerceAtMost(V2_SLOT_SPENT_CENTER_X.size)) { index ->
                 markerPx(
-                    stream, primitives, spentCenters[index], y + 2f, 11.5f,
-                    PdfMarkerKind.CIRCLE_FILLED, PdfSymbolFamily.V3_DERIVED,
+                    stream, primitives,
+                    V2_SLOT_SPENT_CENTER_X[index], rowCenterY, 20f,
+                    PdfMarkerKind.OVAL_FILLED, PdfSymbolFamily.V3_DERIVED,
                 )
             }
         }
@@ -632,9 +643,14 @@ internal class DesktopPcSheetTemplateProofRenderer(
         const val PAGE_HEIGHT_PT = 792f
 
         val V1_ATTACK_RULE_Y = listOf(888f, 928f, 968f, 1007f, 1047f, 1087f, 1126f, 1166f)
+        val V1_SLOT_CENTER_Y = listOf(901.5f, 941.5f, 980.5f, 1020.5f, 1060.5f, 1099.5f, 1139.5f, 1179.5f, 1218.5f)
+        val V1_SLOT_SPENT_CENTER_X = listOf(175.5f, 205f, 234f, 263.5f)
         val V1_TRAIT_RULE_Y = listOf(1323f, 1363f, 1402f, 1442f, 1482f, 1521f)
 
         val V2_ATTACK_RULE_Y = listOf(529f, 563f, 597f, 631f, 665f, 699f, 733f, 767f)
+        const val V2_SLOT_FIRST_CENTER_Y = 1239.5f
+        const val V2_SLOT_ROW_STEP = 34f
+        val V2_SLOT_SPENT_CENTER_X = listOf(127.5f, 153.5f, 180f, 206.5f)
         val V2_TRAIT_RULE_Y = listOf(875f, 909f, 943f, 977f, 1011f, 1045f, 1079f, 1113f, 1147f)
         val V2_TREASURE_RULE_Y = listOf(1255f, 1289f, 1323f, 1357f)
         val V2_OBJECT_RULE_Y = listOf(1425f, 1459f, 1493f, 1527f)
