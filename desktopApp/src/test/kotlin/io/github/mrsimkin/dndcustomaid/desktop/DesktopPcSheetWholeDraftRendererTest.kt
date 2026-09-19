@@ -150,6 +150,56 @@ class DesktopPcSheetWholeDraftRendererTest {
                 notes = null,
                 sortOrder = 2,
             ),
+            CharacterCombatEntry(
+                id = uuid("30000000-0000-0000-0000-000000000004"),
+                name = "Arco corto",
+                type = CharacterCombatEntryType.ATTACK,
+                attackModifier = 6,
+                damageEffect = "1d6+3 perforante",
+                rangeText = "80/320 ft",
+                notes = null,
+                sortOrder = 3,
+            ),
+            CharacterCombatEntry(
+                id = uuid("30000000-0000-0000-0000-000000000005"),
+                name = "Toque electrizante",
+                type = CharacterCombatEntryType.ATTACK,
+                attackModifier = 7,
+                damageEffect = "2d8 relámpago",
+                rangeText = "Toque",
+                notes = null,
+                sortOrder = 4,
+            ),
+            CharacterCombatEntry(
+                id = uuid("30000000-0000-0000-0000-000000000006"),
+                name = "Honda",
+                type = CharacterCombatEntryType.ATTACK,
+                attackModifier = 6,
+                damageEffect = "1d4+3 contundente",
+                rangeText = "30/120 ft",
+                notes = null,
+                sortOrder = 5,
+            ),
+            CharacterCombatEntry(
+                id = uuid("30000000-0000-0000-0000-000000000007"),
+                name = "Orbe cromático",
+                type = CharacterCombatEntryType.ATTACK,
+                attackModifier = 7,
+                damageEffect = "3d8 variable",
+                rangeText = "90 ft",
+                notes = null,
+                sortOrder = 6,
+            ),
+            CharacterCombatEntry(
+                id = uuid("30000000-0000-0000-0000-000000000008"),
+                name = "Ataque furtivo",
+                type = CharacterCombatEntryType.ATTACK,
+                attackModifier = 6,
+                damageEffect = "+1d6 situacional",
+                rangeText = "arma",
+                notes = null,
+                sortOrder = 7,
+            ),
         )
 
         val traits = listOf(
@@ -159,6 +209,18 @@ class DesktopPcSheetWholeDraftRendererTest {
             "Ataque furtivo 1d6" to "Una vez por turno añades daño cuando cumples sus condiciones.",
             "Acción astuta" to "Puedes usar acción adicional para determinadas maniobras.",
             "Erudito arcano" to "Tu formación facilita investigar fenómenos y tradiciones mágicas.",
+            "Paso feérico" to "Una breve traslación mágica útil para escapar de posiciones comprometidas.",
+            "Lenguas élficas" to "Lees, escribes y hablas las lenguas aprendidas durante tu formación.",
+            "Herramientas de ladrón" to "Entrenamiento práctico para mecanismos, cerraduras y trampas.",
+            "Alerta académica" to "Mantienes notas rápidas sobre amenazas, símbolos y anomalías.",
+            "Memoria de archivo" to "Recuerdas referencias y clasificaciones de documentos consultados.",
+            "Afinidad ritual" to "Reconoces patrones comunes en procedimientos mágicos prolongados.",
+            "Cartografía" to "Puedes reconstruir rutas y puntos de referencia con bastante precisión.",
+            "Contacto de Academia" to "Conservas vínculos con investigadores y bibliotecarios de Liria.",
+            "Observador" to "Prestas atención a pequeños cambios de escena y comportamiento.",
+            "Código de campo" to "Utilizas marcas breves para registrar peligros y rutas seguras.",
+            "Disciplina de estudio" to "Puedes mantener concentración durante largas sesiones de análisis.",
+            "Improvisador" to "Combinas herramientas y recursos disponibles cuando falta el equipo ideal.",
         ).mapIndexed { index, (name, description) ->
             CharacterTrait(
                 id = uuid("40000000-0000-0000-0000-00000000000${index + 1}"),
@@ -188,6 +250,27 @@ class DesktopPcSheetWholeDraftRendererTest {
             inventory(10, "Anillo de la Academia", 1, null, "Mano izquierda", true, true, "Sello de acceso a archivos restringidos."),
             inventory(11, "Mapa del Valle", 1, null, "Tubo", false, false, "Anotaciones de rutas y ruinas antiguas."),
             inventory(12, "Tiza", 8, null, "Mochila", false, false, "Marcas para exploración."),
+            inventory(13, "Pergaminos en blanco", 6, null, "Carpeta", false, false, "Hojas resistentes para copias de campo."),
+            inventory(14, "Tinta azul", 2, 0.2, "Estuche", false, false, "Tinta para anotaciones permanentes."),
+            inventory(15, "Lupa de latón", 1, 0.3, "Bolsillo", false, false, "Lente pequeña para inscripciones."),
+            inventory(16, "Martillo pequeño", 1, 2.0, "Mochila", false, false, "Herramienta de exploración."),
+            inventory(17, "Clavos de hierro", 12, 1.0, "Mochila", false, false, "Fijaciones y marcas de paso."),
+            inventory(18, "Linterna cubierta", 1, 2.0, "Mochila", false, false, "Luz regulable para ruinas."),
+            inventory(19, "Aceite", 4, 1.0, "Mochila", false, false, "Frascos para iluminación."),
+            inventory(20, "Manta", 1, 3.0, "Mochila", false, false, "Protección para descanso."),
+            inventory(21, "Cuerda de seda", 1, 5.0, "Mochila", false, false, "Cincuenta pies, compacta."),
+            inventory(22, "Espejo de acero", 1, 0.5, "Bolsa", false, false, "Inspección de rincones y reflejos."),
+            inventory(23, "Campanillas", 4, null, "Bolsa", false, false, "Avisos improvisados."),
+            inventory(24, "Viales vacíos", 6, null, "Estuche", false, false, "Muestras y reactivos."),
+            inventory(25, "Diadema del Archivo", 1, null, "Cabeza", true, true, "Marca ceremonial de acceso."),
+            inventory(26, "Monóculo rúnico", 1, null, "Rostro", true, true, "Ayuda a inspeccionar glifos finos."),
+            inventory(27, "Amuleto de Liria", 1, null, "Cuello", true, true, "Recuerdo de la Academia."),
+            inventory(28, "Guante del escriba", 1, null, "Mano derecha", true, true, "Protege y estabiliza la mano."),
+            inventory(29, "Brazal de cobre", 1, null, "Brazo izquierdo", true, true, "Conserva una carga menor."),
+            inventory(30, "Brazal de plata", 1, null, "Brazo derecho", true, true, "Pareja del brazal de cobre."),
+            inventory(31, "Chaleco de placas finas", 1, null, "Pecho", true, true, "Protección ligera bajo la ropa."),
+            inventory(32, "Grebas del caminante", 1, null, "Piernas", true, true, "Refuerzo para largas marchas."),
+            inventory(33, "Botas de senda", 1, null, "Pies", true, true, "Suela reforzada para terreno irregular."),
         )
 
         val currencies = listOf(
@@ -198,21 +281,56 @@ class DesktopPcSheetWholeDraftRendererTest {
             CharacterCurrency("pc", "Piezas de cobre", 19, 4, true),
         )
 
-        val spells = listOf(
-            spell(1, "Luz", 0, spellSourceId, true),
-            spell(2, "Mano de mago", 0, spellSourceId, true),
-            spell(3, "Rayo de fuego", 0, spellSourceId, true),
-            spell(4, "Escudo", 1, spellSourceId, true),
-            spell(5, "Misil mágico", 1, spellSourceId, true),
-            spell(6, "Detectar magia", 1, spellSourceId, false),
-            spell(7, "Imagen múltiple", 2, spellSourceId, true),
-            spell(8, "Paso brumoso", 2, spellSourceId, true),
-            spell(9, "Contrahechizo", 3, spellSourceId, true),
-            spell(10, "Bola de fuego", 3, spellSourceId, true),
-            spell(11, "Puerta dimensional", 4, spellSourceId, true),
-            spell(12, "Invisibilidad superior", 4, spellSourceId, false),
-            spell(13, "Teletransportar", 7, spellSourceId, false),
-        )
+        val spells = buildList {
+            var index = 1
+            fun addSpell(name: String, level: Int, prepared: Boolean) {
+                add(spell(index++, name, level, spellSourceId, prepared))
+            }
+            addSpell("Luz", 0, true)
+            addSpell("Mano de mago", 0, true)
+            addSpell("Rayo de fuego", 0, true)
+            addSpell("Prestidigitación", 0, false)
+
+            addSpell("Escudo", 1, true)
+            addSpell("Misil mágico", 1, true)
+            addSpell("Detectar magia", 1, false)
+            addSpell("Caída de pluma", 1, true)
+
+            addSpell("Imagen múltiple", 2, true)
+            addSpell("Paso brumoso", 2, true)
+            addSpell("Invisibilidad", 2, false)
+            addSpell("Levitar", 2, true)
+
+            addSpell("Contrahechizo", 3, true)
+            addSpell("Bola de fuego", 3, true)
+            addSpell("Volar", 3, false)
+            addSpell("Patrón hipnótico", 3, true)
+
+            addSpell("Puerta dimensional", 4, true)
+            addSpell("Invisibilidad superior", 4, false)
+            addSpell("Ojo arcano", 4, true)
+            addSpell("Polimorfar", 4, false)
+
+            addSpell("Muro de fuerza", 5, true)
+            addSpell("Telequinesis", 5, false)
+            addSpell("Cono de frío", 5, true)
+
+            addSpell("Desintegrar", 6, true)
+            addSpell("Globo de invulnerabilidad", 6, false)
+            addSpell("Visión verdadera", 6, true)
+
+            addSpell("Teletransportar", 7, false)
+            addSpell("Jaula de fuerza", 7, true)
+            addSpell("Simulacro", 7, false)
+
+            addSpell("Laberinto", 8, true)
+            addSpell("Mente en blanco", 8, false)
+            addSpell("Semiplano", 8, true)
+
+            addSpell("Deseo", 9, true)
+            addSpell("Detener el tiempo", 9, false)
+            addSpell("Prisión", 9, true)
+        }
 
         val sheet = CharacterSheet(
             id = uuid("00000000-0000-0000-0000-000000000001"),
@@ -246,8 +364,13 @@ class DesktopPcSheetWholeDraftRendererTest {
             spellSlots = listOf(
                 CharacterSpellSlot(1, 4, 1),
                 CharacterSpellSlot(2, 3, 2),
-                CharacterSpellSlot(3, 3, 0),
-                CharacterSpellSlot(4, 1, 1),
+                CharacterSpellSlot(3, 3, 1),
+                CharacterSpellSlot(4, 3, 2),
+                CharacterSpellSlot(5, 2, 1),
+                CharacterSpellSlot(6, 2, 2),
+                CharacterSpellSlot(7, 1, 0),
+                CharacterSpellSlot(8, 1, 1),
+                CharacterSpellSlot(9, 1, 0),
             ),
             combatEntries = combat,
             inventoryItems = inventory,
@@ -275,10 +398,12 @@ class DesktopPcSheetWholeDraftRendererTest {
                 ),
             ),
             spells = spells,
-            generalNotes = "Contactar a Maestra Elenya al regresar a Liria. No entregar el mapa original a terceros. Preparar tinta resistente al agua antes de entrar en las ruinas.",
+            generalNotes = "Contactar a Maestra Elenya al regresar a Liria. No entregar el mapa original a terceros. Preparar tinta resistente al agua antes de entrar en las ruinas. Revisar el corredor norte antes de acampar. La puerta con sello azul responde al mismo patrón visto en la torre. Mantener una copia separada del alfabeto parcial. Registrar la posición de cada piedra marcada y comprobar si las distancias forman una secuencia. Comprar más aceite, cuerda fina y papel antes de la siguiente expedición. Recordar que el pasadizo oriental cambia de pendiente después de la tercera cámara.",
             noteCards = listOf(
                 CharacterNote(uuid("60000000-0000-0000-0000-000000000001"), "Pista", "El sello azul aparece también en las monedas halladas en la torre.", 0),
-                CharacterNote(uuid("60000000-0000-0000-0000-000000000002"), "Pendiente", "Comparar el alfabeto de la puerta norte con las notas del profesor Vael.", 1),
+                CharacterNote(uuid("60000000-0000-0000-0000-000000000002"), "Pendiente", "Comparar el alfabeto de la puerta norte con las notas del profesor Vael y marcar las coincidencias dudosas.", 1),
+                CharacterNote(uuid("60000000-0000-0000-0000-000000000003"), "Ruta", "Entrada oeste, cámara de columnas, escalera rota, galería azul y archivo inferior. Evitar el corredor inundado.", 2),
+                CharacterNote(uuid("60000000-0000-0000-0000-000000000004"), "Materiales", "Tinta, tiza, tres viales, espejo, cuerda, clavos y una linterna adicional.", 3),
             ),
             inspiration = true,
         )
