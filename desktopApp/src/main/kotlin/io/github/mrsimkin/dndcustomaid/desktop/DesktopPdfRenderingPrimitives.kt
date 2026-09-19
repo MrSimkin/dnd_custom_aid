@@ -46,17 +46,17 @@ internal data class PdfTypographyTheme(
 }
 
 internal val PRIMITIVE_QA_TYPOGRAPHY_THEME = PdfTypographyTheme(
-    id = "primitive-qa-owner-directed-candidates-v2",
+    id = "custom-sheet-fill-owner-directed-v3",
     resourcesByRole = mapOf(
-        PdfTypographyRole.CHARACTER_NAME to "fonts/pdf/text/FiraSans-SemiBold.ttf",
+        PdfTypographyRole.CHARACTER_NAME to "fonts/pdf/text/Kalam-Bold.ttf",
         PdfTypographyRole.HANDWRITTEN_NAME to "fonts/pdf/text/Kalam-Bold.ttf",
-        PdfTypographyRole.PRIMARY_VALUE to "fonts/pdf/text/FiraSans-SemiBold.ttf",
-        PdfTypographyRole.SECONDARY_VALUE to "fonts/pdf/text/FiraSans-Regular.ttf",
-        PdfTypographyRole.BODY to "fonts/pdf/text/FiraSans-Regular.ttf",
+        PdfTypographyRole.PRIMARY_VALUE to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
+        PdfTypographyRole.SECONDARY_VALUE to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
+        PdfTypographyRole.BODY to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
         PdfTypographyRole.COMPACT_TABLE to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
         PdfTypographyRole.NUMERIC_COMPACT to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
-        PdfTypographyRole.NOTE_TEXT to "fonts/pdf/text/FiraSans-Regular.ttf",
-        PdfTypographyRole.SPELL_NAME to "fonts/pdf/text/FiraSans-SemiBold.ttf",
+        PdfTypographyRole.NOTE_TEXT to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
+        PdfTypographyRole.SPELL_NAME to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
         PdfTypographyRole.OPTIONAL_DECORATIVE to "fonts/pdf/text/BarlowCondensed-Bold.ttf",
     ),
 )
