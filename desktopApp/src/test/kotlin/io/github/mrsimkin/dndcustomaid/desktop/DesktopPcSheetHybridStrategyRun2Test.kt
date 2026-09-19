@@ -185,14 +185,16 @@ class DesktopPcSheetHybridStrategyRun2Test {
                 font.name.contains("ParaHojadePJSymbols", ignoreCase = true) ||
                 font.name.contains("Para Hoja de PJ", ignoreCase = true)
         }
-        assertTrue(hybrid.size >= 3) {
+        assertTrue(
+            hybrid.size >= 3,
             "Expected Fira regular/semibold and Para Hoja de PJ v8 in hybrid overlay resources; found: " +
-                fonts.joinToString { it.name }
-        }
-        assertTrue(hybrid.all { it.isEmbedded }) {
+                fonts.joinToString { it.name },
+        )
+        assertTrue(
+            hybrid.all { it.isEmbedded },
             "Hybrid overlay fonts must be embedded after save/reload; non-embedded: " +
-                hybrid.filterNot { it.isEmbedded }.joinToString { it.name }
-        }
+                hybrid.filterNot { it.isEmbedded }.joinToString { it.name },
+        )
     }
 
     private fun fontsIn(resources: PDResources?): List<PDFont> {
