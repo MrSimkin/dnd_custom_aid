@@ -513,9 +513,10 @@ internal class DesktopPcSheetTemplateProofRenderer(
         val treasureKeys = listOf("pt", "po", "pp", "pc")
         treasureKeys.forEachIndexed { index, key ->
             currencies[key]?.let { currency ->
-                fillOnRulePx(
-                    stream, primitives, 520f, 80f, V2_TREASURE_RULE_Y[index],
-                    currency.amount.toString(), 8.5f,
+                fillCenteredTextPx(
+                    stream, primitives,
+                    579f, V2_TREASURE_RULE_Y[index] - 17f,
+                    currency.amount.toString(), 9.5f, 105f, PdfTypographyRole.NUMERIC_COMPACT,
                 )
             }
         }
@@ -523,7 +524,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
         sheet.inventoryItems.filterNot { it.special }
             .take(V2_OBJECT_RULE_Y.size)
             .forEachIndexed { index, item ->
-                fillOnRulePx(stream, primitives, 330f, 275f, V2_OBJECT_RULE_Y[index], item.name, 7.2f)
+                fillOnRulePx(stream, primitives, 370f, 300f, V2_OBJECT_RULE_Y[index], item.name, 7.2f)
             }
 
         V2_AMMO_ROW_Y.forEachIndexed { rowIndex, rowY ->
