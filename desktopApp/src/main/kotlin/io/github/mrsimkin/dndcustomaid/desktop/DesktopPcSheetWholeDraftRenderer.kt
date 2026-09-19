@@ -42,6 +42,11 @@ internal class DesktopPcSheetWholeDraftRenderer(
             "Whole-sheet draft currently supports the owner's Custom v1/v2 families only."
         }
 
+        if (plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1) {
+            renderCustomV1HybridDraft(plan, output)
+            return
+        }
+
         val templatePath = requireNotNull(plan.basePages.first().sourceTemplatePath)
         require(plan.basePages.all { it.sourceTemplatePath == templatePath }) {
             "A Custom draft must resolve all base pages from one authoritative source template."
@@ -80,6 +85,125 @@ internal class DesktopPcSheetWholeDraftRenderer(
                     draft.save(output)
                 }
             }
+        }
+    }
+
+    private fun renderCustomV1HybridDraft(
+        plan: PcSheetPdfRenderPlan,
+        output: OutputStream,
+    ) {
+        val templatePath = requireNotNull(plan.basePages.first().sourceTemplatePath)
+        require(plan.basePages.all { it.sourceTemplatePath == templatePath }) {
+            "A Custom v1 draft must resolve all base pages from one authoritative source template."
+        }
+        val classpathPath = templatePath.removePrefix("assets/")
+        val templateBytes = resourceLoader(classpathPath)?.use { it.readBytes() }
+            ?: error("PC sheet template resource is unavailable: $classpathPath")
+
+        Loader.loadPDF(templateBytes).use { sourceTemplate ->
+            PDDocument().use { draft ->
+                val hybrid = DesktopCustomV1HybridRenderer(draft, resourceLoader)
+                val primitives = DesktopPdfRenderingPrimitives(
+                    DesktopPdfFontRegistry(draft, resourceLoader = resourceLoader),
+                )
+
+                plan.basePages.forEach { pagePlan ->
+                    val sourcePageNumber = requireNotNull(pagePlan.sourcePageNumber)
+                    val sourceIndex = sourcePageNumber - 1
+                    require(sourceIndex in 0 until sourceTemplate.numberOfPages) {
+                        "Template page $sourcePageNumber does not exist in $templatePath."
+                    }
+                    val page = draft.importPage(sourceTemplate.getPage(sourceIndex))
+
+                    when (pagePlan.role) {
+                        PcSheetBasePageRole.MAIN -> hybrid.render(page, pagePlan.role, plan)
+                        PcSheetBasePageRole.NARRATIVE -> {
+                            hybrid.render(page, pagePlan.role, plan)
+                            PDPageContentStream(draft, page, AppendMode.APPEND, true, true).use { stream ->
+                                drawV1NarrativeResidual(stream, primitives, plan)
+                            }
+                        }
+                        PcSheetBasePageRole.SPELL_LIST -> {
+                            hybrid.render(page, pagePlan.role, plan)
+                            PDPageContentStream(draft, page, AppendMode.APPEND, true, true).use { stream ->
+                                drawV1SpellListResidual(stream, primitives, plan)
+                            }
+                        }
+                        PcSheetBasePageRole.EQUIPMENT,
+                        PcSheetBasePageRole.NOTES,
+                        -> PDPageContentStream(draft, page, AppendMode.APPEND, true, true).use { stream ->
+                            drawBasePage(
+                                stream = stream,
+                                primitives = primitives,
+                                role = pagePlan.role,
+                                plan = plan,
+                            )
+                        }
+                        PcSheetBasePageRole.EQUIPMENT_AND_NARRATIVE ->
+                            error("Custom v1 does not use EQUIPMENT_AND_NARRATIVE.")
+                    }
+                }
+                draft.save(output)
+            }
+        }
+    }
+
+    private fun drawV1NarrativeResidual(
+        stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val background = sheet.background
+        val traitText = sheet.traits
+            .sortedBy { it.sortOrder }
+            .joinToString(" · ") { trait -> trait.name + ": " + trait.description }
+        val notes = notesText(plan)
+
+        drawRuledText(
+            stream, primitives, 50f, 312f, V1_PERSONALITY_RULE_Y,
+            background.personalityTraits, 7f, 42,
+        )
+        drawRuledText(stream, primitives, 385f, 650f, V1_TRAITS_RULE_Y, traitText, 6.8f, 92)
+        drawRuledText(stream, primitives, 385f, 650f, V1_NARRATIVE_NOTES_RULE_Y, notes, 6.8f, 92)
+    }
+
+    private fun drawV1SpellListResidual(
+        stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val slots = sheet.spellSlots.associateBy { it.level }
+        val spellsByLevel = sheet.spells.groupBy { it.level }
+
+        V1_SPELL_BLOCKS.filter { it.level >= 2 }.forEach { block ->
+            slots[block.level]?.let { slot ->
+                drawTableText(
+                    stream, primitives,
+                    block.headerTotalX, block.headerY, 52f, 28f,
+                    slot.totalSlots.toString(), 7.5f, centered = true,
+                )
+                // Owner semantic: ESPACIOS GASTADOS remains empty.
+            }
+
+            spellsByLevel[block.level].orEmpty()
+                .sortedWith(compareBy<CharacterSpell> { it.sortOrder }.thenBy { it.name.lowercase() })
+                .take(block.maxRows)
+                .forEachIndexed { index, spell ->
+                    val rowY = block.firstRowY + index * block.rowStep
+                    if (spell.sourceAssociations.any { it.prepared }) {
+                        markerPx(
+                            stream, primitives, block.checkX, rowY + 10f, 13f,
+                            PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED,
+                        )
+                    }
+                    drawTableText(
+                        stream, primitives,
+                        block.textX, rowY, block.textWidth, 24f,
+                        spell.name, 6.5f,
+                    )
+                }
         }
     }
 
