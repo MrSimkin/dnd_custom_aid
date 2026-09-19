@@ -740,3 +740,51 @@ Current gate:
 - mandatory owner review of Custom v2 — per Attribute;
 - shared pages should remain unchanged for the per-Ability variant unless owner review identifies a shared-page issue;
 - PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 14. Custom v2 per-Attribute — final calibration Runs 3–4
+
+After Run 2, the owner requested only local calibration:
+
+- `Raza` Y;
+- portrait-name Y;
+- fuller use of modifier ellipse/oval space;
+- whole-sheet check-mark geometry audit.
+
+Run 3:
+
+- calibrated Identification/portrait Y;
+- expanded modifier values into measured ellipse interiors;
+- applied family-specific check optical offsets.
+
+Independent overlay-only audit then measured the actual dark-stroke margins and found a small residual checkbox bias.
+
+Run 4 changed **only marker offsets** and completed the calibration.
+
+Final result:
+
+**PASS FOR OWNER REVIEW**
+
+Final code commit:
+
+`03c3155301196eaab1229afb4827c46f8acf04cc`
+
+Final Scaffold:
+
+`35469291933` / run #2739 — SUCCESS
+
+Final checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ATTRIBUTE_HYBRID_RUNS3_4_FINAL_CALIBRATION.md`
+
+Key lesson carried forward:
+
+> For frozen v8 symbols, fitting the font metrics to the source rectangle is necessary but not always sufficient. Final calibration should measure the rendered dark-stroke margins from the overlay-only PDF and apply glyph-family-specific optical offsets when needed.
+
+Current gate:
+
+- owner review of final Custom-v2 per-Attribute Run-4 candidate;
+- per-Ability work should reuse the shared v2 pages unchanged unless owner review identifies a shared-page issue;
+- PR #85 remains **DRAFT / DO NOT MERGE**.
