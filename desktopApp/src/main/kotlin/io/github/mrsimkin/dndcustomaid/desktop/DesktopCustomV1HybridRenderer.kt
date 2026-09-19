@@ -232,15 +232,27 @@ internal class DesktopCustomV1HybridRenderer(
 
     private fun drawBackgroundFields(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
         val background = plan.snapshot.aggregate.sheet.background
-        listOf(
-            BACKGROUND_RULE to background.name,
-            IDEALS_RULE to background.ideals,
-            BONDS_RULE to background.bonds,
-            FLAWS_RULE to background.flaws,
-        ).forEach { (rule, value) ->
-            value.trim().takeIf { it.isNotEmpty() }?.let {
-                textAboveRule(s, fonts.regular, rule, it, 9.25f, 8.5f, 2.6f, 2f)
-            }
+        drawRuledParagraph(s, fonts.regular, BACKGROUND_RULES, background.name, 9.25f, 2.6f, 2f)
+        drawRuledParagraph(s, fonts.regular, IDEALS_RULES, background.ideals, 9.25f, 2.6f, 2f)
+        drawRuledParagraph(s, fonts.regular, BONDS_RULES, background.bonds, 9.25f, 2.6f, 2f)
+        drawRuledParagraph(s, fonts.regular, FLAWS_RULES, background.flaws, 9.25f, 2.6f, 2f)
+    }
+
+    private fun drawRuledParagraph(
+        s: PDFormContentStream,
+        font: PDFont,
+        rules: List<Rule>,
+        text: String,
+        size: Float,
+        clearance: Float,
+        leftPadding: Float,
+    ) {
+        val clean = text.trim()
+        if (clean.isEmpty() || rules.isEmpty()) return
+        val width = rules.first().endX - rules.first().startX - leftPadding - 1f
+        val lines = wrapByWidth(font, clean, size, width)
+        rules.zip(lines.take(rules.size)).forEach { (rule, line) ->
+            textAboveRule(s, font, rule, line, size, size, clearance, leftPadding)
         }
     }
 
@@ -561,10 +573,14 @@ internal class DesktopCustomV1HybridRenderer(
         )
         val TRAIT_ROW_Y = listOf(661.5f, 681.5f)
 
-        val BACKGROUND_RULE = Rule(25f, 181f, 109.5f)
-        val IDEALS_RULE = Rule(25f, 181f, 387.5f)
-        val BONDS_RULE = Rule(25f, 181f, 526.5f)
-        val FLAWS_RULE = Rule(25f, 181f, 665.5f)
+        val BACKGROUND_RULES = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f)
+            .map { Rule(25f, 181f, it) }
+        val IDEALS_RULES = listOf(387.5f, 407.5f, 426f, 446f, 466f, 485.5f)
+            .map { Rule(25f, 181f, it) }
+        val BONDS_RULES = listOf(526.5f, 546f, 565f, 585f, 605f, 624.5f)
+            .map { Rule(25f, 181f, it) }
+        val FLAWS_RULES = listOf(665.5f, 685f, 704f, 725f, 743.5f, 764.5f)
+            .map { Rule(25f, 181f, it) }
         val STORY_RULE_Y = listOf(387.996f, 407.839f, 427.681f, 447.524f)
 
         val CANTRIP_RULE_Y = listOf(129.8f, 148.7f, 167.5f, 186.4f)
