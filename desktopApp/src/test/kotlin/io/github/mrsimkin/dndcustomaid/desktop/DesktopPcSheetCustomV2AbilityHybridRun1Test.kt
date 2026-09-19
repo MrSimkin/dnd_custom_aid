@@ -174,13 +174,16 @@ class DesktopPcSheetCustomV2AbilityHybridRun1Test {
         s.stroke()
         s.restoreGraphicsState()
 
-        centered(s, fonts.handwritten, TopRect(205f, 158f, 124f, 22f), "Aster Vale", 13.5f, -0.2f)
+        // Match the approved per-Attribute optical placement inside the decorative name banner.
+        // Page 2's banner begins ~42.5 pt lower, so the handwritten name follows that source anchor.
+        centered(s, fonts.handwritten, TopRect(205f, 177f, 124f, 22f), "Aster Vale", 13.5f, -0.2f)
     }
 
     private fun drawV2AbilityCoreStats(s: PDFormContentStream, fonts: Fonts) {
         // Page-2 proficiency/inspiration are in the upper-left band.
-        centered(s, fonts.semibold, TopRect(14f, 86f, 78f, 31f), "+3", 14f, -0.3f)
-        glyphInRect(s, fonts.symbol, 0xE20E, TopRect(132f, 97f, 18f, 18f), 1f, 1f)
+        // Calibrated against the approved per-Attribute value-to-label optical offsets.
+        centered(s, fonts.semibold, TopRect(9.5f, 96f, 78f, 31f), "+3", 14f, -0.3f)
+        glyphInRect(s, fonts.symbol, 0xE20E, TopRect(111f, 102.5f, 18f, 18f), 1f, 1f)
 
         // Right-side combat geometry is shared with the approved per-Attribute page.
         centered(s, fonts.semibold, TopRect(359f, 99f, 53f, 39f), "16", 20f, -0.8f)
@@ -189,7 +192,8 @@ class DesktopPcSheetCustomV2AbilityHybridRun1Test {
         centered(s, fonts.semibold, TopRect(445f, 98f, 68f, 29f), "4d6 / 1d8", 10.5f, -0.2f)
         centered(s, fonts.semibold, TopRect(530f, 98f, 63f, 29f), "34", 16f, -0.4f)
         centered(s, fonts.semibold, TopRect(444f, 145f, 149f, 62f), "27", 22f, -0.7f)
-        centered(s, fonts.semibold, TopRect(360f, 105f, 52f, 26f), "16", 16f, -0.5f)
+        // Armor Class is intentionally rendered once. Run 1 accidentally overprinted a second
+        // smaller "16", producing the visibly heavy/doubled value noted in owner review.
     }
 
     private fun drawV2AbilityScores(s: PDFormContentStream, fonts: Fonts) {
