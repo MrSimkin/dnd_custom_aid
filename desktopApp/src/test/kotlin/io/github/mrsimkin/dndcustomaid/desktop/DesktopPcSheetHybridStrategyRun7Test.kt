@@ -692,21 +692,21 @@ class DesktopPcSheetHybridStrategyRun7Test {
         val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 152.5f to 262.5f, 277.5f to 390f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a,b) -> Rule(a,b,y) } }
         val EQUIPMENT_ITEMS = listOf(
-            "Mochila de expedición - Espalda - 5 lb", "Libro de conjuros - Mochila - 3 lb", "3 x Pociones de curación - 0,5 lb",
-            "Componentes arcanos - Bolsa - 1 lb", "5 x Raciones - Mochila - 2 lb", "Odre - Mochila - 5 lb",
-            "Capa gris - Hombros - 2 lb", "Mapa del Valle - Tubo", "8 x Tiza - Mochila",
-            "6 x Pergaminos - Carpeta", "2 x Tinta azul - Estuche", "Lupa de latón - Bolsillo",
-            "Martillo pequeño - 2 lb", "12 x Clavos de hierro - 1 lb", "Linterna cubierta - 2 lb",
-            "4 x Aceite - 1 lb", "Manta - 3 lb", "Cuerda de seda - 5 lb",
-            "Espejo de acero - 0,5 lb", "4 x Campanillas", "6 x Viales vacíos",
+            "Mochila de expedición", "Libro de conjuros", "3 x Pociones",
+            "Componentes arcanos", "5 x Raciones", "Odre",
+            "Capa gris", "Mapa del Valle", "8 x Tiza",
+            "6 x Pergaminos", "2 x Tinta azul", "Lupa de latón",
+            "Martillo pequeño", "12 x Clavos", "Linterna cubierta",
+            "4 x Aceite", "Manta", "Cuerda de seda",
+            "Espejo de acero", "4 x Campanillas", "6 x Viales",
         )
         val CURRENCY_VALUES = listOf("4", "137", "48", "19", "2")
         val VALUABLE_RULE_Y = listOf(307f, 327f, 347f, 366.5f)
         val VALUABLES = listOf(
             "Broche élfico antiguo" to "75",
             "Gema lunar tallada" to "120",
-            "Tres láminas de plata grabadas" to "45",
-            "Fragmento de mosaico con sello azul" to "25",
+            "Láminas de plata" to "45",
+            "Mosaico con sello azul" to "25",
         )
         val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
         val SPECIAL_EQUIPMENT = listOf(
@@ -717,11 +717,11 @@ class DesktopPcSheetHybridStrategyRun7Test {
             SpecialEquipmentEntry("Bastón de fresno", "Foco arcano y arma improvisada.", true),
             SpecialEquipmentEntry("Brazal de cobre", "Conserva una carga menor.", true),
             SpecialEquipmentEntry("Brazal de plata", "Pareja del brazal de cobre.", true),
-            SpecialEquipmentEntry("Chaleco de placas finas", "Protección ligera bajo la ropa.", true),
-            SpecialEquipmentEntry("Grebas del caminante", "Refuerzo para largas marchas.", true),
+            SpecialEquipmentEntry("Chaleco de placas", "Protección ligera bajo la ropa.", true),
+            SpecialEquipmentEntry("Grebas de caminante", "Refuerzo para largas marchas.", true),
             SpecialEquipmentEntry("Botas de senda", "Suela reforzada para terreno irregular.", true),
             SpecialEquipmentEntry("Daga de plata", "Hoja ligera tratada con plata.", true),
-            SpecialEquipmentEntry("Guante del escriba", "Protege y estabiliza la mano.", true),
+            SpecialEquipmentEntry("Guante de escriba", "Protege y estabiliza la mano.", true),
         )
 
         val SPELL_LEVELS = listOf(
