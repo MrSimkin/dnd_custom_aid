@@ -27,18 +27,17 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import org.apache.pdfbox.util.Matrix
 
 /**
- * Strategy 1 / Hybrid / Run 7.
+ * Strategy 1 / Hybrid / Custom v2 per-Attribute audited run series.
  *
- * Extends the Run-5 section-isolated architecture. Known local geometry defects are repaired from
- * measured source-PDF geometry while new independently layered fields are added.
- * QA-only code; not product rendering.
+ * Reuses the owner-approved Custom-v1 section-isolated architecture and source-measured geometry
+ * discipline. QA-only code; not product rendering.
  */
 class DesktopPcSheetCustomV2AttributeHybridRun1Test {
     @Test
     fun rendersCompletePerAttributeCustomV2HybridDraft() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val templateBytes = resource(TEMPLATE).use { it.readBytes() }
-        val composite = File(proofDir, "hybrid-custom-v2-attribute-run1-composite.pdf")
+        val composite = File(proofDir, "hybrid-custom-v2-attribute-run3-composite.pdf")
 
         Loader.loadPDF(templateBytes).use { doc ->
             // v2 pages 1 and 2 are alternative first pages. This run uses page 1 / per Attribute.
@@ -57,12 +56,12 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
             val renderer = PDFRenderer(doc)
             repeat(4) { index ->
                 val image = renderer.renderImageWithDPI(index, 300f, ImageType.RGB)
-                val png = File(proofDir, "hybrid-custom-v2-attribute-run1-composite-page-${index + 1}.png")
+                val png = File(proofDir, "hybrid-custom-v2-attribute-run3-composite-page-${index + 1}.png")
                 assertTrue(ImageIO.write(image, "png", png))
             }
         }
 
-        val overlayOnly = File(proofDir, "hybrid-custom-v2-attribute-run1-overlay-only.pdf")
+        val overlayOnly = File(proofDir, "hybrid-custom-v2-attribute-run3-overlay-only.pdf")
         PDDocument().use { doc ->
             repeat(4) { doc.addPage(PDPage(PDRectangle(W, H))) }
             val fonts = Fonts(doc)
@@ -142,7 +141,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
 
     private fun drawV2Identification(s: PDFormContentStream, fonts: Fonts) {
         textAboveRule(s, fonts.handwritten, Rule(442.5f, 598f, 46.5f), "Mago 5 / Pícaro 2", 10.5f, 9f, 2.2f, 2f)
-        textAboveRule(s, fonts.handwritten, Rule(388.5f, 598f, 67.5f), "Elfo Alto", 10.5f, 9f, 2.2f, 2f)
+        textAboveRule(s, fonts.handwritten, Rule(388.5f, 598f, 67.5f), "Elfo Alto", 10.5f, 9f, 0.7f, 2f)
         textAboveRule(s, fonts.handwritten, Rule(445.5f, 598f, 89f), "Neutral Bueno", 10.5f, 9f, 2.2f, 2f)
     }
 
@@ -174,7 +173,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
         s.stroke()
         s.restoreGraphicsState()
 
-        centered(s, fonts.handwritten, TopRect(205f, 132f, 124f, 22f), "Aster Vale", 13.5f, -0.2f)
+        centered(s, fonts.handwritten, TopRect(205f, 134.5f, 124f, 22f), "Aster Vale", 13.5f, -0.2f)
     }
 
     private fun drawV2CoreStats(s: PDFormContentStream, fonts: Fonts) {
@@ -193,7 +192,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
 
     private fun drawV2AbilityBlock(s: PDFormContentStream, fonts: Fonts, block: V2AbilityBlock) {
         centered(s, fonts.semibold, block.scoreRect, block.score, 17f, -0.5f)
-        centered(s, fonts.semibold, block.modRect, block.mod, 11.5f, -0.2f)
+        centered(s, fonts.semibold, block.modRect, block.mod, 15.5f, -0.2f)
         block.rows.forEach { row ->
             row.mark?.let {
                 glyphInRect(
@@ -203,6 +202,8 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
                     row.checkbox,
                     0.55f,
                     0.55f,
+                    opticalX = 1.5f,
+                    opticalY = -1.0f,
                 )
             }
             centeredAboveRule(s, fonts.semibold, row.valueRule, row.value, 8.8f, 1.8f)
@@ -293,7 +294,16 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
         V2_SPECIAL_RULE_Y.forEachIndexed { index, y ->
             val entry = V2_SPECIAL_EQUIPMENT.getOrNull(index) ?: return@forEachIndexed
             if (entry.checked) {
-                glyphInRect(s, fonts.symbol, 0xE211, TopRect(87.5f, V2_SPECIAL_CHECK_TOP[index], 8.5f, 9f), 0.5f, 0.5f)
+                glyphInRect(
+                    s,
+                    fonts.symbol,
+                    0xE211,
+                    TopRect(87.5f, V2_SPECIAL_CHECK_TOP[index], 8.5f, 9f),
+                    0.5f,
+                    0.5f,
+                    opticalX = 1.25f,
+                    opticalY = -1.0f,
+                )
             }
             textAboveRule(s, fonts.regular, Rule(99f, 297f, y), entry.name, 9.25f, 8.5f, 2.5f, 2f)
             textAboveRule(s, fonts.regular, Rule(303f, 596f, y), entry.description, 9.25f, 8.5f, 2.5f, 2f)
@@ -314,6 +324,8 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
                     TopRect(block.checkX, block.firstCheckTop + index * block.rowStep, 8.5f, 8.5f),
                     0.5f,
                     0.5f,
+                    opticalX = 1.25f,
+                    opticalY = -0.5f,
                 )
             }
             textAboveRule(
@@ -880,14 +892,14 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
 
     private val V2_ABILITY_BLOCKS = listOf(
         V2AbilityBlock(
-            TopRect(14f, 121.5f, 58.5f, 28f), TopRect(48f, 138f, 36.5f, 24f), "10", "+0",
+            TopRect(14f, 121.5f, 58.5f, 28f), TopRect(49.5f, 139f, 44f, 22.5f), "10", "+0",
             listOf(
                 V2SkillRow(TopRect(98.5f, 125f, 8.5f, 9f), Rule(159f, 178.5f, 134.5f), "+0", Mark.SINGLE),
                 V2SkillRow(TopRect(98.5f, 137f, 8.5f, 9f), Rule(159f, 178.5f, 146f), "+3", Mark.SINGLE),
             ),
         ),
         V2AbilityBlock(
-            TopRect(14f, 201.5f, 58.5f, 28f), TopRect(48f, 218f, 36.5f, 24f), "16", "+3",
+            TopRect(14f, 201.5f, 58.5f, 28f), TopRect(49.5f, 219f, 44f, 22.5f), "16", "+3",
             listOf(
                 V2SkillRow(TopRect(98.5f, 193.5f, 8.5f, 9f), Rule(159f, 178.5f, 203f), "+6", Mark.SINGLE),
                 V2SkillRow(TopRect(98.5f, 205f, 8.5f, 9f), Rule(159f, 178.5f, 214.5f), "+6", Mark.SINGLE),
@@ -896,13 +908,13 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
             ),
         ),
         V2AbilityBlock(
-            TopRect(14f, 281.5f, 58.5f, 28f), TopRect(48f, 298f, 36.5f, 24f), "14", "+2",
+            TopRect(14f, 281.5f, 58.5f, 28f), TopRect(49.5f, 299f, 44f, 22.5f), "14", "+2",
             listOf(
                 V2SkillRow(TopRect(98.5f, 290.5f, 8.5f, 9f), Rule(159f, 178.5f, 300f), "+2", null),
             ),
         ),
         V2AbilityBlock(
-            TopRect(14f, 361f, 58.5f, 28f), TopRect(48f, 377.5f, 36.5f, 24f), "18", "+4",
+            TopRect(14f, 361f, 58.5f, 28f), TopRect(49.5f, 378.5f, 44f, 22.5f), "18", "+4",
             listOf(
                 V2SkillRow(TopRect(98.5f, 342f, 8.5f, 9f), Rule(159f, 178.5f, 351.5f), "+7", Mark.SINGLE),
                 V2SkillRow(TopRect(98.5f, 353.5f, 8.5f, 9f), Rule(159f, 178.5f, 363f), "+7", Mark.SINGLE),
@@ -913,7 +925,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
             ),
         ),
         V2AbilityBlock(
-            TopRect(14f, 441f, 58.5f, 28f), TopRect(48f, 457.5f, 36.5f, 24f), "12", "+1",
+            TopRect(14f, 441f, 58.5f, 28f), TopRect(49.5f, 458.5f, 44f, 22.5f), "12", "+1",
             listOf(
                 V2SkillRow(TopRect(98.5f, 422f, 8.5f, 9f), Rule(159f, 178.5f, 431.5f), "+1", null),
                 V2SkillRow(TopRect(98.5f, 434f, 8.5f, 9f), Rule(159f, 178.5f, 442.5f), "+4", Mark.SINGLE),
@@ -924,7 +936,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
             ),
         ),
         V2AbilityBlock(
-            TopRect(14f, 520.5f, 58.5f, 28f), TopRect(48f, 537.5f, 36.5f, 24f), "8", "-1",
+            TopRect(14f, 520.5f, 58.5f, 28f), TopRect(49.5f, 538.5f, 44f, 22.5f), "8", "-1",
             listOf(
                 V2SkillRow(TopRect(98.5f, 507.5f, 8.5f, 9f), Rule(159f, 178.5f, 517f), "-1", null),
                 V2SkillRow(TopRect(98.5f, 519f, 8.5f, 9f), Rule(159f, 178.5f, 528f), "-1", null),
