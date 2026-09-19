@@ -93,13 +93,13 @@ Successful:
 - Treasure / Objects / Other rows align well.
 - QA stick figure stays inside the portrait frame.
 
-Independent defect:
+Independent defects:
 
-1. **Portrait name Y placement**
-   - `Aster Vale` currently sits over the central lower portrait ornament/crown.
-   - This is a local Y-position defect.
-   - The handwriting role/font itself is acceptable.
-   - Run 2 should move the name upward into the clear lower portrait/name area without changing portrait geometry.
+1. **Portrait upper-field / name-banner separation**
+   - full-page inspection showed `Aster Vale` sitting over the central lower ornament/crown;
+   - follow-up zoom inspection also showed the stick figure's legs entering the lower decorative/name banner;
+   - both are local Y-placement defects, not a strategy problem;
+   - Run 2 should keep the stick figure inside the upper portrait field and place the handwritten name inside the clear lower banner above the crown.
 
 ### Page 2 — shared Equipment/Narrative
 
@@ -147,10 +147,11 @@ Independent defect:
 
 No strategy change is indicated.
 
-Only two local defects were found in the independent audit:
+Only local defects were found in the independent audit:
 
-1. portrait-name Y position;
-2. Historia first-line Y position.
+1. portrait figure extends into the lower name banner;
+2. portrait-name Y position overlaps the lower ornament;
+3. Historia first-line Y position overlaps the printed heading.
 
 ## Run 2 scope
 
@@ -158,7 +159,8 @@ Preserve every successful Run-1 region unchanged.
 
 Change only:
 
-- portrait-name Y placement on first page;
+- portrait figure Y extent on first page;
+- portrait-name Y placement inside the lower banner;
 - Historia content start rule on shared page 3.
 
 After generation:
