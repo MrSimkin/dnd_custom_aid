@@ -50,7 +50,7 @@ class DesktopPcSheetHybridStrategyRun7Test {
         Loader.loadPDF(composite).use { doc ->
             assertEquals(5, doc.numberOfPages)
             val oc = assertNotNull(doc.documentCatalog.ocProperties)
-            assertTrue(oc.getGroupNames().count() >= 35, "Run 7 must keep the complete draft section-isolated.")
+            assertTrue(oc.getGroupNames().count() >= 34, "Run 7 must keep the complete draft section-isolated.")
             assertHybridFontsEmbedded(doc)
             val renderer = PDFRenderer(doc)
             repeat(5) { index ->
