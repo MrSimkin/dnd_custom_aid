@@ -478,3 +478,43 @@ This approval does not automatically approve Custom v2 or Classic, does not merg
 Durable approval checkpoint:
 
 `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_RUN6_OWNER_APPROVED.md`
+
+
+---
+
+## 9. Custom v1 production promotion status
+
+**Pass 1:** PASS
+
+Owner-approved Run-6 Hybrid mechanics have been promoted into real renderer code:
+
+`DesktopCustomV1HybridRenderer.kt`
+
+The whole-draft Custom-v1 path now uses production Hybrid sections for:
+
+- MAIN approved Run-6 regions;
+- NARRATIVE Background/Ideals/Bonds/Flaws/Story;
+- SPELL_LIST Cantrips and Level 1.
+
+Temporary legacy residual rendering remains for:
+
+- EQUIPMENT page;
+- NARRATIVE Personality / long-form Other Traits / Notes;
+- spell levels 2–9;
+- NOTES page.
+
+Real-model mapping does not invent unsupported values. Alignment, AC breakdown and next-level XP threshold remain blank until the domain provides them. Inspiration remains deferred from the Run-6 baseline.
+
+Production promotion uncovered and corrected one density issue: real long Ideals/Bonds/Flaws require multi-rule paragraph geometry rather than the short single-line QA fixture.
+
+Final production-promotion Pass-1 checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_PRODUCTION_PROMOTION_PASS1.md`
+
+Next objective:
+
+- migrate the remaining Custom-v1 legacy regions into independent Hybrid layers;
+- generate a complete five-page all-Hybrid Custom-v1 candidate;
+- independently audit and return it for owner review before Custom-v1 production closure.
+
+PR #85 remains **DRAFT / DO NOT MERGE**.
