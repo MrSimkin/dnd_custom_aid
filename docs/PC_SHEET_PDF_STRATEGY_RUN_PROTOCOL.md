@@ -518,3 +518,74 @@ Next objective:
 - independently audit and return it for owner review before Custom-v1 production closure.
 
 PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 10. Run 7 — Complete five-page all-Hybrid Custom v1 visual draft
+
+**Result:** PASS FOR OWNER REVIEW
+
+Run 7 corrects the process error discovered after Production Promotion Pass 1.
+
+Durable rule added:
+
+> Visual-approval drafts must not mix the active Hybrid renderer with legacy visual rendering. Every visible region under review must use the active strategy. QA/dummy values may be used for visual calibration when production-domain values are unavailable; production mapping is a separate gate.
+
+Run 7 renders all five Custom-v1 pages through independent Hybrid section/layer geometry:
+
+### Page 1
+- Identification
+- portrait QA figure
+- Defense
+- Core Stats
+- Attributes
+- Skills
+- Spellcasting Summary
+- Attacks
+- Traits
+
+### Page 2
+- Equipment
+- Coins
+- Valuables
+- Special Equipment
+
+### Page 3
+- Background
+- Personality
+- Ideals
+- Bonds
+- Flaws
+- Other Traits/Attributes
+- Story
+- Notes
+
+### Page 4
+- Cantrips
+- spell levels 1–9
+
+### Page 5
+- Notes
+- grid/doodle QA layer
+
+Spell semantics preserved:
+- `ESPACIOS GASTADOS` always empty;
+- cantrips have no preparation checks.
+
+Final successful Run-7 scaffold:
+
+`35464998378` / run #2702
+
+Final visual regression:
+- final portrait correction changed only page 1 portrait region;
+- pages 2–5 remained pixel-identical to the prior successful all-Hybrid render.
+
+Durable checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_HYBRID_STRATEGY_RUN7_ALL_HYBRID_CUSTOM_V1.md`
+
+Current next gate:
+
+- owner review of the complete five-page all-Hybrid Custom-v1 visual draft;
+- PR #85 remains **DRAFT / DO NOT MERGE**.
