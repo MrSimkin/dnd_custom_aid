@@ -633,3 +633,45 @@ Current gate:
 
 - owner review of the calibrated complete five-page all-Hybrid Custom-v1 draft;
 - PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 12. Custom v1 final visual approval — frozen baseline
+
+**Owner status:** APPROVED / FROZEN  
+**Date:** 2026-09-19
+
+The owner approved the final calibrated Run-7 five-page all-Hybrid Custom-v1 draft and explicitly requested that the result be preserved in the repository before moving on.
+
+Current visual authority:
+
+- rendering commit: `7448693e36ee1b26243bd4091615dba725e95027`;
+- Scaffold: `35465731044` / run #2708 — SUCCESS;
+- workflow artifact id: `10591616012`;
+- approved PDF: `hybrid-strategy1-run7-composite.pdf`;
+- overlay diagnostic: `hybrid-strategy1-run7-overlay-only.pdf`.
+
+Stable approved-baseline pointer:
+
+`docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`
+
+Owner approval checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_RUN7_FINAL_OWNER_APPROVED.md`
+
+### Preservation rule
+
+Run 7 final calibration supersedes earlier Custom-v1 drafts as the current visual authority.
+
+Future work must not silently alter this baseline. Any Custom-v1 visual modification requires an explicit new change relative to the approved baseline and a new owner approval gate.
+
+### Current state
+
+**CUSTOM V1 VISUAL DESIGN: APPROVED / FROZEN**
+
+No further Custom-v1 visual experimentation is required unless the owner explicitly reopens it.
+
+The project may now proceed to the next development step.
+
+PR #85 remains **DRAFT / DO NOT MERGE** until its broader scope/closure gate is resolved.
