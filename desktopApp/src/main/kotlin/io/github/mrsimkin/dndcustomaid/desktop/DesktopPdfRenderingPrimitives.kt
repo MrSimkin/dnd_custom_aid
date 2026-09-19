@@ -172,6 +172,8 @@ internal enum class PdfMarkerKind {
     CIRCLE_OUTLINE,
     CIRCLE_FILLED,
     DOUBLE_CIRCLE,
+    OVAL_OUTLINE,
+    OVAL_FILLED,
     SQUARE_OUTLINE,
     SQUARE_FILLED,
     CHECK,
@@ -371,6 +373,8 @@ internal class DesktopPdfRenderingPrimitives(
             PdfMarkerKind.CIRCLE_OUTLINE -> ApprovedSymbolGlyph(0xE200, 0, 0, 1600, 1600)
             PdfMarkerKind.CIRCLE_FILLED -> ApprovedSymbolGlyph(0xE201, 0, 0, 1600, 1600)
             PdfMarkerKind.DOUBLE_CIRCLE -> ApprovedSymbolGlyph(0xE202, 100, 100, 1500, 1500)
+            PdfMarkerKind.OVAL_OUTLINE -> ApprovedSymbolGlyph(0xE205, 190, 0, 1410, 1600)
+            PdfMarkerKind.OVAL_FILLED -> ApprovedSymbolGlyph(0xE206, 190, 0, 1410, 1600)
             PdfMarkerKind.SQUARE_OUTLINE -> ApprovedSymbolGlyph(0xE203, 0, 0, 1600, 1600)
             PdfMarkerKind.SQUARE_FILLED -> ApprovedSymbolGlyph(0xE204, 0, 0, 1600, 1600)
             PdfMarkerKind.DIAMOND_OUTLINE -> ApprovedSymbolGlyph(0xE207, 40, 40, 1560, 1560)
@@ -386,6 +390,8 @@ internal class DesktopPdfRenderingPrimitives(
             PdfMarkerKind.CIRCLE_OUTLINE -> ApprovedSymbolGlyph(0xE300, 100, 100, 1500, 1500)
             PdfMarkerKind.CIRCLE_FILLED -> ApprovedSymbolGlyph(0xE301, 100, 100, 1500, 1500)
             PdfMarkerKind.DOUBLE_CIRCLE -> ApprovedSymbolGlyph(0xE302, 100, 100, 1500, 1500)
+            PdfMarkerKind.OVAL_OUTLINE -> ApprovedSymbolGlyph(0xE305, 220, 100, 1380, 1500)
+            PdfMarkerKind.OVAL_FILLED -> ApprovedSymbolGlyph(0xE306, 220, 100, 1380, 1500)
             PdfMarkerKind.SQUARE_OUTLINE -> ApprovedSymbolGlyph(0xE303, 100, 100, 1500, 1500)
             PdfMarkerKind.SQUARE_FILLED -> ApprovedSymbolGlyph(0xE304, 100, 100, 1500, 1500)
             PdfMarkerKind.DIAMOND_OUTLINE -> ApprovedSymbolGlyph(0xE307, 80, 80, 1520, 1520)
