@@ -106,19 +106,27 @@ internal class DesktopPcSheetWholeDraftRenderer(
     ) {
         val sheet = plan.snapshot.aggregate.sheet
         val inventory = sheet.inventoryItems.sortedBy { it.sortOrder }
+        val ordinary = inventory.filterNot { it.special }
 
-        inventory.take(9).forEachIndexed { index, item ->
-            val y = 215f + index * 70f
-            drawTableText(stream, primitives, 55f, y, 725f, 30f, inventoryLine(item), 7.2f)
-        }
+        ordinary.take(V1_EQUIPMENT_RULE_Y.size * V1_EQUIPMENT_COLUMNS.size)
+            .forEachIndexed { index, item ->
+                val column = index % V1_EQUIPMENT_COLUMNS.size
+                val row = index / V1_EQUIPMENT_COLUMNS.size
+                val field = V1_EQUIPMENT_COLUMNS[column]
+                drawOnRule(
+                    stream, primitives,
+                    field.first, field.second, V1_EQUIPMENT_RULE_Y[row],
+                    inventoryLine(item), 7.4f,
+                )
+            }
 
         val currenciesByKey = sheet.currencies.associateBy { it.key.lowercase() }
         V1_CURRENCY_FIELDS.forEach { field ->
             currenciesByKey[field.key]?.let { currency ->
                 drawTableText(
                     stream, primitives,
-                    field.x, field.y, field.width, 28f,
-                    currency.amount.toString(), 8f, centered = true,
+                    field.x, field.y, field.width, 30f,
+                    currency.amount.toString(), 10f, centered = true,
                 )
             }
         }
@@ -127,26 +135,26 @@ internal class DesktopPcSheetWholeDraftRenderer(
             .split(';')
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-        valuables.take(V1_VALUABLE_ROW_Y.size).forEachIndexed { index, valuable ->
-            drawBlock(
+        valuables.take(V1_VALUABLE_RULE_Y.size).forEachIndexed { index, valuable ->
+            drawOnRule(
                 stream, primitives,
-                910f, V1_VALUABLE_ROW_Y[index], 175f, 36f,
-                valuable, 6.2f, 2,
+                815f, 220f, V1_VALUABLE_RULE_Y[index],
+                valuable, 6.7f,
             )
         }
 
-        positionedSpecialItems(inventory.filter { it.special }, V1_SPECIAL_ROW_Y.size)
+        positionedSpecialItems(inventory.filter { it.special }, V1_SPECIAL_RULE_Y.size)
             .forEach { (rowIndex, item) ->
-                val y = V1_SPECIAL_ROW_Y[rowIndex]
+                val ruleY = V1_SPECIAL_RULE_Y[rowIndex]
                 if (item.equipped || item.attuned) {
                     markerPx(
-                        stream, primitives, 234.5f, y + 13.5f, 10f,
+                        stream, primitives, 208f, ruleY - 17f, 12f,
                         PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED,
                     )
                 }
-                drawTableText(stream, primitives, 255f, y, 205f, 30f, item.name, 6.7f)
+                drawOnRule(stream, primitives, 255f, 165f, ruleY, item.name, 7.2f)
                 val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
-                drawTableText(stream, primitives, 485f, y, 550f, 30f, detail, 6.5f)
+                drawOnRule(stream, primitives, 430f, 605f, ruleY, detail, 6.8f)
             }
     }
 
@@ -159,21 +167,22 @@ internal class DesktopPcSheetWholeDraftRenderer(
         val background = sheet.background
         val traitText = sheet.traits
             .sortedBy { it.sortOrder }
-            .joinToString("\n") { trait -> "${trait.name}: ${trait.description}" }
+            .joinToString(" · ") { trait -> trait.name + ": " + trait.description }
         val notes = notesText(plan)
 
-        drawBlock(
-            stream, primitives, 50f, 210f, 315f, 120f,
+        drawRuledText(
+            stream, primitives, 50f, 312f, V1_BACKGROUND_RULE_Y,
             listOf(background.name, background.summary).filter { it.isNotBlank() }.joinToString(" - "),
-            7.4f, 4,
+            7.1f, 42,
         )
-        drawBlock(stream, primitives, 50f, 465f, 315f, 205f, background.personalityTraits, 7.2f, 7)
-        drawBlock(stream, primitives, 50f, 745f, 315f, 190f, background.ideals, 7.2f, 6)
-        drawBlock(stream, primitives, 50f, 1020f, 315f, 190f, background.bonds, 7.2f, 6)
-        drawBlock(stream, primitives, 50f, 1300f, 315f, 190f, background.flaws, 7.2f, 6)
-        drawBlock(stream, primitives, 390f, 215f, 650f, 445f, traitText, 6.8f, 14)
-        drawBlock(stream, primitives, 390f, 755f, 650f, 335f, background.story, 7f, 11)
-        drawBlock(stream, primitives, 390f, 1190f, 650f, 300f, notes, 6.8f, 10)
+        drawRuledText(stream, primitives, 50f, 312f, V1_PERSONALITY_RULE_Y, background.personalityTraits, 7f, 42)
+        drawRuledText(stream, primitives, 50f, 312f, V1_IDEALS_RULE_Y, background.ideals, 7f, 42)
+        drawRuledText(stream, primitives, 50f, 312f, V1_BONDS_RULE_Y, background.bonds, 7f, 42)
+        drawRuledText(stream, primitives, 50f, 312f, V1_FLAWS_RULE_Y, background.flaws, 7f, 42)
+
+        drawRuledText(stream, primitives, 385f, 650f, V1_TRAITS_RULE_Y, traitText, 6.8f, 92)
+        drawRuledText(stream, primitives, 385f, 650f, V1_STORY_RULE_Y, background.story, 7f, 92)
+        drawRuledText(stream, primitives, 385f, 650f, V1_NARRATIVE_NOTES_RULE_Y, notes, 6.8f, 92)
     }
 
     private fun drawV2EquipmentAndNarrative(
@@ -185,32 +194,37 @@ internal class DesktopPcSheetWholeDraftRenderer(
         val background = sheet.background
         val inventory = sheet.inventoryItems.sortedBy { it.sortOrder }
 
-        inventory.take(20).forEachIndexed { index, item ->
-            val y = 195f + index * 34f
-            drawTableText(stream, primitives, 25f, y, 485f, 28f, inventoryLine(item), 6.4f)
-        }
+        inventory.filterNot { it.special }
+            .take(V2_EQUIPMENT_RULE_Y.size)
+            .forEachIndexed { index, item ->
+                drawOnRule(
+                    stream, primitives,
+                    25f, 490f, V2_EQUIPMENT_RULE_Y[index],
+                    inventoryLine(item), 6.9f,
+                )
+            }
 
-        drawBlock(
-            stream, primitives, 535f, 205f, 525f, 70f,
+        drawRuledText(
+            stream, primitives, 535f, 525f, V2_BACKGROUND_RULE_Y,
             listOf(background.name, background.summary).filter { it.isNotBlank() }.joinToString(" - "),
-            7f, 3,
+            7f, 76,
         )
-        drawBlock(stream, primitives, 535f, 335f, 525f, 85f, background.bonds, 6.8f, 3)
-        drawBlock(stream, primitives, 535f, 480f, 525f, 80f, background.ideals, 6.8f, 3)
-        drawBlock(stream, primitives, 535f, 620f, 525f, 335f, background.story, 6.8f, 12)
+        drawRuledText(stream, primitives, 535f, 525f, V2_BONDS_RULE_Y, background.bonds, 6.9f, 76)
+        drawRuledText(stream, primitives, 535f, 525f, V2_IDEALS_RULE_Y, background.ideals, 6.9f, 76)
+        drawRuledText(stream, primitives, 535f, 525f, V2_STORY_RULE_Y, background.story, 6.9f, 76)
 
-        positionedSpecialItems(inventory.filter { it.special }, V2_SPECIAL_ROW_Y.size)
+        positionedSpecialItems(inventory.filter { it.special }, V2_SPECIAL_RULE_Y.size)
             .forEach { (rowIndex, item) ->
-                val y = V2_SPECIAL_ROW_Y[rowIndex]
+                val ruleY = V2_SPECIAL_RULE_Y[rowIndex]
                 if (item.equipped || item.attuned) {
                     markerPx(
-                        stream, primitives, 183.5f, y + 15f, 10f,
+                        stream, primitives, 162.5f, ruleY - 16.5f, 11f,
                         PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED,
                     )
                 }
-                drawTableText(stream, primitives, 180f, y, 390f, 28f, item.name, 6.4f)
+                drawOnRule(stream, primitives, 180f, 340f, ruleY, item.name, 6.9f)
                 val detail = listOfNotNull(item.description, item.notes).joinToString(" - ")
-                drawTableText(stream, primitives, 600f, y, 570f, 28f, detail, 6.2f)
+                drawOnRule(stream, primitives, 535f, 525f, ruleY, detail, 6.6f)
             }
     }
 
@@ -270,10 +284,27 @@ internal class DesktopPcSheetWholeDraftRenderer(
         plan: PcSheetPdfRenderPlan,
     ) {
         val text = notesText(plan)
-        if (text.isBlank()) return
-        val midpoint = splitNearMiddle(text)
-        drawBlock(stream, primitives, 50f, 200f, 510f, 760f, midpoint.first, 7f, 25)
-        drawBlock(stream, primitives, 610f, 200f, 510f, 760f, midpoint.second, 7f, 25)
+        val isV1 = plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1
+        val rules = if (isV1) V1_NOTES_RULE_Y else V2_NOTES_RULE_Y
+        val lines = wrapForRules(text, if (isV1) 68 else 72)
+        val leftCount = minOf(rules.size, lines.size)
+        lines.take(leftCount).forEachIndexed { index, line ->
+            drawOnRule(
+                stream, primitives,
+                if (isV1) 50f else 25f,
+                if (isV1) 485f else 510f,
+                rules[index], line, 7f,
+            )
+        }
+        lines.drop(leftCount).take(rules.size).forEachIndexed { index, line ->
+            drawOnRule(
+                stream, primitives,
+                if (isV1) 555f else 550f,
+                if (isV1) 485f else 510f,
+                rules[index], line, 7f,
+            )
+        }
+        drawNotesDoodles(stream, isV1)
     }
 
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
@@ -337,6 +368,114 @@ internal class DesktopPcSheetWholeDraftRenderer(
             ?: normalized.indexOf('\n', startIndex = pivot).takeIf { it >= 0 }
             ?: pivot
         return normalized.substring(0, split).trim() to normalized.substring(split).trim()
+    }
+
+    private fun drawRuledText(
+        stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
+        xPx: Float,
+        widthPx: Float,
+        ruleYPx: List<Float>,
+        text: String,
+        sizePt: Float,
+        maxChars: Int,
+    ) {
+        wrapForRules(text, maxChars)
+            .take(ruleYPx.size)
+            .forEachIndexed { index, line ->
+                drawOnRule(stream, primitives, xPx, widthPx, ruleYPx[index], line, sizePt)
+            }
+    }
+
+    private fun drawOnRule(
+        stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
+        xPx: Float,
+        widthPx: Float,
+        ruleYPx: Float,
+        text: String,
+        sizePt: Float,
+    ) {
+        primitives.drawTextBox(
+            stream,
+            PdfTextBoxSpec(
+                rect = rectPx(xPx, ruleYPx - 29f, widthPx, 26f),
+                text = text,
+                role = PdfTypographyRole.COMPACT_TABLE,
+                preferredSizePt = sizePt,
+                minimumSizePt = 5.8f,
+                horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                verticalAlignment = PdfVerticalAlignment.BOTTOM,
+                wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
+                maximumLines = 1,
+                horizontalPaddingPt = 1f,
+                verticalPaddingPt = 0.5f,
+            ),
+        )
+    }
+
+    private fun wrapForRules(text: String, maxChars: Int): List<String> {
+        val paragraphs = text
+            .replace("\r\n", "\n")
+            .split(Regex("\\n+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        val result = mutableListOf<String>()
+        paragraphs.forEach { paragraph ->
+            var current = ""
+            paragraph.split(Regex("\\s+")).forEach { word ->
+                val candidate = if (current.isEmpty()) word else current + " " + word
+                if (candidate.length <= maxChars || current.isEmpty()) {
+                    current = candidate
+                } else {
+                    result += current
+                    current = word
+                }
+            }
+            if (current.isNotEmpty()) result += current
+        }
+        return result
+    }
+
+    private fun drawNotesDoodles(
+        stream: PDPageContentStream,
+        isV1: Boolean,
+    ) {
+        val scale = PX_TO_PT
+        val firstCenterX = 265f * scale
+        val firstCenterY = PAGE_HEIGHT_PT - 1060f * scale
+        val secondX = 720f * scale
+        val secondY = PAGE_HEIGHT_PT - 1115f * scale
+
+        stream.saveGraphicsState()
+        stream.setStrokingColor(java.awt.Color.BLACK)
+        stream.setLineWidth(0.8f)
+
+        val radius = 42f * scale
+        stream.addRect(firstCenterX - radius, firstCenterY - radius, radius * 2f, radius * 2f)
+        stream.stroke()
+        stream.moveTo(firstCenterX, firstCenterY + radius)
+        stream.lineTo(firstCenterX + radius * 0.55f, firstCenterY - radius)
+        stream.lineTo(firstCenterX - radius * 0.55f, firstCenterY - radius)
+        stream.closePath()
+        stream.stroke()
+
+        val w = 170f * scale
+        val h = 95f * scale
+        stream.addRect(secondX, secondY, w, h)
+        stream.stroke()
+        stream.moveTo(secondX + 45f * scale, secondY)
+        stream.lineTo(secondX + 45f * scale, secondY + h)
+        stream.moveTo(secondX + 105f * scale, secondY + 35f * scale)
+        stream.lineTo(secondX + w, secondY + 35f * scale)
+        stream.stroke()
+
+        if (!isV1) {
+            stream.moveTo(secondX + w, secondY + h)
+            stream.lineTo(secondX + w + 60f * scale, secondY + h + 40f * scale)
+            stream.stroke()
+        }
+        stream.restoreGraphicsState()
     }
 
     private fun drawTableText(
@@ -476,9 +615,47 @@ internal class DesktopPcSheetWholeDraftRenderer(
             CurrencyField("pe", 1050f, 348f, 130f),
         )
 
-        val V1_VALUABLE_ROW_Y = listOf(615f, 655f, 695f, 735f, 775f, 815f, 855f)
-        val V1_SPECIAL_ROW_Y = List(13) { index -> 1015f + index * 40f }
-        val V2_SPECIAL_ROW_Y = List(13) { index -> 1055f + index * 34f }
+        val V1_EQUIPMENT_COLUMNS = listOf(55f to 220f, 305f to 220f, 555f to 225f)
+        val V1_EQUIPMENT_RULE_Y = listOf(
+            217f, 257f, 297f, 336f, 376f, 416f, 456f, 495f, 535f,
+            575f, 614f, 654f, 694f, 733f, 773f, 813f, 852f, 892f,
+        )
+        val V1_VALUABLE_RULE_Y = listOf(614f, 654f, 694f, 733f, 773f, 813f, 852f, 892f)
+        val V1_SPECIAL_RULE_Y = listOf(
+            1045f, 1085f, 1124f, 1164f, 1204f, 1244f, 1283f,
+            1323f, 1363f, 1402f, 1442f, 1482f, 1527f,
+        )
+
+        val V1_BACKGROUND_RULE_Y = listOf(219f, 259f, 299f, 338f, 378f, 418f)
+        val V1_PERSONALITY_RULE_Y = listOf(497f, 537f, 575f, 614f, 654f, 694f)
+        val V1_IDEALS_RULE_Y = listOf(775f, 815f, 852f, 892f, 932f, 971f)
+        val V1_BONDS_RULE_Y = listOf(1053f, 1092f, 1130f, 1170f, 1210f, 1249f)
+        val V1_FLAWS_RULE_Y = listOf(1331f, 1370f, 1408f, 1450f, 1487f, 1529f)
+        val V1_TRAITS_RULE_Y = listOf(219f, 259f, 299f, 338f, 378f, 418f, 458f, 497f, 537f, 577f, 616f, 656f)
+        val V1_STORY_RULE_Y = listOf(775f, 815f, 854f, 894f, 934f, 973f, 1013f, 1053f, 1092f)
+        val V1_NARRATIVE_NOTES_RULE_Y = listOf(1212f, 1251f, 1291f, 1331f, 1370f, 1410f, 1450f, 1489f, 1529f)
+
+        val V2_EQUIPMENT_RULE_Y = listOf(
+            229f, 263f, 297f, 331f, 365f, 399f, 433f, 467f, 501f, 535f, 569f, 603f,
+            637f, 671f, 705f, 739f, 773f, 807f, 841f, 875f, 909f, 943f, 977f,
+        )
+        val V2_BACKGROUND_RULE_Y = listOf(229f, 263f, 297f)
+        val V2_BONDS_RULE_Y = listOf(365f, 399f, 433f)
+        val V2_IDEALS_RULE_Y = listOf(501f, 535f, 569f)
+        val V2_STORY_RULE_Y = listOf(603f, 637f, 671f, 705f, 739f, 773f, 807f, 841f, 875f, 909f, 943f, 977f)
+        val V2_SPECIAL_RULE_Y = listOf(
+            1085f, 1119f, 1153f, 1187f, 1221f, 1255f, 1289f,
+            1323f, 1357f, 1391f, 1425f, 1459f, 1493f, 1527f,
+        )
+
+        val V1_NOTES_RULE_Y = listOf(
+            219f, 259f, 299f, 338f, 378f, 418f, 458f, 497f, 537f,
+            577f, 616f, 656f, 696f, 735f, 775f, 815f, 854f,
+        )
+        val V2_NOTES_RULE_Y = listOf(
+            208f, 242f, 276f, 310f, 344f, 378f, 412f, 446f, 480f, 514f,
+            548f, 582f, 616f, 650f, 684f, 718f, 755f, 789f, 823f, 857f,
+        )
 
         val SPECIAL_LOCATION_LABELS = listOf(
             "cabeza",
