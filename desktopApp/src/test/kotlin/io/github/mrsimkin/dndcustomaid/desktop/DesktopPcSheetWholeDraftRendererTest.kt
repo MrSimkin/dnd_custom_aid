@@ -223,7 +223,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             "Improvisador" to "Combinas herramientas y recursos disponibles cuando falta el equipo ideal.",
         ).mapIndexed { index, (name, description) ->
             CharacterTrait(
-                id = uuid("40000000-0000-0000-0000-00000000000${index + 1}"),
+                id = uuid("40000000-0000-0000-0000-${(index + 1).toString().padStart(12, '0')}"),
                 name = name,
                 source = "Prueba PDF",
                 type = if (index < 2) CharacterTraitType.SPECIES_RACE else CharacterTraitType.CLASS,
