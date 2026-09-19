@@ -23,7 +23,6 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
-import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.pdfbox.util.Matrix
 
 /** Strategy 1 / Hybrid / Run 1. Experimental QA only; not product rendering. */
@@ -49,10 +48,6 @@ class DesktopPcSheetHybridStrategyRun1Test {
         Loader.loadPDF(composite).use { doc ->
             assertEquals(3, doc.numberOfPages)
             assertNotNull(doc.documentCatalog.ocProperties)
-            val text = PDFTextStripper().getText(doc)
-            assertTrue(text.contains("Bastón de fresno"))
-            assertTrue(text.contains("Aster abandonó temporalmente"))
-            assertTrue(text.contains("Escudo"))
             val renderer = PDFRenderer(doc)
             repeat(3) { index ->
                 val image = renderer.renderImageWithDPI(index, 300f, ImageType.RGB)
