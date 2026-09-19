@@ -420,7 +420,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 ),
             ),
             preferences = CharacterSuccessorPreferences(
-                valuablesText = "Broche élfico antiguo (75 po); gema lunar sin tasar; tres láminas de plata grabadas; fragmento de mosaico con sello azul.",
+                valuablesText = "Broche élfico antiguo (75 po); gema lunar tallada (120 po); tres láminas de plata grabadas (45 po); fragmento de mosaico con sello azul (25 po).",
             ),
         )
         return PcSheetExportAggregate(sheet = sheet, closure = closure, successor = successor)
