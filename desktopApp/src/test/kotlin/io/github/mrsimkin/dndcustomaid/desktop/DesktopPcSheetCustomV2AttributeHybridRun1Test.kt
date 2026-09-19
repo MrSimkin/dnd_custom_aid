@@ -37,7 +37,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
     fun rendersCompletePerAttributeCustomV2HybridDraft() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val templateBytes = resource(TEMPLATE).use { it.readBytes() }
-        val composite = File(proofDir, "hybrid-custom-v2-attribute-run3-composite.pdf")
+        val composite = File(proofDir, "hybrid-custom-v2-attribute-run4-composite.pdf")
 
         Loader.loadPDF(templateBytes).use { doc ->
             // v2 pages 1 and 2 are alternative first pages. This run uses page 1 / per Attribute.
@@ -56,12 +56,12 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
             val renderer = PDFRenderer(doc)
             repeat(4) { index ->
                 val image = renderer.renderImageWithDPI(index, 300f, ImageType.RGB)
-                val png = File(proofDir, "hybrid-custom-v2-attribute-run3-composite-page-${index + 1}.png")
+                val png = File(proofDir, "hybrid-custom-v2-attribute-run4-composite-page-${index + 1}.png")
                 assertTrue(ImageIO.write(image, "png", png))
             }
         }
 
-        val overlayOnly = File(proofDir, "hybrid-custom-v2-attribute-run3-overlay-only.pdf")
+        val overlayOnly = File(proofDir, "hybrid-custom-v2-attribute-run4-overlay-only.pdf")
         PDDocument().use { doc ->
             repeat(4) { doc.addPage(PDPage(PDRectangle(W, H))) }
             val fonts = Fonts(doc)
@@ -202,8 +202,8 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
                     row.checkbox,
                     0.55f,
                     0.55f,
-                    opticalX = 1.5f,
-                    opticalY = -1.0f,
+                    opticalX = if (it == Mark.DOUBLE) 2.0f else 1.65f,
+                    opticalY = -0.6f,
                 )
             }
             centeredAboveRule(s, fonts.semibold, row.valueRule, row.value, 8.8f, 1.8f)
@@ -301,8 +301,8 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
                     TopRect(87.5f, V2_SPECIAL_CHECK_TOP[index], 8.5f, 9f),
                     0.5f,
                     0.5f,
-                    opticalX = 1.25f,
-                    opticalY = -1.0f,
+                    opticalX = 1.75f,
+                    opticalY = -0.7f,
                 )
             }
             textAboveRule(s, fonts.regular, Rule(99f, 297f, y), entry.name, 9.25f, 8.5f, 2.5f, 2f)
@@ -324,8 +324,8 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
                     TopRect(block.checkX, block.firstCheckTop + index * block.rowStep, 8.5f, 8.5f),
                     0.5f,
                     0.5f,
-                    opticalX = 1.25f,
-                    opticalY = -0.5f,
+                    opticalX = 1.7f,
+                    opticalY = -0.6f,
                 )
             }
             textAboveRule(
