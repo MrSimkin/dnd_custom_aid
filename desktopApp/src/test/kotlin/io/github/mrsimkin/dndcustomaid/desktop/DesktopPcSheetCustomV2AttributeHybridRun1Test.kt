@@ -149,18 +149,18 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
     private fun drawV2Portrait(s: PDFormContentStream, fonts: Fonts) {
         // QA portrait stays well inside the owner frame.
         val cx = 267f
-        val top = 38f
-        val bottom = 145f
-        val headCy = H - 63f
-        val headR = 10f
+        val top = 34f
+        val bottom = 119f
+        val headCy = H - 54f
+        val headR = 9f
 
         s.saveGraphicsState()
         s.setStrokingColor(Color.BLACK)
         s.setLineWidth(1.2f)
         circlePath(s, cx, headCy, headR)
         s.stroke()
-        val shoulderY = H - 88f
-        val hipY = H - 118f
+        val shoulderY = H - 76f
+        val hipY = H - 101f
         s.moveTo(cx, headCy - headR)
         s.lineTo(cx, hipY)
         s.moveTo(cx, shoulderY)
@@ -174,7 +174,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
         s.stroke()
         s.restoreGraphicsState()
 
-        centered(s, fonts.handwritten, TopRect(205f, 153f, 124f, 25f), "Aster Vale", 13.5f, 0f)
+        centered(s, fonts.handwritten, TopRect(205f, 132f, 124f, 22f), "Aster Vale", 13.5f, -0.2f)
     }
 
     private fun drawV2CoreStats(s: PDFormContentStream, fonts: Fonts) {
@@ -972,7 +972,7 @@ class DesktopPcSheetCustomV2AttributeHybridRun1Test {
     private val V2_BACKGROUND_RULES = listOf(114.5f, 131.5f, 148.5f).map { Rule(297.5f, 597.5f, it) }
     private val V2_BONDS_RULES = listOf(182.5f, 199.5f, 216.5f).map { Rule(297.5f, 597.5f, it) }
     private val V2_IDEALS_RULES = listOf(250.5f, 267.5f, 284.5f).map { Rule(297.5f, 597.5f, it) }
-    private val V2_STORY_RULES = List(12) { Rule(297.5f, 597.5f, 301.5f + it * 17f) }
+    private val V2_STORY_RULES = List(11) { Rule(297.5f, 597.5f, 318.5f + it * 17f) }
     private val V2_SPECIAL_RULE_Y = List(14) { 542.5f + it * 17f }
     private val V2_SPECIAL_CHECK_TOP = List(14) { 530.5f + it * 17f }
     private val V2_SPECIAL_EQUIPMENT = listOf(
