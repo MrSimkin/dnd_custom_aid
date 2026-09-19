@@ -36,11 +36,21 @@ Approval checkpoint:
 
 The historical artifact filenames retain `run1`; the frozen visual baseline is the corrected owner-approved Run 2 generated from the commit above.
 
-## Custom v2 family — CLOSED
+## Custom v2 base sheets — APPROVED / FROZEN
 
 Both first-page presentations and their shared pages are owner-approved and frozen.
 
-Next mandatory visual family: **Classic D&D-style**.
+This closes the **base-sheet** approval gate only.
+
+## Extended-page status — PENDING
+
+Owner clarification on 2026-09-19 reaffirmed D-0074: Extended pages are required for **all** visual families and must use a family-matched design rather than one generic appendix.
+
+The Custom-v2 Extended-page family therefore remains pending. It must cover the applicable extension roles (Custom Statistics, Traits & Features, Resources & Options, Inventory / Equipment, Spells, Notes) with visual language coherent with Custom v2.
+
+Next base-sheet owner gate: **Classic D&D-style**.
+
+The complete Custom-v2 visual family is not considered closed until its required Extended-page presentation has also passed populated visual QA.
 
 ## Preservation rule
 

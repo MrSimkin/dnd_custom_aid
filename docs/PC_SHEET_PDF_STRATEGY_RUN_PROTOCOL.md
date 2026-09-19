@@ -989,3 +989,80 @@ Current gate:
 - if approved, freeze the per-Ability baseline and close Custom v2 visual-family approval;
 - then proceed to Classic D&D-style;
 - PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 18. Custom v2 — per Ability Run 2 owner approval
+
+**Status:** OWNER APPROVED / FROZEN
+
+The owner approved the corrected Run-2 per-Ability result after the bounded Run-1 feedback calibration.
+
+Frozen rendering baseline:
+
+- commit: `be689bb6628a46e562428159fc72b2ee51b95d2c`;
+- Scaffold: `35471866920` / run #2760 — SUCCESS;
+- approval checkpoint: `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ABILITY_RUN2_OWNER_APPROVED.md`.
+
+Both Custom-v2 first-page alternatives and their shared base pages are now approved/frozen.
+
+---
+
+## 19. Extended-page scope clarification
+
+**Owner clarification:** 2026-09-19
+
+Extended pages are required for **every** visual family:
+
+- Classic D&D-style;
+- Custom v1;
+- Custom v2 — per Attribute;
+- Custom v2 — per Ability.
+
+This is consistent with D-0074 section 5: extensions are design-specific. There is no universal generic Extended-page skin.
+
+Important state distinction:
+
+- Custom v1 base sheet: approved/frozen;
+- Custom v2 per-Attribute base sheet: approved/frozen;
+- Custom v2 per-Ability base sheet: approved/frozen;
+- family-matched Extended-page sets for the Custom families: still pending visual design/QA.
+
+Do not use a base-sheet approval to claim that the complete family, including Extended pages, is closed.
+
+---
+
+## 20. Classic D&D-style Run 1 — populated visual candidate
+
+**Result:** PASS FOR OWNER REVIEW
+
+Implementation/final calibration commit:
+
+`14b5c2561060fc319ef63cf7a9f2ffcbb7b9c996`
+
+Scaffold:
+
+`35473827949` / run #2779 — SUCCESS
+
+The first application-designed Classic candidate is generated from blank Letter pages; it does not overlay or recreate an official published character sheet.
+
+It contains:
+
+1. Main — portrait, attributes, saves, skills, combat, attacks, quick resources;
+2. Equipment & Resources;
+3. Features & Story;
+4. Spell List;
+5. Notes & Reference;
+6. Extended — Custom Statistics.
+
+The sixth page deliberately demonstrates that the Classic extension pages use the same typography, border rhythm, spacing and print language as the base family.
+
+Run-1 text layout has a strict no-overflow guard. The first implementation run exposed undersized name-header and spell-summary mini-stat boxes; those were corrected without changing the overall composition. The final run contains no recorded overflow.
+
+Current gate:
+
+- mandatory owner visual review of Classic Run 1;
+- Classic is not frozen/approved until that review passes;
+- even after Classic base approval, additional Extended-page roles remain required as applicable;
+- PR #85 remains DRAFT / DO NOT MERGE.

@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-18 (Chile local time)  
+**Updated:** 2026-09-19 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — renderer-foundation redesign / structured QA preparation
+**Current normal work:** PC Sheet PDF Export — Classic visual owner gate + family-matched Extended-page continuation
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -108,41 +108,35 @@ Draft PR:
 
 Current state:
 
-- the initial page-one proof remains historical/diagnostic evidence after owner Round 1 rejection;
-- the renderer strategy remains whole-export-first with structured section/page/family/end-to-end QA;
-- PDFBox 3.0.8 and the reusable renderer primitive foundation are established;
-- **owner Primitive PDF QA is accepted** and renderer work may proceed beyond that gate;
-- no complete Classic / Custom v1 / Custom v2 visual family is approved;
-- the exact owner-authored v1 TTF is published byte-for-byte after authoritative SHA-256 verification;
-- v4 is published as a modern redesign with deterministic TTX-backed source/build, complete mapping guide, legacy-refined + modern-clean families and PUA aliases;
-- v4 technical validation is complete; **v4 visual specimen approval is still pending**;
+- Strategy 1 / Hybrid is proven for the owner-authored Custom templates;
+- Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN;
+- Custom v1 Run-7 base sheet is OWNER APPROVED / FROZEN;
+- Custom v2 per-Attribute Run-4 base sheet is OWNER APPROVED / FROZEN;
+- Custom v2 per-Ability corrected Run-2 base sheet is OWNER APPROVED / FROZEN;
+- these are **base-sheet** approvals, not complete Extended-page-family closure;
+- D-0074 and owner clarification require family-matched Extended pages for every design;
+- Classic Run 1 is implemented at `14b5c2561060fc319ef63cf7a9f2ffcbb7b9c996`;
+- Scaffold `35473827949` / #2779 is SUCCESS;
+- Classic Run 1 contains five populated base pages plus a Classic-styled Extended — Custom Statistics page;
+- Classic Run 1 is at the mandatory owner visual gate and is NOT yet approved/frozen;
 - PR #85 remains DRAFT / DO NOT MERGE.
-
-Do not return to blind page-one coordinate polishing.
 
 Next continuation sequence:
 
-1. owner reviews the Para Hoja de PJ v4 visual specimen;
-2. if the published v4 artwork needs changes, preserve v4 and create the next versioned derivative rather than replacing it;
-3. continue populated renderer implementation across all required pages/families using the accepted primitive foundation;
-4. use the symbol-font candidate only within its documented visual-approval status;
-5. perform section -> page -> family -> end-to-end QA;
-6. do not merge PR #85 until the remaining family/functional gates are satisfied.
+1. owner reviews Classic Run 1;
+2. apply bounded Classic visual corrections if requested, otherwise freeze the Classic base design;
+3. continue family-matched Extended-page design/QA for Classic, Custom v1 and Custom v2 without disturbing frozen base layouts;
+4. promote approved visual mechanics into production renderer paths;
+5. complete family/end-to-end D-0074 QA;
+6. do not merge PR #85 until the remaining visual/functional gates are satisfied.
 
 Relevant durable records:
 
-- `docs/checkpoints/2026-09-18_PARA_HOJA_DE_PJ_V4_PUBLISHED_PRIMITIVE_QA_ACCEPTED.md`;
-- `docs/checkpoints/2026-09-18_PDF_PRIMITIVE_QA_OWNER_FEEDBACK_APPLIED.md`;
-- `docs/checkpoints/2026-09-18_PDF_TYPOGRAPHY_AND_OWNER_SYMBOL_FONT_FEEDBACK.md`;
-- `docs/checkpoints/2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`;
-- `docs/checkpoints/2026-09-17_PC_SHEET_PDF_WHOLE_EXPORT_RENDERER_QA_STRATEGY.md`;
-- `docs/checkpoints/2026-09-17_PC_SHEET_PDF_RENDERER_FOUNDATION_RESEARCH.md`;
-- `docs/checkpoints/2026-09-18_REPOSITORY_VISIBILITY_AND_PDF_FONT_ASSET_POLICY.md`;
-- `assets/fonts/owner/para-hoja-de-pj/README.md`;
-- `assets/fonts/owner/para-hoja-de-pj/v4/GUIDE.md`;
-- `scripts/fonts/para-hoja-de-pj/v4/build_para_hoja_de_pj_v4.py`.
-
-No visual family is approved. No merge is authorized.
+- `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
+- `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+- `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
+- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN1_OWNER_REVIEW.md`;
+- `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`.
 
 ## Historical/stale open PRs
 

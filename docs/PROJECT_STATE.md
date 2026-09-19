@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-18 (Chile local time)  
+**Last reconstructed:** 2026-09-19 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
@@ -10,7 +10,25 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — whole-export renderer foundation redesign after rejected Round 1 visual proof
+**Current active package:** PC Sheet PDF Export — Classic visual-family owner review after Custom v1/v2 base-sheet approvals
+
+### Superseding PDF visual state — 2026-09-19
+
+Current active branch: `wave7/pc-sheet-pdf-renderer-template-proof` / PR #85 (DRAFT / DO NOT MERGE).
+
+Approved/frozen base-sheet baselines:
+- Custom v1 Run 7;
+- Custom v2 per Attribute Run 4;
+- Custom v2 per Ability corrected Run 2;
+- Para Hoja de PJ Symbols v8.
+
+Current Classic candidate:
+- commit `14b5c2561060fc319ef63cf7a9f2ffcbb7b9c996`;
+- Scaffold `35473827949` / #2779 — SUCCESS;
+- five base pages plus Classic-styled Extended — Custom Statistics;
+- pending mandatory owner visual review.
+
+D-0074 + owner clarification require design-specific Extended pages for **all** families. The Custom base-sheet approvals do not close their Extended-page work.
 
 ## 1. Current topology
 
@@ -34,7 +52,7 @@ The shared primitive foundation has now passed owner Primitive PDF QA. Renderer 
 
 The exact owner-authored `Para-hoja-de-pj` v1 is now committed as immutable provenance after SHA-256 verification. v4 is published as a contemporary redesign with legacy-refined and modern-clean families, stable renderer PUA aliases, complete documentation and a deterministic TTX-backed builder.
 
-The v4 build is technically validated and reproducible, but its **visual specimen remains an owner gate**. No complete Classic / Custom v1 / Custom v2 visual family is approved.
+Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 1 is the current owner visual gate. Family-matched Extended pages remain required and pending across all designs, so base-sheet approval must not be described as complete family closure.
 
 Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
