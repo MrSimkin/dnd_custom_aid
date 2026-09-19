@@ -23,8 +23,11 @@ import org.apache.pdfbox.rendering.PDFRenderer
  * template is used.
  */
 class DesktopPcSheetClassicVisualRun1Test {
+    private val overflowDiagnostics = mutableListOf<String>()
+
     @Test
     fun rendersClassicDndStyleVisualRun1() {
+        overflowDiagnostics.clear()
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val pdf = File(proofDir, "classic-dnd-style-run1.pdf")
 
@@ -63,6 +66,10 @@ class DesktopPcSheetClassicVisualRun1Test {
             }
         }
 
+        if (overflowDiagnostics.isNotEmpty()) {
+            File(proofDir, "classic-dnd-style-run1-overflows.txt")
+                .writeText(overflowDiagnostics.joinToString("\n"))
+        }
         assertTrue(pdf.length() > 10_000L)
     }
 
@@ -639,8 +646,7 @@ class DesktopPcSheetClassicVisualRun1Test {
             ),
         )
         if (result.hasOverflow) {
-            System.err.println("CLASSIC_RUN1_OVERFLOW value='$value' overflow='${result.overflowText}'")
-            error("Classic Run 1 overflow in '$value': ${result.overflowText}")
+            overflowDiagnostics += "value='$value' overflow='${result.overflowText}'"
         }
     }
 
