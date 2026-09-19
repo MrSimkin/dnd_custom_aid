@@ -305,34 +305,36 @@ class DesktopPcSheetHybridStrategyRun7Test {
     }
 
     private fun drawPortraitStickFigure(s: PDFormContentStream) {
-        val left = 419f
-        val right = 520f
-        val top = 39f
-        val bottom = 187f
+        // Measured against the actual portrait interior, not the earlier estimated box.
+        // Keep a generous optical margin so the QA portrait never touches/covers the frame.
+        val left = 462f
+        val right = 582f
+        val top = 42f
+        val bottom = 158f
         val cx = (left + right) / 2f
 
         s.saveGraphicsState()
         s.setStrokingColor(Color.BLACK)
         s.setLineWidth(1.2f)
 
-        val headCy = H - (top + 32f)
-        val headR = 12f
+        val headCy = H - (top + 24f)
+        val headR = 10f
         circlePath(s, cx, headCy, headR)
         s.stroke()
 
         val neckY = headCy - headR
-        val hipY = H - (top + 98f)
-        val shoulderY = H - (top + 61f)
+        val hipY = H - (top + 76f)
+        val shoulderY = H - (top + 47f)
         s.moveTo(cx, neckY)
         s.lineTo(cx, hipY)
         s.moveTo(cx, shoulderY)
-        s.lineTo(cx - 31f, shoulderY - 23f)
+        s.lineTo(cx - 22f, shoulderY - 17f)
         s.moveTo(cx, shoulderY)
-        s.lineTo(cx + 31f, shoulderY - 23f)
+        s.lineTo(cx + 22f, shoulderY - 17f)
         s.moveTo(cx, hipY)
-        s.lineTo(cx - 25f, H - (bottom - 8f))
+        s.lineTo(cx - 20f, H - bottom)
         s.moveTo(cx, hipY)
-        s.lineTo(cx + 25f, H - (bottom - 8f))
+        s.lineTo(cx + 20f, H - bottom)
         s.stroke()
         s.restoreGraphicsState()
     }
