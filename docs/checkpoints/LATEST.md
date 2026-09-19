@@ -11,20 +11,31 @@
 **Primitive PDF QA:** **OWNER ACCEPTED**  
 **Full PC Sheet PDF visual QA:** PENDING — no visual family approved  
 **Para Hoja de PJ v4 visual QA:** PENDING  
-**Current checkpoint:** `docs/checkpoints/2026-09-18_PARA_HOJA_DE_PJ_V4_PUBLISHED_PRIMITIVE_QA_ACCEPTED.md`
+**Current checkpoint:** `docs/checkpoints/2026-09-18_PC_SHEET_PDF_OWNER_VISUAL_FILLING_CONTRACT.md`
 
 ## Read first on resume
 
 1. `AGENTS.md`;
-2. `docs/checkpoints/2026-09-18_WAVE7_PC_SHEET_PDF_RENDERER_RESEARCH_PAUSE.md`;
-3. `docs/checkpoints/2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`;
-4. `docs/checkpoints/2026-09-17_PC_SHEET_PDF_WHOLE_EXPORT_RENDERER_QA_STRATEGY.md`;
-5. `docs/checkpoints/2026-09-17_PC_SHEET_PDF_RENDERER_FOUNDATION_RESEARCH.md`;
-6. `docs/checkpoints/2026-09-18_REPOSITORY_VISIBILITY_AND_PDF_FONT_ASSET_POLICY.md`;
-7. `docs/checkpoints/2026-09-18_OWNER_SYMBOL_FONT_INSPECTION_AND_V2_CANDIDATE.md`;
-8. `docs/PROJECT_STATE.md`;
-9. `docs/BRANCH_STATUS.md`;
-10. D-0071 through D-0075 as relevant.
+2. `docs/checkpoints/2026-09-18_PC_SHEET_PDF_OWNER_VISUAL_FILLING_CONTRACT.md`;
+3. `docs/checkpoints/2026-09-18_PARA_HOJA_DE_PJ_V8_APPROVED_FROZEN.md`;
+4. `docs/checkpoints/2026-09-18_WAVE7_PC_SHEET_PDF_RENDERER_RESEARCH_PAUSE.md`;
+5. `docs/checkpoints/2026-09-17_WAVE7_PC_SHEET_PDF_MAIN_PAGE_VISUAL_QA_ROUND1_REJECTED.md`;
+6. `docs/checkpoints/2026-09-17_PC_SHEET_PDF_WHOLE_EXPORT_RENDERER_QA_STRATEGY.md`;
+7. `docs/checkpoints/2026-09-17_PC_SHEET_PDF_RENDERER_FOUNDATION_RESEARCH.md`;
+8. `docs/checkpoints/2026-09-18_REPOSITORY_VISIBILITY_AND_PDF_FONT_ASSET_POLICY.md`;
+9. `docs/PROJECT_STATE.md`;
+10. `docs/BRANCH_STATUS.md`;
+11. D-0071 through D-0075 as relevant.
+
+## Current owner visual-filling authority
+
+The active visual authority is now `2026-09-18_PC_SHEET_PDF_OWNER_VISUAL_FILLING_CONTRACT.md`.
+
+The latest generated whole-sheet drafts are technically healthy but **visually rejected as faithful filled sheets**. The next pass must treat the source PDF as the design itself: optical box alignment, box-driven value sizing, line-by-line ruled regions, template-matched v8 markers, narrowly scoped handwriting, a development portrait placeholder and dense QA coverage.
+
+Para Hoja de PJ Symbols **v8 is OWNER APPROVED / FROZEN / FONT GATE CLOSED**. Renderer adjustments may select/size/place its glyphs, but must not modify v8 or reopen font design without explicit owner instruction.
+
+PR #85 remains **DRAFT / DO NOT MERGE**.
 
 ## Current truth
 
