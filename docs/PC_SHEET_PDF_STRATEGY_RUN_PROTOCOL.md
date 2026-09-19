@@ -942,3 +942,50 @@ Current gate:
 
 - mandatory owner review of Custom v2 — per Ability;
 - PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 17. Custom v2 — per Ability Run 2 — owner feedback calibration
+
+**Result:** PASS FOR OWNER REVIEW
+
+Owner Run-1 feedback identified four page-1 issues only:
+
+- Bono por competencia;
+- Inspiración;
+- Clase de armadura;
+- portrait name.
+
+The owner explicitly confirmed the Ability treatment was perfect.
+
+Run 2 corrected only those concerns:
+
+- Bono por competencia now reproduces the approved per-Attribute value-to-label optical offset;
+- Inspiración now reproduces the approved per-Attribute marker-to-label optical offset;
+- the portrait name follows the actual page-2 decorative-banner anchor and sits inside the banner;
+- Armor Class no longer overprints two `16` values; only the intended 20 pt value is rendered.
+
+Correction commit:
+
+`be689bb6628a46e562428159fc72b2ee51b95d2c`
+
+Scaffold:
+
+`35471866920` / run #2760 — SUCCESS
+
+Regression:
+
+- shared pages 2–4: 0 changed pixels;
+- page-1 Ability / Saving Throw / Skill region: 0 changed pixels.
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ABILITY_HYBRID_RUN2_OWNER_FEEDBACK.md`
+
+Current gate:
+
+- mandatory owner review of Custom v2 — per Ability Run 2;
+- if approved, freeze the per-Ability baseline and close Custom v2 visual-family approval;
+- then proceed to Classic D&D-style;
+- PR #85 remains **DRAFT / DO NOT MERGE**.
