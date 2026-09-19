@@ -135,12 +135,21 @@ internal class DesktopPcSheetWholeDraftRenderer(
             .split(';')
             .map { it.trim() }
             .filter { it.isNotEmpty() }
+            .map(::parseValuable)
         valuables.take(V1_VALUABLE_RULE_Y.size).forEachIndexed { index, valuable ->
+            val ruleY = V1_VALUABLE_RULE_Y[index]
             drawOnRule(
                 stream, primitives,
-                815f, 220f, V1_VALUABLE_RULE_Y[index],
-                valuable, 6.7f,
+                815f, 220f, ruleY,
+                valuable.label, 6.7f,
             )
+            valuable.valuePo?.let { value ->
+                drawTableText(
+                    stream, primitives,
+                    1070f, ruleY - 29f, 105f, 26f,
+                    value, 7.5f, centered = true,
+                )
+            }
         }
 
         positionedSpecialItems(inventory.filter { it.special }, V1_SPECIAL_RULE_Y.size)
@@ -148,7 +157,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                 val ruleY = V1_SPECIAL_RULE_Y[rowIndex]
                 if (item.equipped || item.attuned) {
                     markerPx(
-                        stream, primitives, 208f, ruleY - 17f, 12f,
+                        stream, primitives, 234.5f, ruleY - 16.5f, 14f,
                         PdfMarkerKind.CHECK, PdfSymbolFamily.V1_DERIVED,
                     )
                 }
@@ -218,7 +227,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                 val ruleY = V2_SPECIAL_RULE_Y[rowIndex]
                 if (item.equipped || item.attuned) {
                     markerPx(
-                        stream, primitives, 162.5f, ruleY - 16.5f, 11f,
+                        stream, primitives, 183.5f, ruleY - 15f, 14f,
                         PdfMarkerKind.CHECK, PdfSymbolFamily.V3_DERIVED,
                     )
                 }
@@ -265,7 +274,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                     val rowY = block.firstRowY + index * block.rowStep
                     if (spell.sourceAssociations.any { it.prepared }) {
                         markerPx(
-                            stream, primitives, block.checkX, rowY + 10f, 10f,
+                            stream, primitives, block.checkX, rowY + 10f, 13f,
                             PdfMarkerKind.CHECK, symbolFamily(plan),
                         )
                     }
@@ -287,7 +296,8 @@ internal class DesktopPcSheetWholeDraftRenderer(
         val isV1 = plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1
         val rules = if (isV1) V1_NOTES_RULE_Y else V2_NOTES_RULE_Y
         val lines = wrapForRules(text, if (isV1) 68 else 72)
-        val leftCount = minOf(rules.size, lines.size)
+        val leftCount = minOf(rules.size, (lines.size + 1) / 2)
+        val rightCount = minOf(rules.size, lines.size - leftCount)
         lines.take(leftCount).forEachIndexed { index, line ->
             drawOnRule(
                 stream, primitives,
@@ -296,7 +306,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                 rules[index], line, 7f,
             )
         }
-        lines.drop(leftCount).take(rules.size).forEachIndexed { index, line ->
+        lines.drop(leftCount).take(rightCount).forEachIndexed { index, line ->
             drawOnRule(
                 stream, primitives,
                 if (isV1) 555f else 550f,
@@ -316,6 +326,18 @@ internal class DesktopPcSheetWholeDraftRenderer(
                 if (body.isNotEmpty()) add("${card.title}: $body")
             }
         }.joinToString("\n\n")
+    }
+
+    private fun parseValuable(raw: String): ValuableEntry {
+        val match = Regex("""^(.*?)\s*\((\d+)\s*po\)\s*$""", RegexOption.IGNORE_CASE).matchEntire(raw)
+        return if (match != null) {
+            ValuableEntry(
+                label = match.groupValues[1].trim(),
+                valuePo = match.groupValues[2],
+            )
+        } else {
+            ValuableEntry(label = raw.trim(), valuePo = null)
+        }
     }
 
     private fun inventoryLine(item: CharacterInventoryItem): String = buildString {
@@ -581,6 +603,11 @@ internal class DesktopPcSheetWholeDraftRenderer(
         y = PAGE_HEIGHT_PT - (topYPx + heightPx) * PX_TO_PT,
         width = widthPx * PX_TO_PT,
         height = heightPx * PX_TO_PT,
+    )
+
+    private data class ValuableEntry(
+        val label: String,
+        val valuePo: String?,
     )
 
     private data class CurrencyField(
