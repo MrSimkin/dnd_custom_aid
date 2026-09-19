@@ -788,3 +788,68 @@ Current gate:
 - owner review of final Custom-v2 per-Attribute Run-4 candidate;
 - per-Ability work should reuse the shared v2 pages unchanged unless owner review identifies a shared-page issue;
 - PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 14. Custom v2 per-Attribute Runs 3–4 — final calibration candidate
+
+Owner observations after Run 2 were limited to:
+
+- `Raza` Y;
+- portrait-name Y;
+- better use of Attribute-modifier ellipse space;
+- complete check-mark geometry audit.
+
+Owner clarified that modifier feedback referred to **using the available ellipse interior more effectively**, not merely moving the value vertically.
+
+### Run 3
+
+Commit:
+
+`b80cac0af3d63e97bf1f922fa1afda592c86b933`
+
+Scaffold #2737 — SUCCESS.
+
+Calibrated:
+
+- Raza value lower toward its source rule;
+- portrait name lower inside its banner;
+- modifier values enlarged from 11.5 pt to 15.5 pt and fitted to wider/tighter ellipse-interior rectangles;
+- initial family-specific check offsets.
+
+### Run 4
+
+Commit:
+
+`03c3155301196eaab1229afb4827c46f8acf04cc`
+
+Scaffold #2739 — SUCCESS.
+
+Run 4 refined only v8 check optical centering using measured raster margins.
+
+Representative final check-center errors are sub-quarter-point across:
+
+- page-1 single / expertise checks;
+- page-2 Special Equipment checks;
+- page-3 spell checks.
+
+Run 2 → Run 4 regression:
+
+- only pages 1–3 changed in requested calibration families;
+- page 4: 0% change.
+
+Run 3 → Run 4 regression:
+
+- only checkbox regions changed;
+- page 4: 0% change.
+
+Final result:
+
+**CUSTOM V2 — PER ATTRIBUTE — RUN 4: PASS FOR OWNER REVIEW**
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V2_ATTRIBUTE_RUN3_RUN4_CALIBRATION.md`
+
+PR #85 remains **DRAFT / DO NOT MERGE**.
