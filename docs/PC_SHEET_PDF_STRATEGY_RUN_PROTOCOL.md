@@ -589,3 +589,47 @@ Current next gate:
 
 - owner review of the complete five-page all-Hybrid Custom-v1 visual draft;
 - PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 11. Run 7 final coordinate calibration
+
+**Result:** PASS FOR OWNER REVIEW
+
+After review of the complete five-page all-Hybrid Run-7 draft, the owner identified only local X/Y calibration issues on pages 2, 3 and 5.
+
+The correction pass used measured authoritative source-PDF line/glyph geometry rather than visual guesswork.
+
+Corrected:
+
+- Page 2 Equipment columns 2/3;
+- Page 2 Gemas/Joyas/Arte object/value geometry;
+- Page 2 Equipo Especial description X origin;
+- Page 2 Equipo Especial check X/Y placement using exact printed-square rectangles;
+- Page 3 Otros Rasgos divided-column X origins;
+- Page 3 Notas full-width X origin;
+- Page 5 Notes second-column X origin.
+
+Final Scaffold:
+
+`35465731044` / run #2708 — SUCCESS
+
+Regression diff vs the prior final Run-7 draft:
+
+- page 1: 0% change;
+- page 2: changed only for requested calibration;
+- page 3: changed only for requested calibration;
+- page 4: 0% change;
+- page 5: changed only for requested calibration.
+
+Durable checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_RUN7_FINAL_COORDINATE_CALIBRATION.md`
+
+No rendering-strategy change occurred.
+
+Current gate:
+
+- owner review of the calibrated complete five-page all-Hybrid Custom-v1 draft;
+- PR #85 remains **DRAFT / DO NOT MERGE**.
