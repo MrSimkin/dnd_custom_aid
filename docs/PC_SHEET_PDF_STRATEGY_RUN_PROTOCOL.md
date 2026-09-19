@@ -459,17 +459,17 @@ Operating rule remains:
 
 ---
 
-## 8. Owner approval gate — Custom v1 first draft
+## 8. Owner approval gate — Custom v1 Run-6 draft
 
 **Date:** 2026-09-19  
 **Status:** OWNER APPROVED
 
-After Run 6, the owner explicitly approved the **first Custom v1 draft** and confirmed that no strategy change was needed.
+After Run 6, the owner explicitly approved the **latest Custom v1 draft presented for review: Run 6**, and confirmed that no strategy change was needed.
 
 This establishes:
 
 - Strategy 1 / Hybrid remains the selected renderer strategy;
-- the Run-6 Custom v1 result is the owner-approved first-draft visual baseline;
+- the Run-6 Custom v1 result is the owner-approved visual baseline;
 - Runs 1–6 are considered a successful convergence sequence for Custom v1;
 - the section-isolated Form/OCG architecture remains the approved direction for future renderer work.
 
@@ -477,4 +477,4 @@ This approval does not automatically approve Custom v2 or Classic, does not merg
 
 Durable approval checkpoint:
 
-`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_FIRST_DRAFT_OWNER_APPROVED.md`
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_RUN6_OWNER_APPROVED.md`
