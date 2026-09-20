@@ -278,14 +278,14 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
             val modX = MOD_X[index]
             // Clear the complete copied caption/title text band, but stop before y=264 where
             // authentic Attribute score-box geometry begins.
-            fill(s, column.x + 0.5f, 232.5f, max(8f, column.width - 1f), 30.8f, bg)
+            fill(s, column.x + 0.5f, 232.5f, max(8f, column.width - 1f), 34.5f, bg)
             fill(s, scoreX - 18f, 271f, 36f, 17f, bg)
             fill(s, modX - 10f, 289f, 20f, 10f, bg)
             fill(s, column.x + column.width - 23f, 308f, 18f, 9f, bg)
             SKILL_ROW_TOPS.forEach { rowTop ->
                 // Cover the full source glyph height while remaining between the authentic
                 // proficiency square and the authentic numeric rule/value area.
-                fill(s, column.x + 11f, rowTop - 1.5f, max(8f, column.width - 36f), 13.5f, bg)
+                fill(s, column.x + 10f, rowTop - 2f, max(8f, column.width - 34f), 16.5f, bg)
                 fill(s, column.x + column.width - 23f, rowTop - 0.5f, 18f, 11f, bg)
             }
         }
@@ -439,7 +439,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
         )
         sourceLocationRows.forEachIndexed { index, ruleY ->
             val rowBackground = if (index % 2 == 0) Color.WHITE else SOURCE_GRAY
-            fill(s,35f,ruleY - 17.5f,74f,15f,rowBackground)
+            fill(s,25f,ruleY - 18.5f,84f,17.5f,rowBackground)
         }
     }
 
@@ -963,7 +963,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
         const val SYMBOL_RESOURCE = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
         const val SOURCE_BLOCK_TOP_WITH_MARGIN = 232f
         const val SOURCE_BLOCK_HEIGHT_WITH_MARGIN = 174f
-        const val SCORE_BORDER_PROTECTED_TOP = 264f
+        const val SCORE_BORDER_PROTECTED_TOP = 268.5f
 
         val SOURCE_GRAY = Color(211,210,210)
         val SCORE_X = listOf(58f,154.25f,250.75f,347.25f,445.5f,539.75f)
