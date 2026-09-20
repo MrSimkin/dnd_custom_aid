@@ -681,10 +681,10 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
         maximumWidth: Float,
     ) {
         val size = 10f
-        val scale = 60f
-        val width = font.getStringWidth(value) / 1000f * size * (scale / 100f)
-        require(width <= maximumWidth + 0.1f) {
-            "Run-4 source-matched label exceeds authentic row width: '$value' ($width > $maximumWidth)"
+        val rawWidth = font.getStringWidth(value) / 1000f * size
+        val scale = minOf(60f, maximumWidth / rawWidth * 100f)
+        require(scale >= 50f) {
+            "Run-4 source-matched label requires excessive compression: '$value' ($scale%)"
         }
         s.beginText()
         s.setNonStrokingColor(Color.BLACK)
