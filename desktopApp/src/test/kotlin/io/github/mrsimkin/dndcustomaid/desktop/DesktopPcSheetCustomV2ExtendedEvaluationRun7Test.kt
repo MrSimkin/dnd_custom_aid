@@ -304,10 +304,10 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
             pageTitle(s, r, "RASGOS Y ATRIBUTOS")
             centeredFixedScale(s, r.corbelBold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             centeredFixedScale(s, r.corbelBold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            textTop(s, r.corbelBold, 18f, 365f, "OTROS RASGOS", 9.5f)
-            textTop(s, r.corbelBold, 311f, 365f, "DETALLES / NOTAS", 9.5f)
-            textTop(s, r.corbelBold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f)
-            textTop(s, r.corbelBold, 311f, 586f, "CONTINUACIÓN", 9.5f)
+            textTopFixedScale(s, r.corbelBold, 18f, 365f, "OTROS RASGOS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopFixedScale(s, r.corbelBold, 311f, 365f, "DETALLES / NOTAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopFixedScale(s, r.corbelBold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopFixedScale(s, r.corbelBold, 311f, 586f, "CONTINUACIÓN", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
         }
         appendLayer(doc, layers, page, "V2X TRAITS - VALUES") { s ->
             featureEntry(s, r, 14f, 137f, 277f, "Portento", "Mago / Adivinación · Pasivo", "Usos: 1 / 2 · Descanso largo", "Puede sustituir una tirada apropiada por uno de los resultados registrados.")
