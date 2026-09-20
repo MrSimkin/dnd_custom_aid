@@ -97,6 +97,12 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
                 extracted.contains("Rasgos de Especie", ignoreCase = true),
                 "Run-5 terminology contract violated: use Raza, never Especie.",
             )
+            listOf("120", "75", "45").forEach { expectedValue ->
+                assertTrue(
+                    extracted.contains(expectedValue),
+                    "Run-5 full-glyph numeric contract missing value: $expectedValue",
+                )
+            }
 
             repeat(5) { index ->
                 val actual = renderer.renderImageWithDPI(index, BASELINE_COMPARE_DPI, ImageType.RGB)
@@ -444,7 +450,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
             ruleText(
                 s, r.fira,
                 Rule(column.x + 16f, column.x + column.width - 22f, STAT_SAVE_RULE_TOP),
-                "Tirada de Salvación", 7.1f,
+                "Salvación", 7.4f,
             )
             centeredText(
                 s, r.firaSemibold,
@@ -624,7 +630,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
         listOf(307f,347f,386.5f).forEachIndexed { i,yy ->
             valuables.getOrNull(i)?.let {
                 ruleText(s,r.fira,Rule(453.402f,546.945f,yy),it.first,8.2f)
-                ruleText(s,r.gill,Rule(549.779f,583.795f,yy),it.second,8.2f)
+                ruleText(s,r.firaSemibold,Rule(549.779f,583.795f,yy),it.second,8.2f)
             }
         }
         val special = listOf(
@@ -661,7 +667,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
             }
             block.slotRule?.let { rule ->
                 val value = mapOf(1 to "4",2 to "3",3 to "3",4 to "3",5 to "2",6 to "2",7 to "1",8 to "1",9 to "1")[block.level]
-                if (value != null) ruleText(s,r.gill,rule,value,9f)
+                if (value != null) ruleText(s,r.firaSemibold,rule,value,9f)
             }
         }
     }
@@ -1030,7 +1036,6 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
     private data class LayerResources(
         val forms: List<PDFormXObject>,
         val heading: PDFont,
-        val gill: PDFont,
         val fira: PDFont,
         val firaSemibold: PDFont,
         val symbol: PDFont,
@@ -1042,7 +1047,6 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
                 return LayerResources(
                     forms = (0 until 5).map { utility.importPageAsForm(source,it) },
                     heading = owner.loadEmbeddedSourceFont(doc,source,"EnchantedLand"),
-                    gill = owner.loadEmbeddedSourceFont(doc,source,"GillSansMT"),
                     fira = owner.loadResourceFont(doc,FIRA_RESOURCE),
                     firaSemibold = owner.loadResourceFont(doc,FIRA_SEMIBOLD_RESOURCE),
                     symbol = owner.loadResourceFont(doc,SYMBOL_RESOURCE),
