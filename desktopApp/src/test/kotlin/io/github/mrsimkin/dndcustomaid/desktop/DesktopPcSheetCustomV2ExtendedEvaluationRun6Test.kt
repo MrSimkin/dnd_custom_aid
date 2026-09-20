@@ -174,8 +174,8 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun6Test {
 
             val notes = listOf(
                 listOf("HON: presencia, reputación y protocolo.", "No sustituye CARisma salvo regla explícita."),
-                listOf("VOL: temple, foco y resistencia mental.", "Las competencias usan cuadrados v2."),
-                listOf("SUE: fortuna, azar e improvisación.", "Los anchors estándar permanecen compactos."),
+                listOf("VOL: temple, foco y resistencia mental.", "Las pruebas prolongadas pueden exigir concentración."),
+                listOf("SUE: fortuna, azar e improvisación.", "La fortuna puede modificar consecuencias imprevistas."),
             )
             notes.forEachIndexed { col, rows ->
                 rows.forEachIndexed { row, value ->
@@ -239,6 +239,9 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun6Test {
             centered(s, r.firaSemibold, TopRect(366f, 108f, 232f, 22f), "HABILIDADES", 9.2f)
             listOf("HONor", "VOLuntad", "SUErte").forEachIndexed { index, title ->
                 textTop(s, r.firaSemibold, 22f, 142f + index * 96f, title, 10.4f)
+            }
+            repeat(3) { index ->
+                textTop(s, r.fira, 22f, 142f + (index + 3) * 96f, "Atributo personalizado", 7.8f)
             }
         }
         appendLayer(doc, layers, page, "V2X ABILITY - VALUES") { s ->
@@ -319,17 +322,17 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun6Test {
                 textAboveRule(s, r.fira, Rule(18f, 287f, 392f + i * 17f), value, 8.1f, 6.5f, 2.2f)
             }
             listOf(
-                "Portento conserva sus usos dentro del propio rasgo.",
-                "No se crea un recurso duplicado para este uso.",
-                "Las filas siguen la cadencia visual de v2.",
-                "Los detalles extensos continúan sin paneles gigantes.",
+                "Portento: conserva dos resultados al finalizar un descanso largo.",
+                "Investigador: conoce archivos, contactos y fuentes académicas.",
+                "Afinidad ritual: mantiene procedimientos y anotaciones arcanas.",
+                "Observador: destaca detalles sutiles en escenas y documentos.",
             ).forEachIndexed { i, value ->
                 textAboveRule(s, r.fira, Rule(311f, 594f, 392f + i * 17f), value, 7.7f, 6.2f, 2.2f)
             }
             listOf("Herramientas de ladrón", "Caligrafía", "Común", "Élfico", "Dracónico").forEachIndexed { i, value ->
                 textAboveRule(s, r.fira, Rule(18f, 287f, 613f + i * 17f), value, 8.0f, 6.4f, 2.2f)
             }
-            listOf("Espacio para rasgos futuros.", "Continuación de detalles.", "Notas de procedencia y reglas.").forEachIndexed { i, value ->
+            listOf("Código de campo: registra rutas, sellos y peligros.", "Memoria de archivo: conserva referencias y nombres clave.", "Contacto de Academia: acceso limitado a especialistas.").forEachIndexed { i, value ->
                 textAboveRule(s, r.fira, Rule(311f, 594f, 613f + i * 17f), value, 7.8f, 6.2f, 2.2f)
             }
         }
