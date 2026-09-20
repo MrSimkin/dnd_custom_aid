@@ -884,7 +884,9 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun3Test {
         }
     }
 
-    private enum class Training { NONE, PROFICIENT, EXPERTISE }\n\n    private data class Rule(val startX: Float, val endX: Float, val topY: Float)
+    private enum class Training { NONE, PROFICIENT, EXPERTISE }
+
+    private data class Rule(val startX: Float, val endX: Float, val topY: Float)
     private data class TopRect(val x: Float, val top: Float, val width: Float, val height: Float)
     private data class AttributeSample(val score: String, val modifier: String, val save: String, val skills: List<Pair<String,String>>)
     private data class ResourceSample(val name: String, val current: Int, val maximum: Int, val recovery: String, val source: String, val note: String)
