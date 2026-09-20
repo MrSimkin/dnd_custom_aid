@@ -276,13 +276,17 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
             val bg = if (column.gray) SOURCE_GRAY else Color.WHITE
             val scoreX = SCORE_X[index]
             val modX = MOD_X[index]
-            fill(s, column.x + 8f, 245f, max(8f, column.width - 16f), 16f, bg)
+            // Clear the complete copied caption/title text band, but stop before y=264 where
+            // authentic Attribute score-box geometry begins.
+            fill(s, column.x + 0.5f, 232.5f, max(8f, column.width - 1f), 30.8f, bg)
             fill(s, scoreX - 18f, 271f, 36f, 17f, bg)
             fill(s, modX - 10f, 289f, 20f, 10f, bg)
             fill(s, column.x + column.width - 23f, 308f, 18f, 9f, bg)
             SKILL_ROW_TOPS.forEach { rowTop ->
-                fill(s, column.x + 12f, rowTop + 0.5f, max(8f, column.width - 43f), 10f, bg)
-                fill(s, column.x + column.width - 23f, rowTop + 0.5f, 18f, 9f, bg)
+                // Cover the full source glyph height while remaining between the authentic
+                // proficiency square and the authentic numeric rule/value area.
+                fill(s, column.x + 11f, rowTop - 1.5f, max(8f, column.width - 36f), 13.5f, bg)
+                fill(s, column.x + column.width - 23f, rowTop - 0.5f, 18f, 11f, bg)
             }
         }
     }
@@ -423,11 +427,19 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
         labelInteriorMask(s,385f,490f,90f,16f)
 
         listOf(99f,119f,139f,159f,179f).forEach { top ->
-            fill(s,456f,top,92f,12f,Color.WHITE)
-            fill(s,520f,top,61f,12f,Color.WHITE)
+            fill(s,452f,top - 1f,100f,14f,Color.WHITE)
+            fill(s,520f,top - 1f,61f,14f,Color.WHITE)
         }
-        listOf(522.5f,562f,602f,641.5f).forEach { ruleY ->
-            fill(s,35f,ruleY - 17f,74f,14f,Color.WHITE)
+
+        // Clear every original Equipment-location label, not only the four rows that receive
+        // Run-4 option values. Match each row's authentic white/gray fill and leave the checkbox
+        // column plus horizontal rules untouched.
+        val sourceLocationRows = listOf(
+            522.5f,542.5f,562f,582f,602f,621.5f,641.5f,661.5f,681f,701f,
+        )
+        sourceLocationRows.forEachIndexed { index, ruleY ->
+            val rowBackground = if (index % 2 == 0) Color.WHITE else SOURCE_GRAY
+            fill(s,35f,ruleY - 17.5f,74f,15f,rowBackground)
         }
     }
 
