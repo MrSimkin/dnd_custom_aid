@@ -142,18 +142,18 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         appendLayer(doc, layers, page, "V2X ATTR - LABELS") { s ->
             pageTitle(s, r, "ESTADÍSTICAS PERSONALIZADAS")
             listOf("HONor", "VOLuntad", "SUErte").forEachIndexed { index, title ->
-                textTop(s, r.corbelBold, 18f + index * 193f, 111f, title, 12.12f)
-                textAboveRule(
+                textTopFixedScale(s, r.corbelBold, 18f + index * 193f, 111f, title, 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE)
+                textAboveRuleFixedScale(
                     s, r.corbel,
                     Rule(108f + index * 193f, 159f + index * 193f, 151f),
-                    "Tirada de Salvación", 7.75f, 7.35f, 2.0f,
+                    "Tirada de Salvación", 7.75f, 2.0f, SOURCE_CORBEL_COMPACT_SCALE,
                 )
             }
-            centered(s, r.corbelBold, TopRect(14f, 367f, 584f, 22f), "HABILIDADES VINCULADAS A ATRIBUTOS ESTÁNDAR", 10.2f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 367f, 584f, 22f), "HABILIDADES VINCULADAS A ATRIBUTOS ESTÁNDAR", 10.2f, SOURCE_CORBEL_HEADING_SCALE)
             listOf("INTeligencia", "DEStreza", "SABiduría").forEachIndexed { index, title ->
-                centered(s, r.corbelBold, TopRect(14f + index * 193f, 397f, 184f, 22f), title, 12.12f)
+                centeredFixedScale(s, r.corbelBold, TopRect(14f + index * 193f, 397f, 184f, 22f), title, 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE)
             }
-            centered(s, r.corbelBold, TopRect(14f, 524f, 584f, 22f), "DEFINICIONES / NOTAS", 12.12f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 524f, 584f, 22f), "DEFINICIONES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
         }
         appendLayer(doc, layers, page, "V2X ATTR - VALUES") { s ->
             val samples = listOf(
@@ -173,7 +173,7 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
             anchors.forEachIndexed { col, rows ->
                 rows.forEachIndexed { row, item ->
                     val y = 447f + row * 17f
-                    textAboveRule(s, r.corbel, Rule(38f + col * 193f, 164f + col * 193f, y), item.first, 7.75f, 7.1f, 2.2f)
+                    textAboveRuleFixedScale(s, r.corbel, Rule(38f + col * 193f, 164f + col * 193f, y), item.first, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE)
                     centeredAboveRule(s, r.firaSemibold, Rule(164f + col * 193f, 196f + col * 193f, y), item.second, 8.8f, 2.2f)
                 }
             }
@@ -234,11 +234,11 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         appendLayer(doc, layers, page, "V2X ABILITY - CLEANUP") { }
         appendLayer(doc, layers, page, "V2X ABILITY - LABELS") { s ->
             pageTitle(s, r, "ESTADÍSTICAS PERSONALIZADAS")
-            centered(s, r.corbelBold, TopRect(14f, 108f, 174f, 22f), "ATRIBUTOS", 7.8f)
-            centered(s, r.corbelBold, TopRect(202f, 108f, 150f, 22f), "TIRADAS DE SALVACIÓN", 7.8f)
-            centered(s, r.corbelBold, TopRect(366f, 108f, 232f, 22f), "HABILIDADES", 7.8f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 108f, 174f, 22f), "ATRIBUTOS", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, r.corbelBold, TopRect(202f, 108f, 150f, 22f), "TIRADAS DE SALVACIÓN", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, r.corbelBold, TopRect(366f, 108f, 232f, 22f), "HABILIDADES", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
             listOf("HONor", "VOLuntad", "SUErte").forEachIndexed { index, title ->
-                textTop(s, r.corbelBold, 14f, 142f + index * 96f, title, 12.12f)
+                textTopFixedScale(s, r.corbelBold, 14f, 142f + index * 96f, title, 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE)
             }
         }
         appendLayer(doc, layers, page, "V2X ABILITY - VALUES") { s ->
@@ -252,7 +252,7 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
             val saves = listOf("HONor" to "+5", "VOLuntad" to "+1", "SUErte" to "+7")
             saves.forEachIndexed { index, item ->
                 val y = 154f + index * 17f
-                textAboveRule(s, r.corbel, Rule(235f, 308f, y), item.first, 7.75f, 7.1f, 2.2f)
+                textAboveRuleFixedScale(s, r.corbel, Rule(235f, 308f, y), item.first, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE)
                 centeredAboveRule(s, r.firaSemibold, Rule(308f, 342f, y), item.second, 8.8f, 2.2f)
             }
 
@@ -267,7 +267,7 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
             )
             abilities.forEachIndexed { index, item ->
                 val y = 154f + index * 17f
-                textAboveRule(s, r.corbel, Rule(399f, 548f, y), item.first, 7.75f, 7.1f, 2.2f)
+                textAboveRuleFixedScale(s, r.corbel, Rule(399f, 548f, y), item.first, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE)
                 centeredAboveRule(s, r.firaSemibold, Rule(548f, 588f, y), item.second, 8.8f, 2.2f)
             }
         }
@@ -302,8 +302,8 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         appendLayer(doc, layers, page, "V2X TRAITS - CLEANUP") { }
         appendLayer(doc, layers, page, "V2X TRAITS - LABELS") { s ->
             pageTitle(s, r, "RASGOS Y ATRIBUTOS")
-            centered(s, r.corbelBold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f)
-            centered(s, r.corbelBold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, r.corbelBold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             textTop(s, r.corbelBold, 18f, 365f, "OTROS RASGOS", 9.5f)
             textTop(s, r.corbelBold, 311f, 365f, "DETALLES / NOTAS", 9.5f)
             textTop(s, r.corbelBold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f)
@@ -351,13 +351,13 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         appendLayer(doc, layers, page, "V2X RESOURCES - CLEANUP") { }
         appendLayer(doc, layers, page, "V2X RESOURCES - LABELS") { s ->
             pageTitle(s, r, "RECURSOS Y OPCIONES")
-            centered(s, r.corbelBold, TopRect(14f, 97f, 584f, 20f), "RECURSOS", 12.12f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 97f, 584f, 20f), "RECURSOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabelFira(s, r, 14f, 121f, 208f, "RECURSO")
             tableLabelFira(s, r, 222f, 121f, 130f, "ACTUAL / MÁX.")
             tableLabelFira(s, r, 352f, 121f, 123f, "RESTABLECE")
             tableLabelFira(s, r, 475f, 121f, 123f, "ORIGEN")
 
-            centered(s, r.corbelBold, TopRect(14f, 338f, 584f, 20f), "OPCIONES", 12.12f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 338f, 584f, 20f), "OPCIONES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabelFira(s, r, 14f, 364f, 16f, "")
             tableLabelFira(s, r, 30f, 364f, 88f, "TIPO")
             tableLabelFira(s, r, 118f, 364f, 140f, "OPCIÓN")
@@ -428,10 +428,10 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         appendLayer(doc, layers, page, "V2X INVENTORY - CLEANUP") { }
         appendLayer(doc, layers, page, "V2X INVENTORY - LABELS") { s ->
             pageTitle(s, r, "INVENTARIO / EQUIPO")
-            centered(s, r.corbelBold, TopRect(14f, 97f, 411f, 20f), "EQUIPO - CONTINUACIÓN", 12.12f)
-            centered(s, r.corbelBold, TopRect(431f, 97f, 167f, 20f), "TESORO / OBJETOS / OTROS", 10.2f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 97f, 411f, 20f), "EQUIPO - CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, r.corbelBold, TopRect(431f, 97f, 167f, 20f), "TESORO / OBJETOS / OTROS", 10.2f, SOURCE_CORBEL_HEADING_SCALE)
 
-            centered(s, r.corbelBold, TopRect(14f, 489f, 584f, 20f), "EQUIPO ESPECIAL", 12.12f)
+            centeredFixedScale(s, r.corbelBold, TopRect(14f, 489f, 584f, 20f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabelFira(s, r, 14f, 514f, 16f, "")
             tableLabelFira(s, r, 30f, 514f, 100f, "UBICACIÓN")
             tableLabelFira(s, r, 130f, 514f, 180f, "NOMBRE")
@@ -555,7 +555,7 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
     }
 
     private fun pageTitle(s: PDFormContentStream, r: Resources, title: String) {
-        centered(s, r.corbelBold, TopRect(126f, 28f, 472f, 34f), title, 12.12f)
+        centeredFixedScale(s, r.corbelBold, TopRect(126f, 28f, 472f, 34f), title, 12.12f, SOURCE_CORBEL_HEADING_SCALE)
     }
 
     private fun attributeBandStructure(
@@ -679,7 +679,7 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
     }
 
     private fun tableLabelFira(s: PDFormContentStream, r: Resources, x: Float, top: Float, width: Float, label: String) {
-        if (label.isNotBlank()) centered(s, r.corbel, TopRect(x, top, width, 18f), label, 7.79f)
+        if (label.isNotBlank()) centeredFixedScale(s, r.corbel, TopRect(x, top, width, 18f), label, 7.79f, SOURCE_CORBEL_TABLE_SCALE)
     }
 
     private fun bandedRows(
@@ -806,6 +806,72 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         s.setFont(font, size)
         s.newLineAtOffset(x, H - top - ascent)
         s.showText(text)
+        s.endText()
+    }
+
+    private fun textTopFixedScale(
+        s: PDFormContentStream,
+        font: PDFont,
+        x: Float,
+        top: Float,
+        text: String,
+        size: Float,
+        horizontalScale: Float,
+    ) {
+        val ascent = (font.fontDescriptor?.ascent?.takeIf { it > 0 } ?: 750f) / 1000f * size
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(x, H - top - ascent)
+        s.showText(text)
+        s.setHorizontalScaling(100f)
+        s.endText()
+    }
+
+    private fun textAboveRuleFixedScale(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        text: String,
+        size: Float,
+        clearance: Float,
+        horizontalScale: Float,
+    ) {
+        val available = rule.endX - rule.startX - 2f
+        val scaledWidth = textWidth(font, text, size) * horizontalScale / 100f
+        require(scaledWidth <= available + 0.05f) {
+            "Source-matched text does not fit: " + text + " (" + scaledWidth + " > " + available + ")"
+        }
+        val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
+        val baseline = H - rule.topY + clearance - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(rule.startX + 1f, baseline)
+        s.showText(text)
+        s.setHorizontalScaling(100f)
+        s.endText()
+    }
+
+    private fun centeredFixedScale(
+        s: PDFormContentStream,
+        font: PDFont,
+        rect: TopRect,
+        text: String,
+        size: Float,
+        horizontalScale: Float,
+    ) {
+        val width = textWidth(font, text, size) * horizontalScale / 100f
+        val ascent = (font.fontDescriptor?.ascent?.takeIf { it > 0 } ?: 750f) / 1000f * size
+        val descent = abs(font.fontDescriptor?.descent?.takeIf { it < 0 } ?: -250f) / 1000f * size
+        val bottom = H - (rect.top + rect.height)
+        val baseline = bottom + (rect.height - ascent - descent) / 2f + descent
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(rect.x + (rect.width - width) / 2f, baseline)
+        s.showText(text)
+        s.setHorizontalScaling(100f)
         s.endText()
     }
 
@@ -1053,6 +1119,10 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         const val ATTRIBUTE_ORNAMENT_SOURCE_TOP = 164.68f
         const val ATTRIBUTE_ORNAMENT_WIDTH = 80.40f
         const val ATTRIBUTE_ORNAMENT_HEIGHT = 47.76f
+        const val SOURCE_CORBEL_ATTRIBUTE_SCALE = 79f
+        const val SOURCE_CORBEL_COMPACT_SCALE = 78f
+        const val SOURCE_CORBEL_HEADING_SCALE = 81f
+        const val SOURCE_CORBEL_TABLE_SCALE = 86f
         val SOURCE_GRAY_DARK: Color = Color(200, 199, 199)
         val SOURCE_GRAY_LIGHT: Color = Color(227, 227, 227)
     }
