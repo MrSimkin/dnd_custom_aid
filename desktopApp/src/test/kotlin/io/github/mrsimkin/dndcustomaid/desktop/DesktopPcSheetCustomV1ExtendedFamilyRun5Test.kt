@@ -213,6 +213,32 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
         }
     }
 
+    private fun assertRegionMatchesColor(
+        image: BufferedImage,
+        region: Region,
+        dpi: Float,
+        expected: Color,
+        tolerance: Int,
+        message: String,
+    ) {
+        val scale = dpi / 72f
+        val x0 = (region.x * scale).toInt().coerceAtLeast(0)
+        val y0 = (region.top * scale).toInt().coerceAtLeast(0)
+        val x1 = ((region.x + region.width) * scale).toInt().coerceAtMost(image.width - 1)
+        val y1 = ((region.top + region.height) * scale).toInt().coerceAtMost(image.height - 1)
+
+        for (y in y0..y1) {
+            for (x in x0..x1) {
+                val rgb = Color(image.getRGB(x, y))
+                val matches =
+                    kotlin.math.abs(rgb.red - expected.red) <= tolerance &&
+                        kotlin.math.abs(rgb.green - expected.green) <= tolerance &&
+                        kotlin.math.abs(rgb.blue - expected.blue) <= tolerance
+                assertTrue(matches, "$message First mismatched pixel: ($x,$y), actual=$rgb, expected=$expected")
+            }
+        }
+    }
+
     private fun renderExtensionPage(
         doc: PDDocument,
         page: PDPage,
