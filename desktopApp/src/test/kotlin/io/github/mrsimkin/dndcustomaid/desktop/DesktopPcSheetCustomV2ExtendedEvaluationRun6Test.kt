@@ -526,7 +526,7 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun6Test {
         appendLayer(doc, layers, page, "V2X NOTES - LABELS") { }
         appendLayer(doc, layers, page, "V2X NOTES - VALUES") { s ->
             val left = listOf(
-                "Continuar las notas de campaña sin cambiar la estructura original de v2.",
+                "Retomar las notas de campaña desde la última entrada del archivo.",
                 "La puerta con sello azul coincide con las monedas halladas en la torre.",
                 "Comparar el alfabeto parcial con las notas del profesor Vael.",
             )
