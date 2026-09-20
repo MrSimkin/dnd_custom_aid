@@ -34,40 +34,43 @@ Strategy/run protocol:
 
 `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`
 
-## Extended-page status — PENDING
+## Extended-page status — OWNER APPROVED / FROZEN
 
-The owner-approved Run-7 document is the frozen **Custom v1 base-sheet visual baseline**.
+The complete Custom-v1 visual family is now owner-approved and frozen:
 
-D-0074 requires family-matched Extended pages when character data needs overflow/additional dedicated space. Owner clarification on 2026-09-19 reaffirmed that Extended pages are required for **all** sheet designs.
+- five-page base: Run 7 final coordinate calibration;
+- six Extended roles: Run 6.
 
-Therefore this base-sheet approval does **not** approve or close the Custom-v1 Extended-page family.
+### Extended Run 6 approved baseline
 
-Pending Custom-v1 extension design/QA includes, as data requires:
+- implementation commit: `69b308f3d5d493d06bd0107ac66c7524935aa9fa`;
+- Scaffold: `35529317947` / #2885 — SUCCESS;
+- artifact: `10609869599`;
+- PDF: `custom-v1-complete-family-extended-run6.pdf`;
+- PDF SHA-256: `03212b642ba9b8414e18344dbe90b6d68d623d14a0cd1ff712544063548eafe5`;
+- diagnostics SHA-256: `db6e5d8f1d37f74fb9847fc82ceb4820f1f33cb29303ee3f81f2b7fceb5e5a6b`.
 
-- Extended — Custom Statistics;
-- Extended — Traits & Features;
-- Extended — Resources & Options;
-- Extended — Inventory / Equipment;
-- Extended — Spells;
-- Extended — Notes.
+Approved Extended roles:
 
-These pages must remain visually coherent with the owner-authored Custom-v1 family and will require populated visual QA before the complete family can be considered closed.
+- Custom Statistics;
+- Traits & Features;
+- Resources & Options;
+- Inventory / Equipment;
+- Spells;
+- Notes.
 
-### Current extension candidate
+Approval checkpoint:
 
-- Extended Run 1: **OWNER REJECTED / historical evidence only** because it did not preserve the source family's real spacing, layout/maquetación, typography and box grammar.
-- Extended Run 2: reviewed but **NOT APPROVED / SUPERSEDED** after bounded owner feedback on Custom Statistics.
-- Extended Run 3: **PASS FOR OWNER REVIEW** at commit `3203234e0820566298b4a49eb87da14c9ee75de8`, Scaffold `35486748557` / #2831 — SUCCESS, artifact `10598081443`.
-- Run 3 preserves the frozen five-page base; only Custom Statistics page 6 changes relative to Run 2, while pages 7–11 remain pixel-identical.
+`docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`
 
-Current candidate checkpoint:
+Canonical layered strategy and lessons:
 
-`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`
+`docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`
 
-This candidate does **not** change the approved baseline status until explicit owner approval.
+Historical Runs 1–5 remain evidence only and are not continuation authority.
 
 ## Preservation rule
 
-This pointer changes only when the owner explicitly approves a new Custom-v1 visual baseline.
+This pointer changes only when the owner explicitly approves a new Custom-v1 visual baseline. The frozen authority now includes both the five-page base and the Run-6 Extended family.
 
 Earlier runs remain historical evidence but are not the current visual authority.
