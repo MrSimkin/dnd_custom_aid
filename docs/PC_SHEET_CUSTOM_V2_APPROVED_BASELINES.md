@@ -42,15 +42,54 @@ Both first-page presentations and their shared pages are owner-approved and froz
 
 This closes the **base-sheet** approval gate only.
 
-## Extended-page status — PENDING
+## Extended-page status — PENDING / NEXT ACTIVE CUSTOM GATE
 
 Owner clarification on 2026-09-19 reaffirmed D-0074: Extended pages are required for **all** visual families and must use a family-matched design rather than one generic appendix.
 
-The Custom-v2 Extended-page family therefore remains pending. It must cover the applicable extension roles (Custom Statistics, Traits & Features, Resources & Options, Inventory / Equipment, Spells, Notes) with visual language coherent with Custom v2.
+The Custom-v2 Extended-page family remains pending. It must cover the applicable extension roles:
 
-Next base-sheet owner gate: **Classic D&D-style**.
+- Custom Statistics;
+- Traits & Features;
+- Resources & Options;
+- Inventory / Equipment;
+- Spells;
+- Notes.
 
-The complete Custom-v2 visual family is not considered closed until its required Extended-page presentation has also passed populated visual QA.
+Before implementation, read:
+
+`docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`
+
+Carry forward from approved Custom-v1 Extended:
+
+- independent structure / cleanup / labels / values / markers layers;
+- staged layer diagnostics;
+- measured source geometry and row-density discipline;
+- bounded cleanup only when structurally safe;
+- full-glyph embedded generated fonts;
+- Para Hoja de PJ Symbols v8 where semantically appropriate;
+- terminology guards;
+- frozen-page pixel regression guards;
+- independent rendered-PDF audit and two-renderer checks where practical;
+- preserve already-working pages during bounded corrections.
+
+Re-derive specifically for v2:
+
+- exact row cadence;
+- exact column widths;
+- heading/body/compact-label typography;
+- structural donor pages;
+- box/fill grammar;
+- Custom Statistics relationship grammar for per-Attribute vs per-Ability modes.
+
+Do **not** mechanically port v1 coordinates or typography values into v2.
+
+### Mandatory design decision before first v2 Extended implementation
+
+Determine whether one shared Extended set is visually/semantically correct for both frozen first-page modes, or whether at least Custom Statistics requires a separate per-Attribute and per-Ability extension layout.
+
+Make that decision from the frozen v2 visual grammar and relationship model before coding.
+
+The complete Custom-v2 visual family is not considered closed until its required Extended-page presentation has passed populated owner visual QA.
 
 ## Preservation rule
 
