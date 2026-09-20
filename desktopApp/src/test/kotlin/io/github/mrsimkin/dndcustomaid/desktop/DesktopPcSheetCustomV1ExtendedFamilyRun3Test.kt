@@ -451,7 +451,8 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
 
         // Cover only source labels; preserve source ornamental boxes and global composition.
         fill(s, column.x - 1f, 243f, column.width + 2f, 29f, bg)
-        fill(s, column.x + 10f, 321f, column.width - 36f, 73f, bg)
+        // Clear only the printed skill names. Stop before the authentic numeric rule.
+        fill(s, column.x + 10f, 321f, column.width - 39f, 73f, bg)
 
         centeredOriginal(s, original.heading, column.x - 1f, 243f, column.width + 2f, 27f, column.title, 18.5f)
 
@@ -480,8 +481,14 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
             }
 
             if (label != null) {
-                // Match the original source skills exactly: GillSansMT at 7.75 pt.
-                leftOriginal(s, original.label, column.x + 11.9f, rowTop - 1.1f, column.width - 39f, 13f, label.first, 7.75f)
+                // Match the source operator exactly: GillSansMT at 10 pt vertical with 60% horizontal scale.
+                compressedGillSkill(
+                    s = s,
+                    font = original.label,
+                    x = column.x + 11.874f,
+                    baselineTop = rowTop + 9.142f,
+                    value = label.first,
+                )
                 dataBox(s, p, column.x + column.width - 27f, rowTop - 2f, 24f, 15f, label.second, 7.6f)
             }
         }
@@ -677,6 +684,22 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
             ),
         )
         if (result.hasOverflow) overflowDiagnostics += "value='$value' overflow='${result.overflowText}'"
+    }
+
+    private fun compressedGillSkill(
+        s: PDPageContentStream,
+        font: PDFont,
+        x: Float,
+        baselineTop: Float,
+        value: String,
+    ) {
+        s.beginText()
+        s.setNonStrokingColor(Color.BLACK)
+        s.setFont(font, 10f)
+        s.setHorizontalScaling(60f)
+        s.newLineAtOffset(x, H - baselineTop)
+        s.showText(value)
+        s.endText()
     }
 
     private fun centeredOriginal(
