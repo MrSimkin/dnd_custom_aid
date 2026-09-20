@@ -1123,3 +1123,40 @@ Classic is now frozen. Do not recalibrate it without a new owner-observed defect
 Remaining visual-family work is the family-matched Extended-page design/QA still pending for the frozen Custom v1/v2 families, followed by production renderer integration and complete D-0074 end-to-end QA.
 
 PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 22. Custom v1 Extended Run 1 — complete family candidate
+
+**Status:** PASS FOR OWNER REVIEW
+
+Candidate implementation:
+
+`b86b4539386cca8c567469bd97202c454df411ad`
+
+Scaffold push run:
+
+`35481567673` / run #2797 — SUCCESS
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN1_OWNER_REVIEW.md`
+
+The candidate preserves the five-page owner-approved Run-7 Custom-v1 base and appends all six D-0074 extension roles.
+
+Important regression guard:
+
+- Run-7 generator source blob is unchanged from the approved base commit;
+- pages 1–5 are rendered before and after extension append;
+- CI requires them to remain pixel-identical.
+
+The extension visual language intentionally follows Custom v1: owner-source branding, grayscale alternating bands, thin writing rules, centered headings and practical writable space.
+
+Current gate:
+
+- mandatory owner review of the complete 11-page family;
+- do not update the stable Custom-v1 approved-baseline pointer to close extensions before owner approval;
+- if corrections are requested, change extension pages only unless the owner explicitly reopens a frozen base-page defect.
+
+PR #85 remains **DRAFT / DO NOT MERGE**.

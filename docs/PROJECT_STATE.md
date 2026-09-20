@@ -52,7 +52,7 @@ The shared primitive foundation has now passed owner Primitive PDF QA. Renderer 
 
 The exact owner-authored `Para-hoja-de-pj` v1 is now committed as immutable provenance after SHA-256 verification. v4 is published as a contemporary redesign with legacy-refined and modern-clean families, stable renderer PUA aliases, complete documentation and a deterministic TTX-backed builder.
 
-Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN at `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`. Classic Run 1 is owner-rejected historical evidence only. Family-matched Extended-page design/QA remains pending for Custom v1/v2, so their base-sheet approvals must not be described as complete family closure.
+Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN at `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`. Classic Run 1 is owner-rejected historical evidence only. Custom-v1 Extended Run 1 is now a technically/visually audited 11-page candidate at the mandatory owner-review gate (`b86b4539386cca8c567469bd97202c454df411ad`, Scaffold #2797 SUCCESS); its five frozen Run-7 base pages are guarded pixel-identical. Custom-v2 family-matched Extended-page design/QA remains pending. Do not describe either Custom family as fully closed until its extension set receives explicit owner approval.
 
 Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
