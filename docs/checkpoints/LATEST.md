@@ -14,16 +14,17 @@
 2. this file;
 3. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 4. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-5. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
-6. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
-7. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
-8. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
-9. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-10. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-11. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
-12. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-13. `docs/PROJECT_STATE.md`;
-14. `docs/BRANCH_STATUS.md`.
+5. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN5_OWNER_REVIEW.md`;
+6. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
+7. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
+8. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
+9. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
+10. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
+11. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+12. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+13. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+14. `docs/PROJECT_STATE.md`;
+15. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -88,36 +89,37 @@ Base-sheet approval does not by itself close a whole visual family if its requir
 
 Custom v1 Extended Run 1 is **OWNER REJECTED / historical evidence only**.
 
-Custom v1 Extended Run 2 was reviewed and is **NOT APPROVED / SUPERSEDED** after owner feedback on page-6 white-cut artifacts, block selection and Ability/skill typography.
+Custom v1 Extended Run 2 was reviewed and is **NOT APPROVED / SUPERSEDED**.
 
-Custom v1 Extended Run 3 was owner-reviewed and is **NOT APPROVED / SUPERSEDED**. The owner required a layered renderer because the same clipping/white-cut artifact class continued in different locations, and then clarified that all added pages 6–11 had to be rebuilt rather than page 6 alone.
+Custom v1 Extended Run 3 was owner-reviewed and is **NOT APPROVED / SUPERSEDED**.
 
-Custom v1 Extended Run 4 is now **PASS FOR OWNER REVIEW**.
+Custom v1 Extended Run 4 was owner-reviewed and is **NOT APPROVED / SUPERSEDED** after feedback on remaining page-6 artifacts/layout/typography, the `Raza` terminology contract, and page-8 resource design.
+
+Custom v1 Extended Run 5 is now **PASS FOR OWNER REVIEW**.
 
 Final evidence:
 
-- proof implementation commit `7d23fbc12a491b40f214f7f395b7cf5ffce4e585`;
-- Scaffold push run `35523383272` / #2856 — SUCCESS;
-- proof artifact `10608119762`;
-- final proof PDF SHA-256 `5d82f0f156b7676c09ff5bdf318bf74176dd18facdc1301c56e9028b13aac11a`;
-- all six extension roles/pages 6–11 rebuilt with explicit source / cleanup / labels / values / symbols layers;
-- 30-page layer-diagnostic proof;
-- frozen pages 1–5 independently verified pixel-identical to Custom-v1 Run 7 at 200 dpi;
-- cleanup-background regression guards cover the page-6 source-title/skill interiors and page-8 Equipment-location cells;
-- source-geometry guards preserve Attribute score-box top boundaries;
-- full font embedding removes the earlier form-layer glyph corruption;
-- independent final-artifact inspection passes on pages 6–11, including Poppler/PDFium inspection of the repaired pages 6 and 8.
+- proof implementation commit `f197f9382d751d4342fb648d73b3520d72cdd911`;
+- Scaffold push run `35527343150` / #2874 — SUCCESS;
+- proof artifact `10610600180`;
+- final proof PDF SHA-256 `f41a3394f2cdd9c7d2305f59b9c2c89e8b35da4418d8da8f3d9e5a8eb535436a`;
+- page 6 redesigned around top-first Attribute/Ability modules, authentic ornamental geometry only, non-condensed headings, and symmetric Definiciones/Notas sections;
+- page 7 uses `Rasgos de Raza` and regression-guards against `Rasgos de Especie`;
+- page 8 replaces separate Recuperación/Estados extensions with one v8-glyph resource tracker and a coherent Opciones section;
+- inherited page-9 valuables and page-10 spell-slot numeric omissions were repaired by removing the incomplete Gill subset from new Run-5 content;
+- frozen pages 1–5 independently verified pixel-identical to Custom-v1 Run 7 at 120 dpi;
+- independent Poppler/PDFium render inspection passes.
 
 Checkpoint:
 
-`docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`
+`docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN5_OWNER_REVIEW.md`
 
 Do not mark the Custom-v1 extension family approved/frozen until explicit owner approval.
 
 ## Current continuation
 
-1. owner reviews the complete 11-page Custom-v1 Extended Run-4 proof;
-2. if approved, freeze the Custom-v1 extension family; otherwise apply bounded Run-4 extension-only corrections while preserving frozen pages 1–5 and the layered architecture;
+1. owner reviews the complete 11-page Custom-v1 Extended Run-5 proof;
+2. if approved, freeze the Custom-v1 extension family; otherwise apply bounded Run-5 extension-only corrections while preserving frozen pages 1–5 and the redesigned page-6/7/8 architecture;
 3. design/QA family-matched Extended pages for Custom v2 per Attribute / per Ability without disturbing their frozen bases;
 4. promote approved visual mechanics into production renderer paths;
 5. complete family/end-to-end export QA and remaining D-0074 behaviors, including data-driven overflow and the separate optional Spellbook;
