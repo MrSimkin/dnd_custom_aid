@@ -14,7 +14,9 @@
 2. this file;
 3. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 4. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-5. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_REVIEW.md`;
+5. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
+18. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
+17. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_REVIEW.md`;
 6. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN5_OWNER_REVIEW.md`;
 7. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
 8. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
@@ -86,44 +88,34 @@ Applicable extension roles are data-driven and include:
 
 Base-sheet approval does not by itself close a whole visual family if its required Extended-page design/QA is still pending.
 
-## Custom v1 Extended — current owner gate
+## Custom v1 Extended — OWNER APPROVED / FROZEN
 
-Custom v1 Extended Run 1 is **OWNER REJECTED / historical evidence only**.
+Custom v1 Extended Runs 1–5 are historical rejected/superseded evidence.
 
-Custom v1 Extended Run 2 was reviewed and is **NOT APPROVED / SUPERSEDED**.
+Custom v1 Extended Run 6 is **OWNER APPROVED / FROZEN**.
 
-Custom v1 Extended Run 3 was owner-reviewed and is **NOT APPROVED / SUPERSEDED**.
+Approved evidence:
 
-Custom v1 Extended Run 4 was owner-reviewed and is **NOT APPROVED / SUPERSEDED**.
+- implementation commit `69b308f3d5d493d06bd0107ac66c7524935aa9fa`;
+- Scaffold `35529317947` / #2885 — SUCCESS;
+- artifact `10609869599`;
+- proof PDF SHA-256 `03212b642ba9b8414e18344dbe90b6d68d623d14a0cd1ff712544063548eafe5`.
 
-Custom v1 Extended Run 5 was owner-reviewed and is **NOT APPROVED / SUPERSEDED** after feedback on page-8 proportions, the previously-good Equipment/Gemas continuation, and page-6 typography/spacing/naming conventions.
+Approval checkpoint:
 
-Custom v1 Extended Run 6 is now **PASS FOR OWNER REVIEW**.
+`docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`
 
-Final evidence:
+Canonical Custom Extended methodology:
 
-- proof implementation commit `69b308f3d5d493d06bd0107ac66c7524935aa9fa`;
-- Scaffold push run `35529317947` / #2885 — SUCCESS;
-- proof artifact `10609869599`;
-- final proof PDF SHA-256 `03212b642ba9b8414e18344dbe90b6d68d623d14a0cd1ff712544063548eafe5`;
-- page 6 restores the source decorative Attribute font, source-matched condensed skill typography, full `Tirada de Salvación`, ~14.173 pt row cadence and three-letter Attribute naming convention;
-- page 8 restores compact ~20 pt Custom-v1 proportions while keeping v8 resource counters and `Equipo Especial`-style option rows;
-- page 9 restores the proven Equipment/Gemas regular-body treatment;
-- page 10 retains visible slot counts with regular body typography;
-- frozen pages 1–5 remain protected; pages 7 and 11 are unchanged from Run 5;
-- exact final PDF passes independent PDFium/Poppler inspection and PDF preflight.
+`docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`
 
-Checkpoint:
-
-`docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_REVIEW.md`
-
-Do not mark the Custom-v1 extension family approved/frozen until explicit owner approval.
+Custom v1 visual-family design/QA is closed. Do not recalibrate without new owner-observed defect or product requirement.
 
 ## Current continuation
 
-1. owner reviews the complete 11-page Custom-v1 Extended Run-6 proof;
-2. if approved, freeze the Custom-v1 extension family; otherwise apply bounded Run-6 extension-only corrections while preserving frozen pages 1–5 and the restored source typography/proportions;
-3. design/QA family-matched Extended pages for Custom v2 per Attribute / per Ability without disturbing their frozen bases;
+1. begin Custom-v2 Extended design with `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md` as mandatory methodology;
+2. first decide whether Custom Statistics can share one v2 Extended layout across per-Attribute/per-Ability modes or requires variant-specific layouts;
+3. design/QA the Custom-v2 Extended roles without disturbing either frozen v2 first-page baseline or the frozen shared v2 pages;
 4. promote approved visual mechanics into production renderer paths;
 5. complete family/end-to-end export QA and remaining D-0074 behaviors, including data-driven overflow and the separate optional Spellbook;
 6. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
