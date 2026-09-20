@@ -1035,7 +1035,7 @@ Do not use a base-sheet approval to claim that the complete family, including Ex
 
 ## 20. Classic D&D-style Run 1 — populated visual candidate
 
-**Result:** PASS FOR OWNER REVIEW
+**Result:** OWNER REJECTED / historical evidence only
 
 Implementation/final calibration commit:
 
@@ -1060,9 +1060,66 @@ The sixth page deliberately demonstrates that the Classic extension pages use th
 
 Run-1 text layout has a strict no-overflow guard. The first implementation run exposed undersized name-header and spell-summary mini-stat boxes; those were corrected without changing the overall composition. The final run contains no recorded overflow.
 
-Current gate:
+Owner decision:
 
-- mandatory owner visual review of Classic Run 1;
-- Classic is not frozen/approved until that review passes;
-- even after Classic base approval, additional Extended-page roles remain required as applicable;
-- PR #85 remains DRAFT / DO NOT MERGE.
+- Run 1 was rejected at the design-grammar level;
+- English leakage, insufficient official-sheet lineage, inconsistent marker/box semantics, insufficient writable capacity, incomplete extension semantics and missing/weak Attribute-to-Ability relationship presentation were material owner findings;
+- do not resume from the Run-1 dashboard composition;
+- Run 2 supersedes it.
+
+PR #85 remains DRAFT / DO NOT MERGE.
+
+
+---
+
+## 21. Classic D&D-style Run 2 — complete family owner approval
+
+**Status:** OWNER APPROVED / FROZEN
+
+Approved renderer/proof commit:
+
+`3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`
+
+Final Scaffold push run:
+
+`35480871986` / run #2793 — SUCCESS
+
+Stable baseline:
+
+`docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`
+
+Approval checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`
+
+Run 2 was rebuilt from a targeted design investigation rather than incrementally patching the rejected Run-1 dashboard grammar.
+
+Approved set:
+
+1. Main;
+2. Character / History / Equipment;
+3. Spell List;
+4. Extended — Custom Statistics;
+5. Extended — Traits & Features;
+6. Extended — Resources & Options;
+7. Extended — Inventory / Equipment;
+8. Extended — Spells;
+9. Extended — Notes.
+
+Durable Classic lessons:
+
+- the family should feel descended from recognizable official D&D paper-sheet grammar without tracing or reproducing official artwork;
+- writable whitespace is functional;
+- compact framed treatment belongs to lookup/calculated values, while mutable player information needs practical writing surfaces;
+- Attribute -> Ability/skill relationships must remain explicit, including custom statistics;
+- extension pages must be genuine family-native paper pages rather than report/dashboard appendices;
+- writing rules remain visible under populated text;
+- text/marker/rule Y placement must preserve a clear paper-writing rhythm.
+
+Final owner feedback required a fresh proof correcting Y-axis and ruled-line behavior. The corrected proof passed strict overflow/language guards and independent nine-page render inspection before owner approval.
+
+Classic is now frozen. Do not recalibrate it without a new owner-observed defect or product requirement.
+
+Remaining visual-family work is the family-matched Extended-page design/QA still pending for the frozen Custom v1/v2 families, followed by production renderer integration and complete D-0074 end-to-end QA.
+
+PR #85 remains **DRAFT / DO NOT MERGE**.

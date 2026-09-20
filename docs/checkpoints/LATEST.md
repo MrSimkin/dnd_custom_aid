@@ -5,7 +5,7 @@
 **Last verified integrated main:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f`  
 **Wave 7:** ACTIVE  
 **Current active branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
-**Current implementation head:** `14b5c2561060fc319ef63cf7a9f2ffcbb7b9c996`  
+**Approved Classic renderer baseline:** `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`  
 **Draft PR:** #85 — OPEN / DRAFT / **DO NOT MERGE**
 
 ## Read first on resume
@@ -15,10 +15,11 @@
 3. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 4. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
 5. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-6. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN1_OWNER_REVIEW.md`;
-7. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-8. `docs/PROJECT_STATE.md`;
-9. `docs/BRANCH_STATUS.md`.
+6. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+7. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+8. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+9. `docs/PROJECT_STATE.md`;
+10. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -39,16 +40,21 @@ Do not recalibrate these base sheets without a new owner-observed issue.
 
 Classic is application-designed, not an official-sheet facsimile.
 
-Classic Run 1 now has a technically green populated six-page candidate:
+**Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN.**
 
-- implementation/final calibration commit `14b5c2561060fc319ef63cf7a9f2ffcbb7b9c996`;
-- Scaffold `35473827949` / run #2779 — SUCCESS;
-- five normal base pages plus one family-matched Extended — Custom Statistics page;
-- strict text-overflow guard passes.
+Approved baseline:
 
-**Current mandatory owner gate:** visual review of Classic Run 1.
+- renderer/proof commit `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
+- Scaffold push run `35480871986` / run #2793 — SUCCESS;
+- nine-page approval set: three normal pages plus all six D-0074 extension roles;
+- strict text-overflow and Spanish-only regression guards pass;
+- final Y-axis rule: writing lines remain present under prefilled text and text must align within, not collide with, ruled-paper rhythm.
 
-Classic is **not yet approved/frozen**.
+Stable pointer:
+
+`docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`
+
+Run 1 is **OWNER REJECTED / historical evidence only** and must not be used as a continuation baseline.
 
 ## Extended pages — required for every design
 
@@ -76,11 +82,10 @@ Base-sheet approval does not by itself close a whole visual family if its requir
 
 ## Current continuation
 
-1. obtain owner visual feedback on Classic Run 1;
-2. calibrate/freeze Classic base design if approved;
-3. continue family-matched Extended-page design/QA for **all** visual families, preserving frozen base sheets;
-4. migrate approved visual mechanics into production renderer paths;
-5. complete family/end-to-end export QA and remaining D-0074 behaviors;
-6. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
+1. preserve all four approved/frozen visual-family baselines: Custom v1, Custom v2 per Attribute, Custom v2 per Ability and Classic;
+2. design/QA the still-pending family-matched Extended pages for **Custom v1 and Custom v2**, without recalibrating their frozen base sheets;
+3. promote approved visual mechanics into production renderer paths;
+4. complete family/end-to-end export QA and remaining D-0074 behaviors, including data-driven overflow and the separate optional Spellbook;
+5. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
 
 No external provider action is required for this PDF-renderer stage.

@@ -1,4 +1,4 @@
-# Checkpoint — Classic D&D-style Run 1 — PASS FOR OWNER REVIEW
+# Checkpoint — Classic D&D-style Run 1 — OWNER REJECTED / HISTORICAL EVIDENCE
 
 **Date:** 2026-09-19 (Chile local time)  
 **Branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
@@ -81,12 +81,30 @@ Observed state:
 - Extended — Custom Statistics clearly belongs to the same family;
 - no clipping or missing fields observed after final compact-field correction.
 
-**Technical/visual pre-owner result: PASS FOR OWNER REVIEW.**
+**Technical/visual pre-owner result at the time: PASS FOR OWNER REVIEW.**
 
-## Current gate
+## Owner decision — REJECTED
 
-Mandatory owner visual review of Classic Run 1.
+The owner rejected Run 1 after visual review. This candidate is historical evidence only and must not be used as a Classic baseline.
 
-Do not mark Classic approved/frozen until explicit owner approval.
+Owner findings that invalidated the candidate:
 
-PR #85 remains **DRAFT / DO NOT MERGE**.
+- English owner-facing text appeared despite the Spanish export requirement;
+- the visual grammar did not read as meaningfully inspired by the official D&D paper-sheet lineage;
+- boxes/checks lacked a sufficiently coherent semantic grammar;
+- writable/manual-entry space was too limited;
+- the Extended page did not yet satisfy the agreed family-native extension contract;
+- custom Abilities did not make their governing Attribute relationship sufficiently visible.
+
+The rejection is design-level, not a request to continue coordinate-patching the Run-1 dashboard composition.
+
+## Superseding baseline
+
+Classic Run 2 replaced this candidate after targeted official/community-sheet research, a complete nine-page family proof, owner feedback, Y-axis/ruled-line correction and final owner approval.
+
+See:
+
+- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+- `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`.
+
+PR #85 remains **DRAFT / DO NOT MERGE** pending the remaining renderer/product integration work.

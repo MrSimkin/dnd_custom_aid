@@ -113,29 +113,29 @@ Current state:
 - Custom v1 Run-7 base sheet is OWNER APPROVED / FROZEN;
 - Custom v2 per-Attribute Run-4 base sheet is OWNER APPROVED / FROZEN;
 - Custom v2 per-Ability corrected Run-2 base sheet is OWNER APPROVED / FROZEN;
-- these are **base-sheet** approvals, not complete Extended-page-family closure;
-- D-0074 and owner clarification require family-matched Extended pages for every design;
-- Classic Run 1 is implemented at `14b5c2561060fc319ef63cf7a9f2ffcbb7b9c996`;
-- Scaffold `35473827949` / #2779 is SUCCESS;
-- Classic Run 1 contains five populated base pages plus a Classic-styled Extended — Custom Statistics page;
-- Classic Run 1 is at the mandatory owner visual gate and is NOT yet approved/frozen;
+- family-matched Extended-page design/QA remains pending for the Custom families;
+- Classic Run 1 is OWNER REJECTED / historical evidence only;
+- Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
+- Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
+- Scaffold `35480871986` / #2793 is SUCCESS;
+- stable pointer: `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
 - PR #85 remains DRAFT / DO NOT MERGE.
 
 Next continuation sequence:
 
-1. owner reviews Classic Run 1;
-2. apply bounded Classic visual corrections if requested, otherwise freeze the Classic base design;
-3. continue family-matched Extended-page design/QA for Classic, Custom v1 and Custom v2 without disturbing frozen base layouts;
-4. promote approved visual mechanics into production renderer paths;
-5. complete family/end-to-end D-0074 QA;
-6. do not merge PR #85 until the remaining visual/functional gates are satisfied.
+1. preserve the four frozen visual baselines;
+2. continue family-matched Extended-page design/QA for Custom v1 and Custom v2 without disturbing frozen base layouts;
+3. promote approved visual mechanics into production renderer paths;
+4. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
+5. do not merge PR #85 until the remaining visual/functional gates are satisfied.
 
 Relevant durable records:
 
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
 - `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN1_OWNER_REVIEW.md`;
+- `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
 - `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`.
 
 ## Historical/stale open PRs

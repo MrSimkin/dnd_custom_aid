@@ -23,10 +23,10 @@ Approved/frozen base-sheet baselines:
 - Para Hoja de PJ Symbols v8.
 
 Current Classic candidate:
-- commit `14b5c2561060fc319ef63cf7a9f2ffcbb7b9c996`;
-- Scaffold `35473827949` / #2779 — SUCCESS;
-- five base pages plus Classic-styled Extended — Custom Statistics;
-- pending mandatory owner visual review.
+- approved corrected Classic Run-2 commit `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
+- Scaffold `35480871986` / #2793 — SUCCESS;
+- complete nine-page Classic approval set: three normal pages plus all six D-0074 extension roles;
+- OWNER APPROVED / FROZEN.
 
 D-0074 + owner clarification require design-specific Extended pages for **all** families. The Custom base-sheet approvals do not close their Extended-page work.
 
@@ -52,7 +52,7 @@ The shared primitive foundation has now passed owner Primitive PDF QA. Renderer 
 
 The exact owner-authored `Para-hoja-de-pj` v1 is now committed as immutable provenance after SHA-256 verification. v4 is published as a contemporary redesign with legacy-refined and modern-clean families, stable renderer PUA aliases, complete documentation and a deterministic TTX-backed builder.
 
-Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 1 is the current owner visual gate. Family-matched Extended pages remain required and pending across all designs, so base-sheet approval must not be described as complete family closure.
+Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN at `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`. Classic Run 1 is owner-rejected historical evidence only. Family-matched Extended-page design/QA remains pending for Custom v1/v2, so their base-sheet approvals must not be described as complete family closure.
 
 Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
