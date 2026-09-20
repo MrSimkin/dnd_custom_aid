@@ -1120,7 +1120,7 @@ Final owner feedback required a fresh proof correcting Y-axis and ruled-line beh
 
 Classic is now frozen. Do not recalibrate it without a new owner-observed defect or product requirement.
 
-Remaining visual-family work is the family-matched Extended-page design/QA still pending for the frozen Custom v1/v2 families, followed by production renderer integration and complete D-0074 end-to-end QA.
+Remaining visual-family work is the family-matched Extended-page design/QA still pending for frozen Custom v2, followed by production renderer integration and complete D-0074 end-to-end QA. Custom v1 base + Extended is owner-approved/frozen.
 
 PR #85 remains **DRAFT / DO NOT MERGE**.
 
