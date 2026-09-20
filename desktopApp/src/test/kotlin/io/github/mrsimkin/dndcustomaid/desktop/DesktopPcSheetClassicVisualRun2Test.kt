@@ -237,28 +237,35 @@ class DesktopPcSheetClassicVisualRun2Test {
             portraitPlaceholder(s, 36f, 136f, 202f, 150f)
 
             titledFrame(s, p, 24f, 314f, 226f, 108f, "DESCRIPCIÓN")
-            ruledTextArea(
-                s, p, 34f, 346f, 206f, 66f,
-                listOf("Cabello negro; ojos grises; capa de viaje con broche élfico."),
-                8.8f,
+            text(
+                s, p, 36f, 346f, 202f, 34f,
+                "Cabello negro; ojos grises; capa de viaje con broche élfico.",
+                PdfTypographyRole.NOTE_TEXT, 8.5f, 7.4f, wrap = true, maxLines = 2,
+                vertical = PdfVerticalAlignment.TOP,
             )
+            hairline(s, 34f, 386f, 240f, 386f)
+            hairline(s, 34f, 407f, 240f, 407f)
 
             titledFrame(s, p, 24f, 436f, 226f, 282f, "HISTORIA Y PERSONALIDAD")
-            ruledLines(s, 34f, 468f, 206f, 238f, 11)
             text(
-                s, p, 36f, 469f, 202f, 54f,
+                s, p, 36f, 468f, 202f, 54f,
                 "Sabio de la Academia de Liria. Halló referencias a una cámara sellada bajo el Valle del Viento y abandonó temporalmente los archivos para reconstruir la ruta.",
                 PdfTypographyRole.NOTE_TEXT, 7.7f, 7f, wrap = true, maxLines = 3,
                 vertical = PdfVerticalAlignment.TOP,
             )
-            text(s, p, 36f, 530f, 202f, 34f, "Rasgo: toma notas incluso en situaciones absurdas.",
+            hairline(s, 34f, 527f, 240f, 527f)
+            text(s, p, 36f, 536f, 202f, 30f, "Rasgo: toma notas incluso en situaciones absurdas.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
-            text(s, p, 36f, 570f, 202f, 32f, "Ideal: conocimiento y responsabilidad.",
+            hairline(s, 34f, 571f, 240f, 571f)
+            text(s, p, 36f, 580f, 202f, 25f, "Ideal: conocimiento y responsabilidad.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
-            text(s, p, 36f, 610f, 202f, 34f, "Vínculo: devolver el códice perdido a la Academia.",
+            hairline(s, 34f, 610f, 240f, 610f)
+            text(s, p, 36f, 619f, 202f, 30f, "Vínculo: devolver el códice perdido a la Academia.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
-            text(s, p, 36f, 650f, 202f, 44f, "Defecto: puede investigar un detalle mucho más de lo razonable.",
+            hairline(s, 34f, 654f, 240f, 654f)
+            text(s, p, 36f, 663f, 202f, 36f, "Defecto: puede investigar un detalle mucho más de lo razonable.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
+            hairline(s, 34f, 705f, 240f, 705f)
 
             titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             coinStrip(s, p, 276f, 136f)
