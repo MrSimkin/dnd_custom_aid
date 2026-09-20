@@ -125,8 +125,9 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
             File(proofDir, "custom-v1-complete-family-extended-run2-overflows.txt")
                 .writeText(overflowDiagnostics.joinToString("\n"))
         }
-        // TEMP DIAGNOSTIC: preserve overflow report and artifact so source-aligned text can be
-        // corrected without changing authentic Custom-v1 geometry. Restore strict check next run.
+        check(overflowDiagnostics.isEmpty()) {
+            "Custom-v1 Extended Run 2 overflow(s):\n" + overflowDiagnostics.joinToString("\n")
+        }
         assertTrue(output.length() > 20_000L)
     }
 
@@ -142,15 +143,21 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
             s.drawForm(mainSource)
 
             // Preserve the real owner logo and entire six-column Attribute strip.
-            white(s, 165f, 20f, 427f, 220f)
+            // Keep the entire original logo; clear only the source MAIN content around it.
+            white(s, 185f, 20f, 407f, 220f)
+            white(s, 25f, 96f, 150f, 22f) // source "Puntos de Experiencia"
             white(s, 20f, 112f, 572f, 128f)
             white(s, 20f, 400f, 572f, 372f)
 
-            centeredOriginal(s, original.heading, 170f, 55f, 400f, 28f, "Estadísticas Personalizadas", 18f)
-            centeredOriginal(
-                s, original.label, 170f, 87f, 400f, 14f,
-                "ATRIBUTOS PERSONALIZADOS Y HABILIDADES VINCULADAS", 7.8f,
-            )
+            centeredOriginal(s, original.heading, 185f, 55f, 395f, 28f, "Estadísticas Personalizadas", 18f)
+            smallLabel(s, p, 185f, 87f, 395f, 14f, "ATRIBUTOS PERSONALIZADOS Y HABILIDADES VINCULADAS", 7.5f)
+
+            centeredOriginal(s, original.heading, 24f, 116f, 564f, 24f, "Definiciones", 16f)
+            val definitionCols = listOf(25f to 181f, 215.291f to 396.708f, 402.378f to 583.795f)
+            definitionCols.forEach { (a, b) -> sourceBands(s, a, b, 160f, 4, 20f) }
+            dataLine(s, p, 27f, 144f, 152f, "Honor: reputación, deber y prestigio.", 8.2f)
+            dataLine(s, p, 217f, 144f, 177f, "Resolución: autocontrol bajo presión.", 8.2f)
+            dataLine(s, p, 404f, 144f, 177f, "Suerte: azar favorable y oportunidades.", 8.2f)
 
             val columns = listOf(
                 AttributeColumn(22.5f, 96.4f, false, "Honor", "15", "+2", "+5",
@@ -184,10 +191,11 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
                 402.378f to 583.795f,
             )
             noteCols.forEach { (a, b) -> sourceBands(s, a, b, 468f, 12, 20f) }
-            dataLine(s, p, 27f, 468f, 152f, "Honor mide reputación, deber y posición social.", 8.8f)
-            dataLine(s, p, 217f, 468f, 177f, "Resolución se usa ante presión, miedo o dolor.", 8.8f)
-            dataLine(s, p, 404f, 468f, 177f, "Suerte refleja azar favorable y oportunidades.", 8.8f)
-            dataLine(s, p, 27f, 508f, 152f, "Las habilidades muestran siempre su Atributo rector.", 8.4f)
+            dataLine(s, p, 27f, 468f, 152f, "Honor: reputación y deber.", 8.4f)
+            dataLine(s, p, 27f, 488f, 152f, "Prestigio y posición social.", 8.4f)
+            dataLine(s, p, 217f, 468f, 177f, "Resolución: presión, miedo o dolor.", 8.4f)
+            dataLine(s, p, 404f, 468f, 177f, "Suerte: azar favorable y oportunidades.", 8.4f)
+            dataLine(s, p, 27f, 528f, 152f, "Cada habilidad conserva su Atributo.", 8.2f)
         }
     }
 
@@ -261,9 +269,9 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
             replaceHeading(s, original.heading, 446f, 243f, 142f, 36f, "Estados", 18f)
             replaceHeading(s, original.heading, 205f, 460f, 200f, 35f, "Opciones", 18f)
 
-            centeredOriginal(s, original.label, 27f, 94f, 110f, 14f, "RECURSO", 7.8f)
-            centeredOriginal(s, original.label, 169.9f, 94f, 130f, 14f, "ACTUAL / MÁX.", 7.8f)
-            centeredOriginal(s, original.label, 311.7f, 94f, 130f, 14f, "RECUPERACIÓN", 7.8f)
+            smallLabel(s, p, 27f, 94f, 110f, 14f, "RECURSO", 7.5f)
+            smallLabel(s, p, 169.9f, 94f, 130f, 14f, "ACTUAL / MÁX.", 7.5f)
+            smallLabel(s, p, 311.7f, 94f, 130f, 14f, "RECUPERACIÓN", 7.5f)
 
             val resourceRows = listOf(
                 Triple("Recuperación arcana", "1 / 1", "Descanso largo"),
@@ -283,12 +291,12 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
             val recoveryLabels = listOf("DESCANSO CORTO", "DESCANSO LARGO", "AMANECER", "OTRO", "VARIABLE")
             val recY = listOf(99f,119f,139f,159f,179f)
             recoveryLabels.forEachIndexed { i, label ->
-                leftOriginal(s, original.label, 456f, recY[i], 92f, 14f, label, 6.9f)
+                smallData(s, p, 456f, recY[i], 92f, 14f, label, 6.8f)
                 dataAboveRule(s, p, Rule(518f,583.8f,recY[i] + 10f), listOf("0","2","1","0","1")[i], 8.2f)
             }
 
-            replaceSmallLabel(s, original.label, 456f, 274f, 62f, 16f, "ESTADO", 7.8f)
-            replaceSmallLabel(s, original.label, 548f, 274f, 40f, 16f, "VALOR", 7.8f)
+            replaceSmallLabel(s, p, 456f, 274f, 62f, 16f, "ESTADO", 7.5f)
+            replaceSmallLabel(s, p, 548f, 274f, 40f, 16f, "VALOR", 7.5f)
             val states = listOf("Oculto" to "NO", "Asustado" to "NO", "Concentración" to "SÍ")
             val stateY = listOf(307f,347f,386.5f)
             states.forEachIndexed { i, st ->
@@ -296,9 +304,9 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
                 dataAboveRule(s, p, Rule(549.779f,583.795f,stateY[i]), st.second, 8.2f)
             }
 
-            replaceSmallLabel(s, original.label, 50f, 490f, 68f, 16f, "TIPO", 7.8f)
-            replaceSmallLabel(s, original.label, 150f, 490f, 78f, 16f, "OPCIÓN", 7.8f)
-            replaceSmallLabel(s, original.label, 385f, 490f, 90f, 16f, "DESCRIPCIÓN", 7.8f)
+            replaceSmallLabel(s, p, 50f, 490f, 68f, 16f, "TIPO", 7.5f)
+            replaceSmallLabel(s, p, 150f, 490f, 78f, 16f, "OPCIÓN", 7.5f)
+            replaceSmallLabel(s, p, 385f, 490f, 90f, 16f, "DESCRIPCIÓN", 7.5f)
             white(s, 24f, 505f, 88f, 260f)
 
             val options = listOf(
@@ -325,7 +333,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
     ) {
         val page = sourcePage(doc, equipmentSource)
         PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true).use { s ->
-            centeredOriginal(s, original.label, 195f, 96f, 80f, 13f, "CONTINUACIÓN", 7.8f)
+            smallLabel(s, p, 195f, 96f, 80f, 13f, "CONTINUACIÓN", 7.5f)
 
             val items = listOf(
                 "12 x Clavos", "8 x Tiza", "6 x Viales",
@@ -356,12 +364,12 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
             }
 
             val special = listOf(
-                "Brazal de cobre" to "Conserva una carga menor.",
-                "Brazal de plata" to "Pareja del brazal de cobre.",
-                "Grebas caminante" to "Refuerzo para marchas largas.",
-                "Botas de senda" to "Suela reforzada para terreno irregular.",
+                "Capucha rúnica" to "Tela tratada para proteger inscripciones.",
+                "Lente de búsqueda" to "Ayuda a inspeccionar detalles finos.",
+                "Amuleto del archivo" to "Recuerdo y foco ceremonial.",
+                "Anillo de cobre" to "Marca de acceso menor.",
             )
-            listOf(522.5f,562f,602f,641.5f).forEachIndexed { i, yy ->
+            listOf(522.5f,542.5f,562f,582f).forEachIndexed { i, yy ->
                 special.getOrNull(i)?.let {
                     dataAboveRule(s, p, Rule(126f,238f,yy), it.first, 8.2f)
                     dataAboveRule(s, p, Rule(240.803f,583.795f,yy), it.second, 8.2f)
@@ -379,8 +387,6 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
     ) {
         val page = sourcePage(doc, spellSource)
         PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true).use { s ->
-            leftOriginal(s, original.label, 108f, 54f, 100f, 13f, "CONTINUACIÓN", 7.8f)
-
             val continuation = mapOf(
                 0 to listOf("Mensaje", "Ilusión menor"),
                 1 to listOf("Identificar", "Dormir", "Alarma", "Comprender idiomas"),
@@ -418,7 +424,6 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
     ) {
         val page = sourcePage(doc, notesSource)
         PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true).use { s ->
-            centeredOriginal(s, original.label, 262f, 91f, 88f, 13f, "CONTINUACIÓN", 7.8f)
             val left = listOf(
                 "Contactar a Maestra Elenya al regresar a Liria.",
                 "No entregar el mapa original a terceros.",
@@ -478,7 +483,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
 
             line(s, column.x + column.width - 28f, rowTop + 12.6f, column.x + column.width - 3f, rowTop + 12.6f, 0.5f)
             if (label != null) {
-                leftOriginal(s, original.label, column.x + 11f, rowTop - 1f, column.width - 42f, 13f, label.first, 7.25f)
+                smallData(s, p, column.x + 11f, rowTop - 1f, column.width - 42f, 13f, label.first, 7.15f)
                 dataBox(s, p, column.x + column.width - 27f, rowTop - 2f, 24f, 15f, label.second, 7.6f)
             }
         }
@@ -609,7 +614,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
 
     private fun replaceSmallLabel(
         s: PDPageContentStream,
-        font: PDFont,
+        p: DesktopPdfRenderingPrimitives,
         x: Float,
         top: Float,
         width: Float,
@@ -618,7 +623,62 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
         size: Float,
     ) {
         white(s, x, top, width, height)
-        centeredOriginal(s, font, x, top, width, height, value, size)
+        smallLabel(s, p, x, top, width, height, value, size)
+    }
+
+    private fun smallLabel(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        value: String,
+        size: Float,
+    ) {
+        val result = p.drawTextBox(
+            s,
+            PdfTextBoxSpec(
+                rect = PdfRect(x, H - top - height, width, height),
+                text = value,
+                role = PdfTypographyRole.COMPACT_TABLE,
+                preferredSizePt = size,
+                minimumSizePt = (size - 1f).coerceAtLeast(6f),
+                horizontalAlignment = PdfHorizontalAlignment.CENTER,
+                verticalAlignment = PdfVerticalAlignment.CENTER,
+                wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
+                maximumLines = 1,
+            ),
+        )
+        if (result.hasOverflow) overflowDiagnostics += "value='$value' overflow='${result.overflowText}'"
+    }
+
+    private fun smallData(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        value: String,
+        size: Float,
+    ) {
+        val result = p.drawTextBox(
+            s,
+            PdfTextBoxSpec(
+                rect = PdfRect(x, H - top - height, width, height),
+                text = value,
+                role = PdfTypographyRole.BODY,
+                preferredSizePt = size,
+                minimumSizePt = (size - 1f).coerceAtLeast(5.8f),
+                horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                verticalAlignment = PdfVerticalAlignment.CENTER,
+                wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
+                maximumLines = 1,
+                horizontalPaddingPt = 0.2f,
+            ),
+        )
+        if (result.hasOverflow) overflowDiagnostics += "value='$value' overflow='${result.overflowText}'"
     }
 
     private fun centeredOriginal(
