@@ -215,7 +215,7 @@ class DesktopPcSheetClassicVisualRun2Test {
             speciesTraits.forEachIndexed { i, trait ->
                 val rowTop = 636f + i * 22f
                 text(s, p, rightX + 10f, rowTop, 134f, 17f, trait, PdfTypographyRole.BODY, 7.8f, 6.8f)
-                hairline(s, rightX + 10f, rowTop + 19f, rightX + 144f, rowTop + 19f)
+                hairline(s, rightX + 10f, rowTop + 21f, rightX + 144f, rowTop + 21f)
             }
             titledFrame(s, p, rightX + 164f, 606f, 154f, 112f, "DOTES")
             ruledTextArea(
@@ -237,35 +237,30 @@ class DesktopPcSheetClassicVisualRun2Test {
             portraitPlaceholder(s, 36f, 136f, 202f, 150f)
 
             titledFrame(s, p, 24f, 314f, 226f, 108f, "DESCRIPCIÓN")
+            ruledBackground(s, 34f, 346f, 206f, 66f, firstRuleOffset = 28f, lineGap = 22f)
             text(
                 s, p, 36f, 346f, 202f, 34f,
                 "Cabello negro; ojos grises; capa de viaje con broche élfico.",
                 PdfTypographyRole.NOTE_TEXT, 8.5f, 7.4f, wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
-            hairline(s, 34f, 386f, 240f, 386f)
-            hairline(s, 34f, 407f, 240f, 407f)
 
             titledFrame(s, p, 24f, 436f, 226f, 282f, "HISTORIA Y PERSONALIDAD")
+            ruledBackground(s, 34f, 468f, 206f, 238f, firstRuleOffset = 28f, lineGap = 22f)
             text(
                 s, p, 36f, 468f, 202f, 54f,
                 "Sabio de la Academia de Liria. Halló referencias a una cámara sellada bajo el Valle del Viento y abandonó temporalmente los archivos para reconstruir la ruta.",
                 PdfTypographyRole.NOTE_TEXT, 7.7f, 7f, wrap = true, maxLines = 3,
                 vertical = PdfVerticalAlignment.TOP,
             )
-            hairline(s, 34f, 527f, 240f, 527f)
-            text(s, p, 36f, 536f, 202f, 30f, "Rasgo: toma notas incluso en situaciones absurdas.",
+            text(s, p, 36f, 544f, 202f, 30f, "Rasgo: toma notas incluso en situaciones absurdas.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
-            hairline(s, 34f, 571f, 240f, 571f)
-            text(s, p, 36f, 580f, 202f, 25f, "Ideal: conocimiento y responsabilidad.",
+            text(s, p, 36f, 588f, 202f, 25f, "Ideal: conocimiento y responsabilidad.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
-            hairline(s, 34f, 610f, 240f, 610f)
-            text(s, p, 36f, 619f, 202f, 30f, "Vínculo: devolver el códice perdido a la Academia.",
+            text(s, p, 36f, 632f, 202f, 30f, "Vínculo: devolver el códice perdido a la Academia.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
-            hairline(s, 34f, 654f, 240f, 654f)
-            text(s, p, 36f, 663f, 202f, 36f, "Defecto: puede investigar un detalle mucho más de lo razonable.",
+            text(s, p, 36f, 676f, 202f, 28f, "Defecto: puede investigar un detalle mucho más de lo razonable.",
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
-            hairline(s, 34f, 705f, 240f, 705f)
 
             titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             coinStrip(s, p, 276f, 136f)
@@ -1127,9 +1122,13 @@ class DesktopPcSheetClassicVisualRun2Test {
         fontSize: Float,
     ) {
         val lineGap = 20f
-        val lines = (height / lineGap).toInt().coerceAtLeast(1)
+        val firstRuleOffset = 23f
+        val lines = (((height - firstRuleOffset) / lineGap).toInt() + 1).coerceAtLeast(1)
         repeat(lines) { i ->
-            hairline(s, x, top + (i + 1) * lineGap, x + width, top + (i + 1) * lineGap)
+            val ruleTop = top + firstRuleOffset + i * lineGap
+            if (ruleTop <= top + height) {
+                hairline(s, x, ruleTop, x + width, ruleTop)
+            }
         }
         var cursorTop = top + 1f
         content.forEach { paragraph ->
@@ -1138,6 +1137,22 @@ class DesktopPcSheetClassicVisualRun2Test {
                 fontSize, (fontSize - 1.1f).coerceAtLeast(6.2f), wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP)
             cursorTop += 40f
+        }
+    }
+
+    private fun ruledBackground(
+        s: PDPageContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        firstRuleOffset: Float = 23f,
+        lineGap: Float = 20f,
+    ) {
+        var ruleTop = top + firstRuleOffset
+        while (ruleTop <= top + height) {
+            hairline(s, x, ruleTop, x + width, ruleTop)
+            ruleTop += lineGap
         }
     }
 
