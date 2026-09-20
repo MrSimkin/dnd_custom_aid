@@ -1127,9 +1127,9 @@ PR #85 remains **DRAFT / DO NOT MERGE**.
 
 ---
 
-## 22. Custom v1 Extended Run 1 — complete family candidate
+## 22. Custom v1 Extended Run 1 — rejected family candidate
 
-**Status:** PASS FOR OWNER REVIEW
+**Status:** OWNER REJECTED / historical evidence only
 
 Candidate implementation:
 
@@ -1153,10 +1153,64 @@ Important regression guard:
 
 The extension visual language intentionally follows Custom v1: owner-source branding, grayscale alternating bands, thin writing rules, centered headings and practical writable space.
 
+Owner decision:
+
+- Run 1 did not preserve Custom-v1 spacing/capacity, layout/maquetación, typography or box grammar closely enough;
+- superficial motifs were insufficient to make the extension pages part of the same design family;
+- do not continue patching this extension direction;
+- source-faithful Run 2 supersedes it.
+
+PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 23. Custom v1 Extended Run 2 — source-faithful complete family candidate
+
+**Status:** PASS FOR OWNER REVIEW
+
+Candidate implementation:
+
+`b244159b467d162c8637db5532dcfe6f2f831953`
+
+Final Scaffold push run:
+
+`35484718817` / run #2817 — SUCCESS
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`
+
+Run 2 abandons the rejected Run-1 extension composition.
+
+Design method:
+
+- use the owner-authored Custom-v1 PDF as the actual extension design kit;
+- Custom Statistics derives from source page 1;
+- Traits derives from source page 3;
+- Resources and Inventory derive from source page 2;
+- Spells directly reuses source page 4 grammar;
+- Notes directly reuses source page 5 grammar;
+- preserve source EnchantedLand headings where safe;
+- use approved overlay fonts only for generated arbitrary text that source subset fonts cannot safely encode.
+
+The five approved Run-7 base pages remain frozen and are guarded pixel-identical.
+
+Final strict audit:
+
+- 11 Letter pages;
+- strict text-overflow guard passes;
+- no overflow diagnostic file;
+- no clipped source logo;
+- no unsafe subset-glyph loss;
+- no intrusive continuation labels in Spells/Notes;
+- body-location rows respected on Inventory continuation;
+- all CI jobs green.
+
 Current gate:
 
-- mandatory owner review of the complete 11-page family;
-- do not update the stable Custom-v1 approved-baseline pointer to close extensions before owner approval;
-- if corrections are requested, change extension pages only unless the owner explicitly reopens a frozen base-page defect.
+- mandatory owner review of source-faithful Custom-v1 Extended Run 2;
+- do not mark extensions approved/frozen before explicit owner approval;
+- if corrections are requested, preserve the frozen five-page base unless the owner explicitly reopens it.
 
 PR #85 remains **DRAFT / DO NOT MERGE**.

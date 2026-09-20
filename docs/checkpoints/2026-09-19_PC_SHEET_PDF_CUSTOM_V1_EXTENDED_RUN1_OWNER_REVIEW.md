@@ -1,4 +1,4 @@
-# Checkpoint — Custom v1 Extended Run 1 — PASS FOR OWNER REVIEW
+# Checkpoint — Custom v1 Extended Run 1 — OWNER REJECTED / HISTORICAL EVIDENCE
 
 **Date:** 2026-09-19 (Chile local time)  
 **Branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
@@ -72,10 +72,23 @@ Spell continuation keeps `ESPACIOS GASTADOS` empty and retains writable spell ro
 - no observed clipping, text/rule collision or missing generated content;
 - pdftoppm/PDFium variation on new extension pages is approximately 0.05%–0.08% and appears limited to normal raster antialiasing differences.
 
-## Current gate
+## Owner decision — REJECTED
 
-**Mandatory owner review of the complete 11-page Custom-v1 family.**
+The owner rejected this extension direction after reviewing the proof.
 
-Do not change `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md` from its current “base approved / extensions pending” state until the owner explicitly approves this extension family.
+Material owner findings:
+
+- the extension design was not recognizably the same design system as Custom v1;
+- spacing/capacity did not follow the source pages;
+- page composition / layout (`maquetación`) did not follow Custom v1;
+- typography was not the same or sufficiently similar;
+- box and section construction did not follow the source family;
+- reproducing superficial motifs such as gray bands, thin rules and the logo was not sufficient.
+
+This Run 1 is historical evidence only. Do not incrementally patch this design direction.
+
+It is superseded by source-faithful Run 2:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`
 
 PR #85 remains **DRAFT / DO NOT MERGE**.

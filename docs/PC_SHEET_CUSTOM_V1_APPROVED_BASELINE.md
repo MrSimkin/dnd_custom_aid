@@ -53,6 +53,18 @@ Pending Custom-v1 extension design/QA includes, as data requires:
 
 These pages must remain visually coherent with the owner-authored Custom-v1 family and will require populated visual QA before the complete family can be considered closed.
 
+### Current extension candidate
+
+- Extended Run 1: **OWNER REJECTED / historical evidence only** because it did not preserve the source family's real spacing, layout/maquetación, typography and box grammar.
+- Extended Run 2: **PASS FOR OWNER REVIEW** at commit `b244159b467d162c8637db5532dcfe6f2f831953`, Scaffold `35484718817` / #2817 — SUCCESS.
+- Run 2 preserves the frozen five-page base and derives the six extension pages from the actual Custom-v1 source-page compositions.
+
+Current candidate checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`
+
+This candidate does **not** change the approved baseline status until explicit owner approval.
+
 ## Preservation rule
 
 This pointer changes only when the owner explicitly approves a new Custom-v1 visual baseline.

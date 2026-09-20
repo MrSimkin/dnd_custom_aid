@@ -113,7 +113,9 @@ Current state:
 - Custom v1 Run-7 base sheet is OWNER APPROVED / FROZEN;
 - Custom v2 per-Attribute Run-4 base sheet is OWNER APPROVED / FROZEN;
 - Custom v2 per-Ability corrected Run-2 base sheet is OWNER APPROVED / FROZEN;
-- Custom v1 Extended Run 1 is PASS FOR OWNER REVIEW at `b86b4539386cca8c567469bd97202c454df411ad`; its 11-page proof preserves frozen pages 1–5 pixel-identically and adds all six extension roles;
+- Custom v1 Extended Run 1 is OWNER REJECTED / historical evidence only;
+- Custom v1 Extended Run 2 is PASS FOR OWNER REVIEW at `b244159b467d162c8637db5532dcfe6f2f831953`; its 11-page proof preserves frozen pages 1–5 pixel-identically and rebuilds all six extensions from actual Custom-v1 source-page grammar;
+- Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
 - Custom v2 family-matched Extended-page design/QA remains pending;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
@@ -124,8 +126,8 @@ Current state:
 
 Next continuation sequence:
 
-1. owner reviews Custom v1 Extended Run 1;
-2. freeze it if approved or apply bounded extension-only corrections while preserving the frozen five-page base;
+1. owner reviews source-faithful Custom v1 Extended Run 2;
+2. freeze it if approved or apply bounded Run-2 extension-only corrections while preserving the frozen five-page base;
 3. continue family-matched Extended-page design/QA for Custom v2 without disturbing frozen base layouts;
 4. promote approved visual mechanics into production renderer paths;
 5. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
@@ -135,7 +137,7 @@ Relevant durable records:
 
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN1_OWNER_REVIEW.md`;
+- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
 - `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
 - `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
 - `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;

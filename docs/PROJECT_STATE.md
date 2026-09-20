@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Classic visual-family owner review after Custom v1/v2 base-sheet approvals
+**Current active package:** PC Sheet PDF Export — Custom v1 source-faithful Extended Run-2 owner review
 
 ### Superseding PDF visual state — 2026-09-19
 
@@ -52,7 +52,7 @@ The shared primitive foundation has now passed owner Primitive PDF QA. Renderer 
 
 The exact owner-authored `Para-hoja-de-pj` v1 is now committed as immutable provenance after SHA-256 verification. v4 is published as a contemporary redesign with legacy-refined and modern-clean families, stable renderer PUA aliases, complete documentation and a deterministic TTX-backed builder.
 
-Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN at `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`. Classic Run 1 is owner-rejected historical evidence only. Custom-v1 Extended Run 1 is now a technically/visually audited 11-page candidate at the mandatory owner-review gate (`b86b4539386cca8c567469bd97202c454df411ad`, Scaffold #2797 SUCCESS); its five frozen Run-7 base pages are guarded pixel-identical. Custom-v2 family-matched Extended-page design/QA remains pending. Do not describe either Custom family as fully closed until its extension set receives explicit owner approval.
+Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN at `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`. Classic Run 1 is owner-rejected historical evidence only. Custom-v1 Extended Run 1 is owner-rejected historical evidence. Custom-v1 Extended Run 2 is now the technically/visually audited 11-page candidate at the mandatory owner-review gate (`b244159b467d162c8637db5532dcfe6f2f831953`, Scaffold #2817 SUCCESS); it rebuilds extensions from the actual Custom-v1 source-page composition while guarding frozen pages 1–5 pixel-identical. Custom-v2 family-matched Extended-page design/QA remains pending. Do not describe either Custom family as fully closed until its extension set receives explicit owner approval.
 
 Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
