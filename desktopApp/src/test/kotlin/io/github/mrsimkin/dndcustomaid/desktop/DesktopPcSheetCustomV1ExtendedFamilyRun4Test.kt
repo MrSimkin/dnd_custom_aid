@@ -60,6 +60,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
         val diagnostics = File(proofDir, "custom-v1-extended-run4-layer-diagnostics.pdf")
         renderDiagnostics(diagnostics, sourceBytes, proofDir)
         verifyDiagnosticStructuralGuards(diagnostics)
+        verifyCleanupBackgrounds(diagnostics)
 
         val output = File(proofDir, "custom-v1-complete-family-extended-run4.pdf")
         Loader.loadPDF(approvedBase).use { doc ->
@@ -161,6 +162,97 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    private fun verifyCleanupBackgrounds(diagnostics: File) {
+        Loader.loadPDF(diagnostics).use { doc ->
+            val renderer = PDFRenderer(doc)
+
+            val statisticsCleanupIndex =
+                ExtensionRole.CUSTOM_STATISTICS.ordinal * LayerStage.entries.size + LayerStage.CLEANUP.ordinal
+            val statisticsCleanup =
+                renderer.renderImageWithDPI(statisticsCleanupIndex, DIAGNOSTIC_DPI, ImageType.RGB)
+
+            COLUMNS.forEachIndexed { index, column ->
+                assertRegionMatchesColor(
+                    image = statisticsCleanup,
+                    region = Region(column.x + 1f, 226.3f, column.width - 2f, 5.8f),
+                    dpi = DIAGNOSTIC_DPI,
+                    expected = Color.WHITE,
+                    tolerance = 5,
+                    message = "Run-4 page 6 cleanup left source anti-aliasing above Attribute column ${index + 1}.",
+                )
+
+                val background = if (column.gray) SOURCE_GRAY else Color.WHITE
+                assertRegionMatchesColor(
+                    image = statisticsCleanup,
+                    region = Region(column.x + 1f, 233f, column.width - 2f, 29.5f),
+                    dpi = DIAGNOSTIC_DPI,
+                    expected = background,
+                    tolerance = 5,
+                    message = "Run-4 page 6 cleanup left source title glyphs in Attribute column ${index + 1}.",
+                )
+
+                SKILL_ROW_TOPS.forEachIndexed { rowIndex, rowTop ->
+                    assertRegionMatchesColor(
+                        image = statisticsCleanup,
+                        region = Region(column.x + 12f, rowTop, max(6f, column.width - 40f), 11.5f),
+                        dpi = DIAGNOSTIC_DPI,
+                        expected = background,
+                        tolerance = 5,
+                        message = "Run-4 page 6 cleanup left a source skill glyph in column ${index + 1}, row ${rowIndex + 1}.",
+                    )
+                }
+            }
+
+            val resourcesCleanupIndex =
+                ExtensionRole.RESOURCES_OPTIONS.ordinal * LayerStage.entries.size + LayerStage.CLEANUP.ordinal
+            val resourcesCleanup =
+                renderer.renderImageWithDPI(resourcesCleanupIndex, DIAGNOSTIC_DPI, ImageType.RGB)
+
+            val sourceLocationRows = listOf(
+                522.5f,542.5f,562f,582f,602f,621.5f,641.5f,661.5f,681f,701f,
+            )
+            var sourceLocationTop = 503f
+            sourceLocationRows.forEachIndexed { index, ruleY ->
+                val background = if (index % 2 == 0) Color.WHITE else SOURCE_GRAY
+                assertRegionMatchesColor(
+                    image = resourcesCleanup,
+                    region = Region(24.7f, sourceLocationTop + 0.5f, 84.6f, ruleY - sourceLocationTop - 1f),
+                    dpi = DIAGNOSTIC_DPI,
+                    expected = background,
+                    tolerance = 5,
+                    message = "Run-4 page 8 cleanup left a source Equipment-location glyph in row ${index + 1}.",
+                )
+                sourceLocationTop = ruleY
+            }
+        }
+    }
+
+    private fun assertRegionMatchesColor(
+        image: BufferedImage,
+        region: Region,
+        dpi: Float,
+        expected: Color,
+        tolerance: Int,
+        message: String,
+    ) {
+        val scale = dpi / 72f
+        val x0 = (region.x * scale).toInt().coerceAtLeast(0)
+        val y0 = (region.top * scale).toInt().coerceAtLeast(0)
+        val x1 = ((region.x + region.width) * scale).toInt().coerceAtMost(image.width - 1)
+        val y1 = ((region.top + region.height) * scale).toInt().coerceAtMost(image.height - 1)
+
+        for (y in y0..y1) {
+            for (x in x0..x1) {
+                val rgb = Color(image.getRGB(x, y))
+                val matches =
+                    kotlin.math.abs(rgb.red - expected.red) <= tolerance &&
+                        kotlin.math.abs(rgb.green - expected.green) <= tolerance &&
+                        kotlin.math.abs(rgb.blue - expected.blue) <= tolerance
+                assertTrue(matches, "$message First mismatched pixel: ($x,$y), actual=$rgb, expected=$expected")
             }
         }
     }
@@ -276,8 +368,13 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
             val bg = if (column.gray) SOURCE_GRAY else Color.WHITE
             val scoreX = SCORE_X[index]
             val modX = MOD_X[index]
-            // Clear the complete copied caption/title text band, but stop before y=264 where
-            // authentic Attribute score-box geometry begins.
+            // A thin white pre-cleanup strip removes source-font anti-aliasing that extends
+            // just above the colored title band. Keep it separate so gray columns do not grow
+            // upward and the source layout remains visually faithful.
+            fill(s, column.x + 0.5f, 226f, max(8f, column.width - 1f), 6.5f, Color.WHITE)
+
+            // Clear the complete copied caption/title text band, stopping before the protected
+            // Attribute score-box geometry.
             fill(s, column.x + 0.5f, 232.5f, max(8f, column.width - 1f), 34.5f, bg)
             fill(s, scoreX - 18f, 271f, 36f, 17f, bg)
             fill(s, modX - 10f, 289f, 20f, 10f, bg)
@@ -431,15 +528,17 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
             fill(s,520f,top - 1f,61f,14f,Color.WHITE)
         }
 
-        // Clear every original Equipment-location label, not only the four rows that receive
-        // Run-4 option values. Match each row's authentic white/gray fill and leave the checkbox
-        // column plus horizontal rules untouched.
+        // Clear every original Equipment-location label as a complete text-cell interior.
+        // The location column ends before the authentic checkbox/rule geometry, so contiguous
+        // row fills can meet at their boundaries without touching those structural primitives.
         val sourceLocationRows = listOf(
             522.5f,542.5f,562f,582f,602f,621.5f,641.5f,661.5f,681f,701f,
         )
+        var sourceLocationTop = 503f
         sourceLocationRows.forEachIndexed { index, ruleY ->
             val rowBackground = if (index % 2 == 0) Color.WHITE else SOURCE_GRAY
-            fill(s,25f,ruleY - 18.5f,84f,17.5f,rowBackground)
+            fill(s,24f,sourceLocationTop,86f,ruleY - sourceLocationTop,rowBackground)
+            sourceLocationTop = ruleY
         }
     }
 
