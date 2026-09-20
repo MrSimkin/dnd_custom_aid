@@ -158,22 +158,22 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
 
             val columns = listOf(
                 AttributeColumn(22.5f, 96.4f, false, "Honor", "15", "+2", "+5",
-                    listOf("Etiqueta" to "+5", "Reputación" to "+5", "Deber" to "+2", "Protocolo" to "+5"),
+                    listOf("Etiqueta cortesana" to "+5", "Reputación" to "+5", "Deber" to "+2", "Protocolo" to "+5"),
                     listOf(Training.PROFICIENT, Training.PROFICIENT, Training.NONE, Training.PROFICIENT)),
                 AttributeColumn(118.9f, 96.4f, true, "Resolución", "12", "+1", "+1",
                     listOf("Concentración" to "+4", "Resistir miedo" to "+4", "Autocontrol" to "+1"),
                     listOf(Training.PROFICIENT, Training.PROFICIENT, Training.NONE)),
                 AttributeColumn(215.3f, 96.4f, false, "Suerte", "18", "+4", "+7",
-                    listOf("Fortuna" to "+7", "Escapismo" to "+10", "Azar" to "+4"),
+                    listOf("Lectura de fortuna" to "+7", "Escapismo" to "+10", "Azar" to "+4"),
                     listOf(Training.PROFICIENT, Training.EXPERTISE, Training.NONE)),
                 AttributeColumn(311.7f, 96.4f, true, "INTeligencia", "18", "+4", "+7",
-                    listOf("Cifras antiguas" to "+7", "Análisis rúnico" to "+7"),
+                    listOf("Cifras antiguas" to "+7", "Análisis de runas" to "+7"),
                     listOf(Training.PROFICIENT, Training.PROFICIENT)),
                 AttributeColumn(408.0f, 96.4f, false, "SABiduría", "12", "+1", "+1",
-                    listOf("Cartografía" to "+4", "Orientación" to "+1"),
+                    listOf("Cartografía" to "+4", "Orientación astral" to "+1"),
                     listOf(Training.PROFICIENT, Training.NONE)),
                 AttributeColumn(504.4f, 85.5f, true, "DEStreza", "16", "+3", "+6",
-                    listOf("Acrobacia" to "+6", "Cerrajería" to "+9"),
+                    listOf("Acrobacia aérea" to "+6", "Cerrajería fina" to "+9"),
                     listOf(Training.PROFICIENT, Training.EXPERTISE)),
             )
 
