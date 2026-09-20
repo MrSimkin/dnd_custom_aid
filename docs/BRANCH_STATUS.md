@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Custom v1 Extended Run-4 owner review
+**Current normal work:** PC Sheet PDF Export — Custom v1 Extended Run-5 owner review
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -116,10 +116,12 @@ Current state:
 - Custom v1 Extended Run 1 is OWNER REJECTED / historical evidence only;
 - Custom v1 Extended Run 2 is NOT APPROVED after owner review; it is close but has page-6 white-cut artifacts, block-selection issues and incorrect Ability/skill typography;
 - Custom v1 Extended Run 3 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
-- Custom v1 Extended Run 4 is PASS FOR OWNER REVIEW at `7d23fbc12a491b40f214f7f395b7cf5ffce4e585`;
-- Run 4 rebuilds all six extension pages 6–11 using explicit source / bounded-cleanup / labels / values / Symbols-v8 layers and emits a 30-page diagnostic proof;
-- Run-4 cleanup-background and source-geometry guards prevent the recurring source-glyph/clipping artifact class seen in Runs 2–3;
-- Run-4 Scaffold `35523383272` / #2856 is SUCCESS; proof artifact `10608119762`;
+- Custom v1 Extended Run 4 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
+- Custom v1 Extended Run 5 is PASS FOR OWNER REVIEW at `f197f9382d751d4342fb648d73b3520d72cdd911`;
+- Run 5 redesigns page 6 with top-first Attribute/Ability modules, authentic ornamental geometry only, non-condensed headings and symmetric Definiciones/Notas sections;
+- Run 5 restores `Rasgos de Raza` on page 7 and removes standalone Recuperación/Estados extension panels from page 8 in favor of a v8-glyph resource tracker;
+- whole-family audit also repairs inherited page-9 valuables and page-10 spell-slot numeric omissions by removing the incomplete Gill subset from new content;
+- Run-5 Scaffold `35527343150` / #2874 is SUCCESS; proof artifact `10610600180`;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
 - Custom v2 family-matched Extended-page design/QA remains pending;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
@@ -131,8 +133,8 @@ Current state:
 
 Next continuation sequence:
 
-1. owner reviews the complete Custom v1 Extended Run-4 proof;
-2. freeze it if approved or apply bounded Run-4 extension-only corrections while preserving frozen pages 1–5 and the layered architecture;
+1. owner reviews the complete Custom v1 Extended Run-5 proof;
+2. freeze it if approved or apply bounded Run-5 extension-only corrections while preserving frozen pages 1–5 and the redesigned page-6/7/8 architecture;
 3. continue family-matched Extended-page design/QA for Custom v2 without disturbing frozen base layouts;
 4. promote approved visual mechanics into production renderer paths;
 5. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
@@ -142,6 +144,7 @@ Relevant durable records:
 
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+- `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN5_OWNER_REVIEW.md`;
 - `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
 - `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
 - `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
