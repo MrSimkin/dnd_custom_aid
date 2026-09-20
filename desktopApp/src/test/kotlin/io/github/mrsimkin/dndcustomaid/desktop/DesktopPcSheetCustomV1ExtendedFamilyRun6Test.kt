@@ -102,6 +102,12 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun6Test {
                 extracted.contains("Tirada de Salvación", ignoreCase = true),
                 "Run-6 page-6 naming contract must preserve Tirada de Salvación.",
             )
+            listOf("HONor", "RESolución", "SUErte", "INTeligencia", "SABiduría", "DEStreza").forEach { heading ->
+                assertTrue(
+                    extracted.contains(heading),
+                    "Run-6 Attribute naming convention missing heading: $heading",
+                )
+            }
             listOf("120", "75", "45").forEach { expectedValue ->
                 assertTrue(
                     extracted.contains(expectedValue),
@@ -1194,17 +1200,17 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun6Test {
         )
         val COLUMNS = listOf(
             AttributeColumn(
-                22.5f,96.4f,false,"Honor","15","+2","+5",
+                22.5f,96.4f,false,"HONor","15","+2","+5",
                 listOf("Etiqueta cortesana" to "+5","Reputación" to "+5","Deber" to "+2","Protocolo" to "+5"),
                 listOf(Training.PROFICIENT,Training.PROFICIENT,Training.NONE,Training.PROFICIENT),
             ),
             AttributeColumn(
-                118.9f,96.4f,true,"Resolución","12","+1","+1",
+                118.9f,96.4f,true,"RESolución","12","+1","+1",
                 listOf("Concentración" to "+4","Resistir miedo" to "+4","Autocontrol" to "+1"),
                 listOf(Training.PROFICIENT,Training.PROFICIENT,Training.NONE),
             ),
             AttributeColumn(
-                215.3f,96.4f,false,"Suerte","18","+4","+7",
+                215.3f,96.4f,false,"SUErte","18","+4","+7",
                 listOf("Lectura de fortuna" to "+7","Escapismo" to "+10","Azar" to "+4"),
                 listOf(Training.PROFICIENT,Training.EXPERTISE,Training.NONE),
             ),
