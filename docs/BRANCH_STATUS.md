@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Custom v1 Extended Run-6 owner review
+**Current normal work:** PC Sheet PDF Export — Custom v2 Extended design/QA
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -118,11 +118,11 @@ Current state:
 - Custom v1 Extended Run 3 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
 - Custom v1 Extended Run 4 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
 - Custom v1 Extended Run 5 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
-- Custom v1 Extended Run 6 is PASS FOR OWNER REVIEW at `69b308f3d5d493d06bd0107ac66c7524935aa9fa`;
-- Run 6 restores page-6 source heading typography, source-matched skill typography, full Tirada de Salvación naming, ~14.173 pt row cadence and three-letter Attribute naming convention;
-- Run 6 restores page-8 compact ~20 pt sheet proportions while retaining v8 resource counters and Equipo-Especial-style option rows;
-- Run 6 restores the previously-good Equipment/Gemas regular-body treatment on page 9 and keeps visible spell-slot counts on page 10;
+- Custom v1 Extended Run 6 is OWNER APPROVED / FROZEN at `69b308f3d5d493d06bd0107ac66c7524935aa9fa`;
 - Run-6 Scaffold `35529317947` / #2885 is SUCCESS; proof artifact `10609869599`;
+- the complete Custom-v1 visual family (base + all six Extended roles) is now frozen;
+- canonical Custom Extended layered methodology is `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
+- Custom-v2 family-matched Extended design/QA is the next active Custom visual gate;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
 - Custom v2 family-matched Extended-page design/QA remains pending;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
@@ -134,9 +134,9 @@ Current state:
 
 Next continuation sequence:
 
-1. owner reviews the complete Custom v1 Extended Run-6 proof;
-2. freeze it if approved or apply bounded Run-6 extension-only corrections while preserving frozen pages 1–5 and the restored source typography/proportions;
-3. continue family-matched Extended-page design/QA for Custom v2 without disturbing frozen base layouts;
+1. read `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
+2. decide whether Custom-v2 Custom Statistics needs shared or variant-specific Extended layouts for per-Attribute/per-Ability;
+3. design/QA Custom-v2 family-matched Extended pages without disturbing frozen v2 base layouts;
 4. promote approved visual mechanics into production renderer paths;
 5. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
 6. do not merge PR #85 until the remaining visual/functional gates are satisfied.
@@ -145,6 +145,8 @@ Relevant durable records:
 
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+- `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
+- `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
 - `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_REVIEW.md`;
 - `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN5_OWNER_REVIEW.md`;
 - `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
