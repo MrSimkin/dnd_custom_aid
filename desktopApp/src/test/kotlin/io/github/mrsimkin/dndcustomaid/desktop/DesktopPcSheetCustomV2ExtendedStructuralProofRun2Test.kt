@@ -194,7 +194,7 @@ class DesktopPcSheetCustomV2ExtendedStructuralProofRun2Test {
             val saves = listOf("Honor (HON)" to "+5", "Resolución (RES)" to "+1", "Suerte (SUE)" to "+7")
             saves.forEachIndexed { index, item ->
                 val y = 154f + index * 17f
-                textAboveRule(s, r.fira, Rule(235f, 308f, y), item.first, 7.7f, 6.2f, 2.2f)
+                textAboveRuleScaled(s, r.fira, Rule(235f, 308f, y), item.first, 7.7f, 6.5f, 2.2f, 72f)
                 centeredAboveRule(s, r.firaSemibold, Rule(308f, 342f, y), item.second, 8.2f, 2.2f)
             }
             val abilities = listOf(
@@ -208,7 +208,7 @@ class DesktopPcSheetCustomV2ExtendedStructuralProofRun2Test {
             )
             abilities.forEachIndexed { index, item ->
                 val y = 154f + index * 17f
-                textAboveRule(s, r.fira, Rule(399f, 548f, y), item.first, 7.9f, 6.3f, 2.2f)
+                textAboveRuleScaled(s, r.fira, Rule(399f, 548f, y), item.first, 7.9f, 6.6f, 2.2f, 78f)
                 centeredAboveRule(s, r.firaSemibold, Rule(548f, 588f, y), item.second, 8.2f, 2.2f)
             }
         }
@@ -475,7 +475,7 @@ class DesktopPcSheetCustomV2ExtendedStructuralProofRun2Test {
         centeredAboveRule(s, r.firaSemibold, Rule(x + 150f, x + 174f, top + 83f), sample.save, 8.3f, 2.3f)
         sample.skills.forEachIndexed { row, item ->
             val y = top + 113f + row * 17f
-            textAboveRule(s, r.fira, Rule(x + 116f, x + 150f, y), item.first, 7.0f, 5.8f, 2.2f)
+            textAboveRuleScaled(s, r.fira, Rule(x + 112f, x + 150f, y), item.first, 7.2f, 6.2f, 2.2f, 68f)
             centeredAboveRule(s, r.firaSemibold, Rule(x + 150f, x + 174f, y), item.second, 8.0f, 2.2f)
         }
     }
@@ -641,6 +641,37 @@ class DesktopPcSheetCustomV2ExtendedStructuralProofRun2Test {
         s.setFont(font, size)
         s.newLineAtOffset(rule.startX + 1f, baseline)
         s.showText(text)
+        s.endText()
+    }
+
+    private fun textAboveRuleScaled(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        text: String,
+        preferredSize: Float,
+        minimumSize: Float,
+        clearance: Float,
+        minimumHorizontalScale: Float,
+    ) {
+        var size = preferredSize
+        val available = rule.endX - rule.startX - 2f
+        while (size > minimumSize && textWidth(font, text, size) > available / (minimumHorizontalScale / 100f)) {
+            size -= 0.25f
+        }
+        val rawWidth = textWidth(font, text, size)
+        val scale = minOf(100f, available / rawWidth * 100f)
+        require(scale >= minimumHorizontalScale) {
+            "Compact v2 label requires excessive compression: " + text + " (" + scale + "%)"
+        }
+        val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
+        val baseline = H - rule.topY + clearance - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(scale)
+        s.newLineAtOffset(rule.startX + 1f, baseline)
+        s.showText(text)
+        s.setHorizontalScaling(100f)
         s.endText()
     }
 
