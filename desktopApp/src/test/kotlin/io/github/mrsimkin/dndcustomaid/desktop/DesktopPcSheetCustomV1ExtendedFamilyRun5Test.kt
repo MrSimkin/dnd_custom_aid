@@ -94,7 +94,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
 
             val extracted = PDFTextStripper().getText(doc)
             assertFalse(
-                extracted.contains("Rasgos de Raza", ignoreCase = true),
+                extracted.contains("Rasgos de Especie", ignoreCase = true),
                 "Run-5 terminology contract violated: use Raza, never Especie.",
             )
 
