@@ -1263,3 +1263,68 @@ Current gate:
 - mandatory owner review of the complete Run-3 proof;
 - do not freeze the extension family before explicit owner approval;
 - keep PR #85 DRAFT / DO NOT MERGE.
+
+
+---
+
+## 25. Custom v1 Extended Run 6 — owner approval and canonical carry-forward strategy
+
+**Status:** OWNER APPROVED / FROZEN  
+**Date:** 2026-09-20
+
+Approved implementation:
+
+`69b308f3d5d493d06bd0107ac66c7524935aa9fa`
+
+Scaffold:
+
+`35529317947` / #2885 — SUCCESS
+
+Artifact:
+
+`10609869599`
+
+Approval checkpoint:
+
+`docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`
+
+Stable Custom-v1 baseline:
+
+`docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`
+
+Canonical Custom Extended-page methodology:
+
+`docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`
+
+Run 6 closes the Custom-v1 Extended visual gate.
+
+The key convergence lesson is not merely "use multiple layers." It is:
+
+> Use independent layers to isolate responsibilities, but derive geometry, density, typography and naming from the frozen source family rather than from empty page space.
+
+The canonical layer model is:
+
+1. source/measured structure;
+2. optional bounded cleanup;
+3. labels;
+4. values;
+5. markers/symbols.
+
+Layer diagnostics remain mandatory when they materially improve traceability.
+
+Run-history lessons carried forward:
+
+- broad masks can create white/color artifacts and should not substitute for correct source-fragment selection;
+- embedded source font subsets are unsafe for arbitrary generated text;
+- source-matched generated typography must preserve readability and full glyph coverage;
+- do not redesign already-working pages during unrelated corrections;
+- source row cadence and page density are part of the visual contract;
+- owner terminology/naming conventions are part of the visual contract;
+- green CI is not visual approval;
+- frozen base pages require regression protection.
+
+Custom-v2 Extended work must read `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md` before implementation.
+
+Do not copy Custom-v1 geometry blindly into v2. Carry forward the architecture, measurement discipline, diagnostics and QA method, then re-derive exact geometry/typography from the frozen v2 baselines.
+
+PR #85 remains **DRAFT / DO NOT MERGE** while Custom-v2 Extended and remaining renderer/product gates are pending.
