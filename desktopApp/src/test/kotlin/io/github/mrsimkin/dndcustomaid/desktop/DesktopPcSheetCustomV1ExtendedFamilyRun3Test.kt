@@ -779,7 +779,6 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
         s.saveGraphicsState()
         s.addRect(x, H - top - height, width, height)
         s.clip()
-        s.endPath()
         s.drawForm(form)
         s.restoreGraphicsState()
     }
