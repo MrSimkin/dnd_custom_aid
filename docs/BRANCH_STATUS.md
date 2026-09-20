@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Classic visual owner gate + family-matched Extended-page continuation
+**Current normal work:** PC Sheet PDF Export — Custom v1 Extended Run-3 owner-feedback correction
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -114,7 +114,9 @@ Current state:
 - Custom v2 per-Attribute Run-4 base sheet is OWNER APPROVED / FROZEN;
 - Custom v2 per-Ability corrected Run-2 base sheet is OWNER APPROVED / FROZEN;
 - Custom v1 Extended Run 1 is OWNER REJECTED / historical evidence only;
-- Custom v1 Extended Run 2 is PASS FOR OWNER REVIEW at `b244159b467d162c8637db5532dcfe6f2f831953`; its 11-page proof preserves frozen pages 1–5 pixel-identically and rebuilds all six extensions from actual Custom-v1 source-page grammar;
+- Custom v1 Extended Run 2 is NOT APPROVED after owner review; it is close but has page-6 white-cut artifacts, block-selection issues and incorrect Ability/skill typography;
+- Custom v1 Extended Run 3 is the active WIP correction line; current pre-checkpoint head `2e5379e162995f85865710227ea3d0182eb33812`;
+- Run 3 replaces broad white masking with clean-page source-fragment composition, preserves authentic source block geometry, and uses source-matched compressed GillSansMT for Ability/skill labels;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
 - Custom v2 family-matched Extended-page design/QA remains pending;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
@@ -126,17 +128,20 @@ Current state:
 
 Next continuation sequence:
 
-1. owner reviews source-faithful Custom v1 Extended Run 2;
-2. freeze it if approved or apply bounded Run-2 extension-only corrections while preserving the frozen five-page base;
-3. continue family-matched Extended-page design/QA for Custom v2 without disturbing frozen base layouts;
-4. promote approved visual mechanics into production renderer paths;
-5. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
-6. do not merge PR #85 until the remaining visual/functional gates are satisfied.
+1. finish strict CI for Custom v1 Extended Run 3;
+2. download/render/visually audit the exact successful Run-3 artifact;
+3. owner reviews the complete Run-3 proof;
+4. freeze it if approved or apply bounded Run-3 extension-only corrections while preserving the frozen five-page base;
+5. continue family-matched Extended-page design/QA for Custom v2 without disturbing frozen base layouts;
+6. promote approved visual mechanics into production renderer paths;
+7. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
+8. do not merge PR #85 until the remaining visual/functional gates are satisfied.
 
 Relevant durable records:
 
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
 - `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
 - `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
 - `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
