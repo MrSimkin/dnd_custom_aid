@@ -183,9 +183,18 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
                 listOf("VOL: temple, foco y resistencia mental.", "Las pruebas prolongadas pueden exigir concentración."),
                 listOf("SUE: fortuna, azar e improvisación.", "La fortuna puede modificar consecuencias imprevistas."),
             )
-            notes.forEachIndexed { col, rows ->
-                rows.forEachIndexed { row, value ->
-                    textAboveRule(s, r.fira, Rule(18f + col * 193f, 194f + col * 193f, 562f + row * 17f), value, 8.8f, 7.4f, 2.2f)
+            notes.forEachIndexed { col, entries ->
+                var row = 0
+                entries.forEach { value ->
+                    val lines = wrapByWidth(r.fira, value, 8.8f, 174f)
+                    lines.forEach { line ->
+                        textAboveRule(
+                            s, r.fira,
+                            Rule(18f + col * 193f, 194f + col * 193f, 562f + row * 17f),
+                            line, 8.8f, 8.8f, 2.2f,
+                        )
+                        row += 1
+                    }
                 }
             }
         }
