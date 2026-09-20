@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-19 (Chile local time)  
+**Updated:** 2026-09-20 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Custom v1 Extended Run-3 owner review
+**Current normal work:** PC Sheet PDF Export — Custom v1 Extended Run-4 owner review
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -115,9 +115,11 @@ Current state:
 - Custom v2 per-Ability corrected Run-2 base sheet is OWNER APPROVED / FROZEN;
 - Custom v1 Extended Run 1 is OWNER REJECTED / historical evidence only;
 - Custom v1 Extended Run 2 is NOT APPROVED after owner review; it is close but has page-6 white-cut artifacts, block-selection issues and incorrect Ability/skill typography;
-- Custom v1 Extended Run 3 is PASS FOR OWNER REVIEW at `3203234e0820566298b4a49eb87da14c9ee75de8`;
-- Run 3 replaces broad white masking with clean-page source-fragment composition, uses authentic five-row source blocks, and uses full FiraSans-Regular at the measured 10 pt / 60% source compression for complete glyph coverage;
-- Run-3 Scaffold `35486748557` / #2831 is SUCCESS; proof artifact `10598081443`;
+- Custom v1 Extended Run 3 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
+- Custom v1 Extended Run 4 is PASS FOR OWNER REVIEW at `7d23fbc12a491b40f214f7f395b7cf5ffce4e585`;
+- Run 4 rebuilds all six extension pages 6–11 using explicit source / bounded-cleanup / labels / values / Symbols-v8 layers and emits a 30-page diagnostic proof;
+- Run-4 cleanup-background and source-geometry guards prevent the recurring source-glyph/clipping artifact class seen in Runs 2–3;
+- Run-4 Scaffold `35523383272` / #2856 is SUCCESS; proof artifact `10608119762`;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
 - Custom v2 family-matched Extended-page design/QA remains pending;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
@@ -129,8 +131,8 @@ Current state:
 
 Next continuation sequence:
 
-1. owner reviews the complete Custom v1 Extended Run-3 proof;
-2. freeze it if approved or apply bounded Run-3 page-6 corrections while preserving frozen pages 1–5 and unchanged pages 7–11;
+1. owner reviews the complete Custom v1 Extended Run-4 proof;
+2. freeze it if approved or apply bounded Run-4 extension-only corrections while preserving frozen pages 1–5 and the layered architecture;
 3. continue family-matched Extended-page design/QA for Custom v2 without disturbing frozen base layouts;
 4. promote approved visual mechanics into production renderer paths;
 5. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
@@ -140,6 +142,7 @@ Relevant durable records:
 
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+- `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
 - `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
 - `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
 - `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
