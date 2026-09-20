@@ -246,7 +246,7 @@ class DesktopPcSheetClassicVisualRun2Test {
             )
 
             titledFrame(s, p, 24f, 436f, 226f, 282f, "HISTORIA Y PERSONALIDAD")
-            ruledBackground(s, 34f, 468f, 206f, 238f, firstRuleOffset = 28f, lineGap = 22f)
+            ruledBackground(s, 34f, 468f, 206f, 238f, firstRuleOffset = 32f, lineGap = 22f)
             text(
                 s, p, 36f, 468f, 202f, 54f,
                 "Sabio de la Academia de Liria. Halló referencias a una cámara sellada bajo el Valle del Viento y abandonó temporalmente los archivos para reconstruir la ruta.",
@@ -1122,15 +1122,15 @@ class DesktopPcSheetClassicVisualRun2Test {
         fontSize: Float,
     ) {
         val lineGap = 20f
-        val firstRuleOffset = 23f
-        val lines = (((height - firstRuleOffset) / lineGap).toInt() + 1).coerceAtLeast(1)
+        val lines = (height / lineGap).toInt().coerceAtLeast(1)
         repeat(lines) { i ->
-            val ruleTop = top + firstRuleOffset + i * lineGap
+            val ruleTop = top + (i + 1) * lineGap
             if (ruleTop <= top + height) {
                 hairline(s, x, ruleTop, x + width, ruleTop)
             }
         }
-        var cursorTop = top + 1f
+        // Text sits inside the ruled rows rather than on their baselines.
+        var cursorTop = top - 2f
         content.forEach { paragraph ->
             val boxHeight = 39f
             text(s, p, x + 2f, cursorTop, width - 4f, boxHeight, paragraph, PdfTypographyRole.NOTE_TEXT,
