@@ -99,12 +99,16 @@ Final result:
 - exact final PDF independently re-rendered and inspected;
 - no observed clipping, broken glyphs, text/rule collisions, or missing extension content.
 
-## Current gate
+## Owner review result — corrections requested / superseded
 
-**Mandatory owner visual review of Custom-v1 Extended Run 2, especially pages 6–11.**
+The owner reviewed Run 2 and said the overall direction was very close, but identified three remaining page-6 defects:
 
-Status is **PASS FOR OWNER REVIEW**, not approved/frozen.
+- weird white-space/cut artifacts;
+- poorly selected Ability/skill blocks;
+- Ability/skill typography fully wrong.
 
-Do not change `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md` to claim extension approval until explicit owner approval.
+Run 2 is therefore not approved. It is superseded as the active candidate by source-faithful Run 3:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`
 
 PR #85 remains **DRAFT / DO NOT MERGE**.

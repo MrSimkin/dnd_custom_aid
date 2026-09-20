@@ -1214,3 +1214,52 @@ Current gate:
 - if corrections are requested, preserve the frozen five-page base unless the owner explicitly reopens it.
 
 PR #85 remains **DRAFT / DO NOT MERGE**.
+
+
+---
+
+## 24. Custom v1 Extended Run 3 — owner-feedback correction
+
+**Status:** PASS FOR OWNER REVIEW
+
+Final implementation:
+
+`3203234e0820566298b4a49eb87da14c9ee75de8`
+
+Scaffold:
+
+`35486748557` / run #2831 — SUCCESS
+
+Artifact:
+
+`10598081443`
+
+Checkpoint:
+
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`
+
+Owner feedback on Run 2 was bounded to the Custom Statistics page:
+
+- white-space/cut artifacts;
+- poorly selected Ability/skill blocks;
+- wrong Ability/skill typography.
+
+Run 3 corrects those findings without reopening the rest of the family:
+
+- page 6 is composed from clipped authentic source fragments on a clean page;
+- all six statistics columns use authentic five-row source blocks selected from WIS/INT geometry to preserve white/gray parity and actual source square/rule construction;
+- duplicate generic squares/rules are not overlaid;
+- the embedded GillSansMT subset was proven unsafe for arbitrary new glyphs;
+- FiraSans-Regular at 10 pt / 60% horizontal scale reproduces the measured source compressed label treatment with complete Spanish glyph coverage.
+
+Run 2 -> Run 3 diff:
+
+- pages 1–5: pixel-identical;
+- page 6: intended changes only;
+- pages 7–11: pixel-identical.
+
+Current gate:
+
+- mandatory owner review of the complete Run-3 proof;
+- do not freeze the extension family before explicit owner approval;
+- keep PR #85 DRAFT / DO NOT MERGE.

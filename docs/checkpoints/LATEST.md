@@ -14,14 +14,15 @@
 2. this file;
 3. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 4. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-5. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
-6. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
-7. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-8. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-9. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
-10. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-11. `docs/PROJECT_STATE.md`;
-12. `docs/BRANCH_STATUS.md`.
+5. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
+6. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
+7. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
+8. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
+9. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+10. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+11. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+12. `docs/PROJECT_STATE.md`;
+13. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -86,41 +87,36 @@ Base-sheet approval does not by itself close a whole visual family if its requir
 
 Custom v1 Extended Run 1 is **OWNER REJECTED / historical evidence only**.
 
-Custom v1 Extended Run 2 is **NOT APPROVED** after owner review. The owner said it is very close but identified:
+Custom v1 Extended Run 2 was reviewed and is **NOT APPROVED / SUPERSEDED** after owner feedback on page-6 white-cut artifacts, block selection and Ability/skill typography.
 
-- weird white-space/cut artifacts on Custom Statistics;
-- poorly selected / duplicated-looking Ability blocks;
-- wrong Ability/skill typography.
+Custom v1 Extended Run 3 is **PASS FOR OWNER REVIEW**.
 
-Custom v1 Extended Run 3 is now **WIP OWNER-FEEDBACK CORRECTION**.
+Final evidence:
 
-Current WIP head before safety consolidation:
+- implementation commit `3203234e0820566298b4a49eb87da14c9ee75de8`;
+- Scaffold push run `35486748557` / #2831 — SUCCESS;
+- proof artifact `10598081443`;
+- 11-page proof preserves pages 1–5 and 7–11 pixel-identically relative to Run 2;
+- only page 6 changes;
+- page 6 uses clipped authentic source fragments rather than broad white masks;
+- every statistics column uses an authentic five-row source block;
+- skill labels use full Fira Sans Regular at the measured source operator (10 pt / 60% horizontal scale), avoiding the incomplete embedded Gill subset while matching its visual compression;
+- strict overflow and frozen-base guards pass;
+- independent render inspection passes.
 
-`2e5379e162995f85865710227ea3d0182eb33812`
+Checkpoint:
 
-Run-3 correction direction:
-
-- construct page 6 from clipped authentic source fragments on a clean page rather than full-page white masking;
-- preserve source proficiency-square/numeric-rule blocks rather than redrawing duplicate blocks;
-- use embedded source GillSansMT with the measured compressed source text operator for Ability/skill labels;
-- keep full realistic custom-skill names where the authentic source typography can fit them;
-- preserve frozen base pages 1–5.
-
-Safety checkpoint:
-
-`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`
+`docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`
 
 Do not mark the Custom-v1 extension family approved/frozen until explicit owner approval.
 
 ## Current continuation
 
-1. complete CI/strict-test verification for Custom-v1 Extended Run 3;
-2. download and visually audit the exact successful Run-3 artifact, especially page 6 against original Custom-v1 page 1;
-3. present the complete 11-page Run-3 proof for owner review;
-4. if approved, freeze the Custom-v1 extension family; otherwise apply bounded Run-3 extension-only corrections while preserving pages 1–5;
-5. design/QA family-matched Extended pages for Custom v2 per Attribute / per Ability without disturbing their frozen bases;
-6. promote approved visual mechanics into production renderer paths;
-7. complete family/end-to-end export QA and remaining D-0074 behaviors, including data-driven overflow and the separate optional Spellbook;
-8. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
+1. owner reviews the complete 11-page Custom-v1 Extended Run-3 proof;
+2. if approved, freeze the Custom-v1 extension family; otherwise apply bounded Run-3 extension-only corrections while preserving pages 1–5 and the unchanged pages 7–11;
+3. design/QA family-matched Extended pages for Custom v2 per Attribute / per Ability without disturbing their frozen bases;
+4. promote approved visual mechanics into production renderer paths;
+5. complete family/end-to-end export QA and remaining D-0074 behaviors, including data-driven overflow and the separate optional Spellbook;
+6. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
 
 No external provider action is required for this PDF-renderer stage.

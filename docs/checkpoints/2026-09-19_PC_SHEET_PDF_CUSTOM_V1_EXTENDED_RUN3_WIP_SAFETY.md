@@ -118,3 +118,17 @@ The next continuation step is to wait for / inspect the completed Kotlin result 
 8. If page 6 is visually clean, present a complete Run-3 proof to the owner.
 9. Do not mark Custom-v1 extensions APPROVED/FROZEN until explicit owner approval.
 10. PR #85 remains DRAFT / DO NOT MERGE.
+
+
+## Subsequent result
+
+The WIP correction was completed successfully after this safety checkpoint.
+
+Final candidate:
+
+- implementation: `3203234e0820566298b4a49eb87da14c9ee75de8`;
+- Scaffold push run: `35486748557` / #2831 — SUCCESS;
+- proof artifact: `10598081443`;
+- owner-review checkpoint: `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`.
+
+This WIP file remains historical safety evidence. Resume from the owner-review checkpoint above.
