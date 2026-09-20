@@ -68,7 +68,13 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
                 val generatedFonts = DesktopPdfFontRegistry(doc, RUN2_THEME)
                 val p = DesktopPdfRenderingPrimitives(generatedFonts)
 
-                drawCustomStatistics(doc, p, originalFonts, sourceForms[0])
+                drawCustomStatistics(
+                    doc,
+                    p,
+                    originalFonts,
+                    generatedFonts.font(PdfTypographyRole.BODY),
+                    sourceForms[0],
+                )
                 drawTraits(doc, p, originalFonts, sourceForms[2])
                 drawResources(doc, p, originalFonts, sourceForms[1])
                 drawInventory(doc, p, originalFonts, sourceForms[1])
@@ -137,6 +143,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
         doc: PDDocument,
         p: DesktopPdfRenderingPrimitives,
         original: OriginalFonts,
+        skillFont: PDFont,
         mainSource: PDFormXObject,
     ) {
         val page = blankPage(doc)
@@ -144,7 +151,25 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
             // Compose only authentic source fragments onto a clean page. This avoids the Run-2
             // white masking rectangles/cut artifacts while preserving the exact owner geometry.
             drawSourceCrop(s, mainSource, 20f, 18f, 170f, 74f)
-            drawSourceCrop(s, mainSource, 20f, 240f, 572f, 162f)
+            // Reuse authentic five-row source blocks instead of inheriting the varying
+            // official-skill capacities of STR/DEX/CON. White columns use WIS geometry;
+            // gray columns use INT geometry. This keeps every custom column writable and
+            // preserves the exact source square/rule construction.
+            val targetXs = listOf(22.5f, 118.9f, 215.3f, 311.7f, 408.0f, 504.4f)
+            val targetWidths = listOf(96.4f, 96.4f, 96.4f, 96.4f, 96.4f, 85.5f)
+            targetXs.forEachIndexed { index, targetX ->
+                val sourceX = if (index % 2 == 0) 408.0f else 311.7f // WIS white / INT gray
+                drawTranslatedSourceCrop(
+                    s = s,
+                    form = mainSource,
+                    sourceX = sourceX,
+                    sourceTop = 240f,
+                    width = targetWidths[index],
+                    height = 162f,
+                    targetX = targetX,
+                    targetTop = 240f,
+                )
+            }
 
             centeredOriginal(s, original.heading, 215f, 55f, 365f, 28f, "Estadísticas Personalizadas", 18f)
             smallLabel(s, p, 215f, 87f, 365f, 14f, "ATRIBUTOS PERSONALIZADOS Y HABILIDADES VINCULADAS", 7.5f)
@@ -178,7 +203,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
             )
 
             columns.forEachIndexed { index, column ->
-                redrawAttributeColumn(s, p, original, column, index)
+                redrawAttributeColumn(s, p, original, skillFont, column, index)
             }
 
             centeredOriginal(s, original.heading, 24f, 428f, 564f, 26f, "Notas de Estadísticas Personalizadas", 18f)
@@ -444,6 +469,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
         original: OriginalFonts,
+        skillFont: PDFont,
         column: AttributeColumn,
         index: Int,
     ) {
@@ -481,10 +507,13 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
             }
 
             if (label != null) {
-                // Match the source operator exactly: GillSansMT at 10 pt vertical with 60% horizontal scale.
-                compressedGillSkill(
+                // The embedded owner GillSansMT is a glyph-subset and cannot safely render
+                // arbitrary new Spanish skill names. Fira Sans Regular at the measured source
+                // operator (10 pt / 60% horizontal scale) is visually near-identical while
+                // providing complete glyph coverage.
+                compressedSkillLabel(
                     s = s,
-                    font = original.label,
+                    font = skillFont,
                     x = column.x + 11.874f,
                     baselineTop = rowTop + 9.142f,
                     value = label.first,
@@ -686,7 +715,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
         if (result.hasOverflow) overflowDiagnostics += "value='$value' overflow='${result.overflowText}'"
     }
 
-    private fun compressedGillSkill(
+    private fun compressedSkillLabel(
         s: PDPageContentStream,
         font: PDFont,
         x: Float,
@@ -779,6 +808,29 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun3Test {
         s.saveGraphicsState()
         s.addRect(x, H - top - height, width, height)
         s.clip()
+        s.drawForm(form)
+        s.restoreGraphicsState()
+    }
+
+    private fun drawTranslatedSourceCrop(
+        s: PDPageContentStream,
+        form: PDFormXObject,
+        sourceX: Float,
+        sourceTop: Float,
+        width: Float,
+        height: Float,
+        targetX: Float,
+        targetTop: Float,
+    ) {
+        s.saveGraphicsState()
+        s.addRect(targetX, H - targetTop - height, width, height)
+        s.clip()
+        s.transform(
+            org.apache.pdfbox.util.Matrix.getTranslateInstance(
+                targetX - sourceX,
+                sourceTop - targetTop,
+            ),
+        )
         s.drawForm(form)
         s.restoreGraphicsState()
     }
