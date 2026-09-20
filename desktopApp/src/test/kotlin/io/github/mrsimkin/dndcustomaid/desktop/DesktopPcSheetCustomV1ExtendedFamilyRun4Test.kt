@@ -869,7 +869,10 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
     }
 
     private fun loadResourceFont(doc: PDDocument,path: String): PDFont =
-        resource(path).use { PDType0Font.load(doc,it,true) }
+        // Run 4 reuses these fonts across multiple optional-content forms/layers.
+        // Full embedding avoids subset encoding corruption when the same loaded font is referenced
+        // by many form XObjects in the final document and in the 30-page diagnostic proof.
+        resource(path).use { PDType0Font.load(doc,it,false) }
 
     private fun resource(path: String): InputStream =
         requireNotNull(DesktopPcSheetCustomV1ExtendedFamilyRun4Test::class.java.classLoader.getResourceAsStream(path)) {
