@@ -145,13 +145,13 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
 
             // Preserve the real owner logo and entire six-column Attribute strip.
             // Keep the entire original logo; clear only the source MAIN content around it.
-            white(s, 185f, 20f, 407f, 220f)
+            white(s, 205f, 20f, 387f, 220f)
             white(s, 25f, 96f, 150f, 22f) // source "Puntos de Experiencia"
             white(s, 20f, 112f, 572f, 128f)
             white(s, 20f, 400f, 572f, 372f)
 
-            centeredOriginal(s, original.heading, 185f, 55f, 395f, 28f, "Estadísticas Personalizadas", 18f)
-            smallLabel(s, p, 185f, 87f, 395f, 14f, "ATRIBUTOS PERSONALIZADOS Y HABILIDADES VINCULADAS", 7.5f)
+            centeredOriginal(s, original.heading, 215f, 55f, 365f, 28f, "Estadísticas Personalizadas", 18f)
+            smallLabel(s, p, 215f, 87f, 365f, 14f, "ATRIBUTOS PERSONALIZADOS Y HABILIDADES VINCULADAS", 7.5f)
 
             centeredOriginal(s, original.heading, 24f, 116f, 564f, 24f, "Definiciones", 16f)
             val definitionCols = listOf(25f to 181f, 215.291f to 396.708f, 402.378f to 583.795f)
@@ -168,7 +168,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
                     listOf("Concentración" to "+4", "Resistir miedo" to "+4", "Autocontrol" to "+1"),
                     listOf(Training.PROFICIENT, Training.PROFICIENT, Training.NONE)),
                 AttributeColumn(215.3f, 96.4f, false, "Suerte", "18", "+4", "+7",
-                    listOf("Lectura de fortuna" to "+7", "Escape improvisado" to "+10", "Azar" to "+4"),
+                    listOf("Lectura de fortuna" to "+7", "Escapismo" to "+10", "Azar" to "+4"),
                     listOf(Training.PROFICIENT, Training.EXPERTISE, Training.NONE)),
                 AttributeColumn(311.7f, 96.4f, true, "INTeligencia", "18", "+4", "+7",
                     listOf("Cifras antiguas" to "+7", "Análisis de runas" to "+7"),
@@ -177,7 +177,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
                     listOf("Cartografía" to "+4", "Orientación astral" to "+1"),
                     listOf(Training.PROFICIENT, Training.NONE)),
                 AttributeColumn(504.4f, 85.5f, true, "DEStreza", "16", "+3", "+6",
-                    listOf("Acrobacia con cuerda" to "+6", "Cerrajería fina" to "+9"),
+                    listOf("Acrobacia aérea" to "+6", "Cerrajería fina" to "+9"),
                     listOf(Training.PROFICIENT, Training.EXPERTISE)),
             )
 
