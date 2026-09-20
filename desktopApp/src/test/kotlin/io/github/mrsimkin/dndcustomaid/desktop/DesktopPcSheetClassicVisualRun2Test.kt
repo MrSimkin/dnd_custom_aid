@@ -93,9 +93,9 @@ class DesktopPcSheetClassicVisualRun2Test {
                 .writeText(overflowDiagnostics.joinToString("\n"))
         }
         assertTrue(pdf.length() > 20_000L)
-        // Diagnostic upload pass: preserve overflow diagnostics in the proof artifact.
-        // Strict empty-overflow enforcement is restored after visual/geometry correction.
-        assertTrue(true)
+        check(overflowDiagnostics.isEmpty()) {
+            "Classic Run 2 text overflow(s):\n" + overflowDiagnostics.joinToString("\n")
+        }
     }
 
     private fun drawMain(doc: PDDocument, p: DesktopPdfRenderingPrimitives) {
@@ -211,11 +211,12 @@ class DesktopPcSheetClassicVisualRun2Test {
             ruledTextArea(s, p, rightX + 10f, 442f, rightW - 20f, 140f, features, 8.4f)
 
             titledFrame(s, p, rightX, 606f, 154f, 112f, "ATRIBUTOS DE ESPECIE")
-            ruledTextArea(
-                s, p, rightX + 9f, 638f, 136f, 70f,
-                listOf("Visión en la oscuridad.", "Ascendencia feérica.", "Trance."),
-                8.2f,
-            )
+            val speciesTraits = listOf("Visión en la oscuridad.", "Ascendencia feérica.", "Trance.")
+            speciesTraits.forEachIndexed { i, trait ->
+                val rowTop = 636f + i * 22f
+                text(s, p, rightX + 10f, rowTop, 134f, 17f, trait, PdfTypographyRole.BODY, 7.8f, 6.8f)
+                hairline(s, rightX + 10f, rowTop + 19f, rightX + 144f, rowTop + 19f)
+            }
             titledFrame(s, p, rightX + 164f, 606f, 154f, 112f, "DOTES")
             ruledTextArea(
                 s, p, rightX + 173f, 638f, 136f, 70f,
@@ -243,17 +244,21 @@ class DesktopPcSheetClassicVisualRun2Test {
             )
 
             titledFrame(s, p, 24f, 436f, 226f, 282f, "HISTORIA Y PERSONALIDAD")
-            ruledTextArea(
-                s, p, 34f, 468f, 206f, 238f,
-                listOf(
-                    "Sabio de la Academia de Liria. Halló referencias a una cámara sellada bajo el Valle del Viento y abandonó temporalmente los archivos para reconstruir la ruta.",
-                    "Rasgo: toma notas incluso en situaciones absurdas.",
-                    "Ideal: conocimiento y responsabilidad.",
-                    "Vínculo: devolver el códice perdido a la Academia.",
-                    "Defecto: puede investigar un detalle mucho más de lo razonable.",
-                ),
-                8.3f,
+            ruledLines(s, 34f, 468f, 206f, 238f, 11)
+            text(
+                s, p, 36f, 469f, 202f, 54f,
+                "Sabio de la Academia de Liria. Halló referencias a una cámara sellada bajo el Valle del Viento y abandonó temporalmente los archivos para reconstruir la ruta.",
+                PdfTypographyRole.NOTE_TEXT, 7.7f, 7f, wrap = true, maxLines = 3,
+                vertical = PdfVerticalAlignment.TOP,
             )
+            text(s, p, 36f, 530f, 202f, 34f, "Rasgo: toma notas incluso en situaciones absurdas.",
+                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
+            text(s, p, 36f, 570f, 202f, 32f, "Ideal: conocimiento y responsabilidad.",
+                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
+            text(s, p, 36f, 610f, 202f, 34f, "Vínculo: devolver el códice perdido a la Academia.",
+                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
+            text(s, p, 36f, 650f, 202f, 44f, "Defecto: puede investigar un detalle mucho más de lo razonable.",
+                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2, vertical = PdfVerticalAlignment.TOP)
 
             titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             coinStrip(s, p, 276f, 136f)
@@ -672,9 +677,9 @@ class DesktopPcSheetClassicVisualRun2Test {
         fantasyFrame(s, 24f, 24f, 564f, 72f, 1.05f, fill = PAPER_TINT)
         text(s, p, 36f, 31f, 195f, 31f, name, PdfTypographyRole.CHARACTER_NAME, 18f, 15f)
         text(s, p, 36f, 66f, 195f, 12f, "APTITUD MÁGICA", PdfTypographyRole.OPTIONAL_DECORATIVE, 6.8f, 6f)
-        text(s, p, 239f, 30f, 112f, 18f, "INTELIGENCIA", PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 7.5f,
+        text(s, p, 239f, 27f, 112f, 15f, "INTELIGENCIA", PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 7.5f,
             align = PdfHorizontalAlignment.CENTER)
-        miniRunicStat(s, p, 239f, 51f, 112f, 31f, "MODIFICADOR", "+4")
+        miniRunicStat(s, p, 239f, 45f, 112f, 38f, "MODIFICADOR", "+4")
         miniRunicStat(s, p, 363f, 30f, 101f, 52f, "CD DE SALVACIÓN", "15")
         miniRunicStat(s, p, 476f, 30f, 100f, 52f, "ATAQUE", "+7")
     }
@@ -766,18 +771,20 @@ class DesktopPcSheetClassicVisualRun2Test {
             align = PdfHorizontalAlignment.CENTER)
         miniRunicStat(s, p, x + 78f, top + 36f, 42f, 42f, "PUNT.", score)
         miniRunicStat(s, p, x + 126f, top + 36f, 40f, 42f, "SALV.", save)
-        trainingMarker(s, p, x + 146f, top + 82f, saveTraining)
-        text(s, p, x + 10f, top + 89f, width - 20f, 15f, "Habilidades gobernadas por $abbreviation",
+        trainingMarker(s, p, x + 12f, top + 88f, saveTraining)
+        text(s, p, x + 23f, top + 80f, width - 31f, 15f, "Competencia en salvación",
+            PdfTypographyRole.BODY, 6.6f, 5.8f)
+        text(s, p, x + 10f, top + 101f, width - 20f, 15f, "Habilidades gobernadas por $abbreviation",
             PdfTypographyRole.OPTIONAL_DECORATIVE, 6.7f, 5.8f, align = PdfHorizontalAlignment.CENTER)
         skills.forEachIndexed { i, row ->
-            val rowTop = top + 110f + i * 23f
+            val rowTop = top + 122f + i * 23f
             trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
             text(s, p, x + 24f, rowTop, width - 56f, 18f, row.name, PdfTypographyRole.BODY, 7.8f, 6.6f)
             text(s, p, x + width - 30f, rowTop, 22f, 18f, row.total, PdfTypographyRole.NUMERIC_COMPACT, 8.5f, 7.2f,
                 align = PdfHorizontalAlignment.RIGHT)
             hairline(s, x + 24f, rowTop + 20f, x + width - 8f, rowTop + 20f)
         }
-        val blanksStart = top + 110f + skills.size * 23f
+        val blanksStart = top + 122f + skills.size * 23f
         repeat((4 - skills.size).coerceAtLeast(0)) { i ->
             hairline(s, x + 24f, blanksStart + i * 23f + 20f, x + width - 8f, blanksStart + i * 23f + 20f)
         }
@@ -838,17 +845,21 @@ class DesktopPcSheetClassicVisualRun2Test {
         width: Float,
     ) {
         val labels = listOf(
-            Triple("INICIATIVA", "+4", 69f),
-            Triple("VELOCIDAD", "30", 69f),
-            Triple("TAMAÑO", "Mediano", 69f),
-            Triple("PERCEPCIÓN PASIVA", "14", 101f),
+            Triple("INICIATIVA", "+4", 58f),
+            Triple("VELOCIDAD", "30", 58f),
+            Triple("TAMAÑO", "Mediano", 60f),
+            Triple("PERCEPCIÓN PASIVA", "14", 82f),
         )
         var cursor = x
         labels.forEach { (label, value, w) ->
             miniRunicStat(s, p, cursor, top, w, 42f, label, value)
             cursor += w + 4f
         }
-        marker(s, p, x + width - 13f, top + 21f, 11f, PdfMarkerKind.STAR_FILLED)
+        val inspirationWidth = 44f
+        fantasyFrame(s, cursor, top, inspirationWidth, 42f, 0.65f)
+        text(s, p, cursor + 2f, top + 4f, inspirationWidth - 4f, 11f, "INSPIRACIÓN",
+            PdfTypographyRole.OPTIONAL_DECORATIVE, 5.7f, 4.9f, align = PdfHorizontalAlignment.CENTER)
+        marker(s, p, cursor + inspirationWidth / 2f, top + 27f, 11f, PdfMarkerKind.STAR_FILLED)
     }
 
     private fun shieldStat(
