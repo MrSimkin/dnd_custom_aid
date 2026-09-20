@@ -125,8 +125,10 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
             File(proofDir, "custom-v1-complete-family-extended-run2-overflows.txt")
                 .writeText(overflowDiagnostics.joinToString("\n"))
         }
-        // TEMP DIAGNOSTIC ONLY: upload the current proof + overflow list from source-faithful Run 2.
         overflowDiagnostics.forEach { println("CUSTOM_V1_RUN2_OVERFLOW: $it") }
+        check(overflowDiagnostics.isEmpty()) {
+            "Custom-v1 Extended Run 2 overflow(s):\n" + overflowDiagnostics.joinToString("\n")
+        }
         assertTrue(output.length() > 20_000L)
     }
 
@@ -482,7 +484,8 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
 
             line(s, column.x + column.width - 28f, rowTop + 12.6f, column.x + column.width - 3f, rowTop + 12.6f, 0.5f)
             if (label != null) {
-                smallData(s, p, column.x + 11f, rowTop - 1f, column.width - 42f, 13f, label.first, 7.15f)
+                // Use the full authentic gap between the source marker and numeric value rule.
+                smallData(s, p, column.x + 11f, rowTop - 1f, column.width - 37f, 13f, label.first, 7.15f)
                 dataBox(s, p, column.x + column.width - 27f, rowTop - 2f, 24f, 15f, label.second, 7.6f)
             }
         }
@@ -669,7 +672,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun2Test {
                 text = value,
                 role = PdfTypographyRole.BODY,
                 preferredSizePt = size,
-                minimumSizePt = (size - 1f).coerceAtLeast(5.8f),
+                minimumSizePt = (size - 1.5f).coerceAtLeast(5.6f),
                 horizontalAlignment = PdfHorizontalAlignment.LEFT,
                 verticalAlignment = PdfVerticalAlignment.CENTER,
                 wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
