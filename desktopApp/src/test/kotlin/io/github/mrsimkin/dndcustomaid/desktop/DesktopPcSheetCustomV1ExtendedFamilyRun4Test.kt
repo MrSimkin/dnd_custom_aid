@@ -41,7 +41,7 @@ import org.apache.pdfbox.util.Matrix
  * The five-stage diagnostic proof makes each layer independently reviewable. Regression guards
  * protect the top borders of the authentic Attribute score boxes from every later layer.
  */
-class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
+class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {\n    private var layerSerial = 0
 
     @Test
     fun rendersLayeredCustomStatisticsWithoutClippingSourceGeometry() {
@@ -392,7 +392,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun4Test {
             stream.setNonStrokingColor(Color.BLACK)
             draw(stream)
         }
-        LayerUtility(doc).appendFormAsLayer(page, form, AffineTransform(), name)
+        LayerUtility(doc).appendFormAsLayer(page, form, AffineTransform(), \"$name #${++layerSerial}\")
     }
 
     private fun definitionBands(s: PDFormContentStream) {
