@@ -618,7 +618,7 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
         centeredAboveRule(s, r.firaSemibold, Rule(x + 145f, x + 174f, top + 47f), sample.save, 8.8f, 2.0f)
         sample.skills.forEachIndexed { row, item ->
             val y = top + 64f + row * 17f
-            textAboveRule(s, r.corbel, Rule(x + 94f, x + 145f, y), item.first, 7.75f, 7.1f, 2.2f)
+            textAboveRuleFixedScale(s, r.corbel, Rule(x + 94f, x + 145f, y), item.first, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE)
             centeredAboveRule(s, r.firaSemibold, Rule(x + 145f, x + 174f, y), item.second, 8.8f, 2.2f)
         }
     }
