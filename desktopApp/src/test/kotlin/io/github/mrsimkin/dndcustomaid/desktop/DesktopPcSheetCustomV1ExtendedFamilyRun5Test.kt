@@ -438,8 +438,8 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
         }
 
         COLUMNS.forEachIndexed { index, column ->
-            centeredText(s, r.gill, SCORE_X[index] - 18f, STAT_SCORE_VALUE_TOP, 36f, 17f, column.score, 17f)
-            centeredText(s, r.gill, MOD_X[index] - 10f, STAT_MOD_VALUE_TOP, 20f, 10f, column.modifier, 10.6f)
+            centeredText(s, r.firaSemibold, SCORE_X[index] - 18f, STAT_SCORE_VALUE_TOP, 36f, 17f, column.score, 17f)
+            centeredText(s, r.firaSemibold, MOD_X[index] - 10f, STAT_MOD_VALUE_TOP, 20f, 10f, column.modifier, 10.6f)
 
             ruleText(
                 s, r.fira,
@@ -447,7 +447,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
                 "Tirada de Salvación", 7.1f,
             )
             centeredText(
-                s, r.gill,
+                s, r.firaSemibold,
                 column.x + column.width - 22f, STAT_SAVE_RULE_TOP - 13f, 17f, 13f,
                 column.save, 7.8f,
             )
@@ -460,7 +460,7 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
                     skill.first, 7.1f,
                 )
                 centeredText(
-                    s, r.gill,
+                    s, r.firaSemibold,
                     column.x + column.width - 22f, ruleTop - 13f, 17f, 13f,
                     skill.second, 7.5f,
                 )
@@ -1109,9 +1109,9 @@ class DesktopPcSheetCustomV1ExtendedFamilyRun5Test {
         const val SYMBOL_RESOURCE = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
 
         const val SOURCE_WHITE_ATTRIBUTE_X = 408f
-        const val SOURCE_SCORE_FRAGMENT_TOP = 264f
-        const val SOURCE_SCORE_FRAGMENT_HEIGHT = 46f
-        const val STAT_SCORE_FRAGMENT_TARGET_TOP = 132f
+        const val SOURCE_SCORE_FRAGMENT_TOP = 268.5f
+        const val SOURCE_SCORE_FRAGMENT_HEIGHT = 41.5f
+        const val STAT_SCORE_FRAGMENT_TARGET_TOP = 136.5f
         const val STAT_SCORE_BORDER_PROTECTED_TOP = 136.5f
         const val STAT_ATTRIBUTE_TITLE_TOP = 104f
         const val STAT_SCORE_VALUE_TOP = 139f
