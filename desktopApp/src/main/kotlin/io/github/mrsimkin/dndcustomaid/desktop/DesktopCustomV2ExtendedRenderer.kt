@@ -4,7 +4,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
-import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
@@ -385,20 +384,30 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun renderTraits(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val sheet = plan.snapshot.aggregate.sheet
         val traits = sheet.traits.sortedBy { it.sortOrder }
+        fun featurePriority(trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait): Int =
+            if (
+                trait.maxUses != null ||
+                !trait.recovery.isNullOrBlank() ||
+                !trait.notes.isNullOrBlank()
+            ) 0 else 1
+
         val leftTraits = traits.filter {
             it.type == CharacterTraitType.CLASS ||
                 it.type == CharacterTraitType.FEAT ||
                 it.type == CharacterTraitType.GIFT_BLESSING
-        }
+        }.sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
         val rightTraits = traits.filterNot { it in leftTraits }
+            .sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
         val featuredLeft = leftTraits.take(2)
         val featuredRight = rightTraits.take(2)
         val featuredIds = (featuredLeft + featuredRight).map { it.id }.toSet()
         val remaining = traits.filterNot { it.id in featuredIds }
+        val primaryContinuation = remaining.take(10)
+        val lowerContinuation = remaining.drop(10)
         val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
 
-        require(remaining.size <= 10) {
-            "Traits production pass 2 supports up to ten continuation trait names after four featured entries."
+        require(remaining.size <= 18) {
+            "Traits production pass 2 supports up to eighteen continuation trait names after four featured entries."
         }
         require(proficiencies.size <= 8) {
             "Traits production pass 2 supports up to eight proficiency/language continuation rows."
@@ -433,20 +442,17 @@ internal class DesktopCustomV2ExtendedRenderer(
                 featureEntry(s, 307f, 137f + index * 102f, 291f, trait)
             }
 
-            remaining.forEachIndexed { index, trait ->
+            primaryContinuation.forEachIndexed { index, trait ->
                 textAboveRule(s, resources.fira, Rule(18f, 287f, 392f + index * 17f), trait.name, 8.1f, 6.5f, 2.2f)
             }
 
             val detailLines = remaining.flatMap { trait ->
-                val detail = listOf(
-                    trait.description.trim(),
-                    trait.notes.orEmpty().trim(),
-                ).filter { it.isNotEmpty() }.joinToString(" · ")
-                if (detail.isBlank()) emptyList()
-                else wrapByWidth(resources.fira, trait.name + ": " + detail, 7.7f, 281f)
+                trait.notes.orEmpty().trim().takeIf { it.isNotEmpty() }
+                    ?.let { wrapByWidth(resources.fira, trait.name + ": " + it, 7.7f, 281f) }
+                    .orEmpty()
             }
             require(detailLines.size <= 10) {
-                "Trait detail continuation exceeds the approved Run-7 detail region."
+                "Trait note continuation exceeds the approved Run-7 detail region."
             }
             detailLines.forEachIndexed { index, line ->
                 textAboveRule(s, resources.fira, Rule(311f, 594f, 392f + index * 17f), line, 7.7f, 6.2f, 2.2f)
@@ -460,16 +466,11 @@ internal class DesktopCustomV2ExtendedRenderer(
                 textAboveRule(s, resources.fira, Rule(18f, 287f, 613f + index * 17f), label, 8.0f, 6.4f, 2.2f)
             }
 
-            val continuation = (featuredLeft + featuredRight).flatMap { trait ->
-                trait.notes.orEmpty().trim().takeIf { it.isNotEmpty() }
-                    ?.let { wrapByWidth(resources.fira, trait.name + ": " + it, 8.2f, 281f) }
-                    .orEmpty()
+            require(lowerContinuation.size <= 8) {
+                "Lower trait continuation exceeds the approved Run-7 continuation region."
             }
-            require(continuation.size <= 8) {
-                "Featured trait notes exceed the approved Run-7 continuation region."
-            }
-            continuation.forEachIndexed { index, line ->
-                textAboveRule(s, resources.fira, Rule(311f, 594f, 613f + index * 17f), line, 8.2f, 7.2f, 2.3f)
+            lowerContinuation.forEachIndexed { index, trait ->
+                textAboveRule(s, resources.fira, Rule(311f, 594f, 613f + index * 17f), trait.name, 8.2f, 7.2f, 2.3f)
             }
         }
         appendLayer(page, "V2X TRAITS - MARKERS") { }
@@ -609,7 +610,10 @@ internal class DesktopCustomV2ExtendedRenderer(
             textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, top + 34f), it, 7.3f, 6.2f, 2.5f)
         }
 
-        val description = trait.description.trim()
+        val description = listOf(
+            trait.description.trim(),
+            trait.notes.orEmpty().trim(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
         if (description.isNotEmpty()) {
             wrapByWidth(resources.fira, description, 7.4f, width - 8f)
                 .take(3)
