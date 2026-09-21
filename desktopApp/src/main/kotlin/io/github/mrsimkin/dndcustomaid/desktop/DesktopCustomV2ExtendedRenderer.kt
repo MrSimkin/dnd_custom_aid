@@ -2,6 +2,11 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
@@ -46,26 +51,54 @@ internal class DesktopCustomV2ExtendedRenderer(
     private val layers = LayerUtility(document)
     private val resources = Resources.load(document, sourceTemplate, resourceLoader)
 
-    fun appendMandatoryPages(plan: PcSheetPdfRenderPlan) {
-        if (PcSheetExtendedPageKind.CUSTOM_STATISTICS !in plan.mandatoryExtendedPages) return
-
+    fun appendExtendedPages(plan: PcSheetPdfRenderPlan) {
         require(plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
             plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY) {
             "Custom-v2 Extended renderer received a non-v2 visual family."
         }
 
-        val stats = plan.snapshot.customStatistics
-        require(!stats.isEmpty) { "Mandatory Custom Statistics page requires custom statistics." }
+        if (PcSheetExtendedPageKind.CUSTOM_STATISTICS in plan.mandatoryExtendedPages) {
+            val stats = plan.snapshot.customStatistics
+            require(!stats.isEmpty) { "Mandatory Custom Statistics page requires custom statistics." }
 
-        val page = PDPage(PDRectangle(W, H))
-        document.addPage(page)
-        when (plan.request.visualFamily) {
-            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ->
-                renderPerAttribute(page, stats.attributes, stats.skills)
-            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY ->
-                renderPerAbility(page, stats.attributes, stats.skills)
-            else -> error("Unreachable Custom-v2 family branch.")
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            when (plan.request.visualFamily) {
+                PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ->
+                    renderPerAttribute(page, stats.attributes, stats.skills)
+                PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY ->
+                    renderPerAbility(page, stats.attributes, stats.skills)
+                else -> error("Unreachable Custom-v2 family branch.")
+            }
         }
+
+        if (needsTraitsExtendedPage(plan)) {
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderTraits(page, plan)
+        }
+
+        if (needsResourcesExtendedPage(plan)) {
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderResources(page, plan)
+        }
+    }
+
+    private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
+        val sheet = plan.snapshot.aggregate.sheet
+        return sheet.traits.size > BASE_V2_TRAIT_CAPACITY ||
+            sheet.traits.any { trait ->
+                trait.maxUses != null ||
+                    !trait.recovery.isNullOrBlank() ||
+                    !trait.notes.isNullOrBlank()
+            } ||
+            sheet.proficiencies.isNotEmpty()
+    }
+
+    private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
+        val sheet = plan.snapshot.aggregate.sheet
+        return sheet.resources.isNotEmpty() || sheet.classOptions.isNotEmpty()
     }
 
     private fun renderPerAttribute(
@@ -347,6 +380,346 @@ internal class DesktopCustomV2ExtendedRenderer(
                 )
             }
         }
+    }
+
+    private fun renderTraits(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val traits = sheet.traits.sortedBy { it.sortOrder }
+        val leftTraits = traits.filter {
+            it.type == CharacterTraitType.CLASS ||
+                it.type == CharacterTraitType.FEAT ||
+                it.type == CharacterTraitType.GIFT_BLESSING
+        }
+        val rightTraits = traits.filterNot { it in leftTraits }
+        val featuredLeft = leftTraits.take(2)
+        val featuredRight = rightTraits.take(2)
+        val featuredIds = (featuredLeft + featuredRight).map { it.id }.toSet()
+        val remaining = traits.filterNot { it.id in featuredIds }
+        val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
+
+        require(remaining.size <= 10) {
+            "Traits production pass 2 supports up to ten continuation trait names after four featured entries."
+        }
+        require(proficiencies.size <= 8) {
+            "Traits production pass 2 supports up to eight proficiency/language continuation rows."
+        }
+
+        appendLayer(page, "V2X TRAITS - STRUCTURE") { s ->
+            pageHeaderStructure(s, resources.forms[2])
+            fill(s, 14f, 96f, 277f, 24f, SOURCE_GRAY_LIGHT)
+            fill(s, 307f, 96f, 291f, 24f, SOURCE_GRAY_LIGHT)
+            bandedRows(s, 14f, 291f, 137f, 35, 17f, 0)
+            bandedRows(s, 307f, 598f, 137f, 35, 17f, 1)
+            drawRule(s, 14f, 291f, 358f, 0.8f)
+            drawRule(s, 307f, 598f, 358f, 0.8f)
+            drawRule(s, 14f, 291f, 579f, 0.8f)
+            drawRule(s, 307f, 598f, 579f, 0.8f)
+        }
+        appendLayer(page, "V2X TRAITS - CLEANUP") { }
+        appendLayer(page, "V2X TRAITS - LABELS") { s ->
+            pageTitle(s, "RASGOS Y ATRIBUTOS")
+            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopSource(s, resources.corbelBold, resources.firaSemibold, 18f, 365f, "OTROS RASGOS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopSource(s, resources.corbelBold, resources.firaSemibold, 311f, 365f, "DETALLES / NOTAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopSource(s, resources.corbelBold, resources.firaSemibold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopSource(s, resources.corbelBold, resources.firaSemibold, 311f, 586f, "CONTINUACIÓN", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+        }
+        appendLayer(page, "V2X TRAITS - VALUES") { s ->
+            featuredLeft.forEachIndexed { index, trait ->
+                featureEntry(s, 14f, 137f + index * 102f, 277f, trait)
+            }
+            featuredRight.forEachIndexed { index, trait ->
+                featureEntry(s, 307f, 137f + index * 102f, 291f, trait)
+            }
+
+            remaining.forEachIndexed { index, trait ->
+                textAboveRule(s, resources.fira, Rule(18f, 287f, 392f + index * 17f), trait.name, 8.1f, 6.5f, 2.2f)
+            }
+
+            val detailLines = remaining.flatMap { trait ->
+                val detail = listOf(
+                    trait.description.trim(),
+                    trait.notes.orEmpty().trim(),
+                ).filter { it.isNotEmpty() }.joinToString(" · ")
+                if (detail.isBlank()) emptyList()
+                else wrapByWidth(resources.fira, trait.name + ": " + detail, 7.7f, 281f)
+            }
+            require(detailLines.size <= 10) {
+                "Trait detail continuation exceeds the approved Run-7 detail region."
+            }
+            detailLines.forEachIndexed { index, line ->
+                textAboveRule(s, resources.fira, Rule(311f, 594f, 392f + index * 17f), line, 7.7f, 6.2f, 2.2f)
+            }
+
+            proficiencies.forEachIndexed { index, proficiency ->
+                val label = buildString {
+                    append(proficiency.name)
+                    proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                }
+                textAboveRule(s, resources.fira, Rule(18f, 287f, 613f + index * 17f), label, 8.0f, 6.4f, 2.2f)
+            }
+
+            val continuation = (featuredLeft + featuredRight).flatMap { trait ->
+                trait.notes.orEmpty().trim().takeIf { it.isNotEmpty() }
+                    ?.let { wrapByWidth(resources.fira, trait.name + ": " + it, 8.2f, 281f) }
+                    .orEmpty()
+            }
+            require(continuation.size <= 8) {
+                "Featured trait notes exceed the approved Run-7 continuation region."
+            }
+            continuation.forEachIndexed { index, line ->
+                textAboveRule(s, resources.fira, Rule(311f, 594f, 613f + index * 17f), line, 8.2f, 7.2f, 2.3f)
+            }
+        }
+        appendLayer(page, "V2X TRAITS - MARKERS") { }
+    }
+
+    private fun renderResources(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val rows = sheet.resources.sortedBy { it.sortOrder }
+        val options = sheet.classOptions.sortedBy { it.sortOrder }
+        val recoveries = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
+
+        require(rows.size <= 10) {
+            "Resources production pass 2 supports up to ten resource rows; multi-page continuation is pending."
+        }
+        require(options.size <= 18) {
+            "Resources production pass 2 supports up to eighteen option rows; multi-page continuation is pending."
+        }
+
+        appendLayer(page, "V2X RESOURCES - STRUCTURE") { s ->
+            pageHeaderStructure(s, resources.forms[2])
+            fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
+            bandedRows(s, 14f, 598f, 150f, 10, 17f, 0)
+            listOf(222f, 352f, 475f).forEach { x -> verticalRule(s, x, 120f, 303f, 0.45f) }
+
+            drawRule(s, 14f, 598f, 329f, 0.8f)
+            fill(s, 14f, 337f, 584f, 22f, SOURCE_GRAY_LIGHT)
+            bandedRows(s, 14f, 598f, 398f, 18, 17f, 1)
+            listOf(30f, 118f, 258f).forEach { x -> verticalRule(s, x, 362f, 704f, 0.45f) }
+        }
+        appendLayer(page, "V2X RESOURCES - CLEANUP") { }
+        appendLayer(page, "V2X RESOURCES - LABELS") { s ->
+            pageTitle(s, "RECURSOS Y OPCIONES")
+            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 97f, 584f, 20f), "RECURSOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            tableLabel(s, 14f, 121f, 208f, "RECURSO")
+            tableLabel(s, 222f, 121f, 130f, "ACTUAL / MÁX.")
+            tableLabel(s, 352f, 121f, 123f, "RESTABLECE")
+            tableLabel(s, 475f, 121f, 123f, "ORIGEN")
+
+            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 338f, 584f, 20f), "OPCIONES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            tableLabel(s, 30f, 364f, 88f, "TIPO")
+            tableLabel(s, 118f, 364f, 140f, "OPCIÓN")
+            tableLabel(s, 258f, 364f, 340f, "DESCRIPCIÓN / COSTE")
+        }
+        appendLayer(page, "V2X RESOURCES - VALUES") { s ->
+            rows.forEachIndexed { index, row ->
+                val y = 150f + index * 17f
+                textAboveRule(s, resources.fira, Rule(18f, 218f, y), row.name, 9.0f, 8.2f, 2.3f)
+
+                val maximum = row.maxValue
+                when {
+                    maximum == null ->
+                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), row.currentValue.toString(), 8.5f, 2.2f)
+                    maximum >= 10 ->
+                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), row.currentValue.toString() + "/" + maximum, 8.5f, 2.2f)
+                }
+
+                val recovery = row.recovery.orEmpty().trim().ifEmpty {
+                    recoveries[row.id]?.cadence?.let(::recoveryLabel).orEmpty()
+                }
+                if (recovery.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(356f, 471f, y), recovery, 8.5f, 7.5f, 2.3f)
+                }
+                row.source?.takeIf { it.isNotBlank() }?.let { source ->
+                    textAboveRule(s, resources.fira, Rule(479f, 594f, y), source, 8.5f, 7.5f, 2.3f)
+                }
+            }
+
+            options.forEachIndexed { index, option ->
+                val y = 398f + index * 17f
+                textAboveRule(s, resources.fira, Rule(34f, 114f, y), optionKindLabel(option.kind), 8.5f, 7.5f, 2.3f)
+                textAboveRuleScaled(s, resources.fira, Rule(122f, 254f, y), option.name, 8.5f, 7.5f, 2.3f, 72f)
+
+                val detail = listOf(
+                    option.effectSummary.trim(),
+                    option.costText.orEmpty().trim(),
+                    option.notes.orEmpty().trim(),
+                ).filter { it.isNotEmpty() }.joinToString(" · ")
+                if (detail.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(262f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
+                }
+            }
+        }
+        appendLayer(page, "V2X RESOURCES - MARKERS") { s ->
+            rows.forEachIndexed { index, row ->
+                val maximum = row.maxValue
+                if (maximum != null && maximum in 1..9) {
+                    drawSquareCounter(
+                        s,
+                        236f,
+                        141.5f + index * 17f,
+                        row.currentValue.coerceIn(0, maximum),
+                        maximum,
+                    )
+                }
+            }
+
+            repeat(18) { row ->
+                val option = options.getOrNull(row)
+                drawV2TrainingBox(
+                    s,
+                    TopRect(16f, 386f + row * 17f, 8.5f, 9f),
+                    if (option?.active == true) Training.PROFICIENT else Training.NONE,
+                )
+            }
+        }
+    }
+
+    private fun featureEntry(
+        s: PDFormContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+    ) {
+        textAboveRule(s, resources.firaSemibold, Rule(x + 4f, x + width - 4f, top), trait.name, 9.0f, 7.4f, 2.7f)
+
+        val meta = listOf(
+            traitTypeLabel(trait.type),
+            trait.source.trim(),
+            trait.activation?.let(::activationLabel).orEmpty(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
+        if (meta.isNotEmpty()) {
+            textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, top + 17f), meta, 7.3f, 6.2f, 2.5f)
+        }
+
+        val uses = trait.maxUses?.let { max ->
+            val current = (max - trait.spentUses).coerceIn(0, max)
+            buildString {
+                append("Usos: ").append(current).append(" / ").append(max)
+                trait.recovery?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+            }
+        } ?: trait.recovery?.takeIf { it.isNotBlank() }
+
+        val descriptionTop = if (uses != null) top + 51f else top + 34f
+        uses?.let {
+            textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, top + 34f), it, 7.3f, 6.2f, 2.5f)
+        }
+
+        val description = trait.description.trim()
+        if (description.isNotEmpty()) {
+            wrapByWidth(resources.fira, description, 7.4f, width - 8f)
+                .take(3)
+                .forEachIndexed { index, line ->
+                    textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, descriptionTop + index * 17f), line, 7.4f, 6.2f, 2.5f)
+                }
+        }
+    }
+
+    private fun tableLabel(
+        s: PDFormContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        label: String,
+    ) {
+        if (label.isNotBlank()) {
+            centeredSource(s, resources.corbel, resources.fira, TopRect(x, top, width, 18f), label, 7.79f, SOURCE_CORBEL_TABLE_SCALE)
+        }
+    }
+
+    private fun verticalRule(s: PDFormContentStream, x: Float, top: Float, bottomTop: Float, width: Float) {
+        s.saveGraphicsState()
+        s.setLineWidth(width)
+        s.moveTo(x, H - top)
+        s.lineTo(x, H - bottomTop)
+        s.stroke()
+        s.restoreGraphicsState()
+    }
+
+    private fun textAboveRuleScaled(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        text: String,
+        preferredSize: Float,
+        minimumSize: Float,
+        clearance: Float,
+        minimumHorizontalScale: Float,
+    ) {
+        var size = preferredSize
+        val available = rule.endX - rule.startX - 2f
+        while (size > minimumSize && textWidth(font, text, size) > available / (minimumHorizontalScale / 100f)) {
+            size -= 0.25f
+        }
+        val rawWidth = textWidth(font, text, size)
+        val scale = minOf(100f, available / rawWidth * 100f)
+        require(scale >= minimumHorizontalScale) {
+            "Compact v2 label requires excessive compression: $text ($scale%)"
+        }
+        val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
+        val baseline = H - rule.topY + clearance - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(scale)
+        s.newLineAtOffset(rule.startX + 1f, baseline)
+        s.showText(text)
+        s.setHorizontalScaling(100f)
+        s.endText()
+    }
+
+    private fun drawSquareCounter(
+        s: PDFormContentStream,
+        startX: Float,
+        centerTop: Float,
+        current: Int,
+        maximum: Int,
+    ) {
+        require(maximum in 1..9)
+        require(current in 0..maximum)
+        repeat(maximum) { index ->
+            val cp = if (index < current) 0xE304 else 0xE303
+            glyphInRect(s, resources.symbol, cp, TopRect(startX + index * 13f, centerTop - 5f, 10f, 10f), 0.7f, 0.7f)
+        }
+    }
+
+    private fun traitTypeLabel(type: CharacterTraitType): String = when (type) {
+        CharacterTraitType.CLASS -> "Clase"
+        CharacterTraitType.SPECIES_RACE -> "Raza"
+        CharacterTraitType.BACKGROUND -> "Trasfondo"
+        CharacterTraitType.FEAT -> "Dote"
+        CharacterTraitType.GIFT_BLESSING -> "Don/Bendición"
+        CharacterTraitType.OTHER -> "Otro"
+    }
+
+    private fun activationLabel(type: CharacterActivationType): String = when (type) {
+        CharacterActivationType.PASSIVE -> "Pasivo"
+        CharacterActivationType.ACTION -> "Acción"
+        CharacterActivationType.BONUS_ACTION -> "Acción adicional"
+        CharacterActivationType.REACTION -> "Reacción"
+        CharacterActivationType.OTHER -> "Otro"
+    }
+
+    private fun optionKindLabel(kind: CharacterClassOptionKind): String = when (kind) {
+        CharacterClassOptionKind.ARTIFICER_PLAN -> "Plan"
+        CharacterClassOptionKind.ARTIFICER_DEVICE -> "Dispositivo"
+        CharacterClassOptionKind.SUBCLASS_STATE -> "Subclase"
+        CharacterClassOptionKind.TECHNIQUE -> "Técnica"
+        CharacterClassOptionKind.METAMAGIC -> "Metamagia"
+        CharacterClassOptionKind.INVOCATION -> "Invocación"
+        CharacterClassOptionKind.PACT_CHOICE -> "Pacto"
+        CharacterClassOptionKind.OTHER -> "Otro"
+    }
+
+    private fun recoveryLabel(cadence: CharacterRecoveryCadence): String = when (cadence) {
+        CharacterRecoveryCadence.NONE -> ""
+        CharacterRecoveryCadence.SHORT_REST -> "Descanso corto"
+        CharacterRecoveryCadence.LONG_REST -> "Descanso largo"
+        CharacterRecoveryCadence.SHORT_OR_LONG_REST -> "Descanso corto/largo"
+        CharacterRecoveryCadence.MANUAL -> "Manual"
     }
 
     private fun appendLayer(page: PDPage, name: String, draw: (PDFormContentStream) -> Unit) {
@@ -887,6 +1260,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_ATTRIBUTE_SCALE = 79f
         const val SOURCE_CORBEL_COMPACT_SCALE = 78f
         const val SOURCE_CORBEL_HEADING_SCALE = 81f
+        const val SOURCE_CORBEL_TABLE_SCALE = 86f
+        const val BASE_V2_TRAIT_CAPACITY = 18
         val SOURCE_GRAY_DARK: Color = Color(200, 199, 199)
         val SOURCE_GRAY_LIGHT: Color = Color(227, 227, 227)
     }
