@@ -792,6 +792,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val sheet = plan.snapshot.aggregate.sheet
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinaryOverflow = ordered.filterNot { it.special }.drop(BASE_V2_EQUIPMENT_CAPACITY)
+        val ordinaryLines = ordinaryOverflow.flatMap(::inventoryContinuationLines)
         val special = ordered.filter { it.special }
         val specialContinuation = special.mapIndexedNotNull { index, item ->
             item.takeIf { index >= BASE_V2_SPECIAL_CAPACITY || item.attuned }
@@ -801,10 +802,10 @@ internal class DesktopCustomV2ExtendedRenderer(
             .map { it.trim() }
             .filter { it.isNotEmpty() }
 
-        if (ordinaryOverflow.isEmpty() && specialContinuation.isEmpty() && valuables.isEmpty()) return
+        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && valuables.isEmpty()) return
 
         val pages = maxOf(
-            pageCount(ordinaryOverflow.size, INVENTORY_CONTINUATION_CAPACITY),
+            pageCount(ordinaryLines.size, INVENTORY_CONTINUATION_CAPACITY),
             pageCount(valuables.size, INVENTORY_VALUABLES_CAPACITY),
             pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
         )
@@ -813,7 +814,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             document.addPage(page)
             renderInventory(
                 page = page,
-                ordinary = ordinaryOverflow
+                ordinary = ordinaryLines
                     .drop(pageIndex * INVENTORY_CONTINUATION_CAPACITY)
                     .take(INVENTORY_CONTINUATION_CAPACITY),
                 valuables = valuables
@@ -828,7 +829,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun renderInventory(
         page: PDPage,
-        ordinary: List<CharacterInventoryItem>,
+        ordinary: List<String>,
         valuables: List<String>,
         special: List<CharacterInventoryItem>,
     ) {
@@ -860,12 +861,12 @@ internal class DesktopCustomV2ExtendedRenderer(
             tableLabel(s, 310f, 514f, 288f, "DESCRIPCIÓN / ESTADO")
         }
         appendLayer(page, "V2X INVENTORY - VALUES") { s ->
-            ordinary.forEachIndexed { index, item ->
+            ordinary.forEachIndexed { index, line ->
                 val col = index / 19
                 val row = index % 19
                 val x1 = listOf(18f, 157f, 296f)[col]
                 val x2 = listOf(143f, 282f, 421f)[col]
-                textAboveRule(s, resources.fira, Rule(x1, x2, 139f + row * 17f), inventoryContinuationLabel(item), 9.0f, 8.2f, 2.3f)
+                textAboveRule(s, resources.fira, Rule(x1, x2, 139f + row * 17f), line, 7.4f, 6.6f, 2.3f)
             }
 
             valuables.forEachIndexed { row, value ->
@@ -877,8 +878,9 @@ internal class DesktopCustomV2ExtendedRenderer(
                 item.location?.takeIf { it.isNotBlank() }?.let {
                     textAboveRule(s, resources.fira, Rule(34f, 126f, y), it, 8.5f, 7.2f, 2.3f)
                 }
-                textAboveRule(s, resources.fira, Rule(134f, 306f, y), item.name, 8.8f, 7.5f, 2.3f)
+                textAboveRule(s, resources.fira, Rule(134f, 306f, y), inventoryContinuationLabel(item), 8.8f, 7.2f, 2.3f)
                 val detail = buildList {
+                    item.weightLb?.let { add(formatInventoryWeight(it)) }
                     if (item.attuned) add("Sintonizado")
                     item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -903,6 +905,25 @@ internal class DesktopCustomV2ExtendedRenderer(
         if (item.quantity > 1) append(item.quantity).append(" x ")
         append(item.name)
     }
+
+    private fun inventoryContinuationLines(item: CharacterInventoryItem): List<String> {
+        val text = buildList {
+            add(inventoryContinuationLabel(item))
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: $it") }
+            item.weightLb?.let { add(formatInventoryWeight(it)) }
+            if (item.equipped) add("Equipado")
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
+        return wrapByWidth(resources.fira, text, 7.4f, 125f)
+    }
+
+    private fun formatInventoryWeight(weightLb: Double): String =
+        "Peso " + if (weightLb % 1.0 == 0.0) {
+            weightLb.toInt().toString() + " lb"
+        } else {
+            weightLb.toString() + " lb"
+        }
 
     private fun pageCount(size: Int, capacity: Int): Int =
         if (size <= 0) 0 else (size + capacity - 1) / capacity
