@@ -500,8 +500,9 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Almacenado"))
             assertTrue(extracted.contains("Sintonizado"))
             assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+especial").containsMatchIn(extracted))
-            assertTrue(extracted.contains("Piezas de mithril"))
-            assertTrue(extracted.contains("7"))
+            assertTrue(
+                Regex("Piezas\\s+de\\s+mithril:\\s+7").containsMatchIn(extracted),
+            )
             assertTrue(extracted.contains("Tesoro canónico 9"))
 
             val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)

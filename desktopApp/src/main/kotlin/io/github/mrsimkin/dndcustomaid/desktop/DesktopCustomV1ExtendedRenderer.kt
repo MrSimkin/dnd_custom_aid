@@ -1011,7 +1011,9 @@ internal class DesktopCustomV1ExtendedRenderer(
                 .filter { it.key.lowercase() !in BASE_V1_CURRENCY_KEYS }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
-                    add(TreasureEntry(currency.name, currency.amount.toString()))
+                    // A custom currency is not a gp-valued treasure row. Keep its amount
+                    // in the object label so the native VALOR PO column cannot misstate its unit.
+                    add(TreasureEntry("${currency.name}: ${currency.amount}", null))
                 }
 
             aggregate.successor.preferences.valuablesText
