@@ -614,6 +614,104 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
         assertTrue(resourcesPdf.length() > pdf.length())
+
+        val inventoryItems = (1..19).map { index ->
+            CharacterInventoryItem(
+                id = uuid("9d000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                name = "Objeto de campaña $index",
+                quantity = if (index % 3 == 0) 2 else 1,
+                weightLb = if (index <= 7) null else index / 10.0,
+                equipped = false,
+                notes = if (index == 16) "Terminal de inventario." else null,
+                sortOrder = index,
+                special = index >= 17,
+                description = if (index == 15) "Descripción canónica quince." else null,
+                location = if (index <= 7) "Equipo" else "Mochila $index",
+                attuned = index == 18,
+            )
+        }
+        val inventoryUsage = listOf(
+            CharacterInventoryUsage(
+                itemId = inventoryItems[7].id,
+                kind = CharacterConsumableKind.NONE,
+                quickUseAmount = 1,
+                carryState = CharacterInventoryCarryState.STORED,
+            ),
+            CharacterInventoryUsage(
+                itemId = inventoryItems[8].id,
+                kind = CharacterConsumableKind.AMMUNITION,
+                quickUseAmount = 2,
+                carryState = CharacterInventoryCarryState.CARRIED,
+            ),
+        )
+        val inventoryCurrencies = aggregate.sheet.currencies + CharacterCurrency(
+            key = "obs",
+            name = "Piezas de obsidiana",
+            amount = 17,
+            sortOrder = 90,
+            isDefault = false,
+        )
+        val inventoryAggregate = aggregate.copy(
+            sheet = aggregate.sheet.copy(
+                inventoryItems = inventoryItems,
+                currencies = inventoryCurrencies,
+            ),
+            closure = aggregate.closure.copy(inventoryUsage = inventoryUsage),
+            successor = aggregate.successor.copy(
+                preferences = aggregate.successor.preferences.copy(
+                    valuablesText = "Valor base;Gema test 2;Reliquia terminal",
+                ),
+            ),
+        )
+        val inventoryPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = inventoryAggregate),
+        )
+        val inventoryPdf = File(proofDir, "classic-production-inventory-pass5.pdf")
+        inventoryPdf.outputStream().use { renderer.renderDraft(inventoryPlan, it) }
+
+        Loader.loadPDF(inventoryPdf).use { document ->
+            assertEquals(5, document.numberOfPages)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("INVENTARIO / EQUIPO"))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(extracted))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(extracted))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+18").containsMatchIn(extracted))
+            assertTrue(extracted.contains("Almacenado"))
+            assertTrue(extracted.contains("Munición"))
+            assertTrue(Regex("Piezas\\s+de\\s+obsidiana:\\s+17").containsMatchIn(extracted))
+            assertTrue(extracted.contains("Gema test 2"))
+            assertTrue(extracted.contains("Reliquia terminal"))
+
+            val page4 = PDFTextStripper().apply {
+                startPage = 4
+                endPage = 4
+            }.getText(document)
+            val page5 = PDFTextStripper().apply {
+                startPage = 5
+                endPage = 5
+            }.getText(document)
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(page4))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+14").containsMatchIn(page4))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+15").containsMatchIn(page5))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(page5))
+
+            val pdfRenderer = PDFRenderer(document)
+            (3 until document.numberOfPages).forEach { index ->
+                val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "classic-production-inventory-pass5-page-${index + 1}.png"),
+                    ),
+                )
+            }
+        }
+        assertTrue(inventoryPdf.length() > pdf.length())
     }
 
     @Test

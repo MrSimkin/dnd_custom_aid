@@ -64,6 +64,7 @@ internal class DesktopClassicRenderer {
             appendCustomStatisticsPages(doc, p, plan)
             appendTraitsPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
+            appendInventoryPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Classic production base requires a matching Extended continuation:\n" +
@@ -621,6 +622,175 @@ internal class DesktopClassicRenderer {
         CharacterClassOptionKind.OTHER -> "Otro"
     }
 
+    private fun appendInventoryPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
+        val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
+        val baseIds = ordered.take(BASE_EQUIPMENT_CAPACITY).mapTo(mutableSetOf()) { it.id }
+
+        val specialItems = ordered.filter { item ->
+            item.special || item.attuned
+        }
+        val specialIds = specialItems.mapTo(mutableSetOf()) { it.id }
+
+        val ordinaryRows = ordered
+            .filter { it.id !in specialIds }
+            .filter { item ->
+                item.id !in baseIds ||
+                    item.weightLb != null ||
+                    !item.description.isNullOrBlank() ||
+                    !item.notes.isNullOrBlank()
+            }
+            .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
+
+        val specialRows = specialItems.map { item ->
+            ClassicSpecialItem(
+                name = item.name,
+                attuned = item.attuned,
+                note = buildList {
+                    if (item.quantity != 1) add("Cant. ${item.quantity}")
+                    item.weightLb?.let { add("Peso " + formatWeight(it)) }
+                    inventoryState(item, usageByItem[item.id]).takeIf { it.isNotBlank() }?.let(::add)
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · "),
+            )
+        }
+
+        val noteEntries = buildList {
+            sheet.currencies
+                .filter { it.key.lowercase() !in CLASSIC_BASE_CURRENCY_KEYS }
+                .sortedBy { it.sortOrder }
+                .forEach { currency ->
+                    add("${currency.name}: ${currency.amount}")
+                }
+            aggregate.successor.preferences.valuablesText
+                .split(';')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .drop(CLASSIC_BASE_VALUABLE_CAPACITY)
+                .forEach(::add)
+        }.flatMap { note ->
+            wrapForChars(note, CLASSIC_INVENTORY_NOTE_CHARS)
+                .chunked(CLASSIC_INVENTORY_NOTE_LINES)
+                .map { it.joinToString("\n") }
+        }
+
+        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return
+
+        val pages = maxOf(
+            1,
+            pageCount(ordinaryRows.size, CLASSIC_INVENTORY_ROWS_PER_PAGE),
+            pageCount(specialRows.size, CLASSIC_SPECIAL_ITEMS_PER_PAGE),
+            pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
+        )
+        repeat(pages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, sheet.name, "INVENTARIO / EQUIPO")
+
+                titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
+                inventoryHeader(s, p, 36f, 148f)
+                val pageRows = ordinaryRows
+                    .drop(pageIndex * CLASSIC_INVENTORY_ROWS_PER_PAGE)
+                    .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
+                pageRows.forEachIndexed { index, row ->
+                    inventoryRow(s, p, 36f, 176f + index * 29f, row)
+                }
+                repeat((CLASSIC_INVENTORY_ROWS_PER_PAGE - pageRows.size).coerceAtLeast(0)) { index ->
+                    inventoryBlankRow(s, 36f, 176f + (pageRows.size + index) * 29f)
+                }
+                repeat(5) { index ->
+                    inventoryBlankRow(s, 36f, 379f + index * 24f)
+                }
+
+                titledFrame(s, p, 24f, 528f, 276f, 190f, "OBJETOS ESPECIALES / SINTONIZADOS")
+                specialRows
+                    .drop(pageIndex * CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+                    .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+                    .forEachIndexed { index, item ->
+                        specialItem(
+                            s, p, 36f, 564f + index * 46f, 252f,
+                            item.name, item.attuned, item.note,
+                        )
+                    }
+
+                titledFrame(s, p, 312f, 528f, 276f, 190f, "VALOR / UBICACIÓN / NOTAS")
+                ruledTextArea(
+                    s, p, 324f, 564f, 252f, 140f,
+                    noteEntries
+                        .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
+                        .take(CLASSIC_INVENTORY_NOTES_PER_PAGE),
+                    8.3f,
+                )
+
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
+            }
+        }
+    }
+
+    private fun classicInventoryRows(
+        item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
+        usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+    ): List<InventoryRow> {
+        val detail = buildList {
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
+        val chunks = wrapForChars(detail, CLASSIC_INVENTORY_ROW_NOTE_CHARS)
+            .ifEmpty { listOf("") }
+        return chunks.mapIndexed { index, note ->
+            InventoryRow(
+                quantity = item.quantity.toString().takeIf { index == 0 }.orEmpty(),
+                name = if (index == 0) item.name else item.name + " (cont.)",
+                weight = item.weightLb?.let(::formatWeight).takeIf { index == 0 }.orEmpty(),
+                state = inventoryState(item, usage).takeIf { index == 0 }.orEmpty(),
+                notes = note,
+            )
+        }
+    }
+
+    private fun inventoryState(
+        item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
+        usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+    ): String = buildList {
+        when {
+            item.attuned -> add("Sintonizado")
+            item.equipped -> add("Equipado")
+        }
+        when (usage?.kind) {
+            CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+            CharacterConsumableKind.AMMUNITION -> add("Munición")
+            CharacterConsumableKind.NONE,
+            null,
+            -> Unit
+        }
+        if (usage?.quickUseAmount != null && usage.quickUseAmount != 1) {
+            add("Uso ${usage.quickUseAmount}")
+        }
+        if (usage?.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
+        if (usage?.carryState == CharacterInventoryCarryState.CARRIED && !item.equipped && !item.attuned) {
+            add("Llevado")
+        }
+    }.joinToString(" · ")
+
+    private fun formatWeight(value: Double): String {
+        val rounded = kotlin.math.round(value * 10.0) / 10.0
+        val text = if (rounded % 1.0 == 0.0) {
+            rounded.toInt().toString()
+        } else {
+            rounded.toString()
+        }
+        return text.replace('.', ',')
+    }
+
     private fun drawMain(
         doc: PDDocument,
         p: DesktopPdfRenderingPrimitives,
@@ -859,9 +1029,6 @@ internal class DesktopClassicRenderer {
                 s, p, 276f, 180f,
                 listOf(36f to "Cant.", 146f to "Objeto", 112f to "Notas"),
             )
-            if (inventory.size > BASE_EQUIPMENT_CAPACITY) {
-                overflowDiagnostics += "inventory:${inventory.size - BASE_EQUIPMENT_CAPACITY} objeto(s)"
-            }
             inventory.take(BASE_EQUIPMENT_CAPACITY).forEachIndexed { index, item ->
                 val top = 202f + index * 27f
                 text(
@@ -1618,6 +1785,80 @@ internal class DesktopClassicRenderer {
         }
     }
 
+    private fun inventoryHeader(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+    ) {
+        tableHeader(
+            s, p, x, top,
+            listOf(
+                44f to "Cant.",
+                196f to "Objeto",
+                55f to "Peso",
+                92f to "Estado",
+                153f to "Ubicación / notas",
+            ),
+        )
+    }
+
+    private fun inventoryRow(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        row: InventoryRow,
+    ) {
+        val widths = listOf(44f, 196f, 55f, 92f, 153f)
+        val values = listOf(row.quantity, row.name, row.weight, row.state, row.notes)
+        var cursor = x
+        values.forEachIndexed { index, value ->
+            text(
+                s, p, cursor + 3f, top, widths[index] - 6f, 20f, value,
+                if (index == 1) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
+                if (index == 1) 8.3f else 7.6f, 6.5f,
+                align = if (index == 0 || index == 2) {
+                    PdfHorizontalAlignment.CENTER
+                } else {
+                    PdfHorizontalAlignment.LEFT
+                },
+            )
+            cursor += widths[index]
+        }
+        hairline(s, x, top + 22f, x + widths.sum(), top + 22f)
+    }
+
+    private fun inventoryBlankRow(
+        s: PDPageContentStream,
+        x: Float,
+        top: Float,
+    ) {
+        hairline(s, x, top + 20f, x + 540f, top + 20f)
+    }
+
+    private fun specialItem(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        name: String,
+        attuned: Boolean,
+        note: String,
+    ) {
+        marker(
+            s, p, x + 7f, top + 8f, 8f,
+            if (attuned) PdfMarkerKind.DIAMOND_FILLED else PdfMarkerKind.DIAMOND_OUTLINE,
+        )
+        text(s, p, x + 18f, top, width - 18f, 18f, name, PdfTypographyRole.SPELL_NAME, 8.6f, 7.4f)
+        text(
+            s, p, x + 18f, top + 19f, width - 18f, 20f,
+            note, PdfTypographyRole.BODY, 7.7f, 6.6f,
+        )
+        hairline(s, x + 18f, top + 41f, x + width, top + 41f)
+    }
+
     private fun optionEntry(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
@@ -1963,6 +2204,20 @@ internal class DesktopClassicRenderer {
         val prepared: Boolean,
     )
 
+    private data class InventoryRow(
+        val quantity: String,
+        val name: String,
+        val weight: String,
+        val state: String,
+        val notes: String,
+    )
+
+    private data class ClassicSpecialItem(
+        val name: String,
+        val attuned: Boolean,
+        val note: String,
+    )
+
     private data class ClassicResourceRow(
         val name: String,
         val value: String,
@@ -2026,6 +2281,14 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_OPTION_ROWS_PER_PAGE = 3
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
         const val CLASSIC_OPTION_DETAIL_LINES = 3
+        const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 7
+        const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 3
+        const val CLASSIC_INVENTORY_NOTES_PER_PAGE = 3
+        const val CLASSIC_INVENTORY_ROW_NOTE_CHARS = 26
+        const val CLASSIC_INVENTORY_NOTE_CHARS = 50
+        const val CLASSIC_INVENTORY_NOTE_LINES = 2
+        const val CLASSIC_BASE_VALUABLE_CAPACITY = 1
+        val CLASSIC_BASE_CURRENCY_KEYS = setOf("pc", "pp", "pe", "po", "pt")
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)
