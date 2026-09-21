@@ -82,6 +82,13 @@ internal class DesktopPcSheetWholeDraftRenderer(
                             )
                         }
                     }
+
+                    DesktopCustomV2ExtendedRenderer(
+                        document = draft,
+                        sourceTemplate = sourceTemplate,
+                        resourceLoader = resourceLoader,
+                    ).appendMandatoryPages(plan)
+
                     draft.save(output)
                 }
             }
