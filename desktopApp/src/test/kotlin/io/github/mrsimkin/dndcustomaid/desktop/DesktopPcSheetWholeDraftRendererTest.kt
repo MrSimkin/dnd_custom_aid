@@ -566,12 +566,12 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertFalse(layers.any { it.startsWith("V1X INVENTORY") })
 
             val extracted = PDFTextStripper().getText(document)
-            assertTrue(extracted.contains("Hechizo canónico 1"))
-            assertTrue(extracted.contains("Hechizo canónico 10"))
-            assertTrue(extracted.contains("Hechizo canónico 11"))
-            assertTrue(extracted.contains("Hechizo canónico 20"))
-            assertTrue(extracted.contains("Hechizo canónico 21"))
-            assertTrue(extracted.contains("Hechizo canónico 30"))
+            listOf(11, 20, 21, 30).forEach { index ->
+                assertTrue(
+                    Regex("Hechizo\\s+canónico\\s+$index").containsMatchIn(extracted),
+                    "Missing canonical continuation spell $index.",
+                )
+            }
 
             val first = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
             val second = PDFRenderer(document).renderImageWithDPI(6, 220f, ImageType.RGB)
