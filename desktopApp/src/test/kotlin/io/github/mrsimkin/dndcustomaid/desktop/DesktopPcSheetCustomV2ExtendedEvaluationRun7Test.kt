@@ -3,7 +3,6 @@ package io.github.mrsimkin.dndcustomaid.desktop
 import java.awt.Color
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import javax.imageio.ImageIO
@@ -23,8 +22,6 @@ import org.apache.pdfbox.pdmodel.PDResources
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.font.PDFont
 import org.apache.pdfbox.pdmodel.font.PDType0Font
-import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont
-import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
@@ -1009,30 +1006,6 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
     private fun textWidth(font: PDFont, text: String, size: Float): Float =
         font.getStringWidth(text) / 1000f * size
 
-    private fun loadEmbeddedSourceFont(target: PDDocument, source: PDDocument, predicate: (String) -> Boolean): PDFont {
-        source.pages.forEach { page ->
-            val resources = page.resources ?: return@forEach
-            resources.fontNames.forEach { name ->
-                val font = resources.getFont(name)
-                if (predicate(font.name)) {
-                    val descriptor = requireNotNull(font.fontDescriptor)
-                    val stream = descriptor.fontFile2 ?: descriptor.fontFile ?: descriptor.fontFile3
-                    requireNotNull(stream) { "Source font is not embedded: " + font.name }
-                    val bytes = stream.createInputStream().use { it.readBytes() }
-                    // The frozen Custom-v2 source embeds Corbel as a simple TrueType
-                    // WinAnsi font. Re-loading that subset as Type0/Identity-H preserves
-                    // extraction but corrupts several visible glyph mappings. Preserve
-                    // the source font class and encoding instead.
-                    return PDTrueTypeFont.load(
-                        target,
-                        ByteArrayInputStream(bytes),
-                        WinAnsiEncoding.INSTANCE,
-                    )
-                }
-            }
-        }
-        error("Requested source font not found.")
-    }
 
     private fun resource(path: String): InputStream =
         requireNotNull(DesktopPcSheetCustomV2ExtendedEvaluationRun7Test::class.java.classLoader.getResourceAsStream(path)) {
@@ -1050,16 +1023,24 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
     ) {
         companion object {
             fun load(doc: PDDocument, source: PDDocument): Resources {
-                val owner = DesktopPcSheetCustomV2ExtendedEvaluationRun7Test()
                 val utility = LayerUtility(doc)
-                val corbelRegular = owner.loadEmbeddedSourceFont(doc, source) { name ->
+                val forms = (0 until 5).map { utility.importPageAsForm(source, it) }
+
+                // Reuse Corbel from the already-imported v2 forms. LayerUtility has
+                // cloned the complete source font dictionaries into the target
+                // document, preserving the original subset Encoding, Widths and
+                // ToUnicode map. Rebuilding the subset from its font-file bytes
+                // changes glyph IDs and causes visible holes despite correct text
+                // extraction.
+                val corbelRegular = findImportedFont(forms) { name ->
                     name.contains("Corbel", ignoreCase = true) && !name.contains("Bold", ignoreCase = true)
                 }
-                val corbelBold = owner.loadEmbeddedSourceFont(doc, source) { name ->
+                val corbelBold = findImportedFont(forms) { name ->
                     name.contains("Corbel", ignoreCase = true) && name.contains("Bold", ignoreCase = true)
                 }
+
                 return Resources(
-                    forms = (0 until 5).map { utility.importPageAsForm(source, it) },
+                    forms = forms,
                     attributeOrnament = buildTransparentAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
@@ -1067,6 +1048,36 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
                     firaSemibold = resourceFont(doc, FIRA_SEMIBOLD),
                     symbol = resourceFont(doc, SYMBOL_V8),
                 )
+            }
+
+            private fun findImportedFont(
+                forms: List<PDFormXObject>,
+                predicate: (String) -> Boolean,
+            ): PDFont {
+                val visited = mutableSetOf<Int>()
+
+                fun scan(resources: PDResources?): PDFont? {
+                    if (resources == null) return null
+                    val identity = System.identityHashCode(resources.cosObject)
+                    if (!visited.add(identity)) return null
+
+                    resources.fontNames.forEach { key ->
+                        val font = resources.getFont(key)
+                        if (predicate(font.name)) return font
+                    }
+                    resources.xObjectNames.forEach { key ->
+                        val child = resources.getXObject(key)
+                        if (child is PDFormXObject) {
+                            scan(child.resources)?.let { return it }
+                        }
+                    }
+                    return null
+                }
+
+                forms.forEach { form ->
+                    scan(form.resources)?.let { return it }
+                }
+                error("Requested imported source font not found.")
             }
 
             private fun buildTransparentAttributeOrnament(doc: PDDocument, source: PDDocument): PDImageXObject {
