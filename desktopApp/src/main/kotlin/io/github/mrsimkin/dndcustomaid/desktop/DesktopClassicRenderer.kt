@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
@@ -57,6 +58,7 @@ internal class DesktopClassicRenderer {
             drawCharacterAndEquipment(doc, p, plan)
             drawSpells(doc, p, plan)
             appendCustomStatisticsPages(doc, p, plan)
+            appendTraitsPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Classic production base requires a matching Extended continuation:\n" +
@@ -246,6 +248,189 @@ internal class DesktopClassicRenderer {
                     }
                 }
             }
+    }
+
+    private fun appendTraitsPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+        val classBase = orderedTraits.filter { it.type == CharacterTraitType.CLASS }
+            .take(BASE_CLASS_TRAIT_CAPACITY)
+        val speciesBase = orderedTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
+            .take(BASE_SPECIES_TRAIT_CAPACITY)
+        val featBase = orderedTraits.filter { it.type == CharacterTraitType.FEAT }
+            .take(BASE_FEAT_CAPACITY)
+        val firstPageIds = (classBase + speciesBase + featBase).mapTo(mutableSetOf()) { it.id }
+        val additionalBase = orderedTraits.filter { it.id !in firstPageIds }
+            .take(BASE_ADDITIONAL_TRAIT_CAPACITY)
+        val baseDisplayed = classBase + speciesBase + featBase + additionalBase
+        val baseDisplayedIds = baseDisplayed.mapTo(mutableSetOf()) { it.id }
+
+        val overflowTraits = orderedTraits.filter { it.id !in baseDisplayedIds }
+        val referenceTraits = baseDisplayed.filter(::traitNeedsReferenceContinuation)
+        val traitEntries = (overflowTraits + referenceTraits)
+            .distinctBy { it.id }
+            .flatMap(::traitFeatureSlices)
+
+        val leftEntries = traitEntries.filter {
+            it.type == CharacterTraitType.CLASS || it.type == CharacterTraitType.FEAT
+        }
+        val rightTraitEntries = traitEntries.filter {
+            it.type != CharacterTraitType.CLASS && it.type != CharacterTraitType.FEAT
+        }
+
+        val orderedProficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
+        val languageOverflow = orderedProficiencies
+            .filter { it.type == CharacterProficiencyType.LANGUAGE }
+            .drop(BASE_LANGUAGE_CAPACITY)
+        val otherProficiencies = orderedProficiencies
+            .filter { it.type != CharacterProficiencyType.LANGUAGE }
+        val proficiencyEntries = (languageOverflow + otherProficiencies)
+            .flatMap(::proficiencyFeatureSlices)
+
+        val rightEntries = rightTraitEntries + proficiencyEntries
+        if (leftEntries.isEmpty() && rightEntries.isEmpty()) return
+
+        val pages = maxOf(
+            1,
+            pageCount(leftEntries.size, CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE),
+            pageCount(rightEntries.size, CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE),
+        )
+        repeat(pages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(
+                    s, p, sheet.name,
+                    "RASGOS Y CARACTERÍSTICAS",
+                )
+
+                titledFrame(
+                    s, p, 24f, 112f, 276f, 606f,
+                    "RASGOS Y CARACTERÍSTICAS - CONTINUACIÓN",
+                )
+                leftEntries
+                    .drop(pageIndex * CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
+                    .take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
+                    .forEachIndexed { index, entry ->
+                        featureEntry(
+                            s, p, 36f, 148f + index * 90f, 252f,
+                            entry.name, entry.source, entry.description,
+                        )
+                    }
+                ruledLines(s, 36f, 434f, 252f, 266f, 12)
+
+                titledFrame(
+                    s, p, 312f, 112f, 276f, 606f,
+                    "RASGOS DE ESPECIE / TRASFONDO / OTROS",
+                )
+                rightEntries
+                    .drop(pageIndex * CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                    .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                    .forEachIndexed { index, entry ->
+                        featureEntry(
+                            s, p, 324f, 148f + index * 90f, 252f,
+                            entry.name, entry.source, entry.description,
+                        )
+                    }
+                ruledLines(s, 324f, 344f, 252f, 356f, 16)
+
+                footer(
+                    s, p, doc.numberOfPages,
+                    "EXTENSIÓN / RASGOS Y CARACTERÍSTICAS",
+                )
+            }
+        }
+    }
+
+    private fun traitNeedsReferenceContinuation(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+    ): Boolean =
+        (trait.type == CharacterTraitType.SPECIES_RACE && trait.description.isNotBlank()) ||
+            trait.source.isNotBlank() ||
+            !trait.notes.isNullOrBlank() ||
+            trait.maxUses != null ||
+            trait.spentUses != 0 ||
+            !trait.recovery.isNullOrBlank() ||
+            (trait.activation != null && trait.activation != CharacterActivationType.PASSIVE)
+
+    private fun traitFeatureSlices(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+    ): List<ClassicFeature> {
+        val body = buildList {
+            trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            trait.source.trim().takeIf { it.isNotEmpty() }?.let { add("Fuente: $it") }
+            trait.maxUses?.let { max ->
+                add("Usos gastados: ${trait.spentUses}/$max")
+            } ?: trait.spentUses.takeIf { it != 0 }?.let { add("Usos gastados: $it") }
+            trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Recuperación: $it") }
+            trait.activation
+                ?.takeIf { it != CharacterActivationType.PASSIVE }
+                ?.let { add("Activación: " + activationLabel(it)) }
+            trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
+        val chunks = wrapForChars(body, CLASSIC_TRAIT_BODY_CHARS)
+            .chunked(CLASSIC_TRAIT_BODY_LINES)
+            .map { it.joinToString("\n") }
+            .ifEmpty { listOf("") }
+        return chunks.mapIndexed { index, chunk ->
+            ClassicFeature(
+                name = if (index == 0) trait.name else trait.name + " (cont.)",
+                source = traitTypeLabel(trait.type),
+                description = chunk,
+                type = trait.type,
+            )
+        }
+    }
+
+    private fun proficiencyFeatureSlices(
+        proficiency: io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency,
+    ): List<ClassicFeature> {
+        val body = listOf(
+            proficiency.source.orEmpty().trim(),
+            proficiency.notes.orEmpty().trim(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
+        val chunks = wrapForChars(body, CLASSIC_TRAIT_BODY_CHARS)
+            .chunked(CLASSIC_TRAIT_BODY_LINES)
+            .map { it.joinToString("\n") }
+            .ifEmpty { listOf("") }
+        return chunks.mapIndexed { index, chunk ->
+            ClassicFeature(
+                name = if (index == 0) proficiency.name else proficiency.name + " (cont.)",
+                source = proficiencyTypeLabel(proficiency.type),
+                description = chunk,
+                type = CharacterTraitType.OTHER,
+            )
+        }
+    }
+
+    private fun traitTypeLabel(type: CharacterTraitType): String = when (type) {
+        CharacterTraitType.CLASS -> "Clase"
+        CharacterTraitType.SPECIES_RACE -> "Especie"
+        CharacterTraitType.BACKGROUND -> "Trasfondo"
+        CharacterTraitType.FEAT -> "Dote"
+        CharacterTraitType.GIFT_BLESSING -> "Don / bendición"
+        CharacterTraitType.OTHER -> "Otro"
+    }
+
+    private fun proficiencyTypeLabel(
+        type: CharacterProficiencyType,
+    ): String = when (type) {
+        CharacterProficiencyType.LANGUAGE -> "Idioma"
+        CharacterProficiencyType.TOOL -> "Herramienta"
+        CharacterProficiencyType.ARMOR -> "Armadura"
+        CharacterProficiencyType.WEAPON -> "Arma"
+        CharacterProficiencyType.OTHER -> "Competencia"
+    }
+
+    private fun activationLabel(type: CharacterActivationType): String = when (type) {
+        CharacterActivationType.PASSIVE -> "Pasiva"
+        CharacterActivationType.ACTION -> "Acción"
+        CharacterActivationType.BONUS_ACTION -> "Acción adicional"
+        CharacterActivationType.REACTION -> "Reacción"
+        CharacterActivationType.OTHER -> "Otra"
     }
 
     private fun drawMain(
@@ -526,9 +711,6 @@ internal class DesktopClassicRenderer {
             }
             val additionalTraits = orderedTraits.filter { it.id !in usedTraitIds }
             titledFrame(s, p, 264f, 434f, 324f, 132f, "RASGOS ADICIONALES")
-            if (additionalTraits.size > BASE_ADDITIONAL_TRAIT_CAPACITY) {
-                overflowDiagnostics += "additional-traits:${additionalTraits.size - BASE_ADDITIONAL_TRAIT_CAPACITY} rasgo(s)"
-            }
             ruledTextArea(
                 s, p, 276f, 466f, 300f, 88f,
                 additionalTraits.take(BASE_ADDITIONAL_TRAIT_CAPACITY).map(::traitSummary),
@@ -539,9 +721,6 @@ internal class DesktopClassicRenderer {
                 .filter { it.type == CharacterProficiencyType.LANGUAGE }
                 .sortedBy { it.sortOrder }
             titledFrame(s, p, 264f, 580f, 156f, 138f, "IDIOMAS")
-            if (languages.size > BASE_LANGUAGE_CAPACITY) {
-                overflowDiagnostics += "languages:${languages.size - BASE_LANGUAGE_CAPACITY} idioma(s)"
-            }
             ruledTextArea(
                 s, p, 276f, 612f, 132f, 92f,
                 languages.take(BASE_LANGUAGE_CAPACITY).map { it.name },
@@ -1209,6 +1388,48 @@ internal class DesktopClassicRenderer {
             align = PdfHorizontalAlignment.CENTER)
     }
 
+    private fun featureEntry(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        name: String,
+        source: String,
+        description: String,
+    ) {
+        text(
+            s, p, x, top, width * 0.55f, 18f,
+            name, PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
+        )
+        text(
+            s, p, x + width * 0.55f, top, width * 0.45f, 18f,
+            source, PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 6f,
+            align = PdfHorizontalAlignment.RIGHT,
+        )
+        text(
+            s, p, x, top + 20f, width, 58f,
+            description, PdfTypographyRole.BODY, 8.1f, 7f,
+            wrap = true, maxLines = CLASSIC_TRAIT_BODY_LINES,
+            vertical = PdfVerticalAlignment.TOP,
+        )
+        hairline(s, x, top + 80f, x + width, top + 80f)
+    }
+
+    private fun ruledLines(
+        s: PDPageContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        count: Int,
+    ) {
+        val gap = height / count
+        repeat(count) { index ->
+            hairline(s, x, top + (index + 1) * gap, x + width, top + (index + 1) * gap)
+        }
+    }
+
     private fun titledFrame(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
@@ -1476,6 +1697,13 @@ internal class DesktopClassicRenderer {
         val prepared: Boolean,
     )
 
+    private data class ClassicFeature(
+        val name: String,
+        val source: String,
+        val description: String,
+        val type: CharacterTraitType,
+    )
+
     private data class CustomAttributeSlice(
         val projection: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection,
         val skills: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection>,
@@ -1508,6 +1736,10 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
         const val CLASSIC_STANDARD_GROUPS_PER_PAGE = 3
         const val CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP = 4
+        const val CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE = 3
+        const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 2
+        const val CLASSIC_TRAIT_BODY_CHARS = 58
+        const val CLASSIC_TRAIT_BODY_LINES = 4
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)

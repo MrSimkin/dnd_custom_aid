@@ -87,9 +87,9 @@ class DesktopPcSheetWholeDraftRendererTest {
                 1 -> Triple("Lectura táctica", "Reconoce rutas de retirada y cobertura.", CharacterTraitType.CLASS)
                 2 -> Triple("Estudio rápido", "Resume información útil durante la exploración.", CharacterTraitType.CLASS)
                 3 -> Triple("Maniobra cauta", "Reduce riesgos al atravesar una zona hostil.", CharacterTraitType.CLASS)
-                4 -> Triple("Oído atento", "Percibe cambios sutiles del entorno.", CharacterTraitType.SPECIES_RACE)
-                5 -> Triple("Paso firme", "Conserva el ritmo durante marchas largas.", CharacterTraitType.SPECIES_RACE)
-                6 -> Triple("Memoria local", "Recuerda caminos y puntos de referencia.", CharacterTraitType.SPECIES_RACE)
+                4 -> Triple("Oído atento", "", CharacterTraitType.SPECIES_RACE)
+                5 -> Triple("Paso firme", "", CharacterTraitType.SPECIES_RACE)
+                6 -> Triple("Memoria local", "", CharacterTraitType.SPECIES_RACE)
                 else -> Triple("Observadora", "Presta especial atención a detalles.", CharacterTraitType.FEAT)
             }
             trait.copy(
@@ -101,7 +101,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 maxUses = null,
                 spentUses = 0,
                 recovery = null,
-                activation = CharacterActivationType.PASSIVE,
+                activation = null,
                 sortOrder = index,
             )
         }
@@ -364,6 +364,136 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
         assertTrue(extendedPdf.length() > pdf.length())
+
+        val extraTraits = listOf(
+            shortTraits[0].copy(
+                id = uuid("98000000-0000-0000-0000-000000000001"),
+                name = "Disciplina nocturna",
+                source = "Clase de frontera",
+                type = CharacterTraitType.CLASS,
+                description = "Mantiene la vigilancia durante una marcha prolongada.",
+                notes = "Solo cuando la expedición permanece unida.",
+                maxUses = 2,
+                spentUses = 1,
+                recovery = "Descanso corto",
+                activation = CharacterActivationType.BONUS_ACTION,
+                sortOrder = 20,
+            ),
+            shortTraits[0].copy(
+                id = uuid("98000000-0000-0000-0000-000000000002"),
+                name = "Contactos de frontera",
+                source = "Trasfondo",
+                type = CharacterTraitType.BACKGROUND,
+                description = "Conoce guías y archivistas en varios puestos remotos.",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = null,
+                sortOrder = 21,
+            ),
+            shortTraits[0].copy(
+                id = uuid("98000000-0000-0000-0000-000000000003"),
+                name = "Paso montés",
+                source = "Humana",
+                type = CharacterTraitType.SPECIES_RACE,
+                description = "Se desplaza con confianza por senderos estrechos.",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = null,
+                sortOrder = 22,
+            ),
+            shortTraits[0].copy(
+                id = uuid("98000000-0000-0000-0000-000000000004"),
+                name = "Cartografía experta",
+                source = "Dote",
+                type = CharacterTraitType.FEAT,
+                description = "Interpreta mapas incompletos y referencias parciales.",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = null,
+                sortOrder = 23,
+            ),
+            shortTraits[0].copy(
+                id = uuid("98000000-0000-0000-0000-000000000005"),
+                name = "Juramento del mapa",
+                source = "Campaña",
+                type = CharacterTraitType.OTHER,
+                description = "Conserva el mapa original y registra cada corrección.",
+                notes = "No entregar el original.",
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = null,
+                sortOrder = 24,
+            ),
+        )
+        val traitProficiencies = buildList {
+            (1..6).forEach { index ->
+                add(
+                    CharacterProficiency(
+                        id = uuid("99000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                        type = CharacterProficiencyType.LANGUAGE,
+                        name = "Lengua $index",
+                        source = "Viajes",
+                        notes = null,
+                        sortOrder = index,
+                    ),
+                )
+            }
+            add(
+                CharacterProficiency(
+                    id = uuid("99000000-0000-0000-0000-000000000020"),
+                    type = CharacterProficiencyType.TOOL,
+                    name = "Herramientas de navegante",
+                    source = "Formación",
+                    notes = "Uso habitual en expediciones.",
+                    sortOrder = 20,
+                ),
+            )
+        }
+        val traitsAggregate = aggregate.copy(
+            sheet = aggregate.sheet.copy(
+                traits = shortTraits + extraTraits,
+                proficiencies = traitProficiencies,
+            ),
+        )
+        val traitsPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = traitsAggregate),
+        )
+        val traitsPdf = File(proofDir, "classic-production-traits-pass3.pdf")
+        traitsPdf.outputStream().use { renderer.renderDraft(traitsPlan, it) }
+
+        Loader.loadPDF(traitsPdf).use { document ->
+            assertEquals(6, document.numberOfPages)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("RASGOS Y CARACTERÍSTICAS"))
+            assertTrue(Regex("Juramento\\s+del\\s+mapa").containsMatchIn(extracted))
+            assertTrue(Regex("Lengua\\s+6").containsMatchIn(extracted))
+            assertTrue(extracted.contains("Herramientas de navegante"))
+            assertTrue(extracted.contains("Descanso corto"))
+
+            val pdfRenderer = PDFRenderer(document)
+            (3 until document.numberOfPages).forEach { index ->
+                val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "classic-production-traits-pass3-page-${index + 1}.png"),
+                    ),
+                )
+            }
+        }
+        assertTrue(traitsPdf.length() > pdf.length())
     }
 
     @Test
