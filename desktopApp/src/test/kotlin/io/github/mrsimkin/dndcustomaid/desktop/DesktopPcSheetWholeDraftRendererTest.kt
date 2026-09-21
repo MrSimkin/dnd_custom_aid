@@ -269,10 +269,19 @@ class DesktopPcSheetWholeDraftRendererTest {
         val base = denseDraftAggregate()
 
         val firstTrait = base.sheet.traits.first().copy(
+            source = "Fuente primaria de rasgo",
             maxUses = 2,
             spentUses = 1,
             recovery = "Descanso largo",
             notes = "El uso restante debe conservarse en la continuación v1.",
+        )
+        val sourceOnlyTrait = base.sheet.traits[1].copy(
+            source = "Fuente canónica sin otros metadatos",
+            notes = null,
+            maxUses = null,
+            spentUses = 0,
+            recovery = null,
+            activation = null,
         )
         val overflowTrait = base.sheet.traits.first().copy(
             id = uuid("8c100000-0000-0000-0000-000000000001"),
@@ -289,6 +298,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 type = CharacterProficiencyType.TOOL,
                 name = "Competencia extendida de prueba",
                 source = "Fuente de prueba",
+                notes = "Nota de competencia que debe conservarse",
                 sortOrder = 0,
             ),
             CharacterProficiency(
@@ -301,7 +311,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         )
         val aggregate = base.copy(
             sheet = base.sheet.copy(
-                traits = listOf(firstTrait) + base.sheet.traits.drop(1) + overflowTrait,
+                traits = listOf(firstTrait, sourceOnlyTrait) + base.sheet.traits.drop(2) + overflowTrait,
                 proficiencies = proficiencies,
             ),
         )
@@ -321,11 +331,17 @@ class DesktopPcSheetWholeDraftRendererTest {
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - STRUCTURE") })
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
+            assertTrue(layers.any { it.startsWith("V1X TRAITS P2 - STRUCTURE") })
             assertFalse(layers.any { it.startsWith("V1X STATS") })
 
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("Rasgo de desborde v1"))
+            assertTrue(extracted.contains("Ves en luz tenue y oscuridad"))
+            assertTrue(extracted.contains("Combinas herramientas y recursos disponibles"))
+            assertTrue(extracted.contains("Fuente primaria de rasgo"))
+            assertTrue(extracted.contains("Fuente canónica sin otros metadatos"))
             assertTrue(extracted.contains("Competencia extendida de prueba"))
+            assertTrue(extracted.contains("Nota de competencia que debe conservarse"))
             assertTrue(extracted.contains("Lengua extendida"))
             assertTrue(extracted.contains("Usos 1 / 2"))
 

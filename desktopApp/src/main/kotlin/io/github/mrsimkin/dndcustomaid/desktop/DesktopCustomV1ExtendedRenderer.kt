@@ -27,9 +27,9 @@ import org.apache.pdfbox.util.Matrix
 /**
  * Production promotion of the owner-approved Custom-v1 Extended Run-6 family.
  *
- * Pass 1 intentionally promotes only Extended — Custom Statistics. The geometry, typography,
- * source crops and independent layer model come from the frozen Run-6 owner-approved proof; the
- * values come exclusively from [PcSheetPdfRenderPlan].
+ * Production promotion advances one frozen role at a time. Custom Statistics and Traits & Features
+ * now use the Run-6 owner-approved geometry, typography, source structure and independent layer
+ * model, while all values come exclusively from [PcSheetPdfRenderPlan].
  */
 internal class DesktopCustomV1ExtendedRenderer(
     private val document: PDDocument,
@@ -118,10 +118,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         val sheet = plan.snapshot.aggregate.sheet
         val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
         val overflowNames = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
-        val detailOverflow = traitDescriptionOverflowLines(orderedTraits)
+        val detailLines = traitDescriptionLines(orderedTraits)
         val metadata = traitMetadataLines(orderedTraits)
         return overflowNames.isNotEmpty() ||
-            detailOverflow.isNotEmpty() ||
+            detailLines.isNotEmpty() ||
             metadata.isNotEmpty() ||
             sheet.proficiencies.isNotEmpty()
     }
@@ -148,24 +148,14 @@ internal class DesktopCustomV1ExtendedRenderer(
             }
             .map { it.name }
 
-        val proficiencies = sheet.proficiencies
-            .filter { it.type != CharacterProficiencyType.LANGUAGE }
-            .sortedBy { it.sortOrder }
-            .map { proficiency ->
-                listOf(proficiency.name, proficiency.source.orEmpty())
-                    .filter { it.isNotBlank() }
-                    .joinToString(" · ")
-            }
-        val languages = sheet.proficiencies
-            .filter { it.type == CharacterProficiencyType.LANGUAGE }
-            .sortedBy { it.sortOrder }
-            .map { proficiency ->
-                listOf(proficiency.name, proficiency.source.orEmpty())
-                    .filter { it.isNotBlank() }
-                    .joinToString(" · ")
-            }
+        val proficiencies = proficiencyLines(
+            sheet.proficiencies.filter { it.type != CharacterProficiencyType.LANGUAGE },
+        )
+        val languages = proficiencyLines(
+            sheet.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE },
+        )
 
-        val detailLines = traitDescriptionOverflowLines(orderedTraits)
+        val detailLines = traitDescriptionLines(orderedTraits)
         val metadataLines = traitMetadataLines(orderedTraits)
 
         val pages = maxOf(
@@ -271,20 +261,27 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun traitDescriptionOverflowLines(
+    private fun traitDescriptionLines(
         traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-    ): List<String> {
-        val traitText = traits.joinToString(" · ") { trait ->
-            trait.name + ": " + trait.description
+    ): List<String> = traits.flatMap { trait ->
+        val description = trait.description.trim()
+        if (description.isEmpty()) {
+            emptyList()
+        } else {
+            wrapByWidth(
+                trait.name + ": " + description,
+                resources.fira,
+                8.5f,
+                TRAIT_RIGHT_TEXT_WIDTH,
+            )
         }
-        return wrapForRulesByChars(traitText, BASE_V1_TRAIT_DETAIL_MAX_CHARS)
-            .drop(BASE_V1_TRAIT_DETAIL_RULES)
     }
 
     private fun traitMetadataLines(
         traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
     ): List<String> = traits.flatMap { trait ->
-        val meaningful = trait.maxUses != null ||
+        val meaningful = trait.source.trim().isNotEmpty() ||
+            trait.maxUses != null ||
             !trait.recovery.isNullOrBlank() ||
             trait.activation != null ||
             !trait.notes.isNullOrBlank()
@@ -292,6 +289,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             emptyList()
         } else {
             val metadata = buildList {
+                add(traitTypeLabel(trait.type))
                 trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
                 trait.activation?.let { add(activationLabel(it)) }
                 trait.maxUses?.let { maximum ->
@@ -310,6 +308,15 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
     }
 
+    private fun traitTypeLabel(type: CharacterTraitType): String = when (type) {
+        CharacterTraitType.CLASS -> "Clase"
+        CharacterTraitType.SPECIES_RACE -> "Raza"
+        CharacterTraitType.BACKGROUND -> "Trasfondo"
+        CharacterTraitType.FEAT -> "Dote"
+        CharacterTraitType.GIFT_BLESSING -> "Don / Bendición"
+        CharacterTraitType.OTHER -> "Otro"
+    }
+
     private fun activationLabel(type: CharacterActivationType): String = when (type) {
         CharacterActivationType.PASSIVE -> "Pasivo"
         CharacterActivationType.ACTION -> "Acción"
@@ -318,28 +325,24 @@ internal class DesktopCustomV1ExtendedRenderer(
         CharacterActivationType.OTHER -> "Otro"
     }
 
-    private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
-        val paragraphs = text
-            .replace("\r\n", "\n")
-            .split(Regex("\\n+"))
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-        val result = mutableListOf<String>()
-        paragraphs.forEach { paragraph ->
-            var current = ""
-            paragraph.split(Regex("\\s+")).forEach { word ->
-                val candidate = if (current.isEmpty()) word else current + " " + word
-                if (candidate.length <= maxChars || current.isEmpty()) {
-                    current = candidate
-                } else {
-                    result += current
-                    current = word
-                }
+    private fun proficiencyLines(
+        proficiencies: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>,
+    ): List<String> = proficiencies
+        .sortedBy { it.sortOrder }
+        .flatMap { proficiency ->
+            val value = listOf(
+                proficiency.name,
+                proficiency.source.orEmpty().trim(),
+                proficiency.notes.orEmpty().trim(),
+            )
+                .filter { it.isNotEmpty() }
+                .joinToString(" · ")
+            if (value.isEmpty()) {
+                emptyList()
+            } else {
+                wrapByWidth(value, resources.fira, 8.4f, TRAIT_LEFT_TEXT_WIDTH)
             }
-            if (current.isNotEmpty()) result += current
         }
-        return result
-    }
 
     private fun drawRuledValues(
         s: PDFormContentStream,
@@ -1009,12 +1012,11 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val BOTTOM_TEXT_WIDTH = 150f
 
         const val BASE_V1_TRAIT_NAME_CAPACITY = 6
-        const val BASE_V1_TRAIT_DETAIL_RULES = 12
-        const val BASE_V1_TRAIT_DETAIL_MAX_CHARS = 92
         const val TRAIT_LEFT_ROWS = 3
         const val TRAIT_OTHER_CAPACITY = 12
         const val TRAIT_DETAIL_ROWS = 4
         const val TRAIT_NOTE_ROWS = 5
+        const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
 
         const val SOURCE_WHITE_ATTRIBUTE_X = 408f
