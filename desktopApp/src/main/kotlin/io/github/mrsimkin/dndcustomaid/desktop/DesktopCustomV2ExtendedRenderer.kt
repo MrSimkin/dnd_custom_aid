@@ -6,6 +6,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
@@ -79,11 +81,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             renderTraits(page, plan)
         }
 
-        if (needsResourcesExtendedPage(plan)) {
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderResources(page, plan)
-        }
+        appendResourcesExtendedPages(plan)
 
         appendInventoryExtendedPages(plan)
         appendSpellExtendedPages(plan)
@@ -102,8 +100,10 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
-        val sheet = plan.snapshot.aggregate.sheet
-        return sheet.resources.isNotEmpty() || sheet.classOptions.isNotEmpty()
+        val aggregate = plan.snapshot.aggregate
+        return aggregate.sheet.resources.isNotEmpty() ||
+            aggregate.sheet.classOptions.isNotEmpty() ||
+            aggregate.successor.customMarkers.isNotEmpty()
     }
 
     private fun renderPerAttribute(
@@ -482,66 +482,143 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "V2X TRAITS - MARKERS") { }
     }
 
-    private fun renderResources(page: PDPage, plan: PcSheetPdfRenderPlan) {
+    private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
+        if (!needsResourcesExtendedPage(plan)) return
+
+        val rows = resourceRenderRows(plan)
+        val options = plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder }
+        val pages = maxOf(
+            pageCount(rows.size, RESOURCE_ROWS_PER_PAGE),
+            pageCount(options.size, RESOURCE_OPTIONS_PER_PAGE),
+        )
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderResources(
+                page = page,
+                rows = rows.drop(pageIndex * RESOURCE_ROWS_PER_PAGE).take(RESOURCE_ROWS_PER_PAGE),
+                options = options.drop(pageIndex * RESOURCE_OPTIONS_PER_PAGE).take(RESOURCE_OPTIONS_PER_PAGE),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun resourceRenderRows(plan: PcSheetPdfRenderPlan): List<ResourceRenderRow> {
         val aggregate = plan.snapshot.aggregate
-        val sheet = aggregate.sheet
-        val rows = sheet.resources.sortedBy { it.sortOrder }
-        val options = sheet.classOptions.sortedBy { it.sortOrder }
-        val recoveries = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
+        val recoveryByResource = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
+        val configurationByResource = aggregate.successor.resourceConfigurations.associateBy { it.resourceId }
 
-        require(rows.size <= 10) {
-            "Resources production pass 2 supports up to ten resource rows; multi-page continuation is pending."
-        }
-        require(options.size <= 18) {
-            "Resources production pass 2 supports up to eighteen option rows; multi-page continuation is pending."
-        }
+        val ordinary = aggregate.sheet.resources
+            .sortedBy { it.sortOrder }
+            .map { resource ->
+                val recovery = recoveryByResource[resource.id]
+                val kind = configurationByResource[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
+                ResourceRenderRow(
+                    name = resource.name,
+                    currentValue = resource.currentValue,
+                    maximum = when (kind) {
+                        CharacterTrackableValueKind.BINARY -> 1
+                        CharacterTrackableValueKind.COUNTER,
+                        CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
+                    },
+                    valueKind = kind,
+                    recovery = listOf(
+                        resource.recovery.orEmpty().trim(),
+                        recovery?.cadence?.let(::recoveryLabel).orEmpty(),
+                        recovery?.amountMode?.let { recoveryAmountLabel(it, recovery.fixedAmount) }.orEmpty(),
+                        recovery?.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.distinct().joinToString(" · "),
+                    detail = listOf(
+                        resource.source.orEmpty().trim(),
+                        resource.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    sortOrder = resource.sortOrder,
+                    sourceRank = 0,
+                )
+            }
 
-        appendLayer(page, "V2X RESOURCES - STRUCTURE") { s ->
+        val markers = aggregate.successor.customMarkers
+            .sortedBy { it.sortOrder }
+            .map { marker ->
+                ResourceRenderRow(
+                    name = marker.name,
+                    currentValue = marker.currentValue,
+                    maximum = when (marker.valueKind) {
+                        CharacterTrackableValueKind.BINARY -> 1
+                        CharacterTrackableValueKind.COUNTER,
+                        CharacterTrackableValueKind.CURRENT_MAX -> marker.maxValue
+                    },
+                    valueKind = marker.valueKind,
+                    recovery = listOf(
+                        recoveryLabel(marker.recovery.cadence),
+                        recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
+                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    detail = marker.notes.orEmpty().trim(),
+                    sortOrder = marker.sortOrder,
+                    sourceRank = 1,
+                )
+            }
+
+        return (ordinary + markers)
+            .sortedWith(compareBy<ResourceRenderRow> { it.sortOrder }.thenBy { it.sourceRank }.thenBy { it.name.lowercase() })
+    }
+
+    private fun renderResources(
+        page: PDPage,
+        rows: List<ResourceRenderRow>,
+        options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = if (pageIndex == 0) "V2X RESOURCES" else "V2X RESOURCES ${pageIndex + 1}"
+
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
-            bandedRows(s, 14f, 598f, 150f, 10, 17f, 0)
+            bandedRows(s, 14f, 598f, 150f, RESOURCE_ROWS_PER_PAGE, 17f, 0)
             listOf(222f, 352f, 475f).forEach { x -> verticalRule(s, x, 120f, 303f, 0.45f) }
 
             drawRule(s, 14f, 598f, 329f, 0.8f)
             fill(s, 14f, 337f, 584f, 22f, SOURCE_GRAY_LIGHT)
-            bandedRows(s, 14f, 598f, 398f, 18, 17f, 1)
+            bandedRows(s, 14f, 598f, 398f, RESOURCE_OPTIONS_PER_PAGE, 17f, 1)
             listOf(30f, 118f, 258f).forEach { x -> verticalRule(s, x, 362f, 704f, 0.45f) }
         }
-        appendLayer(page, "V2X RESOURCES - CLEANUP") { }
-        appendLayer(page, "V2X RESOURCES - LABELS") { s ->
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "RECURSOS Y OPCIONES")
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 97f, 584f, 20f), "RECURSOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabel(s, 14f, 121f, 208f, "RECURSO")
             tableLabel(s, 222f, 121f, 130f, "ACTUAL / MÁX.")
             tableLabel(s, 352f, 121f, 123f, "RESTABLECE")
-            tableLabel(s, 475f, 121f, 123f, "ORIGEN")
+            tableLabel(s, 475f, 121f, 123f, "ORIGEN / NOTAS")
 
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 338f, 584f, 20f), "OPCIONES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabel(s, 30f, 364f, 88f, "TIPO")
             tableLabel(s, 118f, 364f, 140f, "OPCIÓN")
-            tableLabel(s, 258f, 364f, 340f, "DESCRIPCIÓN / COSTE")
+            tableLabel(s, 258f, 364f, 340f, "DESCRIPCIÓN / COSTE / ORIGEN")
         }
-        appendLayer(page, "V2X RESOURCES - VALUES") { s ->
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
             rows.forEachIndexed { index, row ->
                 val y = 150f + index * 17f
                 textAboveRule(s, resources.fira, Rule(18f, 218f, y), row.name, 9.0f, 8.2f, 2.3f)
 
-                val maximum = row.maxValue
-                when {
-                    maximum == null ->
-                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), row.currentValue.toString(), 8.5f, 2.2f)
-                    maximum >= 10 ->
-                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), row.currentValue.toString() + "/" + maximum, 8.5f, 2.2f)
+                val maximum = row.maximum
+                val canUseSymbols = maximum != null &&
+                    maximum in 1..9 &&
+                    row.currentValue in 0..maximum
+                if (!canUseSymbols) {
+                    val value = if (maximum == null) {
+                        row.currentValue.toString()
+                    } else {
+                        row.currentValue.toString() + "/" + maximum
+                    }
+                    centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
                 }
 
-                val recovery = row.recovery.orEmpty().trim().ifEmpty {
-                    recoveries[row.id]?.cadence?.let(::recoveryLabel).orEmpty()
+                if (row.recovery.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(356f, 471f, y), row.recovery, 8.5f, 6.5f, 2.3f)
                 }
-                if (recovery.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(356f, 471f, y), recovery, 8.5f, 7.5f, 2.3f)
-                }
-                row.source?.takeIf { it.isNotBlank() }?.let { source ->
-                    textAboveRule(s, resources.fira, Rule(479f, 594f, y), source, 8.5f, 7.5f, 2.3f)
+                if (row.detail.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(479f, 594f, y), row.detail, 8.5f, 6.5f, 2.3f)
                 }
             }
 
@@ -553,28 +630,33 @@ internal class DesktopCustomV2ExtendedRenderer(
                 val detail = listOf(
                     option.effectSummary.trim(),
                     option.costText.orEmpty().trim(),
+                    option.source.orEmpty().trim(),
                     option.notes.orEmpty().trim(),
                 ).filter { it.isNotEmpty() }.joinToString(" · ")
                 if (detail.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(262f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
+                    textAboveRule(s, resources.fira, Rule(262f, 594f, y), detail, 8.5f, 6.5f, 2.3f)
                 }
             }
         }
-        appendLayer(page, "V2X RESOURCES - MARKERS") { s ->
+        appendLayer(page, "$layerPrefix - MARKERS") { s ->
             rows.forEachIndexed { index, row ->
-                val maximum = row.maxValue
-                if (maximum != null && maximum in 1..9) {
+                val maximum = row.maximum
+                if (
+                    maximum != null &&
+                    maximum in 1..9 &&
+                    row.currentValue in 0..maximum
+                ) {
                     drawSquareCounter(
                         s,
                         236f,
                         141.5f + index * 17f,
-                        row.currentValue.coerceIn(0, maximum),
+                        row.currentValue,
                         maximum,
                     )
                 }
             }
 
-            repeat(18) { row ->
+            repeat(RESOURCE_OPTIONS_PER_PAGE) { row ->
                 val option = options.getOrNull(row)
                 drawV2TrainingBox(
                     s,
@@ -583,6 +665,15 @@ internal class DesktopCustomV2ExtendedRenderer(
                 )
             }
         }
+    }
+
+    private fun recoveryAmountLabel(
+        mode: CharacterRecoveryAmountMode,
+        fixedAmount: Int?,
+    ): String = when (mode) {
+        CharacterRecoveryAmountMode.NONE -> ""
+        CharacterRecoveryAmountMode.TO_MAX -> "A máximo"
+        CharacterRecoveryAmountMode.FIXED -> fixedAmount?.let { "+$it" } ?: "Cantidad fija"
     }
 
     private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
@@ -1440,6 +1531,17 @@ internal class DesktopCustomV2ExtendedRenderer(
         val skills: List<Pair<String, String>>,
     )
 
+    private data class ResourceRenderRow(
+        val name: String,
+        val currentValue: Int,
+        val maximum: Int?,
+        val valueKind: CharacterTrackableValueKind,
+        val recovery: String,
+        val detail: String,
+        val sortOrder: Int,
+        val sourceRank: Int,
+    )
+
     private data class SpellContinuationBlock(
         val level: Int,
         val textStartX: Float,
@@ -1588,6 +1690,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val INVENTORY_CONTINUATION_CAPACITY = 57
         const val INVENTORY_VALUABLES_CAPACITY = 19
         const val INVENTORY_SPECIAL_CAPACITY = 12
+        const val RESOURCE_ROWS_PER_PAGE = 10
+        const val RESOURCE_OPTIONS_PER_PAGE = 18
         const val BASE_V2_NOTES_CAPACITY = 40
         const val NOTES_COLUMN_CAPACITY = 20
         const val NOTES_CONTINUATION_CAPACITY = 40
