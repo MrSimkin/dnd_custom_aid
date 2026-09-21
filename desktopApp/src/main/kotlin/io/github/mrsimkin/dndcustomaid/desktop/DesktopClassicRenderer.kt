@@ -7,6 +7,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
@@ -41,8 +42,10 @@ internal class DesktopClassicRenderer {
         require(plan.baseLayoutMode == PcSheetBaseLayoutMode.FAITHFUL) {
             "Classic production pass 1 currently supports the faithful base layout only."
         }
-        require(plan.mandatoryExtendedPages.isEmpty()) {
-            "Classic production pass 1 cannot yet render mandatory Extended pages."
+        require(
+            plan.mandatoryExtendedPages.all { it == PcSheetExtendedPageKind.CUSTOM_STATISTICS },
+        ) {
+            "Classic production pass 2 only supports the promoted Custom Statistics extension."
         }
 
         overflowDiagnostics.clear()
@@ -53,6 +56,7 @@ internal class DesktopClassicRenderer {
             drawMain(doc, p, plan)
             drawCharacterAndEquipment(doc, p, plan)
             drawSpells(doc, p, plan)
+            appendCustomStatisticsPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Classic production base requires a matching Extended continuation:\n" +
@@ -60,6 +64,188 @@ internal class DesktopClassicRenderer {
             }
             doc.save(output)
         }
+    }
+
+    private fun appendCustomStatisticsPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val stats = plan.snapshot.customStatistics
+        if (
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS !in plan.mandatoryExtendedPages ||
+            stats.isEmpty
+        ) {
+            return
+        }
+
+        val attributesById = stats.attributes.associateBy { it.attribute.id }
+        val customSkillGroups = stats.skills
+            .filter { projection ->
+                projection.ability.customAttributeId?.let(attributesById::containsKey) == true
+            }
+            .groupBy { requireNotNull(it.ability.customAttributeId) }
+
+        val customSlices = stats.attributes.flatMap { projection ->
+            val skillChunks = customSkillGroups[projection.attribute.id]
+                .orEmpty()
+                .chunked(CLASSIC_CUSTOM_SKILLS_PER_ATTRIBUTE_PANEL)
+                .ifEmpty { listOf(emptyList()) }
+            val noteChunks = wrapForChars(projection.attribute.notes.orEmpty(), 40)
+                .chunked(CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES)
+                .map { it.joinToString("\n") }
+                .ifEmpty { listOf("") }
+            val slices = maxOf(skillChunks.size, noteChunks.size)
+            (0 until slices).map { index ->
+                CustomAttributeSlice(
+                    projection = projection,
+                    skills = skillChunks.getOrElse(index) { emptyList() },
+                    note = noteChunks.getOrElse(index) { "" },
+                )
+            }
+        }
+
+        val standardSlices = buildList {
+            CharacterAbility.entries.forEach { ability ->
+                stats.skills
+                    .filter { it.ability.builtIn == ability }
+                    .chunked(CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP)
+                    .forEach { skills ->
+                        add(
+                            StandardCustomGroupSlice(
+                                title = abilityLabel(ability) + " (" + abilityAbbreviation(ability) + ")",
+                                skills = skills,
+                            ),
+                        )
+                    }
+            }
+            val unlinked = stats.skills.filter { projection ->
+                projection.ability.builtIn == null &&
+                    projection.ability.customAttributeId?.let(attributesById::containsKey) != true
+            }
+            unlinked.chunked(CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP).forEach { skills ->
+                add(StandardCustomGroupSlice(title = "SIN ATRIBUTO", skills = skills))
+            }
+        }
+
+        val pages = maxOf(
+            1,
+            pageCount(customSlices.size, CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE),
+            pageCount(standardSlices.size, CLASSIC_STANDARD_GROUPS_PER_PAGE),
+        )
+        repeat(pages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "ESTADÍSTICAS PERSONALIZADAS")
+
+                val xPositions = listOf(24f, 212f, 400f)
+                customSlices
+                    .drop(pageIndex * CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE)
+                    .take(CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE)
+                    .forEachIndexed { index, slice ->
+                        val attr = slice.projection.attribute
+                        customAttributePanel(
+                            s = s,
+                            p = p,
+                            x = xPositions[index],
+                            top = 112f,
+                            width = 176f,
+                            height = 286f,
+                            title = attr.name,
+                            abbreviation = attr.abbreviation,
+                            score = attr.score.toString(),
+                            modifier = signed(attr.modifier),
+                            save = if (attr.savingThrowEnabled) {
+                                slice.projection.savingThrowTotal?.let(::signed).orEmpty()
+                            } else {
+                                ""
+                            },
+                            saveTraining = if (
+                                attr.savingThrowEnabled && attr.savingThrowProficient
+                            ) {
+                                Training.PROFICIENT
+                            } else {
+                                Training.NONE
+                            },
+                            skills = slice.skills.map { skill ->
+                                SkillRow(
+                                    name = skill.skill.name,
+                                    total = skill.total?.let(::signed).orEmpty(),
+                                    training = training(skill.skill.training),
+                                )
+                            },
+                            note = slice.note,
+                        )
+                    }
+
+                titledFrame(
+                    s, p, 24f, 414f, 564f, 304f,
+                    "HABILIDADES PERSONALIZADAS VINCULADAS A ATRIBUTOS ESTÁNDAR",
+                )
+                val groupX = listOf(36f, 224f, 412f)
+                standardSlices
+                    .drop(pageIndex * CLASSIC_STANDARD_GROUPS_PER_PAGE)
+                    .take(CLASSIC_STANDARD_GROUPS_PER_PAGE)
+                    .forEachIndexed { index, group ->
+                        standardLinkedCustomGroup(
+                            s = s,
+                            p = p,
+                            x = groupX[index],
+                            top = 450f,
+                            width = 164f,
+                            title = group.title,
+                            skills = group.skills.map { skill ->
+                                SkillRow(
+                                    name = skill.skill.name,
+                                    total = skill.total?.let(::signed).orEmpty(),
+                                    training = training(skill.skill.training),
+                                )
+                            },
+                        )
+                    }
+                text(
+                    s, p, 36f, 650f, 540f, 52f,
+                    "Cada habilidad conserva visible su atributo gobernante. Las habilidades de un atributo personalizado se agrupan dentro de ese atributo; las vinculadas a un atributo estándar aparecen bajo su nombre y abreviatura.",
+                    PdfTypographyRole.NOTE_TEXT, 8.2f, 7.2f, wrap = true, maxLines = 4,
+                    vertical = PdfVerticalAlignment.TOP,
+                )
+                footer(
+                    s, p, 4 + pageIndex,
+                    "EXTENSIÓN / ESTADÍSTICAS PERSONALIZADAS",
+                )
+            }
+        }
+    }
+
+    private fun pageCount(size: Int, capacity: Int): Int =
+        if (size <= 0) 0 else (size + capacity - 1) / capacity
+
+    private fun wrapForChars(text: String, maxChars: Int): List<String> {
+        val clean = text.trim()
+        if (clean.isEmpty()) return emptyList()
+        return clean
+            .split(Regex("\\n+"))
+            .flatMap { paragraph ->
+                val words = paragraph.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+                if (words.isEmpty()) {
+                    emptyList()
+                } else {
+                    buildList {
+                        var current = ""
+                        words.forEach { word ->
+                            if (current.isEmpty()) {
+                                current = word
+                            } else if (current.length + 1 + word.length <= maxChars) {
+                                current += " " + word
+                            } else {
+                                add(current)
+                                current = word
+                            }
+                        }
+                        if (current.isNotEmpty()) add(current)
+                    }
+                }
+            }
     }
 
     private fun drawMain(
@@ -831,6 +1017,132 @@ internal class DesktopClassicRenderer {
         }
     }
 
+    private fun extendedHeader(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        name: String,
+        title: String,
+    ) {
+        fantasyFrame(s, 24f, 24f, 564f, 64f, 1.05f, fill = PAPER_TINT)
+        text(s, p, 36f, 30f, 220f, 33f, name, PdfTypographyRole.CHARACTER_NAME, 18f, 15f)
+        hairline(s, 36f, 66f, 256f, 66f)
+        text(
+            s, p, 268f, 28f, 308f, 20f,
+            "EXTENSIÓN", PdfTypographyRole.OPTIONAL_DECORATIVE, 8f, 7f,
+            align = PdfHorizontalAlignment.RIGHT,
+        )
+        text(
+            s, p, 268f, 48f, 308f, 22f,
+            title, PdfTypographyRole.OPTIONAL_DECORATIVE, 13f, 10.5f,
+            align = PdfHorizontalAlignment.RIGHT,
+        )
+    }
+
+    private fun customAttributePanel(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        title: String,
+        abbreviation: String,
+        score: String,
+        modifier: String,
+        save: String,
+        saveTraining: Training,
+        skills: List<SkillRow>,
+        note: String,
+    ) {
+        fantasyFrame(s, x, top, width, height, 0.9f)
+        text(
+            s, p, x + 8f, top + 7f, width - 16f, 18f,
+            "$title ($abbreviation)", PdfTypographyRole.OPTIONAL_DECORATIVE,
+            10f, 8.5f, align = PdfHorizontalAlignment.CENTER,
+        )
+        circleOutline(s, x + 38f, top + 58f, 28f)
+        text(
+            s, p, x + 12f, top + 35f, 52f, 42f,
+            modifier, PdfTypographyRole.PRIMARY_VALUE, 24f, 20f,
+            align = PdfHorizontalAlignment.CENTER,
+        )
+        miniRunicStat(s, p, x + 78f, top + 36f, 42f, 42f, "PUNT.", score)
+        miniRunicStat(s, p, x + 126f, top + 36f, 40f, 42f, "SALV.", save)
+        trainingMarker(s, p, x + 12f, top + 88f, saveTraining)
+        text(
+            s, p, x + 23f, top + 80f, width - 31f, 15f,
+            "Competencia en salvación", PdfTypographyRole.BODY, 6.6f, 5.8f,
+        )
+        text(
+            s, p, x + 10f, top + 101f, width - 20f, 15f,
+            "Habilidades gobernadas por $abbreviation",
+            PdfTypographyRole.OPTIONAL_DECORATIVE, 6.7f, 5.8f,
+            align = PdfHorizontalAlignment.CENTER,
+        )
+        skills.forEachIndexed { index, row ->
+            val rowTop = top + 122f + index * 23f
+            trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
+            text(
+                s, p, x + 24f, rowTop, width - 56f, 18f,
+                row.name, PdfTypographyRole.BODY, 7.8f, 6.6f,
+            )
+            text(
+                s, p, x + width - 30f, rowTop, 22f, 18f,
+                row.total, PdfTypographyRole.NUMERIC_COMPACT, 8.5f, 7.2f,
+                align = PdfHorizontalAlignment.RIGHT,
+            )
+            hairline(s, x + 24f, rowTop + 20f, x + width - 8f, rowTop + 20f)
+        }
+        val blanksStart = top + 122f + skills.size * 23f
+        repeat((CLASSIC_CUSTOM_SKILLS_PER_ATTRIBUTE_PANEL - skills.size).coerceAtLeast(0)) { index ->
+            val ruleTop = blanksStart + index * 23f + 20f
+            hairline(s, x + 24f, ruleTop, x + width - 8f, ruleTop)
+        }
+        text(
+            s, p, x + 10f, top + height - 48f, width - 20f, 36f,
+            note, PdfTypographyRole.NOTE_TEXT, 7.4f, 6.4f,
+            wrap = true, maxLines = CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES,
+            vertical = PdfVerticalAlignment.TOP,
+        )
+    }
+
+    private fun standardLinkedCustomGroup(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        title: String,
+        skills: List<SkillRow>,
+    ) {
+        val height = 168f
+        fantasyFrame(s, x, top, width, height, 0.65f)
+        text(
+            s, p, x + 7f, top + 7f, width - 14f, 17f,
+            title, PdfTypographyRole.OPTIONAL_DECORATIVE, 8.2f, 7f,
+            align = PdfHorizontalAlignment.CENTER,
+        )
+        skills.forEachIndexed { index, row ->
+            val rowTop = top + 36f + index * 27f
+            trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
+            text(
+                s, p, x + 25f, rowTop, width - 58f, 19f,
+                row.name, PdfTypographyRole.BODY, 7.8f, 6.6f,
+            )
+            text(
+                s, p, x + width - 29f, rowTop, 20f, 19f,
+                row.total, PdfTypographyRole.NUMERIC_COMPACT, 8.4f, 7.2f,
+                align = PdfHorizontalAlignment.RIGHT,
+            )
+            hairline(s, x + 25f, rowTop + 21f, x + width - 9f, rowTop + 21f)
+        }
+        var ruleTop = top + 36f + skills.size * 27f + 20f
+        while (ruleTop <= top + height - 8f) {
+            hairline(s, x + 25f, ruleTop, x + width - 9f, ruleTop)
+            ruleTop += 25f
+        }
+    }
+
     private fun shieldStat(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
@@ -1164,6 +1476,17 @@ internal class DesktopClassicRenderer {
         val prepared: Boolean,
     )
 
+    private data class CustomAttributeSlice(
+        val projection: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection,
+        val skills: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection>,
+        val note: String,
+    )
+
+    private data class StandardCustomGroupSlice(
+        val title: String,
+        val skills: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection>,
+    )
+
     private enum class Training {
         NONE,
         PROFICIENT,
@@ -1180,6 +1503,11 @@ internal class DesktopClassicRenderer {
         const val BASE_EQUIPMENT_CAPACITY = 7
         const val BASE_ADDITIONAL_TRAIT_CAPACITY = 2
         const val BASE_LANGUAGE_CAPACITY = 4
+        const val CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE = 3
+        const val CLASSIC_CUSTOM_SKILLS_PER_ATTRIBUTE_PANEL = 4
+        const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
+        const val CLASSIC_STANDARD_GROUPS_PER_PAGE = 3
+        const val CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP = 4
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)

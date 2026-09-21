@@ -57,6 +57,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
@@ -250,6 +251,119 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
         assertTrue(pdf.length() > 20_000L)
+
+        val customAttributes = (1..4).map { index ->
+            CharacterCustomAttribute(
+                id = uuid("95000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                name = "Atributo $index",
+                abbreviation = "A$index",
+                score = 10 + index * 2,
+                savingThrowEnabled = true,
+                savingThrowProficient = index % 2 == 0,
+                savingThrowAdjustment = index,
+                notes = "Definición canónica del atributo personalizado $index.",
+                sortOrder = index,
+            )
+        }
+        val customLinkedSkills = customAttributes.flatMapIndexed { attributeIndex, attribute ->
+            (1..5).map { skillIndex ->
+                val serial = attributeIndex * 10 + skillIndex
+                CharacterCustomSkill(
+                    id = uuid("96000000-0000-0000-0000-" + serial.toString().padStart(12, '0')),
+                    name = "Técnica ${attributeIndex + 1}-$skillIndex",
+                    ability = CharacterAbility.INTELLIGENCE,
+                    training = if (skillIndex == 5) SkillTraining.EXPERTISE else SkillTraining.PROFICIENT,
+                    adjustment = skillIndex,
+                    source = "Fuente ${attributeIndex + 1}",
+                    notes = "Nota $skillIndex",
+                    sortOrder = serial,
+                )
+            }
+        }
+        val standardLinkedSkills = (1..5).map { index ->
+            CharacterCustomSkill(
+                id = uuid("97000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                name = "Rastreo especial $index",
+                ability = CharacterAbility.WISDOM,
+                training = SkillTraining.PROFICIENT,
+                adjustment = index,
+                source = "Exploración",
+                notes = null,
+                sortOrder = 100 + index,
+            )
+        }
+        val customSkills = customLinkedSkills + standardLinkedSkills
+        val customMappings = buildList {
+            customAttributes.forEachIndexed { attributeIndex, attribute ->
+                customLinkedSkills
+                    .filter { it.sortOrder / 10 == attributeIndex }
+                    .forEach { skill ->
+                        add(
+                            CharacterCustomSkillAbilityConfiguration(
+                                customSkillId = skill.id,
+                                ability = CharacterAbilityReference.custom(attribute.id),
+                            ),
+                        )
+                    }
+            }
+            standardLinkedSkills.forEach { skill ->
+                add(
+                    CharacterCustomSkillAbilityConfiguration(
+                        customSkillId = skill.id,
+                        ability = CharacterAbilityReference.builtIn(CharacterAbility.WISDOM),
+                    ),
+                )
+            }
+        }
+        val extendedAggregate = aggregate.copy(
+            closure = aggregate.closure.copy(customSkills = customSkills),
+            successor = aggregate.successor.copy(
+                customAttributes = customAttributes,
+                customSkillAbilities = customMappings,
+            ),
+        )
+        val extendedPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = extendedAggregate),
+        )
+        assertEquals(
+            listOf(PcSheetExtendedPageKind.CUSTOM_STATISTICS),
+            extendedPlan.mandatoryExtendedPages,
+        )
+
+        val extendedPdf = File(proofDir, "classic-production-custom-stats-pass2.pdf")
+        extendedPdf.outputStream().use { renderer.renderDraft(extendedPlan, it) }
+
+        Loader.loadPDF(extendedPdf).use { document ->
+            assertEquals(6, document.numberOfPages)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("ESTADÍSTICAS PERSONALIZADAS"))
+            assertTrue(Regex("Atributo\\s+4").containsMatchIn(extracted))
+            assertTrue(Regex("Técnica\\s+4-5").containsMatchIn(extracted))
+            assertTrue(Regex("Rastreo\\s+especial\\s+5").containsMatchIn(extracted))
+            assertFalse(extracted.contains("HONOR"))
+            assertFalse(extracted.contains("RESOLUCIÓN"))
+            assertFalse(extracted.contains("SUERTE"))
+
+            val pdfRenderer = PDFRenderer(document)
+            (3 until document.numberOfPages).forEach { index ->
+                val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(
+                            proofDir,
+                            "classic-production-custom-stats-pass2-page-${index + 1}.png",
+                        ),
+                    ),
+                )
+            }
+        }
+        assertTrue(extendedPdf.length() > pdf.length())
     }
 
     @Test
