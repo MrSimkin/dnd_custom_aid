@@ -12,6 +12,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomAttribute
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkillAbilityConfiguration
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableRecovery
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomMarker
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterNote
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
@@ -204,6 +209,8 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertTrue(extracted.contains("RECURSOS Y OPCIONES"))
                 assertTrue(extracted.contains("Puntos de enfoque"))
                 assertTrue(extracted.contains("Metamagia cuidadosa"))
+                assertTrue(extracted.contains("Puntos de destino"))
+                assertTrue(extracted.contains("Sólo se recupera al cerrar un arco narrativo."))
                 assertTrue(extracted.contains("7/12"))
                 assertFalse(extracted.contains("Dados de portento", ignoreCase = true))
                 assertFalse(extracted.contains("Especie", ignoreCase = true))
@@ -296,6 +303,89 @@ class DesktopPcSheetWholeDraftRendererTest {
         )
     }
 
+    @Test
+    fun paginatesCustomV2ResourcesAndOptionsWithoutDroppingCanonicalRows() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val resources = (1..12).map { index ->
+            CharacterResource(
+                id = uuid("87000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Recurso canónico $index",
+                currentValue = index,
+                maxValue = index + 2,
+                recovery = if (index % 2 == 0) "Descanso largo" else null,
+                source = "Fuente $index",
+                notes = "Nota de recurso $index",
+                sortOrder = index,
+            )
+        }
+        val options = (1..20).map { index ->
+            CharacterClassOption(
+                id = uuid("88000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                kind = CharacterClassOptionKind.TECHNIQUE,
+                name = "Opción canónica $index",
+                source = "Clase $index",
+                costText = "Coste $index",
+                effectSummary = "Efecto $index",
+                notes = "Nota $index",
+                active = index % 2 == 0,
+                sortOrder = index,
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                inventoryItems = emptyList(),
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = resources,
+                classOptions = options,
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customMarkers = listOf(
+                    CharacterCustomMarker(
+                        id = uuid("89000000-0000-0000-0000-000000000001"),
+                        name = "Estrés",
+                        valueKind = CharacterTrackableValueKind.BINARY,
+                        currentValue = 1,
+                        recovery = CharacterTrackableRecovery(
+                            cadence = CharacterRecoveryCadence.SHORT_REST,
+                            amountMode = CharacterRecoveryAmountMode.TO_MAX,
+                        ),
+                        notes = "Marcador sucesor",
+                        sortOrder = 13,
+                    ),
+                ),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+        val pdf = File(proofDir, "custom-v2-resources-pagination-audit.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertEquals(6, document.numberOfPages)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("Recurso canónico 12"))
+            assertTrue(extracted.contains("Opción canónica 20"))
+            assertTrue(extracted.contains("Estrés"))
+            assertTrue(extracted.contains("Marcador sucesor"))
+            val layerNames = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(layerNames.contains("V2X RESOURCES - VALUES"))
+            assertTrue(layerNames.contains("V2X RESOURCES 2 - VALUES"))
+        }
+    }
+
     private fun denseDraftAggregateWithExtendedManagement(): PcSheetExportAggregate {
         val base = denseDraftAggregateWithCustomStatistics()
         val traits = base.sheet.traits.toMutableList()
@@ -376,12 +466,30 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
         )
 
+        val marker = CharacterCustomMarker(
+            id = uuid("86000000-0000-0000-0000-000000000001"),
+            name = "Puntos de destino",
+            valueKind = CharacterTrackableValueKind.CURRENT_MAX,
+            currentValue = 2,
+            maxValue = 5,
+            recovery = CharacterTrackableRecovery(
+                cadence = CharacterRecoveryCadence.MANUAL,
+                amountMode = CharacterRecoveryAmountMode.FIXED,
+                fixedAmount = 1,
+            ),
+            notes = "Sólo se recupera al cerrar un arco narrativo.",
+            sortOrder = 3,
+        )
+
         return base.copy(
             sheet = base.sheet.copy(
                 traits = traits,
                 proficiencies = proficiencies,
                 resources = resources,
                 classOptions = options,
+            ),
+            successor = base.successor.copy(
+                customMarkers = listOf(marker),
             ),
         )
     }
