@@ -2,6 +2,10 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
@@ -32,8 +36,9 @@ import org.apache.pdfbox.util.Matrix
  * Production promotion of the owner-approved Custom-v1 Extended Run-6 family.
  *
  * Production promotion advances one frozen role at a time. Custom Statistics, Traits & Features,
- * and Resources & Options now use the Run-6 owner-approved geometry, typography, source structure
- * and independent layer model, while all values come exclusively from [PcSheetPdfRenderPlan].
+ * Resources & Options, and Inventory / Equipment now use the Run-6 owner-approved geometry,
+ * typography, source structure and independent layer model, while all values come exclusively
+ * from [PcSheetPdfRenderPlan].
  */
 internal class DesktopCustomV1ExtendedRenderer(
     private val document: PDDocument,
@@ -60,6 +65,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         if (needsResourcesExtendedPage(plan)) {
             appendResourcesExtendedPages(plan)
         }
+        appendInventoryExtendedPages(plan)
     }
 
     private fun appendCustomStatisticsPages(plan: PcSheetPdfRenderPlan) {
@@ -653,6 +659,300 @@ internal class DesktopCustomV1ExtendedRenderer(
         CharacterRecoveryAmountMode.FIXED -> fixedAmount?.let { "+$it" } ?: "Cantidad fija"
     }
 
+    private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
+        val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
+        val ordinary = ordered.filterNot { it.special }
+        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
+            val usage = usageByItem[item.id]
+            item.takeIf {
+                index >= BASE_V1_EQUIPMENT_CAPACITY ||
+                    usageMeaningful(usage) ||
+                    item.equipped ||
+                    item.attuned ||
+                    !item.description.isNullOrBlank() ||
+                    !item.notes.isNullOrBlank()
+            }
+        }
+        val ordinaryLines = ordinaryContinuation.flatMap { item ->
+            inventoryContinuationLines(item, usageByItem[item.id])
+        }
+
+        val special = ordered.filter { it.special }
+        val specialContinuation = special.mapIndexedNotNull { index, item ->
+            val usage = usageByItem[item.id]
+            item.takeIf {
+                index >= BASE_V1_SPECIAL_CAPACITY ||
+                    item.attuned ||
+                    usageMeaningful(usage) ||
+                    item.quantity != 1 ||
+                    item.weightLb != null ||
+                    specialLocationNeedsText(item.location)
+            }
+        }
+
+        val treasure = buildList {
+            sheet.currencies
+                .filter { it.key.lowercase() !in BASE_V1_CURRENCY_KEYS }
+                .sortedBy { it.sortOrder }
+                .forEach { currency ->
+                    add(TreasureEntry(currency.name, currency.amount.toString()))
+                }
+
+            aggregate.successor.preferences.valuablesText
+                .split(';')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .drop(BASE_V1_VALUABLE_CAPACITY)
+                .map(::parseValuable)
+                .forEach(::add)
+        }
+
+        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasure.isEmpty()) return
+
+        val pages = maxOf(
+            pageCount(ordinaryLines.size, INVENTORY_ORDINARY_CAPACITY),
+            pageCount(treasure.size, INVENTORY_TREASURE_CAPACITY),
+            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
+        )
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderInventoryPage(
+                page = page,
+                ordinary = ordinaryLines.pageSlice(pageIndex, INVENTORY_ORDINARY_CAPACITY),
+                treasure = treasure.pageSlice(pageIndex, INVENTORY_TREASURE_CAPACITY),
+                special = specialContinuation.pageSlice(pageIndex, INVENTORY_SPECIAL_CAPACITY),
+                usageByItem = usageByItem,
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun renderInventoryPage(
+        page: PDPage,
+        ordinary: List<String>,
+        treasure: List<TreasureEntry>,
+        special: List<CharacterInventoryItem>,
+        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X INVENTORY P${pageIndex + 1}"
+        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            s.drawForm(resources.forms[1])
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.fira, 195f, 96f, 80f, 13f, "CONTINUACIÓN", 7.5f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            ordinary.forEachIndexed { index, value ->
+                val row = index / INVENTORY_ORDINARY_COLUMNS.size
+                val column = index % INVENTORY_ORDINARY_COLUMNS.size
+                val (startX, endX) = INVENTORY_ORDINARY_COLUMNS[column]
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(startX, endX, INVENTORY_ORDINARY_RULES[row]),
+                    value,
+                    8.2f,
+                )
+            }
+
+            treasure.forEachIndexed { index, entry ->
+                val y = INVENTORY_TREASURE_RULES[index]
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(453.402f, 546.945f, y),
+                    entry.label,
+                    8.2f,
+                )
+                entry.value?.let { value ->
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(549.779f, 583.795f, y),
+                        value,
+                        8.2f,
+                    )
+                }
+            }
+
+            positionedSpecial.forEach { (rowIndex, item) ->
+                val y = INVENTORY_SPECIAL_RULES[rowIndex]
+                val expectedLocationRow = specialLocationRow(item.location)
+                if (expectedLocationRow != rowIndex) {
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
+                        ruleText(
+                            s,
+                            resources.fira,
+                            Rule(25f, 120f, y),
+                            location,
+                            8.0f,
+                        )
+                    }
+                }
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(126f, 238f, y),
+                    inventoryContinuationLabel(item),
+                    8.2f,
+                )
+                val detail = specialInventoryDetail(item, usageByItem[item.id])
+                if (detail.isNotEmpty()) {
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(240.803f, 583.795f, y),
+                        detail,
+                        8.0f,
+                    )
+                }
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            positionedSpecial.forEach { (rowIndex, item) ->
+                if (item.equipped || item.attuned) {
+                    val y = INVENTORY_SPECIAL_RULES[rowIndex]
+                    drawV1TrainingBox(
+                        s = s,
+                        font = resources.symbol,
+                        centerX = 116f,
+                        centerTop = y - 8.5f,
+                        training = Training.PROFICIENT,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
+        if (item.quantity > 1) append(item.quantity).append(" x ")
+        append(item.name)
+    }
+
+    private fun inventoryContinuationLines(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<String> {
+        val text = buildList {
+            add(inventoryContinuationLabel(item))
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: $it") }
+            item.weightLb?.let { add(formatInventoryWeight(it)) }
+            if (item.equipped) add("Equipado")
+            if (item.attuned) add("Sintonizado")
+            addAll(inventoryUsageLabels(usage))
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
+        return wrapByWidth(
+            text,
+            resources.fira,
+            8.2f,
+            INVENTORY_ORDINARY_TEXT_WIDTH,
+        )
+    }
+
+    private fun specialInventoryDetail(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): String = buildList {
+        item.weightLb?.let { add(formatInventoryWeight(it)) }
+        if (item.equipped) add("Equipado")
+        if (item.attuned) add("Sintonizado")
+        addAll(inventoryUsageLabels(usage))
+        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+    }.joinToString(" · ")
+
+    private fun positionedSpecialItems(
+        items: List<CharacterInventoryItem>,
+        rowCount: Int,
+    ): List<Pair<Int, CharacterInventoryItem>> {
+        val available = (0 until rowCount).toMutableSet()
+        val positioned = mutableListOf<Pair<Int, CharacterInventoryItem>>()
+        items.take(rowCount).forEach { item ->
+            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
+            val fallback = available
+                .filter { it >= SPECIAL_LOCATION_LABELS.size }
+                .minOrNull()
+                ?: available.minOrNull()
+            val row = preferred ?: fallback ?: return@forEach
+            available.remove(row)
+            positioned += row to item
+        }
+        return positioned.sortedBy { it.first }
+    }
+
+    private fun specialLocationRow(location: String?): Int? {
+        val normalized = normalizedInventoryLocation(location)
+        return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
+    }
+
+    private fun specialLocationNeedsText(location: String?): Boolean {
+        val normalized = normalizedInventoryLocation(location)
+        return normalized.isNotEmpty() && normalized !in SPECIAL_LOCATION_LABELS
+    }
+
+    private fun normalizedInventoryLocation(location: String?): String =
+        location
+            ?.lowercase()
+            ?.replace('á', 'a')
+            ?.replace('é', 'e')
+            ?.replace('í', 'i')
+            ?.replace('ó', 'o')
+            ?.replace('ú', 'u')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+            .orEmpty()
+
+    private fun usageMeaningful(usage: CharacterInventoryUsage?): Boolean =
+        usage != null && (
+            usage.kind != CharacterConsumableKind.NONE ||
+                usage.quickUseAmount != 1 ||
+                usage.carryState != CharacterInventoryCarryState.CARRIED
+            )
+
+    private fun inventoryUsageLabels(usage: CharacterInventoryUsage?): List<String> {
+        if (!usageMeaningful(usage)) return emptyList()
+        requireNotNull(usage)
+        return buildList {
+            when (usage.kind) {
+                CharacterConsumableKind.NONE -> Unit
+                CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+                CharacterConsumableKind.AMMUNITION -> add("Munición")
+            }
+            if (usage.quickUseAmount != 1) add("Uso rápido " + usage.quickUseAmount)
+            if (usage.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
+        }
+    }
+
+    private fun formatInventoryWeight(weightLb: Double): String =
+        "Peso " + if (weightLb % 1.0 == 0.0) {
+            weightLb.toInt().toString() + " lb"
+        } else {
+            weightLb.toString() + " lb"
+        }
+
+    private fun parseValuable(raw: String): TreasureEntry {
+        val match = Regex("""^(.*?)\s*\((\d+)\s*po\)\s*$""", RegexOption.IGNORE_CASE)
+            .matchEntire(raw)
+        return if (match != null) {
+            TreasureEntry(
+                label = match.groupValues[1].trim(),
+                value = match.groupValues[2],
+            )
+        } else {
+            TreasureEntry(label = raw.trim(), value = null)
+        }
+    }
+
     private fun drawRuledValues(
         s: PDFormContentStream,
         startX: Float,
@@ -1235,6 +1535,11 @@ internal class DesktopCustomV1ExtendedRenderer(
     private fun textWidth(font: PDFont, text: String, size: Float): Float =
         font.getStringWidth(text) / 1000f * size
 
+    private data class TreasureEntry(
+        val label: String,
+        val value: String?,
+    )
+
     private data class ResourceRenderRow(
         val name: String,
         val currentValue: Int,
@@ -1392,6 +1697,40 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val OPTION_STEP = 20f
         const val OPTION_NAME_TEXT_WIDTH = 108f
         const val OPTION_DETAIL_TEXT_WIDTH = 339f
+
+        const val BASE_V1_EQUIPMENT_CAPACITY = 54
+        const val BASE_V1_SPECIAL_CAPACITY = 13
+        const val BASE_V1_VALUABLE_CAPACITY = 8
+        const val INVENTORY_ORDINARY_CAPACITY = 24
+        const val INVENTORY_TREASURE_CAPACITY = 4
+        const val INVENTORY_SPECIAL_CAPACITY = 13
+        const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
+        val BASE_V1_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc", "pe")
+        val INVENTORY_ORDINARY_COLUMNS = listOf(
+            27.5f to 137.5f,
+            169.937f to 300.331f,
+            311.669f to 442.063f,
+        )
+        val INVENTORY_ORDINARY_RULES = listOf(
+            128.5f, 168f, 208f, 247.5f, 287.5f, 327f, 366.5f, 406.5f,
+        )
+        val INVENTORY_TREASURE_RULES = listOf(307f, 347f, 386.5f, 426.5f)
+        val INVENTORY_SPECIAL_RULES = listOf(
+            522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f,
+            661.5f, 681.5f, 701f, 721f, 741f, 763.5f,
+        )
+        val SPECIAL_LOCATION_LABELS = listOf(
+            "cabeza",
+            "rostro",
+            "cuello",
+            "mano izquierda",
+            "mano derecha",
+            "brazo izquierdo",
+            "brazo derecho",
+            "pecho",
+            "piernas",
+            "pies",
+        )
 
         const val SOURCE_WHITE_ATTRIBUTE_X = 408f
         const val SOURCE_SCORE_FRAGMENT_TOP = 268.5f

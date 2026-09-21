@@ -361,6 +361,8 @@ class DesktopPcSheetWholeDraftRendererTest {
         val management = denseDraftAggregateWithExtendedManagement()
         val aggregate = base.copy(
             sheet = base.sheet.copy(
+                inventoryItems = emptyList(),
+                currencies = emptyList(),
                 resources = management.sheet.resources.mapIndexed { index, resource ->
                     if (index == 2) {
                         resource.copy(notes = "Nota persistente del recurso.")
@@ -378,6 +380,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             successor = base.successor.copy(
                 customMarkers = management.successor.customMarkers,
+                preferences = base.successor.preferences.copy(valuablesText = ""),
             ),
         )
         val plan = PcSheetPdfExportPlanner.plan(
@@ -413,6 +416,96 @@ class DesktopPcSheetWholeDraftRendererTest {
             val pageIndex = document.numberOfPages - 1
             val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 220f, ImageType.RGB)
             val png = File(proofDir, "custom-v1-production-extended-resources-pass3-page-${pageIndex + 1}.png")
+            assertTrue(ImageIO.write(image, "png", png))
+            assertTrue(png.length() > 0L)
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
+    fun promotesOwnerApprovedCustomV1InventoryContinuationFromRealPlanData() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val ordinary = base.sheet.inventoryItems.first { !it.special }.copy(
+            equipped = true,
+            notes = "Nota persistente del equipo ordinario.",
+        )
+        val special = base.sheet.inventoryItems.first { it.special }.copy(
+            attuned = true,
+            weightLb = 1.5,
+            notes = "Nota persistente del equipo especial.",
+        )
+        val customCurrency = CharacterCurrency(
+            key = "pm",
+            name = "Piezas de mithril",
+            amount = 7,
+            sortOrder = 99,
+            isDefault = false,
+        )
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                inventoryItems = listOf(ordinary, special),
+                currencies = base.sheet.currencies + customCurrency,
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+            closure = base.closure.copy(
+                inventoryUsage = listOf(
+                    CharacterInventoryUsage(
+                        itemId = ordinary.id,
+                        kind = CharacterConsumableKind.CONSUMABLE,
+                        quickUseAmount = 2,
+                        carryState = CharacterInventoryCarryState.STORED,
+                    ),
+                ),
+            ),
+            successor = base.successor.copy(
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(
+                    valuablesText = (1..9).joinToString("; ") { index ->
+                        "Tesoro canónico $index ($index po)"
+                    },
+                ),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v1-production-extended-inventory-pass4.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertEquals(6, document.numberOfPages)
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - STRUCTURE") })
+            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - VALUES") })
+            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - MARKERS") })
+            assertFalse(layers.any { it.startsWith("V1X TRAITS") })
+            assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
+
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+ordinario").containsMatchIn(extracted))
+            assertTrue(extracted.contains("Consumible"))
+            assertTrue(extracted.contains("Uso rápido 2"))
+            assertTrue(extracted.contains("Almacenado"))
+            assertTrue(extracted.contains("Sintonizado"))
+            assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+especial").containsMatchIn(extracted))
+            assertTrue(extracted.contains("Piezas de mithril"))
+            assertTrue(extracted.contains("7"))
+            assertTrue(extracted.contains("Tesoro canónico 9"))
+
+            val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
+            val png = File(proofDir, "custom-v1-production-extended-inventory-pass4-page-6.png")
             assertTrue(ImageIO.write(image, "png", png))
             assertTrue(png.length() > 0L)
         }
