@@ -109,6 +109,9 @@ class DesktopPcSheetWholeDraftRendererTest {
                     assertTrue(extracted.contains("Mochila de expedición"))
                     assertTrue(extracted.contains("Sabio de la Academia"))
                     assertTrue(extracted.contains("Escudo"))
+                    assertTrue(extracted.contains("Curiosidad académica"))
+                    assertTrue(extracted.contains("Subestima los riesgos"))
+                    assertTrue(extracted.contains("Corellon"))
                 }
 
                 val pdfRenderer = PDFRenderer(document)
@@ -267,6 +270,7 @@ class DesktopPcSheetWholeDraftRendererTest {
 
                 val extracted = PDFTextStripper().getText(document)
                 assertTrue(extracted.contains("TESORO / OBJETOS / OTROS"))
+                assertTrue(extracted.contains("Piezas de oro: 137"))
                 assertTrue(extracted.contains("Sintonizado"))
                 assertTrue(extracted.contains("Viales vacíos"))
                 assertTrue(extracted.contains("Muestras y reactivos."))
