@@ -2,7 +2,7 @@
 
 **Status:** CANONICAL / OWNER-APPROVED DIRECTION  
 **Established:** 2026-09-20  
-**Applies to:** Custom v1 Extended (frozen) and all future Custom v2 Extended-page design/QA work.  
+**Applies to:** Custom v1 Extended (frozen), Custom v2 Extended Run 7 (frozen), and future production/integration work for both families.  
 **Related protocol:** `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`
 
 ## 1. Purpose
@@ -256,7 +256,24 @@ Run 6 is the Custom-v1 Extended visual authority.
 
 Do not recalibrate it without a new owner-observed defect or product requirement.
 
-## 11. Custom-v2 Extended carry-forward plan
+## 11. Custom-v2 Extended frozen baseline
+
+Owner approved on 2026-09-20/21:
+
+- implementation commit: `f464522ad232f4ed6193e1c28d118e45faad988c`;
+- Scaffold push run: `35546791262` / #2946 — SUCCESS;
+- artifact: `10617190236`;
+- proof PDF: `custom-v2-extended-evaluation-run7.pdf`;
+- proof PDF SHA-256: `b765884d62cc69a5451fb02dade16db756f1b58469ba4cdb5f5c16ec56e79440`;
+- durable checkpoint: `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V2_EXTENDED_RUN7_OWNER_APPROVED.md`.
+
+Run 7 is the Custom-v2 Extended visual authority.
+
+Do not recalibrate it without a new owner-observed defect, a bounded defect exposed by real production data, or an explicit product requirement.
+
+The next phase is production promotion: move the approved mechanics out of QA/evaluation-only code and into the real `PcSheetPdfRenderPlan` renderer while preserving both Custom-v2 first-page modes and the shared Extended pages.
+
+## 12. Custom-v2 production-promotion carry-forward plan
 
 Custom-v2 base sheets are already OWNER APPROVED / FROZEN:
 
@@ -315,7 +332,7 @@ Do not start coding until deciding whether the six Extended roles can share one 
 
 That decision must come from the frozen v2 visual grammar and semantic relationship model, not convenience.
 
-## 12. Historical failure lessons to preserve
+## 13. Historical failure lessons to preserve
 
 - **Run 1:** superficial family motifs are not enough; spacing/capacity/maquetación must match the source family.
 - **Run 2:** source-faithful direction was correct, but broad masks and block selection still created artifacts.
