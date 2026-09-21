@@ -361,6 +361,10 @@ class DesktopPcSheetWholeDraftRendererTest {
         val current = permanent.copy(
             sheet = permanent.sheet.copy(
                 currentHp = 11,
+                tempHp = 6,
+                deathSaveSuccesses = 2,
+                deathSaveFailures = 1,
+                passivePerceptionAdjustment = 2,
                 inventoryItems = listOf(ammunition),
                 weaponMasteries = listOf(
                     CharacterWeaponMastery(
@@ -482,6 +486,9 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(document.numberOfPages >= 5)
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("3 de 5 hitos"))
+            assertTrue(extracted.contains("PG temporales"))
+            assertTrue(extracted.contains("Salvaciones de muerte"))
+            assertTrue(extracted.contains("Percepción pasiva"))
             assertTrue(extracted.contains("Agotamiento"))
             assertTrue(extracted.contains("Asustado"))
             assertTrue(extracted.contains("Resistencia"))
