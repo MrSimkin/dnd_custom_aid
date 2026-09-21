@@ -141,6 +141,77 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun promotesOwnerApprovedCustomV1ExtendedCustomStatisticsFromRealPlanData() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithCustomStatistics()
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v1-production-extended-stats-pass1.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertTrue(document.numberOfPages >= 6)
+            val layerNames = document.documentCatalog.ocProperties
+                ?.getGroupNames()
+                ?.toList()
+                .orEmpty()
+            assertTrue(layerNames.any { it.startsWith("V1X STATS P1 - STRUCTURE") })
+            assertTrue(layerNames.any { it.startsWith("V1X STATS P1 - VALUES") })
+            assertTrue(layerNames.any { it.startsWith("V1X STATS P1 - MARKERS") })
+
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("Estadísticas Personalizadas"))
+            assertTrue(extracted.contains("HONor"))
+            assertTrue(extracted.contains("VOLuntad"))
+            assertTrue(extracted.contains("SUErte"))
+            assertTrue(extracted.contains("Etiqueta"))
+            assertTrue(extracted.contains("Criptografía"))
+            assertTrue(extracted.contains("Acrobacia aérea"))
+
+            val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
+            val png = File(proofDir, "custom-v1-production-extended-stats-pass1-page-6.png")
+            assertTrue(ImageIO.write(image, "png", png))
+            assertTrue(png.length() > 0L)
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
+    fun paginatesCustomV1ExtendedCustomStatisticsWithoutDroppingCanonicalRows() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithCustomStatisticsOverflow()
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v1-custom-stats-overflow.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertTrue(document.numberOfPages >= 8)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("Vínculo 7-7"))
+            val layerNames = document.documentCatalog.ocProperties
+                ?.getGroupNames()
+                ?.toList()
+                .orEmpty()
+            assertTrue(layerNames.any { it.startsWith("V1X STATS P3 - VALUES") })
+        }
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV2ExtendedCustomStatisticsFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
