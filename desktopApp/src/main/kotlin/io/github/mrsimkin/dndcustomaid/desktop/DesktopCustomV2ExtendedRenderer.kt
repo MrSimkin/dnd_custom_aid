@@ -4,6 +4,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
@@ -82,6 +83,8 @@ internal class DesktopCustomV2ExtendedRenderer(
             document.addPage(page)
             renderResources(page, plan)
         }
+
+        appendInventoryExtendedPages(plan)
     }
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
@@ -578,6 +581,125 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
     }
+
+    private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
+        val ordinaryOverflow = ordered.filterNot { it.special }.drop(BASE_V2_EQUIPMENT_CAPACITY)
+        val special = ordered.filter { it.special }
+        val specialContinuation = special.mapIndexedNotNull { index, item ->
+            item.takeIf { index >= BASE_V2_SPECIAL_CAPACITY || item.attuned }
+        }
+        val valuables = plan.snapshot.aggregate.successor.preferences.valuablesText
+            .split(Regex("[;\\n]+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        if (ordinaryOverflow.isEmpty() && specialContinuation.isEmpty() && valuables.isEmpty()) return
+
+        val pages = maxOf(
+            pageCount(ordinaryOverflow.size, INVENTORY_CONTINUATION_CAPACITY),
+            pageCount(valuables.size, INVENTORY_VALUABLES_CAPACITY),
+            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
+        )
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderInventory(
+                page = page,
+                ordinary = ordinaryOverflow
+                    .drop(pageIndex * INVENTORY_CONTINUATION_CAPACITY)
+                    .take(INVENTORY_CONTINUATION_CAPACITY),
+                valuables = valuables
+                    .drop(pageIndex * INVENTORY_VALUABLES_CAPACITY)
+                    .take(INVENTORY_VALUABLES_CAPACITY),
+                special = specialContinuation
+                    .drop(pageIndex * INVENTORY_SPECIAL_CAPACITY)
+                    .take(INVENTORY_SPECIAL_CAPACITY),
+            )
+        }
+    }
+
+    private fun renderInventory(
+        page: PDPage,
+        ordinary: List<CharacterInventoryItem>,
+        valuables: List<String>,
+        special: List<CharacterInventoryItem>,
+    ) {
+        appendLayer(page, "V2X INVENTORY - STRUCTURE") { s ->
+            pageHeaderStructure(s, resources.forms[2])
+            fill(s, 14f, 96f, 411f, 22f, SOURCE_GRAY_LIGHT)
+            fill(s, 431f, 96f, 167f, 22f, SOURCE_GRAY_LIGHT)
+
+            val equipmentCols = listOf(14f to 147f, 153f to 286f, 292f to 425f)
+            equipmentCols.forEachIndexed { index, col ->
+                bandedRows(s, col.first, col.second, 139f, 19, 17f, index)
+            }
+            bandedRows(s, 431f, 598f, 139f, 19, 17f, 1)
+
+            drawRule(s, 14f, 598f, 480f, 0.8f)
+            fill(s, 14f, 488f, 584f, 22f, SOURCE_GRAY_LIGHT)
+            bandedRows(s, 14f, 598f, 548f, 12, 17f, 0)
+            listOf(30f, 130f, 310f).forEach { x -> verticalRule(s, x, 512f, 752f, 0.45f) }
+        }
+        appendLayer(page, "V2X INVENTORY - CLEANUP") { }
+        appendLayer(page, "V2X INVENTORY - LABELS") { s ->
+            pageTitle(s, "INVENTARIO / EQUIPO")
+            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 97f, 411f, 20f), "EQUIPO - CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(431f, 97f, 167f, 20f), "TESORO / OBJETOS / OTROS", 10.2f, SOURCE_CORBEL_HEADING_SCALE)
+
+            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 489f, 584f, 20f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            tableLabel(s, 30f, 514f, 100f, "UBICACIÓN")
+            tableLabel(s, 130f, 514f, 180f, "NOMBRE")
+            tableLabel(s, 310f, 514f, 288f, "DESCRIPCIÓN / ESTADO")
+        }
+        appendLayer(page, "V2X INVENTORY - VALUES") { s ->
+            ordinary.forEachIndexed { index, item ->
+                val col = index / 19
+                val row = index % 19
+                val x1 = listOf(18f, 157f, 296f)[col]
+                val x2 = listOf(143f, 282f, 421f)[col]
+                textAboveRule(s, resources.fira, Rule(x1, x2, 139f + row * 17f), inventoryContinuationLabel(item), 9.0f, 8.2f, 2.3f)
+            }
+
+            valuables.forEachIndexed { row, value ->
+                textAboveRule(s, resources.fira, Rule(435f, 594f, 139f + row * 17f), value, 8.5f, 7.2f, 2.3f)
+            }
+
+            special.forEachIndexed { row, item ->
+                val y = 548f + row * 17f
+                item.location?.takeIf { it.isNotBlank() }?.let {
+                    textAboveRule(s, resources.fira, Rule(34f, 126f, y), it, 8.5f, 7.2f, 2.3f)
+                }
+                textAboveRule(s, resources.fira, Rule(134f, 306f, y), item.name, 8.8f, 7.5f, 2.3f)
+                val detail = buildList {
+                    if (item.attuned) add("Sintonizado")
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                if (detail.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(314f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
+                }
+            }
+        }
+        appendLayer(page, "V2X INVENTORY - MARKERS") { s ->
+            repeat(INVENTORY_SPECIAL_CAPACITY) { row ->
+                drawV2TrainingBox(
+                    s,
+                    TopRect(16f, 536f + row * 17f, 8.5f, 9f),
+                    if (special.getOrNull(row)?.equipped == true) Training.PROFICIENT else Training.NONE,
+                )
+            }
+        }
+    }
+
+    private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
+        if (item.quantity > 1) append(item.quantity).append(" x ")
+        append(item.name)
+    }
+
+    private fun pageCount(size: Int, capacity: Int): Int =
+        if (size <= 0) 0 else (size + capacity - 1) / capacity
 
     private fun featureEntry(
         s: PDFormContentStream,
@@ -1266,6 +1388,11 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_HEADING_SCALE = 81f
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
         const val BASE_V2_TRAIT_CAPACITY = 18
+        const val BASE_V2_EQUIPMENT_CAPACITY = 23
+        const val BASE_V2_SPECIAL_CAPACITY = 14
+        const val INVENTORY_CONTINUATION_CAPACITY = 57
+        const val INVENTORY_VALUABLES_CAPACITY = 19
+        const val INVENTORY_SPECIAL_CAPACITY = 12
         val SOURCE_GRAY_DARK: Color = Color(200, 199, 199)
         val SOURCE_GRAY_LIGHT: Color = Color(227, 227, 227)
     }
