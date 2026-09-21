@@ -9,6 +9,17 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterWeaponMastery
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTemporaryEffect
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSense
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterMovementType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterMovement
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterForm
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterDefenseType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterDefense
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCondition
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConcentration
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCompanion
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomAttribute
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkillAbilityConfiguration
@@ -314,6 +325,149 @@ class DesktopPcSheetWholeDraftRendererTest {
                 noteCards = emptyList(),
             ),
         )
+    }
+
+    @Test
+    fun exportsCurrentSnapshotOperationalAndReferenceSemanticsInCustomV2() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val permanent = denseDraftAggregate().copy(
+            sheet = denseDraftAggregate().sheet.copy(
+                inventoryItems = emptyList(),
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+        )
+        val current = permanent.copy(
+            sheet = permanent.sheet.copy(
+                currentHp = 11,
+                weaponMasteries = listOf(
+                    CharacterWeaponMastery(
+                        id = uuid("8c000000-0000-0000-0000-000000000001"),
+                        weaponName = "Espada larga",
+                        masteryName = "Empujar",
+                        source = "Guerrero",
+                        notes = "Sólo con esta arma.",
+                    ),
+                ),
+                forms = listOf(
+                    CharacterForm(
+                        id = uuid("8d000000-0000-0000-0000-000000000001"),
+                        name = "Forma de lobo",
+                        source = "Rasgo",
+                        challengeRatingText = "1/4",
+                        armorClass = 13,
+                        hitPoints = 18,
+                        movement = "40 ft",
+                        senses = "Percepción aguda",
+                        actionSummary = "Mordisco",
+                        notes = "Forma registrada.",
+                    ),
+                ),
+                companions = listOf(
+                    CharacterCompanion(
+                        id = uuid("8e000000-0000-0000-0000-000000000001"),
+                        name = "Nim",
+                        kind = "Familiar",
+                        source = "Conjuro",
+                        armorClass = 12,
+                        maxHp = 9,
+                        currentHp = 7,
+                        tempHp = 1,
+                        speed = "30 ft",
+                        abilitySummary = "Explorador",
+                        sensesProficiencies = "Visión en la oscuridad",
+                        traitsActions = "Ayudar",
+                        notes = "Compañero actual.",
+                    ),
+                ),
+            ),
+            closure = permanent.closure.copy(
+                progressMode = CharacterProgressMode.MILESTONE,
+                milestoneProgress = "3 de 5 hitos",
+                exhaustionLevel = 2,
+                concentration = CharacterConcentration(
+                    name = "Volar",
+                    notes = "Concentración activa",
+                ),
+                conditions = listOf(
+                    CharacterCondition(
+                        id = uuid("8f000000-0000-0000-0000-000000000001"),
+                        name = "Asustado",
+                        source = "Efecto actual",
+                        notes = "Hasta final del turno.",
+                    ),
+                ),
+                defenses = listOf(
+                    CharacterDefense(
+                        id = uuid("90000000-0000-0000-0000-000000000001"),
+                        type = CharacterDefenseType.RESISTANCE,
+                        name = "Fuego",
+                        source = "Objeto",
+                    ),
+                ),
+                movements = listOf(
+                    CharacterMovement(
+                        id = uuid("91000000-0000-0000-0000-000000000001"),
+                        type = CharacterMovementType.FLY,
+                        name = "Vuelo mágico",
+                        speedFeet = 60,
+                        notes = "Mientras concentra.",
+                    ),
+                ),
+                senses = listOf(
+                    CharacterSense(
+                        id = uuid("92000000-0000-0000-0000-000000000001"),
+                        name = "Visión verdadera",
+                        rangeFeet = 30,
+                    ),
+                ),
+                temporaryEffects = listOf(
+                    CharacterTemporaryEffect(
+                        id = uuid("93000000-0000-0000-0000-000000000001"),
+                        name = "Bendición temporal",
+                        summary = "+1 a una prueba",
+                        durationText = "10 minutos",
+                        source = "Aliado",
+                        notes = "Activo",
+                        active = true,
+                    ),
+                ),
+            ),
+        )
+
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.CURRENT_SNAPSHOT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = permanent,
+                currentSnapshot = current,
+            ),
+        )
+        val pdf = File(proofDir, "custom-v2-current-snapshot-semantics.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertTrue(document.numberOfPages >= 5)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("3 de 5 hitos"))
+            assertTrue(extracted.contains("Agotamiento"))
+            assertTrue(extracted.contains("Asustado"))
+            assertTrue(extracted.contains("Resistencia"))
+            assertTrue(extracted.contains("Vuelo mágico"))
+            assertTrue(extracted.contains("Visión verdadera"))
+            assertTrue(extracted.contains("Bendición temporal"))
+            assertTrue(extracted.contains("Espada larga"))
+            assertTrue(extracted.contains("Forma de lobo"))
+            assertTrue(extracted.contains("Nim"))
+        }
     }
 
     @Test
