@@ -30,6 +30,12 @@ This approval closes the Custom-v2 Extended visual-design/QA phase and freezes t
 6. Spells;
 7. Notes.
 
+These seven pages are **visual/behavioral evaluation exemplars**, not a literal mandatory seven-page character export.
+
+The owner approval freezes how each Extended role is constructed when that role is warranted. The sample character content printed in Run 7 is QA fixture data only and is not canonical product content. In particular, sample custom Attributes/skills, traits, resources, options, inventory, spells, notes, scores, counters and descriptions must not become built-in defaults through this approval.
+
+Production content authority remains the selected character aggregate and `PcSheetPdfRenderPlan`; production decides dynamically whether an Extended role exists and what values it contains.
+
 The already-owner-approved Custom-v2 base sheets remain unchanged and authoritative:
 
 - Custom v2 — per Attribute;
