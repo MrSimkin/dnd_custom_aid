@@ -15,6 +15,23 @@ The central rule is:
 
 Do not reconstruct these rules from chat memory. This file is the durable authority for Custom Extended-page work.
 
+### Evaluation fixture content is not product content
+
+Owner approval of an Extended proof freezes the **rendering model**, not the literal example character printed in that proof.
+
+Frozen authority includes, as applicable:
+
+- geometry and proportions;
+- typography and row cadence;
+- layer responsibilities;
+- marker/symbol grammar;
+- semantic placement rules;
+- continuation/overflow presentation.
+
+Fixture values used to exercise those mechanics are **non-authoritative QA data**. Examples such as custom Attributes, custom skills, trait names, resource names, inventory, spells, notes, scores, counters or descriptions must never become built-in/default character content merely because they appeared in an owner-approved proof.
+
+Production output must always be driven by the selected character aggregate and `PcSheetPdfRenderPlan`. An Extended role is appended only when the application's real data/presentation/overflow rules warrant that role.
+
 ## 2. Design before implementation
 
 Before changing renderer code for a new Extended page or correction:
