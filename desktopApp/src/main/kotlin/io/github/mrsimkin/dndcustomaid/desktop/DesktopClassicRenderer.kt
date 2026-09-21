@@ -542,9 +542,9 @@ internal class DesktopClassicRenderer {
                     companion.maxHp != null ||
                     companion.currentHp != null ||
                     companion.tempHp != 0 ||
-                    companion.speed.isNotBlank() ||
-                    companion.abilitySummary.isNotBlank() ||
-                    companion.sensesProficiencies.isNotBlank() ||
+                    !companion.speed.isNullOrBlank() ||
+                    !companion.abilitySummary.isNullOrBlank() ||
+                    !companion.sensesProficiencies.isNullOrBlank() ||
                     companion.traitsActions.isNotBlank() ||
                     !companion.notes.isNullOrBlank()
             if (hasReferenceDetail) {
@@ -561,9 +561,9 @@ internal class DesktopClassicRenderer {
                             add("PG " + (companion.currentHp ?: max) + "/" + max)
                         }
                         if (companion.tempHp > 0) add("PG temp. " + companion.tempHp)
-                        companion.speed.takeIf { it.isNotBlank() }?.let(::add)
-                        companion.abilitySummary.takeIf { it.isNotBlank() }?.let(::add)
-                        companion.sensesProficiencies.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.speed?.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.abilitySummary?.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.sensesProficiencies?.takeIf { it.isNotBlank() }?.let(::add)
                         companion.traitsActions.takeIf { it.isNotBlank() }?.let(::add)
                         companion.notes?.takeIf { it.isNotBlank() }?.let(::add)
                     }.joinToString(" · "),
