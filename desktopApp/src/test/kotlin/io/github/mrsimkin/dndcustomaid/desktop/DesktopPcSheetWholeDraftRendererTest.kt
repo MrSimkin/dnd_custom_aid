@@ -29,6 +29,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomMarker
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterNote
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency
@@ -343,9 +346,20 @@ class DesktopPcSheetWholeDraftRendererTest {
                 noteCards = emptyList(),
             ),
         )
+        val ammunition = inventory(
+            index = 200,
+            name = "Flechas de prueba",
+            quantity = 20,
+            weight = 0.05,
+            location = "Carcaj",
+            special = false,
+            equipped = false,
+            description = "Munición actual.",
+        )
         val current = permanent.copy(
             sheet = permanent.sheet.copy(
                 currentHp = 11,
+                inventoryItems = listOf(ammunition),
                 weaponMasteries = listOf(
                     CharacterWeaponMastery(
                         id = uuid("8c000000-0000-0000-0000-000000000001"),
@@ -438,6 +452,14 @@ class DesktopPcSheetWholeDraftRendererTest {
                         active = true,
                     ),
                 ),
+                inventoryUsage = listOf(
+                    CharacterInventoryUsage(
+                        itemId = ammunition.id,
+                        kind = CharacterConsumableKind.AMMUNITION,
+                        quickUseAmount = 2,
+                        carryState = CharacterInventoryCarryState.STORED,
+                    ),
+                ),
             ),
         )
 
@@ -467,6 +489,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Espada larga"))
             assertTrue(extracted.contains("Forma de lobo"))
             assertTrue(extracted.contains("Nim"))
+            assertTrue(extracted.contains("Flechas de prueba"))
+            assertTrue(extracted.contains("Munición"))
+            assertTrue(extracted.contains("Uso rápido 2"))
+            assertTrue(extracted.contains("Almacenado"))
         }
     }
 
