@@ -751,8 +751,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
         appendLayer(page, "$prefix - VALUES") { s ->
             ordinary.forEachIndexed { index, value ->
-                val row = index / INVENTORY_ORDINARY_COLUMNS.size
-                val column = index % INVENTORY_ORDINARY_COLUMNS.size
+                // Preserve natural paper reading order: fill one column top-to-bottom before
+                // continuing in the next column, so wrapped metadata for one item stays together.
+                val row = index % INVENTORY_ORDINARY_RULES.size
+                val column = index / INVENTORY_ORDINARY_RULES.size
                 val (startX, endX) = INVENTORY_ORDINARY_COLUMNS[column]
                 ruleText(
                     s,
