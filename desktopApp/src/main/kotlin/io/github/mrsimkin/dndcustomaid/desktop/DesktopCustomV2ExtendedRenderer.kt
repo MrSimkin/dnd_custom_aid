@@ -75,11 +75,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
 
-        if (needsTraitsExtendedPage(plan)) {
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderTraits(page, plan)
-        }
+        appendTraitsExtendedPages(plan)
 
         appendResourcesExtendedPages(plan)
 
@@ -90,13 +86,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
         val sheet = plan.snapshot.aggregate.sheet
-        return sheet.traits.size > BASE_V2_TRAIT_CAPACITY ||
-            sheet.traits.any { trait ->
-                trait.maxUses != null ||
-                    !trait.recovery.isNullOrBlank() ||
-                    !trait.notes.isNullOrBlank()
-            } ||
-            sheet.proficiencies.isNotEmpty()
+        return sheet.traits.isNotEmpty() || sheet.proficiencies.isNotEmpty()
     }
 
     private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
@@ -387,7 +377,9 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
     }
 
-    private fun renderTraits(page: PDPage, plan: PcSheetPdfRenderPlan) {
+    private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
+        if (!needsTraitsExtendedPage(plan)) return
+
         val sheet = plan.snapshot.aggregate.sheet
         val traits = sheet.traits.sortedBy { it.sortOrder }
         fun featurePriority(trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait): Int =
@@ -404,22 +396,64 @@ internal class DesktopCustomV2ExtendedRenderer(
         }.sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
         val rightTraits = traits.filterNot { it in leftTraits }
             .sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
+
         val featuredLeft = leftTraits.take(2)
         val featuredRight = rightTraits.take(2)
         val featuredIds = (featuredLeft + featuredRight).map { it.id }.toSet()
         val remaining = traits.filterNot { it.id in featuredIds }
-        val primaryContinuation = remaining.take(10)
-        val lowerContinuation = remaining.drop(10)
+
+        val detailLines = buildList {
+            featuredLeft.forEach { trait ->
+                addAll(featureOverflowLines(trait, 269f))
+            }
+            featuredRight.forEach { trait ->
+                addAll(featureOverflowLines(trait, 283f))
+            }
+            remaining.forEach { trait ->
+                addAll(fullTraitDetailLines(trait))
+            }
+        }
+
         val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
+        val pages = maxOf(
+            1,
+            pageCount(detailLines.size, TRAIT_DETAIL_LINES_PER_PAGE),
+            pageCount(proficiencies.size, TRAIT_PROFICIENCIES_PER_PAGE),
+        )
 
-        require(remaining.size <= 18) {
-            "Traits production pass 2 supports up to eighteen continuation trait names after four featured entries."
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderTraitsPage(
+                page = page,
+                featuredLeft = if (pageIndex == 0) featuredLeft else emptyList(),
+                featuredRight = if (pageIndex == 0) featuredRight else emptyList(),
+                nameIndex = remaining
+                    .drop(pageIndex * TRAIT_NAME_INDEX_PER_PAGE)
+                    .take(TRAIT_NAME_INDEX_PER_PAGE),
+                detailLines = detailLines
+                    .drop(pageIndex * TRAIT_DETAIL_LINES_PER_PAGE)
+                    .take(TRAIT_DETAIL_LINES_PER_PAGE),
+                proficiencies = proficiencies
+                    .drop(pageIndex * TRAIT_PROFICIENCIES_PER_PAGE)
+                    .take(TRAIT_PROFICIENCIES_PER_PAGE),
+                pageIndex = pageIndex,
+            )
         }
-        require(proficiencies.size <= 8) {
-            "Traits production pass 2 supports up to eight proficiency/language continuation rows."
-        }
+    }
 
-        appendLayer(page, "V2X TRAITS - STRUCTURE") { s ->
+    private fun renderTraitsPage(
+        page: PDPage,
+        featuredLeft: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+        featuredRight: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+        nameIndex: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+        detailLines: List<String>,
+        proficiencies: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = if (pageIndex == 0) "V2X TRAITS" else "V2X TRAITS ${pageIndex + 1}"
+
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 96f, 277f, 24f, SOURCE_GRAY_LIGHT)
             fill(s, 307f, 96f, 291f, 24f, SOURCE_GRAY_LIGHT)
@@ -430,8 +464,8 @@ internal class DesktopCustomV2ExtendedRenderer(
             drawRule(s, 14f, 291f, 579f, 0.8f)
             drawRule(s, 307f, 598f, 579f, 0.8f)
         }
-        appendLayer(page, "V2X TRAITS - CLEANUP") { }
-        appendLayer(page, "V2X TRAITS - LABELS") { s ->
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "RASGOS Y ATRIBUTOS")
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
@@ -440,7 +474,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             textTopSource(s, resources.corbelBold, resources.firaSemibold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
             textTopSource(s, resources.corbelBold, resources.firaSemibold, 311f, 586f, "CONTINUACIÓN", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
         }
-        appendLayer(page, "V2X TRAITS - VALUES") { s ->
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
             featuredLeft.forEachIndexed { index, trait ->
                 featureEntry(s, 14f, 137f + index * 102f, 277f, trait)
             }
@@ -448,19 +482,11 @@ internal class DesktopCustomV2ExtendedRenderer(
                 featureEntry(s, 307f, 137f + index * 102f, 291f, trait)
             }
 
-            primaryContinuation.forEachIndexed { index, trait ->
+            nameIndex.forEachIndexed { index, trait ->
                 textAboveRule(s, resources.fira, Rule(18f, 287f, 392f + index * 17f), trait.name, 8.1f, 6.5f, 2.2f)
             }
 
-            val detailLines = remaining.flatMap { trait ->
-                trait.notes.orEmpty().trim().takeIf { it.isNotEmpty() }
-                    ?.let { wrapByWidth(resources.fira, trait.name + ": " + it, 7.7f, 281f) }
-                    .orEmpty()
-            }
-            require(detailLines.size <= 10) {
-                "Trait note continuation exceeds the approved Run-7 detail region."
-            }
-            detailLines.forEachIndexed { index, line ->
+            detailLines.take(10).forEachIndexed { index, line ->
                 textAboveRule(s, resources.fira, Rule(311f, 594f, 392f + index * 17f), line, 7.7f, 6.2f, 2.2f)
             }
 
@@ -468,18 +494,52 @@ internal class DesktopCustomV2ExtendedRenderer(
                 val label = buildString {
                     append(proficiency.name)
                     proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                    proficiency.notes?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
                 }
-                textAboveRule(s, resources.fira, Rule(18f, 287f, 613f + index * 17f), label, 8.0f, 6.4f, 2.2f)
+                textAboveRule(s, resources.fira, Rule(18f, 287f, 613f + index * 17f), label, 8.0f, 6.2f, 2.2f)
             }
 
-            require(lowerContinuation.size <= 8) {
-                "Lower trait continuation exceeds the approved Run-7 continuation region."
-            }
-            lowerContinuation.forEachIndexed { index, trait ->
-                textAboveRule(s, resources.fira, Rule(311f, 594f, 613f + index * 17f), trait.name, 8.2f, 7.2f, 2.3f)
+            detailLines.drop(10).take(8).forEachIndexed { index, line ->
+                textAboveRule(s, resources.fira, Rule(311f, 594f, 613f + index * 17f), line, 7.7f, 6.2f, 2.2f)
             }
         }
-        appendLayer(page, "V2X TRAITS - MARKERS") { }
+        appendLayer(page, "$layerPrefix - MARKERS") { }
+    }
+
+    private fun featureOverflowLines(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        width: Float,
+    ): List<String> {
+        val lines = featureDescriptionLines(trait, width)
+        val overflow = lines.drop(FEATURE_DESCRIPTION_LINES)
+        if (overflow.isEmpty()) return emptyList()
+        return overflow.mapIndexed { index, line ->
+            if (index == 0) trait.name + ": " + line else line
+        }
+    }
+
+    private fun fullTraitDetailLines(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+    ): List<String> {
+        val uses = trait.maxUses?.let { max ->
+            val current = (max - trait.spentUses).coerceIn(0, max)
+            buildString {
+                append("Usos ").append(current).append("/").append(max)
+                trait.recovery?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+            }
+        } ?: trait.recovery?.takeIf { it.isNotBlank() }
+
+        val metadata = listOf(
+            traitTypeLabel(trait.type),
+            trait.source.trim(),
+            trait.activation?.let(::activationLabel).orEmpty(),
+            uses.orEmpty(),
+            trait.description.trim(),
+            trait.notes.orEmpty().trim(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
+
+        if (metadata.isEmpty()) return listOf(trait.name)
+        return wrapByWidth(resources.fira, trait.name + ": " + metadata, 7.7f, 281f)
     }
 
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
@@ -1009,17 +1069,23 @@ internal class DesktopCustomV2ExtendedRenderer(
             textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, top + 34f), it, 7.3f, 6.2f, 2.5f)
         }
 
+        featureDescriptionLines(trait, width - 8f)
+            .take(FEATURE_DESCRIPTION_LINES)
+            .forEachIndexed { index, line ->
+                textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, descriptionTop + index * 17f), line, 7.4f, 6.2f, 2.5f)
+            }
+    }
+
+    private fun featureDescriptionLines(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        width: Float,
+    ): List<String> {
         val description = listOf(
             trait.description.trim(),
             trait.notes.orEmpty().trim(),
         ).filter { it.isNotEmpty() }.joinToString(" · ")
-        if (description.isNotEmpty()) {
-            wrapByWidth(resources.fira, description, 7.4f, width - 8f)
-                .take(3)
-                .forEachIndexed { index, line ->
-                    textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, descriptionTop + index * 17f), line, 7.4f, 6.2f, 2.5f)
-                }
-        }
+        return if (description.isEmpty()) emptyList()
+        else wrapByWidth(resources.fira, description, 7.4f, width)
     }
 
     private fun tableLabel(
@@ -1685,6 +1751,10 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_HEADING_SCALE = 81f
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
         const val BASE_V2_TRAIT_CAPACITY = 18
+        const val FEATURE_DESCRIPTION_LINES = 3
+        const val TRAIT_NAME_INDEX_PER_PAGE = 10
+        const val TRAIT_DETAIL_LINES_PER_PAGE = 18
+        const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_EQUIPMENT_CAPACITY = 23
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_CONTINUATION_CAPACITY = 57
