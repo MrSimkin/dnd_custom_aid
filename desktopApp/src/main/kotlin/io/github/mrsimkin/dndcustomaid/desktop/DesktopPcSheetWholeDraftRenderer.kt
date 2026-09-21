@@ -87,7 +87,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                         document = draft,
                         sourceTemplate = sourceTemplate,
                         resourceLoader = resourceLoader,
-                    ).appendMandatoryPages(plan)
+                    ).appendExtendedPages(plan)
 
                     draft.save(output)
                 }
