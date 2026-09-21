@@ -1,6 +1,6 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-20 (Chile local time)  
+**Updated:** 2026-09-21 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified integrated main:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f`  
 **Wave 7:** ACTIVE  
@@ -12,7 +12,8 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
+3. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+4. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 4. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
 5. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
 6. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
@@ -109,15 +110,22 @@ Canonical Custom Extended methodology:
 
 `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`
 
-Custom v1 visual-family design/QA is closed. Do not recalibrate without new owner-observed defect or product requirement.
+Custom v1 visual-family design/QA is closed. Production promotion and integrated semantic audit are also **PASS** at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`; see `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`. Do not recalibrate without new owner-observed defect or product requirement.
+
+## Current production truth
+
+- Custom-v2 Extended design is owner-approved/frozen and its integrated production audit is **PASS** at `0295f30ca77214284902b0e13a563dcdaf58b501`.
+- Custom-v1 base + Extended design is owner-approved/frozen and its integrated production audit is **PASS** at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`.
+- Classic Run 2 complete nine-page family is owner-approved/frozen but remains in the review/dummy harness rather than the real plan-driven production path.
 
 ## Current continuation
 
-1. begin Custom-v2 Extended design with `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md` as mandatory methodology;
-2. first decide whether Custom Statistics can share one v2 Extended layout across per-Attribute/per-Ability modes or requires variant-specific layouts;
-3. design/QA the Custom-v2 Extended roles without disturbing either frozen v2 first-page baseline or the frozen shared v2 pages;
-4. promote approved visual mechanics into production renderer paths;
-5. complete family/end-to-end export QA and remaining D-0074 behaviors, including data-driven overflow and the separate optional Spellbook;
-6. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
+1. promote the frozen Classic Run-2 complete family into a real `PcSheetPdfRenderPlan`-driven production renderer;
+2. audit Classic pagination/current-state/canonical semantics without reopening the approved visual grammar;
+3. implement the application-owned optional Spellbook;
+4. complete portrait-byte handoff plus Crop/Fit behavior;
+5. implement the remaining owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
+6. wire local Save/Share, beginning with the Desktop DM workflow before cross-surface parity;
+7. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
 
 No external provider action is required for this PDF-renderer stage.

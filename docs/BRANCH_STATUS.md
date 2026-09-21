@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-20 (Chile local time)  
+**Updated:** 2026-09-21 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Custom v2 Extended design/QA
+**Current normal work:** PC Sheet PDF Export — Classic Run-2 production promotion
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -120,11 +120,11 @@ Current state:
 - Custom v1 Extended Run 5 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
 - Custom v1 Extended Run 6 is OWNER APPROVED / FROZEN at `69b308f3d5d493d06bd0107ac66c7524935aa9fa`;
 - Run-6 Scaffold `35529317947` / #2885 is SUCCESS; proof artifact `10609869599`;
-- the complete Custom-v1 visual family (base + all six Extended roles) is now frozen;
+- the complete Custom-v1 visual family (base + all six Extended roles) is frozen and its integrated production audit is PASS at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`;
+- Custom-v2 Extended Run 7 is owner-approved/frozen and its integrated production audit is PASS at `0295f30ca77214284902b0e13a563dcdaf58b501`;
 - canonical Custom Extended layered methodology is `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-- Custom-v2 family-matched Extended design/QA is the next active Custom visual gate;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
-- Custom v2 family-matched Extended-page design/QA remains pending;
+- Classic corrected Run 2 remains owner-approved/frozen but is not yet promoted from its review fixture into the real plan-driven production renderer;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
 - Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
@@ -134,12 +134,13 @@ Current state:
 
 Next continuation sequence:
 
-1. read `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-2. decide whether Custom-v2 Custom Statistics needs shared or variant-specific Extended layouts for per-Attribute/per-Ability;
-3. design/QA Custom-v2 family-matched Extended pages without disturbing frozen v2 base layouts;
-4. promote approved visual mechanics into production renderer paths;
-5. complete family/end-to-end D-0074 QA, including data-driven overflow and the separate optional Spellbook;
-6. do not merge PR #85 until the remaining visual/functional gates are satisfied.
+1. promote the frozen Classic Run-2 complete family from review/dummy code into a real `PcSheetPdfRenderPlan`-driven production renderer;
+2. complete Classic integrated semantic/pagination audit while preserving its approved visual grammar;
+3. implement the separate optional Spellbook;
+4. complete portrait-byte handoff and Crop/Fit behavior;
+5. resolve the owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
+6. wire local Save/Share beginning with Desktop, then complete approved surface parity;
+7. do not merge PR #85 until the remaining visual/functional gates are satisfied.
 
 Relevant durable records:
 
