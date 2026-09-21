@@ -747,36 +747,6 @@ internal class DesktopPcSheetTemplateProofRenderer(
         )
     }
 
-    private fun drawPortraitPlaceholder(
-        stream: PDPageContentStream,
-        primitives: DesktopPdfRenderingPrimitives,
-        xPx: Float,
-        yPx: Float,
-        widthPx: Float,
-        heightPx: Float,
-    ) {
-        val rect = rectPx(xPx, yPx, widthPx, heightPx)
-        stream.saveGraphicsState()
-        stream.setNonStrokingColor(java.awt.Color(238, 238, 238))
-        stream.addRect(rect.x, rect.y, rect.width, rect.height)
-        stream.fill()
-        stream.setStrokingColor(java.awt.Color(105, 105, 105))
-        stream.setLineWidth(0.8f)
-        stream.addRect(rect.x, rect.y, rect.width, rect.height)
-        stream.moveTo(rect.x, rect.y)
-        stream.lineTo(rect.right, rect.top)
-        stream.moveTo(rect.x, rect.top)
-        stream.lineTo(rect.right, rect.y)
-        stream.stroke()
-        stream.restoreGraphicsState()
-
-        fillCenteredTextPx(
-            stream, primitives,
-            xPx + widthPx / 2f, yPx + heightPx / 2f,
-            "RETRATO QA", 9f, widthPx - 30f, PdfTypographyRole.OPTIONAL_DECORATIVE,
-        )
-    }
-
     private fun rectPx(
         xPx: Float,
         topYPx: Float,
