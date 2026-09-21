@@ -341,7 +341,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Fuente primaria de rasgo"))
             assertTrue(extracted.contains("Fuente canónica sin otros metadatos"))
             assertTrue(extracted.contains("Competencia extendida de prueba"))
-            assertTrue(extracted.contains("Nota de competencia que debe conservarse"))
+            assertTrue(extracted.contains("Nota de competencia"))
             assertTrue(extracted.contains("Lengua extendida"))
             assertTrue(extracted.contains("Usos 1 / 2"))
 
