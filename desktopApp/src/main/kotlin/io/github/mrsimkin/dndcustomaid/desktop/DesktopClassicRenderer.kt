@@ -262,6 +262,15 @@ internal class DesktopClassicRenderer {
             }
     }
 
+    private fun classicBaseExcerpt(value: String, maxChars: Int, maxLines: Int): String =
+        wrapForChars(value, maxChars).take(maxLines).joinToString("\n")
+
+    private fun classicSingleLineExcerpt(value: String, maxChars: Int): String {
+        val clean = value.trim()
+        if (clean.length <= maxChars) return clean
+        return clean.take((maxChars - 3).coerceAtLeast(1)).trimEnd() + "..."
+    }
+
     private fun appendTraitsPages(
         doc: PDDocument,
         p: DesktopPdfRenderingPrimitives,
@@ -370,7 +379,66 @@ internal class DesktopClassicRenderer {
             if (clean.isNotEmpty()) entries += label to clean
         }
 
-        sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+        fun addOverflow(label: String, value: String, maxChars: Int, baseLines: Int) {
+            val overflow = wrapForChars(value, maxChars).drop(baseLines)
+            if (overflow.isNotEmpty()) add("$label (cont.)", overflow.joinToString(" "))
+        }
+
+        val background = sheet.background
+        val backgroundName = successor.backgroundIdentity?.name
+            ?.trim()?.takeIf { it.isNotEmpty() }
+            ?: background.name.trim()
+        val speciesName = successor.subraceIdentity?.name
+            ?.trim()?.takeIf { it.isNotEmpty() }
+            ?: successor.speciesIdentity?.name?.trim()?.takeIf { it.isNotEmpty() }
+            ?: background.race.trim()
+        val orderedClasses = sheet.classes.sortedBy { it.sortOrder }
+        val classSummary = orderedClasses.joinToString(" / ") { "${it.name} ${it.level}" }
+        val subclassSummary = orderedClasses.mapNotNull { classLevel ->
+            classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }
+        }.joinToString(" / ")
+
+        if (sheet.name.trim().length > CLASSIC_HEADER_NAME_CHARS) add("Nombre", sheet.name)
+        if (backgroundName.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Trasfondo", backgroundName)
+        if (classSummary.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Clases", classSummary)
+        if (speciesName.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Especie", speciesName)
+        if (subclassSummary.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Subclases", subclassSummary)
+
+        val narrative = listOf(background.name, background.summary, background.story)
+            .filter { it.isNotBlank() }
+            .joinToString(" · ")
+        addOverflow(
+            "Historia / trasfondo",
+            narrative,
+            CLASSIC_BACKGROUND_NARRATIVE_CHARS,
+            CLASSIC_BACKGROUND_NARRATIVE_LINES,
+        )
+        addOverflow(
+            "Rasgo de personalidad",
+            background.personalityTraits.takeIf { it.isNotBlank() }?.let { "Rasgo: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS,
+            CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+        addOverflow(
+            "Ideal",
+            background.ideals.takeIf { it.isNotBlank() }?.let { "Ideal: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS,
+            CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+        addOverflow(
+            "Vínculo",
+            background.bonds.takeIf { it.isNotBlank() }?.let { "Vínculo: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS,
+            CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+        addOverflow(
+            "Defecto",
+            background.flaws.takeIf { it.isNotBlank() }?.let { "Defecto: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS,
+            CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+
+        background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
             add("Fe / religión", it)
         }
         if (
@@ -386,10 +454,17 @@ internal class DesktopClassicRenderer {
         sheet.combatEntries
             .sortedBy { it.sortOrder }
             .forEachIndexed { index, entry ->
+                val baseDetail = listOfNotNull(
+                    entry.damageEffect.takeIf { it.isNotBlank() },
+                    entry.rangeText?.takeIf { it.isNotBlank() },
+                    entry.notes?.takeIf { it.isNotBlank() },
+                ).joinToString(" · ")
                 if (
                     index >= BASE_COMBAT_CAPACITY ||
                     entry.type != CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank()
+                    !entry.notes.isNullOrBlank() ||
+                    entry.name.length > CLASSIC_COMBAT_NAME_CHARS ||
+                    baseDetail.length > CLASSIC_COMBAT_DETAIL_CHARS
                 ) {
                     add(
                         "Acción / ataque",
@@ -408,6 +483,13 @@ internal class DesktopClassicRenderer {
             add("Progreso", closure.milestoneProgress)
         }
         if (sheet.tempHp != 0) add("PG temporales", sheet.tempHp.toString())
+
+        sheet.spellSlots.filter { it.totalSlots > CLASSIC_BASE_SLOT_MARKERS }.forEach { slot ->
+            add(
+                "Espacios de conjuro",
+                "Nivel ${slot.level}: ${slot.totalSlots} totales · ${slot.spentSlots} gastados",
+            )
+        }
 
         sheet.weaponMasteries.sortedBy { it.sortOrder }.forEach { mastery ->
             add(
@@ -620,6 +702,9 @@ internal class DesktopClassicRenderer {
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
     ): Boolean =
         (trait.type == CharacterTraitType.SPECIES_RACE && trait.description.isNotBlank()) ||
+            wrapForChars(traitSummary(trait), CLASSIC_RULED_ENTRY_CHARS).size >
+                CLASSIC_RULED_ENTRY_LINES ||
+            trait.name.length > CLASSIC_SPECIES_NAME_CHARS ||
             trait.source.isNotBlank() ||
             !trait.notes.isNullOrBlank() ||
             trait.maxUses != null ||
@@ -1385,7 +1470,11 @@ internal class DesktopClassicRenderer {
             val combatEntries = sheet.combatEntries.sortedBy { it.sortOrder }
             combatEntries.take(BASE_COMBAT_CAPACITY).forEachIndexed { index, entry ->
                 val top = 300f + index * 23f
-                text(s, p, rightX + 10f, top, 148f, 18f, entry.name, PdfTypographyRole.BODY, 8.5f, 7.2f)
+                text(
+                    s, p, rightX + 10f, top, 148f, 18f,
+                    classicSingleLineExcerpt(entry.name, CLASSIC_COMBAT_NAME_CHARS),
+                    PdfTypographyRole.BODY, 8.5f, 7.2f,
+                )
                 text(
                     s, p, rightX + 162f, top, 45f, 18f,
                     entry.attackModifier?.let(::signed).orEmpty(),
@@ -1397,7 +1486,11 @@ internal class DesktopClassicRenderer {
                     entry.rangeText?.takeIf { it.isNotBlank() },
                     entry.notes?.takeIf { it.isNotBlank() },
                 ).joinToString(" · ")
-                text(s, p, rightX + 211f, top, 97f, 18f, detail, PdfTypographyRole.BODY, 8.2f, 7f)
+                text(
+                    s, p, rightX + 211f, top, 97f, 18f,
+                    classicSingleLineExcerpt(detail, CLASSIC_COMBAT_DETAIL_CHARS),
+                    PdfTypographyRole.BODY, 8.2f, 7f,
+                )
                 hairline(s, rightX + 10f, top + 20f, rightX + rightW - 10f, top + 20f)
             }
 
@@ -1409,7 +1502,7 @@ internal class DesktopClassicRenderer {
             titledFrame(s, p, rightX, 410f, rightW, 184f, "RASGOS DE CLASE")
             ruledTextArea(
                 s, p, rightX + 10f, 442f, rightW - 20f, 140f,
-                classTraits.take(BASE_CLASS_TRAIT_CAPACITY).map(::traitSummary),
+                classTraits.take(BASE_CLASS_TRAIT_CAPACITY).map(::classicBaseTraitSummary),
                 8.4f,
             )
 
@@ -1418,7 +1511,8 @@ internal class DesktopClassicRenderer {
                 val rowTop = 636f + index * 22f
                 text(
                     s, p, rightX + 10f, rowTop, 134f, 17f,
-                    trait.name, PdfTypographyRole.BODY, 7.8f, 6.8f,
+                    classicSingleLineExcerpt(trait.name, CLASSIC_SPECIES_NAME_CHARS),
+                    PdfTypographyRole.BODY, 7.8f, 6.8f,
                 )
                 hairline(s, rightX + 10f, rowTop + 21f, rightX + 144f, rowTop + 21f)
             }
@@ -1426,7 +1520,7 @@ internal class DesktopClassicRenderer {
             titledFrame(s, p, rightX + 164f, 606f, 154f, 112f, "DOTES")
             ruledTextArea(
                 s, p, rightX + 173f, 638f, 136f, 70f,
-                feats.take(BASE_FEAT_CAPACITY).map(::traitSummary),
+                feats.take(BASE_FEAT_CAPACITY).map(::classicBaseTraitSummary),
                 8.2f,
             )
 
@@ -1461,32 +1555,52 @@ internal class DesktopClassicRenderer {
             ruledBackground(s, 34f, 468f, 206f, 238f, firstRuleOffset = 32f, lineGap = 22f)
             text(
                 s, p, 36f, 468f, 202f, 54f,
-                listOf(background.name, background.summary, background.story)
-                    .filter { it.isNotBlank() }.joinToString(" · "),
+                classicBaseExcerpt(
+                    listOf(background.name, background.summary, background.story)
+                        .filter { it.isNotBlank() }.joinToString(" · "),
+                    CLASSIC_BACKGROUND_NARRATIVE_CHARS,
+                    CLASSIC_BACKGROUND_NARRATIVE_LINES,
+                ),
                 PdfTypographyRole.NOTE_TEXT, 7.7f, 7f, wrap = true, maxLines = 3,
                 vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, 36f, 544f, 202f, 30f,
-                background.personalityTraits.takeIf { it.isNotBlank() }?.let { "Rasgo: $it" }.orEmpty(),
+                classicBaseExcerpt(
+                    background.personalityTraits.takeIf { it.isNotBlank() }?.let { "Rasgo: $it" }.orEmpty(),
+                    CLASSIC_BACKGROUND_DETAIL_CHARS,
+                    CLASSIC_BACKGROUND_DETAIL_LINES,
+                ),
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, 36f, 588f, 202f, 25f,
-                background.ideals.takeIf { it.isNotBlank() }?.let { "Ideal: $it" }.orEmpty(),
+                classicBaseExcerpt(
+                    background.ideals.takeIf { it.isNotBlank() }?.let { "Ideal: $it" }.orEmpty(),
+                    CLASSIC_BACKGROUND_DETAIL_CHARS,
+                    CLASSIC_BACKGROUND_DETAIL_LINES,
+                ),
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, 36f, 632f, 202f, 30f,
-                background.bonds.takeIf { it.isNotBlank() }?.let { "Vínculo: $it" }.orEmpty(),
+                classicBaseExcerpt(
+                    background.bonds.takeIf { it.isNotBlank() }?.let { "Vínculo: $it" }.orEmpty(),
+                    CLASSIC_BACKGROUND_DETAIL_CHARS,
+                    CLASSIC_BACKGROUND_DETAIL_LINES,
+                ),
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, 36f, 676f, 202f, 28f,
-                background.flaws.takeIf { it.isNotBlank() }?.let { "Defecto: $it" }.orEmpty(),
+                classicBaseExcerpt(
+                    background.flaws.takeIf { it.isNotBlank() }?.let { "Defecto: $it" }.orEmpty(),
+                    CLASSIC_BACKGROUND_DETAIL_CHARS,
+                    CLASSIC_BACKGROUND_DETAIL_LINES,
+                ),
                 PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -1536,7 +1650,7 @@ internal class DesktopClassicRenderer {
             titledFrame(s, p, 264f, 434f, 324f, 132f, "RASGOS ADICIONALES")
             ruledTextArea(
                 s, p, 276f, 466f, 300f, 88f,
-                additionalTraits.take(BASE_ADDITIONAL_TRAIT_CAPACITY).map(::traitSummary),
+                additionalTraits.take(BASE_ADDITIONAL_TRAIT_CAPACITY).map(::classicBaseTraitSummary),
                 8.4f,
             )
 
@@ -1746,7 +1860,11 @@ internal class DesktopClassicRenderer {
         attack: String,
     ) {
         fantasyFrame(s, 24f, 24f, 564f, 72f, 1.05f, fill = PAPER_TINT)
-        text(s, p, 36f, 31f, 195f, 31f, name, PdfTypographyRole.CHARACTER_NAME, 18f, 15f)
+        text(
+            s, p, 36f, 31f, 195f, 31f,
+            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
+            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+        )
         text(s, p, 36f, 66f, 195f, 12f, "APTITUD MÁGICA", PdfTypographyRole.OPTIONAL_DECORATIVE, 6.8f, 6f)
         text(s, p, 239f, 27f, 112f, 15f, ability, PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 7.5f,
             align = PdfHorizontalAlignment.CENTER)
@@ -1769,10 +1887,7 @@ internal class DesktopClassicRenderer {
             val cellX = x + 10f + index * 60.2f
             text(s, p, cellX, top + 31f, 18f, 16f, level.toString(), PdfTypographyRole.NUMERIC_COMPACT, 8f, 7f,
                 align = PdfHorizontalAlignment.CENTER)
-            if (total > 4) {
-                overflowDiagnostics += "spell-slots:N$level tiene $total espacios; la banda base muestra hasta 4"
-            }
-            repeat(total.coerceAtMost(4)) { markerIndex ->
+            repeat(total.coerceAtMost(CLASSIC_BASE_SLOT_MARKERS)) { markerIndex ->
                 marker(s, p, cellX + 26f + markerIndex * 8.6f, top + 40f, 6.5f, PdfMarkerKind.DIAMOND_OUTLINE)
             }
         }
@@ -1844,6 +1959,14 @@ internal class DesktopClassicRenderer {
     private fun traitSummary(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
     ): String = if (trait.description.isBlank()) trait.name else "${trait.name}: ${trait.description}"
+
+    private fun classicBaseTraitSummary(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+    ): String = classicBaseExcerpt(
+        traitSummary(trait),
+        CLASSIC_RULED_ENTRY_CHARS,
+        CLASSIC_RULED_ENTRY_LINES,
+    )
 
     private fun abilityLabel(ability: CharacterAbility): String = when (ability) {
         CharacterAbility.STRENGTH -> "FUERZA"
@@ -1930,7 +2053,11 @@ internal class DesktopClassicRenderer {
         xp: String,
     ) {
         fantasyFrame(s, 24f, 24f, 564f, 72f, 1.15f, fill = PAPER_TINT)
-        text(s, p, 36f, 31f, 214f, 37f, name, PdfTypographyRole.CHARACTER_NAME, 20f, 16f)
+        text(
+            s, p, 36f, 31f, 214f, 37f,
+            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
+            PdfTypographyRole.CHARACTER_NAME, 20f, 16f,
+        )
         hairline(s, 36f, 68f, 250f, 68f)
         text(s, p, 36f, 70f, 214f, 15f, "NOMBRE DEL PERSONAJE", PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.5f)
 
@@ -1941,7 +2068,11 @@ internal class DesktopClassicRenderer {
             val row = i / 2
             val x = detailX + col * 113f
             val top = 31f + row * 27f
-            text(s, p, x, top, 106f, 14f, value, PdfTypographyRole.BODY, 8.5f, 7.2f)
+            text(
+                s, p, x, top, 106f, 14f,
+                classicSingleLineExcerpt(value, CLASSIC_IDENTITY_VALUE_CHARS),
+                PdfTypographyRole.BODY, 8.5f, 7.2f,
+            )
             hairline(s, x, top + 14f, x + 106f, top + 14f)
             text(s, p, x, top + 15f, 106f, 9f, label, PdfTypographyRole.OPTIONAL_DECORATIVE, 5.8f, 5.2f)
         }
@@ -1964,7 +2095,11 @@ internal class DesktopClassicRenderer {
         title: String,
     ) {
         fantasyFrame(s, 24f, 24f, 564f, 64f, 1.05f, fill = PAPER_TINT)
-        text(s, p, 36f, 30f, 230f, 33f, name, PdfTypographyRole.CHARACTER_NAME, 18f, 15f)
+        text(
+            s, p, 36f, 30f, 230f, 33f,
+            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
+            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+        )
         hairline(s, 36f, 66f, 266f, 66f)
         text(s, p, 278f, 32f, 298f, 22f, title, PdfTypographyRole.OPTIONAL_DECORATIVE, 12f, 10f,
             align = PdfHorizontalAlignment.RIGHT)
@@ -2023,7 +2158,11 @@ internal class DesktopClassicRenderer {
         title: String,
     ) {
         fantasyFrame(s, 24f, 24f, 564f, 64f, 1.05f, fill = PAPER_TINT)
-        text(s, p, 36f, 30f, 220f, 33f, name, PdfTypographyRole.CHARACTER_NAME, 18f, 15f)
+        text(
+            s, p, 36f, 30f, 220f, 33f,
+            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
+            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+        )
         hairline(s, 36f, 66f, 256f, 66f)
         text(
             s, p, 268f, 28f, 308f, 20f,
@@ -2770,6 +2909,18 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 2
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
+        const val CLASSIC_HEADER_NAME_CHARS = 32
+        const val CLASSIC_IDENTITY_VALUE_CHARS = 28
+        const val CLASSIC_BACKGROUND_NARRATIVE_CHARS = 50
+        const val CLASSIC_BACKGROUND_NARRATIVE_LINES = 3
+        const val CLASSIC_BACKGROUND_DETAIL_CHARS = 46
+        const val CLASSIC_BACKGROUND_DETAIL_LINES = 2
+        const val CLASSIC_RULED_ENTRY_CHARS = 54
+        const val CLASSIC_RULED_ENTRY_LINES = 2
+        const val CLASSIC_SPECIES_NAME_CHARS = 28
+        const val CLASSIC_COMBAT_NAME_CHARS = 30
+        const val CLASSIC_COMBAT_DETAIL_CHARS = 22
+        const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
         const val CLASSIC_RESOURCE_NOTE_LINES = 2
