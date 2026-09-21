@@ -15,12 +15,11 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode
 
 /**
- * First whole-sheet development draft for the owner's Custom v1/v2 families.
+ * Production-candidate whole-sheet renderer for the approved Classic and Custom visual families.
  *
- * The MAIN page deliberately reuses the existing populated template proof while the other source
- * pages are populated through the owner-approved measured rendering primitives. This is a review
- * artifact, not a visually approved export implementation. Classic, Extended-page pagination,
- * portraits and Spellbook description pages remain outside this first-draft slice.
+ * Classic Run-2 normal pages and the frozen Custom families are promoted incrementally behind the
+ * same canonical PcSheetPdfRenderPlan. Remaining Extended/portrait/Spellbook gates stay explicit
+ * instead of being silently synthesized.
  */
 internal class DesktopPcSheetWholeDraftRenderer(
     private val resourceLoader: (String) -> InputStream? = { resourcePath ->
@@ -35,11 +34,17 @@ internal class DesktopPcSheetWholeDraftRenderer(
             "Whole-sheet Custom draft currently supports faithful template layouts only."
         }
         require(
-            plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1 ||
+            plan.request.visualFamily == PcSheetVisualFamily.CLASSIC_DND_STYLE ||
+                plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1 ||
                 plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
                 plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
         ) {
-            "Whole-sheet draft currently supports the owner's Custom v1/v2 families only."
+            "Whole-sheet renderer received an unsupported visual family."
+        }
+
+        if (plan.request.visualFamily == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+            DesktopClassicRenderer().renderBase(plan, output)
+            return
         }
 
         if (plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1) {

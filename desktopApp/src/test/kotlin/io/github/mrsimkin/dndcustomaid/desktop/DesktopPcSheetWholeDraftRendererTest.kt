@@ -56,6 +56,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
@@ -74,6 +75,183 @@ import org.apache.pdfbox.rendering.PDFRenderer
 import org.apache.pdfbox.text.PDFTextStripper
 
 class DesktopPcSheetWholeDraftRendererTest {
+    @Test
+    fun rendersOwnerApprovedClassicBaseFromRealPlanData() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val shortTraits = base.sheet.traits.take(8).mapIndexed { index, trait ->
+            val (name, description, type) = when (index) {
+                0 -> Triple("Paso seguro", "Mantiene el equilibrio en terreno difícil.", CharacterTraitType.CLASS)
+                1 -> Triple("Lectura táctica", "Reconoce rutas de retirada y cobertura.", CharacterTraitType.CLASS)
+                2 -> Triple("Estudio rápido", "Resume información útil durante la exploración.", CharacterTraitType.CLASS)
+                3 -> Triple("Maniobra cauta", "Reduce riesgos al atravesar una zona hostil.", CharacterTraitType.CLASS)
+                4 -> Triple("Oído atento", "Percibe cambios sutiles del entorno.", CharacterTraitType.SPECIES_RACE)
+                5 -> Triple("Paso firme", "Conserva el ritmo durante marchas largas.", CharacterTraitType.SPECIES_RACE)
+                6 -> Triple("Memoria local", "Recuerda caminos y puntos de referencia.", CharacterTraitType.SPECIES_RACE)
+                else -> Triple("Observadora", "Presta especial atención a detalles.", CharacterTraitType.FEAT)
+            }
+            trait.copy(
+                name = name,
+                source = "",
+                type = type,
+                description = description,
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = CharacterActivationType.PASSIVE,
+                sortOrder = index,
+            )
+        }
+        val inventory = base.sheet.inventoryItems.take(7).mapIndexed { index, item ->
+            item.copy(
+                name = if (index == 0) "Equipo de campaña" else item.name,
+                weightLb = null,
+                equipped = index == 0,
+                notes = null,
+                special = false,
+                description = null,
+                location = if (index == 0) "Mochila" else "Equipo",
+                attuned = false,
+                sortOrder = index,
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                name = "Iria Noctis",
+                status = CharacterStatus.ACTIVE,
+                tempHp = 0,
+                deathSaveSuccesses = 1,
+                deathSaveFailures = 0,
+                passivePerceptionAdjustment = 0,
+                classes = listOf(
+                    base.sheet.classes.first().copy(
+                        name = "Maga cartógrafa",
+                        level = 5,
+                        hitDiceRemaining = 3,
+                        sortOrder = 0,
+                        source = null,
+                        subclassName = "Guardiana de umbrales",
+                        subclassSource = null,
+                    ),
+                ),
+                combatEntries = base.sheet.combatEntries.take(4).mapIndexed { index, entry ->
+                    if (index == 0) entry.copy(name = "Lanza de cobre", sortOrder = index)
+                    else entry.copy(sortOrder = index)
+                },
+                inventoryItems = inventory,
+                background = CharacterBackground(
+                    name = "Cartógrafa de frontera",
+                    summary = "Explora pasos olvidados y registra rutas seguras.",
+                    race = "Humana",
+                    religionFaith = "",
+                    personalityTraits = "Anota cada desvío importante.",
+                    ideals = "Precisión y prudencia.",
+                    bonds = "Protege a su expedición.",
+                    flaws = "Revisa los mapas demasiadas veces.",
+                    story = "Busca un antiguo paso entre montañas.",
+                ),
+                traits = shortTraits,
+                spells = base.sheet.spells.filter { it.level <= 5 },
+                generalNotes = "",
+                noteCards = emptyList(),
+                proficiencies = listOf(
+                    CharacterProficiency(
+                        id = uuid("94000000-0000-0000-0000-000000000001"),
+                        type = CharacterProficiencyType.LANGUAGE,
+                        name = "Enano",
+                        source = null,
+                        notes = null,
+                        sortOrder = 0,
+                    ),
+                ),
+                weaponMasteries = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                forms = emptyList(),
+                companions = emptyList(),
+                inspiration = true,
+            ),
+            closure = base.closure.copy(
+                customSkills = emptyList(),
+                exhaustionLevel = 0,
+                concentration = null,
+                conditions = emptyList(),
+                defenses = emptyList(),
+                movements = emptyList(),
+                senses = emptyList(),
+                inventoryUsage = emptyList(),
+                temporaryEffects = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customAttributes = emptyList(),
+                customSkillAbilities = emptyList(),
+                combatDamage = emptyList(),
+                customMarkers = emptyList(),
+                resourceConfigurations = emptyList(),
+                speciesIdentity = null,
+                subraceIdentity = null,
+                backgroundIdentity = null,
+                traitProvenance = emptyList(),
+                preferences = base.successor.preferences.copy(
+                    valuablesText = "Mapa sellado (30 po)",
+                ),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        assertEquals(
+            listOf(
+                PcSheetBasePageRole.MAIN,
+                PcSheetBasePageRole.EQUIPMENT_AND_NARRATIVE,
+                PcSheetBasePageRole.SPELL_LIST,
+            ),
+            plan.basePages.map { it.role },
+        )
+
+        val pdf = File(proofDir, "classic-production-base-pass1.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertEquals(3, document.numberOfPages)
+            repeat(document.numberOfPages) { index ->
+                assertEquals(612f, document.getPage(index).mediaBox.width, 0.01f)
+                assertEquals(792f, document.getPage(index).mediaBox.height, 0.01f)
+            }
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("Iria Noctis"))
+            assertTrue(extracted.contains("Cartógrafa de frontera"))
+            assertTrue(extracted.contains("Guardiana de umbrales"))
+            assertTrue(extracted.contains("Lanza de cobre"))
+            assertTrue(extracted.contains("Equipo de campaña"))
+            assertTrue(extracted.contains("Enano"))
+            assertFalse(extracted.contains("Aster Vale"))
+            assertFalse(extracted.contains("Sabio de Liria"))
+            assertFalse(extracted.contains("Tradición de Adivinación"))
+            assertFalse(extracted.contains("Cabello negro"))
+
+            val pdfRenderer = PDFRenderer(document)
+            repeat(document.numberOfPages) { index ->
+                val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "classic-production-base-pass1-page-${index + 1}.png"),
+                    ),
+                )
+            }
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
     @Test
     fun generatesWholeCustomFamilyFirstDraftsForOwnerReview() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
