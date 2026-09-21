@@ -309,6 +309,110 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun paginatesCustomV2CustomStatisticsWithoutDroppingAttributesOrSkills() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithCustomStatisticsOverflow()
+
+        listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-custom-stats-overflow-attribute",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-custom-stats-overflow-ability",
+        ).forEach { (family, stem) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+            val pdf = File(proofDir, "$stem.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+            Loader.loadPDF(pdf).use { document ->
+                val extracted = PDFTextStripper().getText(document)
+                assertTrue(extracted.contains("ATR7"))
+                assertTrue(extracted.contains("Vínculo 7-7"))
+                val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+                if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE) {
+                    assertTrue(document.numberOfPages >= 9)
+                    assertTrue(layers.contains("V2X ATTR 2 - VALUES"))
+                } else {
+                    assertTrue(document.numberOfPages >= 6)
+                    assertTrue(layers.contains("V2X ABILITY 2 - VALUES"))
+                }
+            }
+        }
+    }
+
+    private fun denseDraftAggregateWithCustomStatisticsOverflow(): PcSheetExportAggregate {
+        val base = denseDraftAggregate()
+        val attributes = (1..7).map { index ->
+            CharacterCustomAttribute(
+                id = uuid("8a000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Atributo $index",
+                abbreviation = "ATR$index",
+                score = 10 + index,
+                savingThrowEnabled = true,
+                savingThrowProficient = index % 2 == 0,
+                notes = if (index == 1) {
+                    (1..80).joinToString(" ") { "nota$it" }
+                } else {
+                    "Definición canónica del atributo $index."
+                },
+                sortOrder = index,
+            )
+        }
+
+        val skills = mutableListOf<CharacterCustomSkill>()
+        val links = mutableListOf<CharacterCustomSkillAbilityConfiguration>()
+        var skillIndex = 1
+        attributes.forEachIndexed { attrIndex, attribute ->
+            repeat(7) { localIndex ->
+                val skill = CharacterCustomSkill(
+                    id = uuid("8b000000-0000-0000-0000-${skillIndex.toString().padStart(12, '0')}"),
+                    name = "Vínculo ${attrIndex + 1}-${localIndex + 1}",
+                    ability = CharacterAbility.WISDOM,
+                    training = when (localIndex % 3) {
+                        0 -> SkillTraining.NONE
+                        1 -> SkillTraining.PROFICIENT
+                        else -> SkillTraining.EXPERTISE
+                    },
+                    adjustment = localIndex,
+                    source = "Stress PDF",
+                    notes = null,
+                    sortOrder = skillIndex,
+                )
+                skills += skill
+                links += CharacterCustomSkillAbilityConfiguration(
+                    customSkillId = skill.id,
+                    ability = CharacterAbilityReference.custom(attribute.id),
+                )
+                skillIndex += 1
+            }
+        }
+
+        return base.copy(
+            sheet = base.sheet.copy(
+                inventoryItems = emptyList(),
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+            closure = base.closure.copy(customSkills = skills),
+            successor = base.successor.copy(
+                customAttributes = attributes,
+                customSkillAbilities = links,
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+    }
+
+    @Test
     fun paginatesCustomV2ResourcesAndOptionsWithoutDroppingCanonicalRows() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
