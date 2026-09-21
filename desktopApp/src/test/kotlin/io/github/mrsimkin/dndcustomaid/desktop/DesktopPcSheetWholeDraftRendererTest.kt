@@ -513,6 +513,87 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun paginatesOwnerApprovedCustomV1SpellContinuationWithoutDroppingCanonicalSpells() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val sourceId = base.sheet.spellcastingSources.single().id
+        val spells = (1..30).map { index ->
+            spell(
+                index = 100 + index,
+                name = "Hechizo canónico $index",
+                level = 1,
+                sourceId = sourceId,
+                prepared = index == 11 || index == 30,
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                inventoryItems = emptyList(),
+                currencies = emptyList(),
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                spells = spells,
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v1-production-extended-spells-pass5.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertEquals(7, document.numberOfPages)
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(layers.any { it.startsWith("V1X SPELLS P1 - STRUCTURE") })
+            assertTrue(layers.any { it.startsWith("V1X SPELLS P2 - STRUCTURE") })
+            assertTrue(layers.any { it.startsWith("V1X SPELLS P2 - MARKERS") })
+            assertFalse(layers.any { it.startsWith("V1X TRAITS") })
+            assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
+            assertFalse(layers.any { it.startsWith("V1X INVENTORY") })
+
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("Hechizo canónico 1"))
+            assertTrue(extracted.contains("Hechizo canónico 10"))
+            assertTrue(extracted.contains("Hechizo canónico 11"))
+            assertTrue(extracted.contains("Hechizo canónico 20"))
+            assertTrue(extracted.contains("Hechizo canónico 21"))
+            assertTrue(extracted.contains("Hechizo canónico 30"))
+
+            val first = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
+            val second = PDFRenderer(document).renderImageWithDPI(6, 220f, ImageType.RGB)
+            assertTrue(
+                ImageIO.write(
+                    first,
+                    "png",
+                    File(proofDir, "custom-v1-production-extended-spells-pass5-page-6.png"),
+                ),
+            )
+            assertTrue(
+                ImageIO.write(
+                    second,
+                    "png",
+                    File(proofDir, "custom-v1-production-extended-spells-pass5-page-7.png"),
+                ),
+            )
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()

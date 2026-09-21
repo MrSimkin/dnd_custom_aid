@@ -7,6 +7,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryS
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
@@ -36,9 +37,9 @@ import org.apache.pdfbox.util.Matrix
  * Production promotion of the owner-approved Custom-v1 Extended Run-6 family.
  *
  * Production promotion advances one frozen role at a time. Custom Statistics, Traits & Features,
- * Resources & Options, and Inventory / Equipment now use the Run-6 owner-approved geometry,
- * typography, source structure and independent layer model, while all values come exclusively
- * from [PcSheetPdfRenderPlan].
+ * Resources & Options, Inventory / Equipment, and Spells now use the Run-6 owner-approved
+ * geometry, typography, source structure and independent layer model, while all values come
+ * exclusively from [PcSheetPdfRenderPlan].
  */
 internal class DesktopCustomV1ExtendedRenderer(
     private val document: PDDocument,
@@ -66,6 +67,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             appendResourcesExtendedPages(plan)
         }
         appendInventoryExtendedPages(plan)
+        appendSpellExtendedPages(plan)
     }
 
     private fun appendCustomStatisticsPages(plan: PcSheetPdfRenderPlan) {
@@ -955,6 +957,121 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
     }
 
+    private fun appendSpellExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        require(sheet.spells.all { it.level in 0..9 }) {
+            "Custom-v1 spell continuation supports spell levels 0 through 9."
+        }
+        val byLevel = sheet.spells
+            .groupBy { it.level }
+            .mapValues { (_, entries) ->
+                entries.sortedWith(compareBy<CharacterSpell> { it.sortOrder }.thenBy { it.name.lowercase() })
+            }
+        val overflowByLevel = SPELL_CONTINUATION_BLOCKS.associate { block ->
+            block.level to byLevel[block.level].orEmpty().drop(block.baseCapacity)
+        }
+        val pages = SPELL_CONTINUATION_BLOCKS.maxOf { block ->
+            pageCount(overflowByLevel[block.level].orEmpty().size, block.rules.size)
+        }
+        if (pages == 0) return
+
+        val slotsByLevel = sheet.spellSlots.associateBy { it.level }
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            val spellsByLevel = SPELL_CONTINUATION_BLOCKS.associate { block ->
+                block.level to overflowByLevel[block.level].orEmpty()
+                    .drop(pageIndex * block.rules.size)
+                    .take(block.rules.size)
+            }
+            renderSpellContinuationPage(
+                page = page,
+                spellsByLevel = spellsByLevel,
+                slotsByLevel = slotsByLevel.mapValues { it.value.totalSlots },
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun renderSpellContinuationPage(
+        page: PDPage,
+        spellsByLevel: Map<Int, List<CharacterSpell>>,
+        slotsByLevel: Map<Int, Int>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X SPELLS P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            s.drawForm(resources.forms[3])
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            SPELL_CONTINUATION_BLOCKS.forEach { block ->
+                val spells = spellsByLevel[block.level].orEmpty()
+                spells.forEachIndexed { index, spell ->
+                    ruleText(
+                        s,
+                        resources.fira,
+                        block.rules[index],
+                        spell.name,
+                        8.7f,
+                        11.5f,
+                    )
+                }
+                block.slotRule?.let { rule ->
+                    slotsByLevel[block.level]?.let { total ->
+                        ruleText(s, resources.fira, rule, total.toString(), 9f)
+                    }
+                }
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            SPELL_CONTINUATION_BLOCKS.forEach { block ->
+                spellsByLevel[block.level].orEmpty().forEachIndexed { index, spell ->
+                    if (spell.sourceAssociations.any { it.prepared }) {
+                        val center = block.checkboxCenters[index]
+                        approvedV8Marker(
+                            s = s,
+                            font = resources.symbol,
+                            centerX = center.first,
+                            centerTop = center.second,
+                            size = 7f,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun approvedV8Marker(
+        s: PDFormContentStream,
+        font: PDFont,
+        centerX: Float,
+        centerTop: Float,
+        size: Float,
+    ) {
+        val glyph = V8Glyph(
+            codePoint = 0xE211,
+            xMin = 285,
+            yMin = 400,
+            xMax = 1350,
+            yMax = 1306,
+        )
+        val designWidth = (glyph.xMax - glyph.xMin).toFloat()
+        val designHeight = (glyph.yMax - glyph.yMin).toFloat()
+        val fontSize = size * SYMBOL_UNITS_PER_EM / max(designWidth, designHeight)
+        val centerY = H - centerTop
+        val originX = centerX - ((glyph.xMin + glyph.xMax) / 2f / SYMBOL_UNITS_PER_EM) * fontSize
+        val originY = centerY - ((glyph.yMin + glyph.yMax) / 2f / SYMBOL_UNITS_PER_EM) * fontSize
+        s.beginText()
+        s.setNonStrokingColor(Color.BLACK)
+        s.setFont(font, fontSize)
+        s.newLineAtOffset(originX, originY)
+        s.showText(String(Character.toChars(glyph.codePoint)))
+        s.endText()
+    }
+
     private fun drawRuledValues(
         s: PDFormContentStream,
         startX: Float,
@@ -1537,6 +1654,22 @@ internal class DesktopCustomV1ExtendedRenderer(
     private fun textWidth(font: PDFont, text: String, size: Float): Float =
         font.getStringWidth(text) / 1000f * size
 
+    private data class V8Glyph(
+        val codePoint: Int,
+        val xMin: Int,
+        val yMin: Int,
+        val xMax: Int,
+        val yMax: Int,
+    )
+
+    private data class SpellContinuationBlock(
+        val level: Int,
+        val baseCapacity: Int,
+        val rules: List<Rule>,
+        val checkboxCenters: List<Pair<Float, Float>>,
+        val slotRule: Rule?,
+    )
+
     private data class TreasureEntry(
         val label: String,
         val value: String?,
@@ -1699,6 +1832,40 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val OPTION_STEP = 20f
         const val OPTION_NAME_TEXT_WIDTH = 108f
         const val OPTION_DETAIL_TEXT_WIDTH = 339f
+
+        const val SYMBOL_UNITS_PER_EM = 2048f
+
+        val SPELL_CONTINUATION_BLOCKS = listOf(
+            spellContinuationBlock(0, 8, 28.2f, 117.4f, 4, null),
+            spellContinuationBlock(1, 10, 28.2f, 327.2f, 10, 317f),
+            spellContinuationBlock(2, 9, 28.2f, 573.8f, 9, 563.7f),
+            spellContinuationBlock(3, 10, 215.3f, 117.4f, 10, 107.3f),
+            spellContinuationBlock(4, 10, 215.3f, 356.5f, 10, 346.5f),
+            spellContinuationBlock(5, 8, 215.3f, 592.6f, 8, 582.6f),
+            spellContinuationBlock(6, 8, 408.1f, 117.4f, 8, 107.3f),
+            spellContinuationBlock(7, 6, 408.1f, 315.8f, 7, 305.7f),
+            spellContinuationBlock(8, 6, 408.1f, 494.4f, 6, 484.3f),
+            spellContinuationBlock(9, 5, 408.1f, 653.2f, 5, 643.1f),
+        )
+
+        private fun spellContinuationBlock(
+            level: Int,
+            baseCapacity: Int,
+            x: Float,
+            firstTop: Float,
+            count: Int,
+            slotY: Float?,
+        ): SpellContinuationBlock = SpellContinuationBlock(
+            level = level,
+            baseCapacity = baseCapacity,
+            rules = (0 until count).map { index ->
+                Rule(x + 11.3f, x + 174f, firstTop + 12.6f + index * 19.84f)
+            },
+            checkboxCenters = (0 until count).map { index ->
+                (x + 4.9f) to (firstTop + 6.1f + index * 19.84f)
+            },
+            slotRule = slotY?.let { Rule(x + 39f, x + 79f, it) },
+        )
 
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
         const val BASE_V1_SPECIAL_CAPACITY = 13
