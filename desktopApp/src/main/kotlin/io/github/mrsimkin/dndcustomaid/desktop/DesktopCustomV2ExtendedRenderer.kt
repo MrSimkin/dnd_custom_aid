@@ -521,8 +521,10 @@ internal class DesktopCustomV2ExtendedRenderer(
             pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 96f, 277f, 24f, SOURCE_GRAY_LIGHT)
             fill(s, 307f, 96f, 291f, 24f, SOURCE_GRAY_LIGHT)
-            bandedRows(s, 14f, 291f, 137f, 35, 17f, 0)
-            bandedRows(s, 307f, 598f, 137f, 35, 17f, 1)
+            // 36 rules are required here: the lower continuation region uses eight physical
+            // rows through top=732. With 35, the final wrapped line falls below the ruled rhythm.
+            bandedRows(s, 14f, 291f, 137f, 36, 17f, 0)
+            bandedRows(s, 307f, 598f, 137f, 36, 17f, 1)
             drawRule(s, 14f, 291f, 358f, 0.8f)
             drawRule(s, 307f, 598f, 358f, 0.8f)
             drawRule(s, 14f, 291f, 579f, 0.8f)
