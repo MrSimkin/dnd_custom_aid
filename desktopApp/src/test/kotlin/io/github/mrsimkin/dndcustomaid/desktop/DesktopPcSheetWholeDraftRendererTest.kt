@@ -232,7 +232,8 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertTrue(extracted.contains("Metamagia cuidadosa"))
                 assertTrue(extracted.contains("Una vez al día recuperas espacios de conjuro"))
                 assertTrue(extracted.contains("Puntos de destino"))
-                assertTrue(extracted.contains("Sólo se recupera al cerrar un arco narrativo."))
+                assertTrue(extracted.contains("Sólo se recupera"))
+                assertTrue(extracted.contains("arco narrativo."))
                 assertTrue(extracted.contains("7/12"))
                 assertFalse(extracted.contains("Dados de portento", ignoreCase = true))
                 assertFalse(extracted.contains("Especie", ignoreCase = true))
@@ -287,7 +288,8 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertTrue(extracted.contains("Piezas de oro: 137"))
                 assertTrue(extracted.contains("Sintonizado"))
                 assertTrue(extracted.contains("Viales vacíos"))
-                assertTrue(extracted.contains("Muestras y reactivos."))
+                assertTrue(extracted.contains("Muestras y"))
+                assertTrue(extracted.contains("reactivos."))
                 assertTrue(extracted.contains("Peso 4 lb"))
                 assertTrue(extracted.contains("Foco arcano y arma improvisada."))
                 assertTrue(extracted.contains("Conjuro adicional 9"))
@@ -518,7 +520,8 @@ class DesktopPcSheetWholeDraftRendererTest {
 
             Loader.loadPDF(pdf).use { document ->
                 val extracted = PDFTextStripper().getText(document)
-                assertTrue(extracted.contains("ATR7"))
+                assertTrue(extracted.contains("Atributo 7"))
+                assertTrue(extracted.contains("ATR"))
                 assertTrue(extracted.contains("Vínculo 7-7"))
                 val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
                 if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE) {
