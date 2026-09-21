@@ -480,6 +480,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
         val pages = maxOf(
             1,
+            pageCount(remaining.size, TRAIT_NAME_INDEX_PER_PAGE),
             pageCount(detailLines.size, TRAIT_DETAIL_LINES_PER_PAGE),
             pageCount(proficiencies.size, TRAIT_PROFICIENCIES_PER_PAGE),
         )
