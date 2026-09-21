@@ -780,6 +780,66 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
         assertTrue(spellPdf.length() > pdf.length())
+
+        val notes = (1..30).map { index ->
+            CharacterNote(
+                id = uuid("9f000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                title = "Nota canónica $index",
+                content = "Contenido persistente de campaña $index.",
+                sortOrder = index,
+            )
+        }
+        val notesAggregate = aggregate.copy(
+            sheet = aggregate.sheet.copy(
+                generalNotes = "Recordatorio general canónico.",
+                noteCards = notes,
+            ),
+        )
+        val notesPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = notesAggregate),
+        )
+        val notesPdf = File(proofDir, "classic-production-notes-pass7.pdf")
+        notesPdf.outputStream().use { renderer.renderDraft(notesPlan, it) }
+
+        Loader.loadPDF(notesPdf).use { document ->
+            assertEquals(6, document.numberOfPages)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("NOTAS DE CAMPAÑA"))
+            assertTrue(Regex("Nota\\s+canónica\\s+1").containsMatchIn(extracted))
+            assertTrue(Regex("Nota\\s+canónica\\s+30").containsMatchIn(extracted))
+            assertTrue(extracted.contains("Recordatorio general canónico"))
+            assertTrue(extracted.contains("CROQUIS / MAPA"))
+            assertTrue(extracted.contains("REFERENCIAS Y RECORDATORIOS"))
+
+            val page4 = PDFTextStripper().apply {
+                startPage = 4
+                endPage = 4
+            }.getText(document)
+            val page6 = PDFTextStripper().apply {
+                startPage = 6
+                endPage = 6
+            }.getText(document)
+            assertTrue(Regex("Nota\\s+canónica\\s+1").containsMatchIn(page4))
+            assertTrue(Regex("Nota\\s+canónica\\s+30").containsMatchIn(page6))
+
+            val pdfRenderer = PDFRenderer(document)
+            (3 until document.numberOfPages).forEach { index ->
+                val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "classic-production-notes-pass7-page-${index + 1}.png"),
+                    ),
+                )
+            }
+        }
+        assertTrue(notesPdf.length() > pdf.length())
+
     }
 
     @Test
