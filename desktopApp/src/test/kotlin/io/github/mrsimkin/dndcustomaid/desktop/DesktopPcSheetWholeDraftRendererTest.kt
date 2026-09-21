@@ -426,7 +426,7 @@ class DesktopPcSheetWholeDraftRendererTest {
     fun promotesOwnerApprovedCustomV1InventoryContinuationFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
-        val base = denseDraftAggregate()
+        val base = denseDraftAggregate().withoutV1SemanticSupplements()
         val ordinary = base.sheet.inventoryItems.first { !it.special }.copy(
             equipped = true,
             notes = "Nota persistente del equipo ordinario.",
@@ -516,7 +516,7 @@ class DesktopPcSheetWholeDraftRendererTest {
     fun paginatesOwnerApprovedCustomV1SpellContinuationWithoutDroppingCanonicalSpells() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
-        val base = denseDraftAggregate()
+        val base = denseDraftAggregate().withoutV1SemanticSupplements()
         val sourceId = base.sheet.spellcastingSources.single().id
         val spells = (1..30).map { index ->
             spell(
@@ -597,7 +597,7 @@ class DesktopPcSheetWholeDraftRendererTest {
     fun paginatesOwnerApprovedCustomV1NotesWithoutDroppingCanonicalLines() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
-        val base = denseDraftAggregate()
+        val base = denseDraftAggregate().withoutV1SemanticSupplements()
         val notes = (1..40).map { index ->
             CharacterNote(
                 id = uuid("91000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
@@ -802,6 +802,184 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
         )
     }
+
+    @Test
+    fun exportsCurrentSnapshotOperationalAndReferenceSemanticsInCustomV1() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val permanent = denseDraftAggregate().copy(
+            sheet = denseDraftAggregate().sheet.copy(
+                inventoryItems = emptyList(),
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+        )
+        val ammunition = inventory(
+            index = 200,
+            name = "Flechas de prueba",
+            quantity = 20,
+            weight = 0.05,
+            location = "Carcaj",
+            special = false,
+            equipped = false,
+            description = "Munición actual.",
+        )
+        val current = permanent.copy(
+            sheet = permanent.sheet.copy(
+                currentHp = 11,
+                tempHp = 6,
+                deathSaveSuccesses = 2,
+                deathSaveFailures = 1,
+                passivePerceptionAdjustment = 2,
+                inventoryItems = listOf(ammunition),
+                weaponMasteries = listOf(
+                    CharacterWeaponMastery(
+                        id = uuid("8c000000-0000-0000-0000-000000000001"),
+                        weaponName = "Espada larga",
+                        masteryName = "Empujar",
+                        source = "Guerrero",
+                        notes = "Sólo con esta arma.",
+                    ),
+                ),
+                forms = listOf(
+                    CharacterForm(
+                        id = uuid("8d000000-0000-0000-0000-000000000001"),
+                        name = "Forma de lobo",
+                        source = "Rasgo",
+                        challengeRatingText = "1/4",
+                        armorClass = 13,
+                        hitPoints = 18,
+                        movement = "40 ft",
+                        senses = "Percepción aguda",
+                        actionSummary = "Mordisco",
+                        notes = "Forma registrada.",
+                    ),
+                ),
+                companions = listOf(
+                    CharacterCompanion(
+                        id = uuid("8e000000-0000-0000-0000-000000000001"),
+                        name = "Nim",
+                        kind = "Familiar",
+                        source = "Conjuro",
+                        armorClass = 12,
+                        maxHp = 9,
+                        currentHp = 7,
+                        tempHp = 1,
+                        speed = "30 ft",
+                        abilitySummary = "Explorador",
+                        sensesProficiencies = "Visión en la oscuridad",
+                        traitsActions = "Ayudar",
+                        notes = "Compañero actual.",
+                    ),
+                ),
+            ),
+            closure = permanent.closure.copy(
+                progressMode = CharacterProgressMode.MILESTONE,
+                milestoneProgress = "3 de 5 hitos",
+                exhaustionLevel = 2,
+                concentration = CharacterConcentration(
+                    name = "Volar",
+                    notes = "Concentración activa",
+                ),
+                conditions = listOf(
+                    CharacterCondition(
+                        id = uuid("8f000000-0000-0000-0000-000000000001"),
+                        name = "Asustado",
+                        source = "Efecto actual",
+                        notes = "Hasta final del turno.",
+                    ),
+                ),
+                defenses = listOf(
+                    CharacterDefense(
+                        id = uuid("90000000-0000-0000-0000-000000000001"),
+                        type = CharacterDefenseType.RESISTANCE,
+                        name = "Fuego",
+                        source = "Objeto",
+                    ),
+                ),
+                movements = listOf(
+                    CharacterMovement(
+                        id = uuid("91000000-0000-0000-0000-000000000001"),
+                        type = CharacterMovementType.FLY,
+                        name = "Vuelo mágico",
+                        speedFeet = 60,
+                        notes = "Mientras concentra.",
+                    ),
+                ),
+                senses = listOf(
+                    CharacterSense(
+                        id = uuid("92000000-0000-0000-0000-000000000001"),
+                        name = "Visión verdadera",
+                        rangeFeet = 30,
+                    ),
+                ),
+                temporaryEffects = listOf(
+                    CharacterTemporaryEffect(
+                        id = uuid("93000000-0000-0000-0000-000000000001"),
+                        name = "Bendición temporal",
+                        summary = "+1 a una prueba",
+                        durationText = "10 minutos",
+                        source = "Aliado",
+                        notes = "Activo",
+                        active = true,
+                    ),
+                ),
+                inventoryUsage = listOf(
+                    CharacterInventoryUsage(
+                        itemId = ammunition.id,
+                        kind = CharacterConsumableKind.AMMUNITION,
+                        quickUseAmount = 2,
+                        carryState = CharacterInventoryCarryState.STORED,
+                    ),
+                ),
+            ),
+        )
+
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.CURRENT_SNAPSHOT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = permanent,
+                currentSnapshot = current,
+            ),
+        )
+        val pdf = File(proofDir, "custom-v1-current-snapshot-semantics.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertTrue(document.numberOfPages >= 5)
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
+            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - VALUES") })
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("3 de 5 hitos"))
+            assertTrue(extracted.contains("Inspiración"))
+            assertTrue(extracted.contains("PG temporales"))
+            assertTrue(extracted.contains("Salvaciones de muerte"))
+            assertTrue(extracted.contains("Percepción pasiva"))
+            assertTrue(extracted.contains("Agotamiento"))
+            assertTrue(extracted.contains("Asustado"))
+            assertTrue(extracted.contains("Resistencia"))
+            assertTrue(extracted.contains("Vuelo mágico"))
+            assertTrue(extracted.contains("Visión verdadera"))
+            assertTrue(extracted.contains("Bendición temporal"))
+            assertTrue(extracted.contains("Espada larga"))
+            assertTrue(extracted.contains("Forma de lobo"))
+            assertTrue(extracted.contains("Nim"))
+            assertTrue(extracted.contains("Flechas de prueba"))
+            assertTrue(extracted.contains("Munición"))
+            assertTrue(extracted.contains("rápido"))
+            assertTrue(extracted.contains("Almacenado"))
+        }
+    }
+
 
     @Test
     fun exportsCurrentSnapshotOperationalAndReferenceSemanticsInCustomV2() {
@@ -1011,6 +1189,52 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
     }
+
+    private fun PcSheetExportAggregate.withoutV1SemanticSupplements(): PcSheetExportAggregate =
+        copy(
+            sheet = sheet.copy(
+                status = CharacterStatus.ACTIVE,
+                tempHp = 0,
+                deathSaveSuccesses = 0,
+                deathSaveFailures = 0,
+                passivePerceptionAdjustment = 0,
+                combatEntries = sheet.combatEntries
+                    .sortedBy { it.sortOrder }
+                    .take(5)
+                    .map { it.copy(type = CharacterCombatEntryType.ATTACK, notes = null) },
+                weaponMasteries = emptyList(),
+                forms = emptyList(),
+                companions = emptyList(),
+                inspiration = false,
+                background = sheet.background.copy(
+                    summary = "",
+                    religionFaith = "",
+                    personalityTraits = "",
+                    ideals = "",
+                    bonds = "",
+                    flaws = "",
+                    story = "",
+                ),
+                classes = sheet.classes.map { it.copy(subclassName = null) },
+            ),
+            closure = closure.copy(
+                progressMode = CharacterProgressMode.EXPERIENCE,
+                exhaustionLevel = 0,
+                concentration = null,
+                conditions = emptyList(),
+                defenses = emptyList(),
+                movements = emptyList(),
+                senses = emptyList(),
+                temporaryEffects = emptyList(),
+            ),
+            successor = successor.copy(
+                combatDamage = emptyList(),
+                spellcastingProfiles = successor.spellcastingProfiles.take(1),
+                speciesIdentity = null,
+                subraceIdentity = null,
+                backgroundIdentity = null,
+            ),
+        )
 
     private fun denseDraftAggregateWithCustomStatisticsOverflow(): PcSheetExportAggregate {
         val base = denseDraftAggregate()
