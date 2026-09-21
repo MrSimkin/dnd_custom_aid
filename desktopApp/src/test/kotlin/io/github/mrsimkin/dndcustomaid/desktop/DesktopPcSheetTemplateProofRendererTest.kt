@@ -32,6 +32,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 import org.apache.pdfbox.Loader
@@ -71,6 +72,7 @@ class DesktopPcSheetTemplateProofRendererTest {
                 assertTrue(extracted.contains("Aster Vale"))
                 assertTrue(extracted.contains("Mago 5"))
                 assertTrue(extracted.contains("Elfo Alto"))
+                assertFalse(extracted.contains("RETRATO QA"))
 
                 val image = PDFRenderer(document).renderImageWithDPI(0, 144f, ImageType.RGB)
                 val png = File(proofDir, "$fileStem.png")
