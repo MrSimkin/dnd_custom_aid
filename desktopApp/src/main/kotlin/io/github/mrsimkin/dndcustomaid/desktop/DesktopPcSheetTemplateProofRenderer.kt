@@ -491,13 +491,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
                 stream, primitives, 101f, rowCenterY,
                 slot.totalSlots.toString(), 9f, 44f, PdfTypographyRole.NUMERIC_COMPACT,
             )
-            repeat(slot.spentSlots.coerceAtMost(V2_SLOT_SPENT_CENTER_X.size)) { index ->
-                markerPx(
-                    stream, primitives,
-                    V2_SLOT_SPENT_CENTER_X[index], rowCenterY, 20f,
-                    PdfMarkerKind.OVAL_FILLED, PdfSymbolFamily.V3_DERIVED,
-                )
-            }
+            // Owner-approved v2 contract: ESPACIOS GASTADOS remains blank for paper tracking.
         }
 
         drawCustomV2TreasureAndResources(stream, primitives, plan)
@@ -527,16 +521,8 @@ internal class DesktopPcSheetTemplateProofRenderer(
                 fillOnRulePx(stream, primitives, 370f, 300f, V2_OBJECT_RULE_Y[index], item.name, 7.2f)
             }
 
-        V2_AMMO_ROW_Y.forEachIndexed { rowIndex, rowY ->
-            repeat(V2_AMMO_FILLED_PER_ROW[rowIndex]) { columnIndex ->
-                markerPx(
-                    stream, primitives,
-                    V2_AMMO_CENTER_X[columnIndex], rowY, 12f,
-                    PdfMarkerKind.SQUARE_FILLED, PdfSymbolFamily.V3_DERIVED,
-                )
-            }
-        }
-
+        // Preserve the source ammunition grid blank for paper use. Real ammunition records are
+        // character data and are carried through the Inventory continuation when configured.
         sheet.inventoryItems.filter { it.special }
             .take(V2_OTHER_RULE_Y.size)
             .forEachIndexed { index, item ->
@@ -656,9 +642,6 @@ internal class DesktopPcSheetTemplateProofRenderer(
         val V2_TREASURE_RULE_Y = listOf(1255f, 1289f, 1323f, 1357f)
         val V2_OBJECT_RULE_Y = listOf(1425f, 1459f, 1493f, 1527f)
         val V2_OTHER_RULE_Y = listOf(1425f, 1459f, 1493f, 1527f)
-        val V2_AMMO_ROW_Y = listOf(1241f, 1275f, 1309f, 1343f)
-        val V2_AMMO_CENTER_X = listOf(978f, 1001f, 1024f, 1047f, 1070f, 1093f, 1116f, 1139f, 1162f, 1185f)
-        val V2_AMMO_FILLED_PER_ROW = listOf(3, 5, 7, 9)
 
         val V2_PER_ABILITY_SKILL_ORDER = listOf(
             SkillKey.ACROBATICS,
