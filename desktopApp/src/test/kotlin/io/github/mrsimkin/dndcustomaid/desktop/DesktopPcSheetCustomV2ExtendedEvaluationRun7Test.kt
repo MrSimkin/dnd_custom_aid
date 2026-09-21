@@ -23,6 +23,8 @@ import org.apache.pdfbox.pdmodel.PDResources
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.font.PDFont
 import org.apache.pdfbox.pdmodel.font.PDType0Font
+import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont
+import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
@@ -1017,7 +1019,15 @@ class DesktopPcSheetCustomV2ExtendedEvaluationRun7Test {
                     val stream = descriptor.fontFile2 ?: descriptor.fontFile ?: descriptor.fontFile3
                     requireNotNull(stream) { "Source font is not embedded: " + font.name }
                     val bytes = stream.createInputStream().use { it.readBytes() }
-                    return PDType0Font.load(target, ByteArrayInputStream(bytes), false)
+                    // The frozen Custom-v2 source embeds Corbel as a simple TrueType
+                    // WinAnsi font. Re-loading that subset as Type0/Identity-H preserves
+                    // extraction but corrupts several visible glyph mappings. Preserve
+                    // the source font class and encoding instead.
+                    return PDTrueTypeFont.load(
+                        target,
+                        ByteArrayInputStream(bytes),
+                        WinAnsiEncoding.INSTANCE,
+                    )
                 }
             }
         }
