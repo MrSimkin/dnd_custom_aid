@@ -665,7 +665,7 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun wrapByWidth(font: PDFont, text: String, size: Float, maxWidth: Float): List<String> {
         val out = mutableListOf<String>()
         var current = ""
-        text.trim().split(Regex("\s+")).forEach { word ->
+        text.trim().split(Regex("\\s+")).forEach { word ->
             val candidate = if (current.isBlank()) word else "$current $word"
             if (textWidth(font, candidate, size) <= maxWidth) current = candidate
             else {
@@ -706,13 +706,14 @@ internal class DesktopCustomV2ExtendedRenderer(
         reference: CharacterAbilityReference,
         attributes: List<PcSheetCustomAttributeProjection>,
     ): String = when {
-        reference.builtIn != null -> when (reference.builtIn) {
+        reference.builtIn != null -> when (val builtIn = reference.builtIn) {
             CharacterAbility.STRENGTH -> "FUE"
             CharacterAbility.DEXTERITY -> "DES"
             CharacterAbility.CONSTITUTION -> "CON"
             CharacterAbility.INTELLIGENCE -> "INT"
             CharacterAbility.WISDOM -> "SAB"
             CharacterAbility.CHARISMA -> "CAR"
+            null -> error("Built-in ability branch lost its value.")
         }
         reference.customAttributeId != null -> attributes
             .firstOrNull { it.attribute.id == reference.customAttributeId }
