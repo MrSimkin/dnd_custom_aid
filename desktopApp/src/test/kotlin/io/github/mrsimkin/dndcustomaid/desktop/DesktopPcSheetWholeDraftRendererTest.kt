@@ -9,6 +9,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomAttribute
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkill
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkillAbilityConfiguration
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterNote
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
@@ -103,6 +106,162 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
             assertTrue(pdf.length() > 0L)
         }
+    }
+
+    @Test
+    fun promotesOwnerApprovedCustomV2ExtendedCustomStatisticsFromRealPlanData() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithCustomStatistics()
+
+        listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-per-attribute-production-pass1",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-per-ability-production-pass1",
+        ).forEach { (family, stem) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+
+            val pdf = File(proofDir, "$stem.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+            Loader.loadPDF(pdf).use { document ->
+                assertEquals(5, document.numberOfPages)
+                val layerNames = document.documentCatalog.ocProperties
+                    ?.getGroupNames()
+                    ?.toList()
+                    .orEmpty()
+                if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE) {
+                    assertTrue(layerNames.contains("V2X ATTR - STRUCTURE"))
+                    assertTrue(layerNames.contains("V2X ATTR - VALUES"))
+                } else {
+                    assertTrue(layerNames.contains("V2X ABILITY - STRUCTURE"))
+                    assertTrue(layerNames.contains("V2X ABILITY - VALUES"))
+                }
+
+                val extracted = PDFTextStripper().getText(document)
+                assertTrue(extracted.contains("ESTADÍSTICAS PERSONALIZADAS"))
+                assertTrue(extracted.contains("HONor"))
+                assertTrue(extracted.contains("VOLuntad"))
+                assertTrue(extracted.contains("SUErte"))
+                assertTrue(extracted.contains("Etiqueta"))
+                assertTrue(extracted.contains("Criptografía"))
+                assertTrue(extracted.contains("Acrobacia aérea"))
+
+                val image = PDFRenderer(document).renderImageWithDPI(4, 220f, ImageType.RGB)
+                val png = File(proofDir, "$stem-extended-page.png")
+                assertTrue(ImageIO.write(image, "png", png))
+                assertTrue(png.length() > 0L)
+            }
+            assertTrue(pdf.length() > 20_000L)
+        }
+    }
+
+    private fun denseDraftAggregateWithCustomStatistics(): PcSheetExportAggregate {
+        val base = denseDraftAggregate()
+        val honor = CharacterCustomAttribute(
+            id = uuid("81000000-0000-0000-0000-000000000001"),
+            name = "Honor",
+            abbreviation = "HON",
+            score = 15,
+            savingThrowEnabled = true,
+            savingThrowProficient = true,
+            notes = "Presencia, reputación y protocolo. No sustituye CARisma salvo regla explícita.",
+            sortOrder = 0,
+        )
+        val voluntad = CharacterCustomAttribute(
+            id = uuid("81000000-0000-0000-0000-000000000002"),
+            name = "Voluntad",
+            abbreviation = "VOL",
+            score = 12,
+            savingThrowEnabled = true,
+            savingThrowProficient = false,
+            notes = "Temple, foco y resistencia mental. Las pruebas prolongadas pueden exigir concentración.",
+            sortOrder = 1,
+        )
+        val suerte = CharacterCustomAttribute(
+            id = uuid("81000000-0000-0000-0000-000000000003"),
+            name = "Suerte",
+            abbreviation = "SUE",
+            score = 18,
+            savingThrowEnabled = true,
+            savingThrowProficient = true,
+            notes = "Fortuna, azar e improvisación. Puede modificar consecuencias imprevistas.",
+            sortOrder = 2,
+        )
+
+        fun customSkill(
+            index: Int,
+            name: String,
+            builtIn: CharacterAbility,
+            training: SkillTraining,
+            adjustment: Int = 0,
+        ) = CharacterCustomSkill(
+            id = uuid("82000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+            name = name,
+            ability = builtIn,
+            training = training,
+            adjustment = adjustment,
+            source = "Prueba producción PDF",
+            notes = null,
+            sortOrder = index,
+        )
+
+        val etiqueta = customSkill(1, "Etiqueta", CharacterAbility.CHARISMA, SkillTraining.PROFICIENT)
+        val reputacion = customSkill(2, "Reputación", CharacterAbility.CHARISMA, SkillTraining.PROFICIENT)
+        val protocolo = customSkill(3, "Protocolo", CharacterAbility.CHARISMA, SkillTraining.NONE)
+        val temple = customSkill(4, "Temple", CharacterAbility.WISDOM, SkillTraining.PROFICIENT)
+        val concentracion = customSkill(5, "Concentración", CharacterAbility.CONSTITUTION, SkillTraining.NONE)
+        val fortuna = customSkill(6, "Fortuna", CharacterAbility.WISDOM, SkillTraining.PROFICIENT)
+        val escapismo = customSkill(7, "Escapismo", CharacterAbility.DEXTERITY, SkillTraining.NONE)
+        val improvisacion = customSkill(8, "Improvisación", CharacterAbility.CHARISMA, SkillTraining.PROFICIENT)
+        val ocultismo = customSkill(9, "Ocultismo", CharacterAbility.INTELLIGENCE, SkillTraining.PROFICIENT)
+        val criptografia = customSkill(10, "Criptografía", CharacterAbility.INTELLIGENCE, SkillTraining.NONE)
+        val acrobaciaAerea = customSkill(11, "Acrobacia aérea", CharacterAbility.DEXTERITY, SkillTraining.EXPERTISE)
+        val lecturaCorporal = customSkill(12, "Lectura corporal", CharacterAbility.WISDOM, SkillTraining.PROFICIENT)
+
+        val customSkills = listOf(
+            etiqueta,
+            reputacion,
+            protocolo,
+            temple,
+            concentracion,
+            fortuna,
+            escapismo,
+            improvisacion,
+            ocultismo,
+            criptografia,
+            acrobaciaAerea,
+            lecturaCorporal,
+        )
+
+        val customLinks = listOf(
+            etiqueta to honor,
+            reputacion to honor,
+            protocolo to honor,
+            temple to voluntad,
+            concentracion to voluntad,
+            fortuna to suerte,
+            escapismo to suerte,
+            improvisacion to suerte,
+        ).map { (skill, attribute) ->
+            CharacterCustomSkillAbilityConfiguration(
+                customSkillId = skill.id,
+                ability = CharacterAbilityReference.custom(attribute.id),
+            )
+        }
+
+        return base.copy(
+            closure = base.closure.copy(customSkills = customSkills),
+            successor = base.successor.copy(
+                customAttributes = listOf(honor, voluntad, suerte),
+                customSkillAbilities = customLinks,
+            ),
+        )
     }
 
     private fun denseDraftAggregate(): PcSheetExportAggregate {
