@@ -4,12 +4,16 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterDefenseType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterMovementType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
@@ -299,7 +303,7 @@ internal class DesktopClassicRenderer {
         val proficiencyEntries = (languageOverflow + otherProficiencies)
             .flatMap(::proficiencyFeatureSlices)
 
-        val rightEntries = rightTraitEntries + proficiencyEntries
+        val rightEntries = rightTraitEntries + proficiencyEntries + classicReferenceFeatures(plan)
         if (leftEntries.isEmpty() && rightEntries.isEmpty()) return
 
         val pages = maxOf(
@@ -351,6 +355,265 @@ internal class DesktopClassicRenderer {
                 )
             }
         }
+    }
+
+
+    private fun classicReferenceFeatures(plan: PcSheetPdfRenderPlan): List<ClassicFeature> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val closure = aggregate.closure
+        val successor = aggregate.successor
+        val entries = mutableListOf<Pair<String, String>>()
+
+        fun add(label: String, value: String) {
+            val clean = value.trim()
+            if (clean.isNotEmpty()) entries += label to clean
+        }
+
+        sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+            add("Fe / religión", it)
+        }
+        if (
+            successor.subraceIdentity != null &&
+            successor.speciesIdentity?.name?.isNotBlank() == true
+        ) {
+            add("Especie", requireNotNull(successor.speciesIdentity).name)
+        }
+        if (sheet.status != CharacterStatus.ACTIVE) {
+            add("Estado", characterStatusLabel(sheet.status))
+        }
+
+        sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .forEachIndexed { index, entry ->
+                if (
+                    index >= BASE_COMBAT_CAPACITY ||
+                    entry.type != CharacterCombatEntryType.ATTACK ||
+                    !entry.notes.isNullOrBlank()
+                ) {
+                    add(
+                        "Acción / ataque",
+                        buildList {
+                            add(combatTypeLabel(entry.type) + " - " + entry.name)
+                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
+                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
+                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
+                        }.joinToString(" · "),
+                    )
+                }
+            }
+
+        if (closure.progressMode == CharacterProgressMode.MILESTONE) {
+            add("Progreso", closure.milestoneProgress)
+        }
+        if (sheet.tempHp != 0) add("PG temporales", sheet.tempHp.toString())
+
+        sheet.weaponMasteries.sortedBy { it.sortOrder }.forEach { mastery ->
+            add(
+                "Maestría",
+                listOf(
+                    mastery.weaponName + " - " + mastery.masteryName,
+                    mastery.source.orEmpty(),
+                    mastery.notes.orEmpty(),
+                ).filter { it.isNotBlank() }.joinToString(" · "),
+            )
+        }
+
+        if (closure.exhaustionLevel > 0) add("Agotamiento", closure.exhaustionLevel.toString())
+        closure.concentration?.let { concentration ->
+            add(
+                "Concentración",
+                listOf(concentration.name, concentration.notes.orEmpty())
+                    .filter { it.isNotBlank() }.joinToString(" · "),
+            )
+        }
+        closure.conditions.sortedBy { it.sortOrder }.forEach { condition ->
+            add(
+                "Condición",
+                listOf(condition.name, condition.source.orEmpty(), condition.notes.orEmpty())
+                    .filter { it.isNotBlank() }.joinToString(" · "),
+            )
+        }
+        closure.defenses.sortedBy { it.sortOrder }.forEach { defense ->
+            add(
+                defenseTypeLabel(defense.type),
+                listOf(defense.name, defense.source.orEmpty(), defense.notes.orEmpty())
+                    .filter { it.isNotBlank() }.joinToString(" · "),
+            )
+        }
+        closure.movements.sortedBy { it.sortOrder }.forEach { movement ->
+            add(
+                "Movimiento",
+                buildList {
+                    add(movementTypeLabel(movement.type) + " - " + movement.name)
+                    movement.speedFeet?.let { add("$it ft") }
+                    movement.notes?.takeIf { it.isNotBlank() }?.let(::add)
+                }.joinToString(" · "),
+            )
+        }
+        closure.senses.sortedBy { it.sortOrder }.forEach { sense ->
+            add(
+                "Sentido",
+                buildList {
+                    add(sense.name)
+                    sense.rangeFeet?.let { add("$it ft") }
+                    sense.notes?.takeIf { it.isNotBlank() }?.let(::add)
+                }.joinToString(" · "),
+            )
+        }
+        closure.temporaryEffects
+            .filter { it.active }
+            .sortedBy { it.sortOrder }
+            .forEach { effect ->
+                add(
+                    "Efecto temporal",
+                    listOf(
+                        effect.name,
+                        effect.summary,
+                        effect.durationText.orEmpty(),
+                        effect.source.orEmpty(),
+                        effect.notes.orEmpty(),
+                    ).filter { it.isNotBlank() }.joinToString(" · "),
+                )
+            }
+
+        val combatById = sheet.combatEntries.associateBy { it.id }
+        successor.combatDamage.forEach { profile ->
+            val components = profile.components.joinToString(" + ") { component ->
+                component.expression +
+                    component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+            }
+            if (components.isNotBlank()) {
+                add(
+                    "Daño estructurado",
+                    (combatById[profile.combatEntryId]?.name ?: "Ataque") + ": " + components,
+                )
+            }
+        }
+
+        val spellSourceOrder = sheet.spellcastingSources.associate { it.id to it.sortOrder }
+        val spellSources = sheet.spellcastingSources.associateBy { it.id }
+        successor.spellcastingProfiles
+            .sortedBy { spellSourceOrder[it.sourceId] ?: Int.MAX_VALUE }
+            .drop(1)
+            .forEach { profile ->
+                val sourceName = spellSources[profile.sourceId]?.name ?: "Fuente mágica"
+                val ability = when {
+                    profile.ability.builtIn != null ->
+                        abilityAbbreviation(requireNotNull(profile.ability.builtIn))
+                    profile.ability.customAttributeId != null -> successor.customAttributes
+                        .firstOrNull { it.id == profile.ability.customAttributeId }
+                        ?.abbreviation.orEmpty()
+                    else -> ""
+                }
+                add(
+                    "Lanzamiento",
+                    buildList {
+                        add(sourceName)
+                        if (ability.isNotBlank()) add(ability)
+                        sheet.spellSaveDc(profile, successor)?.let { add("CD $it") }
+                        sheet.spellAttackModifier(profile, successor)?.let { add("Ataque " + signed(it)) }
+                    }.joinToString(" · "),
+                )
+            }
+
+        sheet.forms.sortedBy { it.sortOrder }.forEach { form ->
+            add(
+                "Forma",
+                buildList {
+                    add(form.name)
+                    form.source?.takeIf { it.isNotBlank() }?.let(::add)
+                    form.challengeRatingText?.takeIf { it.isNotBlank() }?.let { add("VD $it") }
+                    form.armorClass?.let { add("CA $it") }
+                    form.hitPoints?.let { add("PG $it") }
+                    form.movement?.takeIf { it.isNotBlank() }?.let(::add)
+                    form.senses?.takeIf { it.isNotBlank() }?.let(::add)
+                    form.actionSummary.takeIf { it.isNotBlank() }?.let(::add)
+                    form.notes?.takeIf { it.isNotBlank() }?.let(::add)
+                }.joinToString(" · "),
+            )
+        }
+
+        sheet.companions.sortedBy { it.sortOrder }.forEach { companion ->
+            val hasReferenceDetail =
+                !companion.source.isNullOrBlank() ||
+                    companion.armorClass != null ||
+                    companion.maxHp != null ||
+                    companion.currentHp != null ||
+                    companion.tempHp != 0 ||
+                    companion.speed.isNotBlank() ||
+                    companion.abilitySummary.isNotBlank() ||
+                    companion.sensesProficiencies.isNotBlank() ||
+                    companion.traitsActions.isNotBlank() ||
+                    !companion.notes.isNullOrBlank()
+            if (hasReferenceDetail) {
+                add(
+                    "Compañero",
+                    buildList {
+                        add(
+                            companion.name +
+                                companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
+                        )
+                        companion.source?.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.armorClass?.let { add("CA $it") }
+                        companion.maxHp?.let { max ->
+                            add("PG " + (companion.currentHp ?: max) + "/" + max)
+                        }
+                        if (companion.tempHp > 0) add("PG temp. " + companion.tempHp)
+                        companion.speed.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.abilitySummary.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.sensesProficiencies.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.traitsActions.takeIf { it.isNotBlank() }?.let(::add)
+                        companion.notes?.takeIf { it.isNotBlank() }?.let(::add)
+                    }.joinToString(" · "),
+                )
+            }
+        }
+
+        return entries.flatMap { (label, value) ->
+            wrapForChars(value, CLASSIC_TRAIT_BODY_CHARS)
+                .chunked(CLASSIC_TRAIT_BODY_LINES)
+                .map { it.joinToString("\n") }
+                .ifEmpty { listOf("") }
+                .mapIndexed { index, chunk ->
+                    ClassicFeature(
+                        name = if (index == 0) label else "$label (cont.)",
+                        source = "Referencia",
+                        description = chunk,
+                        type = CharacterTraitType.OTHER,
+                    )
+                }
+        }
+    }
+
+    private fun characterStatusLabel(status: CharacterStatus): String = when (status) {
+        CharacterStatus.ACTIVE -> "Activo"
+        CharacterStatus.INACTIVE -> "Inactivo"
+        CharacterStatus.RETIRED -> "Retirado"
+        CharacterStatus.DEAD -> "Muerto"
+    }
+
+    private fun combatTypeLabel(type: CharacterCombatEntryType): String = when (type) {
+        CharacterCombatEntryType.ATTACK -> "Ataque"
+        CharacterCombatEntryType.ACTION -> "Acción"
+        CharacterCombatEntryType.BONUS_ACTION -> "Acción adicional"
+        CharacterCombatEntryType.REACTION -> "Reacción"
+        CharacterCombatEntryType.OTHER -> "Otro"
+    }
+
+    private fun defenseTypeLabel(type: CharacterDefenseType): String = when (type) {
+        CharacterDefenseType.RESISTANCE -> "Resistencia"
+        CharacterDefenseType.IMMUNITY -> "Inmunidad"
+        CharacterDefenseType.VULNERABILITY -> "Vulnerabilidad"
+    }
+
+    private fun movementTypeLabel(type: CharacterMovementType): String = when (type) {
+        CharacterMovementType.FLY -> "Volar"
+        CharacterMovementType.SWIM -> "Nadar"
+        CharacterMovementType.CLIMB -> "Trepar"
+        CharacterMovementType.BURROW -> "Excavar"
+        CharacterMovementType.OTHER -> "Otro"
     }
 
     private fun traitNeedsReferenceContinuation(
@@ -1120,9 +1383,6 @@ internal class DesktopClassicRenderer {
                 listOf(148f to "Nombre", 50f to "Bonif.", 86f to "Daño / notas"),
             )
             val combatEntries = sheet.combatEntries.sortedBy { it.sortOrder }
-            if (combatEntries.size > BASE_COMBAT_CAPACITY) {
-                overflowDiagnostics += "combat:${combatEntries.size - BASE_COMBAT_CAPACITY} entrada(s)"
-            }
             combatEntries.take(BASE_COMBAT_CAPACITY).forEachIndexed { index, entry ->
                 val top = 300f + index * 23f
                 text(s, p, rightX + 10f, top, 148f, 18f, entry.name, PdfTypographyRole.BODY, 8.5f, 7.2f)
