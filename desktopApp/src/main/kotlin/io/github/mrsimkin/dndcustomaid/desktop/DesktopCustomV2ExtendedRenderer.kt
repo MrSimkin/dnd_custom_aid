@@ -641,6 +641,18 @@ internal class DesktopCustomV2ExtendedRenderer(
             CharacterProgressMode.MILESTONE -> addFull("Progreso", closure.milestoneProgress)
         }
 
+        if (sheet.tempHp != 0) addFull("PG temporales", sheet.tempHp.toString())
+        if (sheet.deathSaveSuccesses != 0 || sheet.deathSaveFailures != 0) {
+            addFull(
+                "Salvaciones de muerte",
+                sheet.deathSaveSuccesses.toString() + " éxitos / " +
+                    sheet.deathSaveFailures.toString() + " fallos",
+            )
+        }
+        if (sheet.passivePerceptionAdjustment != 0) {
+            addFull("Percepción pasiva", sheet.passivePerception.toString())
+        }
+
         sheet.weaponMasteries.sortedBy { it.sortOrder }.forEach { mastery ->
             addFull(
                 "Maestría",
