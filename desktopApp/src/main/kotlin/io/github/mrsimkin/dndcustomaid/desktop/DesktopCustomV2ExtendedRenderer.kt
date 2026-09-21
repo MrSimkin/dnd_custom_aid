@@ -1095,9 +1095,12 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
         val treasureLines = buildList {
-            sheet.currencies.sortedBy { it.sortOrder }.forEach { currency ->
-                add(currency.name + ": " + currency.amount)
-            }
+            sheet.currencies
+                .filter { it.key.lowercase() !in BASE_V2_CURRENCY_KEYS }
+                .sortedBy { it.sortOrder }
+                .forEach { currency ->
+                    add(currency.name + ": " + currency.amount)
+                }
             addAll(
                 plan.snapshot.aggregate.successor.preferences.valuablesText
                     .split(Regex("[;\\n]+"))
@@ -2221,6 +2224,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_EQUIPMENT_CAPACITY = 23
+        val BASE_V2_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc")
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_CONTINUATION_CAPACITY = 57
         const val INVENTORY_VALUABLES_CAPACITY = 19
