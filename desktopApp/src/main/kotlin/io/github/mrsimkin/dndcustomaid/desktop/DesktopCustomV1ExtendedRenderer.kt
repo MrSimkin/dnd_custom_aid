@@ -1,6 +1,9 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
@@ -44,6 +47,9 @@ internal class DesktopCustomV1ExtendedRenderer(
             !stats.isEmpty
         ) {
             appendCustomStatisticsPages(plan)
+        }
+        if (needsTraitsExtendedPage(plan)) {
+            appendTraitsExtendedPages(plan)
         }
     }
 
@@ -105,6 +111,261 @@ internal class DesktopCustomV1ExtendedRenderer(
             )
         }
     }
+
+    private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
+        val sheet = plan.snapshot.aggregate.sheet
+        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+        val overflowNames = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
+        val detailOverflow = traitDescriptionOverflowLines(orderedTraits)
+        val metadata = traitMetadataLines(orderedTraits)
+        return overflowNames.isNotEmpty() ||
+            detailOverflow.isNotEmpty() ||
+            metadata.isNotEmpty() ||
+            sheet.proficiencies.isNotEmpty()
+    }
+
+    private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+        val overflowTraits = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
+
+        val classNames = overflowTraits
+            .filter { it.type == CharacterTraitType.CLASS }
+            .map { it.name }
+        val raceNames = overflowTraits
+            .filter { it.type == CharacterTraitType.SPECIES_RACE }
+            .map { it.name }
+        val featNames = overflowTraits
+            .filter { it.type == CharacterTraitType.FEAT }
+            .map { it.name }
+        val otherNames = overflowTraits
+            .filter {
+                it.type == CharacterTraitType.BACKGROUND ||
+                    it.type == CharacterTraitType.GIFT_BLESSING ||
+                    it.type == CharacterTraitType.OTHER
+            }
+            .map { it.name }
+
+        val proficiencies = sheet.proficiencies
+            .filter { it.type != CharacterProficiencyType.LANGUAGE }
+            .sortedBy { it.sortOrder }
+            .map { proficiency ->
+                listOf(proficiency.name, proficiency.source.orEmpty())
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · ")
+            }
+        val languages = sheet.proficiencies
+            .filter { it.type == CharacterProficiencyType.LANGUAGE }
+            .sortedBy { it.sortOrder }
+            .map { proficiency ->
+                listOf(proficiency.name, proficiency.source.orEmpty())
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · ")
+            }
+
+        val detailLines = traitDescriptionOverflowLines(orderedTraits)
+        val metadataLines = traitMetadataLines(orderedTraits)
+
+        val pages = maxOf(
+            1,
+            pageCount(classNames.size, TRAIT_LEFT_ROWS),
+            pageCount(raceNames.size, TRAIT_LEFT_ROWS),
+            pageCount(featNames.size, TRAIT_LEFT_ROWS),
+            pageCount(proficiencies.size, TRAIT_LEFT_ROWS),
+            pageCount(languages.size, TRAIT_LEFT_ROWS),
+            pageCount(otherNames.size, TRAIT_OTHER_CAPACITY),
+            pageCount(detailLines.size, TRAIT_DETAIL_ROWS),
+            pageCount(metadataLines.size, TRAIT_NOTE_ROWS),
+        )
+
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderTraitsPage(
+                page = page,
+                classNames = classNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
+                raceNames = raceNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
+                featNames = featNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
+                proficiencies = proficiencies.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
+                languages = languages.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
+                otherNames = otherNames.pageSlice(pageIndex, TRAIT_OTHER_CAPACITY),
+                detailLines = detailLines.pageSlice(pageIndex, TRAIT_DETAIL_ROWS),
+                noteLines = metadataLines.pageSlice(pageIndex, TRAIT_NOTE_ROWS),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun renderTraitsPage(
+        page: PDPage,
+        classNames: List<String>,
+        raceNames: List<String>,
+        featNames: List<String>,
+        proficiencies: List<String>,
+        languages: List<String>,
+        otherNames: List<String>,
+        detailLines: List<String>,
+        noteLines: List<String>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X TRAITS P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            s.drawForm(resources.forms[2])
+        }
+        appendLayer(page, "$prefix - CLEANUP") { s ->
+            headingInteriorMask(s, 24f, 66f, 156f, 35f)
+            headingInteriorMask(s, 24f, 205f, 156f, 35f)
+            headingInteriorMask(s, 24f, 344f, 156f, 35f)
+            headingInteriorMask(s, 24f, 483f, 156f, 35f)
+            headingInteriorMask(s, 24f, 621f, 156f, 35f)
+            headingInteriorMask(s, 215f, 344f, 369f, 35f)
+        }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 156f, 35f, "Rasgos de Clase", 18f)
+            centeredText(s, resources.heading, 24f, 205f, 156f, 35f, "Rasgos de Raza", 18f)
+            centeredText(s, resources.heading, 24f, 344f, 156f, 35f, "Dotes", 18f)
+            centeredText(s, resources.heading, 24f, 483f, 156f, 35f, "Competencias", 18f)
+            centeredText(s, resources.heading, 24f, 621f, 156f, 35f, "Idiomas", 18f)
+            centeredText(s, resources.heading, 215f, 344f, 369f, 35f, "Detalles de Rasgos", 18f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            drawRuledValues(s, 25f, 181f, TRAIT_CLASS_RULES, classNames, 8.6f)
+            drawRuledValues(s, 25f, 181f, TRAIT_RACE_RULES, raceNames, 8.6f)
+            drawRuledValues(s, 25f, 181f, TRAIT_FEAT_RULES, featNames, 8.6f)
+            drawRuledValues(s, 25f, 181f, TRAIT_PROF_RULES, proficiencies, 8.4f)
+            drawRuledValues(s, 25f, 181f, TRAIT_LANGUAGE_RULES, languages, 8.6f)
+
+            TRAIT_OTHER_COLUMNS.forEachIndexed { columnIndex, (startX, endX) ->
+                drawRuledValues(
+                    s,
+                    startX,
+                    endX,
+                    TRAIT_OTHER_RULES,
+                    otherNames
+                        .drop(columnIndex * TRAIT_OTHER_RULES.size)
+                        .take(TRAIT_OTHER_RULES.size),
+                    8.6f,
+                )
+            }
+
+            drawRuledValues(
+                s,
+                215.291f,
+                583.795f,
+                TRAIT_DETAIL_RULES,
+                detailLines,
+                8.5f,
+            )
+            drawRuledValues(
+                s,
+                215.291f,
+                583.795f,
+                TRAIT_NOTE_RULES,
+                noteLines,
+                8.4f,
+            )
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun traitDescriptionOverflowLines(
+        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+    ): List<String> {
+        val traitText = traits.joinToString(" · ") { trait ->
+            trait.name + ": " + trait.description
+        }
+        return wrapForRulesByChars(traitText, BASE_V1_TRAIT_DETAIL_MAX_CHARS)
+            .drop(BASE_V1_TRAIT_DETAIL_RULES)
+    }
+
+    private fun traitMetadataLines(
+        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+    ): List<String> = traits.flatMap { trait ->
+        val meaningful = trait.maxUses != null ||
+            !trait.recovery.isNullOrBlank() ||
+            trait.activation != null ||
+            !trait.notes.isNullOrBlank()
+        if (!meaningful) {
+            emptyList()
+        } else {
+            val metadata = buildList {
+                trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                trait.activation?.let { add(activationLabel(it)) }
+                trait.maxUses?.let { maximum ->
+                    val remaining = (maximum - trait.spentUses).coerceIn(0, maximum)
+                    add("Usos $remaining / $maximum")
+                }
+                trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }
+            wrapByWidth(
+                trait.name + ": " + metadata.joinToString(" · "),
+                resources.fira,
+                8.4f,
+                TRAIT_RIGHT_TEXT_WIDTH,
+            )
+        }
+    }
+
+    private fun activationLabel(type: CharacterActivationType): String = when (type) {
+        CharacterActivationType.PASSIVE -> "Pasivo"
+        CharacterActivationType.ACTION -> "Acción"
+        CharacterActivationType.BONUS_ACTION -> "Acción adicional"
+        CharacterActivationType.REACTION -> "Reacción"
+        CharacterActivationType.OTHER -> "Otro"
+    }
+
+    private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
+        val paragraphs = text
+            .replace("\r\n", "\n")
+            .split(Regex("\\n+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        val result = mutableListOf<String>()
+        paragraphs.forEach { paragraph ->
+            var current = ""
+            paragraph.split(Regex("\\s+")).forEach { word ->
+                val candidate = if (current.isEmpty()) word else current + " " + word
+                if (candidate.length <= maxChars || current.isEmpty()) {
+                    current = candidate
+                } else {
+                    result += current
+                    current = word
+                }
+            }
+            if (current.isNotEmpty()) result += current
+        }
+        return result
+    }
+
+    private fun drawRuledValues(
+        s: PDFormContentStream,
+        startX: Float,
+        endX: Float,
+        rules: List<Float>,
+        values: List<String>,
+        size: Float,
+    ) {
+        rules.forEachIndexed { index, y ->
+            values.getOrNull(index)?.takeIf { it.isNotBlank() }?.let { value ->
+                ruleText(s, resources.fira, Rule(startX, endX, y), value, size)
+            }
+        }
+    }
+
+    private fun headingInteriorMask(
+        s: PDFormContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+    ) {
+        fill(s, x + 3f, top + 5f, width - 6f, height - 10f, Color.WHITE)
+    }
+
+    private fun <T> List<T>.pageSlice(pageIndex: Int, capacity: Int): List<T> =
+        drop(pageIndex * capacity).take(capacity)
 
     private fun buildModules(plan: PcSheetPdfRenderPlan): List<ModuleSlice> {
         val stats = plan.snapshot.customStatistics
@@ -745,6 +1006,15 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val BOTTOM_LINES_PER_PAGE = 15
         const val BOTTOM_TEXT_WIDTH = 150f
 
+        const val BASE_V1_TRAIT_NAME_CAPACITY = 6
+        const val BASE_V1_TRAIT_DETAIL_RULES = 12
+        const val BASE_V1_TRAIT_DETAIL_MAX_CHARS = 92
+        const val TRAIT_LEFT_ROWS = 3
+        const val TRAIT_OTHER_CAPACITY = 12
+        const val TRAIT_DETAIL_ROWS = 4
+        const val TRAIT_NOTE_ROWS = 5
+        const val TRAIT_RIGHT_TEXT_WIDTH = 365f
+
         const val SOURCE_WHITE_ATTRIBUTE_X = 408f
         const val SOURCE_SCORE_FRAGMENT_TOP = 268.5f
         const val SOURCE_SCORE_FRAGMENT_HEIGHT = 41.5f
@@ -767,6 +1037,19 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val MINIMUM_BODY_SIZE = 5.8f
 
         val SOURCE_GRAY = Color(211, 210, 210)
+
+        val TRAIT_CLASS_RULES = listOf(109.5f, 129.5f, 149.5f)
+        val TRAIT_RACE_RULES = listOf(248.5f, 268.5f, 287.5f)
+        val TRAIT_FEAT_RULES = listOf(387.5f, 407.5f, 426f)
+        val TRAIT_PROF_RULES = listOf(526.5f, 546f, 565f)
+        val TRAIT_LANGUAGE_RULES = listOf(665.5f, 685f, 704f)
+        val TRAIT_OTHER_RULES = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f)
+        val TRAIT_OTHER_COLUMNS = listOf(
+            215.291f to 396.708f,
+            402.378f to 583.795f,
+        )
+        val TRAIT_DETAIL_RULES = listOf(387.996f, 407.839f, 427.681f, 447.524f)
+        val TRAIT_NOTE_RULES = listOf(606f, 625.5f, 645.5f, 665.5f, 685f)
 
         val SCORE_X = listOf(58f, 154.25f, 250.75f, 347.25f, 445.5f, 539.75f)
         val MOD_X = listOf(85f, 184.25f, 280.5f, 376.75f, 473.25f, 569.5f)
