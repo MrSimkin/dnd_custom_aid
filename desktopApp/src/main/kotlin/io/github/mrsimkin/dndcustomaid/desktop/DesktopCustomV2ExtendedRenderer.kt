@@ -630,11 +630,42 @@ internal class DesktopCustomV2ExtendedRenderer(
             it.isNotEmpty() && !it.equals(background.name.trim(), ignoreCase = true)
         }?.let { addFull("Trasfondo canónico", it) }
 
-        sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+        val orderedClasses = sheet.classes.sortedBy { it.sortOrder }
+        val classSummary = orderedClasses.joinToString(" / ") { classLevel ->
+            classLevel.name + " " + classLevel.level
+        }
+        if (classSummary.length > 32) addFull("Clases", classSummary)
+        orderedClasses.forEach { classLevel ->
             classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
                 addFull("Subclase", classLevel.name + " - " + subclass)
             }
         }
+
+        if (sheet.name.length > 36) addFull("Nombre", sheet.name)
+        if (sheet.status != io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.ACTIVE) {
+            addFull("Estado", characterStatusLabel(sheet.status))
+        }
+
+        sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .forEachIndexed { index, entry ->
+                if (
+                    index >= BASE_V2_COMBAT_CAPACITY ||
+                    entry.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK ||
+                    !entry.notes.isNullOrBlank()
+                ) {
+                    addFull(
+                        "Acción / ataque",
+                        buildList {
+                            add(combatTypeLabel(entry.type) + " - " + entry.name)
+                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
+                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
+                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
+                        }.joinToString(" · "),
+                    )
+                }
+            }
 
         when (closure.progressMode) {
             CharacterProgressMode.EXPERIENCE -> addFull("Experiencia", closure.experiencePoints.toString())
@@ -801,6 +832,25 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
 
         return lines
+    }
+
+    private fun characterStatusLabel(
+        status: io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus,
+    ): String = when (status) {
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.ACTIVE -> "Activo"
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.INACTIVE -> "Inactivo"
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.RETIRED -> "Retirado"
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.DEAD -> "Muerto"
+    }
+
+    private fun combatTypeLabel(
+        type: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType,
+    ): String = when (type) {
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK -> "Ataque"
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ACTION -> "Acción"
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.BONUS_ACTION -> "Acción adicional"
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.REACTION -> "Reacción"
+        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.OTHER -> "Otro"
     }
 
     private fun defenseTypeLabel(type: CharacterDefenseType): String = when (type) {
@@ -2235,6 +2285,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val TRAIT_NAME_INDEX_PER_PAGE = 10
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
+        const val BASE_V2_COMBAT_CAPACITY = 8
         const val BASE_V2_EQUIPMENT_CAPACITY = 23
         val BASE_V2_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc")
         const val BASE_V2_SPECIAL_CAPACITY = 14
