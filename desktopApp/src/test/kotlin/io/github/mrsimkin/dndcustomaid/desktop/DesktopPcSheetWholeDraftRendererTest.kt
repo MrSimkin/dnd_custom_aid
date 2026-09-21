@@ -1747,6 +1747,75 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("rápido"))
             assertTrue(extracted.contains("Almacenado"))
         }
+
+        val classicBackground = CharacterBackground(
+            name = "Exploradora de prueba",
+            summary = "Resumen breve para validar Current Snapshot.",
+            race = "Humana",
+            religionFaith = "",
+            personalityTraits = "Observadora.",
+            ideals = "Prudencia.",
+            bonds = "Protege al grupo.",
+            flaws = "Duda demasiado.",
+            story = "Historia breve.",
+        )
+        val classicPermanent = permanent.copy(
+            sheet = permanent.sheet.copy(
+                background = classicBackground,
+                combatEntries = permanent.sheet.combatEntries.take(4).mapIndexed { index, entry ->
+                    entry.copy(sortOrder = index, notes = null)
+                },
+            ),
+        )
+        val classicCurrent = current.copy(
+            sheet = current.sheet.copy(
+                background = classicBackground,
+                combatEntries = current.sheet.combatEntries.take(4).mapIndexed { index, entry ->
+                    entry.copy(sortOrder = index, notes = null)
+                } + CharacterCombatEntry(
+                    id = uuid("94000000-0000-0000-0000-000000000099"),
+                    name = "Reacción de cobertura",
+                    type = CharacterCombatEntryType.REACTION,
+                    attackModifier = null,
+                    damageEffect = "Protege a un aliado cercano.",
+                    rangeText = null,
+                    notes = "Entrada fuera de la capacidad base.",
+                    sortOrder = 99,
+                ),
+            ),
+        )
+        val classicPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.CURRENT_SNAPSHOT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = classicPermanent,
+                currentSnapshot = classicCurrent,
+            ),
+        )
+        val classicPdf = File(proofDir, "classic-current-snapshot-semantics.pdf")
+        classicPdf.outputStream().use { renderer.renderDraft(classicPlan, it) }
+
+        Loader.loadPDF(classicPdf).use { document ->
+            assertTrue(document.numberOfPages >= 5)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("3 de 5 hitos"))
+            assertTrue(extracted.contains("PG temporales"))
+            assertTrue(extracted.contains("Agotamiento"))
+            assertTrue(extracted.contains("Asustado"))
+            assertTrue(extracted.contains("Resistencia"))
+            assertTrue(extracted.contains("Vuelo mágico"))
+            assertTrue(extracted.contains("Visión verdadera"))
+            assertTrue(extracted.contains("Bendición temporal"))
+            assertTrue(extracted.contains("Espada larga"))
+            assertTrue(extracted.contains("Forma de lobo"))
+            assertTrue(extracted.contains("Nim"))
+            assertTrue(extracted.contains("Reacción de cobertura"))
+            assertTrue(extracted.contains("Flechas de prueba"))
+            assertTrue(extracted.contains("Munición"))
+            assertTrue(extracted.contains("Almacenado"))
+        }
     }
 
 
