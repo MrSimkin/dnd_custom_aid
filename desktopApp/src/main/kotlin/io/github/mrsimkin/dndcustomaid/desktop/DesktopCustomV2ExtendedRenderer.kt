@@ -10,6 +10,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterMovementType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterDefenseType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
@@ -1060,13 +1063,26 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val sheet = plan.snapshot.aggregate.sheet
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
-        val ordinaryOverflow = ordered.filterNot { it.special }.drop(BASE_V2_EQUIPMENT_CAPACITY)
-        val ordinaryLines = ordinaryOverflow.flatMap(::inventoryContinuationLines)
+        val ordinary = ordered.filterNot { it.special }
+        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
+            val usage = usageByItem[item.id]
+            item.takeIf { index >= BASE_V2_EQUIPMENT_CAPACITY || usageMeaningful(usage) }
+        }
+        val ordinaryLines = ordinaryContinuation.flatMap { item ->
+            inventoryContinuationLines(item, usageByItem[item.id])
+        }
         val special = ordered.filter { it.special }
         val specialContinuation = special.mapIndexedNotNull { index, item ->
-            item.takeIf { index >= BASE_V2_SPECIAL_CAPACITY || item.attuned }
+            val usage = usageByItem[item.id]
+            item.takeIf {
+                index >= BASE_V2_SPECIAL_CAPACITY ||
+                    item.attuned ||
+                    usageMeaningful(usage)
+            }
         }
         val treasureLines = buildList {
             sheet.currencies.sortedBy { it.sortOrder }.forEach { currency ->
@@ -1101,6 +1117,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 special = specialContinuation
                     .drop(pageIndex * INVENTORY_SPECIAL_CAPACITY)
                     .take(INVENTORY_SPECIAL_CAPACITY),
+                usageByItem = usageByItem,
             )
         }
     }
@@ -1110,6 +1127,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         ordinary: List<String>,
         valuables: List<String>,
         special: List<CharacterInventoryItem>,
+        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
     ) {
         appendLayer(page, "V2X INVENTORY - STRUCTURE") { s ->
             pageHeaderStructure(s, resources.forms[2])
@@ -1160,6 +1178,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 val detail = buildList {
                     item.weightLb?.let { add(formatInventoryWeight(it)) }
                     if (item.attuned) add("Sintonizado")
+                    addAll(inventoryUsageLabels(usageByItem[item.id]))
                     item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
@@ -1184,16 +1203,41 @@ internal class DesktopCustomV2ExtendedRenderer(
         append(item.name)
     }
 
-    private fun inventoryContinuationLines(item: CharacterInventoryItem): List<String> {
+    private fun inventoryContinuationLines(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<String> {
         val text = buildList {
             add(inventoryContinuationLabel(item))
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: $it") }
             item.weightLb?.let { add(formatInventoryWeight(it)) }
             if (item.equipped) add("Equipado")
+            addAll(inventoryUsageLabels(usage))
             item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
         }.joinToString(" · ")
         return wrapByWidth(resources.fira, text, 7.4f, 125f)
+    }
+
+    private fun usageMeaningful(usage: CharacterInventoryUsage?): Boolean =
+        usage != null && (
+            usage.kind != CharacterConsumableKind.NONE ||
+                usage.quickUseAmount != 1 ||
+                usage.carryState != CharacterInventoryCarryState.CARRIED
+            )
+
+    private fun inventoryUsageLabels(usage: CharacterInventoryUsage?): List<String> {
+        if (!usageMeaningful(usage)) return emptyList()
+        requireNotNull(usage)
+        return buildList {
+            when (usage.kind) {
+                CharacterConsumableKind.NONE -> Unit
+                CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+                CharacterConsumableKind.AMMUNITION -> add("Munición")
+            }
+            if (usage.quickUseAmount != 1) add("Uso rápido " + usage.quickUseAmount)
+            if (usage.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
+        }
     }
 
     private fun formatInventoryWeight(weightLb: Double): String =
