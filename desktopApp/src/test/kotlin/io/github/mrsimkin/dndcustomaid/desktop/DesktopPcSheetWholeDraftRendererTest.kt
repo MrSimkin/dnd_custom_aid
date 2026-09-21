@@ -401,13 +401,13 @@ class DesktopPcSheetWholeDraftRendererTest {
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("Recursos"))
             assertTrue(extracted.contains("Puntos de enfoque"))
-            assertTrue(extracted.contains("Nota persistente del recurso"))
+            assertTrue(Regex("Nota\\s+persistente\\s+del\\s+recurso").containsMatchIn(extracted))
             assertTrue(extracted.contains("Metamagia cuidadosa"))
             assertTrue(extracted.contains("1 punto"))
             assertTrue(extracted.contains("Prueba PDF"))
-            assertTrue(extracted.contains("Nota persistente de opción"))
+            assertTrue(Regex("Nota\\s+persistente\\s+de\\s+opción").containsMatchIn(extracted))
             assertTrue(extracted.contains("Puntos de destino"))
-            assertTrue(extracted.contains("Sólo se recupera"))
+            assertTrue(Regex("Sólo\\s+se\\s+recupera").containsMatchIn(extracted))
             assertTrue(extracted.contains("7/12"))
 
             val pageIndex = document.numberOfPages - 1
