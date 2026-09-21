@@ -6,6 +6,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
@@ -85,6 +86,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
 
         appendInventoryExtendedPages(plan)
+        appendSpellExtendedPages(plan)
+        appendNotesExtendedPages(plan)
     }
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
@@ -701,6 +704,189 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun pageCount(size: Int, capacity: Int): Int =
         if (size <= 0) 0 else (size + capacity - 1) / capacity
 
+    private fun appendSpellExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val spells = plan.snapshot.aggregate.sheet.spells
+        require(spells.all { it.level in 0..9 }) {
+            "Custom-v2 spell continuation supports spell levels 0 through 9."
+        }
+        val byLevel = spells
+            .groupBy { it.level }
+            .mapValues { (_, entries) ->
+                entries.sortedWith(compareBy<CharacterSpell> { it.sortOrder }.thenBy { it.name.lowercase() })
+            }
+
+        val overflowByLevel = SPELL_CONTINUATION_BLOCKS.associate { block ->
+            block.level to byLevel[block.level].orEmpty().drop(block.maxRows)
+        }
+        val pages = SPELL_CONTINUATION_BLOCKS.maxOf { block ->
+            pageCount(overflowByLevel[block.level].orEmpty().size, block.maxRows)
+        }
+        if (pages == 0) return
+
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            val pageSpells = SPELL_CONTINUATION_BLOCKS.associate { block ->
+                block.level to overflowByLevel[block.level].orEmpty()
+                    .drop(pageIndex * block.maxRows)
+                    .take(block.maxRows)
+            }
+            renderSpellContinuationPage(page, pageSpells, pageIndex)
+        }
+    }
+
+    private fun renderSpellContinuationPage(
+        page: PDPage,
+        spellsByLevel: Map<Int, List<CharacterSpell>>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = if (pageIndex == 0) "V2X SPELLS" else "V2X SPELLS ${pageIndex + 1}"
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            s.drawForm(resources.forms[3])
+        }
+        appendLayer(page, "$layerPrefix - CLEANUP") { s ->
+            continuationSpellHeaderMasks().forEach { region ->
+                fill(s, region.x, region.top, region.width, region.height, Color.WHITE)
+            }
+        }
+        appendLayer(page, "$layerPrefix - LABELS") { }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            SPELL_CONTINUATION_BLOCKS.forEach { block ->
+                spellsByLevel[block.level].orEmpty().forEachIndexed { row, spell ->
+                    val ruleTop = block.firstRuleTop + row * 17f
+                    textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(block.textStartX, block.textEndX, ruleTop),
+                        spell.name,
+                        9.25f,
+                        8.0f,
+                        2.8f,
+                    )
+                }
+            }
+        }
+        appendLayer(page, "$layerPrefix - MARKERS") { s ->
+            SPELL_CONTINUATION_BLOCKS.forEach { block ->
+                spellsByLevel[block.level].orEmpty().forEachIndexed { row, spell ->
+                    if (spell.sourceAssociations.any { it.prepared }) {
+                        glyphInRect(
+                            s,
+                            resources.symbol,
+                            0xE211,
+                            TopRect(block.markerX, block.firstRuleTop - 12f + row * 17f, 8.5f, 8.5f),
+                            0.5f,
+                            0.5f,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun continuationSpellHeaderMasks(): List<TopRect> = listOf(
+        TopRect(76f, 304f, 129f, 43f),
+        TopRect(76f, 536f, 129f, 43f),
+        TopRect(271f, 71f, 129f, 43f),
+        TopRect(271f, 304f, 129f, 43f),
+        TopRect(271f, 536f, 129f, 43f),
+        TopRect(466f, 71f, 132f, 43f),
+        TopRect(466f, 256f, 132f, 43f),
+        TopRect(466f, 437f, 132f, 43f),
+        TopRect(466f, 604f, 132f, 43f),
+    )
+
+    private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val lines = wrapForRulesByChars(notesText(plan), 72)
+        val overflow = lines.drop(BASE_V2_NOTES_CAPACITY)
+        if (overflow.isEmpty()) return
+
+        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNotesContinuationPage(
+                page,
+                overflow
+                    .drop(pageIndex * NOTES_CONTINUATION_CAPACITY)
+                    .take(NOTES_CONTINUATION_CAPACITY),
+                pageIndex,
+            )
+        }
+    }
+
+    private fun renderNotesContinuationPage(
+        page: PDPage,
+        lines: List<String>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = if (pageIndex == 0) "V2X NOTES" else "V2X NOTES ${pageIndex + 1}"
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            s.drawForm(resources.forms[4])
+        }
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { row, line ->
+                textAboveRule(
+                    s,
+                    resources.fira,
+                    Rule(14f, 302.5f, 104f + row * 17f),
+                    line,
+                    9.25f,
+                    8.0f,
+                    2.8f,
+                )
+            }
+            lines.drop(NOTES_COLUMN_CAPACITY).take(NOTES_COLUMN_CAPACITY).forEachIndexed { row, line ->
+                textAboveRule(
+                    s,
+                    resources.fira,
+                    Rule(309f, 597.5f, 104f + row * 17f),
+                    line,
+                    9.25f,
+                    8.0f,
+                    2.8f,
+                )
+            }
+        }
+        appendLayer(page, "$layerPrefix - MARKERS") { }
+    }
+
+    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
+                val body = card.content.trim()
+                if (body.isNotEmpty()) add("${card.title}: $body")
+            }
+        }.joinToString("\n\n")
+    }
+
+    private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
+        val paragraphs = text
+            .replace("\r\n", "\n")
+            .split(Regex("\\n+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        val result = mutableListOf<String>()
+        paragraphs.forEach { paragraph ->
+            var current = ""
+            paragraph.split(Regex("\\s+")).forEach { word ->
+                val candidate = if (current.isEmpty()) word else "$current $word"
+                if (candidate.length <= maxChars || current.isEmpty()) {
+                    current = candidate
+                } else {
+                    result += current
+                    current = word
+                }
+            }
+            if (current.isNotEmpty()) result += current
+        }
+        return result
+    }
+
     private fun featureEntry(
         s: PDFormContentStream,
         x: Float,
@@ -1254,6 +1440,15 @@ internal class DesktopCustomV2ExtendedRenderer(
         val skills: List<Pair<String, String>>,
     )
 
+    private data class SpellContinuationBlock(
+        val level: Int,
+        val textStartX: Float,
+        val textEndX: Float,
+        val markerX: Float,
+        val firstRuleTop: Float,
+        val maxRows: Int,
+    )
+
     private enum class Training { NONE, PROFICIENT, EXPERTISE }
 
     private data class Resources(
@@ -1393,6 +1588,23 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val INVENTORY_CONTINUATION_CAPACITY = 57
         const val INVENTORY_VALUABLES_CAPACITY = 19
         const val INVENTORY_SPECIAL_CAPACITY = 12
+        const val BASE_V2_NOTES_CAPACITY = 40
+        const val NOTES_COLUMN_CAPACITY = 20
+        const val NOTES_CONTINUATION_CAPACITY = 40
+
+        val SPELL_CONTINUATION_BLOCKS = listOf(
+            SpellContinuationBlock(0, 25.5f, 203.5f, 14f, 127.21f, 8),
+            SpellContinuationBlock(1, 25.5f, 203.5f, 14f, 358.65f, 10),
+            SpellContinuationBlock(2, 25.5f, 203.5f, 14f, 591.09f, 9),
+            SpellContinuationBlock(3, 221f, 399f, 209.5f, 126.21f, 10),
+            SpellContinuationBlock(4, 221f, 399f, 209.5f, 358.65f, 10),
+            SpellContinuationBlock(5, 221f, 399f, 209.5f, 591.09f, 8),
+            SpellContinuationBlock(6, 416.5f, 594.5f, 405f, 126.21f, 8),
+            SpellContinuationBlock(7, 416.5f, 594.5f, 405f, 310.46f, 6),
+            SpellContinuationBlock(8, 416.5f, 594.5f, 405f, 491.88f, 6),
+            SpellContinuationBlock(9, 416.5f, 594.5f, 405f, 659.12f, 5),
+        )
+
         val SOURCE_GRAY_DARK: Color = Color(200, 199, 199)
         val SOURCE_GRAY_LIGHT: Color = Color(227, 227, 227)
     }
