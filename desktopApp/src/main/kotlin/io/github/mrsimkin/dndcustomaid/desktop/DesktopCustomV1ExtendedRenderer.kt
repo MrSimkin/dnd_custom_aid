@@ -33,10 +33,12 @@ import org.apache.pdfbox.util.Matrix
  */
 internal class DesktopCustomV1ExtendedRenderer(
     private val document: PDDocument,
-    sourceTemplate: PDDocument,
+    private val sourceTemplate: PDDocument,
     private val resourceLoader: (String) -> InputStream?,
 ) {
-    private val resources = Resources.load(document, sourceTemplate, resourceLoader)
+    private val resources by lazy {
+        Resources.load(document, sourceTemplate, resourceLoader)
+    }
     private var layerSerial = 0
 
     fun appendExtendedPages(plan: PcSheetPdfRenderPlan) {
