@@ -91,7 +91,6 @@ internal class DesktopCustomV2ExtendedRenderer(
             .filter { it.ability.builtIn != null }
             .groupBy { requireNotNull(it.ability.builtIn) }
             .toList()
-            .sortedBy { it.first.ordinal }
         require(standardGroups.size <= 3) {
             "Production pass 1 supports custom skills linked to up to three built-in attributes on this page; overflow pagination is pending."
         }
@@ -187,8 +186,14 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
 
             attributes.forEachIndexed { col, projection ->
-                val note = projection.attribute.notes.orEmpty().trim()
-                if (note.isNotEmpty()) {
+                val rawNote = projection.attribute.notes.orEmpty().trim()
+                if (rawNote.isNotEmpty()) {
+                    val key = projection.attribute.abbreviation.trim().uppercase().take(3)
+                    val note = if (key.isNotEmpty() && !rawNote.startsWith("$key:", ignoreCase = true)) {
+                        "$key: $rawNote"
+                    } else {
+                        rawNote
+                    }
                     val lines = wrapByWidth(resources.fira, note, 8.8f, 174f)
                     require(lines.size <= 10) {
                         "Custom attribute notes exceed the approved Run-7 notes region; overflow continuation is pending."
@@ -204,29 +209,37 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
         appendLayer(page, "V2X ATTR - MARKERS") { s ->
-            attributes.forEachIndexed { col, projection ->
-                val saveTraining = if (projection.attribute.savingThrowEnabled && projection.attribute.savingThrowProficient) {
+            repeat(3) { col ->
+                val projection = attributes.getOrNull(col)
+                val saveTraining = if (
+                    projection?.attribute?.savingThrowEnabled == true &&
+                    projection.attribute.savingThrowProficient
+                ) {
                     Training.PROFICIENT
                 } else {
                     Training.NONE
                 }
                 drawV2TrainingBox(s, TopRect(98.5f + col * 193f, 141.5f, 8.5f, 9f), saveTraining)
 
-                linkedByCustom[projection.attribute.id].orEmpty().forEachIndexed { row, skill ->
+                val linked = projection
+                    ?.let { linkedByCustom[it.attribute.id].orEmpty() }
+                    .orEmpty()
+                repeat(6) { row ->
                     drawV2TrainingBox(
                         s,
                         TopRect(98.5f + col * 193f, 157f + row * 17f, 8.5f, 9f),
-                        training(skill.skill.training),
+                        linked.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
                     )
                 }
             }
 
-            standardGroups.forEachIndexed { col, group ->
-                group.second.forEachIndexed { row, skill ->
+            repeat(3) { col ->
+                val group = standardGroups.getOrNull(col)?.second.orEmpty()
+                repeat(4) { row ->
                     drawV2TrainingBox(
                         s,
                         TopRect(18f + col * 193f, 434f + row * 17f, 8.5f, 9f),
-                        training(skill.skill.training),
+                        group.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
                     )
                 }
             }
@@ -314,18 +327,23 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
         appendLayer(page, "V2X ABILITY - MARKERS") { s ->
-            saves.forEachIndexed { row, projection ->
+            repeat(30) { row ->
+                val projection = saves.getOrNull(row)
                 drawV2TrainingBox(
                     s,
                     TopRect(220f, 142f + row * 17f, 8.5f, 9f),
-                    if (projection.attribute.savingThrowProficient) Training.PROFICIENT else Training.NONE,
+                    if (projection?.attribute?.savingThrowProficient == true) {
+                        Training.PROFICIENT
+                    } else {
+                        Training.NONE
+                    },
                 )
             }
-            skills.forEachIndexed { row, projection ->
+            repeat(34) { row ->
                 drawV2TrainingBox(
                     s,
                     TopRect(384f, 142f + row * 17f, 8.5f, 9f),
-                    training(projection.skill.training),
+                    skills.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
                 )
             }
         }
