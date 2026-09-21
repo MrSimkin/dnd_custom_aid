@@ -597,8 +597,8 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
         if (!needsResourcesExtendedPage(plan)) return
 
-        val rows = resourceRenderRows(plan)
-        val options = plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder }
+        val rows = resourceRenderLines(resourceRenderRows(plan))
+        val options = optionRenderLines(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
         val pages = maxOf(
             pageCount(rows.size, RESOURCE_ROWS_PER_PAGE),
             pageCount(options.size, RESOURCE_OPTIONS_PER_PAGE),
@@ -675,10 +675,50 @@ internal class DesktopCustomV2ExtendedRenderer(
             .sortedWith(compareBy<ResourceRenderRow> { it.sortOrder }.thenBy { it.sourceRank }.thenBy { it.name.lowercase() })
     }
 
+    private fun resourceRenderLines(rows: List<ResourceRenderRow>): List<ResourceRenderLine> =
+        rows.flatMap { row ->
+            val nameLines = wrapByWidth(resources.fira, row.name, 7.6f, 196f).ifEmpty { listOf("") }
+            val recoveryLines = wrapByWidth(resources.fira, row.recovery, 7.0f, 111f).ifEmpty { listOf("") }
+            val detailLines = wrapByWidth(resources.fira, row.detail, 7.0f, 111f).ifEmpty { listOf("") }
+            val count = maxOf(nameLines.size, recoveryLines.size, detailLines.size, 1)
+            (0 until count).map { index ->
+                ResourceRenderLine(
+                    name = nameLines.getOrNull(index).orEmpty(),
+                    currentValue = row.currentValue.takeIf { index == 0 },
+                    maximum = row.maximum.takeIf { index == 0 },
+                    recovery = recoveryLines.getOrNull(index).orEmpty(),
+                    detail = detailLines.getOrNull(index).orEmpty(),
+                )
+            }
+        }
+
+    private fun optionRenderLines(
+        options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
+    ): List<OptionRenderLine> = options.flatMap { option ->
+        val kindLines = wrapByWidth(resources.fira, optionKindLabel(option.kind), 7.0f, 76f).ifEmpty { listOf("") }
+        val nameLines = wrapByWidth(resources.fira, option.name, 7.2f, 128f).ifEmpty { listOf("") }
+        val detail = listOf(
+            option.effectSummary.trim(),
+            option.costText.orEmpty().trim(),
+            option.source.orEmpty().trim(),
+            option.notes.orEmpty().trim(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
+        val detailLines = wrapByWidth(resources.fira, detail, 7.0f, 328f).ifEmpty { listOf("") }
+        val count = maxOf(kindLines.size, nameLines.size, detailLines.size, 1)
+        (0 until count).map { index ->
+            OptionRenderLine(
+                kind = kindLines.getOrNull(index).orEmpty(),
+                name = nameLines.getOrNull(index).orEmpty(),
+                detail = detailLines.getOrNull(index).orEmpty(),
+                active = option.active && index == 0,
+            )
+        }
+    }
+
     private fun renderResources(
         page: PDPage,
-        rows: List<ResourceRenderRow>,
-        options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
+        rows: List<ResourceRenderLine>,
+        options: List<OptionRenderLine>,
         pageIndex: Int,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X RESOURCES" else "V2X RESOURCES ${pageIndex + 1}"
@@ -711,58 +751,58 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             rows.forEachIndexed { index, row ->
                 val y = 150f + index * 17f
-                textAboveRule(s, resources.fira, Rule(18f, 218f, y), row.name, 9.0f, 8.2f, 2.3f)
+                if (row.name.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(18f, 218f, y), row.name, 7.6f, 6.6f, 2.3f)
+                }
 
+                val current = row.currentValue
                 val maximum = row.maximum
-                val canUseSymbols = maximum != null &&
-                    maximum in 1..9 &&
-                    row.currentValue in 0..maximum
-                if (!canUseSymbols) {
-                    val value = if (maximum == null) {
-                        row.currentValue.toString()
-                    } else {
-                        row.currentValue.toString() + "/" + maximum
+                if (current != null) {
+                    val canUseSymbols = maximum != null &&
+                        maximum in 1..9 &&
+                        current in 0..maximum
+                    if (!canUseSymbols) {
+                        val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
+                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
                     }
-                    centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
                 }
 
                 if (row.recovery.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(356f, 471f, y), row.recovery, 8.5f, 6.5f, 2.3f)
+                    textAboveRule(s, resources.fira, Rule(356f, 471f, y), row.recovery, 7.0f, 6.2f, 2.3f)
                 }
                 if (row.detail.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(479f, 594f, y), row.detail, 8.5f, 6.5f, 2.3f)
+                    textAboveRule(s, resources.fira, Rule(479f, 594f, y), row.detail, 7.0f, 6.2f, 2.3f)
                 }
             }
 
             options.forEachIndexed { index, option ->
                 val y = 398f + index * 17f
-                textAboveRule(s, resources.fira, Rule(34f, 114f, y), optionKindLabel(option.kind), 8.5f, 7.5f, 2.3f)
-                textAboveRuleScaled(s, resources.fira, Rule(122f, 254f, y), option.name, 8.5f, 7.5f, 2.3f, 72f)
-
-                val detail = listOf(
-                    option.effectSummary.trim(),
-                    option.costText.orEmpty().trim(),
-                    option.source.orEmpty().trim(),
-                    option.notes.orEmpty().trim(),
-                ).filter { it.isNotEmpty() }.joinToString(" · ")
-                if (detail.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(262f, 594f, y), detail, 8.5f, 6.5f, 2.3f)
+                if (option.kind.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(34f, 114f, y), option.kind, 7.0f, 6.2f, 2.3f)
+                }
+                if (option.name.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(122f, 254f, y), option.name, 7.2f, 6.2f, 2.3f)
+                }
+                if (option.detail.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(262f, 594f, y), option.detail, 7.0f, 6.2f, 2.3f)
                 }
             }
         }
         appendLayer(page, "$layerPrefix - MARKERS") { s ->
             rows.forEachIndexed { index, row ->
+                val current = row.currentValue
                 val maximum = row.maximum
                 if (
+                    current != null &&
                     maximum != null &&
                     maximum in 1..9 &&
-                    row.currentValue in 0..maximum
+                    current in 0..maximum
                 ) {
                     drawSquareCounter(
                         s,
                         236f,
                         141.5f + index * 17f,
-                        row.currentValue,
+                        current,
                         maximum,
                     )
                 }
@@ -1679,6 +1719,21 @@ internal class DesktopCustomV2ExtendedRenderer(
     private data class StandardSkillSlice(
         val ability: CharacterAbility,
         val skills: List<PcSheetCustomSkillProjection>,
+    )
+
+    private data class ResourceRenderLine(
+        val name: String,
+        val currentValue: Int?,
+        val maximum: Int?,
+        val recovery: String,
+        val detail: String,
+    )
+
+    private data class OptionRenderLine(
+        val kind: String,
+        val name: String,
+        val detail: String,
+        val active: Boolean,
     )
 
     private data class ResourceRenderRow(
