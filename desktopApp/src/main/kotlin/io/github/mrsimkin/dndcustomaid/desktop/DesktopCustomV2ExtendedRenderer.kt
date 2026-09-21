@@ -1070,7 +1070,13 @@ internal class DesktopCustomV2ExtendedRenderer(
         val ordinary = ordered.filterNot { it.special }
         val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
-            item.takeIf { index >= BASE_V2_EQUIPMENT_CAPACITY || usageMeaningful(usage) }
+            item.takeIf {
+                index >= BASE_V2_EQUIPMENT_CAPACITY ||
+                    usageMeaningful(usage) ||
+                    item.equipped ||
+                    !item.description.isNullOrBlank() ||
+                    !item.notes.isNullOrBlank()
+            }
         }
         val ordinaryLines = ordinaryContinuation.flatMap { item ->
             inventoryContinuationLines(item, usageByItem[item.id])
@@ -1081,7 +1087,10 @@ internal class DesktopCustomV2ExtendedRenderer(
             item.takeIf {
                 index >= BASE_V2_SPECIAL_CAPACITY ||
                     item.attuned ||
-                    usageMeaningful(usage)
+                    usageMeaningful(usage) ||
+                    item.quantity != 1 ||
+                    item.weightLb != null ||
+                    specialLocationNeedsText(item.location)
             }
         }
         val treasureLines = buildList {
@@ -1217,6 +1226,32 @@ internal class DesktopCustomV2ExtendedRenderer(
             item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
         }.joinToString(" · ")
         return wrapByWidth(resources.fira, text, 7.4f, 125f)
+    }
+
+    private fun specialLocationNeedsText(location: String?): Boolean {
+        val normalized = location
+            ?.lowercase()
+            ?.replace('á', 'a')
+            ?.replace('é', 'e')
+            ?.replace('í', 'i')
+            ?.replace('ó', 'o')
+            ?.replace('ú', 'u')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+            .orEmpty()
+        if (normalized.isEmpty()) return false
+        return normalized !in setOf(
+            "cabeza",
+            "rostro",
+            "cuello",
+            "mano izquierda",
+            "mano derecha",
+            "brazo izquierdo",
+            "brazo derecho",
+            "pecho",
+            "piernas",
+            "pies",
+        )
     }
 
     private fun usageMeaningful(usage: CharacterInventoryUsage?): Boolean =
