@@ -284,7 +284,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             )
         }
         val longNotes = (1..55).joinToString("\n") { index ->
-            "Nota de continuación $index: registro deliberadamente largo para comprobar el enrutamiento real de desborde."
+            "Nota de continuación $index: registro de desborde."
         }
 
         return base.copy(
