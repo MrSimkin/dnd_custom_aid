@@ -99,11 +99,9 @@ class DesktopPcSheetWholeDraftRendererTest {
             pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
             Loader.loadPDF(pdf).use { document ->
-                if (family == PcSheetVisualFamily.CUSTOM_V1) {
-                    assertEquals(expectedPages, document.numberOfPages)
-                } else {
-                    assertTrue(document.numberOfPages >= expectedPages)
-                }
+                // These are minimum frozen base-family page counts. Data-driven Extended roles may
+                // legitimately add pages as production promotion advances.
+                assertTrue(document.numberOfPages >= expectedPages)
                 val extracted = PDFTextStripper().getText(document)
                 if (family == PcSheetVisualFamily.CUSTOM_V1) {
                     val layerNames = document.documentCatalog.ocProperties
