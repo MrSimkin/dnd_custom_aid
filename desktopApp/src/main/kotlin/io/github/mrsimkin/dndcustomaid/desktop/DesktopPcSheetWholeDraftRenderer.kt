@@ -4,6 +4,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import java.io.ByteArrayOutputStream
@@ -151,11 +152,16 @@ internal class DesktopPcSheetWholeDraftRenderer(
                     }
                 }
 
-                DesktopCustomV1ExtendedRenderer(
-                    document = draft,
-                    sourceTemplate = sourceTemplate,
-                    resourceLoader = resourceLoader,
-                ).appendExtendedPages(plan)
+                if (
+                    PcSheetExtendedPageKind.CUSTOM_STATISTICS in plan.mandatoryExtendedPages &&
+                    !plan.snapshot.customStatistics.isEmpty
+                ) {
+                    DesktopCustomV1ExtendedRenderer(
+                        document = draft,
+                        sourceTemplate = sourceTemplate,
+                        resourceLoader = resourceLoader,
+                    ).appendExtendedPages(plan)
+                }
 
                 draft.save(output)
             }
