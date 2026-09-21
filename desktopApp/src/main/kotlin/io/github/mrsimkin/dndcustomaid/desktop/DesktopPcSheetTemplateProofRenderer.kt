@@ -92,9 +92,6 @@ internal class DesktopPcSheetTemplateProofRenderer(
         val sheet = aggregate.sheet
         val closure = aggregate.closure
 
-        // Measured against the actual upper portrait rectangle, leaving the decorative name banner visible.
-        drawPortraitPlaceholder(stream, primitives, 915f, 65f, 250f, 275f)
-
         fillOnRulePx(stream, primitives, 620f, 260f, 106f, classSummary(plan), 9.5f)
         fillOnRulePx(stream, primitives, 620f, 260f, 146f, sheet.background.race, 9.5f)
         if (closure.progressMode == CharacterProgressMode.EXPERIENCE) {
@@ -411,11 +408,6 @@ internal class DesktopPcSheetTemplateProofRenderer(
     ) {
         val sheet = plan.snapshot.aggregate.sheet
 
-        if (pageTwoVariant) {
-            drawPortraitPlaceholder(stream, primitives, 375f, 62f, 315f, 290f)
-        } else {
-            drawPortraitPlaceholder(stream, primitives, 375f, 62f, 315f, 210f)
-        }
         fillOnRulePx(stream, primitives, 890f, 295f, 93f, classSummary(plan), 10f)
         fillOnRulePx(stream, primitives, 780f, 405f, 135f, sheet.background.race, 10f)
         fillCenteredTextPx(
