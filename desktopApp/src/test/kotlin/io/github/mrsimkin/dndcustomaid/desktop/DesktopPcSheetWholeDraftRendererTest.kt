@@ -354,6 +354,72 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun promotesOwnerApprovedCustomV1ResourcesAndOptionsFromRealPlanData() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val management = denseDraftAggregateWithExtendedManagement()
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                resources = management.sheet.resources.mapIndexed { index, resource ->
+                    if (index == 2) {
+                        resource.copy(notes = "Nota persistente del recurso.")
+                    } else {
+                        resource
+                    }
+                },
+                classOptions = management.sheet.classOptions.mapIndexed { index, option ->
+                    if (index == 0) {
+                        option.copy(notes = "Nota persistente de opción.")
+                    } else {
+                        option
+                    }
+                },
+            ),
+            successor = base.successor.copy(
+                customMarkers = management.successor.customMarkers,
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v1-production-extended-resources-pass3.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(layers.any { it.startsWith("V1X RESOURCES P1 - STRUCTURE") })
+            assertTrue(layers.any { it.startsWith("V1X RESOURCES P1 - VALUES") })
+            assertTrue(layers.any { it.startsWith("V1X RESOURCES P1 - MARKERS") })
+            assertFalse(layers.any { it.startsWith("V1X STATS") })
+
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("Recursos"))
+            assertTrue(extracted.contains("Puntos de enfoque"))
+            assertTrue(extracted.contains("Nota persistente del recurso"))
+            assertTrue(extracted.contains("Metamagia cuidadosa"))
+            assertTrue(extracted.contains("1 punto"))
+            assertTrue(extracted.contains("Prueba PDF"))
+            assertTrue(extracted.contains("Nota persistente de opción"))
+            assertTrue(extracted.contains("Puntos de destino"))
+            assertTrue(extracted.contains("Sólo se recupera"))
+            assertTrue(extracted.contains("7/12"))
+
+            val pageIndex = document.numberOfPages - 1
+            val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 220f, ImageType.RGB)
+            val png = File(proofDir, "custom-v1-production-extended-resources-pass3-page-${pageIndex + 1}.png")
+            assertTrue(ImageIO.write(image, "png", png))
+            assertTrue(png.length() > 0L)
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()

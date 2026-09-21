@@ -1,6 +1,10 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
@@ -27,9 +31,9 @@ import org.apache.pdfbox.util.Matrix
 /**
  * Production promotion of the owner-approved Custom-v1 Extended Run-6 family.
  *
- * Production promotion advances one frozen role at a time. Custom Statistics and Traits & Features
- * now use the Run-6 owner-approved geometry, typography, source structure and independent layer
- * model, while all values come exclusively from [PcSheetPdfRenderPlan].
+ * Production promotion advances one frozen role at a time. Custom Statistics, Traits & Features,
+ * and Resources & Options now use the Run-6 owner-approved geometry, typography, source structure
+ * and independent layer model, while all values come exclusively from [PcSheetPdfRenderPlan].
  */
 internal class DesktopCustomV1ExtendedRenderer(
     private val document: PDDocument,
@@ -52,6 +56,9 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
         if (needsTraitsExtendedPage(plan)) {
             appendTraitsExtendedPages(plan)
+        }
+        if (needsResourcesExtendedPage(plan)) {
+            appendResourcesExtendedPages(plan)
         }
     }
 
@@ -343,6 +350,308 @@ internal class DesktopCustomV1ExtendedRenderer(
                 wrapByWidth(value, resources.fira, 8.4f, TRAIT_LEFT_TEXT_WIDTH)
             }
         }
+
+    private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
+        val aggregate = plan.snapshot.aggregate
+        return aggregate.sheet.resources.isNotEmpty() ||
+            aggregate.sheet.classOptions.isNotEmpty() ||
+            aggregate.successor.customMarkers.isNotEmpty()
+    }
+
+    private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val rows = resourceRenderLines(resourceRenderRows(plan))
+        val options = optionRenderLines(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
+        val pages = maxOf(
+            1,
+            pageCount(rows.size, RESOURCE_ROWS_PER_PAGE),
+            pageCount(options.size, OPTION_ROWS_PER_PAGE),
+        )
+
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderResourcesPage(
+                page = page,
+                rows = rows.pageSlice(pageIndex, RESOURCE_ROWS_PER_PAGE),
+                options = options.pageSlice(pageIndex, OPTION_ROWS_PER_PAGE),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun resourceRenderRows(plan: PcSheetPdfRenderPlan): List<ResourceRenderRow> {
+        val aggregate = plan.snapshot.aggregate
+        val recoveryByResource = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
+        val configurationByResource = aggregate.successor.resourceConfigurations.associateBy { it.resourceId }
+
+        val ordinary = aggregate.sheet.resources
+            .sortedBy { it.sortOrder }
+            .map { resource ->
+                val recovery = recoveryByResource[resource.id]
+                val kind = configurationByResource[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
+                ResourceRenderRow(
+                    name = resource.name,
+                    currentValue = resource.currentValue,
+                    maximum = when (kind) {
+                        CharacterTrackableValueKind.BINARY -> 1
+                        CharacterTrackableValueKind.COUNTER,
+                        CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
+                    },
+                    recoveryAndDetail = listOf(
+                        resource.recovery.orEmpty().trim(),
+                        recovery?.cadence?.let(::recoveryLabel).orEmpty(),
+                        recovery?.amountMode?.let { recoveryAmountLabel(it, recovery.fixedAmount) }.orEmpty(),
+                        recovery?.notes.orEmpty().trim(),
+                        resource.source.orEmpty().trim(),
+                        resource.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.distinct().joinToString(" · "),
+                    sortOrder = resource.sortOrder,
+                    sourceRank = 0,
+                )
+            }
+
+        val markers = aggregate.successor.customMarkers
+            .sortedBy { it.sortOrder }
+            .map { marker ->
+                ResourceRenderRow(
+                    name = marker.name,
+                    currentValue = marker.currentValue,
+                    maximum = when (marker.valueKind) {
+                        CharacterTrackableValueKind.BINARY -> 1
+                        CharacterTrackableValueKind.COUNTER,
+                        CharacterTrackableValueKind.CURRENT_MAX -> marker.maxValue
+                    },
+                    recoveryAndDetail = listOf(
+                        recoveryLabel(marker.recovery.cadence),
+                        recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
+                        marker.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    sortOrder = marker.sortOrder,
+                    sourceRank = 1,
+                )
+            }
+
+        return (ordinary + markers)
+            .sortedWith(
+                compareBy<ResourceRenderRow> { it.sortOrder }
+                    .thenBy { it.sourceRank }
+                    .thenBy { it.name.lowercase() },
+            )
+    }
+
+    private fun resourceRenderLines(rows: List<ResourceRenderRow>): List<ResourceRenderLine> =
+        rows.flatMap { row ->
+            val nameLines = wrapByWidth(
+                row.name,
+                resources.fira,
+                8.4f,
+                RESOURCE_NAME_TEXT_WIDTH,
+            ).ifEmpty { listOf("") }
+            val detailLines = wrapByWidth(
+                row.recoveryAndDetail,
+                resources.fira,
+                8.0f,
+                RESOURCE_DETAIL_TEXT_WIDTH,
+            ).ifEmpty { listOf("") }
+            val count = maxOf(nameLines.size, detailLines.size, 1)
+            (0 until count).map { index ->
+                val firstLine = index == 0
+                val symbolic = firstLine &&
+                    row.maximum != null &&
+                    row.maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
+                    row.currentValue in 0..row.maximum
+                ResourceRenderLine(
+                    name = nameLines.getOrNull(index).orEmpty(),
+                    currentValue = row.currentValue.takeIf { firstLine },
+                    maximum = row.maximum.takeIf { firstLine },
+                    numericValue = if (firstLine && !symbolic) {
+                        row.maximum?.let { row.currentValue.toString() + "/" + it }
+                            ?: row.currentValue.toString()
+                    } else {
+                        null
+                    },
+                    recoveryAndDetail = detailLines.getOrNull(index).orEmpty(),
+                )
+            }
+        }
+
+    private fun optionRenderLines(
+        options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
+    ): List<OptionRenderLine> = options.flatMap { option ->
+        val nameLines = wrapByWidth(
+            option.name,
+            resources.fira,
+            8.2f,
+            OPTION_NAME_TEXT_WIDTH,
+        ).ifEmpty { listOf("") }
+        val detail = listOf(
+            option.effectSummary.trim(),
+            option.costText.orEmpty().trim(),
+            option.source.orEmpty().trim(),
+            option.notes.orEmpty().trim(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
+        val detailLines = wrapByWidth(
+            detail,
+            resources.fira,
+            8.2f,
+            OPTION_DETAIL_TEXT_WIDTH,
+        ).ifEmpty { listOf("") }
+        val count = maxOf(nameLines.size, detailLines.size, 1)
+        (0 until count).map { index ->
+            OptionRenderLine(
+                kind = optionKindLabel(option.kind).takeIf { index == 0 }.orEmpty(),
+                name = nameLines.getOrNull(index).orEmpty(),
+                detail = detailLines.getOrNull(index).orEmpty(),
+                active = option.active.takeIf { index == 0 },
+            )
+        }
+    }
+
+    private fun renderResourcesPage(
+        page: PDPage,
+        rows: List<ResourceRenderLine>,
+        options: List<OptionRenderLine>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X RESOURCES P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            sourceBands(s, 25f, 585f, RESOURCE_FIRST_RULE_TOP, RESOURCE_ROWS_PER_PAGE, RESOURCE_STEP)
+            sourceBands(s, 25f, 585f, OPTION_FIRST_RULE_TOP, OPTION_ROWS_PER_PAGE, OPTION_STEP)
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Recursos", 18f)
+            centeredText(s, resources.fira, 27f, 96f, 175f, 14f, "RECURSO", 7.5f)
+            centeredText(s, resources.fira, 205f, 96f, 180f, 14f, "USOS", 7.5f)
+            centeredText(s, resources.fira, 400f, 96f, 183f, 14f, "RESTABLECE", 7.5f)
+
+            centeredText(s, resources.heading, 24f, OPTION_HEADING_TOP, 564f, 30f, "Opciones", 18f)
+            centeredText(s, resources.fira, 35f, OPTION_HEADER_TOP, 74f, 14f, "TIPO", 7.5f)
+            centeredText(s, resources.fira, 126f, OPTION_HEADER_TOP, 112f, 14f, "OPCIÓN", 7.5f)
+            centeredText(s, resources.fira, 240.803f, OPTION_HEADER_TOP, 342.992f, 14f, "DESCRIPCIÓN", 7.5f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            rows.forEachIndexed { index, row ->
+                val ruleTop = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP
+                if (row.name.isNotEmpty()) {
+                    ruleText(s, resources.fira, Rule(27.5f, 202f, ruleTop), row.name, 8.4f)
+                }
+                row.numericValue?.let { value ->
+                    centeredText(
+                        s,
+                        resources.firaSemibold,
+                        205f,
+                        ruleTop - RESOURCE_STEP,
+                        180f,
+                        RESOURCE_STEP,
+                        value,
+                        8.6f,
+                    )
+                }
+                if (row.recoveryAndDetail.isNotEmpty()) {
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(400f, 583.795f, ruleTop),
+                        row.recoveryAndDetail,
+                        8.0f,
+                    )
+                }
+            }
+
+            options.forEachIndexed { index, option ->
+                val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
+                if (option.kind.isNotEmpty()) {
+                    centeredText(
+                        s,
+                        resources.heading,
+                        35f,
+                        ruleTop - 18f,
+                        74f,
+                        18f,
+                        option.kind,
+                        12.5f,
+                    )
+                }
+                if (option.name.isNotEmpty()) {
+                    ruleText(s, resources.fira, Rule(126f, 238f, ruleTop), option.name, 8.2f)
+                }
+                if (option.detail.isNotEmpty()) {
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(240.803f, 583.795f, ruleTop),
+                        option.detail,
+                        8.2f,
+                    )
+                }
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            rows.forEachIndexed { index, row ->
+                val current = row.currentValue
+                val maximum = row.maximum
+                if (
+                    current != null &&
+                    maximum != null &&
+                    maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
+                    current in 0..maximum
+                ) {
+                    drawResourceCounter(
+                        s = s,
+                        font = resources.symbol,
+                        startX = 222f,
+                        centerTop = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
+                        current = current,
+                        maximum = maximum,
+                    )
+                }
+            }
+
+            options.forEachIndexed { index, option ->
+                option.active?.let { active ->
+                    val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
+                    drawV1TrainingBox(
+                        s = s,
+                        font = resources.symbol,
+                        centerX = 116f,
+                        centerTop = ruleTop - OPTION_STEP / 2f,
+                        training = if (active) Training.PROFICIENT else Training.NONE,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun optionKindLabel(kind: CharacterClassOptionKind): String = when (kind) {
+        CharacterClassOptionKind.ARTIFICER_PLAN -> "Plan"
+        CharacterClassOptionKind.ARTIFICER_DEVICE -> "Dispositivo"
+        CharacterClassOptionKind.SUBCLASS_STATE -> "Subclase"
+        CharacterClassOptionKind.TECHNIQUE -> "Técnica"
+        CharacterClassOptionKind.METAMAGIC -> "Metamagia"
+        CharacterClassOptionKind.INVOCATION -> "Invocación"
+        CharacterClassOptionKind.PACT_CHOICE -> "Pacto"
+        CharacterClassOptionKind.OTHER -> "Otro"
+    }
+
+    private fun recoveryLabel(cadence: CharacterRecoveryCadence): String = when (cadence) {
+        CharacterRecoveryCadence.NONE -> ""
+        CharacterRecoveryCadence.SHORT_REST -> "Descanso corto"
+        CharacterRecoveryCadence.LONG_REST -> "Descanso largo"
+        CharacterRecoveryCadence.SHORT_OR_LONG_REST -> "Descanso corto/largo"
+        CharacterRecoveryCadence.MANUAL -> "Manual"
+    }
+
+    private fun recoveryAmountLabel(
+        mode: CharacterRecoveryAmountMode,
+        fixedAmount: Int?,
+    ): String = when (mode) {
+        CharacterRecoveryAmountMode.NONE -> ""
+        CharacterRecoveryAmountMode.TO_MAX -> "A máximo"
+        CharacterRecoveryAmountMode.FIXED -> fixedAmount?.let { "+$it" } ?: "Cantidad fija"
+    }
 
     private fun drawRuledValues(
         s: PDFormContentStream,
@@ -649,6 +958,33 @@ internal class DesktopCustomV1ExtendedRenderer(
         )
     }
 
+    private fun drawResourceCounter(
+        s: PDFormContentStream,
+        font: PDFont,
+        startX: Float,
+        centerTop: Float,
+        current: Int,
+        maximum: Int,
+    ) {
+        require(current in 0..maximum)
+        require(maximum in 1..RESOURCE_SYMBOL_MAXIMUM)
+        repeat(maximum) { index ->
+            // Para Hoja de PJ v8 semantics: outline = available, filled = spent.
+            val available = index < current
+            val codePoint = if (available) 0xE200 else 0xE201
+            centeredText(
+                s,
+                font,
+                startX + index * 22f,
+                centerTop - 8f,
+                17f,
+                16f,
+                String(Character.toChars(codePoint)),
+                12.8f,
+            )
+        }
+    }
+
     private fun sourceMatchedSkillLabel(
         s: PDFormContentStream,
         font: PDFont,
@@ -899,6 +1235,30 @@ internal class DesktopCustomV1ExtendedRenderer(
     private fun textWidth(font: PDFont, text: String, size: Float): Float =
         font.getStringWidth(text) / 1000f * size
 
+    private data class ResourceRenderRow(
+        val name: String,
+        val currentValue: Int,
+        val maximum: Int?,
+        val recoveryAndDetail: String,
+        val sortOrder: Int,
+        val sourceRank: Int,
+    )
+
+    private data class ResourceRenderLine(
+        val name: String,
+        val currentValue: Int?,
+        val maximum: Int?,
+        val numericValue: String?,
+        val recoveryAndDetail: String,
+    )
+
+    private data class OptionRenderLine(
+        val kind: String,
+        val name: String,
+        val detail: String,
+        val active: Boolean?,
+    )
+
     private data class ModuleSlice(
         val title: String,
         val score: String,
@@ -1018,6 +1378,20 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val TRAIT_NOTE_ROWS = 5
         const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
+
+        const val RESOURCE_FIRST_RULE_TOP = 128.5f
+        const val RESOURCE_ROWS_PER_PAGE = 10
+        const val RESOURCE_STEP = 20f
+        const val RESOURCE_SYMBOL_MAXIMUM = 6
+        const val RESOURCE_NAME_TEXT_WIDTH = 171f
+        const val RESOURCE_DETAIL_TEXT_WIDTH = 180f
+        const val OPTION_HEADING_TOP = 354f
+        const val OPTION_HEADER_TOP = 389f
+        const val OPTION_FIRST_RULE_TOP = 426.5f
+        const val OPTION_ROWS_PER_PAGE = 16
+        const val OPTION_STEP = 20f
+        const val OPTION_NAME_TEXT_WIDTH = 108f
+        const val OPTION_DETAIL_TEXT_WIDTH = 339f
 
         const val SOURCE_WHITE_ATTRIBUTE_X = 408f
         const val SOURCE_SCORE_FRAGMENT_TOP = 268.5f
