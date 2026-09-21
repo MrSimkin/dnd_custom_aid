@@ -594,6 +594,77 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun paginatesOwnerApprovedCustomV1NotesWithoutDroppingCanonicalLines() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val notes = (1..40).map { index ->
+            CharacterNote(
+                id = uuid("91000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                title = "Nota canónica $index",
+                content = "Contenido $index",
+                sortOrder = index,
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                inventoryItems = emptyList(),
+                currencies = emptyList(),
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = notes,
+            ),
+            successor = base.successor.copy(
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v1-production-extended-notes-pass6.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertEquals(6, document.numberOfPages)
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(layers.any { it.startsWith("V1X NOTES P1 - STRUCTURE") })
+            assertTrue(layers.any { it.startsWith("V1X NOTES P1 - VALUES") })
+            assertFalse(layers.any { it.startsWith("V1X TRAITS") })
+            assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
+            assertFalse(layers.any { it.startsWith("V1X INVENTORY") })
+            assertFalse(layers.any { it.startsWith("V1X SPELLS") })
+
+            val extracted = PDFTextStripper().getText(document)
+            listOf(35, 40).forEach { index ->
+                assertTrue(
+                    Regex("Nota\\s+canónica\\s+$index").containsMatchIn(extracted),
+                    "Missing canonical continuation note $index.",
+                )
+            }
+
+            val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
+            assertTrue(
+                ImageIO.write(
+                    image,
+                    "png",
+                    File(proofDir, "custom-v1-production-extended-notes-pass6-page-6.png"),
+                ),
+            )
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()

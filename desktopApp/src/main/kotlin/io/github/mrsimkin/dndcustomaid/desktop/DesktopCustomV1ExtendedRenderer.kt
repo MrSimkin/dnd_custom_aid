@@ -37,9 +37,9 @@ import org.apache.pdfbox.util.Matrix
  * Production promotion of the owner-approved Custom-v1 Extended Run-6 family.
  *
  * Production promotion advances one frozen role at a time. Custom Statistics, Traits & Features,
- * Resources & Options, Inventory / Equipment, and Spells now use the Run-6 owner-approved
- * geometry, typography, source structure and independent layer model, while all values come
- * exclusively from [PcSheetPdfRenderPlan].
+ * Resources & Options, Inventory / Equipment, Spells, and Notes now use the Run-6
+ * owner-approved geometry, typography, source structure and independent layer model, while all
+ * values come exclusively from [PcSheetPdfRenderPlan].
  */
 internal class DesktopCustomV1ExtendedRenderer(
     private val document: PDDocument,
@@ -68,6 +68,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
         appendInventoryExtendedPages(plan)
         appendSpellExtendedPages(plan)
+        appendNotesExtendedPages(plan)
     }
 
     private fun appendCustomStatisticsPages(plan: PcSheetPdfRenderPlan) {
@@ -1072,6 +1073,94 @@ internal class DesktopCustomV1ExtendedRenderer(
         s.endText()
     }
 
+    private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val lines = wrapForRulesByChars(notesText(plan), BASE_V1_NOTES_WRAP_CHARS)
+        val overflow = lines.drop(BASE_V1_NOTES_CAPACITY)
+        if (overflow.isEmpty()) return
+
+        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNotesContinuationPage(
+                page = page,
+                lines = overflow.pageSlice(pageIndex, NOTES_CONTINUATION_CAPACITY),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun renderNotesContinuationPage(
+        page: PDPage,
+        lines: List<String>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X NOTES P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            s.drawForm(resources.forms[4])
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { index, line ->
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(25f, 267.5f, NOTES_RULES[index]),
+                    line,
+                    8.4f,
+                )
+            }
+            lines.drop(NOTES_COLUMN_CAPACITY)
+                .take(NOTES_COLUMN_CAPACITY)
+                .forEachIndexed { index, line ->
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(311.669f, 583.795f, NOTES_RULES[index]),
+                        line,
+                        8.4f,
+                    )
+                }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
+                val body = card.content.trim()
+                if (body.isNotEmpty()) add("${card.title}: $body")
+            }
+        }.joinToString("\n\n")
+    }
+
+    private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
+        val paragraphs = text
+            .replace("\r\n", "\n")
+            .split(Regex("\\n+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        val result = mutableListOf<String>()
+        paragraphs.forEach { paragraph ->
+            var current = ""
+            paragraph.split(Regex("\\s+")).forEach { word ->
+                val candidate = if (current.isEmpty()) word else "$current $word"
+                if (candidate.length <= maxChars || current.isEmpty()) {
+                    current = candidate
+                } else {
+                    result += current
+                    current = word
+                }
+            }
+            if (current.isNotEmpty()) result += current
+        }
+        return result
+    }
+
     private fun drawRuledValues(
         s: PDFormContentStream,
         startX: Float,
@@ -1865,6 +1954,15 @@ internal class DesktopCustomV1ExtendedRenderer(
                 (x + 4.9f) to (firstTop + 6.1f + index * 19.84f)
             },
             slotRule = slotY?.let { Rule(x + 39f, x + 79f, it) },
+        )
+
+        const val BASE_V1_NOTES_WRAP_CHARS = 68
+        const val NOTES_COLUMN_CAPACITY = 17
+        const val BASE_V1_NOTES_CAPACITY = NOTES_COLUMN_CAPACITY * 2
+        const val NOTES_CONTINUATION_CAPACITY = NOTES_COLUMN_CAPACITY * 2
+        val NOTES_RULES = listOf(
+            109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f,
+            288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f,
         )
 
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
