@@ -66,6 +66,7 @@ internal class DesktopClassicRenderer {
             appendResourcesPages(doc, p, plan)
             appendInventoryPages(doc, p, plan)
             appendSpellContinuationPages(doc, p, plan)
+            appendNotesPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Classic production base requires a matching Extended continuation:\n" +
@@ -912,6 +913,70 @@ internal class DesktopClassicRenderer {
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / CONJUROS")
             }
+        }
+    }
+
+
+    private fun appendNotesPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val entries = classicNoteEntries(plan)
+        if (entries.isEmpty()) return
+
+        val references = buildList {
+            add("Percepción pasiva: ${sheet.passivePerception}.")
+            add("Iniciativa: ${signed(sheet.initiativeModifier)}.")
+            add("Clase de armadura: ${sheet.armorClass}.")
+            add("Nivel total: ${sheet.totalLevel}.")
+            sheet.spellSaveDc?.let { add("CD de conjuros: $it.") }
+            sheet.spellAttackModifier?.let { add("Ataque de conjuros: ${signed(it)}.") }
+        }
+
+        val pages = pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, sheet.name, "NOTAS")
+
+                titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
+                ruledTextArea(
+                    s, p, 36f, 148f, 336f, 552f,
+                    entries.pageSlice(pageIndex, CLASSIC_NOTES_ENTRIES_PER_PAGE),
+                    8.7f,
+                )
+
+                titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
+                grid(s, 410f, 148f, 166f, 240f, 10, 14)
+
+                titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
+                ruledTextArea(s, p, 410f, 454f, 166f, 246f, references, 8.1f)
+
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
+            }
+        }
+    }
+
+    private fun classicNoteEntries(plan: PcSheetPdfRenderPlan): List<String> {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
+                val title = card.title.trim()
+                val body = card.content.trim()
+                val value = when {
+                    title.isNotEmpty() && body.isNotEmpty() -> "$title: $body"
+                    title.isNotEmpty() -> title
+                    else -> body
+                }
+                if (value.isNotEmpty()) add(value)
+            }
+        }.flatMap { note ->
+            wrapForChars(note, CLASSIC_NOTES_CHARS_PER_LINE)
+                .chunked(CLASSIC_NOTES_LINES_PER_ENTRY)
+                .map { it.joinToString("\n") }
         }
     }
 
@@ -2247,6 +2312,36 @@ internal class DesktopClassicRenderer {
         s.closePath()
     }
 
+
+    private fun grid(
+        s: PDPageContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        columns: Int,
+        rows: Int,
+    ) {
+        val y = H - top - height
+        s.saveGraphicsState()
+        s.setStrokingColor(GRID_COLOR)
+        s.setLineWidth(0.3f)
+        s.addRect(x, y, width, height)
+        s.stroke()
+        repeat(columns - 1) { index ->
+            val xx = x + width * (index + 1) / columns
+            s.moveTo(xx, y)
+            s.lineTo(xx, y + height)
+        }
+        repeat(rows - 1) { index ->
+            val yy = y + height * (index + 1) / rows
+            s.moveTo(x, yy)
+            s.lineTo(x + width, yy)
+        }
+        s.stroke()
+        s.restoreGraphicsState()
+    }
+
     private fun fillRect(
         s: PDPageContentStream,
         x: Float,
@@ -2438,10 +2533,14 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_BASE_HIGH_LEVEL_CAPACITY = 5
         const val CLASSIC_EXT_TOP_ROWS = 9
         const val CLASSIC_EXT_BOTTOM_ROWS = 10
+        const val CLASSIC_NOTES_ENTRIES_PER_PAGE = 13
+        const val CLASSIC_NOTES_CHARS_PER_LINE = 58
+        const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)
         val LINE_COLOR = Color(146, 146, 142)
+        val GRID_COLOR = Color(210, 210, 205)
 
         val CLASSIC_THEME = PdfTypographyTheme(
             id = "classic-dnd-style-run2-production",
