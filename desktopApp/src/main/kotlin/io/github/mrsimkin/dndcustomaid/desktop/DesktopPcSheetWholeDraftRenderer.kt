@@ -150,6 +150,13 @@ internal class DesktopPcSheetWholeDraftRenderer(
                             error("Custom v1 does not use EQUIPMENT_AND_NARRATIVE.")
                     }
                 }
+
+                DesktopCustomV1ExtendedRenderer(
+                    document = draft,
+                    sourceTemplate = sourceTemplate,
+                    resourceLoader = resourceLoader,
+                ).appendExtendedPages(plan)
+
                 draft.save(output)
             }
         }
