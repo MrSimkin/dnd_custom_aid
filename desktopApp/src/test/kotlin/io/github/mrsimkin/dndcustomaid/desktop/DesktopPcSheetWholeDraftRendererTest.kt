@@ -63,8 +63,8 @@ class DesktopPcSheetWholeDraftRendererTest {
 
         val families = listOf(
             Triple(PcSheetVisualFamily.CUSTOM_V1, "custom-v1-whole-draft", 5),
-            Triple(PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE, "custom-v2-per-attribute-whole-draft", 4),
-            Triple(PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY, "custom-v2-per-ability-whole-draft", 4),
+            Triple(PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE, "custom-v2-per-attribute-whole-draft", 5),
+            Triple(PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY, "custom-v2-per-ability-whole-draft", 5),
         )
 
         families.forEach { (family, fileStem, expectedPages) ->
@@ -136,7 +136,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
             Loader.loadPDF(pdf).use { document ->
-                assertEquals(5, document.numberOfPages)
+                assertEquals(6, document.numberOfPages)
                 val layerNames = document.documentCatalog.ocProperties
                     ?.getGroupNames()
                     ?.toList()
@@ -189,7 +189,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
             Loader.loadPDF(pdf).use { document ->
-                assertEquals(7, document.numberOfPages)
+                assertEquals(8, document.numberOfPages)
                 val layerNames = document.documentCatalog.ocProperties
                     ?.getGroupNames()
                     ?.toList()
@@ -217,6 +217,83 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
             assertTrue(pdf.length() > 20_000L)
         }
+    }
+
+    @Test
+    fun promotesDataWarrantedCustomV2InventorySpellAndNotesContinuations() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithOverflowContinuations()
+
+        listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-per-attribute-production-pass3",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-per-ability-production-pass3",
+        ).forEach { (family, stem) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+
+            val pdf = File(proofDir, "$stem.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+            Loader.loadPDF(pdf).use { document ->
+                assertEquals(7, document.numberOfPages)
+                val layerNames = document.documentCatalog.ocProperties
+                    ?.getGroupNames()
+                    ?.toList()
+                    .orEmpty()
+                assertTrue(layerNames.contains("V2X INVENTORY - STRUCTURE"))
+                assertTrue(layerNames.contains("V2X INVENTORY - VALUES"))
+                assertTrue(layerNames.contains("V2X SPELLS - STRUCTURE"))
+                assertTrue(layerNames.contains("V2X SPELLS - VALUES"))
+                assertTrue(layerNames.contains("V2X NOTES - STRUCTURE"))
+                assertTrue(layerNames.contains("V2X NOTES - VALUES"))
+
+                val extracted = PDFTextStripper().getText(document)
+                assertTrue(extracted.contains("TESORO / OBJETOS / OTROS"))
+                assertTrue(extracted.contains("Sintonizado"))
+                assertTrue(extracted.contains("Conjuro adicional 9"))
+                assertTrue(extracted.contains("Nota de continuación 45"))
+                assertFalse(extracted.contains("Especie", ignoreCase = true))
+
+                listOf(4, 5, 6).forEach { pageIndex ->
+                    val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 220f, ImageType.RGB)
+                    val png = File(proofDir, "$stem-extended-page-${pageIndex + 1}.png")
+                    assertTrue(ImageIO.write(image, "png", png))
+                    assertTrue(png.length() > 0L)
+                }
+            }
+            assertTrue(pdf.length() > 20_000L)
+        }
+    }
+
+    private fun denseDraftAggregateWithOverflowContinuations(): PcSheetExportAggregate {
+        val base = denseDraftAggregate()
+        val sourceId = base.sheet.spellcastingSources.single().id
+        val extraSpells = (1..9).map { index ->
+            spell(
+                index = 100 + index,
+                name = "Conjuro adicional $index",
+                level = 1,
+                sourceId = sourceId,
+                prepared = index % 2 == 1,
+            )
+        }
+        val longNotes = (1..55).joinToString("\n") { index ->
+            "Nota de continuación $index: registro deliberadamente largo para comprobar el enrutamiento real de desborde."
+        }
+
+        return base.copy(
+            sheet = base.sheet.copy(
+                spells = base.sheet.spells + extraSpells,
+                generalNotes = longNotes,
+                noteCards = emptyList(),
+            ),
+        )
     }
 
     private fun denseDraftAggregateWithExtendedManagement(): PcSheetExportAggregate {
