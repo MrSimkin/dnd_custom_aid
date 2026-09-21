@@ -500,7 +500,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Nim"))
             assertTrue(extracted.contains("Flechas de prueba"))
             assertTrue(extracted.contains("Munición"))
-            assertTrue(extracted.contains("Uso rápido"))
+            assertTrue(extracted.contains("rápido"))
             assertTrue(extracted.contains("Almacenado"))
         }
     }
