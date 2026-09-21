@@ -265,6 +265,81 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun promotesOwnerApprovedCustomV1TraitsContinuationWithoutCustomStatistics() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+
+        val firstTrait = base.sheet.traits.first().copy(
+            maxUses = 2,
+            spentUses = 1,
+            recovery = "Descanso largo",
+            notes = "El uso restante debe conservarse en la continuación v1.",
+        )
+        val overflowTrait = base.sheet.traits.first().copy(
+            id = uuid("8c100000-0000-0000-0000-000000000001"),
+            name = "Rasgo de desborde v1",
+            source = "Prueba de continuación",
+            type = CharacterTraitType.OTHER,
+            description = "Descripción canónica que debe sobrevivir fuera de los seis espacios base.",
+            notes = "Metadato de desborde.",
+            sortOrder = 999,
+        )
+        val proficiencies = listOf(
+            CharacterProficiency(
+                id = uuid("8c200000-0000-0000-0000-000000000001"),
+                type = CharacterProficiencyType.TOOL,
+                name = "Competencia extendida de prueba",
+                source = "Fuente de prueba",
+                sortOrder = 0,
+            ),
+            CharacterProficiency(
+                id = uuid("8c200000-0000-0000-0000-000000000002"),
+                type = CharacterProficiencyType.LANGUAGE,
+                name = "Lengua extendida",
+                source = "Fuente de prueba",
+                sortOrder = 1,
+            ),
+        )
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                traits = listOf(firstTrait) + base.sheet.traits.drop(1) + overflowTrait,
+                proficiencies = proficiencies,
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v1-production-extended-traits-pass2.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertTrue(document.numberOfPages >= 6)
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - STRUCTURE") })
+            assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
+            assertFalse(layers.any { it.startsWith("V1X STATS") })
+
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("Rasgo de desborde v1"))
+            assertTrue(extracted.contains("Competencia extendida de prueba"))
+            assertTrue(extracted.contains("Lengua extendida"))
+            assertTrue(extracted.contains("Usos 1 / 2"))
+
+            val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
+            val png = File(proofDir, "custom-v1-production-extended-traits-pass2-page-6.png")
+            assertTrue(ImageIO.write(image, "png", png))
+            assertTrue(png.length() > 0L)
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
