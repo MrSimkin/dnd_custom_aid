@@ -84,7 +84,9 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
         val sheet = plan.snapshot.aggregate.sheet
-        return sheet.traits.isNotEmpty() || sheet.proficiencies.isNotEmpty()
+        return sheet.traits.isNotEmpty() ||
+            sheet.proficiencies.isNotEmpty() ||
+            backgroundSupplementLines(plan).isNotEmpty()
     }
 
     private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
@@ -455,6 +457,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val remaining = traits.filterNot { it.id in featuredIds }
 
         val detailLines = buildList {
+            addAll(backgroundSupplementLines(plan))
             featuredLeft.forEach { trait ->
                 addAll(featureOverflowLines(trait, 269f))
             }
@@ -568,6 +571,46 @@ internal class DesktopCustomV2ExtendedRenderer(
         return overflow.mapIndexed { index, line ->
             if (index == 0) trait.name + ": " + line else line
         }
+    }
+
+    private fun backgroundSupplementLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val background = plan.snapshot.aggregate.sheet.background
+        val lines = mutableListOf<String>()
+
+        fun addFull(label: String, value: String) {
+            val clean = value.trim()
+            if (clean.isNotEmpty()) {
+                lines += wrapByWidth(resources.fira, "$label: $clean", 7.7f, 281f)
+            }
+        }
+
+        fun addOverflow(label: String, value: String, maxChars: Int, baseLines: Int) {
+            val clean = value.trim()
+            if (clean.isEmpty()) return
+            val overflow = wrapForRulesByChars(clean, maxChars).drop(baseLines)
+            if (overflow.isNotEmpty()) {
+                lines += wrapByWidth(
+                    resources.fira,
+                    "$label (cont.): " + overflow.joinToString(" "),
+                    7.7f,
+                    281f,
+                )
+            }
+        }
+
+        val backgroundSummary = listOf(background.name, background.summary)
+            .filter { it.isNotBlank() }
+            .joinToString(" - ")
+        addOverflow("Trasfondo", backgroundSummary, 76, 3)
+        addOverflow("Vínculos", background.bonds, 76, 3)
+        addOverflow("Ideales", background.ideals, 76, 3)
+        addOverflow("Historia", background.story, 76, 12)
+
+        addFull("Rasgos de personalidad", background.personalityTraits)
+        addFull("Defectos", background.flaws)
+        addFull("Fe / religión", background.religionFaith)
+
+        return lines
     }
 
     private fun fullTraitDetailLines(
@@ -837,16 +880,23 @@ internal class DesktopCustomV2ExtendedRenderer(
         val specialContinuation = special.mapIndexedNotNull { index, item ->
             item.takeIf { index >= BASE_V2_SPECIAL_CAPACITY || item.attuned }
         }
-        val valuables = plan.snapshot.aggregate.successor.preferences.valuablesText
-            .split(Regex("[;\\n]+"))
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
+        val treasureLines = buildList {
+            sheet.currencies.sortedBy { it.sortOrder }.forEach { currency ->
+                add(currency.name + ": " + currency.amount)
+            }
+            addAll(
+                plan.snapshot.aggregate.successor.preferences.valuablesText
+                    .split(Regex("[;\\n]+"))
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() },
+            )
+        }
 
-        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && valuables.isEmpty()) return
+        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
 
         val pages = maxOf(
             pageCount(ordinaryLines.size, INVENTORY_CONTINUATION_CAPACITY),
-            pageCount(valuables.size, INVENTORY_VALUABLES_CAPACITY),
+            pageCount(treasureLines.size, INVENTORY_VALUABLES_CAPACITY),
             pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
         )
         repeat(pages) { pageIndex ->
@@ -857,7 +907,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 ordinary = ordinaryLines
                     .drop(pageIndex * INVENTORY_CONTINUATION_CAPACITY)
                     .take(INVENTORY_CONTINUATION_CAPACITY),
-                valuables = valuables
+                valuables = treasureLines
                     .drop(pageIndex * INVENTORY_VALUABLES_CAPACITY)
                     .take(INVENTORY_VALUABLES_CAPACITY),
                 special = specialContinuation
