@@ -65,6 +65,7 @@ internal class DesktopClassicRenderer {
             appendTraitsPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
             appendInventoryPages(doc, p, plan)
+            appendSpellContinuationPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Classic production base requires a matching Extended continuation:\n" +
@@ -791,6 +792,148 @@ internal class DesktopClassicRenderer {
         return text.replace('.', ',')
     }
 
+    private fun appendSpellContinuationPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val slots = sheet.spellSlots.associateBy { it.level }
+        val spellsByLevel = sheet.spells
+            .sortedWith(
+                compareBy<io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell> { it.sortOrder }
+                    .thenBy { it.name.lowercase() },
+            )
+            .groupBy { it.level }
+
+        val cantripOverflow = spellsByLevel[0].orEmpty().drop(CLASSIC_BASE_CANTRIP_CAPACITY)
+        val level1 = spellsByLevel[1].orEmpty().drop(CLASSIC_BASE_LEVEL1_CAPACITY)
+        val level2 = spellsByLevel[2].orEmpty().drop(CLASSIC_BASE_LEVEL2_CAPACITY)
+        val level3 = spellsByLevel[3].orEmpty().drop(CLASSIC_BASE_LEVEL3_CAPACITY)
+        val level4 = spellsByLevel[4].orEmpty().drop(CLASSIC_BASE_LEVEL4_CAPACITY)
+        val level5 = spellsByLevel[5].orEmpty().drop(CLASSIC_BASE_LEVEL5_CAPACITY)
+        val high = (6..9).flatMap { level ->
+            spellsByLevel[level].orEmpty().map { spell ->
+                ClassicSpellRow("N$level ${spell.name}", spell.sourceAssociations.any { it.prepared })
+            }
+        }.drop(CLASSIC_BASE_HIGH_LEVEL_CAPACITY)
+
+        if (
+            cantripOverflow.isEmpty() &&
+            level1.isEmpty() &&
+            level2.isEmpty() &&
+            level3.isEmpty() &&
+            level4.isEmpty() &&
+            level5.isEmpty() &&
+            high.isEmpty()
+        ) {
+            return
+        }
+
+        val cantripPages = pageCount(cantripOverflow.size, CLASSIC_EXT_TOP_ROWS)
+        repeat(cantripPages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, sheet.name, "CONJUROS")
+                text(
+                    s, p, 36f, 104f, 540f, 28f,
+                    "Continuación de trucos. Los espacios gastados permanecen escribibles para uso en mesa.",
+                    PdfTypographyRole.NOTE_TEXT, 8.2f, 7.2f,
+                    align = PdfHorizontalAlignment.CENTER,
+                )
+                val colW = 176f
+                spellLevelBlock(
+                    s, p, 24f, 146f, colW, 268f, "TRUCOS - CONT.", "",
+                    classicSpellRows(
+                        cantripOverflow
+                            .drop(pageIndex * CLASSIC_EXT_TOP_ROWS)
+                            .take(CLASSIC_EXT_TOP_ROWS),
+                    ),
+                )
+                drawBlankSpellContinuationBlocks(s, p)
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / CONJUROS")
+            }
+        }
+
+        val normalPages = maxOf(
+            pageCount(level1.size, CLASSIC_EXT_TOP_ROWS),
+            pageCount(level2.size, CLASSIC_EXT_BOTTOM_ROWS),
+            pageCount(level3.size, CLASSIC_EXT_TOP_ROWS),
+            pageCount(level4.size, CLASSIC_EXT_BOTTOM_ROWS),
+            pageCount(level5.size, CLASSIC_EXT_TOP_ROWS),
+            pageCount(high.size, CLASSIC_EXT_BOTTOM_ROWS),
+        )
+        repeat(normalPages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, sheet.name, "CONJUROS")
+                text(
+                    s, p, 36f, 104f, 540f, 28f,
+                    "Continuación de la lista de conjuros. Los espacios gastados permanecen escribibles para uso en mesa.",
+                    PdfTypographyRole.NOTE_TEXT, 8.2f, 7.2f,
+                    align = PdfHorizontalAlignment.CENTER,
+                )
+                val colW = 176f
+                val gap = 12f
+                val x1 = 24f
+                val x2 = x1 + colW + gap
+                val x3 = x2 + colW + gap
+
+                spellLevelBlock(
+                    s, p, x1, 146f, colW, 268f,
+                    "NIVEL 1 - CONT.", slots[1]?.totalSlots?.toString().orEmpty(),
+                    classicSpellRows(level1.pageSlice(pageIndex, CLASSIC_EXT_TOP_ROWS)),
+                )
+                spellLevelBlock(
+                    s, p, x1, 426f, colW, 292f,
+                    "NIVEL 2 - CONT.", slots[2]?.totalSlots?.toString().orEmpty(),
+                    classicSpellRows(level2.pageSlice(pageIndex, CLASSIC_EXT_BOTTOM_ROWS)),
+                )
+                spellLevelBlock(
+                    s, p, x2, 146f, colW, 268f,
+                    "NIVEL 3 - CONT.", slots[3]?.totalSlots?.toString().orEmpty(),
+                    classicSpellRows(level3.pageSlice(pageIndex, CLASSIC_EXT_TOP_ROWS)),
+                )
+                spellLevelBlock(
+                    s, p, x2, 426f, colW, 292f,
+                    "NIVEL 4 - CONT.", slots[4]?.totalSlots?.toString().orEmpty(),
+                    classicSpellRows(level4.pageSlice(pageIndex, CLASSIC_EXT_BOTTOM_ROWS)),
+                )
+                spellLevelBlock(
+                    s, p, x3, 146f, colW, 268f,
+                    "NIVEL 5 - CONT.", slots[5]?.totalSlots?.toString().orEmpty(),
+                    classicSpellRows(level5.pageSlice(pageIndex, CLASSIC_EXT_TOP_ROWS)),
+                )
+                spellLevelBlock(
+                    s, p, x3, 426f, colW, 292f,
+                    "NIVEL 6+ - CONT.", "",
+                    high.pageSlice(pageIndex, CLASSIC_EXT_BOTTOM_ROWS),
+                )
+
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / CONJUROS")
+            }
+        }
+    }
+
+    private fun drawBlankSpellContinuationBlocks(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+    ) {
+        val colW = 176f
+        val gap = 12f
+        val x1 = 24f
+        val x2 = x1 + colW + gap
+        val x3 = x2 + colW + gap
+        spellLevelBlock(s, p, x1, 426f, colW, 292f, "NIVEL 1 - CONT.", "", emptyList())
+        spellLevelBlock(s, p, x2, 146f, colW, 268f, "NIVEL 2 - CONT.", "", emptyList())
+        spellLevelBlock(s, p, x2, 426f, colW, 292f, "NIVEL 3 - CONT.", "", emptyList())
+        spellLevelBlock(s, p, x3, 146f, colW, 268f, "NIVEL 4 - CONT.", "", emptyList())
+        spellLevelBlock(s, p, x3, 426f, colW, 292f, "NIVEL 5+ - CONT.", "", emptyList())
+    }
+
+    private fun <T> List<T>.pageSlice(pageIndex: Int, capacity: Int): List<T> =
+        drop(pageIndex * capacity).take(capacity)
+
     private fun drawMain(
         doc: PDDocument,
         p: DesktopPdfRenderingPrimitives,
@@ -1331,9 +1474,6 @@ internal class DesktopClassicRenderer {
         val usableTop = top + 36f
         val rowH = 23f
         val maxRows = ((height - 44f) / rowH).toInt().coerceAtLeast(1)
-        if (spells.size > maxRows) {
-            overflowDiagnostics += "$title:${spells.size - maxRows} conjuro(s)"
-        }
         repeat(maxRows) { index ->
             val rowTop = usableTop + index * rowH
             val spell = spells.getOrNull(index)
@@ -2289,6 +2429,15 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_INVENTORY_NOTE_LINES = 2
         const val CLASSIC_BASE_VALUABLE_CAPACITY = 1
         val CLASSIC_BASE_CURRENCY_KEYS = setOf("pc", "pp", "pe", "po", "pt")
+        const val CLASSIC_BASE_CANTRIP_CAPACITY = 5
+        const val CLASSIC_BASE_LEVEL1_CAPACITY = 13
+        const val CLASSIC_BASE_LEVEL2_CAPACITY = 9
+        const val CLASSIC_BASE_LEVEL3_CAPACITY = 9
+        const val CLASSIC_BASE_LEVEL4_CAPACITY = 5
+        const val CLASSIC_BASE_LEVEL5_CAPACITY = 5
+        const val CLASSIC_BASE_HIGH_LEVEL_CAPACITY = 5
+        const val CLASSIC_EXT_TOP_ROWS = 9
+        const val CLASSIC_EXT_BOTTOM_ROWS = 10
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)

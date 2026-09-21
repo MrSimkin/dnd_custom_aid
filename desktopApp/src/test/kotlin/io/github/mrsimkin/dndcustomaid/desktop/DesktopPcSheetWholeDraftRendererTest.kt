@@ -712,6 +712,74 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
         assertTrue(inventoryPdf.length() > pdf.length())
+
+        val sourceId = aggregate.sheet.spellcastingSources.first().id
+        val spellSeed = aggregate.sheet.spells.first()
+        val spellOverflow = (1..31).map { index ->
+            spellSeed.copy(
+                id = uuid("9e000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                name = "Conjuro canónico $index",
+                level = 1,
+                sortOrder = index,
+                sourceAssociations = listOf(
+                    CharacterSpellSourceAssociation(
+                        sourceId = sourceId,
+                        prepared = index == 14 || index == 31,
+                    ),
+                ),
+            )
+        }
+        val spellAggregate = aggregate.copy(
+            sheet = aggregate.sheet.copy(
+                spells = spellOverflow,
+                spellcasterEnabled = true,
+            ),
+        )
+        val spellPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = spellAggregate),
+        )
+        val spellPdf = File(proofDir, "classic-production-spells-pass6.pdf")
+        spellPdf.outputStream().use { renderer.renderDraft(spellPlan, it) }
+
+        Loader.loadPDF(spellPdf).use { document ->
+            assertEquals(5, document.numberOfPages)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("CONJUROS"))
+            assertTrue(Regex("Conjuro\\s+canónico\\s+14").containsMatchIn(extracted))
+            assertTrue(Regex("Conjuro\\s+canónico\\s+22").containsMatchIn(extracted))
+            assertTrue(Regex("Conjuro\\s+canónico\\s+23").containsMatchIn(extracted))
+            assertTrue(Regex("Conjuro\\s+canónico\\s+31").containsMatchIn(extracted))
+
+            val page4 = PDFTextStripper().apply {
+                startPage = 4
+                endPage = 4
+            }.getText(document)
+            val page5 = PDFTextStripper().apply {
+                startPage = 5
+                endPage = 5
+            }.getText(document)
+            assertTrue(Regex("Conjuro\\s+canónico\\s+14").containsMatchIn(page4))
+            assertTrue(Regex("Conjuro\\s+canónico\\s+22").containsMatchIn(page4))
+            assertTrue(Regex("Conjuro\\s+canónico\\s+23").containsMatchIn(page5))
+            assertTrue(Regex("Conjuro\\s+canónico\\s+31").containsMatchIn(page5))
+
+            val pdfRenderer = PDFRenderer(document)
+            (3 until document.numberOfPages).forEach { index ->
+                val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "classic-production-spells-pass6-page-${index + 1}.png"),
+                    ),
+                )
+            }
+        }
+        assertTrue(spellPdf.length() > pdf.length())
     }
 
     @Test
