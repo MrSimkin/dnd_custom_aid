@@ -843,6 +843,127 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun classicContinuesLongCanonicalBaseContentWithoutSilentLoss() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val sourceId = base.sheet.spellcastingSources.single().id
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                name = "Iria Noctis Cartógrafa Mayor De La Frontera Septentrional",
+                classes = listOf(
+                    base.sheet.classes.first().copy(
+                        name = "Maga Cartógrafa De Los Umbrales Septentrionales",
+                        subclassName = "Guardiana Mayor De Senderos Sellados",
+                        sortOrder = 0,
+                    ),
+                ),
+                combatEntries = base.sheet.combatEntries.take(5).mapIndexed { index, entry ->
+                    if (index == 4) {
+                        entry.copy(
+                            name = "Acción terminal Classic",
+                            type = CharacterCombatEntryType.ACTION,
+                            notes = "Entrada preservada fuera de las cuatro filas base.",
+                            sortOrder = index,
+                        )
+                    } else {
+                        entry.copy(sortOrder = index, notes = null)
+                    }
+                },
+                inventoryItems = emptyList(),
+                background = CharacterBackground(
+                    name = "Exploradora de archivos y rutas antiguas de frontera",
+                    summary = "Conserva mapas incompletos, compara testimonios y registra cada cambio encontrado durante la expedición.",
+                    race = "Humana",
+                    religionFaith = "Tradición cartográfica de la antigua Academia del Norte",
+                    personalityTraits = "Anota cada variación del terreno incluso cuando el grupo tiene prisa y deja una copia de seguridad. COLA RASGO AUDITADA",
+                    ideals = "El conocimiento debe sobrevivir a quien lo descubre y permanecer verificable para futuros viajeros. COLA IDEAL AUDITADA",
+                    bonds = "Prometió devolver el mapa original y proteger a quienes ayudaron a reconstruir la ruta perdida. COLA VINCULO AUDITADA",
+                    flaws = "Puede detener una retirada para comprobar una inscripción que considere irrepetible. COLA DEFECTO AUDITADA",
+                    story = "La expedición siguió señales parciales durante semanas, corrigió tres mapas incompatibles y finalmente encontró una galería sellada. La última anotación confirma que el corredor norte continúa más allá del archivo inferior. COLA HISTORIA AUDITADA",
+                ),
+                traits = listOf(
+                    base.sheet.traits.first().copy(
+                        name = "Memoria cartográfica",
+                        source = "",
+                        type = CharacterTraitType.CLASS,
+                        description = "Conserva referencias de rutas, hitos, distancias, símbolos y cambios observados durante viajes prolongados. Puede comparar mapas contradictorios y mantener una versión trazable del recorrido. COLA RASGO LARGO AUDITADA",
+                        notes = null,
+                        maxUses = null,
+                        spentUses = 0,
+                        recovery = null,
+                        activation = null,
+                        sortOrder = 0,
+                    ),
+                ),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                spellSlots = base.sheet.spellSlots.map { slot ->
+                    if (slot.level == 1) slot.copy(totalSlots = 7, spentSlots = 3) else slot
+                },
+                spells = listOf(
+                    spell(901, "Luz", 0, sourceId, true),
+                    spell(902, "Escudo", 1, sourceId, true),
+                ),
+                generalNotes = "",
+                noteCards = emptyList(),
+                weaponMasteries = emptyList(),
+                forms = emptyList(),
+                companions = emptyList(),
+            ),
+            closure = base.closure.copy(
+                customSkills = emptyList(),
+                exhaustionLevel = 0,
+                concentration = null,
+                conditions = emptyList(),
+                defenses = emptyList(),
+                movements = emptyList(),
+                senses = emptyList(),
+                inventoryUsage = emptyList(),
+                temporaryEffects = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customAttributes = emptyList(),
+                customSkillAbilities = emptyList(),
+                combatDamage = emptyList(),
+                customMarkers = emptyList(),
+                resourceConfigurations = emptyList(),
+                speciesIdentity = null,
+                subraceIdentity = null,
+                backgroundIdentity = null,
+                traitProvenance = emptyList(),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+        val pdf = File(proofDir, "classic-canonical-overflow-audit.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertTrue(document.numberOfPages > 3)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("COLA HISTORIA AUDITADA"))
+            assertTrue(extracted.contains("COLA RASGO AUDITADA"))
+            assertTrue(extracted.contains("COLA IDEAL AUDITADA"))
+            assertTrue(extracted.contains("COLA VINCULO AUDITADA"))
+            assertTrue(extracted.contains("COLA DEFECTO AUDITADA"))
+            assertTrue(extracted.contains("COLA RASGO LARGO AUDITADA"))
+            assertTrue(extracted.contains("Acción terminal Classic"))
+            assertTrue(extracted.contains("7 totales"))
+            assertTrue(extracted.contains("3 gastados"))
+            assertTrue(extracted.contains("Tradición cartográfica"))
+            assertTrue(extracted.contains("Iria Noctis Cartógrafa Mayor"))
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
     fun generatesWholeCustomFamilyFirstDraftsForOwnerReview() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
