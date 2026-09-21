@@ -15,6 +15,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCustomSkillAbil
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterNote
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
@@ -41,6 +46,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 import org.apache.pdfbox.Loader
@@ -159,6 +165,148 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
             assertTrue(pdf.length() > 20_000L)
         }
+    }
+
+    @Test
+    fun promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithExtendedManagement()
+
+        listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-per-attribute-production-pass2",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-per-ability-production-pass2",
+        ).forEach { (family, stem) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+
+            val pdf = File(proofDir, "$stem.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+            Loader.loadPDF(pdf).use { document ->
+                assertEquals(7, document.numberOfPages)
+                val layerNames = document.documentCatalog.ocProperties
+                    ?.getGroupNames()
+                    ?.toList()
+                    .orEmpty()
+                assertTrue(layerNames.contains("V2X TRAITS - STRUCTURE"))
+                assertTrue(layerNames.contains("V2X TRAITS - VALUES"))
+                assertTrue(layerNames.contains("V2X RESOURCES - STRUCTURE"))
+                assertTrue(layerNames.contains("V2X RESOURCES - MARKERS"))
+
+                val extracted = PDFTextStripper().getText(document)
+                assertTrue(extracted.contains("RASGOS Y ATRIBUTOS"))
+                assertTrue(extracted.contains("RECURSOS Y OPCIONES"))
+                assertTrue(extracted.contains("Puntos de enfoque"))
+                assertTrue(extracted.contains("Metamagia cuidadosa"))
+                assertTrue(extracted.contains("7/12"))
+                assertFalse(extracted.contains("Dados de portento", ignoreCase = true))
+                assertFalse(extracted.contains("Especie", ignoreCase = true))
+
+                listOf(5, 6).forEach { pageIndex ->
+                    val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 220f, ImageType.RGB)
+                    val png = File(proofDir, "$stem-extended-page-${pageIndex + 1}.png")
+                    assertTrue(ImageIO.write(image, "png", png))
+                    assertTrue(png.length() > 0L)
+                }
+            }
+            assertTrue(pdf.length() > 20_000L)
+        }
+    }
+
+    private fun denseDraftAggregateWithExtendedManagement(): PcSheetExportAggregate {
+        val base = denseDraftAggregateWithCustomStatistics()
+        val traits = base.sheet.traits.toMutableList()
+        traits[0] = traits[0].copy(
+            maxUses = 2,
+            spentUses = 1,
+            recovery = "Descanso largo",
+            notes = "El uso restante debe permanecer local al rasgo.",
+        )
+
+        val proficiencies = listOf(
+            CharacterProficiency(
+                id = uuid("83000000-0000-0000-0000-000000000001"),
+                type = CharacterProficiencyType.TOOL,
+                name = "Herramientas de ladrón",
+                source = "Pícaro",
+                sortOrder = 0,
+            ),
+            CharacterProficiency(
+                id = uuid("83000000-0000-0000-0000-000000000002"),
+                type = CharacterProficiencyType.LANGUAGE,
+                name = "Élfico",
+                source = "Raza",
+                sortOrder = 1,
+            ),
+        )
+
+        val resources = listOf(
+            CharacterResource(
+                id = uuid("84000000-0000-0000-0000-000000000001"),
+                name = "Recuperación arcana",
+                currentValue = 1,
+                maxValue = 1,
+                recovery = "Descanso largo",
+                source = "Mago",
+                sortOrder = 0,
+            ),
+            CharacterResource(
+                id = uuid("84000000-0000-0000-0000-000000000002"),
+                name = "Carga del monóculo",
+                currentValue = 2,
+                maxValue = 4,
+                recovery = "Amanecer",
+                source = "Objeto",
+                sortOrder = 1,
+            ),
+            CharacterResource(
+                id = uuid("84000000-0000-0000-0000-000000000003"),
+                name = "Puntos de enfoque",
+                currentValue = 7,
+                maxValue = 12,
+                recovery = "Descanso largo",
+                source = "Clase",
+                sortOrder = 2,
+            ),
+        )
+
+        val options = listOf(
+            CharacterClassOption(
+                id = uuid("85000000-0000-0000-0000-000000000001"),
+                kind = CharacterClassOptionKind.METAMAGIC,
+                name = "Metamagia cuidadosa",
+                source = "Prueba PDF",
+                costText = "1 punto",
+                effectSummary = "Protege objetivos elegidos durante una conjuración.",
+                active = true,
+                sortOrder = 0,
+            ),
+            CharacterClassOption(
+                id = uuid("85000000-0000-0000-0000-000000000002"),
+                kind = CharacterClassOptionKind.TECHNIQUE,
+                name = "Lectura táctica",
+                source = "Prueba PDF",
+                costText = null,
+                effectSummary = "Resume una técnica activa del personaje.",
+                active = false,
+                sortOrder = 1,
+            ),
+        )
+
+        return base.copy(
+            sheet = base.sheet.copy(
+                traits = traits,
+                proficiencies = proficiencies,
+                resources = resources,
+                classOptions = options,
+            ),
+        )
     }
 
     private fun denseDraftAggregateWithCustomStatistics(): PcSheetExportAggregate {
