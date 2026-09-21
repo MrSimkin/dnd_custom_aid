@@ -224,10 +224,14 @@ internal class DesktopCustomV1ExtendedRenderer(
             )
             modules.forEachIndexed { index, module ->
                 val column = COLUMNS[index]
-                centeredText(
-                    s, resources.heading,
-                    column.x + 1f, STAT_ATTRIBUTE_TITLE_TOP, column.width - 2f, 20f,
-                    module.title, 16.5f,
+                centeredGeneratedHeading(
+                    s = s,
+                    x = column.x + 1f,
+                    top = STAT_ATTRIBUTE_TITLE_TOP,
+                    width = column.width - 2f,
+                    height = 20f,
+                    value = module.title,
+                    preferredSize = 16.5f,
                 )
             }
             centeredText(
@@ -428,6 +432,34 @@ internal class DesktopCustomV1ExtendedRenderer(
         s.showText(value)
         s.endText()
     }
+
+    private fun centeredGeneratedHeading(
+        s: PDFormContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        value: String,
+        preferredSize: Float,
+    ) {
+        val useSource = supports(resources.heading, value)
+        centeredText(
+            s = s,
+            font = if (useSource) resources.heading else resources.firaSemibold,
+            x = x,
+            top = top,
+            width = width,
+            height = height,
+            value = value,
+            size = if (useSource) preferredSize else minOf(preferredSize, 12.5f),
+        )
+    }
+
+    private fun supports(font: PDFont, text: String): Boolean =
+        runCatching {
+            font.encode(text)
+            true
+        }.getOrDefault(false)
 
     private fun centeredText(
         s: PDFormContentStream,
