@@ -64,13 +64,11 @@ internal class DesktopCustomV2ExtendedRenderer(
             val stats = plan.snapshot.customStatistics
             require(!stats.isEmpty) { "Mandatory Custom Statistics page requires custom statistics." }
 
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
             when (plan.request.visualFamily) {
                 PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ->
-                    renderPerAttribute(page, stats.attributes, stats.skills)
+                    appendPerAttributePages(stats.attributes, stats.skills)
                 PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY ->
-                    renderPerAbility(page, stats.attributes, stats.skills)
+                    appendPerAbilityPages(stats.attributes, stats.skills)
                 else -> error("Unreachable Custom-v2 family branch.")
             }
         }
@@ -96,62 +94,107 @@ internal class DesktopCustomV2ExtendedRenderer(
             aggregate.successor.customMarkers.isNotEmpty()
     }
 
-    private fun renderPerAttribute(
-        page: PDPage,
+    private fun appendPerAttributePages(
         attributes: List<PcSheetCustomAttributeProjection>,
         skills: List<PcSheetCustomSkillProjection>,
     ) {
-        require(attributes.size <= 3) {
-            "Production pass 1 supports up to three custom attributes on the per-Attribute Extended page; overflow pagination is the next promotion pass."
-        }
-
-        val customById = attributes.associateBy { it.attribute.id }
         val linkedByCustom = skills
             .filter { it.ability.customAttributeId != null }
             .groupBy { it.ability.customAttributeId }
-        linkedByCustom.values.forEach { linked ->
-            require(linked.size <= 6) {
-                "Production pass 1 supports up to six custom skills linked to one custom attribute; overflow pagination is pending."
+
+        val attributeSlices = attributes.flatMap { projection ->
+            val linked = linkedByCustom[projection.attribute.id].orEmpty()
+            val rawNote = projection.attribute.notes.orEmpty().trim()
+            val noteLines = if (rawNote.isEmpty()) {
+                emptyList()
+            } else {
+                val key = projection.attribute.abbreviation.trim().uppercase().take(3)
+                val note = if (key.isNotEmpty() && !rawNote.startsWith("$key:", ignoreCase = true)) {
+                    "$key: $rawNote"
+                } else {
+                    rawNote
+                }
+                wrapByWidth(resources.fira, note, 8.8f, 174f)
+            }
+            val slices = maxOf(
+                1,
+                pageCount(linked.size, ATTRIBUTE_LINKED_SKILLS_PER_COLUMN),
+                pageCount(noteLines.size, ATTRIBUTE_NOTE_LINES_PER_COLUMN),
+            )
+            (0 until slices).map { sliceIndex ->
+                AttributeColumnSlice(
+                    projection = projection,
+                    skills = linked
+                        .drop(sliceIndex * ATTRIBUTE_LINKED_SKILLS_PER_COLUMN)
+                        .take(ATTRIBUTE_LINKED_SKILLS_PER_COLUMN),
+                    noteLines = noteLines
+                        .drop(sliceIndex * ATTRIBUTE_NOTE_LINES_PER_COLUMN)
+                        .take(ATTRIBUTE_NOTE_LINES_PER_COLUMN),
+                )
             }
         }
 
-        val standardGroups = skills
+        val standardSlices = skills
             .filter { it.ability.builtIn != null }
             .groupBy { requireNotNull(it.ability.builtIn) }
             .toList()
-        require(standardGroups.size <= 3) {
-            "Production pass 1 supports custom skills linked to up to three built-in attributes on this page; overflow pagination is pending."
-        }
-        standardGroups.forEach { (_, group) ->
-            require(group.size <= 4) {
-                "Production pass 1 supports up to four custom skills for one built-in attribute in the standard-anchor section."
+            .flatMap { (ability, groupedSkills) ->
+                groupedSkills.chunked(STANDARD_SKILLS_PER_COLUMN).map { chunk ->
+                    StandardSkillSlice(ability = ability, skills = chunk)
+                }
             }
-        }
 
-        appendLayer(page, "V2X ATTR - STRUCTURE") { s ->
+        val attributePages = attributeSlices.chunked(ATTRIBUTE_COLUMNS_PER_PAGE)
+        val standardPages = standardSlices.chunked(STANDARD_COLUMNS_PER_PAGE)
+        val pages = maxOf(1, attributePages.size, standardPages.size)
+
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderPerAttributePage(
+                page = page,
+                attributes = attributePages.getOrNull(pageIndex).orEmpty(),
+                standardGroups = standardPages.getOrNull(pageIndex).orEmpty(),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun renderPerAttributePage(
+        page: PDPage,
+        attributes: List<AttributeColumnSlice>,
+        standardGroups: List<StandardSkillSlice>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = if (pageIndex == 0) "V2X ATTR" else "V2X ATTR ${pageIndex + 1}"
+
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s, resources.forms[2])
             val columns = listOf(14f, 207f, 400f)
             columns.forEach { x ->
                 fill(s, x, 104f, 184f, 244f, SOURCE_GRAY_LIGHT)
-                attributeBandStructure(s, x, 104f, 184f, 6)
+                attributeBandStructure(s, x, 104f, 184f, ATTRIBUTE_LINKED_SKILLS_PER_COLUMN)
             }
 
             drawRule(s, 14f, 598f, 365f, 0.8f)
             columns.forEachIndexed { index, x ->
                 fill(s, x, 392f, 184f, 110f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
                 drawRule(s, x + 16f, x + 174f, 430f, 0.55f)
-                repeat(4) { row -> drawRule(s, x + 16f, x + 174f, 447f + row * 17f, 0.55f) }
+                repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
+                    drawRule(s, x + 16f, x + 174f, 447f + row * 17f, 0.55f)
+                }
             }
 
             drawRule(s, 14f, 598f, 522f, 0.8f)
             columns.forEachIndexed { col, x ->
-                bandedRows(s, x, x + 184f, 562f, 10, 17f, col)
+                bandedRows(s, x, x + 184f, 562f, ATTRIBUTE_NOTE_LINES_PER_COLUMN, 17f, col)
             }
         }
-        appendLayer(page, "V2X ATTR - CLEANUP") { }
-        appendLayer(page, "V2X ATTR - LABELS") { s ->
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "ESTADÍSTICAS PERSONALIZADAS")
-            attributes.forEachIndexed { index, projection ->
+            attributes.forEachIndexed { index, slice ->
+                val projection = slice.projection
                 textTopSource(
                     s, resources.corbelBold, resources.firaSemibold,
                     18f + index * 193f, 111f,
@@ -173,7 +216,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 centeredSource(
                     s, resources.corbelBold, resources.firaSemibold,
                     TopRect(14f + index * 193f, 397f, 184f, 22f),
-                    builtInKeyedName(group.first), 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
+                    builtInKeyedName(group.ability), 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
                 )
             }
             centeredSource(
@@ -182,21 +225,31 @@ internal class DesktopCustomV2ExtendedRenderer(
                 "DEFINICIONES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE,
             )
         }
-        appendLayer(page, "V2X ATTR - VALUES") { s ->
-            attributes.forEachIndexed { index, projection ->
-                val attr = projection.attribute
-                val linked = linkedByCustom[attr.id].orEmpty()
-                val sample = AttributeValues(
-                    score = attr.score.toString(),
-                    modifier = signed(attr.modifier),
-                    save = projection.savingThrowTotal?.let(::signed).orEmpty(),
-                    skills = linked.map { it.skill.name to it.total?.let(::signed).orEmpty() },
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            attributes.forEachIndexed { index, slice ->
+                val attr = slice.projection.attribute
+                drawAttributeBandValues(
+                    s,
+                    14f + index * 193f,
+                    104f,
+                    AttributeValues(
+                        score = attr.score.toString(),
+                        modifier = signed(attr.modifier),
+                        save = slice.projection.savingThrowTotal?.let(::signed).orEmpty(),
+                        skills = slice.skills.map { it.skill.name to it.total?.let(::signed).orEmpty() },
+                    ),
                 )
-                drawAttributeBandValues(s, 14f + index * 193f, 104f, sample)
+                slice.noteLines.forEachIndexed { row, line ->
+                    textAboveRule(
+                        s, resources.fira,
+                        Rule(18f + index * 193f, 194f + index * 193f, 562f + row * 17f),
+                        line, 8.8f, 8.0f, 2.2f,
+                    )
+                }
             }
 
             standardGroups.forEachIndexed { col, group ->
-                group.second.forEachIndexed { row, item ->
+                group.skills.forEachIndexed { row, item ->
                     val y = 447f + row * 17f
                     textAboveRuleSource(
                         s, resources.corbel, resources.fira,
@@ -212,33 +265,11 @@ internal class DesktopCustomV2ExtendedRenderer(
                     }
                 }
             }
-
-            attributes.forEachIndexed { col, projection ->
-                val rawNote = projection.attribute.notes.orEmpty().trim()
-                if (rawNote.isNotEmpty()) {
-                    val key = projection.attribute.abbreviation.trim().uppercase().take(3)
-                    val note = if (key.isNotEmpty() && !rawNote.startsWith("$key:", ignoreCase = true)) {
-                        "$key: $rawNote"
-                    } else {
-                        rawNote
-                    }
-                    val lines = wrapByWidth(resources.fira, note, 8.8f, 174f)
-                    require(lines.size <= 10) {
-                        "Custom attribute notes exceed the approved Run-7 notes region; overflow continuation is pending."
-                    }
-                    lines.forEachIndexed { row, line ->
-                        textAboveRule(
-                            s, resources.fira,
-                            Rule(18f + col * 193f, 194f + col * 193f, 562f + row * 17f),
-                            line, 8.8f, 8.0f, 2.2f,
-                        )
-                    }
-                }
-            }
         }
-        appendLayer(page, "V2X ATTR - MARKERS") { s ->
-            repeat(3) { col ->
-                val projection = attributes.getOrNull(col)
+        appendLayer(page, "$layerPrefix - MARKERS") { s ->
+            repeat(ATTRIBUTE_COLUMNS_PER_PAGE) { col ->
+                val slice = attributes.getOrNull(col)
+                val projection = slice?.projection
                 val saveTraining = if (
                     projection?.attribute?.savingThrowEnabled == true &&
                     projection.attribute.savingThrowProficient
@@ -249,66 +280,87 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 drawV2TrainingBox(s, TopRect(98.5f + col * 193f, 141.5f, 8.5f, 9f), saveTraining)
 
-                val linked = projection
-                    ?.let { linkedByCustom[it.attribute.id].orEmpty() }
-                    .orEmpty()
-                repeat(6) { row ->
+                repeat(ATTRIBUTE_LINKED_SKILLS_PER_COLUMN) { row ->
                     drawV2TrainingBox(
                         s,
                         TopRect(98.5f + col * 193f, 157f + row * 17f, 8.5f, 9f),
-                        linked.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        slice?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
                     )
                 }
             }
 
-            repeat(3) { col ->
-                val group = standardGroups.getOrNull(col)?.second.orEmpty()
-                repeat(4) { row ->
+            repeat(STANDARD_COLUMNS_PER_PAGE) { col ->
+                val group = standardGroups.getOrNull(col)
+                repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
                     drawV2TrainingBox(
                         s,
                         TopRect(18f + col * 193f, 434f + row * 17f, 8.5f, 9f),
-                        group.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        group?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
                     )
                 }
             }
         }
-
-        require(customById.size == attributes.size)
     }
 
-    private fun renderPerAbility(
-        page: PDPage,
+    private fun appendPerAbilityPages(
         attributes: List<PcSheetCustomAttributeProjection>,
         skills: List<PcSheetCustomSkillProjection>,
     ) {
         val saves = attributes.filter { it.attribute.savingThrowEnabled }
-        require(attributes.size <= 6) {
-            "Production pass 1 supports up to six custom attributes on the per-Ability Extended page; overflow pagination is the next promotion pass."
-        }
-        require(saves.size <= 30) {
-            "Production pass 1 supports up to thirty custom saving throws on the per-Ability Extended page."
-        }
-        require(skills.size <= 34) {
-            "Production pass 1 supports up to thirty-four custom skills on the per-Ability Extended page."
-        }
+        val pages = maxOf(
+            1,
+            pageCount(attributes.size, ABILITY_ATTRIBUTES_PER_PAGE),
+            pageCount(saves.size, ABILITY_SAVES_PER_PAGE),
+            pageCount(skills.size, ABILITY_SKILLS_PER_PAGE),
+        )
 
-        appendLayer(page, "V2X ABILITY - STRUCTURE") { s ->
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderPerAbilityPage(
+                page = page,
+                attributes = attributes
+                    .drop(pageIndex * ABILITY_ATTRIBUTES_PER_PAGE)
+                    .take(ABILITY_ATTRIBUTES_PER_PAGE),
+                saves = saves
+                    .drop(pageIndex * ABILITY_SAVES_PER_PAGE)
+                    .take(ABILITY_SAVES_PER_PAGE),
+                skills = skills
+                    .drop(pageIndex * ABILITY_SKILLS_PER_PAGE)
+                    .take(ABILITY_SKILLS_PER_PAGE),
+                allAttributes = attributes,
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun renderPerAbilityPage(
+        page: PDPage,
+        attributes: List<PcSheetCustomAttributeProjection>,
+        saves: List<PcSheetCustomAttributeProjection>,
+        skills: List<PcSheetCustomSkillProjection>,
+        allAttributes: List<PcSheetCustomAttributeProjection>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = if (pageIndex == 0) "V2X ABILITY" else "V2X ABILITY ${pageIndex + 1}"
+
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 104f, 174f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 202f, 104f, 150f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 366f, 104f, 232f, 30f, SOURCE_GRAY_LIGHT)
 
-            repeat(6) { index ->
+            repeat(ABILITY_ATTRIBUTES_PER_PAGE) { index ->
                 val top = 136f + index * 96f
                 fill(s, 14f, top, 174f, 94f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
                 drawAttributeOrnament(s, 14.3f, top + 24f)
                 drawRule(s, 22f, 180f, top + 94f, 0.55f)
             }
-            bandedRows(s, 202f, 352f, 154f, 30, 17f, 1)
-            bandedRows(s, 366f, 598f, 154f, 34, 17f, 0)
+            bandedRows(s, 202f, 352f, 154f, ABILITY_SAVES_PER_PAGE, 17f, 1)
+            bandedRows(s, 366f, 598f, 154f, ABILITY_SKILLS_PER_PAGE, 17f, 0)
         }
-        appendLayer(page, "V2X ABILITY - CLEANUP") { }
-        appendLayer(page, "V2X ABILITY - LABELS") { s ->
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "ESTADÍSTICAS PERSONALIZADAS")
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 108f, 174f, 22f), "ATRIBUTOS", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(202f, 108f, 150f, 22f), "TIRADAS DE SALVACIÓN", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
@@ -322,7 +374,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 )
             }
         }
-        appendLayer(page, "V2X ABILITY - VALUES") { s ->
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
             attributes.forEachIndexed { index, projection ->
                 val ornamentTop = 160f + index * 96f
                 centered(s, resources.firaSemibold, TopRect(31.8f, ornamentTop + 8f, 25.5f, 18f), projection.attribute.score.toString(), 17f)
@@ -344,7 +396,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
             skills.forEachIndexed { index, projection ->
                 val y = 154f + index * 17f
-                val label = projection.skill.name + " (" + abilityKey(projection.ability, attributes) + ")"
+                val label = projection.skill.name + " (" + abilityKey(projection.ability, allAttributes) + ")"
                 textAboveRuleSource(
                     s, resources.corbel, resources.fira,
                     Rule(399f, 548f, y), label, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
@@ -354,8 +406,8 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
             }
         }
-        appendLayer(page, "V2X ABILITY - MARKERS") { s ->
-            repeat(30) { row ->
+        appendLayer(page, "$layerPrefix - MARKERS") { s ->
+            repeat(ABILITY_SAVES_PER_PAGE) { row ->
                 val projection = saves.getOrNull(row)
                 drawV2TrainingBox(
                     s,
@@ -367,7 +419,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                     },
                 )
             }
-            repeat(34) { row ->
+            repeat(ABILITY_SKILLS_PER_PAGE) { row ->
                 drawV2TrainingBox(
                     s,
                     TopRect(384f, 142f + row * 17f, 8.5f, 9f),
@@ -1597,6 +1649,17 @@ internal class DesktopCustomV2ExtendedRenderer(
         val skills: List<Pair<String, String>>,
     )
 
+    private data class AttributeColumnSlice(
+        val projection: PcSheetCustomAttributeProjection,
+        val skills: List<PcSheetCustomSkillProjection>,
+        val noteLines: List<String>,
+    )
+
+    private data class StandardSkillSlice(
+        val ability: CharacterAbility,
+        val skills: List<PcSheetCustomSkillProjection>,
+    )
+
     private data class ResourceRenderRow(
         val name: String,
         val currentValue: Int,
@@ -1751,6 +1814,14 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_HEADING_SCALE = 81f
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
         const val BASE_V2_TRAIT_CAPACITY = 18
+        const val ATTRIBUTE_COLUMNS_PER_PAGE = 3
+        const val ATTRIBUTE_LINKED_SKILLS_PER_COLUMN = 6
+        const val ATTRIBUTE_NOTE_LINES_PER_COLUMN = 10
+        const val STANDARD_COLUMNS_PER_PAGE = 3
+        const val STANDARD_SKILLS_PER_COLUMN = 4
+        const val ABILITY_ATTRIBUTES_PER_PAGE = 6
+        const val ABILITY_SAVES_PER_PAGE = 30
+        const val ABILITY_SKILLS_PER_PAGE = 34
         const val FEATURE_DESCRIPTION_LINES = 3
         const val TRAIT_NAME_INDEX_PER_PAGE = 10
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
