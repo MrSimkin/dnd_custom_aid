@@ -3,6 +3,10 @@ package io.github.mrsimkin.dndcustomaid.desktop
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
@@ -59,6 +63,7 @@ internal class DesktopClassicRenderer {
             drawSpells(doc, p, plan)
             appendCustomStatisticsPages(doc, p, plan)
             appendTraitsPages(doc, p, plan)
+            appendResourcesPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Classic production base requires a matching Extended continuation:\n" +
@@ -431,6 +436,189 @@ internal class DesktopClassicRenderer {
         CharacterActivationType.BONUS_ACTION -> "Acción adicional"
         CharacterActivationType.REACTION -> "Reacción"
         CharacterActivationType.OTHER -> "Otra"
+    }
+
+    private fun appendResourcesPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val resources = classicResourceRows(plan)
+        val options = classicOptionRows(plan)
+        if (resources.isEmpty() && options.isEmpty()) return
+
+        val pages = maxOf(
+            1,
+            pageCount(resources.size, CLASSIC_RESOURCE_ROWS_PER_PAGE),
+            pageCount(options.size, CLASSIC_OPTION_ROWS_PER_PAGE),
+        )
+        repeat(pages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "RECURSOS Y OPCIONES")
+
+                titledFrame(s, p, 24f, 112f, 564f, 316f, "RECURSOS")
+                resourceTableHeader(s, p, 36f, 148f)
+                val pageResources = resources
+                    .drop(pageIndex * CLASSIC_RESOURCE_ROWS_PER_PAGE)
+                    .take(CLASSIC_RESOURCE_ROWS_PER_PAGE)
+                repeat(CLASSIC_RESOURCE_ROWS_PER_PAGE) { index ->
+                    val top = 176f + index * 48f
+                    pageResources.getOrNull(index)?.let { row ->
+                        resourceTableRow(s, p, 36f, top, row)
+                    } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
+                }
+                repeat(2) { index ->
+                    resourceBlankRow(s, p, 36f, 368f + index * 24f)
+                }
+
+                titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
+                val pageOptions = options
+                    .drop(pageIndex * CLASSIC_OPTION_ROWS_PER_PAGE)
+                    .take(CLASSIC_OPTION_ROWS_PER_PAGE)
+                pageOptions.forEachIndexed { index, row ->
+                    optionEntry(
+                        s, p, 36f, 478f + index * 68f, 540f,
+                        row.name, row.source, row.description,
+                    )
+                }
+                ruledLines(s, 36f, 682f, 540f, 24f, 1)
+
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / RECURSOS Y OPCIONES")
+            }
+        }
+    }
+
+    private fun classicResourceRows(plan: PcSheetPdfRenderPlan): List<ClassicResourceRow> {
+        val aggregate = plan.snapshot.aggregate
+        val recoveryById = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
+        val configById = aggregate.successor.resourceConfigurations.associateBy { it.resourceId }
+
+        val ordinary = aggregate.sheet.resources.sortedBy { it.sortOrder }.flatMap { resource ->
+            val recovery = recoveryById[resource.id]
+            val kind = configById[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
+            val maximum = when (kind) {
+                CharacterTrackableValueKind.BINARY -> 1
+                CharacterTrackableValueKind.COUNTER,
+                CharacterTrackableValueKind.CURRENT_MAX,
+                -> resource.maxValue
+            }
+            val recoveryText = listOf(
+                resource.recovery.orEmpty().trim(),
+                recovery?.cadence?.let(::recoveryLabel).orEmpty(),
+                recovery?.amountMode?.let {
+                    recoveryAmountLabel(it, recovery.fixedAmount)
+                }.orEmpty(),
+            ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
+            val notes = listOf(
+                recovery?.notes.orEmpty().trim(),
+                resource.notes.orEmpty().trim(),
+            ).filter { it.isNotEmpty() }.joinToString(" · ")
+            splitClassicResourceRow(
+                name = resource.name,
+                value = maximum?.let { "${resource.currentValue} / $it" }
+                    ?: resource.currentValue.toString(),
+                recovery = recoveryText,
+                source = resource.source.orEmpty().trim(),
+                notes = notes,
+            )
+        }
+
+        val markers = aggregate.successor.customMarkers.sortedBy { it.sortOrder }.flatMap { marker ->
+            val maximum = when (marker.valueKind) {
+                CharacterTrackableValueKind.BINARY -> 1
+                CharacterTrackableValueKind.COUNTER,
+                CharacterTrackableValueKind.CURRENT_MAX,
+                -> marker.maxValue
+            }
+            splitClassicResourceRow(
+                name = marker.name,
+                value = maximum?.let { "${marker.currentValue} / $it" }
+                    ?: marker.currentValue.toString(),
+                recovery = listOf(
+                    recoveryLabel(marker.recovery.cadence),
+                    recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
+                ).filter { it.isNotEmpty() }.joinToString(" · "),
+                source = "",
+                notes = marker.notes.orEmpty().trim(),
+            )
+        }
+
+        return ordinary + markers
+    }
+
+    private fun splitClassicResourceRow(
+        name: String,
+        value: String,
+        recovery: String,
+        source: String,
+        notes: String,
+    ): List<ClassicResourceRow> {
+        val noteChunks = wrapForChars(notes, CLASSIC_RESOURCE_NOTE_CHARS)
+            .chunked(CLASSIC_RESOURCE_NOTE_LINES)
+            .map { it.joinToString("\n") }
+            .ifEmpty { listOf("") }
+        return noteChunks.mapIndexed { index, note ->
+            ClassicResourceRow(
+                name = if (index == 0) name else "$name (cont.)",
+                value = value.takeIf { index == 0 }.orEmpty(),
+                recovery = recovery.takeIf { index == 0 }.orEmpty(),
+                source = source.takeIf { index == 0 }.orEmpty(),
+                notes = note,
+            )
+        }
+    }
+
+    private fun classicOptionRows(plan: PcSheetPdfRenderPlan): List<ClassicOptionRow> =
+        plan.snapshot.aggregate.sheet.classOptions
+            .sortedBy { it.sortOrder }
+            .flatMap { option ->
+                val description = buildList {
+                    add("Tipo: " + optionKindLabel(option.kind))
+                    option.effectSummary.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    option.costText?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Coste: $it") }
+                    if (!option.active) add("Inactiva")
+                    option.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                val chunks = wrapForChars(description, CLASSIC_OPTION_DETAIL_CHARS)
+                    .chunked(CLASSIC_OPTION_DETAIL_LINES)
+                    .map { it.joinToString("\n") }
+                    .ifEmpty { listOf("") }
+                chunks.mapIndexed { index, chunk ->
+                    ClassicOptionRow(
+                        name = if (index == 0) option.name else option.name + " (cont.)",
+                        source = option.source.orEmpty().trim().takeIf { index == 0 }.orEmpty(),
+                        description = chunk,
+                    )
+                }
+            }
+
+    private fun recoveryLabel(cadence: CharacterRecoveryCadence): String = when (cadence) {
+        CharacterRecoveryCadence.NONE -> ""
+        CharacterRecoveryCadence.SHORT_REST -> "Descanso corto"
+        CharacterRecoveryCadence.LONG_REST -> "Descanso largo"
+        CharacterRecoveryCadence.SHORT_OR_LONG_REST -> "Descanso corto/largo"
+        CharacterRecoveryCadence.MANUAL -> "Manual"
+    }
+
+    private fun recoveryAmountLabel(
+        mode: CharacterRecoveryAmountMode,
+        fixedAmount: Int?,
+    ): String = when (mode) {
+        CharacterRecoveryAmountMode.NONE -> ""
+        CharacterRecoveryAmountMode.TO_MAX -> "A máximo"
+        CharacterRecoveryAmountMode.FIXED -> fixedAmount?.let { "+$it" } ?: "Cantidad fija"
+    }
+
+    private fun optionKindLabel(kind: CharacterClassOptionKind): String = when (kind) {
+        CharacterClassOptionKind.ARTIFICER_PLAN -> "Plan"
+        CharacterClassOptionKind.ARTIFICER_DEVICE -> "Dispositivo"
+        CharacterClassOptionKind.SUBCLASS_STATE -> "Subclase"
+        CharacterClassOptionKind.TECHNIQUE -> "Técnica"
+        CharacterClassOptionKind.METAMAGIC -> "Metamagia"
+        CharacterClassOptionKind.INVOCATION -> "Invocación"
+        CharacterClassOptionKind.PACT_CHOICE -> "Pacto"
+        CharacterClassOptionKind.OTHER -> "Otro"
     }
 
     private fun drawMain(
@@ -1430,6 +1618,84 @@ internal class DesktopClassicRenderer {
         }
     }
 
+    private fun optionEntry(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        name: String,
+        source: String,
+        description: String,
+    ) {
+        text(s, p, x, top, 196f, 18f, name, PdfTypographyRole.SPELL_NAME, 9f, 7.8f)
+        text(
+            s, p, x + 202f, top, 118f, 18f,
+            source, PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.2f,
+            align = PdfHorizontalAlignment.CENTER,
+        )
+        text(
+            s, p, x + 326f, top, width - 326f, 48f,
+            description, PdfTypographyRole.BODY, 8f, 6.8f,
+            wrap = true, maxLines = CLASSIC_OPTION_DETAIL_LINES,
+            vertical = PdfVerticalAlignment.TOP,
+        )
+        hairline(s, x, top + 56f, x + width, top + 56f)
+    }
+
+    private fun resourceTableHeader(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+    ) {
+        tableHeader(
+            s, p, x, top,
+            listOf(
+                162f to "Recurso",
+                68f to "Actual / máx.",
+                104f to "Recuperación",
+                72f to "Fuente",
+                134f to "Notas",
+            ),
+        )
+    }
+
+    private fun resourceTableRow(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        row: ClassicResourceRow,
+    ) {
+        val values = listOf(row.name, row.value, row.recovery, row.source, row.notes)
+        val widths = listOf(162f, 68f, 104f, 72f, 134f)
+        var cursor = x
+        values.forEachIndexed { index, value ->
+            text(
+                s, p, cursor + 3f, top, widths[index] - 6f, 40f, value,
+                if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
+                if (index == 0) 8.2f else 7.6f, 6.5f,
+                wrap = index == 4,
+                maxLines = if (index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
+                align = if (index == 1) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
+                vertical = PdfVerticalAlignment.TOP,
+            )
+            cursor += widths[index]
+        }
+        hairline(s, x, top + 42f, x + widths.sum(), top + 42f)
+    }
+
+    private fun resourceBlankRow(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+    ) {
+        hairline(s, x, top + 20f, x + 540f, top + 20f)
+        marker(s, p, x + 6f, top + 10f, 6f, PdfMarkerKind.CIRCLE_OUTLINE)
+    }
+
     private fun titledFrame(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
@@ -1697,6 +1963,20 @@ internal class DesktopClassicRenderer {
         val prepared: Boolean,
     )
 
+    private data class ClassicResourceRow(
+        val name: String,
+        val value: String,
+        val recovery: String,
+        val source: String,
+        val notes: String,
+    )
+
+    private data class ClassicOptionRow(
+        val name: String,
+        val source: String,
+        val description: String,
+    )
+
     private data class ClassicFeature(
         val name: String,
         val source: String,
@@ -1740,6 +2020,12 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 2
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
+        const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
+        const val CLASSIC_RESOURCE_NOTE_CHARS = 30
+        const val CLASSIC_RESOURCE_NOTE_LINES = 2
+        const val CLASSIC_OPTION_ROWS_PER_PAGE = 3
+        const val CLASSIC_OPTION_DETAIL_CHARS = 48
+        const val CLASSIC_OPTION_DETAIL_LINES = 3
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)

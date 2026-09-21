@@ -37,6 +37,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourceRecovery
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResourceSuccessorConfiguration
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSavingThrow
@@ -494,6 +496,124 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
         assertTrue(traitsPdf.length() > pdf.length())
+
+        val resources = (1..9).map { index ->
+            CharacterResource(
+                id = uuid("9a000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                name = "Recurso $index",
+                currentValue = index,
+                maxValue = 12,
+                recovery = if (index % 2 == 0) "Amanecer" else null,
+                source = "Fuente $index",
+                notes = "Nota operacional $index",
+                pinned = true,
+                sortOrder = index,
+            )
+        }
+        val resourceRecovery = listOf(
+            CharacterResourceRecovery(
+                resourceId = resources.first().id,
+                cadence = CharacterRecoveryCadence.SHORT_REST,
+                amountMode = CharacterRecoveryAmountMode.FIXED,
+                fixedAmount = 1,
+                notes = "Recupera una unidad.",
+            ),
+            CharacterResourceRecovery(
+                resourceId = resources.last().id,
+                cadence = CharacterRecoveryCadence.LONG_REST,
+                amountMode = CharacterRecoveryAmountMode.TO_MAX,
+                fixedAmount = null,
+                notes = "Restablecimiento completo.",
+            ),
+        )
+        val resourceConfigurations = listOf(
+            CharacterResourceSuccessorConfiguration(
+                resourceId = resources[0].id,
+                valueKind = CharacterTrackableValueKind.BINARY,
+            ),
+            CharacterResourceSuccessorConfiguration(
+                resourceId = resources[1].id,
+                valueKind = CharacterTrackableValueKind.COUNTER,
+            ),
+        )
+        val customMarkers = (1..2).map { index ->
+            CharacterCustomMarker(
+                id = uuid("9b000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                name = "Marcador $index",
+                valueKind = CharacterTrackableValueKind.CURRENT_MAX,
+                currentValue = index,
+                maxValue = 3,
+                recovery = CharacterTrackableRecovery(
+                    cadence = CharacterRecoveryCadence.LONG_REST,
+                    amountMode = CharacterRecoveryAmountMode.TO_MAX,
+                ),
+                notes = "Marcador persistente $index",
+                sortOrder = 20 + index,
+            )
+        }
+        val classOptions = (1..7).map { index ->
+            CharacterClassOption(
+                id = uuid("9c000000-0000-0000-0000-" + index.toString().padStart(12, '0')),
+                linkedClassId = null,
+                kind = if (index % 2 == 0) {
+                    CharacterClassOptionKind.TECHNIQUE
+                } else {
+                    CharacterClassOptionKind.OTHER
+                },
+                name = "Opción $index",
+                source = "Clase $index",
+                costText = if (index == 7) "2 cargas" else null,
+                effectSummary = "Efecto canónico de la opción $index.",
+                notes = if (index == 7) "Opción terminal de auditoría." else null,
+                active = index != 6,
+                pinned = false,
+                sortOrder = index,
+            )
+        }
+        val resourcesAggregate = aggregate.copy(
+            sheet = aggregate.sheet.copy(
+                resources = resources,
+                classOptions = classOptions,
+            ),
+            closure = aggregate.closure.copy(resourceRecovery = resourceRecovery),
+            successor = aggregate.successor.copy(
+                customMarkers = customMarkers,
+                resourceConfigurations = resourceConfigurations,
+            ),
+        )
+        val resourcesPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = resourcesAggregate),
+        )
+        val resourcesPdf = File(proofDir, "classic-production-resources-pass4.pdf")
+        resourcesPdf.outputStream().use { renderer.renderDraft(resourcesPlan, it) }
+
+        Loader.loadPDF(resourcesPdf).use { document ->
+            assertEquals(6, document.numberOfPages)
+            val extracted = PDFTextStripper().getText(document)
+            assertTrue(extracted.contains("RECURSOS Y OPCIONES"))
+            assertTrue(Regex("Recurso\\s+9").containsMatchIn(extracted))
+            assertTrue(Regex("Marcador\\s+2").containsMatchIn(extracted))
+            assertTrue(Regex("Opción\\s+7").containsMatchIn(extracted))
+            assertTrue(extracted.contains("Descanso largo"))
+            assertTrue(extracted.contains("Opción terminal de auditoría"))
+
+            val pdfRenderer = PDFRenderer(document)
+            (3 until document.numberOfPages).forEach { index ->
+                val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "classic-production-resources-pass4-page-${index + 1}.png"),
+                    ),
+                )
+            }
+        }
+        assertTrue(resourcesPdf.length() > pdf.length())
     }
 
     @Test
