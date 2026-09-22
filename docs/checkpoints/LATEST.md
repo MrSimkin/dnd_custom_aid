@@ -121,7 +121,7 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 
 ## Current continuation
 
-1. recover the exact frozen owner-approved visual artifacts/renderer code for Classic, Custom v1 and Custom v2 and compare current production output against them;
+1. follow `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`; recover/repair from the exact frozen artifacts while applying the 2026-09-22 owner corrections as superseding rules;
 2. repair production by extracting/reusing approved components rather than incrementally patching the rejected candidate;
 3. reintroduce App Modified and continuation cues only after faithful baseline recovery and new golden visual regressions;
 4. keep PR #85 DRAFT / DO NOT MERGE; Save/Share is blocked until this visual recovery is owner-approved.
