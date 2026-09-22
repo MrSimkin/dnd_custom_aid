@@ -30,6 +30,21 @@ internal class DesktopPcSheetWholeDraftRenderer(
         plan: PcSheetPdfRenderPlan,
         output: OutputStream,
     ) {
+        if (plan.snapshot.spellbook != null) {
+            val basePlan = plan.copy(
+                snapshot = plan.snapshot.copy(spellbook = null),
+            )
+            val baseBytes = ByteArrayOutputStream().use { buffer ->
+                renderDraft(basePlan, buffer)
+                buffer.toByteArray()
+            }
+            Loader.loadPDF(baseBytes).use { document ->
+                DesktopSpellbookRenderer(document).append(plan)
+                document.save(output)
+            }
+            return
+        }
+
         require(plan.baseLayoutMode == PcSheetBaseLayoutMode.FAITHFUL) {
             "Whole-sheet Custom draft currently supports faithful template layouts only."
         }
