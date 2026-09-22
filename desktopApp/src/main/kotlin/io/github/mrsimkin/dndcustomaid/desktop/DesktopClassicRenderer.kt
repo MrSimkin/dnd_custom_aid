@@ -994,7 +994,11 @@ internal class DesktopClassicRenderer {
                 item.id !in baseIds ||
                     item.weightLb != null ||
                     !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank()
+                    !item.notes.isNullOrBlank() ||
+                    usageByItem[item.id] != null ||
+                    item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
+                    inventoryBaseNote(item, usageByItem[item.id]).length >
+                        CLASSIC_BASE_INVENTORY_NOTE_CHARS
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
@@ -1089,7 +1093,10 @@ internal class DesktopClassicRenderer {
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
     ): List<InventoryRow> {
+        val state = inventoryState(item, usage)
         val detail = buildList {
+            if (item.name.length > CLASSIC_INVENTORY_ROW_NAME_CHARS) add("Nombre: " + item.name)
+            if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) add("Estado: " + state)
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1099,9 +1106,15 @@ internal class DesktopClassicRenderer {
         return chunks.mapIndexed { index, note ->
             InventoryRow(
                 quantity = item.quantity.toString().takeIf { index == 0 }.orEmpty(),
-                name = if (index == 0) item.name else item.name + " (cont.)",
+                name = classicSingleLineExcerpt(
+                    if (index == 0) item.name else item.name + " (cont.)",
+                    CLASSIC_INVENTORY_ROW_NAME_CHARS,
+                ),
                 weight = item.weightLb?.let(::formatWeight).takeIf { index == 0 }.orEmpty(),
-                state = inventoryState(item, usage).takeIf { index == 0 }.orEmpty(),
+                state = classicSingleLineExcerpt(
+                    state.takeIf { index == 0 }.orEmpty(),
+                    CLASSIC_INVENTORY_ROW_STATE_CHARS,
+                ),
                 notes = note,
             )
         }
@@ -1618,10 +1631,17 @@ internal class DesktopClassicRenderer {
                     item.quantity.toString(), PdfTypographyRole.NUMERIC_COMPACT, 8.6f, 7.8f,
                     align = PdfHorizontalAlignment.CENTER,
                 )
-                text(s, p, 316f, top, 142f, 19f, item.name, PdfTypographyRole.BODY, 8.5f, 7.2f)
+                text(
+                    s, p, 316f, top, 142f, 19f,
+                    classicSingleLineExcerpt(item.name, CLASSIC_BASE_INVENTORY_NAME_CHARS),
+                    PdfTypographyRole.BODY, 8.5f, 7.2f,
+                )
                 text(
                     s, p, 464f, top, 112f, 19f,
-                    inventoryBaseNote(item, usageByItem[item.id]),
+                    classicSingleLineExcerpt(
+                        inventoryBaseNote(item, usageByItem[item.id]),
+                        CLASSIC_BASE_INVENTORY_NOTE_CHARS,
+                    ),
                     PdfTypographyRole.BODY, 8f, 7f,
                 )
                 hairline(s, 276f, top + 21f, 576f, top + 21f)
@@ -2909,8 +2929,8 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 2
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
-        const val CLASSIC_HEADER_NAME_CHARS = 32
-        const val CLASSIC_IDENTITY_VALUE_CHARS = 28
+        const val CLASSIC_HEADER_NAME_CHARS = 20
+        const val CLASSIC_IDENTITY_VALUE_CHARS = 22
         const val CLASSIC_BACKGROUND_NARRATIVE_CHARS = 50
         const val CLASSIC_BACKGROUND_NARRATIVE_LINES = 3
         const val CLASSIC_BACKGROUND_DETAIL_CHARS = 46
@@ -2919,7 +2939,7 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_RULED_ENTRY_LINES = 2
         const val CLASSIC_SPECIES_NAME_CHARS = 28
         const val CLASSIC_COMBAT_NAME_CHARS = 30
-        const val CLASSIC_COMBAT_DETAIL_CHARS = 22
+        const val CLASSIC_COMBAT_DETAIL_CHARS = 34
         const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
@@ -2930,6 +2950,10 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 7
         const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 3
         const val CLASSIC_INVENTORY_NOTES_PER_PAGE = 3
+        const val CLASSIC_BASE_INVENTORY_NAME_CHARS = 30
+        const val CLASSIC_BASE_INVENTORY_NOTE_CHARS = 24
+        const val CLASSIC_INVENTORY_ROW_NAME_CHARS = 34
+        const val CLASSIC_INVENTORY_ROW_STATE_CHARS = 22
         const val CLASSIC_INVENTORY_ROW_NOTE_CHARS = 26
         const val CLASSIC_INVENTORY_NOTE_CHARS = 50
         const val CLASSIC_INVENTORY_NOTE_LINES = 2
