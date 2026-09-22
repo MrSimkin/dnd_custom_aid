@@ -51,16 +51,21 @@ internal class DesktopPcSheetVisualCompletionRenderer(
         val extendedKinds = detectExtendedKinds(basePageCount).toMutableSet()
         val statsPageIndexes = customStatisticsPageIndexes(basePageCount)
 
+        if (
+            requestedPlan.baseLayoutMode == PcSheetBaseLayoutMode.APP_MODIFIED &&
+            requestedPlan.request.customStatisticsPresentation ==
+            PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET
+        ) {
+            extendedKinds.remove(PcSheetExtendedPageKind.CUSTOM_STATISTICS)
+        }
+
+        // Paint cues while base-page indexes still match the canonical family plan. App Modified
+        // pages are inserted only afterwards, so moving them cannot redirect a cue to the wrong page.
+        drawContinuationCues(requestedPlan, extendedKinds)
+
         if (requestedPlan.baseLayoutMode == PcSheetBaseLayoutMode.APP_MODIFIED) {
             require(statsPageIndexes.isNotEmpty()) {
                 "App Modified Sheet requires a rendered family-native Custom Statistics page."
-            }
-
-            if (
-                requestedPlan.request.customStatisticsPresentation ==
-                PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET
-            ) {
-                extendedKinds.remove(PcSheetExtendedPageKind.CUSTOM_STATISTICS)
             }
 
             drawAppModifiedOriginCue(requestedPlan)
@@ -77,7 +82,6 @@ internal class DesktopPcSheetVisualCompletionRenderer(
             }
         }
 
-        drawContinuationCues(requestedPlan, extendedKinds)
     }
 
     private fun detectExtendedKinds(basePageCount: Int): Set<PcSheetExtendedPageKind> {
