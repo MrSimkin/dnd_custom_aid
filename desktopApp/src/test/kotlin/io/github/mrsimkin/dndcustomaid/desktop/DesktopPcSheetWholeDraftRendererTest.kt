@@ -1832,9 +1832,12 @@ class DesktopPcSheetWholeDraftRendererTest {
         Loader.loadPDF(pdf).use { document ->
             assertEquals(6, document.numberOfPages)
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
-            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - STRUCTURE") })
-            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - VALUES") })
-            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - MARKERS") })
+            listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS").forEach { role ->
+                assertTrue(
+                    layers.any { it.startsWith("V1X INVENTORY P1 - $role") },
+                    "Missing v1 inventory semantic layer $role",
+                )
+            }
             assertFalse(layers.any { it.startsWith("V1X TRAITS") })
             assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
 
@@ -2043,10 +2046,14 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ?.getGroupNames()
                     ?.toList()
                     .orEmpty()
-                assertTrue(layerNames.contains("V2X TRAITS - STRUCTURE"))
-                assertTrue(layerNames.contains("V2X TRAITS - VALUES"))
-                assertTrue(layerNames.contains("V2X RESOURCES - STRUCTURE"))
-                assertTrue(layerNames.contains("V2X RESOURCES - MARKERS"))
+                listOf("V2X TRAITS", "V2X RESOURCES").forEach { prefix ->
+                    listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS").forEach { role ->
+                        assertTrue(
+                            layerNames.contains("$prefix - $role"),
+                            "Missing frozen semantic layer $prefix - $role",
+                        )
+                    }
+                }
 
                 val extracted = PDFTextStripper().getText(document)
                 assertTrue(extracted.contains("RASGOS Y ATRIBUTOS"))
@@ -2099,12 +2106,14 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ?.getGroupNames()
                     ?.toList()
                     .orEmpty()
-                assertTrue(layerNames.contains("V2X INVENTORY - STRUCTURE"))
-                assertTrue(layerNames.contains("V2X INVENTORY - VALUES"))
-                assertTrue(layerNames.contains("V2X SPELLS - STRUCTURE"))
-                assertTrue(layerNames.contains("V2X SPELLS - VALUES"))
-                assertTrue(layerNames.contains("V2X NOTES - STRUCTURE"))
-                assertTrue(layerNames.contains("V2X NOTES - VALUES"))
+                listOf("V2X INVENTORY", "V2X SPELLS", "V2X NOTES").forEach { prefix ->
+                    listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS").forEach { role ->
+                        assertTrue(
+                            layerNames.contains("$prefix - $role"),
+                            "Missing frozen semantic layer $prefix - $role",
+                        )
+                    }
+                }
 
                 val extracted = PDFTextStripper().getText(document)
                 assertTrue(extracted.contains("TESORO / OBJETOS / OTROS"))
