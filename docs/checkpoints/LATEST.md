@@ -12,23 +12,18 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-4. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
-4. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-5. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-6. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
-7. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-8. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_REVIEW.md`;
-9. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN5_OWNER_REVIEW.md`;
-10. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
-11. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
-12. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
-13. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
-14. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-15. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
-16. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-17. `docs/PROJECT_STATE.md`;
-18. `docs/BRANCH_STATUS.md`.
+3. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+4. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+5. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
+6. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
+7. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+8. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
+9. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
+10. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+11. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+12. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+13. `docs/PROJECT_STATE.md`;
+14. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -116,16 +111,14 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 
 - Custom-v2 Extended design is owner-approved/frozen and its integrated production audit is **PASS** at `0295f30ca77214284902b0e13a563dcdaf58b501`.
 - Custom-v1 base + Extended design is owner-approved/frozen and its integrated production audit is **PASS** at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`.
-- Classic Run 2 complete nine-page family is owner-approved/frozen but remains in the review/dummy harness rather than the real plan-driven production path.
+- Classic Run 2 complete base + six continuation roles are owner-approved/frozen and its integrated production audit is **PASS** at `73d54276228490c81780a3cc9e1391ec40c8d4f1`; final Scaffold #3147 / `35676860733` — SUCCESS; proof artifact `10674036240`.
 
 ## Current continuation
 
-1. promote the frozen Classic Run-2 complete family into a real `PcSheetPdfRenderPlan`-driven production renderer;
-2. audit Classic pagination/current-state/canonical semantics without reopening the approved visual grammar;
-3. implement the application-owned optional Spellbook;
-4. complete portrait-byte handoff plus Crop/Fit behavior;
-5. implement the remaining owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
-6. wire local Save/Share, beginning with the Desktop DM workflow before cross-surface parity;
-7. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
+1. implement the application-owned optional Spellbook;
+2. complete portrait-byte handoff plus Crop/Fit behavior;
+3. implement the remaining owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
+4. wire local Save/Share, beginning with the Desktop DM workflow before cross-surface parity;
+5. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
 
 No external provider action is required for this PDF-renderer stage.

@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Classic Run-2 production promotion
+**Current normal work:** PC Sheet PDF Export — optional application-owned Spellbook
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -124,7 +124,7 @@ Current state:
 - Custom-v2 Extended Run 7 is owner-approved/frozen and its integrated production audit is PASS at `0295f30ca77214284902b0e13a563dcdaf58b501`;
 - canonical Custom Extended layered methodology is `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
-- Classic corrected Run 2 remains owner-approved/frozen but is not yet promoted from its review fixture into the real plan-driven production renderer;
+- Classic corrected Run 2 complete family is owner-approved/frozen and its integrated production audit is PASS at `73d54276228490c81780a3cc9e1391ec40c8d4f1` (Scaffold #3147 / `35676860733` SUCCESS; artifact `10674036240`);
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
 - Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
@@ -134,16 +134,15 @@ Current state:
 
 Next continuation sequence:
 
-1. promote the frozen Classic Run-2 complete family from review/dummy code into a real `PcSheetPdfRenderPlan`-driven production renderer;
-2. complete Classic integrated semantic/pagination audit while preserving its approved visual grammar;
-3. implement the separate optional Spellbook;
-4. complete portrait-byte handoff and Crop/Fit behavior;
-5. resolve the owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
-6. wire local Save/Share beginning with Desktop, then complete approved surface parity;
-7. do not merge PR #85 until the remaining visual/functional gates are satisfied.
+1. implement the separate optional Spellbook;
+2. complete portrait-byte handoff and Crop/Fit behavior;
+3. resolve the owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
+4. wire local Save/Share beginning with Desktop, then complete approved surface parity;
+5. do not merge PR #85 until the remaining visual/functional gates are satisfied.
 
 Relevant durable records:
 
+- `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
 - `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;

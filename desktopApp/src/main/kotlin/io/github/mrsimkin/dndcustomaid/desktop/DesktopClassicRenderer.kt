@@ -33,11 +33,11 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 
 /**
- * Production promotion of the owner-approved/frozen Classic Run-2 normal three-page family.
+ * Production renderer for the owner-approved/frozen Classic Run-2 complete family.
  *
- * This first Classic production pass intentionally renders only the three normal pages. Matching
- * Extended roles remain isolated follow-up passes; until then this renderer rejects plans/data that
- * would require an unpromoted Classic continuation instead of silently discarding canonical data.
+ * The three normal pages and all six D-0074 continuation roles are driven by the canonical
+ * PcSheetPdfRenderPlan. The frozen visual grammar remains authoritative; bounded continuation
+ * preserves canonical/current-state data that the normal pages cannot express without redesign.
  */
 internal class DesktopClassicRenderer {
     private val overflowDiagnostics = mutableListOf<String>()
@@ -50,12 +50,12 @@ internal class DesktopClassicRenderer {
             "DesktopClassicRenderer only supports the Classic D&D-style family."
         }
         require(plan.baseLayoutMode == PcSheetBaseLayoutMode.FAITHFUL) {
-            "Classic production pass 1 currently supports the faithful base layout only."
+            "Classic production supports the faithful base layout only."
         }
         require(
             plan.mandatoryExtendedPages.all { it == PcSheetExtendedPageKind.CUSTOM_STATISTICS },
         ) {
-            "Classic production pass 2 only supports the promoted Custom Statistics extension."
+            "Classic planner-mandated extensions are limited to Custom Statistics; other promoted continuations are data-driven."
         }
 
         overflowDiagnostics.clear()
@@ -74,7 +74,7 @@ internal class DesktopClassicRenderer {
             appendNotesPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
-                "Classic production base requires a matching Extended continuation:\n" +
+                "Classic production encountered content outside its bounded base/continuation routing:\n" +
                     overflowDiagnostics.joinToString("\n")
             }
             doc.save(output)

@@ -15,11 +15,11 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode
 
 /**
- * Production-candidate whole-sheet renderer for the approved Classic and Custom visual families.
+ * Whole-sheet production renderer for the approved Classic and Custom visual families.
  *
- * Classic Run-2 normal pages and the frozen Custom families are promoted incrementally behind the
- * same canonical PcSheetPdfRenderPlan. Remaining Extended/portrait/Spellbook gates stay explicit
- * instead of being silently synthesized.
+ * Classic Run-2's complete base + continuation family and the frozen Custom families are driven by
+ * the same canonical PcSheetPdfRenderPlan. Spellbook, portrait-byte handoff and remaining
+ * owner-facing export-product gates stay explicit rather than being silently synthesized.
  */
 internal class DesktopPcSheetWholeDraftRenderer(
     private val resourceLoader: (String) -> InputStream? = { resourcePath ->
