@@ -2039,12 +2039,33 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun wrapByWidth(font: PDFont, text: String, size: Float, maxWidth: Float): List<String> {
         val out = mutableListOf<String>()
         var current = ""
+
+        fun splitOnlyWhenTokenCannotFit(word: String): List<String> {
+            if (textWidth(font, word, size) <= maxWidth) return listOf(word)
+            val pieces = mutableListOf<String>()
+            var piece = ""
+            word.forEach { char ->
+                val candidate = piece + char
+                if (piece.isNotEmpty() && textWidth(font, candidate, size) > maxWidth) {
+                    pieces += piece
+                    piece = char.toString()
+                } else {
+                    piece = candidate
+                }
+            }
+            if (piece.isNotEmpty()) pieces += piece
+            return pieces
+        }
+
         text.trim().split(Regex("\\s+")).forEach { word ->
-            val candidate = if (current.isBlank()) word else "$current $word"
-            if (textWidth(font, candidate, size) <= maxWidth) current = candidate
-            else {
-                if (current.isNotBlank()) out += current
-                current = word
+            splitOnlyWhenTokenCannotFit(word).forEach { piece ->
+                val candidate = if (current.isBlank()) piece else "$current $piece"
+                if (textWidth(font, candidate, size) <= maxWidth) {
+                    current = candidate
+                } else {
+                    if (current.isNotBlank()) out += current
+                    current = piece
+                }
             }
         }
         if (current.isNotBlank()) out += current
