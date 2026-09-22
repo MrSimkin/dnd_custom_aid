@@ -1989,9 +1989,9 @@ class DesktopPcSheetWholeDraftRendererTest {
                     0, 0, currentSpellPage.width, currentSpellPage.height,
                     null, 0, currentSpellPage.width,
                 )
-                assertFalse(
+                assertTrue(
                     permanentPixels.contentEquals(currentPixels),
-                    "Classic spell page must reflect Current Snapshot spent-slot state.",
+                    "Classic spell page must keep spent-slot markers empty for paper tracking.",
                 )
             }
         }
@@ -2031,6 +2031,9 @@ class DesktopPcSheetWholeDraftRendererTest {
                 deathSaveSuccesses = 2,
                 deathSaveFailures = 1,
                 passivePerceptionAdjustment = 2,
+                spellSlots = permanent.sheet.spellSlots.map { slot ->
+                    if (slot.level == 1) slot.copy(spentSlots = 3.coerceAtMost(slot.totalSlots)) else slot
+                },
                 inventoryItems = listOf(ammunition),
                 weaponMasteries = listOf(
                     CharacterWeaponMastery(
@@ -2135,6 +2138,16 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
         )
 
+        val permanentPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = permanent),
+        )
+        val permanentPdf = File(proofDir, "custom-v2-permanent-slot-baseline.pdf")
+        permanentPdf.outputStream().use { renderer.renderDraft(permanentPlan, it) }
+
         val plan = PcSheetPdfExportPlanner.plan(
             request = PcSheetPdfExportRequest(
                 visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
@@ -2168,6 +2181,27 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Munición"))
             assertTrue(extracted.contains("rápido"))
             assertTrue(extracted.contains("Almacenado"))
+        }
+
+        Loader.loadPDF(permanentPdf).use { permanentDocument ->
+            Loader.loadPDF(pdf).use { currentDocument ->
+                val permanentSpellPage = PDFRenderer(permanentDocument)
+                    .renderImageWithDPI(2, 72f, ImageType.RGB)
+                val currentSpellPage = PDFRenderer(currentDocument)
+                    .renderImageWithDPI(2, 72f, ImageType.RGB)
+                val permanentPixels = permanentSpellPage.getRGB(
+                    0, 0, permanentSpellPage.width, permanentSpellPage.height,
+                    null, 0, permanentSpellPage.width,
+                )
+                val currentPixels = currentSpellPage.getRGB(
+                    0, 0, currentSpellPage.width, currentSpellPage.height,
+                    null, 0, currentSpellPage.width,
+                )
+                assertTrue(
+                    permanentPixels.contentEquals(currentPixels),
+                    "Custom v2 spell page must keep ESPACIOS GASTADOS blank for paper tracking.",
+                )
+            }
         }
     }
 

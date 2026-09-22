@@ -397,17 +397,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                     block.headerTotalX, block.headerY, 52f, 28f,
                     slot.totalSlots.toString(), 7.5f, centered = true,
                 )
-                repeat(slot.spentSlots.coerceAtMost(4)) { index ->
-                    markerPx(
-                        stream,
-                        primitives,
-                        block.headerSpentX + index * 24f,
-                        block.headerY + 14f,
-                        13f,
-                        PdfMarkerKind.CIRCLE_FILLED,
-                        symbolFamily(plan),
-                    )
-                }
+                // Owner semantic: ESPACIOS GASTADOS remains empty for paper tracking.
             }
 
             spellsByLevel[block.level].orEmpty()

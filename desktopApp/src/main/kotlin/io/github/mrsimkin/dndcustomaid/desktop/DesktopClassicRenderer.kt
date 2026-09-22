@@ -1910,14 +1910,13 @@ internal class DesktopClassicRenderer {
         (1..9).forEachIndexed { index, level ->
             val slot = slots[level]
             val total = slot?.totalSlots ?: 0
-            val spent = slot?.spentSlots?.coerceIn(0, total) ?: 0
             val cellX = x + 10f + index * 60.2f
             text(s, p, cellX, top + 31f, 18f, 16f, level.toString(), PdfTypographyRole.NUMERIC_COMPACT, 8f, 7f,
                 align = PdfHorizontalAlignment.CENTER)
             repeat(total.coerceAtMost(CLASSIC_BASE_SLOT_MARKERS)) { markerIndex ->
                 marker(
                     s, p, cellX + 26f + markerIndex * 8.6f, top + 40f, 6.5f,
-                    if (markerIndex < spent) PdfMarkerKind.DIAMOND_FILLED else PdfMarkerKind.DIAMOND_OUTLINE,
+                    PdfMarkerKind.DIAMOND_OUTLINE,
                 )
             }
         }

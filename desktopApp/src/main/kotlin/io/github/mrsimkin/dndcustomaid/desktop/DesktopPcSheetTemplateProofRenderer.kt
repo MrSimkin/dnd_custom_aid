@@ -231,13 +231,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
                 stream, primitives, 125f, rowCenterY,
                 slot.totalSlots.toString(), 10.5f, 50f, PdfTypographyRole.NUMERIC_COMPACT,
             )
-            repeat(slot.spentSlots.coerceAtMost(V1_SLOT_SPENT_CENTER_X.size)) { index ->
-                markerPx(
-                    stream, primitives,
-                    V1_SLOT_SPENT_CENTER_X[index], rowCenterY, 20f,
-                    PdfMarkerKind.OVAL_FILLED, PdfSymbolFamily.V1_DERIVED,
-                )
-            }
+            // Owner semantic: ESPACIOS GASTADOS remains empty for paper tracking.
         }
     }
 
