@@ -68,7 +68,6 @@ internal class DesktopPcSheetVisualCompletionRenderer(
                 "App Modified Sheet requires a rendered family-native Custom Statistics page."
             }
 
-            drawAppModifiedOriginCue(requestedPlan)
             val modifiedPages = when (requestedPlan.request.customStatisticsPresentation) {
                 PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET ->
                     movePagesAfterMain(statsPageIndexes)
@@ -193,95 +192,72 @@ internal class DesktopPcSheetVisualCompletionRenderer(
         }
     }
 
-    private fun drawAppModifiedOriginCue(plan: PcSheetPdfRenderPlan) {
-        val main = document.getPage(0)
-        val rect = when (plan.request.visualFamily) {
-            PcSheetVisualFamily.CLASSIC_DND_STYLE -> PdfRect(28f, 72f, 224f, 19f)
-            PcSheetVisualFamily.CUSTOM_V1 -> PdfRect(28f, 42f, 268f, 19f)
-            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
-            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
-            -> PdfRect(28f, 42f, 268f, 19f)
-        }
-        drawCue(
-            main,
-            rect,
-            "ESTADÍSTICAS PERSONALIZADAS - HOJA MODIFICADA SIGUIENTE",
-            emphasized = true,
-        )
-    }
-
     private fun drawContinuationCues(
         plan: PcSheetPdfRenderPlan,
         kinds: Set<PcSheetExtendedPageKind>,
     ) {
+        val kindsByPage = linkedMapOf<Int, MutableList<PcSheetExtendedPageKind>>()
         kinds.sortedBy { it.ordinal }.forEach { kind ->
-            cuePlacements(plan.request.visualFamily, kind).forEach { placement ->
-                if (placement.pageIndex < document.numberOfPages) {
-                    drawCue(
-                        document.getPage(placement.pageIndex),
-                        placement.rect,
-                        "${kindLabel(kind)} - CONTINÚA EN EXTENSIÓN",
-                    )
-                }
+            cueTargetPages(plan.request.visualFamily, kind).forEach { pageIndex ->
+                kindsByPage.getOrPut(pageIndex) { mutableListOf() }.add(kind)
+            }
+        }
+
+        kindsByPage.forEach { (pageIndex, pageKinds) ->
+            if (pageIndex < document.numberOfPages) {
+                drawCue(
+                    page = document.getPage(pageIndex),
+                    rect = continuationFooterRect(plan.request.visualFamily),
+                    text = "EXTENSIÓN: " + pageKinds
+                        .distinct()
+                        .joinToString(" / ") { kindLabel(it) },
+                )
             }
         }
     }
 
-    private fun cuePlacements(
+    private fun cueTargetPages(
         family: PcSheetVisualFamily,
         kind: PcSheetExtendedPageKind,
-    ): List<CuePlacement> = when (family) {
+    ): List<Int> = when (family) {
         PcSheetVisualFamily.CLASSIC_DND_STYLE -> when (kind) {
-            PcSheetExtendedPageKind.CUSTOM_STATISTICS ->
-                listOf(CuePlacement(0, PdfRect(28f, 96f, 220f, 17f)))
-            PcSheetExtendedPageKind.TRAITS_AND_FEATURES ->
-                listOf(CuePlacement(0, PdfRect(372f, 202f, 204f, 17f)))
-            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS ->
-                listOf(CuePlacement(0, PdfRect(372f, 548f, 204f, 17f)))
-            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT ->
-                listOf(CuePlacement(1, PdfRect(372f, 376f, 204f, 17f)))
-            PcSheetExtendedPageKind.SPELLS ->
-                listOf(CuePlacement(2, PdfRect(372f, 48f, 204f, 17f)))
-            PcSheetExtendedPageKind.NOTES ->
-                listOf(CuePlacement(1, PdfRect(28f, 78f, 212f, 17f)))
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
+            PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0)
+            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
+            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
+            PcSheetExtendedPageKind.SPELLS -> listOf(2)
+            PcSheetExtendedPageKind.NOTES -> listOf(1)
         }
 
         PcSheetVisualFamily.CUSTOM_V1 -> when (kind) {
-            PcSheetExtendedPageKind.CUSTOM_STATISTICS ->
-                listOf(CuePlacement(0, PdfRect(28f, 66f, 248f, 17f)))
-            PcSheetExtendedPageKind.TRAITS_AND_FEATURES ->
-                listOf(
-                    CuePlacement(0, PdfRect(338f, 66f, 246f, 17f)),
-                    CuePlacement(2, PdfRect(338f, 44f, 246f, 17f)),
-                )
-            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS ->
-                listOf(CuePlacement(0, PdfRect(338f, 44f, 246f, 17f)))
-            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT ->
-                listOf(CuePlacement(1, PdfRect(338f, 44f, 246f, 17f)))
-            PcSheetExtendedPageKind.SPELLS ->
-                listOf(CuePlacement(3, PdfRect(338f, 44f, 246f, 17f)))
-            PcSheetExtendedPageKind.NOTES ->
-                listOf(CuePlacement(4, PdfRect(338f, 44f, 246f, 17f)))
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
+            PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0, 2)
+            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
+            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
+            PcSheetExtendedPageKind.SPELLS -> listOf(3)
+            PcSheetExtendedPageKind.NOTES -> listOf(4)
         }
 
         PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
         PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
         -> when (kind) {
-            PcSheetExtendedPageKind.CUSTOM_STATISTICS ->
-                listOf(CuePlacement(0, PdfRect(28f, 66f, 248f, 17f)))
-            PcSheetExtendedPageKind.TRAITS_AND_FEATURES ->
-                // The frozen v2 trait block ends immediately above the lower spell/treasure band.
-                // Keep the cue at that boundary instead of borrowing space from OTROS.
-                listOf(CuePlacement(0, PdfRect(338f, 205f, 246f, 17f)))
-            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS ->
-                listOf(CuePlacement(0, PdfRect(338f, 44f, 246f, 17f)))
-            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT ->
-                listOf(CuePlacement(1, PdfRect(338f, 44f, 246f, 17f)))
-            PcSheetExtendedPageKind.SPELLS ->
-                listOf(CuePlacement(2, PdfRect(338f, 44f, 246f, 17f)))
-            PcSheetExtendedPageKind.NOTES ->
-                listOf(CuePlacement(3, PdfRect(338f, 44f, 246f, 17f)))
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
+            PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0)
+            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
+            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
+            PcSheetExtendedPageKind.SPELLS -> listOf(2)
+            PcSheetExtendedPageKind.NOTES -> listOf(3)
         }
+    }
+
+    private fun continuationFooterRect(
+        family: PcSheetVisualFamily,
+    ): PdfRect = when (family) {
+        PcSheetVisualFamily.CLASSIC_DND_STYLE -> PdfRect(176f, 5f, 260f, 12f)
+        PcSheetVisualFamily.CUSTOM_V1,
+        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        -> PdfRect(28f, 5f, 556f, 12f)
     }
 
     private fun kindLabel(kind: PcSheetExtendedPageKind): String = when (kind) {
@@ -370,7 +346,6 @@ private fun drawCue(
         page: PDPage,
         rect: PdfRect,
         text: String,
-        emphasized: Boolean = false,
     ) {
         // Owner correction 2026-09-22: continuation hints must behave like marginal annotations,
         // not opaque UI boxes pasted over a paper sheet. Never erase the frozen sheet beneath them.
@@ -380,14 +355,10 @@ private fun drawCue(
                 PdfTextBoxSpec(
                     rect = rect,
                     text = text,
-                    role = if (emphasized) {
-                        PdfTypographyRole.OPTIONAL_DECORATIVE
-                    } else {
-                        PdfTypographyRole.BODY
-                    },
-                    preferredSizePt = if (emphasized) 6.2f else 5.8f,
-                    minimumSizePt = 5.2f,
-                    horizontalAlignment = PdfHorizontalAlignment.RIGHT,
+                    role = PdfTypographyRole.BODY,
+                    preferredSizePt = 5.2f,
+                    minimumSizePt = 4.8f,
+                    horizontalAlignment = PdfHorizontalAlignment.CENTER,
                     verticalAlignment = PdfVerticalAlignment.CENTER,
                     wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
                     maximumLines = 1,

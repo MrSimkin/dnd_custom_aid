@@ -1158,22 +1158,37 @@ internal class DesktopCustomV1ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val text = buildList {
-            add(inventoryContinuationLabel(item))
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: $it") }
-            item.weightLb?.let { add(formatInventoryWeight(it)) }
+        val lines = mutableListOf<String>()
+        lines += inventoryContinuationLabel(item)
+
+        val status = buildList {
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.weightLb?.let { weight ->
+                add(
+                    if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
+                    else weight.toString() + " lb",
+                )
+            }
             if (item.equipped) add("Equipado")
             if (item.attuned) add("Sintonizado")
-            addAll(inventoryUsageLabels(usage))
-            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            addAll(
+                inventoryUsageLabels(usage).map { label ->
+                    label.replace("Uso rápido ", "Uso ")
+                },
+            )
         }.joinToString(" · ")
-        return wrapByWidth(
-            text,
-            resources.fira,
-            8.2f,
-            INVENTORY_ORDINARY_TEXT_WIDTH,
-        )
+        if (status.isNotEmpty()) {
+            lines += wrapByWidth(resources.fira, status, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
+        }
+
+        val description = listOfNotNull(
+            item.description?.trim()?.takeIf { it.isNotEmpty() },
+            item.notes?.trim()?.takeIf { it.isNotEmpty() },
+        ).joinToString(" · ")
+        if (description.isNotEmpty()) {
+            lines += wrapByWidth(resources.fira, description, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
+        }
+        return lines
     }
 
     private fun specialInventoryDetail(

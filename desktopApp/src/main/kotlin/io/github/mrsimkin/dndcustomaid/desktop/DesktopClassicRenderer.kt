@@ -1343,22 +1343,6 @@ private fun appendSpellContinuationPages(
         }
     }
 
-    private fun drawBlankSpellContinuationBlocks(
-        s: PDPageContentStream,
-        p: DesktopPdfRenderingPrimitives,
-    ) {
-        val colW = 176f
-        val gap = 12f
-        val x1 = 24f
-        val x2 = x1 + colW + gap
-        val x3 = x2 + colW + gap
-        spellLevelBlock(s, p, x1, 426f, colW, 292f, "NIVEL 1 - CONT.", "", emptyList())
-        spellLevelBlock(s, p, x2, 146f, colW, 268f, "NIVEL 2 - CONT.", "", emptyList())
-        spellLevelBlock(s, p, x2, 426f, colW, 292f, "NIVEL 3 - CONT.", "", emptyList())
-        spellLevelBlock(s, p, x3, 146f, colW, 268f, "NIVEL 4 - CONT.", "", emptyList())
-        spellLevelBlock(s, p, x3, 426f, colW, 292f, "NIVEL 5+ - CONT.", "", emptyList())
-    }
-
     private fun <T> List<T>.pageSlice(pageIndex: Int, capacity: Int): List<T> =
         drop(pageIndex * capacity).take(capacity)
 

@@ -1284,16 +1284,36 @@ internal class DesktopCustomV2ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val text = buildList {
-            add(inventoryContinuationLabel(item))
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: $it") }
-            item.weightLb?.let { add(formatInventoryWeight(it)) }
+        val lines = mutableListOf<String>()
+        lines += inventoryContinuationLabel(item)
+
+        val status = buildList {
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.weightLb?.let { weight ->
+                add(
+                    if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
+                    else weight.toString() + " lb",
+                )
+            }
             if (item.equipped) add("Equipado")
-            addAll(inventoryUsageLabels(usage))
-            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            addAll(
+                inventoryUsageLabels(usage).map { label ->
+                    label.replace("Uso rápido ", "Uso ")
+                },
+            )
         }.joinToString(" · ")
-        return wrapByWidth(resources.fira, text, 7.4f, 125f)
+        if (status.isNotEmpty()) {
+            lines += wrapByWidth(resources.fira, status, 7.4f, 125f)
+        }
+
+        val description = listOfNotNull(
+            item.description?.trim()?.takeIf { it.isNotEmpty() },
+            item.notes?.trim()?.takeIf { it.isNotEmpty() },
+        ).joinToString(" · ")
+        if (description.isNotEmpty()) {
+            lines += wrapByWidth(resources.fira, description, 7.4f, 125f)
+        }
+        return lines
     }
 
     private fun specialLocationNeedsText(location: String?): Boolean {

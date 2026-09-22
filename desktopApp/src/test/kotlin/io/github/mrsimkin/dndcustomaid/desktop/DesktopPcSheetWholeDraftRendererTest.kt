@@ -82,6 +82,7 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.rendering.ImageType
 import org.apache.pdfbox.rendering.PDFRenderer
 import org.apache.pdfbox.text.PDFTextStripper
+import org.apache.pdfbox.text.TextPosition
 
 class DesktopPcSheetWholeDraftRendererTest {
     @Test
@@ -3126,11 +3127,18 @@ class DesktopPcSheetWholeDraftRendererTest {
                         endPage = pageNumber
                     }.getText(document)
                 }
-                assertTrue(baseText.contains("CONTINÚA EN EXTENSIÓN"))
-                assertTrue(baseText.contains("CONJUROS - CONTINÚA EN EXTENSIÓN"))
-                assertTrue(baseText.contains("NOTAS - CONTINÚA EN EXTENSIÓN"))
+                assertTrue(baseText.contains("EXTENSIÓN:"))
+                assertTrue(baseText.contains("CONJUROS"))
+                assertTrue(baseText.contains("NOTAS"))
+                assertFalse(baseText.contains(" - CONTINÚA EN EXTENSIÓN"))
 
                 repeat(plan.basePages.size) { pageIndex ->
+                    footerCueY(document, pageIndex)?.let { cueY ->
+                        assertTrue(
+                            cueY > 770f,
+                            "Continuation cue must remain in the bottom margin, y=$cueY",
+                        )
+                    }
                     val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 160f, ImageType.RGB)
                     assertTrue(
                         ImageIO.write(
@@ -3142,6 +3150,25 @@ class DesktopPcSheetWholeDraftRendererTest {
                 }
             }
         }
+    }
+
+    private fun footerCueY(document: PDDocument, pageIndex: Int): Float? {
+        var result: Float? = null
+        object : PDFTextStripper() {
+            init {
+                startPage = pageIndex + 1
+                endPage = pageIndex + 1
+                sortByPosition = true
+            }
+
+            override fun writeString(text: String, textPositions: MutableList<TextPosition>) {
+                if ("EXTENSIÓN:" in text && textPositions.isNotEmpty()) {
+                    result = textPositions.minOf { it.yDirAdj }
+                }
+                super.writeString(text, textPositions)
+            }
+        }.getText(document)
+        return result
     }
 
     private fun denseDraftAggregateWithCustomStatistics(): PcSheetExportAggregate {
