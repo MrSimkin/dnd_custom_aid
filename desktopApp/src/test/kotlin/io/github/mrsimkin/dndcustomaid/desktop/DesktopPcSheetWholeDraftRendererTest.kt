@@ -1158,6 +1158,18 @@ class DesktopPcSheetWholeDraftRendererTest {
                             cropTarget.contentEquals(fitTarget),
                             "$family Crop and Fit must produce different portrait placement.",
                         )
+                        if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY) {
+                            val lowerPortraitChanged = (125 until 160).any { y ->
+                                (205 until 326).any { x ->
+                                    val pixelIndex = y * 612 + x
+                                    baselineTarget[pixelIndex] != cropTarget[pixelIndex]
+                                }
+                            }
+                            assertTrue(
+                                lowerPortraitChanged,
+                                "Custom v2 per-Ability Crop must use its taller portrait field.",
+                            )
+                        }
                         assertTrue(
                             pixels(baselineRenderer, stableIndex)
                                 .contentEquals(pixels(cropRenderer, stableIndex)),
