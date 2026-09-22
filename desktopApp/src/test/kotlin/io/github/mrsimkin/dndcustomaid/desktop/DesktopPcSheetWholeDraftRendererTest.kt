@@ -1719,6 +1719,15 @@ class DesktopPcSheetWholeDraftRendererTest {
             equipped = false,
             description = "Munición actual.",
         )
+        val carriedTool = ammunition.copy(
+            id = uuid("50000000-0000-0000-0000-000000000201"),
+            name = "Herramienta llevada",
+            quantity = 1,
+            weightLb = null,
+            description = null,
+            location = null,
+            sortOrder = 201,
+        )
         val current = permanent.copy(
             sheet = permanent.sheet.copy(
                 currentHp = 11,
@@ -1726,7 +1735,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 deathSaveSuccesses = 2,
                 deathSaveFailures = 1,
                 passivePerceptionAdjustment = 2,
-                inventoryItems = listOf(ammunition),
+                inventoryItems = listOf(ammunition, carriedTool),
                 weaponMasteries = listOf(
                     CharacterWeaponMastery(
                         id = uuid("8c000000-0000-0000-0000-000000000001"),
@@ -1825,6 +1834,12 @@ class DesktopPcSheetWholeDraftRendererTest {
                         kind = CharacterConsumableKind.AMMUNITION,
                         quickUseAmount = 2,
                         carryState = CharacterInventoryCarryState.STORED,
+                    ),
+                    CharacterInventoryUsage(
+                        itemId = carriedTool.id,
+                        kind = CharacterConsumableKind.NONE,
+                        quickUseAmount = 1,
+                        carryState = CharacterInventoryCarryState.CARRIED,
                     ),
                 ),
             ),
@@ -1956,6 +1971,8 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Flechas de prueba"))
             assertTrue(extracted.contains("Munición"))
             assertTrue(extracted.contains("Almacenado"))
+            assertTrue(extracted.contains("Herramienta llevada"))
+            assertTrue(extracted.contains("Llevado"))
         }
 
         Loader.loadPDF(classicPermanentPdf).use { permanentDocument ->
