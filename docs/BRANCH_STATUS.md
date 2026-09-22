@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — owner-facing App Modified Sheet + continuation cues
+**Current normal work:** PC Sheet PDF Export — App Modified + continuation cues OWNER QA READY
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -127,6 +127,7 @@ Current state:
 - Classic corrected Run 2 complete family is owner-approved/frozen and its integrated production audit is PASS at `30ac4d073e9fab47a498f4e6dc3d9266c633110e` (Scaffold #3151 / `35677870304` SUCCESS; artifact `10674062891`); spent-slot controls remain blank/writable per the active renderer protocol;
 - the application-owned optional Spellbook production gate is PASS at `ac0cbb2b26202bf934ac4926b56899014390613e` (Scaffold #3161 / `35679451757` SUCCESS; artifact `10674370966`); all preceding family pages remain unchanged when the appendix is appended;
 - local portrait-byte handoff plus Crop/Fit production is PASS at `93490d2247da5ea46ef50563fd17da78840e659e` (Scaffold #3177 / `35683430947` SUCCESS; artifact `10676160917`); Classic, Custom v1 and both Custom-v2 first-page variants are covered, v2 decorative frames are preserved, and the taller per-Ability portrait geometry has an explicit regression guard;
+- `APP_MODIFIED_SHEET` plus originating-section continuation cues are implemented and OWNER QA READY at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` (Scaffold #3195 / `35767630932` SUCCESS; artifact `10713481125`); owner visual approval remains pending;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
 - Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
@@ -136,9 +137,9 @@ Current state:
 
 Next continuation sequence:
 
-1. resolve the owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
-2. wire local Save/Share beginning with Desktop, then complete approved surface parity;
-3. do not merge PR #85 until the remaining visual/functional gates are satisfied.
+1. owner review the App Modified + continuation-cue proof set from artifact `10713481125`;
+2. after owner approval, wire local Save/Share beginning with Desktop, then complete approved surface parity;
+3. do not merge PR #85 until the owner visual gate and remaining functional gates are satisfied.
 
 Relevant durable records:
 

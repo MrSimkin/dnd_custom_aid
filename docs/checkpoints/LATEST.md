@@ -12,20 +12,21 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
-4. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
-5. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-6. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-7. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
-8. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-9. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-10. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
-11. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-12. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-13. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
-14. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-15. `docs/PROJECT_STATE.md`;
-16. `docs/BRANCH_STATUS.md`.
+3. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`;
+4. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
+5. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
+6. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+7. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+8. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
+9. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
+10. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+11. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
+12. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
+13. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+14. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+15. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+16. `docs/PROJECT_STATE.md`;
+17. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -116,11 +117,12 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 - Classic Run 2 complete base + six continuation roles are owner-approved/frozen and its integrated production audit is **PASS** at `30ac4d073e9fab47a498f4e6dc3d9266c633110e`; final Scaffold #3151 / `35677870304` — SUCCESS; proof artifact `10674062891`. Printed spent-slot markers remain intentionally blank for paper tracking.
 - The application-owned optional Spellbook is production-complete and **PASS** at `ac0cbb2b26202bf934ac4926b56899014390613e`; final Scaffold #3161 / `35679451757` — SUCCESS; proof artifact `10674370966`. It is appended after the selected family/Extended output and leaves all preceding pages unchanged.
 - Local portrait-byte handoff plus Crop/Fit is production-complete and **PASS** at `93490d2247da5ea46ef50563fd17da78840e659e`; final Scaffold #3177 / `35683430947` — SUCCESS; proof artifact `10676160917`. Classic, Custom v1 and both Custom-v2 first-page variants preserve their portrait frames while supporting Crop-to-fill and Fit-entire-image.
+- `APP_MODIFIED_SHEET` plus originating-section continuation-cue implementation is **OWNER QA READY** at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d`; final Scaffold #3195 / `35767630932` — SUCCESS; proof artifact `10713481125`. Automated/implementation QA passes; owner visual approval is still pending.
 
 ## Current continuation
 
-1. prepare/validate the remaining owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue visual treatments;
-2. wire local Save/Share, beginning with the Desktop DM workflow before cross-surface parity;
-3. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
+1. owner visually review the generated `APP_MODIFIED_SHEET` and originating-section continuation-cue proof set from artifact `10713481125`;
+2. after owner approval, wire local Save/Share beginning with the Desktop DM workflow before cross-surface parity;
+3. keep PR #85 DRAFT / DO NOT MERGE until the owner visual gate and remaining functional gates are satisfied.
 
 No external provider action is required for this PDF-renderer stage.
