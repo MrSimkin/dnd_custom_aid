@@ -1903,8 +1903,27 @@ class DesktopPcSheetWholeDraftRendererTest {
                     notes = "Entrada fuera de la capacidad base.",
                     sortOrder = 99,
                 ),
+                spellSlots = current.sheet.spellSlots.map { slot ->
+                    if (slot.level == 1) slot.copy(spentSlots = 3.coerceAtMost(slot.totalSlots)) else slot
+                },
+                companions = current.sheet.companions + CharacterCompanion(
+                    id = uuid("8e000000-0000-0000-0000-000000000002"),
+                    name = "Eco",
+                    kind = "Compañero",
+                    sortOrder = 1,
+                ),
             ),
         )
+        val classicPermanentPlan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = classicPermanent),
+        )
+        val classicPermanentPdf = File(proofDir, "classic-permanent-slot-baseline.pdf")
+        classicPermanentPdf.outputStream().use { renderer.renderDraft(classicPermanentPlan, it) }
+
         val classicPlan = PcSheetPdfExportPlanner.plan(
             request = PcSheetPdfExportRequest(
                 visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
@@ -1932,10 +1951,32 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Espada larga"))
             assertTrue(extracted.contains("Forma de lobo"))
             assertTrue(extracted.contains("Nim"))
+            assertTrue(extracted.contains("Eco"))
             assertTrue(extracted.contains("Reacción de cobertura"))
             assertTrue(extracted.contains("Flechas de prueba"))
             assertTrue(extracted.contains("Munición"))
             assertTrue(extracted.contains("Almacenado"))
+        }
+
+        Loader.loadPDF(classicPermanentPdf).use { permanentDocument ->
+            Loader.loadPDF(classicPdf).use { currentDocument ->
+                val permanentSpellPage = PDFRenderer(permanentDocument)
+                    .renderImageWithDPI(2, 72f, ImageType.RGB)
+                val currentSpellPage = PDFRenderer(currentDocument)
+                    .renderImageWithDPI(2, 72f, ImageType.RGB)
+                val permanentPixels = permanentSpellPage.getRGB(
+                    0, 0, permanentSpellPage.width, permanentSpellPage.height,
+                    null, 0, permanentSpellPage.width,
+                )
+                val currentPixels = currentSpellPage.getRGB(
+                    0, 0, currentSpellPage.width, currentSpellPage.height,
+                    null, 0, currentSpellPage.width,
+                )
+                assertFalse(
+                    permanentPixels.contentEquals(currentPixels),
+                    "Classic spell page must reflect Current Snapshot spent-slot state.",
+                )
+            }
         }
     }
 
