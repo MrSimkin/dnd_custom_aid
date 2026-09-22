@@ -1158,6 +1158,21 @@ class DesktopPcSheetWholeDraftRendererTest {
                             cropTarget.contentEquals(fitTarget),
                             "$family Crop and Fit must produce different portrait placement.",
                         )
+                        if (
+                            family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
+                            family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
+                        ) {
+                            val topFrameChanged = (25 until 33).any { y ->
+                                (220 until 311).any { x ->
+                                    val pixelIndex = y * 612 + x
+                                    baselineTarget[pixelIndex] != cropTarget[pixelIndex]
+                                }
+                            }
+                            assertFalse(
+                                topFrameChanged,
+                                "$family portrait overlay must preserve the decorative top frame.",
+                            )
+                        }
                         if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY) {
                             val lowerPortraitChanged = (125 until 160).any { y ->
                                 (205 until 326).any { x ->
