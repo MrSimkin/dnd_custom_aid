@@ -703,6 +703,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(continuationPage))
             assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+18").containsMatchIn(continuationPage))
             assertFalse(continuationPage.contains("(cont.)"))
+            assertFalse(continuationPage.contains("CONTINUACIÓN"))
 
             val pdfRenderer = PDFRenderer(document)
             (3 until document.numberOfPages).forEach { index ->

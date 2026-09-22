@@ -1061,9 +1061,10 @@ internal class DesktopCustomV1ExtendedRenderer(
             s.drawForm(resources.forms[1])
         }
         appendLayer(page, "$prefix - CLEANUP") { }
-        appendLayer(page, "$prefix - LABELS") { s ->
-            centeredText(s, resources.fira, 195f, 96f, 80f, 13f, "CONTINUACIÓN", 7.5f)
-        }
+        // The source sheet already identifies this as the Equipment page. Do not add a second
+        // heading/subtitle: it collided with the approved "Equipo" title and made the continuation
+        // look like a different layout instead of another native page.
+        appendLayer(page, "$prefix - LABELS") { }
         appendLayer(page, "$prefix - VALUES") { s ->
             ordinary.forEachIndexed { index, value ->
                 // Preserve natural paper reading order: fill one column top-to-bottom before
@@ -1137,12 +1138,15 @@ internal class DesktopCustomV1ExtendedRenderer(
             positionedSpecial.forEach { (rowIndex, item) ->
                 if (item.equipped || item.attuned) {
                     val y = INVENTORY_SPECIAL_RULES[rowIndex]
-                    drawV1TrainingBox(
+                    // The imported v1 equipment template already contains the empty checkbox.
+                    // Overlay only the approved v8 check glyph; drawing another square creates a
+                    // visually double-boxed marker and shifts the perceived center.
+                    approvedV8Marker(
                         s = s,
                         font = resources.symbol,
                         centerX = 116f,
                         centerTop = y - 8.5f,
-                        training = Training.PROFICIENT,
+                        size = 5.2f,
                     )
                 }
             }
