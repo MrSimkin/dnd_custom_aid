@@ -78,7 +78,12 @@ internal class DesktopPcSheetVisualCompletionRenderer(
                     error("APP_MODIFIED layout cannot use EXTENDED_PAGE-only presentation.")
             }
             modifiedPages.forEachIndexed { index, page ->
-                relabelAsModifiedSheet(page, index + 1, modifiedPages.size)
+                relabelAsModifiedSheet(
+                    page = page,
+                    family = requestedPlan.request.visualFamily,
+                    index = index + 1,
+                    total = modifiedPages.size,
+                )
             }
         }
 
@@ -288,6 +293,7 @@ internal class DesktopPcSheetVisualCompletionRenderer(
 
     private fun relabelAsModifiedSheet(
         page: PDPage,
+        family: PcSheetVisualFamily,
         index: Int,
         total: Int,
     ) {
@@ -295,17 +301,54 @@ internal class DesktopPcSheetVisualCompletionRenderer(
             append("HOJA MODIFICADA - ESTADÍSTICAS PERSONALIZADAS")
             if (total > 1) append(" ").append(index).append("/").append(total)
         }
-        val footer = PdfRect(24f, 8f, 564f, 18f)
+        // Cover the complete source footer, not only its center. Classic Extended pages carry both
+        // an EXTENSIÓN label and a historical page number there; neither belongs on a promoted
+        // App-Modified base page.
+        val footerCover = PdfRect(24f, 8f, 564f, 34f)
+        val footerLabel = PdfRect(24f, 10f, 564f, 18f)
         PDPageContentStream(document, page, AppendMode.APPEND, true, true).use { stream ->
             stream.saveGraphicsState()
             stream.setNonStrokingColor(Color.WHITE)
-            stream.addRect(footer.x, footer.y, footer.width, footer.height)
+            stream.addRect(
+                footerCover.x,
+                footerCover.y,
+                footerCover.width,
+                footerCover.height,
+            )
             stream.fill()
+
+            if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+                // Classic also identifies continuation pages in the upper-right header. Replace
+                // only that small tag while retaining the approved title, frame and geometry.
+                val headerTag = PdfRect(500f, 742f, 78f, 18f)
+                stream.addRect(headerTag.x, headerTag.y, headerTag.width, headerTag.height)
+                stream.fill()
+            }
             stream.restoreGraphicsState()
+
+            if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+                primitives.drawTextBox(
+                    stream,
+                    PdfTextBoxSpec(
+                        rect = PdfRect(500f, 742f, 78f, 18f),
+                        text = "MODIFICADA",
+                        role = PdfTypographyRole.OPTIONAL_DECORATIVE,
+                        preferredSizePt = 7.2f,
+                        minimumSizePt = 6.2f,
+                        horizontalAlignment = PdfHorizontalAlignment.RIGHT,
+                        verticalAlignment = PdfVerticalAlignment.CENTER,
+                        wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
+                        maximumLines = 1,
+                        horizontalPaddingPt = 2f,
+                        verticalPaddingPt = 1f,
+                    ),
+                )
+            }
+
             primitives.drawTextBox(
                 stream,
                 PdfTextBoxSpec(
-                    rect = footer,
+                    rect = footerLabel,
                     text = label,
                     role = PdfTypographyRole.BODY,
                     preferredSizePt = 7.2f,
