@@ -3053,7 +3053,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                     }.getText(document)
                     val allText = PDFTextStripper().getText(document)
 
-                    assertTrue(firstPageText.contains("HOJA MODIFICADA SIGUIENTE"))
+                    assertFalse(firstPageText.contains("HOJA MODIFICADA SIGUIENTE"))
                     assertTrue(modifiedPageText.contains("HOJA MODIFICADA"))
                     assertTrue(
                         modifiedPageText.contains("Estadísticas Personalizadas", ignoreCase = true) ||

@@ -1285,7 +1285,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         usage: CharacterInventoryUsage?,
     ): List<String> {
         val lines = mutableListOf<String>()
-        lines += inventoryContinuationLabel(item)
+        lines += wrapByWidth(resources.fira, inventoryContinuationLabel(item), 7.4f, 125f)
 
         val status = buildList {
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1296,11 +1296,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 )
             }
             if (item.equipped) add("Equipado")
-            addAll(
-                inventoryUsageLabels(usage).map { label ->
-                    label.replace("Uso rápido ", "Uso ")
-                },
-            )
+            addAll(inventoryUsageLabels(usage))
         }.joinToString(" · ")
         if (status.isNotEmpty()) {
             lines += wrapByWidth(resources.fira, status, 7.4f, 125f)
