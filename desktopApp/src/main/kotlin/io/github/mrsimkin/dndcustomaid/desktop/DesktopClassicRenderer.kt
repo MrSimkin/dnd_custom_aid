@@ -14,6 +14,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryS
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
@@ -617,7 +618,7 @@ internal class DesktopClassicRenderer {
             )
         }
 
-        sheet.companions.sortedBy { it.sortOrder }.forEach { companion ->
+        sheet.companions.sortedBy { it.sortOrder }.forEachIndexed { index, companion ->
             val hasReferenceDetail =
                 !companion.source.isNullOrBlank() ||
                     companion.armorClass != null ||
@@ -629,7 +630,7 @@ internal class DesktopClassicRenderer {
                     !companion.sensesProficiencies.isNullOrBlank() ||
                     companion.traitsActions.isNotBlank() ||
                     !companion.notes.isNullOrBlank()
-            if (hasReferenceDetail) {
+            if (index >= BASE_COMPANION_CAPACITY || hasReferenceDetail) {
                 add(
                     "Compañero",
                     buildList {
@@ -1745,7 +1746,7 @@ internal class DesktopClassicRenderer {
                 saveDc = saveDc?.toString().orEmpty(),
                 attack = attack?.let(::signed).orEmpty(),
             )
-            spellSlotBand(s, p, 24f, 112f, 564f, slots.mapValues { it.value.totalSlots })
+            spellSlotBand(s, p, 24f, 112f, 564f, slots)
 
             val colW = 176f
             val gap = 12f
@@ -1898,16 +1899,21 @@ internal class DesktopClassicRenderer {
         x: Float,
         top: Float,
         width: Float,
-        totals: Map<Int, Int>,
+        slots: Map<Int, CharacterSpellSlot>,
     ) {
         titledFrame(s, p, x, top, width, 66f, "ESPACIOS DE CONJURO")
         (1..9).forEachIndexed { index, level ->
-            val total = totals[level] ?: 0
+            val slot = slots[level]
+            val total = slot?.totalSlots ?: 0
+            val spent = slot?.spentSlots?.coerceIn(0, total) ?: 0
             val cellX = x + 10f + index * 60.2f
             text(s, p, cellX, top + 31f, 18f, 16f, level.toString(), PdfTypographyRole.NUMERIC_COMPACT, 8f, 7f,
                 align = PdfHorizontalAlignment.CENTER)
             repeat(total.coerceAtMost(CLASSIC_BASE_SLOT_MARKERS)) { markerIndex ->
-                marker(s, p, cellX + 26f + markerIndex * 8.6f, top + 40f, 6.5f, PdfMarkerKind.DIAMOND_OUTLINE)
+                marker(
+                    s, p, cellX + 26f + markerIndex * 8.6f, top + 40f, 6.5f,
+                    if (markerIndex < spent) PdfMarkerKind.DIAMOND_FILLED else PdfMarkerKind.DIAMOND_OUTLINE,
+                )
             }
         }
     }
