@@ -1195,6 +1195,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                     .drop(pageIndex * INVENTORY_SPECIAL_CAPACITY)
                     .take(INVENTORY_SPECIAL_CAPACITY),
                 usageByItem = usageByItem,
+                pageIndex = pageIndex,
             )
         }
     }
@@ -1205,8 +1206,14 @@ internal class DesktopCustomV2ExtendedRenderer(
         valuables: List<String>,
         special: List<CharacterInventoryItem>,
         usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        pageIndex: Int,
     ) {
-        appendLayer(page, "V2X INVENTORY - STRUCTURE") { s ->
+        // PDFBox OCG names are document-global, not page-local. Keep the first-page names exactly
+        // compatible with the existing production proof/tests, and page-scope subsequent inventory
+        // continuation layers so legitimate multi-page overflow cannot collide.
+        val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
             pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 96f, 411f, 22f, SOURCE_GRAY_LIGHT)
             fill(s, 431f, 96f, 167f, 22f, SOURCE_GRAY_LIGHT)
@@ -1222,8 +1229,8 @@ internal class DesktopCustomV2ExtendedRenderer(
             bandedRows(s, 14f, 598f, 548f, 12, 17f, 0)
             listOf(30f, 130f, 310f).forEach { x -> verticalRule(s, x, 512f, 752f, 0.45f) }
         }
-        appendLayer(page, "V2X INVENTORY - CLEANUP") { }
-        appendLayer(page, "V2X INVENTORY - LABELS") { s ->
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
             pageTitle(s, "INVENTARIO / EQUIPO")
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 97f, 411f, 20f), "EQUIPO - CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(431f, 97f, 167f, 20f), "TESORO / OBJETOS / OTROS", 10.2f, SOURCE_CORBEL_HEADING_SCALE)
@@ -1233,7 +1240,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             tableLabel(s, 130f, 514f, 180f, "NOMBRE")
             tableLabel(s, 310f, 514f, 288f, "DESCRIPCIÓN / ESTADO")
         }
-        appendLayer(page, "V2X INVENTORY - VALUES") { s ->
+        appendLayer(page, "$prefix - VALUES") { s ->
             ordinary.forEachIndexed { index, line ->
                 val col = index / 19
                 val row = index % 19
@@ -1264,7 +1271,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
             }
         }
-        appendLayer(page, "V2X INVENTORY - MARKERS") { s ->
+        appendLayer(page, "$prefix - MARKERS") { s ->
             repeat(INVENTORY_SPECIAL_CAPACITY) { row ->
                 drawV2TrainingBox(
                     s,
