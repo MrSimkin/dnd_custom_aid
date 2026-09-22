@@ -128,7 +128,8 @@ Current state:
 - the application-owned optional Spellbook production gate is PASS at `ac0cbb2b26202bf934ac4926b56899014390613e` (Scaffold #3161 / `35679451757` SUCCESS; artifact `10674370966`); all preceding family pages remain unchanged when the appendix is appended;
 - local portrait-byte handoff plus Crop/Fit production is PASS at `93490d2247da5ea46ef50563fd17da78840e659e` (Scaffold #3177 / `35683430947` SUCCESS; artifact `10676160917`); Classic, Custom v1 and both Custom-v2 first-page variants are covered, v2 decorative frames are preserved, and the taller per-Ability portrait geometry has an explicit regression guard;
 - App Modified + continuation candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` / artifact `10713481125` is OWNER REJECTED / DO NOT USE because it regressed previously approved Classic/v1/v2 visual mechanics;
-- recovery implementation `6ea493c9ee53cf727464a985bc6ef0b558a73e99` / artifact `10720833172` is OWNER REJECTED after owner review 2; newest corrections are authoritative and repair is ACTIVE;
+- recovery implementation `6ea493c9ee53cf727464a985bc6ef0b558a73e99` / artifact `10720833172` is OWNER REJECTED after owner review 2; the review restates pre-existing visual rules recorded in `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md` and identifies current regression locations; repair is ACTIVE;
+- WIP repair `4e7ea99997de46ef8a9a8d1066b08fa362854cdd` failed Scaffold #3245/#3246 because stricter Classic physical-rule coupling exposed base excerpt overflow; do not undo rule coupling. Route full text to continuation. The WIP rasterized v2-logo change is non-authoritative and must be reverted to layered STRUCTURE/CLEANUP repair;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
 - Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
@@ -138,10 +139,10 @@ Current state:
 
 Next continuation sequence:
 
-1. owner reviews the exact recovery proof set from artifact `10720833172`;
-2. if approved, record/freeze the corrected recovery output as replacement goldens where the 2026-09-22 owner corrections supersede older details;
-3. then begin Desktop Save/Share/export invocation and subsequent cross-surface parity;
-4. do not merge PR #85 until owner visual approval and the remaining functional gates are complete.
+1. follow `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md` and continue the owner-review-2 repair; do not resend artifact `10720833172`;
+2. preserve layered Custom construction and revert the WIP raster-logo shortcut;
+3. resolve Classic base overflow by bounded excerpts + complete Extended routing, then generate a small proof set and visually preflight it;
+4. only after owner approval begin Desktop Save/Share/export invocation; do not merge PR #85 before the remaining gates.
 
 Relevant durable records:
 

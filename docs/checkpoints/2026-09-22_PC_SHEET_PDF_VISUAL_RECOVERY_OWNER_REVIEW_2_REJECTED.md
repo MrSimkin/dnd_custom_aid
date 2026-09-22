@@ -8,18 +8,26 @@
 **Documentation head that presented it:** `f53c70f1cb00056a62e607792c1a741114696886`  
 **Status:** OWNER REJECTED / REPAIR ACTIVE
 
-## Authority rule
+## Classification / authority correction
 
-This review is a fourth evidence layer on top of the triple-authority recovery contract:
+This owner review is **not a fourth rule layer** and does **not** create a new design contract.
 
-1. exact earlier owner-approved/frozen visual goldens;
-2. current production semantics and no-silent-loss pagination;
-3. owner corrections from the first 2026-09-22 rejected review;
-4. **owner corrections from this second 2026-09-22 review**.
+It is a defect report against rules that were already established and should already have been preserved. The durable rule ledger is now:
 
-The newest explicit owner correction wins when it conflicts with an older approved detail.
+`docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`
 
-Do not ask the owner to restate earlier corrections.
+The review observations below must therefore be classified as **PRE-EXISTING RULE VIOLATED / REGRESSION**, except that they identify the exact current symptom/location.
+
+Already-existing authority includes:
+
+- Classic D&D paper-sheet lineage, visible writing rules and shared text/rule Y rhythm;
+- no skipped writing rows or gratuitous blank semantic bands;
+- Custom v1 measured geometry/font/check-marker contracts;
+- Custom v2 five-layer OCG construction `STRUCTURE -> CLEANUP -> LABELS -> VALUES -> MARKERS`;
+- Custom v2 source Corbel/Fira role contract and source-measured geometry;
+- user-facing `Raza` terminology / `Especie` absent.
+
+Do not ask the owner to restate these rules again, and do not describe them as newly introduced in later checkpoints.
 
 ## Owner review 2 observations
 
@@ -74,7 +82,7 @@ Approved Extended Run 7 uses direct source-matched Corbel fixed-scale roles for 
 
 Repair rule: restore the exact Run-7 fixed source-font mechanics for frozen headings/subheadings where Run 7 already proved the text, instead of silently substituting a different font.
 
-The page header currently re-embeds a cropped source form for the logo. Repair must eliminate viewer-visible crop/form artifacts while preserving the exact approved logo appearance.
+The page header/logo defect must be repaired **inside the established layered/source-preserving construction**. Do not rasterize/flatten the header as a shortcut. Use the existing STRUCTURE/CLEANUP separation to remove the artifact while preserving the approved source appearance.
 
 ## Current gate
 
@@ -84,4 +92,4 @@ PR #85 remains DRAFT / DO NOT MERGE.
 
 Save/Share remains blocked.
 
-Next output must be a smaller corrected proof set focused on these exact defects.
+Next output must be a smaller corrected proof set focused on these exact regressions, governed by `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`.

@@ -12,9 +12,10 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_REVIEW_2_REJECTED.md`;
-4. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_QA_READY.md`;
-4. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`;
+3. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+4. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_REVIEW_2_REJECTED.md`;
+5. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`;
+6. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_QA_READY.md`;
 5. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`;
 6. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
 5. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
@@ -125,9 +126,11 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 
 ## Current continuation
 
-1. owner visually reviews the compact recovery set from artifact `10720833172`, starting with the four faithful/overflow PDFs and then the four App Modified PDFs;
-2. if approved, record/freeze the recovered corrections as replacement goldens where the 2026-09-22 owner corrections supersede older details;
-3. after owner approval, wire Desktop Save/Share/export invocation and then cross-surface parity;
-4. keep PR #85 DRAFT / DO NOT MERGE until owner visual approval and the remaining functional gates.
+1. follow `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`; artifact `10720833172` is rejected and must not be sent for approval again;
+2. continue the bounded owner-review-2 repair from WIP renderer commit `4e7ea99997de46ef8a9a8d1066b08fa362854cdd`;
+3. Scaffold #3245 / `35791076544` and #3246 / `35791080855` failed because the stricter Classic rule-coupled renderer exposed base excerpts that no longer fit physical rows; repair by reducing base excerpts and routing complete content to Classic-native continuation, not by compressing or decoupling text from rules;
+4. revert the WIP rasterized v2 logo attempt and repair the logo through the pre-existing STRUCTURE/CLEANUP layered method;
+5. generate a smaller corrected proof set and perform Worker visual preflight before returning it to the owner;
+6. keep PR #85 DRAFT / DO NOT MERGE; Save/Share remains blocked.
 
 No external provider action is required for this PDF-renderer stage.

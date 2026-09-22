@@ -38,9 +38,9 @@ Production promotion added real `PcSheetPdfRenderPlan` data, current-state seman
 
 Those semantics must be preserved. Recovery must not reintroduce QA fixture values as defaults merely to make pages look like the golden sample.
 
-### C. Owner corrections from the 2026-09-22 rejected review
+### C. Owner defect reports / explicit restatements from the 2026-09-22 rejected review
 
-These corrections are authoritative even where they refine or supersede an older approved visual proof.
+These observations are authoritative defect evidence. Many restate rules that already existed in the frozen visual baselines; they must not be relabeled as new rules merely because production regressed. The consolidated pre-existing rule ledger is `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`.
 
 #### Classic
 
@@ -95,6 +95,7 @@ Examples already verified:
 5. Prefer extra pages over compression, skipped rows or silent loss.
 6. No App Modified or continuation-cue visual work until baseline recovery is visually coherent.
 7. Save/Share remains blocked until the recovered visual package passes owner QA.
+8. Preserve the Custom source-derived layered construction. Do not flatten/rasterize source headers/pages to hide artifacts; repair STRUCTURE/CLEANUP/LABELS/VALUES/MARKERS in their responsible layer.
 
 ## Current task
 
