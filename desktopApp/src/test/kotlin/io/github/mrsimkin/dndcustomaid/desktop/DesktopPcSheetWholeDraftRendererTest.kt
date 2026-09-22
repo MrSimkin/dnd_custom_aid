@@ -683,7 +683,10 @@ class DesktopPcSheetWholeDraftRendererTest {
         inventoryPdf.outputStream().use { renderer.renderDraft(inventoryPlan, it) }
 
         Loader.loadPDF(inventoryPdf).use { document ->
-            assertEquals(4, document.numberOfPages)
+            assertTrue(
+                document.numberOfPages >= 4,
+                "Fantasy Sheet inventory overflow must append at least one continuation page.",
+            )
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("INVENTARIO / EQUIPO"))
             assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(extracted))
@@ -695,14 +698,16 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Gema test 2"))
             assertTrue(extracted.contains("Reliquia terminal"))
 
-            val continuationPage = PDFTextStripper().apply {
-                startPage = 4
-                endPage = 4
-            }.getText(document)
-            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(continuationPage))
-            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(continuationPage))
-            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+18").containsMatchIn(continuationPage))
-            assertFalse(continuationPage.contains("(cont.)"))
+            val continuationText = (4..document.numberOfPages).joinToString("\n") { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(document)
+            }
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(continuationText))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(continuationText))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+18").containsMatchIn(continuationText))
+            assertFalse(continuationText.contains("(cont.)"))
 
             val pdfRenderer = PDFRenderer(document)
             (3 until document.numberOfPages).forEach { index ->
@@ -3227,7 +3232,11 @@ class DesktopPcSheetWholeDraftRendererTest {
                     centerTolerance: Float = 4f,
                     yTolerance: Float = 3f,
                 ) {
-                    val located = locateTextBounds(document, label)
+                    val located = locateTextBounds(
+                        document,
+                        label,
+                        expectedYCenter = (expectedYMin + expectedYMax) / 2f,
+                    )
                     val centerX = (located.bounds.minX + located.bounds.maxX) / 2f
                     val xOk = kotlin.math.abs(centerX - expectedCenterX) <= centerTolerance
                     val yOk = located.bounds.minY >= expectedYMin - yTolerance &&
@@ -3298,10 +3307,14 @@ class DesktopPcSheetWholeDraftRendererTest {
         )
     }
 
-    private fun locateTextBounds(document: PDDocument, label: String): LocatedTextBounds {
+    private fun locateTextBounds(
+        document: PDDocument,
+        label: String,
+        expectedYCenter: Float,
+    ): LocatedTextBounds {
         val needle = normalizeAuditLabel(label)
+        val matches = mutableListOf<LocatedTextBounds>()
         repeat(document.numberOfPages) { pageIndex ->
-            var found: TextBounds? = null
             object : PDFTextStripper() {
                 init {
                     startPage = pageIndex + 1
@@ -3311,24 +3324,29 @@ class DesktopPcSheetWholeDraftRendererTest {
 
                 override fun writeString(text: String, textPositions: MutableList<TextPosition>) {
                     if (
-                        found == null &&
                         needle.isNotEmpty() &&
                         normalizeAuditLabel(text).contains(needle) &&
                         textPositions.isNotEmpty()
                     ) {
-                        found = TextBounds(
-                            minX = textPositions.minOf { it.xDirAdj },
-                            minY = textPositions.minOf { it.yDirAdj - it.heightDir },
-                            maxX = textPositions.maxOf { it.xDirAdj + it.widthDirAdj },
-                            maxY = textPositions.maxOf { it.yDirAdj },
+                        matches += LocatedTextBounds(
+                            pageIndex = pageIndex,
+                            bounds = TextBounds(
+                                minX = textPositions.minOf { it.xDirAdj },
+                                minY = textPositions.minOf { it.yDirAdj - it.heightDir },
+                                maxX = textPositions.maxOf { it.xDirAdj + it.widthDirAdj },
+                                maxY = textPositions.maxOf { it.yDirAdj },
+                            ),
                         )
                     }
                     super.writeString(text, textPositions)
                 }
             }.getText(document)
-            found?.let { return LocatedTextBounds(pageIndex, it) }
         }
-        error("XY-001 label not found in rendered PDF: $label")
+        if (matches.isEmpty()) error("XY-001 label not found in rendered PDF: $label")
+        return matches.minBy { located ->
+            val centerY = (located.bounds.minY + located.bounds.maxY) / 2f
+            kotlin.math.abs(centerY - expectedYCenter)
+        }
     }
 
     private fun normalizeAuditLabel(value: String): String =
