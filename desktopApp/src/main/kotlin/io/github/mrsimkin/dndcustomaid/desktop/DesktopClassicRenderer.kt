@@ -996,6 +996,11 @@ internal class DesktopClassicRenderer {
                     item.weightLb != null ||
                     !item.description.isNullOrBlank() ||
                     !item.notes.isNullOrBlank() ||
+                    (
+                        usageByItem[item.id]?.carryState == CharacterInventoryCarryState.CARRIED &&
+                            !item.equipped &&
+                            !item.attuned
+                    ) ||
                     item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
                     inventoryBaseNote(item, usageByItem[item.id]).length >
                         CLASSIC_BASE_INVENTORY_NOTE_CHARS
