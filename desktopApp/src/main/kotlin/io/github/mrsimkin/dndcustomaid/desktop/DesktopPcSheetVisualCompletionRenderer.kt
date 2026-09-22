@@ -366,23 +366,15 @@ internal class DesktopPcSheetVisualCompletionRenderer(
         }
     }
 
-    private fun drawCue(
+private fun drawCue(
         page: PDPage,
         rect: PdfRect,
         text: String,
         emphasized: Boolean = false,
     ) {
+        // Owner correction 2026-09-22: continuation hints must behave like marginal annotations,
+        // not opaque UI boxes pasted over a paper sheet. Never erase the frozen sheet beneath them.
         PDPageContentStream(document, page, AppendMode.APPEND, true, true).use { stream ->
-            stream.saveGraphicsState()
-            stream.setNonStrokingColor(Color.WHITE)
-            stream.addRect(rect.x, rect.y, rect.width, rect.height)
-            stream.fill()
-            stream.setStrokingColor(Color.BLACK)
-            stream.setLineWidth(if (emphasized) 0.8f else 0.55f)
-            stream.addRect(rect.x, rect.y, rect.width, rect.height)
-            stream.stroke()
-            stream.restoreGraphicsState()
-
             primitives.drawTextBox(
                 stream,
                 PdfTextBoxSpec(
@@ -393,13 +385,13 @@ internal class DesktopPcSheetVisualCompletionRenderer(
                     } else {
                         PdfTypographyRole.BODY
                     },
-                    preferredSizePt = if (emphasized) 7.2f else 6.6f,
-                    minimumSizePt = 5.8f,
-                    horizontalAlignment = PdfHorizontalAlignment.CENTER,
+                    preferredSizePt = if (emphasized) 6.2f else 5.8f,
+                    minimumSizePt = 5.2f,
+                    horizontalAlignment = PdfHorizontalAlignment.RIGHT,
                     verticalAlignment = PdfVerticalAlignment.CENTER,
                     wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
                     maximumLines = 1,
-                    horizontalPaddingPt = 3f,
+                    horizontalPaddingPt = 2f,
                     verticalPaddingPt = 1f,
                 ),
             )
