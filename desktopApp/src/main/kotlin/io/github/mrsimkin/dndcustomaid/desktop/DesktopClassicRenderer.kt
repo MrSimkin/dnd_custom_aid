@@ -47,15 +47,15 @@ internal class DesktopClassicRenderer {
         output: OutputStream,
     ) {
         require(plan.request.visualFamily == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
-            "DesktopClassicRenderer only supports the Classic D&D-style family."
+            "DesktopClassicRenderer supports Fantasy Sheet (legacy technical id CLASSIC_DND_STYLE)."
         }
         require(plan.baseLayoutMode == PcSheetBaseLayoutMode.FAITHFUL) {
-            "Classic production supports the faithful base layout only."
+            "Fantasy Sheet production supports the faithful base layout only."
         }
         require(
             plan.mandatoryExtendedPages.all { it == PcSheetExtendedPageKind.CUSTOM_STATISTICS },
         ) {
-            "Classic planner-mandated extensions are limited to Custom Statistics; other promoted continuations are data-driven."
+            "Fantasy Sheet planner-mandated extensions are limited to Custom Statistics; other promoted continuations are data-driven."
         }
 
         overflowDiagnostics.clear()
@@ -74,7 +74,7 @@ internal class DesktopClassicRenderer {
             appendNotesPages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
-                "Classic production encountered content outside its bounded base/continuation routing:\n" +
+                "Fantasy Sheet production encountered content outside its bounded base/continuation routing:\n" +
                     overflowDiagnostics.joinToString("\n")
             }
             doc.save(output)

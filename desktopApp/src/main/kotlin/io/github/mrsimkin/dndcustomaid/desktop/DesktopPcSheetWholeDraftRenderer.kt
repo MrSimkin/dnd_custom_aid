@@ -16,9 +16,9 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode
 
 /**
- * Whole-sheet production renderer for the approved Classic and Custom visual families.
+ * Whole-sheet production renderer for Fantasy Sheet (legacy technical id CLASSIC_DND_STYLE) and the approved Custom visual families.
  *
- * Classic Run-2's complete base + continuation family and the frozen Custom families are driven by
+ * the historical Run-2 Fantasy Sheet base + continuation family and the frozen Custom families are driven by
  * the same canonical PcSheetPdfRenderPlan. Local portrait bytes are overlaid into the selected
  * family frame, then the application-owned Spellbook is appended; remaining owner-facing
  * export-product gates stay explicit.

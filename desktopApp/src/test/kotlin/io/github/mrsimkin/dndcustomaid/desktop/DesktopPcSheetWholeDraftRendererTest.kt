@@ -93,10 +93,10 @@ class DesktopPcSheetWholeDraftRendererTest {
         val base = denseDraftAggregate()
         val shortTraits = base.sheet.traits.take(8).mapIndexed { index, trait ->
             val (name, description, type) = when (index) {
-                0 -> Triple("Paso seguro", "Mantiene el equilibrio en terreno difícil.", CharacterTraitType.CLASS)
-                1 -> Triple("Lectura táctica", "Reconoce rutas de retirada y cobertura.", CharacterTraitType.CLASS)
-                2 -> Triple("Estudio rápido", "Resume información útil durante la exploración.", CharacterTraitType.CLASS)
-                3 -> Triple("Maniobra cauta", "Reduce riesgos al atravesar una zona hostil.", CharacterTraitType.CLASS)
+                0 -> Triple("Paso seguro", "Equilibrio seguro.", CharacterTraitType.CLASS)
+                1 -> Triple("Lectura táctica", "Detecta cobertura.", CharacterTraitType.CLASS)
+                2 -> Triple("Estudio rápido", "Resume pistas.", CharacterTraitType.CLASS)
+                3 -> Triple("Maniobra cauta", "Cruce cauteloso.", CharacterTraitType.CLASS)
                 4 -> Triple("Oído atento", "", CharacterTraitType.SPECIES_RACE)
                 5 -> Triple("Paso firme", "", CharacterTraitType.SPECIES_RACE)
                 6 -> Triple("Memoria local", "", CharacterTraitType.SPECIES_RACE)
@@ -227,7 +227,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             plan.basePages.map { it.role },
         )
 
-        val pdf = File(proofDir, "classic-production-base-pass1.pdf")
+        val pdf = File(proofDir, "fantasy-production-base-pass1.pdf")
         pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
         Loader.loadPDF(pdf).use { document ->
@@ -256,7 +256,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ImageIO.write(
                         image,
                         "png",
-                        File(proofDir, "classic-production-base-pass1-page-${index + 1}.png"),
+                        File(proofDir, "fantasy-production-base-pass1-page-${index + 1}.png"),
                     ),
                 )
             }
@@ -345,7 +345,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             extendedPlan.mandatoryExtendedPages,
         )
 
-        val extendedPdf = File(proofDir, "classic-production-custom-stats-pass2.pdf")
+        val extendedPdf = File(proofDir, "fantasy-production-custom-stats-pass2.pdf")
         extendedPdf.outputStream().use { renderer.renderDraft(extendedPlan, it) }
 
         Loader.loadPDF(extendedPdf).use { document ->
@@ -368,7 +368,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                         "png",
                         File(
                             proofDir,
-                            "classic-production-custom-stats-pass2-page-${index + 1}.png",
+                            "fantasy-production-custom-stats-pass2-page-${index + 1}.png",
                         ),
                     ),
                 )
@@ -480,7 +480,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             sources = PcSheetExportSources(permanent = traitsAggregate),
         )
-        val traitsPdf = File(proofDir, "classic-production-traits-pass3.pdf")
+        val traitsPdf = File(proofDir, "fantasy-production-traits-pass3.pdf")
         traitsPdf.outputStream().use { renderer.renderDraft(traitsPlan, it) }
 
         Loader.loadPDF(traitsPdf).use { document ->
@@ -499,7 +499,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ImageIO.write(
                         image,
                         "png",
-                        File(proofDir, "classic-production-traits-pass3-page-${index + 1}.png"),
+                        File(proofDir, "fantasy-production-traits-pass3-page-${index + 1}.png"),
                     ),
                 )
             }
@@ -597,7 +597,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             sources = PcSheetExportSources(permanent = resourcesAggregate),
         )
-        val resourcesPdf = File(proofDir, "classic-production-resources-pass4.pdf")
+        val resourcesPdf = File(proofDir, "fantasy-production-resources-pass4.pdf")
         resourcesPdf.outputStream().use { renderer.renderDraft(resourcesPlan, it) }
 
         Loader.loadPDF(resourcesPdf).use { document ->
@@ -617,7 +617,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ImageIO.write(
                         image,
                         "png",
-                        File(proofDir, "classic-production-resources-pass4-page-${index + 1}.png"),
+                        File(proofDir, "fantasy-production-resources-pass4-page-${index + 1}.png"),
                     ),
                 )
             }
@@ -679,7 +679,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             sources = PcSheetExportSources(permanent = inventoryAggregate),
         )
-        val inventoryPdf = File(proofDir, "classic-production-inventory-pass5.pdf")
+        val inventoryPdf = File(proofDir, "fantasy-production-inventory-pass5.pdf")
         inventoryPdf.outputStream().use { renderer.renderDraft(inventoryPlan, it) }
 
         Loader.loadPDF(inventoryPdf).use { document ->
@@ -711,7 +711,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ImageIO.write(
                         image,
                         "png",
-                        File(proofDir, "classic-production-inventory-pass5-page-${index + 1}.png"),
+                        File(proofDir, "fantasy-production-inventory-pass5-page-${index + 1}.png"),
                     ),
                 )
             }
@@ -747,7 +747,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             sources = PcSheetExportSources(permanent = spellAggregate),
         )
-        val spellPdf = File(proofDir, "classic-production-spells-pass6.pdf")
+        val spellPdf = File(proofDir, "fantasy-production-spells-pass6.pdf")
         spellPdf.outputStream().use { renderer.renderDraft(spellPlan, it) }
 
         Loader.loadPDF(spellPdf).use { document ->
@@ -779,7 +779,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ImageIO.write(
                         image,
                         "png",
-                        File(proofDir, "classic-production-spells-pass6-page-${index + 1}.png"),
+                        File(proofDir, "fantasy-production-spells-pass6-page-${index + 1}.png"),
                     ),
                 )
             }
@@ -807,7 +807,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             sources = PcSheetExportSources(permanent = notesAggregate),
         )
-        val notesPdf = File(proofDir, "classic-production-notes-pass7.pdf")
+        val notesPdf = File(proofDir, "fantasy-production-notes-pass7.pdf")
         notesPdf.outputStream().use { renderer.renderDraft(notesPlan, it) }
 
         Loader.loadPDF(notesPdf).use { document ->
@@ -838,7 +838,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ImageIO.write(
                         image,
                         "png",
-                        File(proofDir, "classic-production-notes-pass7-page-${index + 1}.png"),
+                        File(proofDir, "fantasy-production-notes-pass7-page-${index + 1}.png"),
                     ),
                 )
             }
@@ -1215,7 +1215,7 @@ class DesktopPcSheetWholeDraftRendererTest {
     @Test
     fun classicAppModifiedKeepsPortraitOnAspectPageAfterInsertedStatisticsPage() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
-        val portraitRef = "portrait://app-modified-classic"
+        val portraitRef = "portrait://app-modified-fantasy"
         val portraitBytes = ByteArrayOutputStream().use { buffer ->
             val image = BufferedImage(480, 320, BufferedImage.TYPE_INT_RGB)
             val graphics = image.createGraphics()
@@ -1247,7 +1247,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
         )
 
-        val pdf = File(proofDir, "owner-review-app-modified-classic-with-portrait.pdf")
+        val pdf = File(proofDir, "owner-review-app-modified-fantasy-with-portrait.pdf")
         pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
         Loader.loadPDF(pdf).use { document ->
@@ -1276,7 +1276,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 ImageIO.write(
                     pdfRenderer.renderImageWithDPI(aspectPageIndex, 180f, ImageType.RGB),
                     "png",
-                    File(proofDir, "owner-review-app-modified-classic-with-portrait-aspect.png"),
+                    File(proofDir, "owner-review-app-modified-fantasy-with-portrait-aspect.png"),
                 ),
             )
         }
@@ -1398,7 +1398,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             sources = PcSheetExportSources(permanent = aggregate),
         )
-        val pdf = File(proofDir, "classic-canonical-overflow-audit.pdf")
+        val pdf = File(proofDir, "fantasy-canonical-overflow-audit.pdf")
         pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
         Loader.loadPDF(pdf).use { document ->
@@ -2407,7 +2407,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             ),
             sources = PcSheetExportSources(permanent = classicPermanent),
         )
-        val classicPermanentPdf = File(proofDir, "classic-permanent-slot-baseline.pdf")
+        val classicPermanentPdf = File(proofDir, "fantasy-permanent-slot-baseline.pdf")
         classicPermanentPdf.outputStream().use { renderer.renderDraft(classicPermanentPlan, it) }
 
         val classicPlan = PcSheetPdfExportPlanner.plan(
@@ -2420,7 +2420,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 currentSnapshot = classicCurrent,
             ),
         )
-        val classicPdf = File(proofDir, "classic-current-snapshot-semantics.pdf")
+        val classicPdf = File(proofDir, "fantasy-current-snapshot-semantics.pdf")
         classicPdf.outputStream().use { renderer.renderDraft(classicPlan, it) }
 
         Loader.loadPDF(classicPdf).use { document ->
@@ -3023,7 +3023,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         val renderer = DesktopPcSheetWholeDraftRenderer()
         val aggregate = denseDraftAggregateWithCustomStatistics()
         val families = listOf(
-            PcSheetVisualFamily.CLASSIC_DND_STYLE to "classic",
+            PcSheetVisualFamily.CLASSIC_DND_STYLE to "fantasy",
             PcSheetVisualFamily.CUSTOM_V1 to "custom-v1",
             PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-attribute",
             PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-ability",
@@ -3119,7 +3119,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         val renderer = DesktopPcSheetWholeDraftRenderer()
         val aggregate = denseDraftAggregateWithOverflowContinuations()
         val families = listOf(
-            PcSheetVisualFamily.CLASSIC_DND_STYLE to "classic",
+            PcSheetVisualFamily.CLASSIC_DND_STYLE to "fantasy",
             PcSheetVisualFamily.CUSTOM_V1 to "custom-v1",
             PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-attribute",
             PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-ability",
@@ -3168,6 +3168,184 @@ class DesktopPcSheetWholeDraftRendererTest {
             }
         }
     }
+
+    @Test
+    fun auditsOwnerFacingXYLayerOrderAndTerminologyBeforeProofPromotion() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithOverflowContinuations()
+        val report = mutableListOf(
+            "family\tlabel\tpage\tcenter_x\tmin_y\tmax_y\texpected_center_x\texpected_y_min\texpected_y_max\tstatus",
+        )
+
+        val families = listOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE to "fantasy",
+            PcSheetVisualFamily.CUSTOM_V1 to "custom-v1",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-attribute",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-ability",
+        )
+
+        families.forEach { (family, slug) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+            val pdf = File(proofDir, "preprint-xy-audit-$slug.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+            Loader.loadPDF(pdf).use { document ->
+                val allText = PDFTextStripper().getText(document)
+                assertFalse(
+                    allText.contains("Especie", ignoreCase = true),
+                    "TERM-001 regression in $slug: user-facing output must use Raza, never Especie.",
+                )
+
+                val layerNames = document.documentCatalog.ocProperties
+                    ?.getGroupNames()
+                    ?.toList()
+                    .orEmpty()
+                val semanticPrefixes = layerNames
+                    .mapNotNull { name ->
+                        val role = listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS")
+                            .firstOrNull { name.endsWith(" - $it") }
+                        role?.let { name.removeSuffix(" - $it") }
+                    }
+                    .distinct()
+                    .filter { it.startsWith("V1X ") || it.startsWith("V2X ") }
+                semanticPrefixes.forEach { prefix ->
+                    assertSemanticLayerOrder(layerNames, prefix)
+                }
+
+                fun audit(
+                    label: String,
+                    expectedCenterX: Float,
+                    expectedYMin: Float,
+                    expectedYMax: Float,
+                    centerTolerance: Float = 4f,
+                    yTolerance: Float = 3f,
+                ) {
+                    val located = locateTextBounds(document, label)
+                    val centerX = (located.bounds.minX + located.bounds.maxX) / 2f
+                    val xOk = kotlin.math.abs(centerX - expectedCenterX) <= centerTolerance
+                    val yOk = located.bounds.minY >= expectedYMin - yTolerance &&
+                        located.bounds.maxY <= expectedYMax + yTolerance
+                    report += listOf(
+                        slug,
+                        label,
+                        (located.pageIndex + 1).toString(),
+                        "%.2f".format(java.util.Locale.ROOT, centerX),
+                        "%.2f".format(java.util.Locale.ROOT, located.bounds.minY),
+                        "%.2f".format(java.util.Locale.ROOT, located.bounds.maxY),
+                        "%.2f".format(java.util.Locale.ROOT, expectedCenterX),
+                        "%.2f".format(java.util.Locale.ROOT, expectedYMin),
+                        "%.2f".format(java.util.Locale.ROOT, expectedYMax),
+                        if (xOk && yOk) "PASS" else "FAIL",
+                    ).joinToString("\t")
+                    assertTrue(
+                        xOk && yOk,
+                        "XY-001 $slug '$label' measured centerX=$centerX y=" +
+                            "${located.bounds.minY}..${located.bounds.maxY}; expected centerX=" +
+                            "$expectedCenterX +/- $centerTolerance, y=$expectedYMin..$expectedYMax.",
+                    )
+                }
+
+                when (family) {
+                    PcSheetVisualFamily.CLASSIC_DND_STYLE -> {
+                        audit("HISTORIA Y PERSONALIDAD", 137f, 434f, 458f)
+                        audit("IDIOMAS", 342f, 578f, 602f)
+                        audit("ALIADOS Y TESORO", 510f, 578f, 602f)
+                        audit("RASGOS DE RAZA / TRASFONDO / OTROS", 450f, 110f, 136f)
+                        audit("NOTAS DE CAMPAÑA", 204f, 110f, 136f)
+                        audit("REFERENCIAS Y RECORDATORIOS", 493f, 416f, 442f)
+                    }
+
+                    PcSheetVisualFamily.CUSTOM_V1 -> {
+                        // Frozen source page places this heading at center x ~= 306 and y ~= 467..488.
+                        audit("Equipo Especial", 306f, 466f, 490f, centerTolerance = 3f)
+                    }
+
+                    PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                    PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+                    -> {
+                        audit("RASGOS Y ATRIBUTOS", 362f, 26f, 56f)
+                        audit("CLASE / DOTES", 152.5f, 97f, 119f)
+                        audit("RAZA / TRASFONDO / OTROS", 452.5f, 97f, 119f)
+                        audit("EQUIPO ESPECIAL", 306f, 487f, 511f)
+                    }
+                }
+            }
+        }
+
+        File(proofDir, "pc-sheet-preprint-xy-audit.tsv").writeText(
+            report.joinToString(System.lineSeparator()) + System.lineSeparator(),
+        )
+    }
+
+    private fun assertSemanticLayerOrder(layerNames: List<String>, prefix: String) {
+        val roles = listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS")
+        val indices = roles.map { role ->
+            layerNames.indexOf("$prefix - $role").also { index ->
+                assertTrue(index >= 0, "ARCH-001 missing semantic layer $prefix - $role")
+            }
+        }
+        assertEquals(
+            indices.sorted(),
+            indices,
+            "ARCH-001 semantic layer order drift for $prefix: $indices",
+        )
+    }
+
+    private fun locateTextBounds(document: PDDocument, label: String): LocatedTextBounds {
+        val needle = normalizeAuditLabel(label)
+        repeat(document.numberOfPages) { pageIndex ->
+            var found: TextBounds? = null
+            object : PDFTextStripper() {
+                init {
+                    startPage = pageIndex + 1
+                    endPage = pageIndex + 1
+                    sortByPosition = true
+                }
+
+                override fun writeString(text: String, textPositions: MutableList<TextPosition>) {
+                    if (
+                        found == null &&
+                        needle.isNotEmpty() &&
+                        normalizeAuditLabel(text).contains(needle) &&
+                        textPositions.isNotEmpty()
+                    ) {
+                        found = TextBounds(
+                            minX = textPositions.minOf { it.xDirAdj },
+                            minY = textPositions.minOf { it.yDirAdj - it.heightDir },
+                            maxX = textPositions.maxOf { it.xDirAdj + it.widthDirAdj },
+                            maxY = textPositions.maxOf { it.yDirAdj },
+                        )
+                    }
+                    super.writeString(text, textPositions)
+                }
+            }.getText(document)
+            found?.let { return LocatedTextBounds(pageIndex, it) }
+        }
+        error("XY-001 label not found in rendered PDF: $label")
+    }
+
+    private fun normalizeAuditLabel(value: String): String =
+        value.uppercase()
+            .replace(Regex("[^A-ZÁÉÍÓÚÜÑ0-9]+"), "")
+
+    private data class TextBounds(
+        val minX: Float,
+        val minY: Float,
+        val maxX: Float,
+        val maxY: Float,
+    )
+
+    private data class LocatedTextBounds(
+        val pageIndex: Int,
+        val bounds: TextBounds,
+    )
 
     private fun footerCueY(document: PDDocument, pageIndex: Int): Float? {
         var result: Float? = null
