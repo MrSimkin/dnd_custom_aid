@@ -2602,10 +2602,14 @@ private fun ruledTextArea(
 
         var rowIndex = 0
         content
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .forEach { entry ->
-                var remaining = entry
+            .flatMap { entry ->
+                entry.replace("\r\n", "\n")
+                    .split("\n")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+            }
+            .forEach { physicalLine ->
+                var remaining = physicalLine
                 while (remaining.isNotBlank() && rowIndex < physicalRows) {
                     val rowTop = top + rowIndex * lineGap
                     val result = p.drawTextBox(
@@ -2630,7 +2634,7 @@ private fun ruledTextArea(
                     rowIndex += 1
                 }
                 if (remaining.isNotBlank()) {
-                    overflowDiagnostics += "ruled-area value='${entry}' overflow='${remaining}'"
+                    overflowDiagnostics += "ruled-area value='${physicalLine}' overflow='${remaining}'"
                 }
             }
     }

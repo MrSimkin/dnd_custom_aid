@@ -179,7 +179,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X ATTR" else "V2X ATTR ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s)
+            pageHeaderStructure(s, resources.forms[2])
             val columns = listOf(14f, 207f, 400f)
             columns.forEach { x ->
                 fill(s, x, 104f, 184f, 244f, SOURCE_GRAY_LIGHT)
@@ -355,7 +355,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X ABILITY" else "V2X ABILITY ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s)
+            pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 104f, 174f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 202f, 104f, 150f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 366f, 104f, 232f, 30f, SOURCE_GRAY_LIGHT)
@@ -518,7 +518,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X TRAITS" else "V2X TRAITS ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s)
+            pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 96f, 277f, 24f, SOURCE_GRAY_LIGHT)
             fill(s, 307f, 96f, 291f, 24f, SOURCE_GRAY_LIGHT)
             // 36 rules are required here: the lower continuation region uses eight physical
@@ -1025,7 +1025,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X RESOURCES" else "V2X RESOURCES ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s)
+            pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
             bandedRows(s, 14f, 598f, 150f, RESOURCE_ROWS_PER_PAGE, 17f, 0)
             listOf(222f, 352f, 475f).forEach { x -> verticalRule(s, x, 120f, 303f, 0.45f) }
@@ -1216,7 +1216,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            pageHeaderStructure(s)
+            pageHeaderStructure(s, resources.forms[2])
             fill(s, 14f, 96f, 411f, 22f, SOURCE_GRAY_LIGHT)
             fill(s, 431f, 96f, 167f, 22f, SOURCE_GRAY_LIGHT)
 
@@ -1749,8 +1749,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         layers.appendFormAsLayer(page, form, AffineTransform(), name)
     }
 
-    private fun pageHeaderStructure(s: PDFormContentStream) {
-        s.drawImage(resources.logo, 14f, H - 16f - 60f, 105f, 60f)
+    private fun pageHeaderStructure(s: PDFormContentStream, logoSource: PDFormXObject) {
+        drawSourceCrop(s, logoSource, 14f, 16f, 105f, 60f)
         drawRule(s, 126f, 598f, 79f, 0.6f)
     }
 
@@ -2232,7 +2232,6 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private data class Resources(
         val forms: List<PDFormXObject>,
-        val logo: PDImageXObject,
         val attributeOrnament: PDImageXObject,
         val corbel: PDFont,
         val corbelBold: PDFont,
@@ -2256,7 +2255,6 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 return Resources(
                     forms = forms,
-                    logo = buildCleanLogoImage(doc, source),
                     attributeOrnament = buildTransparentAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
@@ -2294,32 +2292,6 @@ internal class DesktopCustomV2ExtendedRenderer(
                     scan(form.resources)?.let { return it }
                 }
                 error("Requested imported source font not found.")
-            }
-
-                        private fun buildCleanLogoImage(
-                doc: PDDocument,
-                source: PDDocument,
-            ): PDImageXObject {
-                val dpi = 288f
-                val scale = dpi / 72f
-                val sourceImage = PDFRenderer(source).renderImageWithDPI(2, dpi, ImageType.RGB)
-                val x0 = (14f * scale).roundToInt()
-                val y0 = (16f * scale).roundToInt()
-                val width = (105f * scale).roundToInt()
-                val height = (60f * scale).roundToInt()
-                val cropped = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-                val graphics = cropped.createGraphics()
-                try {
-                    graphics.drawImage(
-                        sourceImage,
-                        0, 0, width, height,
-                        x0, y0, x0 + width, y0 + height,
-                        null,
-                    )
-                } finally {
-                    graphics.dispose()
-                }
-                return LosslessFactory.createFromImage(doc, cropped)
             }
 
             private fun buildTransparentAttributeOrnament(
