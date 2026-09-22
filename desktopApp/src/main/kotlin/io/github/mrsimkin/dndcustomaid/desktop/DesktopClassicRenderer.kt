@@ -1685,7 +1685,7 @@ internal class DesktopClassicRenderer {
             )
 
             val alliesAndTreasure = buildList {
-                sheet.companions.sortedBy { it.sortOrder }.take(1).forEach { companion ->
+                sheet.companions.sortedBy { it.sortOrder }.take(BASE_COMPANION_CAPACITY).forEach { companion ->
                     add(
                         companion.name +
                             companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
@@ -2925,6 +2925,7 @@ internal class DesktopClassicRenderer {
         const val BASE_EQUIPMENT_CAPACITY = 7
         const val BASE_ADDITIONAL_TRAIT_CAPACITY = 2
         const val BASE_LANGUAGE_CAPACITY = 4
+        const val BASE_COMPANION_CAPACITY = 1
         const val CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE = 3
         const val CLASSIC_CUSTOM_SKILLS_PER_ATTRIBUTE_PANEL = 4
         const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
