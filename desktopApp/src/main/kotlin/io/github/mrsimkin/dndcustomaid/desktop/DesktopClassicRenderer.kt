@@ -2952,7 +2952,7 @@ internal class DesktopClassicRenderer {
         const val CLASSIC_BASE_INVENTORY_NAME_CHARS = 30
         const val CLASSIC_BASE_INVENTORY_NOTE_CHARS = 24
         const val CLASSIC_INVENTORY_ROW_NAME_CHARS = 34
-        const val CLASSIC_INVENTORY_ROW_STATE_CHARS = 22
+        const val CLASSIC_INVENTORY_ROW_STATE_CHARS = 26
         const val CLASSIC_INVENTORY_ROW_NOTE_CHARS = 26
         const val CLASSIC_INVENTORY_NOTE_CHARS = 50
         const val CLASSIC_INVENTORY_NOTE_LINES = 2
