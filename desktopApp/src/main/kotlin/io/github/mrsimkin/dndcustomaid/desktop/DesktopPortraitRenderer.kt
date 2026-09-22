@@ -68,9 +68,7 @@ internal class DesktopPortraitRenderer(
             rect = rectFromTop(457f, 31f, 128f, 131f),
         )
 
-        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
-        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
-        -> {
+        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> {
             val polygonTopCoordinates = listOf(
                 TopPoint(222f, 29f),
                 TopPoint(310f, 29f),
@@ -84,6 +82,28 @@ internal class DesktopPortraitRenderer(
             PortraitTarget(
                 pageIndex = 0,
                 rect = rectFromTop(184f, 29f, 163f, 87f),
+                clipPolygon = polygonTopCoordinates.map(::toPdfPoint),
+            )
+        }
+
+        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> {
+            // Source page 2 intentionally has a taller portrait field than page 1. Its handwritten
+            // name banner begins near top=177 pt, so keep the image inside the field above it.
+            val polygonTopCoordinates = listOf(
+                TopPoint(222f, 29f),
+                TopPoint(310f, 29f),
+                TopPoint(321f, 36f),
+                TopPoint(347f, 111f),
+                TopPoint(338f, 151f),
+                TopPoint(326f, 165f),
+                TopPoint(204f, 165f),
+                TopPoint(192f, 151f),
+                TopPoint(184f, 111f),
+                TopPoint(210f, 36f),
+            )
+            PortraitTarget(
+                pageIndex = 0,
+                rect = rectFromTop(184f, 29f, 163f, 136f),
                 clipPolygon = polygonTopCoordinates.map(::toPdfPoint),
             )
         }
