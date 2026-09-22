@@ -2288,7 +2288,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_COMBAT_CAPACITY = 8
-        const val BASE_V2_EQUIPMENT_CAPACITY = 23
+        const val BASE_V2_EQUIPMENT_CAPACITY = 46
         val BASE_V2_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc")
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_CONTINUATION_CAPACITY = 57

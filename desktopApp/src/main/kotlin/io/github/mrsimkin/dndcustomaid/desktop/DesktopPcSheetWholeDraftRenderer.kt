@@ -136,7 +136,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
             Loader.loadPDF(templateBytes).use { sourceTemplate ->
                 PDDocument().use { draft ->
                     draft.importPage(mainProof.getPage(0))
-                    val primitives = DesktopPdfRenderingPrimitives(DesktopPdfFontRegistry(draft))
+                    val sharedBase = DesktopCustomV2SharedBaseRenderer(draft, resourceLoader)
 
                     plan.basePages.drop(1).forEach { pagePlan ->
                         val sourcePageNumber = requireNotNull(pagePlan.sourcePageNumber)
@@ -145,14 +145,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                             "Template page $sourcePageNumber does not exist in $templatePath."
                         }
                         val page = draft.importPage(sourceTemplate.getPage(sourceIndex))
-                        PDPageContentStream(draft, page, AppendMode.APPEND, true, true).use { stream ->
-                            drawBasePage(
-                                stream = stream,
-                                primitives = primitives,
-                                role = pagePlan.role,
-                                plan = plan,
-                            )
-                        }
+                        sharedBase.render(page, pagePlan.role, plan)
                     }
 
                     DesktopCustomV2ExtendedRenderer(
