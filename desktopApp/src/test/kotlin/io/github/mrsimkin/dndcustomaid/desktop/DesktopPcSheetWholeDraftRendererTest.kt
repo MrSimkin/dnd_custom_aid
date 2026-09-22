@@ -245,6 +245,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertFalse(extracted.contains("Sabio de Liria"))
             assertFalse(extracted.contains("Tradición de Adivinación"))
             assertFalse(extracted.contains("Cabello negro"))
+            assertFalse(extracted.contains("CONTINÚA EN EXTENSIÓN"))
 
             val pdfRenderer = PDFRenderer(document)
             repeat(document.numberOfPages) { index ->
@@ -1211,6 +1212,92 @@ class DesktopPcSheetWholeDraftRendererTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun classicAppModifiedKeepsPortraitOnAspectPageAfterInsertedStatisticsPage() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val portraitRef = "portrait://app-modified-classic"
+        val portraitBytes = ByteArrayOutputStream().use { buffer ->
+            val image = BufferedImage(480, 320, BufferedImage.TYPE_INT_RGB)
+            val graphics = image.createGraphics()
+            graphics.color = Color(72, 112, 188)
+            graphics.fillRect(0, 0, image.width, image.height)
+            graphics.color = Color(235, 215, 120)
+            graphics.fillOval(125, 45, 230, 230)
+            graphics.dispose()
+            assertTrue(ImageIO.write(image, "png", buffer))
+            buffer.toByteArray()
+        }
+        val renderer = DesktopPcSheetWholeDraftRenderer(
+            portraitBytesLoader = { ref -> portraitBytes.takeIf { ref == portraitRef } },
+        )
+        val base = denseDraftAggregateWithCustomStatistics()
+        val aggregate = base.copy(
+            closure = base.closure.copy(portraitRef = portraitRef),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+                customStatisticsPresentation = PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET,
+                portraitFitMode = PcSheetPortraitFitMode.CROP_TO_FILL,
+            ),
+            sources = PcSheetExportSources(
+                permanent = aggregate,
+                locallyAvailablePortraitRefs = setOf(portraitRef),
+            ),
+        )
+
+        val pdf = File(proofDir, "owner-review-app-modified-classic-with-portrait.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            assertTrue(document.numberOfPages > plan.basePages.size)
+            val pageTexts = (1..document.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(document)
+            }
+            val aspectPageIndex = pageTexts.indexOfFirst { it.contains("ASPECTO", ignoreCase = true) }
+            assertTrue(aspectPageIndex >= 2, "Inserted App Modified statistics page must precede Classic ASPECTO.")
+            assertTrue(pageTexts[1].contains("HOJA MODIFICADA", ignoreCase = true))
+
+            val pdfRenderer = PDFRenderer(document)
+            val modifiedImage = pdfRenderer.renderImageWithDPI(1, 96f, ImageType.RGB)
+            val aspectImage = pdfRenderer.renderImageWithDPI(aspectPageIndex, 96f, ImageType.RGB)
+            val modifiedBluePixels = countPortraitBluePixels(modifiedImage)
+            val aspectBluePixels = countPortraitBluePixels(aspectImage)
+            assertTrue(
+                aspectBluePixels > modifiedBluePixels * 4 + 100,
+                "Classic portrait ink must remain on the ASPECTO page after App Modified insertion.",
+            )
+
+            assertTrue(
+                ImageIO.write(
+                    pdfRenderer.renderImageWithDPI(aspectPageIndex, 180f, ImageType.RGB),
+                    "png",
+                    File(proofDir, "owner-review-app-modified-classic-with-portrait-aspect.png"),
+                ),
+            )
+        }
+    }
+
+    private fun countPortraitBluePixels(image: BufferedImage): Int {
+        var count = 0
+        for (y in 0 until image.height) {
+            for (x in 0 until image.width) {
+                val rgb = image.getRGB(x, y)
+                val red = rgb shr 16 and 0xFF
+                val green = rgb shr 8 and 0xFF
+                val blue = rgb and 0xFF
+                if (blue > 135 && blue > red + 35 && blue > green + 10) {
+                    count += 1
+                }
+            }
+        }
+        return count
     }
 
     @Test

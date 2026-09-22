@@ -7,6 +7,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
+import org.apache.pdfbox.text.PDFTextStripper
 
 /**
  * Platform-owned portrait byte -> PDF overlay boundary.
@@ -25,7 +26,13 @@ internal class DesktopPortraitRenderer(
         plan: PcSheetPdfRenderPlan,
         bytes: ByteArray,
     ): Boolean {
-        val target = targetFor(plan.request.visualFamily)
+        val target = targetFor(plan.request.visualFamily).let { staticTarget ->
+            if (plan.request.visualFamily == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+                staticTarget.copy(pageIndex = classicPortraitPageIndex())
+            } else {
+                staticTarget
+            }
+        }
         if (target.pageIndex !in 0 until document.numberOfPages) return false
 
         val image = runCatching {
@@ -55,6 +62,19 @@ internal class DesktopPortraitRenderer(
             stream.restoreGraphicsState()
         }
         return true
+    }
+
+    private fun classicPortraitPageIndex(): Int {
+        for (pageIndex in 0 until document.numberOfPages) {
+            val text = PDFTextStripper().apply {
+                startPage = pageIndex + 1
+                endPage = pageIndex + 1
+            }.getText(document)
+            if (text.contains("ASPECTO", ignoreCase = true)) {
+                return pageIndex
+            }
+        }
+        return 1
     }
 
     private fun targetFor(family: PcSheetVisualFamily): PortraitTarget = when (family) {
