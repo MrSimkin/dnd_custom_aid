@@ -62,9 +62,13 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
@@ -1012,6 +1016,169 @@ class DesktopPcSheetWholeDraftRendererTest {
                         baselinePixels.contentEquals(appendedPixels),
                         "Spellbook append must not alter already-rendered sheet pages.",
                     )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun overlaysLocallyResolvedPortraitBytesAcrossFamiliesWithCropAndFit() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val portraitRef = "portrait://local-pdf-proof"
+        val portraitBytes = ByteArrayOutputStream().use { buffer ->
+            val image = BufferedImage(720, 180, BufferedImage.TYPE_INT_RGB)
+            val graphics = image.createGraphics()
+            graphics.color = Color(220, 55, 55)
+            graphics.fillRect(0, 0, 240, 180)
+            graphics.color = Color(55, 150, 75)
+            graphics.fillRect(240, 0, 240, 180)
+            graphics.color = Color(45, 80, 205)
+            graphics.fillRect(480, 0, 240, 180)
+            graphics.dispose()
+            assertTrue(ImageIO.write(image, "png", buffer))
+            buffer.toByteArray()
+        }
+        val renderer = DesktopPcSheetWholeDraftRenderer(
+            portraitBytesLoader = { ref -> portraitBytes.takeIf { ref == portraitRef } },
+        )
+        val dense = denseDraftAggregate()
+        val aggregate = dense.copy(
+            sheet = dense.sheet.copy(
+                traits = dense.sheet.traits.take(4),
+                combatEntries = dense.sheet.combatEntries.take(4),
+                inventoryItems = dense.sheet.inventoryItems.take(4),
+                proficiencies = dense.sheet.proficiencies.take(3),
+                weaponMasteries = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                forms = emptyList(),
+                companions = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+                spells = dense.sheet.spells.take(4),
+            ),
+            closure = dense.closure.copy(
+                portraitRef = portraitRef,
+                exhaustionLevel = 0,
+                concentration = null,
+                conditions = emptyList(),
+                defenses = emptyList(),
+                movements = emptyList(),
+                senses = emptyList(),
+                resourceRecovery = emptyList(),
+                inventoryUsage = emptyList(),
+                customSkills = emptyList(),
+                temporaryEffects = emptyList(),
+            ),
+            successor = dense.successor.copy(
+                customAttributes = emptyList(),
+                customSkillAbilities = emptyList(),
+                combatDamage = emptyList(),
+                customMarkers = emptyList(),
+                resourceConfigurations = emptyList(),
+            ),
+        )
+
+        fun plan(
+            family: PcSheetVisualFamily,
+            mode: PcSheetPortraitFitMode,
+            available: Boolean,
+        ) = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = family,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+                portraitFitMode = mode,
+            ),
+            sources = PcSheetExportSources(
+                permanent = aggregate,
+                locallyAvailablePortraitRefs = if (available) setOf(portraitRef) else emptySet(),
+            ),
+        )
+
+        val families = listOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE,
+            PcSheetVisualFamily.CUSTOM_V1,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+        families.forEach { family ->
+            val slug = family.name.lowercase()
+            val baselinePdf = File(proofDir, "portrait-$slug-baseline.pdf")
+            val cropPdf = File(proofDir, "portrait-$slug-crop.pdf")
+            val fitPdf = File(proofDir, "portrait-$slug-fit.pdf")
+
+            baselinePdf.outputStream().use {
+                renderer.renderDraft(
+                    plan(family, PcSheetPortraitFitMode.CROP_TO_FILL, available = false),
+                    it,
+                )
+            }
+            cropPdf.outputStream().use {
+                renderer.renderDraft(
+                    plan(family, PcSheetPortraitFitMode.CROP_TO_FILL, available = true),
+                    it,
+                )
+            }
+            fitPdf.outputStream().use {
+                renderer.renderDraft(
+                    plan(family, PcSheetPortraitFitMode.FIT_ENTIRE_IMAGE, available = true),
+                    it,
+                )
+            }
+
+            Loader.loadPDF(baselinePdf).use { baselineDocument ->
+                Loader.loadPDF(cropPdf).use { cropDocument ->
+                    Loader.loadPDF(fitPdf).use { fitDocument ->
+                        assertEquals(baselineDocument.numberOfPages, cropDocument.numberOfPages)
+                        assertEquals(baselineDocument.numberOfPages, fitDocument.numberOfPages)
+
+                        val targetIndex = if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) 1 else 0
+                        val stableIndex = if (targetIndex == 0) 1 else 0
+                        val baselineRenderer = PDFRenderer(baselineDocument)
+                        val cropRenderer = PDFRenderer(cropDocument)
+                        val fitRenderer = PDFRenderer(fitDocument)
+
+                        fun pixels(pdfRenderer: PDFRenderer, pageIndex: Int): IntArray {
+                            val image = pdfRenderer.renderImageWithDPI(pageIndex, 72f, ImageType.RGB)
+                            return image.getRGB(0, 0, image.width, image.height, null, 0, image.width)
+                        }
+
+                        val baselineTarget = pixels(baselineRenderer, targetIndex)
+                        val cropTarget = pixels(cropRenderer, targetIndex)
+                        val fitTarget = pixels(fitRenderer, targetIndex)
+                        assertFalse(
+                            baselineTarget.contentEquals(cropTarget),
+                            "$family Crop portrait must change the portrait page.",
+                        )
+                        assertFalse(
+                            baselineTarget.contentEquals(fitTarget),
+                            "$family Fit portrait must change the portrait page.",
+                        )
+                        assertFalse(
+                            cropTarget.contentEquals(fitTarget),
+                            "$family Crop and Fit must produce different portrait placement.",
+                        )
+                        assertTrue(
+                            pixels(baselineRenderer, stableIndex)
+                                .contentEquals(pixels(cropRenderer, stableIndex)),
+                            "$family portrait overlay must not alter non-portrait pages.",
+                        )
+
+                        assertTrue(
+                            ImageIO.write(
+                                cropRenderer.renderImageWithDPI(targetIndex, 180f, ImageType.RGB),
+                                "png",
+                                File(proofDir, "portrait-$slug-crop.png"),
+                            ),
+                        )
+                        assertTrue(
+                            ImageIO.write(
+                                fitRenderer.renderImageWithDPI(targetIndex, 180f, ImageType.RGB),
+                                "png",
+                                File(proofDir, "portrait-$slug-fit.png"),
+                            ),
+                        )
+                    }
                 }
             }
         }
