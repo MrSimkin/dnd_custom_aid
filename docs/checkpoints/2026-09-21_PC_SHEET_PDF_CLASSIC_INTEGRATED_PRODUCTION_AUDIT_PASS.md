@@ -4,10 +4,10 @@
 **Branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
 **PR:** #85 — OPEN / DRAFT / DO NOT MERGE  
 **Owner-approved visual baseline:** `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`  
-**Audited production head:** `73d54276228490c81780a3cc9e1391ec40c8d4f1`  
-**Final Scaffold:** `35676860733` / run #3147 — SUCCESS  
-**Proof artifact:** `pc-sheet-populated-template-proofs` / artifact `10674036240`  
-**Artifact digest:** `sha256:1d65a33b8532d503dc6f241538106a54aedcbe7cab9d7bd0ef5c4f5376aaf211`
+**Audited production head:** `30ac4d073e9fab47a498f4e6dc3d9266c633110e`  
+**Final Scaffold:** `35677870304` / run #3151 — SUCCESS  
+**Proof artifact:** `pc-sheet-populated-template-proofs` / artifact `10674062891`  
+**Artifact digest:** `sha256:bdd261acc89033519b38922cb2cbc843b4fd938aae25c9b74a07c70beead004c`
 
 ## Purpose
 
@@ -44,7 +44,7 @@ The final semantic repair sequence also closed observed production gaps for:
 - long identity/background/trait/base text through bounded excerpts plus continuation;
 - inventory names/state and deterministic continuation pagination;
 - additional minimal companions beyond the single normal-page companion capacity;
-- Current Snapshot spell-slot expenditure using the existing Classic diamond-marker grammar;
+- spell-slot totals while deliberately leaving spent-slot markers empty for writable paper tracking, per the active renderer protocol;
 - carried-but-not-equipped inventory state (`Llevado`) through Inventory continuation.
 
 ## Integrated canonical / Current Snapshot audit
@@ -64,7 +64,7 @@ The audited Classic renderer preserves, where present and applicable:
 - active temporary effects;
 - structured combat damage;
 - additional spellcasting-source reference values;
-- spell-slot totals plus Current Snapshot spent-slot state;
+- spell-slot totals, with spent-slot marks intentionally omitted from generated ink so the player can track them on paper;
 - forms and companions, including additional minimal companions;
 - resources, custom markers and class options;
 - inventory usage/current-state semantics, including stored/carried state;
@@ -89,28 +89,28 @@ The long-canonical-content stress proof also verifies terminal markers for long 
 
 No tested canonical terminal row is silently dropped.
 
-## Frozen-base preservation / intentional semantic delta
+## Frozen-base preservation / writable spent-slot semantics
 
-The final production base artifact preserves the established Classic production geometry.
+The final production base artifact preserves the established Classic production geometry and the active paper-tracking semantic.
 
-Against the immediately preceding green production artifact before the spent-slot binding:
+Against the immediately preceding green production artifact before the erroneous spent-slot fill experiment, all three normal-page PNGs are byte-identical:
 
-- page 1 PNG is byte-identical — SHA-256 `a0e211b11b00fe4ad0779278d1f3558804e06aaad925d018b1606d53cd2def82`;
-- page 2 PNG is byte-identical — SHA-256 `b3c9ad4897753daabe1f20aa700f856fb37f0641cfc695f5a5da203057994b59`;
-- page 3 changes only in the existing spell-slot marker band — final SHA-256 `ac822ff2841e5fed42f7005c417d768c261a188cb7370c01d3a7657094a884f0`.
+- page 1 SHA-256: `a0e211b11b00fe4ad0779278d1f3558804e06aaad925d018b1606d53cd2def82`;
+- page 2 SHA-256: `b3c9ad4897753daabe1f20aa700f856fb37f0641cfc695f5a5da203057994b59`;
+- page 3 SHA-256: `200896f133a94be517a37739075391cb60bf3c3b680acfc3a43e48f0724593eb`.
 
-A matched Permanent-vs-Current Snapshot raster comparison changed only 97 pixels in the level-1 slot-marker area. The owner-approved Run-2 fixture used outline-only spell-slot diamonds and did not exercise spent-slot state, so the filled-diamond Current Snapshot binding is an intentional semantic completion within the frozen geometry, not a visual redesign.
+The active run protocol explicitly requires `ESPACIOS GASTADOS` to remain empty in generated sheets so those controls stay writable on paper. A matched Custom-v2 Permanent-vs-Current artifact comparison with different `spentSlots` produced 0 changed pixels on the spell page, and the Classic regression enforces the same semantic. Slot totals remain printable; spent-slot marks remain player-maintained paper state.
 
 ## Representative final proof hashes
 
-From artifact `10674036240`:
+From artifact `10674062891`:
 
 - `classic-production-base-pass1.pdf`  
-  SHA-256: `697307f178bc02804833b071fc7b9e5ae610d2038d64cae28437c23d12befff1`
+  SHA-256: `67b2156fe08583f44e4cef9654691eeb3b2d73f1c0dda231e8fd76ebae320d2f`
 - `classic-current-snapshot-semantics.pdf`  
-  SHA-256: `13e5cccdf83cada1d34ffa9afe8b06d25e1840664ef7693e9f7ce3ce26d3781c`
+  SHA-256: `69a006bfcc8e0bc2f1f4ee6d8aae3d48359031d22e307e7e7104eb9f8afa59ee`
 - `classic-canonical-overflow-audit.pdf`  
-  SHA-256: `31e31d8ac33cc4931cd897de79d3e20fa877fb03244f3b5fbafa528be7fdc21a`
+  SHA-256: `e1adc4c5bfb3ad374556c59e67c9e70f863646cd691406fc0b64709134f0d561`
 - `classic-production-custom-stats-pass2.pdf`  
   SHA-256: `4600320e9c69b367c052f57a83a5c1794b3b15589e7097fbf6e38c44b66166f6`
 - `classic-production-traits-pass3.pdf`  
@@ -136,7 +136,7 @@ Representative proofs were rendered and inspected after the final semantic repai
 - zero annotations in the inspected representatives;
 - text remains extractable; proofs are not scan-only PDFs.
 
-The affected Current Snapshot continuation pages were visually inspected after the final carried-state repair. The second companion and carried inventory state fit the approved layouts without material clipping, overlap, broken glyphs or reading-order failure.
+The affected Current Snapshot continuation pages were visually inspected after the final carried-state repair. The second companion and carried inventory state fit the approved layouts without material clipping, overlap, broken glyphs or reading-order failure. The final spent-slot correction restores outline/blank writable markers and does not alter the approved page geometry.
 
 ## Deliberately unresolved D-0074 gates
 

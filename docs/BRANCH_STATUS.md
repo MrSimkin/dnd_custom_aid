@@ -124,7 +124,7 @@ Current state:
 - Custom-v2 Extended Run 7 is owner-approved/frozen and its integrated production audit is PASS at `0295f30ca77214284902b0e13a563dcdaf58b501`;
 - canonical Custom Extended layered methodology is `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
-- Classic corrected Run 2 complete family is owner-approved/frozen and its integrated production audit is PASS at `73d54276228490c81780a3cc9e1391ec40c8d4f1` (Scaffold #3147 / `35676860733` SUCCESS; artifact `10674036240`);
+- Classic corrected Run 2 complete family is owner-approved/frozen and its integrated production audit is PASS at `30ac4d073e9fab47a498f4e6dc3d9266c633110e` (Scaffold #3151 / `35677870304` SUCCESS; artifact `10674062891`); spent-slot controls remain blank/writable per the active renderer protocol;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
 - Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
