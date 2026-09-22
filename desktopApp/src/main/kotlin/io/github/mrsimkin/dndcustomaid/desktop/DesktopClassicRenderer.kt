@@ -346,7 +346,7 @@ internal class DesktopClassicRenderer {
 
                 titledFrame(
                     s, p, 312f, 112f, 276f, 606f,
-                    "RASGOS DE ESPECIE / TRASFONDO / OTROS",
+                    "RASGOS DE RAZA / TRASFONDO / OTROS",
                 )
                 rightEntries
                     .drop(pageIndex * CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
@@ -402,7 +402,7 @@ internal class DesktopClassicRenderer {
         if (sheet.name.trim().length > CLASSIC_HEADER_NAME_CHARS) add("Nombre", sheet.name)
         if (backgroundName.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Trasfondo", backgroundName)
         if (classSummary.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Clases", classSummary)
-        if (speciesName.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Especie", speciesName)
+        if (speciesName.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Raza", speciesName)
         if (subclassSummary.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Subclases", subclassSummary)
 
         val narrative = listOf(background.name, background.summary, background.story)
@@ -446,7 +446,7 @@ internal class DesktopClassicRenderer {
             successor.subraceIdentity != null &&
             successor.speciesIdentity?.name?.isNotBlank() == true
         ) {
-            add("Especie", requireNotNull(successor.speciesIdentity).name)
+            add("Raza", requireNotNull(successor.speciesIdentity).name)
         }
         if (sheet.status != CharacterStatus.ACTIVE) {
             add("Estado", characterStatusLabel(sheet.status))
@@ -765,7 +765,7 @@ internal class DesktopClassicRenderer {
 
     private fun traitTypeLabel(type: CharacterTraitType): String = when (type) {
         CharacterTraitType.CLASS -> "Clase"
-        CharacterTraitType.SPECIES_RACE -> "Especie"
+        CharacterTraitType.SPECIES_RACE -> "Raza"
         CharacterTraitType.BACKGROUND -> "Trasfondo"
         CharacterTraitType.FEAT -> "Dote"
         CharacterTraitType.GIFT_BLESSING -> "Don / bendición"
@@ -1023,6 +1023,27 @@ internal class DesktopClassicRenderer {
         }
 
         val noteEntries = buildList {
+            ordered
+                .filter { it.id !in specialIds }
+                .forEach { item ->
+                    val state = inventoryState(item, usageByItem[item.id])
+                    val details = buildList {
+                        if (item.name.length > CLASSIC_INVENTORY_ROW_NAME_CHARS) {
+                            add("Nombre completo: " + item.name)
+                        }
+                        item.location?.trim()?.takeIf {
+                            it.isNotEmpty() && it.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS
+                        }?.let { add("Ubicación: " + it) }
+                        if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) {
+                            add("Estado: " + state)
+                        }
+                        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    }
+                    if (details.isNotEmpty()) {
+                        add(item.name + ": " + details.joinToString(" · "))
+                    }
+                }
             sheet.currencies
                 .filter { it.key.lowercase() !in CLASSIC_BASE_CURRENCY_KEYS }
                 .sortedBy { it.sortOrder }
@@ -1096,30 +1117,16 @@ private fun classicInventoryRows(
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
     ): List<InventoryRow> {
         val state = inventoryState(item, usage)
-        val detail = buildList {
-            if (item.name.length > CLASSIC_INVENTORY_ROW_NAME_CHARS) add("Nombre completo: " + item.name)
-            if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) add("Estado: " + state)
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        }.joinToString(" · ")
-        val chunks = wrapForChars(detail, CLASSIC_INVENTORY_ROW_NOTE_CHARS)
-            .ifEmpty { listOf("") }
-        return chunks.mapIndexed { index, note ->
+        val location = item.location?.trim().orEmpty()
+        return listOf(
             InventoryRow(
-                quantity = item.quantity.toString().takeIf { index == 0 }.orEmpty(),
-                name = classicSingleLineExcerpt(
-                    item.name.takeIf { index == 0 }.orEmpty(),
-                    CLASSIC_INVENTORY_ROW_NAME_CHARS,
-                ),
-                weight = item.weightLb?.let(::formatWeight).takeIf { index == 0 }.orEmpty(),
-                state = classicSingleLineExcerpt(
-                    state.takeIf { index == 0 }.orEmpty(),
-                    CLASSIC_INVENTORY_ROW_STATE_CHARS,
-                ),
-                notes = note,
-            )
-        }
+                quantity = item.quantity.toString(),
+                name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
+                weight = item.weightLb?.let(::formatWeight).orEmpty(),
+                state = classicSingleLineExcerpt(state, CLASSIC_INVENTORY_ROW_STATE_CHARS),
+                notes = classicSingleLineExcerpt(location, CLASSIC_INVENTORY_ROW_NOTE_CHARS),
+            ),
+        )
     }
 
     private fun inventoryState(
@@ -1382,7 +1389,7 @@ private fun appendSpellContinuationPages(
                 details = listOf(
                     "TRASFONDO" to backgroundName,
                     "CLASE" to classSummary,
-                    "ESPECIE" to speciesName,
+                    "RAZA" to speciesName,
                     "SUBCLASE" to subclassSummary,
                 ),
                 level = sheet.totalLevel.toString(),
@@ -1505,7 +1512,7 @@ private fun appendSpellContinuationPages(
                 8.4f,
             )
 
-            titledFrame(s, p, rightX, 606f, 154f, 112f, "ATRIBUTOS DE ESPECIE")
+            titledFrame(s, p, rightX, 606f, 154f, 112f, "ATRIBUTOS DE RAZA")
             speciesTraits.take(BASE_SPECIES_TRAIT_CAPACITY).forEachIndexed { index, trait ->
                 val rowTop = 636f + index * 22f
                 text(
@@ -1551,60 +1558,41 @@ private fun appendSpellContinuationPages(
             ruledBackground(s, 34f, 346f, 206f, 66f, firstRuleOffset = 28f, lineGap = 22f)
 
             titledFrame(s, p, 24f, 436f, 226f, 282f, "HISTORIA Y PERSONALIDAD")
-            ruledBackground(s, 34f, 468f, 206f, 238f, firstRuleOffset = 32f, lineGap = 22f)
-            text(
-                s, p, 36f, 468f, 202f, 54f,
+            val historyAndPersonality = listOf(
                 classicBaseExcerpt(
                     listOf(background.name, background.summary, background.story)
                         .filter { it.isNotBlank() }.joinToString(" · "),
                     CLASSIC_BACKGROUND_NARRATIVE_CHARS,
                     CLASSIC_BACKGROUND_NARRATIVE_LINES,
                 ),
-                PdfTypographyRole.NOTE_TEXT, 7.7f, 7f, wrap = true, maxLines = 3,
-                vertical = PdfVerticalAlignment.TOP,
-            )
-            text(
-                s, p, 36f, 544f, 202f, 30f,
                 classicBaseExcerpt(
                     background.personalityTraits.takeIf { it.isNotBlank() }?.let { "Rasgo: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
                 ),
-                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
-                vertical = PdfVerticalAlignment.TOP,
-            )
-            text(
-                s, p, 36f, 588f, 202f, 25f,
                 classicBaseExcerpt(
                     background.ideals.takeIf { it.isNotBlank() }?.let { "Ideal: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
                 ),
-                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
-                vertical = PdfVerticalAlignment.TOP,
-            )
-            text(
-                s, p, 36f, 632f, 202f, 30f,
                 classicBaseExcerpt(
                     background.bonds.takeIf { it.isNotBlank() }?.let { "Vínculo: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
                 ),
-                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
-                vertical = PdfVerticalAlignment.TOP,
-            )
-            text(
-                s, p, 36f, 676f, 202f, 28f,
                 classicBaseExcerpt(
                     background.flaws.takeIf { it.isNotBlank() }?.let { "Defecto: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
                 ),
-                PdfTypographyRole.NOTE_TEXT, 8.1f, 7f, wrap = true, maxLines = 2,
-                vertical = PdfVerticalAlignment.TOP,
+            )
+            ruledTextArea(
+                s, p, 34f, 468f, 206f, 238f,
+                historyAndPersonality,
+                7.9f,
             )
 
-            titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
+titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             coinStrip(s, p, 276f, 136f, sheet.currencies.associateBy { it.key.lowercase() })
             tableHeader(
                 s, p, 276f, 180f,
@@ -2357,7 +2345,7 @@ private fun appendSpellContinuationPages(
             align = PdfHorizontalAlignment.CENTER)
     }
 
-    private fun featureEntry(
+        private fun featureEntry(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
         x: Float,
@@ -2376,11 +2364,17 @@ private fun appendSpellContinuationPages(
             source, PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 6f,
             align = PdfHorizontalAlignment.RIGHT,
         )
-        text(
-            s, p, x, top + 20f, width, 58f,
-            description, PdfTypographyRole.BODY, 8.1f, 7f,
-            wrap = true, maxLines = CLASSIC_TRAIT_BODY_LINES,
-            vertical = PdfVerticalAlignment.TOP,
+        ruledTextArea(
+            s = s,
+            p = p,
+            x = x,
+            top = top + 20f,
+            width = width,
+            height = 58f,
+            content = listOf(description),
+            fontSize = 8.1f,
+            lineGap = 18f,
+            role = PdfTypographyRole.BODY,
         )
         hairline(s, x, top + 80f, x + width, top + 80f)
     }
@@ -2595,46 +2589,50 @@ private fun ruledTextArea(
         height: Float,
         content: List<String>,
         fontSize: Float,
+        lineGap: Float = 20f,
+        role: PdfTypographyRole = PdfTypographyRole.NOTE_TEXT,
     ) {
-        val lineGap = 20f
-        val lines = (height / lineGap).toInt().coerceAtLeast(1)
-        repeat(lines) { i ->
-            val ruleTop = top + (i + 1) * lineGap
-            if (ruleTop <= top + height) {
+        val physicalRows = (height / lineGap).toInt().coerceAtLeast(1)
+        repeat(physicalRows) { row ->
+            val ruleTop = top + (row + 1) * lineGap
+            if (ruleTop <= top + height + 0.05f) {
                 hairline(s, x, ruleTop, x + width, ruleTop)
             }
         }
 
-        // Owner correction 2026-09-22: generated prose must flow through consecutive ruled rows.
-        // The previous implementation reserved two rows per logical paragraph and visibly skipped
-        // every other usable writing line. Rules are independent paper capacity and remain visible.
-        val combined = content
+        var rowIndex = 0
+        content
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-            .joinToString(" · ")
-        if (combined.isEmpty()) return
-
-        val result = p.drawTextBox(
-            s,
-            PdfTextBoxSpec(
-                rect = rect(x + 2f, top - 1f, width - 4f, height + 1f),
-                text = combined,
-                role = PdfTypographyRole.NOTE_TEXT,
-                preferredSizePt = fontSize,
-                minimumSizePt = fontSize,
-                horizontalAlignment = PdfHorizontalAlignment.LEFT,
-                verticalAlignment = PdfVerticalAlignment.TOP,
-                wrapPolicy = PdfWrapPolicy.WORD_WRAP,
-                maximumLines = lines,
-                horizontalPaddingPt = 0f,
-                verticalPaddingPt = 0f,
-                lineHeightMultiplier = 1.95f,
-                fontSizeMode = PdfFontSizeMode.FIXED,
-            ),
-        )
-        if (result.hasOverflow) {
-            overflowDiagnostics += "ruled-area value='$combined' overflow='${result.overflowText}'"
-        }
+            .forEach { entry ->
+                var remaining = entry
+                while (remaining.isNotBlank() && rowIndex < physicalRows) {
+                    val rowTop = top + rowIndex * lineGap
+                    val result = p.drawTextBox(
+                        s,
+                        PdfTextBoxSpec(
+                            rect = rect(x + 2f, rowTop + 0.5f, width - 4f, lineGap - 1.5f),
+                            text = remaining,
+                            role = role,
+                            preferredSizePt = fontSize,
+                            minimumSizePt = fontSize,
+                            horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                            verticalAlignment = PdfVerticalAlignment.BOTTOM,
+                            wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                            maximumLines = 1,
+                            horizontalPaddingPt = 0f,
+                            verticalPaddingPt = 0.45f,
+                            lineHeightMultiplier = 1f,
+                            fontSizeMode = PdfFontSizeMode.FIXED,
+                        ),
+                    )
+                    remaining = result.overflowText?.trim().orEmpty()
+                    rowIndex += 1
+                }
+                if (remaining.isNotBlank()) {
+                    overflowDiagnostics += "ruled-area value='${entry}' overflow='${remaining}'"
+                }
+            }
     }
 
     private fun ruledBackground(

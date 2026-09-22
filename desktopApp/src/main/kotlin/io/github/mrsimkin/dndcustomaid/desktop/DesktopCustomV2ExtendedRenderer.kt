@@ -179,7 +179,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X ATTR" else "V2X ATTR ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s, resources.forms[2])
+            pageHeaderStructure(s)
             val columns = listOf(14f, 207f, 400f)
             columns.forEach { x ->
                 fill(s, x, 104f, 184f, 244f, SOURCE_GRAY_LIGHT)
@@ -355,7 +355,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X ABILITY" else "V2X ABILITY ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s, resources.forms[2])
+            pageHeaderStructure(s)
             fill(s, 14f, 104f, 174f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 202f, 104f, 150f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 366f, 104f, 232f, 30f, SOURCE_GRAY_LIGHT)
@@ -372,9 +372,9 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "ESTADÍSTICAS PERSONALIZADAS")
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 108f, 174f, 22f), "ATRIBUTOS", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(202f, 108f, 150f, 22f), "TIRADAS DE SALVACIÓN", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(366f, 108f, 232f, 22f), "HABILIDADES", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 108f, 174f, 22f), "ATRIBUTOS", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(202f, 108f, 150f, 22f), "TIRADAS DE SALVACIÓN", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(366f, 108f, 232f, 22f), "HABILIDADES", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
             attributes.forEachIndexed { index, projection ->
                 textTopSource(
                     s, resources.corbelBold, resources.firaSemibold,
@@ -518,7 +518,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X TRAITS" else "V2X TRAITS ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s, resources.forms[2])
+            pageHeaderStructure(s)
             fill(s, 14f, 96f, 277f, 24f, SOURCE_GRAY_LIGHT)
             fill(s, 307f, 96f, 291f, 24f, SOURCE_GRAY_LIGHT)
             // 36 rules are required here: the lower continuation region uses eight physical
@@ -533,19 +533,21 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "RASGOS Y ATRIBUTOS")
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopSource(s, resources.corbelBold, resources.firaSemibold, 18f, 365f, "OTROS RASGOS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopSource(s, resources.corbelBold, resources.firaSemibold, 311f, 365f, "DETALLES / NOTAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopSource(s, resources.corbelBold, resources.firaSemibold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopSource(s, resources.corbelBold, resources.firaSemibold, 311f, 586f, "CONTINUACIÓN", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopFixedScale(s, resources.corbelBold, 18f, 365f, "OTROS RASGOS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopFixedScale(s, resources.corbelBold, 311f, 365f, "DETALLES / NOTAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopFixedScale(s, resources.corbelBold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            textTopFixedScale(s, resources.corbelBold, 311f, 586f, "CONTINUACIÓN", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
-            featuredLeft.forEachIndexed { index, trait ->
-                featureEntry(s, 14f, 137f + index * 102f, 277f, trait)
+            var leftFeatureRule = 137f
+            featuredLeft.forEach { trait ->
+                leftFeatureRule = featureEntry(s, 14f, leftFeatureRule, 277f, trait)
             }
-            featuredRight.forEachIndexed { index, trait ->
-                featureEntry(s, 307f, 137f + index * 102f, 291f, trait)
+            var rightFeatureRule = 137f
+            featuredRight.forEach { trait ->
+                rightFeatureRule = featureEntry(s, 307f, rightFeatureRule, 291f, trait)
             }
 
             nameIndex.forEachIndexed { index, trait ->
@@ -1023,7 +1025,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val layerPrefix = if (pageIndex == 0) "V2X RESOURCES" else "V2X RESOURCES ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s, resources.forms[2])
+            pageHeaderStructure(s)
             fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
             bandedRows(s, 14f, 598f, 150f, RESOURCE_ROWS_PER_PAGE, 17f, 0)
             listOf(222f, 352f, 475f).forEach { x -> verticalRule(s, x, 120f, 303f, 0.45f) }
@@ -1036,13 +1038,13 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "RECURSOS Y OPCIONES")
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 97f, 584f, 20f), "RECURSOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 97f, 584f, 20f), "RECURSOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabel(s, 14f, 121f, 208f, "RECURSO")
             tableLabel(s, 222f, 121f, 130f, "ACTUAL / MÁX.")
             tableLabel(s, 352f, 121f, 123f, "RESTABLECE")
             tableLabel(s, 475f, 121f, 123f, "ORIGEN / NOTAS")
 
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 338f, 584f, 20f), "OPCIONES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 338f, 584f, 20f), "OPCIONES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabel(s, 30f, 364f, 88f, "TIPO")
             tableLabel(s, 118f, 364f, 140f, "OPCIÓN")
             tableLabel(s, 258f, 364f, 340f, "DESCRIPCIÓN / COSTE / ORIGEN")
@@ -1214,7 +1216,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            pageHeaderStructure(s, resources.forms[2])
+            pageHeaderStructure(s)
             fill(s, 14f, 96f, 411f, 22f, SOURCE_GRAY_LIGHT)
             fill(s, 431f, 96f, 167f, 22f, SOURCE_GRAY_LIGHT)
 
@@ -1232,10 +1234,10 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             pageTitle(s, "INVENTARIO / EQUIPO")
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 97f, 411f, 20f), "EQUIPO - CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(431f, 97f, 167f, 20f), "TESORO / OBJETOS / OTROS", 10.2f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 97f, 411f, 20f), "EQUIPO - CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(431f, 97f, 167f, 20f), "TESORO / OBJETOS / OTROS", 10.2f, SOURCE_CORBEL_HEADING_SCALE)
 
-            centeredSource(s, resources.corbelBold, resources.firaSemibold, TopRect(14f, 489f, 584f, 20f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 489f, 584f, 20f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabel(s, 30f, 514f, 100f, "UBICACIÓN")
             tableLabel(s, 130f, 514f, 180f, "NOMBRE")
             tableLabel(s, 310f, 514f, 288f, "DESCRIPCIÓN / ESTADO")
@@ -1559,14 +1561,21 @@ internal class DesktopCustomV2ExtendedRenderer(
         return result
     }
 
-    private fun featureEntry(
+        private fun featureEntry(
         s: PDFormContentStream,
         x: Float,
-        top: Float,
+        firstRuleTop: Float,
         width: Float,
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
-    ) {
-        textAboveRule(s, resources.firaSemibold, Rule(x + 4f, x + width - 4f, top), trait.name, 9.0f, 7.4f, 2.7f)
+    ): Float {
+        var ruleTop = firstRuleTop
+        fun nextRule(): Float = ruleTop.also { ruleTop += 17f }
+
+        textAboveRule(
+            s, resources.firaSemibold,
+            Rule(x + 4f, x + width - 4f, nextRule()),
+            trait.name, 9.0f, 7.4f, 2.7f,
+        )
 
         val meta = listOf(
             traitTypeLabel(trait.type),
@@ -1574,7 +1583,11 @@ internal class DesktopCustomV2ExtendedRenderer(
             trait.activation?.let(::activationLabel).orEmpty(),
         ).filter { it.isNotEmpty() }.joinToString(" · ")
         if (meta.isNotEmpty()) {
-            textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, top + 17f), meta, 7.3f, 6.2f, 2.5f)
+            textAboveRule(
+                s, resources.fira,
+                Rule(x + 4f, x + width - 4f, nextRule()),
+                meta, 7.3f, 6.2f, 2.5f,
+            )
         }
 
         val uses = trait.maxUses?.let { max ->
@@ -1585,16 +1598,24 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         } ?: trait.recovery?.takeIf { it.isNotBlank() }
 
-        val descriptionTop = if (uses != null) top + 51f else top + 34f
         uses?.let {
-            textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, top + 34f), it, 7.3f, 6.2f, 2.5f)
+            textAboveRule(
+                s, resources.fira,
+                Rule(x + 4f, x + width - 4f, nextRule()),
+                it, 7.3f, 6.2f, 2.5f,
+            )
         }
 
         featureDescriptionLines(trait, width - 8f)
             .take(FEATURE_DESCRIPTION_LINES)
-            .forEachIndexed { index, line ->
-                textAboveRule(s, resources.fira, Rule(x + 4f, x + width - 4f, descriptionTop + index * 17f), line, 7.4f, 6.2f, 2.5f)
+            .forEach { line ->
+                textAboveRule(
+                    s, resources.fira,
+                    Rule(x + 4f, x + width - 4f, nextRule()),
+                    line, 7.4f, 6.2f, 2.5f,
+                )
             }
+        return ruleTop
     }
 
     private fun featureDescriptionLines(
@@ -1609,7 +1630,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         else wrapByWidth(resources.fira, description, 7.4f, width)
     }
 
-    private fun tableLabel(
+        private fun tableLabel(
         s: PDFormContentStream,
         x: Float,
         top: Float,
@@ -1617,7 +1638,10 @@ internal class DesktopCustomV2ExtendedRenderer(
         label: String,
     ) {
         if (label.isNotBlank()) {
-            centeredSource(s, resources.corbel, resources.fira, TopRect(x, top, width, 18f), label, 7.79f, SOURCE_CORBEL_TABLE_SCALE)
+            centeredFixedScale(
+                s, resources.corbel,
+                TopRect(x, top, width, 18f), label, 7.79f, SOURCE_CORBEL_TABLE_SCALE,
+            )
         }
     }
 
@@ -1725,14 +1749,14 @@ internal class DesktopCustomV2ExtendedRenderer(
         layers.appendFormAsLayer(page, form, AffineTransform(), name)
     }
 
-    private fun pageHeaderStructure(s: PDFormContentStream, logoSource: PDFormXObject) {
-        drawSourceCrop(s, logoSource, 14f, 16f, 105f, 60f)
+    private fun pageHeaderStructure(s: PDFormContentStream) {
+        s.drawImage(resources.logo, 14f, H - 16f - 60f, 105f, 60f)
         drawRule(s, 126f, 598f, 79f, 0.6f)
     }
 
     private fun pageTitle(s: PDFormContentStream, title: String) {
-        centeredSource(
-            s, resources.corbelBold, resources.firaSemibold,
+        centeredFixedScale(
+            s, resources.corbelBold,
             TopRect(126f, 28f, 472f, 34f), title, 12.12f, SOURCE_CORBEL_HEADING_SCALE,
         )
     }
@@ -1844,6 +1868,25 @@ internal class DesktopCustomV2ExtendedRenderer(
         s.lineTo(x2, H - top)
         s.stroke()
         s.restoreGraphicsState()
+    }
+
+        private fun textTopFixedScale(
+        s: PDFormContentStream,
+        font: PDFont,
+        x: Float,
+        top: Float,
+        text: String,
+        size: Float,
+        horizontalScale: Float,
+    ) {
+        val ascent = (font.fontDescriptor?.ascent?.takeIf { it > 0 } ?: 750f) / 1000f * size
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(x, H - top - ascent)
+        s.showText(text)
+        s.setHorizontalScaling(100f)
+        s.endText()
     }
 
     private fun textTopSource(
@@ -2189,6 +2232,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private data class Resources(
         val forms: List<PDFormXObject>,
+        val logo: PDImageXObject,
         val attributeOrnament: PDImageXObject,
         val corbel: PDFont,
         val corbelBold: PDFont,
@@ -2212,6 +2256,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 return Resources(
                     forms = forms,
+                    logo = buildCleanLogoImage(doc, source),
                     attributeOrnament = buildTransparentAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
@@ -2249,6 +2294,32 @@ internal class DesktopCustomV2ExtendedRenderer(
                     scan(form.resources)?.let { return it }
                 }
                 error("Requested imported source font not found.")
+            }
+
+                        private fun buildCleanLogoImage(
+                doc: PDDocument,
+                source: PDDocument,
+            ): PDImageXObject {
+                val dpi = 288f
+                val scale = dpi / 72f
+                val sourceImage = PDFRenderer(source).renderImageWithDPI(2, dpi, ImageType.RGB)
+                val x0 = (14f * scale).roundToInt()
+                val y0 = (16f * scale).roundToInt()
+                val width = (105f * scale).roundToInt()
+                val height = (60f * scale).roundToInt()
+                val cropped = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+                val graphics = cropped.createGraphics()
+                try {
+                    graphics.drawImage(
+                        sourceImage,
+                        0, 0, width, height,
+                        x0, y0, x0 + width, y0 + height,
+                        null,
+                    )
+                } finally {
+                    graphics.dispose()
+                }
+                return LosslessFactory.createFromImage(doc, cropped)
             }
 
             private fun buildTransparentAttributeOrnament(

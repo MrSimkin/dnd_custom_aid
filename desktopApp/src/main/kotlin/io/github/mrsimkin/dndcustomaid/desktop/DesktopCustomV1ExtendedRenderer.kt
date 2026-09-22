@@ -1144,9 +1144,9 @@ internal class DesktopCustomV1ExtendedRenderer(
                     approvedV8Marker(
                         s = s,
                         font = resources.symbol,
-                        centerX = 116f,
-                        centerTop = y - 8.5f,
-                        size = 5.2f,
+                        centerX = SPECIAL_CHECK_X + SPECIAL_CHECK_WIDTH / 2f,
+                        centerTop = INVENTORY_SPECIAL_CHECK_TOPS[rowIndex] + SPECIAL_CHECK_HEIGHT / 2f,
+                        size = 5.6f,
                     )
                 }
             }
@@ -2322,6 +2322,14 @@ internal class DesktopCustomV1ExtendedRenderer(
             522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f,
             661.5f, 681.5f, 701f, 721f, 741f, 763.5f,
         )
+        val INVENTORY_SPECIAL_CHECK_TOPS = listOf(
+            508.770f, 528.612f, 548.455f, 568.297f, 588.140f, 607.982f,
+            627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
+            746.880f,
+        )
+        const val SPECIAL_CHECK_X = 113.244f
+        const val SPECIAL_CHECK_WIDTH = 9.669f
+        const val SPECIAL_CHECK_HEIGHT = 12.287f
         val SPECIAL_LOCATION_LABELS = listOf(
             "cabeza",
             "rostro",
