@@ -173,7 +173,7 @@ internal class DesktopSpellbookRenderer(
         var cursorTop = CONTENT_TOP
 
         fun newPage() {
-            pages += mutableListOf()
+            pages.add(mutableListOf())
             cursorTop = CONTENT_TOP
         }
 
