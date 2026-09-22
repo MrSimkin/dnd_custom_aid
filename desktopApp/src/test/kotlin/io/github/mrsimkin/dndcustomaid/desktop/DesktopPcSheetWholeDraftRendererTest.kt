@@ -843,6 +843,181 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun appendsApplicationOwnedSpellbookWithIndexSourcesAndCompleteLongDescription() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val primarySource = base.sheet.spellcastingSources.first()
+        val primaryProfile = base.successor.spellcastingProfiles.first()
+        val secondarySource = CharacterSpellcastingSource(
+            id = uuid("aa000000-0000-0000-0000-000000000001"),
+            name = "Dote del umbral",
+            linkedClassId = null,
+            sortOrder = 50,
+            originKind = CharacterSpellcastingOriginKind.FEAT,
+        )
+        val secondaryProfile = CharacterSpellcastingProfile(
+            sourceId = secondarySource.id,
+            ability = primaryProfile.ability,
+            saveDcAdjustment = 1,
+            spellAttackAdjustment = 2,
+        )
+        val seed = base.sheet.spells.first()
+        val cantrip = seed.copy(
+            id = uuid("aa000000-0000-0000-0000-000000000010"),
+            name = "Llama menor",
+            level = 0,
+            castingTime = "1 acción",
+            rangeText = "60 ft",
+            verbal = true,
+            somatic = true,
+            material = false,
+            materialText = null,
+            duration = "Instantáneo",
+            concentration = false,
+            ritual = false,
+            description = "Una llama breve ilumina el objetivo sin perder la descripción registrada.",
+            notes = "Referencia de truco.",
+            sortOrder = 30,
+            sourceAssociations = listOf(
+                CharacterSpellSourceAssociation(primarySource.id, prepared = true),
+            ),
+        )
+        val absorb = seed.copy(
+            id = uuid("aa000000-0000-0000-0000-000000000011"),
+            name = "Absorber energía",
+            level = 1,
+            castingTime = "1 reacción",
+            rangeText = "Personal",
+            verbal = false,
+            somatic = true,
+            material = true,
+            materialText = "un fragmento de cobre",
+            duration = "1 ronda",
+            concentration = false,
+            ritual = false,
+            description = "Conserva la descripción completa del conjuro asociado al personaje.",
+            notes = null,
+            sortOrder = 20,
+            sourceAssociations = listOf(
+                CharacterSpellSourceAssociation(primarySource.id, prepared = true),
+                CharacterSpellSourceAssociation(secondarySource.id, prepared = false),
+            ),
+        )
+        val longDescription = (1..90).joinToString(" ") { index ->
+            "Detalle arcano $index mantiene la referencia completa durante la prueba de paginación."
+        } + " MARCADOR TERMINAL DEL SPELLBOOK"
+        val longSpell = seed.copy(
+            id = uuid("aa000000-0000-0000-0000-000000000012"),
+            name = "Zancada interminable",
+            level = 1,
+            castingTime = "10 minutos",
+            rangeText = "Toque",
+            verbal = true,
+            somatic = true,
+            material = true,
+            materialText = "una cinta de plata grabada",
+            duration = "Concentración, hasta 1 hora",
+            concentration = true,
+            ritual = true,
+            description = longDescription,
+            notes = "Conservar también esta nota final de autoría.",
+            sortOrder = 10,
+            sourceAssociations = listOf(
+                CharacterSpellSourceAssociation(secondarySource.id, prepared = true),
+            ),
+        )
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                spellcastingSources = listOf(primarySource, secondarySource),
+                spells = listOf(longSpell, absorb, cantrip),
+            ),
+            successor = base.successor.copy(
+                spellcastingProfiles = listOf(primaryProfile, secondaryProfile),
+            ),
+        )
+
+        fun plan(includeSpellbook: Boolean) = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = includeSpellbook,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val baselinePdf = File(proofDir, "spellbook-append-baseline.pdf")
+        baselinePdf.outputStream().use { renderer.renderDraft(plan(false), it) }
+        val spellbookPdf = File(proofDir, "spellbook-application-owned-proof.pdf")
+        spellbookPdf.outputStream().use { renderer.renderDraft(plan(true), it) }
+
+        Loader.loadPDF(baselinePdf).use { baselineDocument ->
+            Loader.loadPDF(spellbookPdf).use { document ->
+                val baselinePages = baselineDocument.numberOfPages
+                assertTrue(document.numberOfPages >= baselinePages + 3)
+
+                val indexPage = baselinePages + 1
+                val indexText = PDFTextStripper().apply {
+                    startPage = indexPage
+                    endPage = indexPage
+                }.getText(document)
+                assertTrue(indexText.contains("ÍNDICE DE CONJUROS"))
+                assertTrue(indexText.indexOf("Llama menor") < indexText.indexOf("Absorber energía"))
+                assertTrue(indexText.indexOf("Absorber energía") < indexText.indexOf("Zancada interminable"))
+
+                val extracted = PDFTextStripper().getText(document)
+                assertTrue(extracted.contains("LIBRO DE CONJUROS"))
+                assertTrue(extracted.contains("Dote del umbral"))
+                assertTrue(extracted.contains("Preparado"))
+                assertTrue(extracted.contains("No preparado"))
+                assertTrue(extracted.contains("Aptitud INT"))
+                assertTrue(extracted.contains("Componentes: S, M (un fragmento de cobre)"))
+                assertTrue(extracted.contains("Concentración"))
+                assertTrue(extracted.contains("Ritual"))
+                assertTrue(extracted.contains("Zancada interminable (continuación)"))
+                assertTrue(extracted.contains("MARCADOR TERMINAL DEL SPELLBOOK"))
+                assertTrue(extracted.contains("Conservar también esta nota final de autoría."))
+
+                fun firstSpellPage(name: String): Int =
+                    ((indexPage + 1)..document.numberOfPages).first { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(document).contains(name)
+                    }
+
+                val cantripPage = firstSpellPage("Llama menor")
+                val absorbPage = firstSpellPage("Absorber energía")
+                val longSpellPage = firstSpellPage("Zancada interminable")
+                assertTrue(indexText.contains(cantripPage.toString()))
+                assertTrue(indexText.contains(absorbPage.toString()))
+                assertTrue(indexText.contains(longSpellPage.toString()))
+
+                val baselineRenderer = PDFRenderer(baselineDocument)
+                val appendedRenderer = PDFRenderer(document)
+                listOf(0, baselinePages - 1).distinct().forEach { pageIndex ->
+                    val baselineImage = baselineRenderer.renderImageWithDPI(pageIndex, 72f, ImageType.RGB)
+                    val appendedImage = appendedRenderer.renderImageWithDPI(pageIndex, 72f, ImageType.RGB)
+                    assertEquals(baselineImage.width, appendedImage.width)
+                    assertEquals(baselineImage.height, appendedImage.height)
+                    val baselinePixels = baselineImage.getRGB(
+                        0, 0, baselineImage.width, baselineImage.height,
+                        null, 0, baselineImage.width,
+                    )
+                    val appendedPixels = appendedImage.getRGB(
+                        0, 0, appendedImage.width, appendedImage.height,
+                        null, 0, appendedImage.width,
+                    )
+                    assertTrue(
+                        baselinePixels.contentEquals(appendedPixels),
+                        "Spellbook append must not alter already-rendered sheet pages.",
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
     fun classicContinuesLongCanonicalBaseContentWithoutSilentLoss() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
