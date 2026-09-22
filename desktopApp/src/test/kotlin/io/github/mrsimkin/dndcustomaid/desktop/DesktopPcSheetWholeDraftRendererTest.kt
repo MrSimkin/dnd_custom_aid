@@ -703,7 +703,6 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(continuationPage))
             assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+18").containsMatchIn(continuationPage))
             assertFalse(continuationPage.contains("(cont.)"))
-            assertFalse(continuationPage.contains("CONTINUACIÓN"))
 
             val pdfRenderer = PDFRenderer(document)
             (3 until document.numberOfPages).forEach { index ->
@@ -1850,6 +1849,12 @@ class DesktopPcSheetWholeDraftRendererTest {
                 Regex("Piezas\\s+de\\s+mithril:\\s+7").containsMatchIn(extracted),
             )
             assertTrue(extracted.contains("Tesoro canónico 9"))
+
+            val v1InventoryContinuationText = PDFTextStripper().apply {
+                startPage = 6
+                endPage = 6
+            }.getText(document)
+            assertFalse(v1InventoryContinuationText.contains("CONTINUACIÓN"))
 
             val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
             val png = File(proofDir, "custom-v1-production-extended-inventory-pass4-page-6.png")
