@@ -13,6 +13,9 @@
 1. `AGENTS.md`;
 2. this file;
 3. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+4. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+5. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+6. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_RECOVERY_PROCESS_HARDENING.md`;
 4. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_REVIEW_2_REJECTED.md`;
 5. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`;
 6. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_QA_READY.md`;
@@ -47,11 +50,11 @@ Para Hoja de PJ Symbols v8 is **OWNER APPROVED / FROZEN**.
 
 Do not recalibrate these base sheets without a new owner-observed issue.
 
-### Classic D&D-style
+### Fantasy Sheet (legacy internal id `CLASSIC_DND_STYLE`)
 
-Classic is application-designed, not an official-sheet facsimile.
+Fantasy Sheet is application-designed and is explicitly **not** an official/official-like D&D sheet. Historical files may still use the old “Classic” name as provenance.
 
-**Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN.**
+**The historical Run-2 Fantasy-sheet visual baseline remains the frozen geometry source, subject to the active owner regression corrections.**
 
 Approved baseline:
 
@@ -127,10 +130,10 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 ## Current continuation
 
 1. follow `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`; artifact `10720833172` is rejected and must not be sent for approval again;
-2. continue the bounded owner-review-2 repair from WIP renderer commit `4e7ea99997de46ef8a9a8d1066b08fa362854cdd`;
+2. continue the bounded owner-review-2 repair using the append-only iteration ledger; the current family is owner-facing Fantasy Sheet, while `CLASSIC_DND_STYLE` remains only a legacy internal id;
 3. Scaffold #3245 / `35791076544` and #3246 / `35791080855` failed because the stricter Classic rule-coupled renderer exposed base excerpts that no longer fit physical rows; repair by reducing base excerpts and routing complete content to Classic-native continuation, not by compressing or decoupling text from rules;
 4. revert the WIP rasterized v2 logo attempt and repair the logo through the pre-existing STRUCTURE/CLEANUP layered method;
-5. generate a smaller corrected proof set and perform Worker visual preflight before returning it to the owner;
+5. before any corrected proof is returned to the owner, pass the independent X/Y geometry gate, ordered-layer gate, terminology gate and Worker rendered-page preflight, then append the exact results to the iteration ledger;
 6. keep PR #85 DRAFT / DO NOT MERGE; Save/Share remains blocked.
 
 No external provider action is required for this PDF-renderer stage.

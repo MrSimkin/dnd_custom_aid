@@ -48,9 +48,14 @@ After every generated draft:
 4. record both owner findings and assistant findings;
 5. state what should change in the next run;
 6. do not silently repair defects and erase the evidence;
-7. preserve lessons for later runs and later strategies.
+7. preserve lessons for later runs and later strategies;
+8. append the run to `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+9. read the actual CI job result/logs - do not summarize a run from its badge alone;
+10. record the X/Y pre-print audit result from `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`.
 
 Green CI is never visual approval.
+
+**Artifact-promotion gate:** an owner-facing proof is not review-ready until dynamic X/Y checks, layer checks, terminology checks and Worker rendered-page inspection have passed and are recorded in the iteration ledger.
 
 ### 2.4 Learning carries forward
 
@@ -190,7 +195,13 @@ Correct coordinates from one semantic region must not be reusable accidentally i
 
 A page should be treated as a collection of independently calibrated semantic sections rather than one monolithic alignment domain.
 
-Independent Form XObject / OCG layers may be used liberally when they improve calibration and debugging.
+Independent Form XObject / OCG layers are the established Custom-family strategy and must be preserved when they improve calibration and debugging.
+
+For template-derived Custom continuation pages, the durable semantic order is:
+
+`STRUCTURE -> CLEANUP -> LABELS -> VALUES -> MARKERS`.
+
+Do not flatten these layers as a repair shortcut.
 
 Sections may be subdivided further, including one layer per ability/skill column if useful.
 

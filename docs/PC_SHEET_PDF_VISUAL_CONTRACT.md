@@ -22,7 +22,7 @@ A later owner defect report may identify a regression against this contract. It 
 ## Global rules
 
 1. **Owner-approved artifacts are the visual goldens.** Do not use a later mutable production render as the sole visual reference.
-2. **Preserve family-native construction.** Classic remains Classic; Custom v1 remains v1; Custom v2 remains v2.
+2. **Preserve family-native construction.** Fantasy Sheet (legacy internal id `CLASSIC_DND_STYLE`) remains its own application-designed family; Custom v1 remains v1; Custom v2 remains v2.
 3. **Prefer extra family-native pages over compression, skipped rows, artificial blank gaps or silent omission.**
 4. **Terminology contract: use `Raza`, never user-facing `Especie`.**
 5. **No repair by flattening away the approved construction.** Where the approved Custom family uses source-derived/vector elements and semantic layers, preserve them.
@@ -36,7 +36,15 @@ A later owner defect report may identify a regression against this contract. It 
 7. **Do not merge/rasterize multiple semantic layers as a shortcut to remove artifacts.** Fix the responsible layer while preserving the others. Transparent source-derived images are acceptable only for a component whose approved construction already requires image extraction (for example the v2 attribute ornament); they are not a substitute for flattening a source page/header.
 8. Generated text must follow measured source/paper geometry, not an independent generic layout model.
 
-## Classic D&D-style — pre-existing frozen rules
+## Fantasy Sheet - legacy internal id `CLASSIC_DND_STYLE`
+
+**Owner naming correction 2026-09-22:** the existing application-designed family is allowed to remain, but it is **not** to be called Classic, official, or official-like. It does not sufficiently resemble the official D&D sheet to justify that claim.
+
+Historical checkpoints and source filenames may still contain “Classic” as immutable provenance. New owner-facing proof names, status text and documentation use **Fantasy Sheet**.
+
+If an official-like D&D family is implemented later, it is a separate design family and must pass an owner review specifically for resemblance to the official sheet grammar.
+
+### Pre-existing frozen visual rules
 
 From the approved corrected Run 2:
 
@@ -101,9 +109,19 @@ The second recovery review did **not** introduce new design rules.
 
 Its observations identify current regressions against already-established rules:
 
-- Classic rule/text rhythm, visible reference lines, no unnecessary blank gaps and D&D lineage;
+- Fantasy-sheet rule/text rhythm, visible reference lines and no unnecessary blank gaps;
 - `Raza` terminology;
 - Custom-v1 check optical centering;
 - Custom-v2 row cadence, exact frozen font roles and artifact-free layered header/logo rendering.
 
 Treat these as defects against this contract.
+
+
+## Process security
+
+The following files are mandatory continuation authority:
+
+- `docs/PC_SHEET_PDF_ITERATION_LEDGER.md` - append-only run/issue history;
+- `docs/PC_SHEET_PDF_GEOMETRY_GATES.md` - independent X/Y expectations.
+
+A rule recorded there is not allowed to disappear merely because a later generated proof or production snapshot differs.

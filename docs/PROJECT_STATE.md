@@ -312,3 +312,16 @@ PR #83 integrated the D-0074 platform-neutral export plan over canonical PC data
 Validation: final implementation head `dea22b0823d6c4ad54e24839943d5952e2020392`; push Scaffold `35294590552` SUCCESS; PR Scaffold `35294792657` SUCCESS; merge `f6350d34087aae55d5247f2ba23153814eeed04b`; post-merge Scaffold `35295050340` SUCCESS.
 
 Custom v1/v2 source PDFs remain authoritative. Populated dummy-data examples are a mandatory owner approval gate when visual rendering reaches reviewable output.
+
+
+## PC Sheet PDF visual-process security - 2026-09-22
+
+Current visual work must read:
+
+- `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+- `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+- `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`.
+
+Owner-facing name for the application-designed legacy `CLASSIC_DND_STYLE` family is **Fantasy Sheet**. It must not be described as Classic, official, or official-like. An official-like D&D sheet would be a separate future family/gate.
+
+Every future PDF iteration must record run logs/results and pass an X/Y pre-print audit before an owner-facing proof is promoted.

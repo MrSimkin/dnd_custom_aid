@@ -108,6 +108,10 @@ Draft PR:
 
 Current state:
 
+- PDF recovery process security is now governed by `docs/PC_SHEET_PDF_ITERATION_LEDGER.md` and `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+- owner-facing family name is **Fantasy Sheet** for legacy internal enum `CLASSIC_DND_STYLE`; historical “Classic” filenames remain provenance only;
+- every proof promotion requires run-log reading, ordered layer verification, terminology verification, dynamic X/Y audit and Worker visual inspection;
+
 - Strategy 1 / Hybrid is proven for the owner-authored Custom templates;
 - Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN;
 - Custom v1 Run-7 base sheet is OWNER APPROVED / FROZEN;
