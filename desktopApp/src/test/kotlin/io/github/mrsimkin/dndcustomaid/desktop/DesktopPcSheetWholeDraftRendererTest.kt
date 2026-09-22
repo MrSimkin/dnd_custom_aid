@@ -681,7 +681,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         inventoryPdf.outputStream().use { renderer.renderDraft(inventoryPlan, it) }
 
         Loader.loadPDF(inventoryPdf).use { document ->
-            assertEquals(5, document.numberOfPages)
+            assertEquals(4, document.numberOfPages)
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("INVENTARIO / EQUIPO"))
             assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(extracted))
@@ -693,18 +693,14 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Gema test 2"))
             assertTrue(extracted.contains("Reliquia terminal"))
 
-            val page4 = PDFTextStripper().apply {
+            val continuationPage = PDFTextStripper().apply {
                 startPage = 4
                 endPage = 4
             }.getText(document)
-            val page5 = PDFTextStripper().apply {
-                startPage = 5
-                endPage = 5
-            }.getText(document)
-            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(page4))
-            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+14").containsMatchIn(page4))
-            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+15").containsMatchIn(page5))
-            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(page5))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+8").containsMatchIn(continuationPage))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+16").containsMatchIn(continuationPage))
+            assertTrue(Regex("Objeto\\s+de\\s+campaña\\s+18").containsMatchIn(continuationPage))
+            assertFalse(continuationPage.contains("(cont.)"))
 
             val pdfRenderer = PDFRenderer(document)
             (3 until document.numberOfPages).forEach { index ->
