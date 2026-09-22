@@ -1,6 +1,6 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-21 (Chile local time)  
+**Updated:** 2026-09-22 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified integrated main:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f`  
 **Wave 7:** ACTIVE  
