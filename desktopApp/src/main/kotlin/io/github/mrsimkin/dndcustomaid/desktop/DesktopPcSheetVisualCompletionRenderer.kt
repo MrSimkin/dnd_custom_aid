@@ -270,7 +270,9 @@ internal class DesktopPcSheetVisualCompletionRenderer(
             PcSheetExtendedPageKind.CUSTOM_STATISTICS ->
                 listOf(CuePlacement(0, PdfRect(28f, 66f, 248f, 17f)))
             PcSheetExtendedPageKind.TRAITS_AND_FEATURES ->
-                listOf(CuePlacement(0, PdfRect(338f, 66f, 246f, 17f)))
+                // The frozen v2 trait block ends immediately above the lower spell/treasure band.
+                // Keep the cue at that boundary instead of borrowing space from OTROS.
+                listOf(CuePlacement(0, PdfRect(338f, 205f, 246f, 17f)))
             PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS ->
                 listOf(CuePlacement(0, PdfRect(338f, 44f, 246f, 17f)))
             PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT ->
