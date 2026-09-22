@@ -40,15 +40,17 @@ internal class DesktopCustomV1HybridRenderer(
     private val fonts = Fonts(document, resourceLoader)
     private val layers = LayerUtility(document)
 
-    fun render(
+fun render(
         page: PDPage,
         role: PcSheetBasePageRole,
         plan: PcSheetPdfRenderPlan,
     ) {
         when (role) {
             PcSheetBasePageRole.MAIN -> renderMain(page, plan)
+            PcSheetBasePageRole.EQUIPMENT -> renderEquipment(page, plan)
             PcSheetBasePageRole.NARRATIVE -> renderNarrative(page, plan)
-            PcSheetBasePageRole.SPELL_LIST -> renderApprovedSpellSlice(page, plan)
+            PcSheetBasePageRole.SPELL_LIST -> renderSpellList(page, plan)
+            PcSheetBasePageRole.NOTES -> renderNotes(page, plan)
             else -> Unit
         }
     }
@@ -70,14 +72,34 @@ internal class DesktopCustomV1HybridRenderer(
         appendSection(page, "CustomV1 MAIN - Traits rows 1-2") { drawTraits(it, plan) }
     }
 
-    private fun renderNarrative(page: PDPage, plan: PcSheetPdfRenderPlan) {
+private fun renderNarrative(page: PDPage, plan: PcSheetPdfRenderPlan) {
         appendSection(page, "CustomV1 PAGE3 - Background fields") { drawBackgroundFields(it, plan) }
+        appendSection(page, "CustomV1 PAGE3 - Personality") { drawPersonality(it, plan) }
+        appendSection(page, "CustomV1 PAGE3 - Other Traits") { drawOtherTraits(it, plan) }
         appendSection(page, "CustomV1 PAGE3 - Story") { drawStory(it, plan) }
+        appendSection(page, "CustomV1 PAGE3 - Notes") { drawNarrativeNotes(it, plan) }
     }
 
-    private fun renderApprovedSpellSlice(page: PDPage, plan: PcSheetPdfRenderPlan) {
+private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         appendSection(page, "CustomV1 SPELLS - Cantrips") { drawCantrips(it, plan) }
         appendSection(page, "CustomV1 SPELLS - Level 1") { drawLevelOneSpells(it, plan) }
+        SPELL_LEVELS.forEach { geometry ->
+            appendSection(page, "CustomV1 SPELLS - Level ${geometry.level}") {
+                drawSpellLevel(it, plan, geometry)
+            }
+        }
+    }
+
+
+    private fun renderEquipment(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        appendSection(page, "CustomV1 EQUIPMENT - Ordinary") { drawEquipment(it, plan) }
+        appendSection(page, "CustomV1 EQUIPMENT - Coins") { drawCurrencies(it, plan) }
+        appendSection(page, "CustomV1 EQUIPMENT - Valuables") { drawValuables(it, plan) }
+        appendSection(page, "CustomV1 EQUIPMENT - Special") { drawSpecialEquipment(it, plan) }
+    }
+
+    private fun renderNotes(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        appendSection(page, "CustomV1 NOTES - Text") { drawNotesPage(it, plan) }
     }
 
     private fun appendSection(
@@ -262,6 +284,209 @@ internal class DesktopCustomV1HybridRenderer(
         val lines = wrapByWidth(fonts.regular, story, 9.25f, 365f)
         STORY_RULE_Y.zip(lines.take(STORY_RULE_Y.size)).forEach { (y, line) ->
             textAboveRule(s, fonts.regular, Rule(215.291f, 583.795f, y), line, 9.25f, 9f, 2.8f, 2f)
+        }
+    }
+
+
+    private fun drawPersonality(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        drawRuledParagraph(
+            s,
+            fonts.regular,
+            PERSONALITY_RULES,
+            plan.snapshot.aggregate.sheet.background.personalityTraits,
+            9.25f,
+            2.6f,
+            2f,
+        )
+    }
+
+    private fun drawOtherTraits(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.sheet.traits
+            .sortedBy { it.sortOrder }
+            .drop(6)
+            .take(OTHER_TRAIT_RULES.size)
+            .forEachIndexed { index, trait ->
+                textAboveRule(
+                    s,
+                    fonts.regular,
+                    OTHER_TRAIT_RULES[index],
+                    trait.name,
+                    9.25f,
+                    8.5f,
+                    2.5f,
+                    2f,
+                )
+            }
+    }
+
+    private fun drawNarrativeNotes(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        drawRuledParagraph(
+            s,
+            fonts.regular,
+            NARRATIVE_NOTES_RULES,
+            notesText(plan),
+            9.25f,
+            2.8f,
+            2f,
+        )
+    }
+
+    private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filterNot { it.special }
+            .take(EQUIPMENT_RULES.size)
+            .forEachIndexed { index, item ->
+                val label = buildString {
+                    if (item.quantity > 1) append(item.quantity).append(" x ")
+                    append(item.name)
+                }
+                textAboveRule(s, fonts.regular, EQUIPMENT_RULES[index], label, 9.25f, 8.5f, 2.5f, 1.5f)
+            }
+    }
+
+    private fun drawCurrencies(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val currencies = plan.snapshot.aggregate.sheet.currencies.associateBy { it.key.lowercase() }
+        CURRENCY_KEYS.forEachIndexed { index, key ->
+            currencies[key]?.let { currency ->
+                centered(
+                    s,
+                    fonts.semibold,
+                    TopRect(535f, 88f + index * 20f, 55f, 18f),
+                    currency.amount.toString(),
+                    10.5f,
+                    -0.2f,
+                )
+            }
+        }
+    }
+
+    private fun drawValuables(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.successor.preferences.valuablesText
+            .split(Regex("[;\\n]+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .take(VALUABLE_RULE_Y.size)
+            .forEachIndexed { index, raw ->
+                val parsed = parseValuable(raw)
+                val y = VALUABLE_RULE_Y[index]
+                textAboveRule(
+                    s,
+                    fonts.regular,
+                    Rule(453.402f, 546.945f, y),
+                    parsed.first,
+                    9.0f,
+                    8.5f,
+                    2.4f,
+                    1.5f,
+                )
+                parsed.second?.let { value ->
+                    centeredAboveRule(s, fonts.semibold, Rule(549.779f, 583.795f, y), value, 9.5f, 2.4f)
+                }
+            }
+    }
+
+    private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filter { it.special }
+            .take(SPECIAL_RULE_Y.size)
+            .forEachIndexed { index, item ->
+                val y = SPECIAL_RULE_Y[index]
+                if (item.equipped || item.attuned) {
+                    glyphInRect(
+                        s,
+                        fonts.symbol,
+                        CHECK_CP,
+                        TopRect(113.244f, SPECIAL_CHECK_TOP[index], 9.669f, 12.287f),
+                        0.6f,
+                        0.6f,
+                    )
+                }
+                textAboveRule(
+                    s, fonts.regular, Rule(127.5f, 210f, y),
+                    item.name, 9.0f, 8.5f, 2.4f, 1.5f,
+                )
+                val detail = buildList {
+                    if (item.attuned) add("Sintonizado")
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                textAboveRule(
+                    s, fonts.regular, Rule(240.803f, 583.795f, y),
+                    detail, 9.0f, 8.5f, 2.4f, 1.5f,
+                )
+            }
+    }
+
+    private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val text = notesText(plan)
+        if (text.isBlank()) return
+        val leftWidth = NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f
+        val rightWidth = NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f
+        val leftLines = wrapByWidth(fonts.regular, text, 9.25f, leftWidth)
+        val left = leftLines.take(NOTES_LEFT_RULES.size)
+        left.forEachIndexed { index, line ->
+            textAboveRule(s, fonts.regular, NOTES_LEFT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+        }
+        val consumedText = left.joinToString(" ")
+        val remaining = if (left.size < NOTES_LEFT_RULES.size) {
+            emptyList()
+        } else {
+            val words = text.trim().split(Regex("\\s+"))
+            val consumedWords = consumedText.split(Regex("\\s+")).size
+            wrapByWidth(fonts.regular, words.drop(consumedWords).joinToString(" "), 9.25f, rightWidth)
+        }
+        remaining.take(NOTES_RIGHT_RULES.size).forEachIndexed { index, line ->
+            textAboveRule(s, fonts.regular, NOTES_RIGHT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+        }
+    }
+
+    private fun drawSpellLevel(
+        s: PDFormContentStream,
+        plan: PcSheetPdfRenderPlan,
+        g: SpellLevelGeometry,
+    ) {
+        plan.snapshot.aggregate.sheet.spellSlots.firstOrNull { it.level == g.level }?.let {
+            centered(s, fonts.semibold, g.totalRect, it.totalSlots.toString(), 15f, -0.35f)
+        }
+        spellsAtLevel(plan, g.level).take(g.maxRows).forEachIndexed { index, spell ->
+            val square = TopRect(g.squareX, g.firstSquareTop + index * g.rowStep, 9.669f, 12.287f)
+            if (spell.sourceAssociations.any { it.prepared }) {
+                glyphInRect(s, fonts.symbol, CHECK_CP, square, 0.6f, 0.6f, opticalX = 0.65f)
+            }
+            textAboveRule(
+                s,
+                fonts.regular,
+                Rule(g.textX, g.textX + 164.409f, square.top + square.height),
+                spell.name,
+                9.25f,
+                8.75f,
+                3.4f,
+                2f,
+            )
+        }
+    }
+
+    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
+                card.content.trim().takeIf { it.isNotEmpty() }?.let { body ->
+                    add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
+                }
+            }
+        }.joinToString(" ")
+    }
+
+    private fun parseValuable(raw: String): Pair<String, String?> {
+        val match = Regex("""^(.*?)\\s*\\((\\d+)\\s*po\\)\\s*$""", RegexOption.IGNORE_CASE).matchEntire(raw)
+        return if (match == null) {
+            raw to null
+        } else {
+            match.groupValues[1].trim() to match.groupValues[2]
         }
     }
 
@@ -494,6 +719,17 @@ internal class DesktopCustomV1HybridRenderer(
         }
     }
 
+
+    private data class SpellLevelGeometry(
+        val level: Int,
+        val totalRect: TopRect,
+        val squareX: Float,
+        val firstSquareTop: Float,
+        val textX: Float,
+        val rowStep: Float,
+        val maxRows: Int,
+    )
+
     private data class Rule(val startX: Float, val endX: Float, val topY: Float)
     private data class TopRect(val x: Float, val top: Float, val width: Float, val height: Float)
     private data class AbilityPlacement(val ability: CharacterAbility, val scoreX: Float, val modX: Float)
@@ -592,5 +828,42 @@ internal class DesktopCustomV1HybridRenderer(
             TopRect(28.205f, 386.715f, 9.669f, 12.287f),
             TopRect(28.205f, 406.557f, 9.669f, 12.287f),
         )
+
+        val PERSONALITY_RULES = listOf(248.5f, 268.5f, 287.5f, 307f, 327f, 347f)
+            .map { Rule(25f, 181f, it) }
+        val NARRATIVE_NOTES_RULES = listOf(606f, 625.5f, 645.5f, 665.5f, 685f, 705f, 725f, 744.5f, 764.5f)
+            .map { Rule(215.291f, 583.795f, it) }
+
+        val OTHER_TRAIT_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f)
+        val OTHER_TRAIT_RULES = OTHER_TRAIT_Y.flatMap { y ->
+            listOf(Rule(215.291f, 396.708f, y), Rule(402.378f, 583.795f, y))
+        }
+
+        val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
+        val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
+        val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
+        val CURRENCY_KEYS = listOf("pt", "po", "pp", "pc", "pe")
+        val VALUABLE_RULE_Y = listOf(307f, 327f, 347f, 366.5f)
+        val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
+        val SPECIAL_CHECK_TOP = listOf(
+            508.770f, 528.612f, 548.455f, 568.297f, 588.140f, 607.982f,
+            627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
+        )
+
+        val NOTES_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f)
+        val NOTES_LEFT_RULES = NOTES_Y.map { Rule(25f, 267.5f, it) }
+        val NOTES_RIGHT_RULES = NOTES_Y.map { Rule(311.669f, 583.795f, it) }
+
+        val SPELL_LEVELS = listOf(
+            SpellLevelGeometry(2, TopRect(56.98f, 538.05f, 27.49f, 27.49f), 28.205f, 573.687f, 39.543f, 20f, 9),
+            SpellLevelGeometry(3, TopRect(243.98f, 81.8f, 27.49f, 27.49f), 215.455f, 117.187f, 226.543f, 20f, 10),
+            SpellLevelGeometry(4, TopRect(243.98f, 321.05f, 27.49f, 27.49f), 215.455f, 356.187f, 226.543f, 20f, 10),
+            SpellLevelGeometry(5, TopRect(243.98f, 557.05f, 27.49f, 27.49f), 215.455f, 592.687f, 226.543f, 20f, 8),
+            SpellLevelGeometry(6, TopRect(437.0f, 81.8f, 27.49f, 27.49f), 408.205f, 117.187f, 419.543f, 20f, 8),
+            SpellLevelGeometry(7, TopRect(437.0f, 280.3f, 27.49f, 27.49f), 408.205f, 315.687f, 419.543f, 20f, 6),
+            SpellLevelGeometry(8, TopRect(437.0f, 458.8f, 27.49f, 27.49f), 408.205f, 494.187f, 419.543f, 20f, 6),
+            SpellLevelGeometry(9, TopRect(437.0f, 617.55f, 27.49f, 27.49f), 408.205f, 653.187f, 419.543f, 20f, 5),
+        )
+
     }
 }
