@@ -292,7 +292,10 @@ internal class DesktopClassicRenderer {
         val baseDisplayedIds = baseDisplayed.mapTo(mutableSetOf()) { it.id }
 
         val overflowTraits = orderedTraits.filter { it.id !in baseDisplayedIds }
-        val referenceTraits = baseDisplayed.filter(::traitNeedsReferenceContinuation)
+        val clippedClassTraitIds = classicBaseClassProjection(classBase).clippedTraitIds
+        val referenceTraits = baseDisplayed.filter { trait ->
+            trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait)
+        }
         val traitEntries = (overflowTraits + referenceTraits)
             .distinctBy { it.id }
             .flatMap(::traitFeatureSlices)
@@ -1506,9 +1509,10 @@ private fun appendSpellContinuationPages(
             val feats = orderedTraits.filter { it.type == CharacterTraitType.FEAT }
 
             titledFrame(s, p, rightX, 410f, rightW, 184f, "RASGOS DE CLASE")
+            val baseClassProjection = classicBaseClassProjection(classTraits)
             ruledTextArea(
                 s, p, rightX + 10f, 442f, rightW - 20f, 140f,
-                classTraits.take(BASE_CLASS_TRAIT_CAPACITY).map(::classicBaseTraitSummary),
+                baseClassProjection.content,
                 8.4f,
             )
 
@@ -1966,6 +1970,32 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         CLASSIC_RULED_ENTRY_LINES,
     )
 
+    private fun classicBaseClassProjection(
+        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+    ): ClassicBaseRuledProjection {
+        val selected = traits.take(BASE_CLASS_TRAIT_CAPACITY)
+        var rowsLeft = CLASSIC_BASE_CLASS_RULE_ROWS
+        val content = mutableListOf<String>()
+        val clipped = mutableSetOf<kotlin.uuid.Uuid>()
+
+        selected.forEachIndexed { index, trait ->
+            val lines = wrapForChars(traitSummary(trait), CLASSIC_RULED_ENTRY_CHARS)
+            val remainingTraits = selected.size - index - 1
+            val maxRowsForThis = (rowsLeft - remainingTraits)
+                .coerceAtLeast(1)
+                .coerceAtMost(CLASSIC_RULED_ENTRY_LINES)
+            val shown = lines.take(maxRowsForThis)
+            if (shown.isNotEmpty()) content += shown.joinToString("\n")
+            if (lines.size > shown.size) clipped += trait.id
+            rowsLeft = (rowsLeft - shown.size).coerceAtLeast(0)
+        }
+
+        return ClassicBaseRuledProjection(
+            content = content,
+            clippedTraitIds = clipped,
+        )
+    }
+
     private fun abilityLabel(ability: CharacterAbility): String = when (ability) {
         CharacterAbility.STRENGTH -> "FUERZA"
         CharacterAbility.DEXTERITY -> "DESTREZA"
@@ -2373,7 +2403,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             height = 58f,
             content = listOf(description),
             fontSize = 8.1f,
-            lineGap = 18f,
+            lineGap = 14.5f,
             role = PdfTypographyRole.BODY,
         )
         hairline(s, x, top + 80f, x + width, top + 80f)
@@ -2907,6 +2937,11 @@ private fun ruledTextArea(
         val type: CharacterTraitType,
     )
 
+    private data class ClassicBaseRuledProjection(
+        val content: List<String>,
+        val clippedTraitIds: Set<kotlin.uuid.Uuid>,
+    )
+
     private data class CustomAttributeSlice(
         val projection: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection,
         val skills: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection>,
@@ -2929,6 +2964,7 @@ private fun ruledTextArea(
         const val H = 792f
         const val BASE_COMBAT_CAPACITY = 4
         const val BASE_CLASS_TRAIT_CAPACITY = 4
+        const val CLASSIC_BASE_CLASS_RULE_ROWS = 7
         const val BASE_SPECIES_TRAIT_CAPACITY = 3
         const val BASE_FEAT_CAPACITY = 1
         const val BASE_EQUIPMENT_CAPACITY = 7
