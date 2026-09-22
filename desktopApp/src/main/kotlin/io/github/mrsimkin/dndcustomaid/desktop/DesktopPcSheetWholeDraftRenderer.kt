@@ -4,6 +4,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import java.io.ByteArrayOutputStream
@@ -64,8 +65,40 @@ internal class DesktopPcSheetWholeDraftRenderer(
             return
         }
 
+        val physicalPlan = if (plan.baseLayoutMode == PcSheetBaseLayoutMode.APP_MODIFIED) {
+            plan.copy(
+                baseLayoutMode = PcSheetBaseLayoutMode.FAITHFUL,
+                mandatoryExtendedPages = (
+                    plan.mandatoryExtendedPages + PcSheetExtendedPageKind.CUSTOM_STATISTICS
+                ).distinct(),
+            )
+        } else {
+            plan
+        }
+
+        val familyBytes = ByteArrayOutputStream().use { buffer ->
+            renderFamilyDraft(physicalPlan, buffer)
+            buffer.toByteArray()
+        }
+        Loader.loadPDF(familyBytes).use { document ->
+            DesktopPcSheetVisualCompletionRenderer(
+                document = document,
+                resourceLoader = resourceLoader,
+            ).apply(
+                requestedPlan = plan,
+                renderedPlan = physicalPlan,
+                sourceBytes = familyBytes,
+            )
+            document.save(output)
+        }
+    }
+
+    private fun renderFamilyDraft(
+        plan: PcSheetPdfRenderPlan,
+        output: OutputStream,
+    ) {
         require(plan.baseLayoutMode == PcSheetBaseLayoutMode.FAITHFUL) {
-            "Whole-sheet Custom draft currently supports faithful template layouts only."
+            "Physical family rendering requires the faithful/frozen baseline before completion overlays."
         }
         require(
             plan.request.visualFamily == PcSheetVisualFamily.CLASSIC_DND_STYLE ||

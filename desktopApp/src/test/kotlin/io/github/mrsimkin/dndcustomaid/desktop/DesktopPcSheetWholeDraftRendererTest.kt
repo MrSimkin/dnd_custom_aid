@@ -60,6 +60,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
@@ -2913,6 +2915,150 @@ class DesktopPcSheetWholeDraftRendererTest {
                 customMarkers = listOf(marker),
             ),
         )
+    }
+
+    @Test
+    fun rendersOwnerFacingAppModifiedAndCombinedCustomStatisticsAcrossAllFamilies() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithCustomStatistics()
+        val families = listOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE to "classic",
+            PcSheetVisualFamily.CUSTOM_V1 to "custom-v1",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-attribute",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-ability",
+        )
+        val modes = listOf(
+            PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET to "modified",
+            PcSheetCustomStatisticsPresentation.MODIFIED_SHEET_AND_COMPLETE_EXTENDED_PAGE to "modified-plus-extended",
+        )
+
+        families.forEach { (family, familySlug) ->
+            modes.forEach { (mode, modeSlug) ->
+                val plan = PcSheetPdfExportPlanner.plan(
+                    request = PcSheetPdfExportRequest(
+                        visualFamily = family,
+                        stateSelection = PcSheetExportStateSelection.PERMANENT,
+                        customStatisticsPresentation = mode,
+                    ),
+                    sources = PcSheetExportSources(permanent = aggregate),
+                )
+                assertEquals(PcSheetBaseLayoutMode.APP_MODIFIED, plan.baseLayoutMode)
+                if (mode == PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET) {
+                    assertTrue(plan.mandatoryExtendedPages.isEmpty())
+                } else {
+                    assertEquals(
+                        listOf(PcSheetExtendedPageKind.CUSTOM_STATISTICS),
+                        plan.mandatoryExtendedPages,
+                    )
+                }
+
+                val pdf = File(proofDir, "owner-review-app-modified-$familySlug-$modeSlug.pdf")
+                pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+                Loader.loadPDF(pdf).use { document ->
+                    assertTrue(document.numberOfPages > plan.basePages.size)
+                    val firstPageText = PDFTextStripper().apply {
+                        startPage = 1
+                        endPage = 1
+                    }.getText(document)
+                    val modifiedPageText = PDFTextStripper().apply {
+                        startPage = 2
+                        endPage = 2
+                    }.getText(document)
+                    val allText = PDFTextStripper().getText(document)
+
+                    assertTrue(firstPageText.contains("HOJA MODIFICADA SIGUIENTE"))
+                    assertTrue(modifiedPageText.contains("HOJA MODIFICADA"))
+                    assertTrue(
+                        modifiedPageText.contains("Estadísticas Personalizadas", ignoreCase = true) ||
+                            modifiedPageText.contains("ESTADÍSTICAS PERSONALIZADAS"),
+                    )
+                    assertTrue(allText.contains("Honor", ignoreCase = true))
+                    assertTrue(allText.contains("Etiqueta"))
+                    assertTrue(allText.contains("Criptografía"))
+
+                    val statsPages = (1..document.numberOfPages).count { pageNumber ->
+                        val pageText = PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(document)
+                        pageText.contains("Estadísticas Personalizadas", ignoreCase = true) ||
+                            pageText.contains("ESTADÍSTICAS PERSONALIZADAS")
+                    }
+                    if (mode == PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET) {
+                        assertTrue(statsPages >= 1)
+                    } else {
+                        assertTrue(statsPages >= 2)
+                        assertTrue(allText.contains("ESTADÍSTICAS - CONTINÚA EN EXTENSIÓN"))
+                    }
+
+                    (0..minOf(1, document.numberOfPages - 1)).forEach { pageIndex ->
+                        val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 180f, ImageType.RGB)
+                        assertTrue(
+                            ImageIO.write(
+                                image,
+                                "png",
+                                File(
+                                    proofDir,
+                                    "owner-review-app-modified-$familySlug-$modeSlug-page-${pageIndex + 1}.png",
+                                ),
+                            ),
+                        )
+                    }
+                }
+                assertTrue(pdf.length() > 20_000L)
+            }
+        }
+    }
+
+    @Test
+    fun marksRealExtendedContinuationsOnTheirOriginatingBasePages() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val aggregate = denseDraftAggregateWithOverflowContinuations()
+        val families = listOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE to "classic",
+            PcSheetVisualFamily.CUSTOM_V1 to "custom-v1",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "custom-v2-attribute",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "custom-v2-ability",
+        )
+
+        families.forEach { (family, slug) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+            val pdf = File(proofDir, "owner-review-continuation-cues-$slug.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+            Loader.loadPDF(pdf).use { document ->
+                assertTrue(document.numberOfPages > plan.basePages.size)
+                val baseText = (1..plan.basePages.size).joinToString("\n") { pageNumber ->
+                    PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(document)
+                }
+                assertTrue(baseText.contains("CONTINÚA EN EXTENSIÓN"))
+                assertTrue(baseText.contains("CONJUROS - CONTINÚA EN EXTENSIÓN"))
+                assertTrue(baseText.contains("NOTAS - CONTINÚA EN EXTENSIÓN"))
+
+                repeat(plan.basePages.size) { pageIndex ->
+                    val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 160f, ImageType.RGB)
+                    assertTrue(
+                        ImageIO.write(
+                            image,
+                            "png",
+                            File(proofDir, "owner-review-continuation-cues-$slug-base-${pageIndex + 1}.png"),
+                        ),
+                    )
+                }
+            }
+        }
     }
 
     private fun denseDraftAggregateWithCustomStatistics(): PcSheetExportAggregate {
