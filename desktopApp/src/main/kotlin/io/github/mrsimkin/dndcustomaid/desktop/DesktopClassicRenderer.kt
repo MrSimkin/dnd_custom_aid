@@ -2602,7 +2602,7 @@ private fun appendSpellContinuationPages(
         hairline(s, x, top + 17f, cursor, top + 17f)
     }
 
-    private fun ruledTextArea(
+private fun ruledTextArea(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
         x: Float,
@@ -2620,14 +2620,36 @@ private fun appendSpellContinuationPages(
                 hairline(s, x, ruleTop, x + width, ruleTop)
             }
         }
-        // Text sits inside the ruled rows rather than on their baselines.
-        var cursorTop = top - 2f
-        content.forEach { paragraph ->
-            val boxHeight = 39f
-            text(s, p, x + 2f, cursorTop, width - 4f, boxHeight, paragraph, PdfTypographyRole.NOTE_TEXT,
-                fontSize, (fontSize - 1.1f).coerceAtLeast(6.2f), wrap = true, maxLines = 2,
-                vertical = PdfVerticalAlignment.TOP)
-            cursorTop += 40f
+
+        // Owner correction 2026-09-22: generated prose must flow through consecutive ruled rows.
+        // The previous implementation reserved two rows per logical paragraph and visibly skipped
+        // every other usable writing line. Rules are independent paper capacity and remain visible.
+        val combined = content
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .joinToString(" · ")
+        if (combined.isEmpty()) return
+
+        val result = p.drawTextBox(
+            s,
+            PdfTextBoxSpec(
+                rect = rect(x + 2f, top - 1f, width - 4f, height + 1f),
+                text = combined,
+                role = PdfTypographyRole.NOTE_TEXT,
+                preferredSizePt = fontSize,
+                minimumSizePt = fontSize,
+                horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                verticalAlignment = PdfVerticalAlignment.TOP,
+                wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                maximumLines = lines,
+                horizontalPaddingPt = 0f,
+                verticalPaddingPt = 0f,
+                lineHeightMultiplier = 1.95f,
+                fontSizeMode = PdfFontSizeMode.FIXED,
+            ),
+        )
+        if (result.hasOverflow) {
+            overflowDiagnostics += "ruled-area value='$combined' overflow='${result.overflowText}'"
         }
     }
 

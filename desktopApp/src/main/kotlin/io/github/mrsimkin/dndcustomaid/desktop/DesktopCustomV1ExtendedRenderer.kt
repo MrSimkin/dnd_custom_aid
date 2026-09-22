@@ -2281,7 +2281,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
         const val BASE_V1_SPECIAL_CAPACITY = 13
         const val BASE_V1_VALUABLE_CAPACITY = 8
-        const val INVENTORY_ORDINARY_CAPACITY = 24
+        const val INVENTORY_ORDINARY_CAPACITY = 54
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
         const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
@@ -2291,8 +2291,11 @@ internal class DesktopCustomV1ExtendedRenderer(
             169.937f to 300.331f,
             311.669f to 442.063f,
         )
+        // Owner correction 2026-09-22: use every physical writing row. Run-6 QA deliberately
+        // sampled alternating rules, but production continuation must not waste every other line.
         val INVENTORY_ORDINARY_RULES = listOf(
-            128.5f, 168f, 208f, 247.5f, 287.5f, 327f, 366.5f, 406.5f,
+            108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f,
+            287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f,
         )
         val INVENTORY_TREASURE_RULES = listOf(307f, 347f, 386.5f, 426.5f)
         val INVENTORY_SPECIAL_RULES = listOf(
