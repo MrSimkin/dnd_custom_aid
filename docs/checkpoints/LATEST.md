@@ -125,15 +125,15 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 - The application-owned optional Spellbook is production-complete and **PASS** at `ac0cbb2b26202bf934ac4926b56899014390613e`; final Scaffold #3161 / `35679451757` — SUCCESS; proof artifact `10674370966`. It is appended after the selected family/Extended output and leaves all preceding pages unchanged.
 - Local portrait-byte handoff plus Crop/Fit is production-complete and **PASS** at `93490d2247da5ea46ef50563fd17da78840e659e`; final Scaffold #3177 / `35683430947` — SUCCESS; proof artifact `10676160917`. Classic, Custom v1 and both Custom-v2 first-page variants preserve their portrait frames while supporting Crop-to-fill and Fit-entire-image.
 - `APP_MODIFIED_SHEET` plus originating-section continuation-cue candidate at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` / artifact `10713481125` is **OWNER REJECTED / DO NOT USE**. Green CI did not preserve the exact frozen visual baselines.
-- Visual recovery artifact `10720833172` / implementation `6ea493c9ee53cf727464a985bc6ef0b558a73e99` is **OWNER REJECTED** after review 2. See `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_REVIEW_2_REJECTED.md`. Repair is active; do not freeze this artifact.
+- Visual recovery artifact `10720833172` remains OWNER REJECTED. The replacement VR-3 implementation `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd` passed push #3261 and PR #3262, with exact proof artifact `10723153227` and 15/15 measured X/Y anchors PASS. Worker visual preflight is PASS; owner visual QA is pending.
 
 ## Current continuation
 
-1. follow `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`; artifact `10720833172` is rejected and must not be sent for approval again;
+1. follow `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`, `docs/PC_SHEET_PDF_ITERATION_LEDGER.md` and `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`; artifact `10720833172` is rejected and must not be sent for approval again;
 2. continue the bounded owner-review-2 repair using the append-only iteration ledger; the current family is owner-facing Fantasy Sheet, while `CLASSIC_DND_STYLE` remains only a legacy internal id;
 3. Scaffold #3245 / `35791076544` and #3246 / `35791080855` failed because the stricter Classic rule-coupled renderer exposed base excerpts that no longer fit physical rows; repair by reducing base excerpts and routing complete content to Classic-native continuation, not by compressing or decoupling text from rules;
 4. revert the WIP rasterized v2 logo attempt and repair the logo through the pre-existing STRUCTURE/CLEANUP layered method;
-5. before any corrected proof is returned to the owner, pass the independent X/Y geometry gate, ordered-layer gate, terminology gate and Worker rendered-page preflight, then append the exact results to the iteration ledger;
+5. VR-3 at `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd` has passed the independent X/Y geometry gate, ordered-layer gate, terminology gate and Worker rendered-page preflight; next gate is owner visual QA of artifact `10723153227`;
 6. keep PR #85 DRAFT / DO NOT MERGE; Save/Share remains blocked.
 
 No external provider action is required for this PDF-renderer stage.

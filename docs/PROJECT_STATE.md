@@ -325,3 +325,8 @@ Current visual work must read:
 Owner-facing name for the application-designed legacy `CLASSIC_DND_STYLE` family is **Fantasy Sheet**. It must not be described as Classic, official, or official-like. An official-like D&D sheet would be a separate future family/gate.
 
 Every future PDF iteration must record run logs/results and pass an X/Y pre-print audit before an owner-facing proof is promoted.
+
+
+### PC Sheet PDF recovery VR-3 - pre-print pass
+
+Implementation `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd` passed Scaffold push #3261 and PR #3262. Exact proof artifact `10723153227` passed the durable terminology, ordered-layer and measured X/Y gates (15/15 anchors) plus Worker rendered-page preflight. Owner visual QA remains pending. PR #85 stays DRAFT / DO NOT MERGE; Save/Share remains blocked.

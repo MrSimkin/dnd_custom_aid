@@ -134,3 +134,47 @@ The next generated proof iteration must append a new `VR-3` entry **before owner
 - Worker visual inspection findings;
 - exact issue-by-issue resolution mapping;
 - owner status left PENDING until explicit review.
+
+
+### VR-3A - executable pre-print gates, first attempt
+
+- Implementation: `d0bf95d0aa7f81d9a5d99ba324c5b96dab788361`
+- Push Scaffold: #3259 / `35794207437` - FAILED
+- PR Scaffold: #3260 / `35794211161` - FAILED
+- Backend: PASS.
+- Hosted database: PASS.
+- Kotlin: FAILED in 2 tests.
+- Worker log reading:
+  1. `XY-001` selected the first same-named v2 `RASGOS Y ATRIBUTOS` label on the base sheet (Y ~= 411) rather than the intended Extended heading (Y ~= 38). This was an audit-selector defect, not permission to move the approved Extended heading.
+  2. Fantasy inventory test assumed exactly one continuation page. Correct no-loss routing now required two continuation pages for that fixture. The fixed page-count expectation was stale.
+- Resolution:
+  - X/Y selector now chooses the matching occurrence nearest the independently expected Y band;
+  - inventory validation aggregates all continuation pages instead of constraining page count;
+  - neither visual geometry nor overflow capacity was weakened.
+
+### VR-3B - guarded recovery candidate
+
+- Implementation: `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd`
+- Push Scaffold: #3261 / `35794876389` - **SUCCESS**; Kotlin build/test: `BUILD SUCCESSFUL in 6m 37s`.
+- PR Scaffold: #3262 / `35794879895` - **SUCCESS**; Kotlin build/test: `BUILD SUCCESSFUL in 5m 3s`.
+- Exact proof artifact: `10723153227`
+- Artifact digest: `sha256:89e458a34a0f79992720c0b85116f66ce8007a3da5026248189eac30b9c4c421`
+- Pre-print audit report: `pc-sheet-preprint-xy-audit.tsv`.
+- X/Y audit: **15/15 PASS**.
+- TERM-001: **PASS** - generated audited PDFs contain `Raza`; no user-facing `Especie`.
+- ARCH-001: **PASS** - Custom semantic layer groups are required and ordered `STRUCTURE -> CLEANUP -> LABELS -> VALUES -> MARKERS`.
+- Worker rendered-page preflight:
+  - Fantasy page 2: Historia/Personalidad now flows on consecutive physical rules; Rasgos adicionales aligns to rules; Idiomas and Aliados/Tesoro retain visible writing/reference rules.
+  - Fantasy traits continuation: text aligns to visible source-paper rules; user-facing heading is `RASGOS DE RAZA / TRASFONDO / OTROS`.
+  - Fantasy inventory continuation: one native row per item; no alternating blank-row cadence; Valor/Ubicación/Notas uses consecutive ruled rows.
+  - Fantasy notes: Notas de campaña and Referencias/Recordatorios align to their physical rules.
+  - Custom v1: Special Equipment check marks are visually centered inside the source boxes. Independent raster measurement on the first checked white-row box placed the check-ink weighted centroid about 0.6 pt left of geometric center and about 0.14 pt vertically from center, inside the +/-1.5 pt gate.
+  - Custom v2 both variants: Extended title/subtitle appearance matches the frozen Run-7 source-font treatment again; Clase/Dotes and Raza/Trasfondo/Otros entries are packed on consecutive source rows rather than fixed 102-pt blocks; logo appears clean in rendered preflight.
+  - Current v2 header-vs-frozen-Run7 raster comparison shows only a very small bounded header-region difference; no visible opaque/crop artifact was found in the inspected render.
+- Family naming:
+  - current application-designed family is owner-facing **Fantasy Sheet**;
+  - `CLASSIC_DND_STYLE` remains legacy internal compatibility only;
+  - no claim is made that Fantasy Sheet resembles the official D&D sheet.
+- Status: **IMPLEMENTATION + AUTOMATED PRE-PRINT GATES PASS / WORKER VISUAL PREFLIGHT PASS / OWNER VISUAL QA PENDING**.
+- PR #85 remains DRAFT / DO NOT MERGE.
+- Save/Share remains blocked until owner visual approval.
