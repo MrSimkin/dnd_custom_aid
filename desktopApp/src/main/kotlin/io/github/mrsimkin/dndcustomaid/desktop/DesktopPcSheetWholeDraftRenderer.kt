@@ -18,28 +18,47 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode
  * Whole-sheet production renderer for the approved Classic and Custom visual families.
  *
  * Classic Run-2's complete base + continuation family and the frozen Custom families are driven by
- * the same canonical PcSheetPdfRenderPlan. The application-owned Spellbook is appended after
- * family output; portrait-byte handoff and remaining owner-facing export-product gates stay explicit.
+ * the same canonical PcSheetPdfRenderPlan. Local portrait bytes are overlaid into the selected
+ * family frame, then the application-owned Spellbook is appended; remaining owner-facing
+ * export-product gates stay explicit.
  */
 internal class DesktopPcSheetWholeDraftRenderer(
     private val resourceLoader: (String) -> InputStream? = { resourcePath ->
         DesktopPcSheetWholeDraftRenderer::class.java.classLoader.getResourceAsStream(resourcePath)
     },
+    private val portraitBytesLoader: (String) -> ByteArray? = { null },
 ) {
     fun renderDraft(
         plan: PcSheetPdfRenderPlan,
         output: OutputStream,
     ) {
-        if (plan.snapshot.spellbook != null) {
+        val portraitRef = plan.snapshot.portrait.portraitRef
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+        val portraitBytes = if (plan.snapshot.portrait.locallyAvailable && portraitRef != null) {
+            runCatching { portraitBytesLoader(portraitRef) }.getOrNull()
+        } else {
+            null
+        }
+
+        if (plan.snapshot.spellbook != null || portraitBytes != null) {
             val basePlan = plan.copy(
-                snapshot = plan.snapshot.copy(spellbook = null),
+                snapshot = plan.snapshot.copy(
+                    spellbook = null,
+                    portrait = plan.snapshot.portrait.copy(locallyAvailable = false),
+                ),
             )
             val baseBytes = ByteArrayOutputStream().use { buffer ->
                 renderDraft(basePlan, buffer)
                 buffer.toByteArray()
             }
             Loader.loadPDF(baseBytes).use { document ->
-                DesktopSpellbookRenderer(document).append(plan)
+                portraitBytes?.let { bytes ->
+                    DesktopPortraitRenderer(document).overlay(plan, bytes)
+                }
+                if (plan.snapshot.spellbook != null) {
+                    DesktopSpellbookRenderer(document).append(plan)
+                }
                 document.save(output)
             }
             return
