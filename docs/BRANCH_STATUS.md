@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — optional application-owned Spellbook
+**Current normal work:** PC Sheet PDF Export — portrait-byte handoff + Crop/Fit
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -125,6 +125,7 @@ Current state:
 - canonical Custom Extended layered methodology is `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
 - Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
 - Classic corrected Run 2 complete family is owner-approved/frozen and its integrated production audit is PASS at `30ac4d073e9fab47a498f4e6dc3d9266c633110e` (Scaffold #3151 / `35677870304` SUCCESS; artifact `10674062891`); spent-slot controls remain blank/writable per the active renderer protocol;
+- the application-owned optional Spellbook production gate is PASS at `ac0cbb2b26202bf934ac4926b56899014390613e` (Scaffold #3161 / `35679451757` SUCCESS; artifact `10674370966`); all preceding family pages remain unchanged when the appendix is appended;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
 - Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
@@ -134,14 +135,14 @@ Current state:
 
 Next continuation sequence:
 
-1. implement the separate optional Spellbook;
-2. complete portrait-byte handoff and Crop/Fit behavior;
-3. resolve the owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
-4. wire local Save/Share beginning with Desktop, then complete approved surface parity;
-5. do not merge PR #85 until the remaining visual/functional gates are satisfied.
+1. complete portrait-byte handoff and Crop/Fit behavior;
+2. resolve the owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
+3. wire local Save/Share beginning with Desktop, then complete approved surface parity;
+4. do not merge PR #85 until the remaining visual/functional gates are satisfied.
 
 Relevant durable records:
 
+- `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
 - `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
 - `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
 - `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;

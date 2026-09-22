@@ -12,18 +12,19 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-4. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-5. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
-6. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-7. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-8. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
-9. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-10. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-11. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
-12. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-13. `docs/PROJECT_STATE.md`;
-14. `docs/BRANCH_STATUS.md`.
+3. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
+4. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+5. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+6. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
+7. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
+8. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+9. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
+10. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
+11. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+12. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+13. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+14. `docs/PROJECT_STATE.md`;
+15. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -112,13 +113,13 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 - Custom-v2 Extended design is owner-approved/frozen and its integrated production audit is **PASS** at `0295f30ca77214284902b0e13a563dcdaf58b501`.
 - Custom-v1 base + Extended design is owner-approved/frozen and its integrated production audit is **PASS** at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`.
 - Classic Run 2 complete base + six continuation roles are owner-approved/frozen and its integrated production audit is **PASS** at `30ac4d073e9fab47a498f4e6dc3d9266c633110e`; final Scaffold #3151 / `35677870304` — SUCCESS; proof artifact `10674062891`. Printed spent-slot markers remain intentionally blank for paper tracking.
+- The application-owned optional Spellbook is production-complete and **PASS** at `ac0cbb2b26202bf934ac4926b56899014390613e`; final Scaffold #3161 / `35679451757` — SUCCESS; proof artifact `10674370966`. It is appended after the selected family/Extended output and leaves all preceding pages unchanged.
 
 ## Current continuation
 
-1. implement the application-owned optional Spellbook;
-2. complete portrait-byte handoff plus Crop/Fit behavior;
-3. implement the remaining owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
-4. wire local Save/Share, beginning with the Desktop DM workflow before cross-surface parity;
-5. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
+1. complete portrait-byte handoff plus Crop/Fit behavior;
+2. implement the remaining owner-facing `APP_MODIFIED_SHEET` and originating-section continuation-cue gates;
+3. wire local Save/Share, beginning with the Desktop DM workflow before cross-surface parity;
+4. keep PR #85 DRAFT / DO NOT MERGE until the remaining visual/functional gates are satisfied.
 
 No external provider action is required for this PDF-renderer stage.
