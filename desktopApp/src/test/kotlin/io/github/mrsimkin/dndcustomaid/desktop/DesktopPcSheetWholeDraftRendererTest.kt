@@ -3075,7 +3075,8 @@ class DesktopPcSheetWholeDraftRendererTest {
                         assertTrue(statsPages >= 1)
                     } else {
                         assertTrue(statsPages >= 2)
-                        assertTrue(allText.contains("ESTADÍSTICAS - CONTINÚA EN EXTENSIÓN"))
+                        assertTrue(allText.contains("EXTENSIÓN:"))
+                        assertTrue(allText.contains("ESTADÍSTICAS"))
                     }
 
                     (0..minOf(1, document.numberOfPages - 1)).forEach { pageIndex ->
