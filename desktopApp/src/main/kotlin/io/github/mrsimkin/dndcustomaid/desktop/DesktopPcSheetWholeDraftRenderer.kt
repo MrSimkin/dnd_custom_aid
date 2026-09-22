@@ -195,29 +195,12 @@ internal class DesktopPcSheetWholeDraftRenderer(
                     val page = draft.importPage(sourceTemplate.getPage(sourceIndex))
 
                     when (pagePlan.role) {
-                        PcSheetBasePageRole.MAIN -> hybrid.render(page, pagePlan.role, plan)
-                        PcSheetBasePageRole.NARRATIVE -> {
-                            hybrid.render(page, pagePlan.role, plan)
-                            PDPageContentStream(draft, page, AppendMode.APPEND, true, true).use { stream ->
-                                drawV1NarrativeResidual(stream, primitives, plan)
-                            }
-                        }
-                        PcSheetBasePageRole.SPELL_LIST -> {
-                            hybrid.render(page, pagePlan.role, plan)
-                            PDPageContentStream(draft, page, AppendMode.APPEND, true, true).use { stream ->
-                                drawV1SpellListResidual(stream, primitives, plan)
-                            }
-                        }
+                        PcSheetBasePageRole.MAIN,
                         PcSheetBasePageRole.EQUIPMENT,
+                        PcSheetBasePageRole.NARRATIVE,
+                        PcSheetBasePageRole.SPELL_LIST,
                         PcSheetBasePageRole.NOTES,
-                        -> PDPageContentStream(draft, page, AppendMode.APPEND, true, true).use { stream ->
-                            drawBasePage(
-                                stream = stream,
-                                primitives = primitives,
-                                role = pagePlan.role,
-                                plan = plan,
-                            )
-                        }
+                        -> hybrid.render(page, pagePlan.role, plan)
                         PcSheetBasePageRole.EQUIPMENT_AND_NARRATIVE ->
                             error("Custom v1 does not use EQUIPMENT_AND_NARRATIVE.")
                     }
