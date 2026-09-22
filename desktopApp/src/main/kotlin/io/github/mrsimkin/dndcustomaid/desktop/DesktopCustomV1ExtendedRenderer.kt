@@ -1178,7 +1178,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             )
         }.joinToString(" · ")
         if (status.isNotEmpty()) {
-            lines += wrapByWidth(resources.fira, status, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
+            lines += wrapByWidth(status, resources.fira, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
         }
 
         val description = listOfNotNull(
@@ -1186,7 +1186,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             item.notes?.trim()?.takeIf { it.isNotEmpty() },
         ).joinToString(" · ")
         if (description.isNotEmpty()) {
-            lines += wrapByWidth(resources.fira, description, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
+            lines += wrapByWidth(description, resources.fira, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
         }
         return lines
     }
