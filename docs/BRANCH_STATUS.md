@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — recover exact frozen visual baselines after owner rejection
+**Current normal work:** PC Sheet PDF Export — triple-authority visual recovery OWNER QA READY
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -128,6 +128,7 @@ Current state:
 - the application-owned optional Spellbook production gate is PASS at `ac0cbb2b26202bf934ac4926b56899014390613e` (Scaffold #3161 / `35679451757` SUCCESS; artifact `10674370966`); all preceding family pages remain unchanged when the appendix is appended;
 - local portrait-byte handoff plus Crop/Fit production is PASS at `93490d2247da5ea46ef50563fd17da78840e659e` (Scaffold #3177 / `35683430947` SUCCESS; artifact `10676160917`); Classic, Custom v1 and both Custom-v2 first-page variants are covered, v2 decorative frames are preserved, and the taller per-Ability portrait geometry has an explicit regression guard;
 - App Modified + continuation candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` / artifact `10713481125` is OWNER REJECTED / DO NOT USE because it regressed previously approved Classic/v1/v2 visual mechanics;
+- triple-authority visual recovery is OWNER QA READY at implementation head `6ea493c9ee53cf727464a985bc6ef0b558a73e99`; push #3239 / `35786839063` and PR #3240 / `35786844300` are SUCCESS; artifact `10720833172`; Worker visual preflight PASS; owner visual QA pending;
 - Classic Run 1 is OWNER REJECTED / historical evidence only;
 - Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
 - Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
@@ -137,10 +138,10 @@ Current state:
 
 Next continuation sequence:
 
-1. recover/download the exact owner-approved Classic, Custom-v1 and Custom-v2 proof artifacts and treat them as the visual goldens;
-2. compare production output against those exact goldens and reuse/extract approved renderer components where it diverged;
-3. add golden visual regression protection before reintroducing App Modified + continuation cues;
-4. do not begin Save/Share and do not merge PR #85 until the recovered output passes new owner visual QA.
+1. owner reviews the exact recovery proof set from artifact `10720833172`;
+2. if approved, record/freeze the corrected recovery output as replacement goldens where the 2026-09-22 owner corrections supersede older details;
+3. then begin Desktop Save/Share/export invocation and subsequent cross-surface parity;
+4. do not merge PR #85 until owner visual approval and the remaining functional gates are complete.
 
 Relevant durable records:
 

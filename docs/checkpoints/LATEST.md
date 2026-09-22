@@ -12,8 +12,10 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`;
-4. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
+3. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_QA_READY.md`;
+4. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`;
+5. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`;
+6. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
 5. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
 6. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
 7. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
@@ -118,12 +120,13 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 - The application-owned optional Spellbook is production-complete and **PASS** at `ac0cbb2b26202bf934ac4926b56899014390613e`; final Scaffold #3161 / `35679451757` — SUCCESS; proof artifact `10674370966`. It is appended after the selected family/Extended output and leaves all preceding pages unchanged.
 - Local portrait-byte handoff plus Crop/Fit is production-complete and **PASS** at `93490d2247da5ea46ef50563fd17da78840e659e`; final Scaffold #3177 / `35683430947` — SUCCESS; proof artifact `10676160917`. Classic, Custom v1 and both Custom-v2 first-page variants preserve their portrait frames while supporting Crop-to-fill and Fit-entire-image.
 - `APP_MODIFIED_SHEET` plus originating-section continuation-cue candidate at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` / artifact `10713481125` is **OWNER REJECTED / DO NOT USE**. Green CI did not preserve the exact frozen visual baselines.
+- Triple-authority visual recovery is **OWNER QA READY** at implementation head `6ea493c9ee53cf727464a985bc6ef0b558a73e99`; push #3239 and PR #3240 are SUCCESS; proof artifact `10720833172`, digest `sha256:6a466a5fbe3d0874a1609dde79227bb1d92fda704fd345087cc83657d4c98098`. Implementation/automated QA and Worker visual preflight are PASS; owner visual QA is pending.
 
 ## Current continuation
 
-1. follow `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`; recover/repair from the exact frozen artifacts while applying the 2026-09-22 owner corrections as superseding rules;
-2. repair production by extracting/reusing approved components rather than incrementally patching the rejected candidate;
-3. reintroduce App Modified and continuation cues only after faithful baseline recovery and new golden visual regressions;
-4. keep PR #85 DRAFT / DO NOT MERGE; Save/Share is blocked until this visual recovery is owner-approved.
+1. owner visually reviews the compact recovery set from artifact `10720833172`, starting with the four faithful/overflow PDFs and then the four App Modified PDFs;
+2. if approved, record/freeze the recovered corrections as replacement goldens where the 2026-09-22 owner corrections supersede older details;
+3. after owner approval, wire Desktop Save/Share/export invocation and then cross-surface parity;
+4. keep PR #85 DRAFT / DO NOT MERGE until owner visual approval and the remaining functional gates.
 
 No external provider action is required for this PDF-renderer stage.
