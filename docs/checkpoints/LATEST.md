@@ -2,11 +2,11 @@
 
 **Updated:** 2026-09-23 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`  
+**Last verified integrated main:** `5e778ced3b85fc66d4ca449727a3451e91c50d7e`  
 **Wave 7:** ACTIVE  
-**Current active branch:** `qa/pc-sheet-runtime-character-fixtures`  
+**Current active branch:** `docs/pc-sheet-runtime-character-fixtures-integrated`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
-**PR #91:** PC Sheet runtime QA character fixture pack - pending documentation-head CI/merge
+**PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; post-merge #3360 PASS
 
 ## Read first on resume
 
@@ -126,10 +126,10 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 6. PR #88 Android generated renderer bridge is integrated as `c5963881bdff2597770d3f6a26992b8567b2a35b`.
 7. PR #89 Android Player/authorized-DM Save/Share is integrated as `e6e153a53bba8aa532b5c371dcc16849a901a541`.
 8. PR #90 lifecycle/documentation closure is integrated as `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`; post-merge #3344 PASS.
-9. **Runtime QA fixture pack is prepared on PR #91**: Aldren Vale (strict SRD 5.1 Fighter 5/Champion), Ilyra Quill (strict SRD 5.2.1 Wizard 5/Evoker), and Mara de los Siete Umbrales (CUSTOM high-volume Extended stress).
+9. **Runtime QA fixture pack is integrated on main through PR #91**: Aldren Vale (strict SRD 5.1 Fighter 5/Champion), Ilyra Quill (strict SRD 5.2.1 Wizard 5/Evoker), and Mara de los Siete Umbrales (CUSTOM high-volume Extended stress).
 10. All three fixtures are app-owned Character Backup v2 JSONs suitable for normal Android **Importar**; tests prove decode/round-trip/restore-as-copy.
 11. Guarded DEV SQL seed is prepared at `database/qa/seed_pc_sheet_runtime_characters.sql`; it stores those exact fixture documents in hosted `pc.snapshot`. It has **not** been executed against DEV in this work.
-12. Fixture implementation/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed push Scaffold #3348 / `35914303487`.
+12. Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed #3348/#3349; final docs head passed #3358/#3359; merge `5e778ced3b85fc66d4ca449727a3451e91c50d7e` passed post-merge #3360 / `35915153718`.
 13. Android export still exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
 14. Unsaved structural edits still require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
 15. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
