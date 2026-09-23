@@ -244,7 +244,7 @@ internal fun CharacterEditorScreenV4(
     var confirmUnsavedLeave by rememberSaveable(characterId.toString(), "unsaved-leave") { mutableStateOf(false) }
     var leaveAfterSave by rememberSaveable(characterId.toString(), "leave-after-save") { mutableStateOf(false) }
     var backupExportMessage by rememberSaveable(characterId.toString(), "backup-export-message") { mutableStateOf<String?>(null) }
-    var pcSheetExportBusy by rememberSaveable(characterId.toString(), "pc-sheet-export-busy") { mutableStateOf(false) }
+    var pcSheetExportBusy by remember(characterId) { mutableStateOf(false) }
     var pcSheetExportMessage by rememberSaveable(characterId.toString(), "pc-sheet-export-message") {
         mutableStateOf<String?>(null)
     }
