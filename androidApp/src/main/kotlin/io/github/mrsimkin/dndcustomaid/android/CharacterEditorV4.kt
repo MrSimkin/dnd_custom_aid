@@ -1113,6 +1113,15 @@ internal fun CharacterEditorScreenV4(
                     .ifBlank { "personaje" }
                 backupExportLauncher.launch("${safeBase}_respaldo_dnd-custom-aid.json")
             },
+            pcSheetExportBusy = pcSheetExportBusy,
+            pcSheetHasUnsavedChanges = hasUnsavedChanges,
+            pcSheetExportMessage = pcSheetExportMessage,
+            onSavePcSheetPdf = { options ->
+                requestPcSheetExport(PcSheetAndroidExportActionV4.SAVE, options)
+            },
+            onSharePcSheetPdf = { options ->
+                requestPcSheetExport(PcSheetAndroidExportActionV4.SHARE, options)
+            },
             onOpenApplicationSettings = onOpenApplicationSettings,
         )
     } else {
@@ -1411,6 +1420,48 @@ internal fun CharacterEditorScreenV4(
                 }
             }
         }
+    }
+
+    if (pendingPcSheetAction != null && pendingPcSheetOptions != null) {
+        val missingRequiredNumbers = draft.missingRequiredNumberLabels()
+        AlertDialog(
+            onDismissRequest = {
+                pendingPcSheetAction = null
+                pendingPcSheetOptions = null
+            },
+            title = { Text("Exportar cambios sin guardar") },
+            text = {
+                Text(
+                    buildString {
+                        append("El PDF usará los cambios que ves ahora, pero esos cambios no se guardarán en el personaje.")
+                        if (missingRequiredNumbers.isNotEmpty()) {
+                            append(" Los campos numéricos requeridos vacíos se proyectarán como 0 solo para esta exportación.")
+                        }
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val action = pendingPcSheetAction
+                        val options = pendingPcSheetOptions
+                        pendingPcSheetAction = null
+                        pendingPcSheetOptions = null
+                        if (action != null && options != null) {
+                            startPcSheetExport(action, options)
+                        }
+                    },
+                ) { Text("Exportar sin guardar") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        pendingPcSheetAction = null
+                        pendingPcSheetOptions = null
+                    },
+                ) { Text("Cancelar") }
+            },
+        )
     }
 
     backupExportMessage?.let { message ->
