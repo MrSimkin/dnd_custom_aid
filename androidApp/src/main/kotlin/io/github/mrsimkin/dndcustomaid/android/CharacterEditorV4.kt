@@ -244,7 +244,21 @@ internal fun CharacterEditorScreenV4(
     var confirmUnsavedLeave by rememberSaveable(characterId.toString(), "unsaved-leave") { mutableStateOf(false) }
     var leaveAfterSave by rememberSaveable(characterId.toString(), "leave-after-save") { mutableStateOf(false) }
     var backupExportMessage by rememberSaveable(characterId.toString(), "backup-export-message") { mutableStateOf<String?>(null) }
+    var pcSheetExportBusy by rememberSaveable(characterId.toString(), "pc-sheet-export-busy") { mutableStateOf(false) }
+    var pcSheetExportMessage by rememberSaveable(characterId.toString(), "pc-sheet-export-message") {
+        mutableStateOf<String?>(null)
+    }
+    var pendingPcSheetSavePath by rememberSaveable(characterId.toString(), "pc-sheet-save-path") {
+        mutableStateOf<String?>(null)
+    }
+    var pendingPcSheetSaveNotice by rememberSaveable(characterId.toString(), "pc-sheet-save-notice") {
+        mutableStateOf<String?>(null)
+    }
+    var pendingPcSheetAction by remember { mutableStateOf<PcSheetAndroidExportActionV4?>(null) }
+    var pendingPcSheetOptions by remember { mutableStateOf<AndroidPcSheetExportOptions?>(null) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val pcSheetExportService = remember(context) { AndroidPcSheetExportService(context) }
     val backupExportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json"),
     ) { uri ->
@@ -262,6 +276,40 @@ internal fun CharacterEditorScreenV4(
                 "Respaldo exportado correctamente."
             } else {
                 "No se pudo escribir el respaldo en el archivo seleccionado."
+            }
+        }
+    }
+
+    val pcSheetSaveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/pdf"),
+    ) { uri ->
+        val stagedPath = pendingPcSheetSavePath
+        pendingPcSheetSavePath = null
+        val staged = stagedPath?.let(::File)
+        if (uri == null) {
+            staged?.delete()
+            pendingPcSheetSaveNotice = null
+            pcSheetExportMessage = "Guardado de PDF cancelado."
+        } else if (staged == null || !staged.isFile) {
+            pendingPcSheetSaveNotice = null
+            pcSheetExportMessage = "El PDF temporal ya no está disponible; vuelve a generar la hoja."
+        } else {
+            pcSheetExportBusy = true
+            coroutineScope.launch {
+                val result = runCatching {
+                    withContext(Dispatchers.IO) {
+                        pcSheetExportService.writeToDocument(staged, uri)
+                    }
+                }
+                staged.delete()
+                pcSheetExportMessage = if (result.isSuccess) {
+                    "PDF guardado correctamente." +
+                        pendingPcSheetSaveNotice?.let { " $it" }.orEmpty()
+                } else {
+                    result.exceptionOrNull()?.message ?: "No se pudo escribir el PDF seleccionado."
+                }
+                pendingPcSheetSaveNotice = null
+                pcSheetExportBusy = false
             }
         }
     }
