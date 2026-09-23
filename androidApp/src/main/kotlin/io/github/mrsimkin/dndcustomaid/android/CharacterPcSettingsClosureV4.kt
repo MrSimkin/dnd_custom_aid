@@ -78,7 +78,15 @@ internal fun CharacterPcSettingsClosureV4(
     var pendingLifecycleStatusName by rememberSaveable { mutableStateOf<String?>(null) }
     var pageName by rememberSaveable { mutableStateOf(PcSettingsPageClosureV4.MAIN.name) }
     val requestedPage = runCatching { PcSettingsPageClosureV4.valueOf(pageName) }.getOrDefault(PcSettingsPageClosureV4.MAIN)
-    val page = if (closureState.tableModeEnabled && requestedPage != PcSettingsPageClosureV4.MAIN) PcSettingsPageClosureV4.MAIN else requestedPage
+    val page = if (
+        closureState.tableModeEnabled &&
+        requestedPage != PcSettingsPageClosureV4.MAIN &&
+        requestedPage != PcSettingsPageClosureV4.PDF_EXPORT
+    ) {
+        PcSettingsPageClosureV4.MAIN
+    } else {
+        requestedPage
+    }
     val layoutContext = characterLayoutContextV4()
     val wide = layoutContext.availableWidthDp >= 720
     val pcContext = LocalCharacterPcSettingsContextV4.current
