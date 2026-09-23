@@ -519,12 +519,14 @@ internal class DesktopCustomV2ExtendedRenderer(
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            fill(s, 14f, 96f, 277f, 24f, SOURCE_GRAY_LIGHT)
-            fill(s, 307f, 96f, 291f, 24f, SOURCE_GRAY_LIGHT)
-            // 36 rules are required here: the lower continuation region uses eight physical
-            // rows through top=732. With 35, the final wrapped line falls below the ruled rhythm.
             bandedRows(s, 14f, 291f, 137f, 36, 17f, 0)
             bandedRows(s, 307f, 598f, 137f, 36, 17f, 1)
+            fill(s, 14f, 96f, 277f, 34f, Color.WHITE)
+            fill(s, 307f, 96f, 291f, 34f, Color.WHITE)
+            fill(s, 14f, 358f, 277f, 34f, Color.WHITE)
+            fill(s, 307f, 358f, 291f, 34f, Color.WHITE)
+            fill(s, 14f, 579f, 277f, 34f, Color.WHITE)
+            fill(s, 307f, 579f, 291f, 34f, Color.WHITE)
             drawRule(s, 14f, 291f, 358f, 0.8f)
             drawRule(s, 307f, 598f, 358f, 0.8f)
             drawRule(s, 14f, 291f, 579f, 0.8f)
@@ -533,12 +535,12 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "RASGOS Y ATRIBUTOS")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 98f, 277f, 20f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 98f, 291f, 20f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopFixedScale(s, resources.corbelBold, 18f, 365f, "OTROS RASGOS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopFixedScale(s, resources.corbelBold, 311f, 365f, "DETALLES / NOTAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopFixedScale(s, resources.corbelBold, 18f, 586f, "COMPETENCIAS / IDIOMAS", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
-            textTopFixedScale(s, resources.corbelBold, 311f, 586f, "CONTINUACIÓN", 9.5f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 99f, 291f, 22f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 363f, 277f, 22f), "OTROS RASGOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 363f, 291f, 22f), "DETALLES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 584f, 277f, 22f), "COMPETENCIAS / IDIOMAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 584f, 291f, 22f), "CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             var leftFeatureRule = 137f
@@ -1215,52 +1217,59 @@ internal class DesktopCustomV2ExtendedRenderer(
         // continuation layers so legitimate multi-page overflow cannot collide.
         val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
 
+        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
+
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            fill(s, 14f, 96f, 411f, 22f, SOURCE_GRAY_LIGHT)
-            fill(s, 431f, 96f, 167f, 22f, SOURCE_GRAY_LIGHT)
-
-            val equipmentCols = listOf(14f to 147f, 153f to 286f, 292f to 425f)
-            equipmentCols.forEachIndexed { index, col ->
-                bandedRows(s, col.first, col.second, 139f, 19, 17f, index)
+            listOf(14f, 307f).forEach { blockX ->
+                bandedRows(s, blockX, blockX + 277f, 139f, 19, 17f, 0)
+                verticalRule(s, blockX + 139f, 122f, 462f, 0.45f)
             }
-            bandedRows(s, 431f, 598f, 139f, 19, 17f, 1)
-
             drawRule(s, 14f, 598f, 480f, 0.8f)
-            fill(s, 14f, 488f, 584f, 22f, SOURCE_GRAY_LIGHT)
+
             bandedRows(s, 14f, 598f, 548f, 12, 17f, 0)
-            listOf(30f, 130f, 310f).forEach { x -> verticalRule(s, x, 512f, 752f, 0.45f) }
+            listOf(30f, 99f, 303f).forEach { x -> verticalRule(s, x, 512f, 752f, 0.45f) }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             pageTitle(s, "INVENTARIO / EQUIPO")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 97f, 411f, 20f), "EQUIPO - CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(431f, 97f, 167f, 20f), "TESORO / OBJETOS / OTROS", 10.2f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "EQUIPO", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 99f, 291f, 22f), "EQUIPO", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
 
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 489f, 584f, 20f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            tableLabel(s, 30f, 514f, 100f, "UBICACIÓN")
-            tableLabel(s, 130f, 514f, 180f, "NOMBRE")
-            tableLabel(s, 310f, 514f, 288f, "DESCRIPCIÓN / ESTADO")
+            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 489f, 584f, 22f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
+            tableLabel(s, 99f, 514f, 204f, "NOMBRE")
+            tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
+            SPECIAL_LOCATION_LABELS_DISPLAY.forEachIndexed { row, label ->
+                textAboveRule(s, resources.corbel, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
+            }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            ordinary.forEachIndexed { index, line ->
-                val col = index / 19
-                val row = index % 19
-                val x1 = listOf(18f, 157f, 296f)[col]
-                val x2 = listOf(143f, 282f, 421f)[col]
-                textAboveRule(s, resources.fira, Rule(x1, x2, 139f + row * 17f), line, 7.4f, 6.6f, 2.3f)
+            val mergedEquipment = buildList {
+                addAll(ordinary)
+                addAll(valuables.map { "Tesoro · $it" })
             }
-
-            valuables.forEachIndexed { row, value ->
-                textAboveRule(s, resources.fira, Rule(435f, 594f, 139f + row * 17f), value, 8.5f, 7.2f, 2.3f)
-            }
-
-            special.forEachIndexed { row, item ->
-                val y = 548f + row * 17f
-                item.location?.takeIf { it.isNotBlank() }?.let {
-                    textAboveRule(s, resources.fira, Rule(34f, 126f, y), it, 8.5f, 7.2f, 2.3f)
+            mergedEquipment.forEachIndexed { index, line ->
+                val block = index / 38
+                val withinBlock = index % 38
+                val row = withinBlock / 2
+                val column = withinBlock % 2
+                if (block < 2) {
+                    val blockX = if (block == 0) 14f else 307f
+                    val x1 = blockX + if (column == 0) 4f else 143f
+                    val x2 = blockX + if (column == 0) 135f else 273f
+                    textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.4f, 6.8f, 2.3f)
                 }
-                textAboveRule(s, resources.fira, Rule(134f, 306f, y), inventoryContinuationLabel(item), 8.8f, 7.2f, 2.3f)
+            }
+
+            positionedSpecial.forEach { (row, item) ->
+                val y = 548f + row * 17f
+                if (specialLocationRow(item.location) != row) {
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        textAboveRule(s, resources.fira, Rule(34f, 95f, y), it, 7.4f, 6.6f, 2.2f)
+                    }
+                }
+                textAboveRule(s, resources.fira, Rule(103f, 297f, y), inventoryContinuationLabel(item), 8.8f, 7.2f, 2.3f)
                 val detail = buildList {
                     item.weightLb?.let { add(formatInventoryWeight(it)) }
                     if (item.attuned) add("Sintonizado")
@@ -1269,16 +1278,16 @@ internal class DesktopCustomV2ExtendedRenderer(
                     item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
                 if (detail.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(314f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
+                    textAboveRule(s, resources.fira, Rule(307f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
                 }
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            repeat(INVENTORY_SPECIAL_CAPACITY) { row ->
+            positionedSpecial.forEach { (row, item) ->
                 drawV2TrainingBox(
                     s,
                     TopRect(16f, 536f + row * 17f, 8.5f, 9f),
-                    if (special.getOrNull(row)?.equipped == true) Training.PROFICIENT else Training.NONE,
+                    if (item.equipped || item.attuned) Training.PROFICIENT else Training.NONE,
                 )
             }
         }
@@ -1293,9 +1302,6 @@ internal class DesktopCustomV2ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val lines = mutableListOf<String>()
-        lines += wrapByWidth(resources.fira, inventoryContinuationLabel(item), 7.4f, 125f)
-
         val status = buildList {
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.weightLb?.let { weight ->
@@ -1307,22 +1313,41 @@ internal class DesktopCustomV2ExtendedRenderer(
             if (item.equipped) add("Equipado")
             addAll(inventoryUsageLabels(usage))
         }.joinToString(" · ")
-        if (status.isNotEmpty()) {
-            lines += wrapByWidth(resources.fira, status, 7.4f, 125f)
-        }
+
+        val lines = mutableListOf<String>()
+        val primary = listOf(inventoryContinuationLabel(item), status)
+            .filter { it.isNotEmpty() }
+            .joinToString(" · ")
+        lines += wrapByWidth(resources.condensed, primary, 8.4f, V2_EQUIPMENT_COLUMN_WIDTH)
 
         val description = listOfNotNull(
             item.description?.trim()?.takeIf { it.isNotEmpty() },
             item.notes?.trim()?.takeIf { it.isNotEmpty() },
         ).joinToString(" · ")
         if (description.isNotEmpty()) {
-            lines += wrapByWidth(resources.fira, description, 7.4f, 125f)
+            lines += wrapByWidth(resources.condensed, description, 8.4f, V2_EQUIPMENT_COLUMN_WIDTH)
         }
         return lines
     }
 
-    private fun specialLocationNeedsText(location: String?): Boolean {
-        val normalized = location
+    private fun positionedSpecialItems(
+        items: List<CharacterInventoryItem>,
+        rowCount: Int,
+    ): List<Pair<Int, CharacterInventoryItem>> {
+        val available = (0 until rowCount).toMutableSet()
+        val positioned = mutableListOf<Pair<Int, CharacterInventoryItem>>()
+        items.take(rowCount).forEach { item ->
+            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
+            val fallback = available.filter { it >= SPECIAL_LOCATION_LABELS.size }.minOrNull() ?: available.minOrNull()
+            val row = preferred ?: fallback ?: return@forEach
+            available.remove(row)
+            positioned += row to item
+        }
+        return positioned.sortedBy { it.first }
+    }
+
+    private fun normalizedInventoryLocation(location: String?): String =
+        location
             ?.lowercase()
             ?.replace('á', 'a')
             ?.replace('é', 'e')
@@ -1332,19 +1357,13 @@ internal class DesktopCustomV2ExtendedRenderer(
             ?.replace(Regex("\\s+"), " ")
             ?.trim()
             .orEmpty()
-        if (normalized.isEmpty()) return false
-        return normalized !in setOf(
-            "cabeza",
-            "rostro",
-            "cuello",
-            "mano izquierda",
-            "mano derecha",
-            "brazo izquierdo",
-            "brazo derecho",
-            "pecho",
-            "piernas",
-            "pies",
-        )
+
+    private fun specialLocationRow(location: String?): Int? =
+        SPECIAL_LOCATION_LABELS.indexOf(normalizedInventoryLocation(location)).takeIf { it >= 0 }
+
+    private fun specialLocationNeedsText(location: String?): Boolean {
+        val normalized = normalizedInventoryLocation(location)
+        return normalized.isNotEmpty() && normalized !in SPECIAL_LOCATION_LABELS
     }
 
     private fun usageMeaningful(usage: CharacterInventoryUsage?): Boolean =
@@ -2243,6 +2262,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         val corbelBold: PDFont,
         val fira: PDFont,
         val firaSemibold: PDFont,
+        val condensed: PDFont,
         val symbol: PDFont,
     ) {
         companion object {
@@ -2267,6 +2287,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                     corbelBold = corbelBold,
                     fira = resourceFont(doc, resourceLoader, FIRA_REGULAR),
                     firaSemibold = resourceFont(doc, resourceLoader, FIRA_SEMIBOLD),
+                    condensed = resourceFont(doc, resourceLoader, BARLOW_CONDENSED),
                     symbol = resourceFont(doc, resourceLoader, SYMBOL_V8),
                 )
             }
@@ -2379,6 +2400,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val H = 792f
         const val FIRA_REGULAR = "fonts/pdf/text/FiraSans-Regular.ttf"
         const val FIRA_SEMIBOLD = "fonts/pdf/text/FiraSans-SemiBold.ttf"
+        const val BARLOW_CONDENSED = "fonts/pdf/text/BarlowCondensed-Bold.ttf"
         const val SYMBOL_V8 = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
         const val ATTRIBUTE_ORNAMENT_SOURCE_X = 14.32f
         const val ATTRIBUTE_ORNAMENT_SOURCE_TOP = 164.68f
@@ -2403,11 +2425,20 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
+        const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
         val BASE_V2_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc")
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_CONTINUATION_CAPACITY = 57
         const val INVENTORY_VALUABLES_CAPACITY = 19
         const val INVENTORY_SPECIAL_CAPACITY = 12
+        val SPECIAL_LOCATION_LABELS = listOf(
+            "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
+            "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
+        )
+        val SPECIAL_LOCATION_LABELS_DISPLAY = listOf(
+            "Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha",
+            "Brazo izquierdo", "Brazo derecho", "Pecho", "Piernas", "Pies",
+        )
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_OPTIONS_PER_PAGE = 18
         const val BASE_V2_NOTES_CAPACITY = 40
