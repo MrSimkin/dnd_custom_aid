@@ -1,6 +1,6 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-22 (Chile local time)  
+**Updated:** 2026-09-23 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified integrated main:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f`  
 **Wave 7:** ACTIVE  
@@ -12,28 +12,29 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-4. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
-5. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-6. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_RECOVERY_PROCESS_HARDENING.md`;
-4. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_REVIEW_2_REJECTED.md`;
-5. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`;
-6. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_QA_READY.md`;
-5. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`;
-6. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
-5. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
-6. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-7. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-8. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
-9. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-10. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-11. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
-12. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-13. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-14. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
-15. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-16. `docs/PROJECT_STATE.md`;
-17. `docs/BRANCH_STATUS.md`.
+3. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_OWNER_MARKED_REPAIR_FINAL_VISUAL_GATE.md`;
+4. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+5. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+6. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+7. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_RECOVERY_PROCESS_HARDENING.md`;
+8. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_REVIEW_2_REJECTED.md`;
+9. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`;
+10. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_QA_READY.md`;
+11. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`;
+12. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
+13. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
+14. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+15. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
+16. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
+17. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
+18. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
+19. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
+20. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
+21. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
+22. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+23. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+24. `docs/PROJECT_STATE.md`;
+25. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -125,15 +126,23 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 - The application-owned optional Spellbook is production-complete and **PASS** at `ac0cbb2b26202bf934ac4926b56899014390613e`; final Scaffold #3161 / `35679451757` — SUCCESS; proof artifact `10674370966`. It is appended after the selected family/Extended output and leaves all preceding pages unchanged.
 - Local portrait-byte handoff plus Crop/Fit is production-complete and **PASS** at `93490d2247da5ea46ef50563fd17da78840e659e`; final Scaffold #3177 / `35683430947` — SUCCESS; proof artifact `10676160917`. Classic, Custom v1 and both Custom-v2 first-page variants preserve their portrait frames while supporting Crop-to-fill and Fit-entire-image.
 - `APP_MODIFIED_SHEET` plus originating-section continuation-cue candidate at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` / artifact `10713481125` is **OWNER REJECTED / DO NOT USE**. Green CI did not preserve the exact frozen visual baselines.
-- Visual recovery artifact `10720833172` remains OWNER REJECTED. The replacement VR-3 implementation `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd` passed push #3261 and PR #3262, with exact proof artifact `10723153227` and 15/15 measured X/Y anchors PASS. Worker visual preflight is PASS; owner visual QA is pending.
+- Visual recovery artifact `10720833172` remains OWNER REJECTED. VR-3 (`a5cb2311a0beb8454291d8b9985cb1b13f37a3dd`, artifact `10723153227`) passed guarded preflight but owner visual review exposed additional already-existing visual-contract regressions. The bounded owner-marked repair is now at implementation head `f7e4417c05a2981415ef3648ead740e20469fe33`; push #3279 / `35873556136` and PR #3280 / `35873560390` are both SUCCESS; final populated-proof artifact is `10756937024`. Worker visual preflight of that exact artifact is PASS; **owner final visual QA is pending**.
 
 ## Current continuation
 
-1. follow `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`, `docs/PC_SHEET_PDF_ITERATION_LEDGER.md` and `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`; artifact `10720833172` is rejected and must not be sent for approval again;
-2. continue the bounded owner-review-2 repair using the append-only iteration ledger; the current family is owner-facing Fantasy Sheet, while `CLASSIC_DND_STYLE` remains only a legacy internal id;
-3. Scaffold #3245 / `35791076544` and #3246 / `35791080855` failed because the stricter Classic rule-coupled renderer exposed base excerpts that no longer fit physical rows; repair by reducing base excerpts and routing complete content to Classic-native continuation, not by compressing or decoupling text from rules;
-4. revert the WIP rasterized v2 logo attempt and repair the logo through the pre-existing STRUCTURE/CLEANUP layered method;
-5. VR-3 at `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd` has passed the independent X/Y geometry gate, ordered-layer gate, terminology gate and Worker rendered-page preflight; next gate is owner visual QA of artifact `10723153227`;
-6. keep PR #85 DRAFT / DO NOT MERGE; Save/Share remains blocked.
+1. Resume first from `docs/checkpoints/2026-09-23_PC_SHEET_PDF_OWNER_MARKED_REPAIR_FINAL_VISUAL_GATE.md` and the appended VR-4 ledger entry.
+2. Exact implementation candidate awaiting owner approval: `f7e4417c05a2981415ef3648ead740e20469fe33`.
+3. Exact final CI evidence: push #3279 / `35873556136` SUCCESS and PR #3280 / `35873560390` SUCCESS.
+4. Exact populated-proof artifact awaiting owner final visual QA: `10756937024` (`pc-sheet-populated-template-proofs`).
+5. Owner-marked repairs now encoded:
+   - Fantasy traits continuation uses one continuous ruled grid with no fixed feature-card gaps or unexplained white holes;
+   - Custom-v1 Equipment uses compact/condensed item identity with state/notes subordinate beneath it;
+   - Custom-v2 section headings behave as headings, not gray data rows;
+   - Custom-v2 Equipment continuation reuses the normal-family module grammar;
+   - Custom-v2 Equipo Especial uses native location rows and does not overprint recognized location labels.
+6. Worker visual preflight on the final artifact is PASS, but **owner approval has not yet been given**.
+7. Keep PR #85 DRAFT / DO NOT MERGE and keep Save/Share blocked until explicit owner approval.
+8. If owner approves this exact candidate, record OWNER APPROVED, freeze the renderer/proof state, then proceed to Desktop Save/Share/export invocation using the same `DesktopPcSheetWholeDraftRenderer` + `PcSheetPdfRenderPlan` path and perform only implementation-parity regression verification.
+9. If owner reports another defect, treat it as a bounded regression and append the next ledger iteration; do not restart PDF design.
 
 No external provider action is required for this PDF-renderer stage.
