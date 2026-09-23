@@ -153,6 +153,7 @@ class PcSheetQaCharacterFixturesTest {
         val renderPlan = PcSheetPdfExportPlanner.plan(
             request = PcSheetPdfExportRequest(
                 visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
                 customStatisticsPresentation = PcSheetCustomStatisticsPresentation.EXTENDED_PAGE,
                 includeSpellDescriptions = true,
             ),
