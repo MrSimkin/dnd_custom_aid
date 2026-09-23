@@ -80,10 +80,10 @@ internal class DesktopCustomV2SharedBaseRenderer(
 
         EQUIPMENT_RULES.forEachIndexed { row, y ->
             ordinary.getOrNull(row * 2)?.let { item ->
-                textAboveRule(s, fonts.regular, Rule(14f, 149.5f, y), inventoryLabel(item), 9.25f, 8.5f, 2.5f, 2f)
+                textAboveRule(s, fonts.condensed, Rule(14f, 149.5f, y), inventoryLabel(item), 9.25f, 7.0f, 2.5f, 2f)
             }
             ordinary.getOrNull(row * 2 + 1)?.let { item ->
-                textAboveRule(s, fonts.regular, Rule(156f, 291.5f, y), inventoryLabel(item), 9.25f, 8.5f, 2.5f, 2f)
+                textAboveRule(s, fonts.condensed, Rule(156f, 291.5f, y), inventoryLabel(item), 9.25f, 7.0f, 2.5f, 2f)
             }
         }
     }
@@ -100,35 +100,37 @@ internal class DesktopCustomV2SharedBaseRenderer(
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        plan.snapshot.aggregate.sheet.inventoryItems
+        val special = plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filter { it.special }
-            .take(SPECIAL_RULE_Y.size)
-            .forEachIndexed { index, item ->
-                val y = SPECIAL_RULE_Y[index]
-                if (item.equipped || item.attuned) {
-                    glyphInRect(
-                        s,
-                        fonts.symbol,
-                        CHECK_CP,
-                        TopRect(87.5f, SPECIAL_CHECK_TOP[index], 8.5f, 9f),
-                        0.5f,
-                        0.5f,
-                        opticalX = 1.75f,
-                        opticalY = -0.7f,
-                    )
-                }
+
+        positionedSpecialItems(special, SPECIAL_RULE_Y.size).forEach { (rowIndex, item) ->
+            val y = SPECIAL_RULE_Y[rowIndex]
+            if (item.equipped || item.attuned) {
+                glyphInRect(
+                    s,
+                    fonts.symbol,
+                    CHECK_CP,
+                    TopRect(87.5f, SPECIAL_CHECK_TOP[rowIndex], 8.5f, 9f),
+                    0.5f,
+                    0.5f,
+                    opticalX = 1.75f,
+                    opticalY = -0.7f,
+                )
+            }
+            if (specialLocationRow(item.location) != rowIndex) {
                 item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
                     textAboveRule(s, fonts.regular, Rule(14f, 94f, y), location, 8.5f, 7.5f, 2.5f, 1f)
                 }
-                textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
-                val detail = buildList {
-                    if (item.attuned) add("Sintonizado")
-                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                }.joinToString(" · ")
-                textAboveRule(s, fonts.regular, Rule(303f, 596f, y), detail, 9.25f, 8.5f, 2.5f, 2f)
             }
+            textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
+            val detail = buildList {
+                if (item.attuned) add("Sintonizado")
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            textAboveRule(s, fonts.regular, Rule(303f, 596f, y), detail, 9.25f, 8.5f, 2.5f, 2f)
+        }
     }
 
     private fun drawSpellBlock(s: PDFormContentStream, plan: PcSheetPdfRenderPlan, block: SpellBlock) {
@@ -284,10 +286,46 @@ internal class DesktopCustomV2SharedBaseRenderer(
         font.getStringWidth(text) / 1000f * size
 
     private fun inventoryLabel(item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem): String =
-        buildString {
-            if (item.quantity > 1) append(item.quantity).append(" x ")
-            append(item.name)
+        buildList {
+            add(buildString {
+                if (item.quantity > 1) append(item.quantity).append(" x ")
+                append(item.name)
+            })
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.weightLb?.let { weight ->
+                add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
+            }
+        }.joinToString(" · ")
+
+    private fun positionedSpecialItems(
+        items: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>,
+        rowCount: Int,
+    ): List<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>> {
+        val available = (0 until rowCount).toMutableSet()
+        val positioned = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>>()
+        items.take(rowCount).forEach { item ->
+            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
+            val fallback = available.filter { it >= SPECIAL_LOCATION_LABELS.size }.minOrNull() ?: available.minOrNull()
+            val row = preferred ?: fallback ?: return@forEach
+            available.remove(row)
+            positioned += row to item
         }
+        return positioned.sortedBy { it.first }
+    }
+
+    private fun specialLocationRow(location: String?): Int? {
+        val normalized = location
+            ?.lowercase()
+            ?.replace('á', 'a')
+            ?.replace('é', 'e')
+            ?.replace('í', 'i')
+            ?.replace('ó', 'o')
+            ?.replace('ú', 'u')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+            .orEmpty()
+        return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
+    }
 
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
@@ -304,6 +342,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
     private class Fonts(document: PDDocument, loader: (String) -> InputStream?) {
         val regular = load(document, loader, "fonts/pdf/text/FiraSans-Regular.ttf")
         val semibold = load(document, loader, "fonts/pdf/text/FiraSans-SemiBold.ttf")
+        val condensed = load(document, loader, "fonts/pdf/text/BarlowCondensed-Bold.ttf")
         val symbol = load(document, loader, SYMBOL_FONT)
 
         companion object {
@@ -340,6 +379,10 @@ internal class DesktopCustomV2SharedBaseRenderer(
         val STORY_RULES = List(11) { Rule(297.5f, 597.5f, 318.5f + it * 17f) }
         val SPECIAL_RULE_Y = List(14) { 542.5f + it * 17f }
         val SPECIAL_CHECK_TOP = List(14) { 530.5f + it * 17f }
+        val SPECIAL_LOCATION_LABELS = listOf(
+            "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
+            "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
+        )
 
         val NOTES_Y = List(20) { 104f + it * 17f }
         val NOTES_LEFT = NOTES_Y.map { Rule(14f, 302.5f, it) }
