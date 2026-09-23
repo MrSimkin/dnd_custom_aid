@@ -2,39 +2,24 @@
 
 **Updated:** 2026-09-23 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f`  
+**Last verified integrated main:** `49dfc78f132c9db9763513c591e877a1749285d5`  
 **Wave 7:** ACTIVE  
-**Current active branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
-**Approved Classic renderer baseline:** `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`  
-**PR #85:** approval recorded; integrate only after green CI for approval documentation
+**Current active branch:** `wave7/pc-sheet-pdf-desktop-save-share`  
+**Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
+**PR #86:** Desktop Save/Share integration - DRAFT pending documentation-head CI
 
 ## Read first on resume
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;\n4. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_OWNER_MARKED_REPAIR_FINAL_VISUAL_GATE.md`;
-4. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-5. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
-6. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-7. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_RECOVERY_PROCESS_HARDENING.md`;
-8. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_REVIEW_2_REJECTED.md`;
-9. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_TRIPLE_AUTHORITY.md`;
-10. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_VISUAL_RECOVERY_OWNER_QA_READY.md`;
-11. `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`;
-12. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
-13. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
-14. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-15. `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CUSTOM_V1_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-16. `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
-17. `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-18. `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-19. `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
-20. `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-21. `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-22. `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
-23. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-24. `docs/PROJECT_STATE.md`;
-25. `docs/BRANCH_STATUS.md`.
+3. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
+4. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
+5. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+6. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+7. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+8. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+9. `docs/PROJECT_STATE.md`;
+10. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -130,14 +115,15 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 
 ## Current continuation
 
-1. Resume first from `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`.
-2. PC-sheet visual/layout/text-filling gate is **OWNER APPROVED / CLOSED**.
-3. Frozen approved renderer implementation: `f7e4417c05a2981415ef3648ead740e20469fe33`.
-4. Frozen approved populated-proof artifact: `10756937024`.
-5. Preserve the accepted Custom-v2 deviation exactly: Equipment / Equipo Especial continuation is approved as currently rendered even though it is not a literal copy of the original normal-page modules.
-6. Integrate the approved renderer state safely before further implementation so the frozen visual work cannot be lost.
-7. Next bounded package: Desktop Save/Share/export invocation using the same `DesktopPcSheetWholeDraftRenderer` + `PcSheetPdfRenderPlan` path.
-8. Add implementation-parity regression coverage. Save/Share must not create a second layout/text-filling implementation.
-9. Reopen owner visual QA only if parity evidence exposes a real rendering regression.
+1. PC-sheet visual/layout/text-filling gate is **OWNER APPROVED / CLOSED**.
+2. Frozen renderer implementation remains `f7e4417c05a2981415ef3648ead740e20469fe33`; approved proof artifact remains `10756937024`.
+3. Preserve the accepted Custom-v2 deviation exactly; Save/Share is not authorization to redesign it.
+4. PR #85 is merged into main as `49dfc78f132c9db9763513c591e877a1749285d5`; post-merge validation passed.
+5. Desktop Save/Share implementation is `fafd0f136e5b5dd283b17865e3edc494261f4126`.
+6. Save/Share push #3294 / `35900383811` and PR #3295 / `35900422551` are **SUCCESS**.
+7. The implementation-parity test requires direct-renderer and Save/Share-service output to match in plan, text, page count and page pixels.
+8. No PDF renderer/layout file changed in the Desktop delivery package.
+9. Current branch is `wave7/pc-sheet-pdf-desktop-save-share`, PR #86. Merge after the documentation head is green.
+10. After post-merge main validation, determine the next D-0074 Android-surface package from current authority without reopening approved Desktop visuals.
 
 No external provider action is required for this PDF-renderer stage.
