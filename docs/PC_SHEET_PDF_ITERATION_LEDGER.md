@@ -253,3 +253,31 @@ Gate:
 Detailed continuity checkpoint:
 
 `docs/checkpoints/2026-09-23_PC_SHEET_PDF_OWNER_MARKED_REPAIR_FINAL_VISUAL_GATE.md`
+
+
+### VR-4A - OWNER APPROVED / visual gate closed
+
+- Owner approval date: 2026-09-23.
+- Approved renderer implementation: `f7e4417c05a2981415ef3648ead740e20469fe33`.
+- Approved populated-proof artifact: `10756937024`.
+- Final CI remains push #3279 / `35873556136` SUCCESS and PR #3280 / `35873560390` SUCCESS.
+- Owner disposition: **APPROVED**.
+
+Important accepted deviation:
+
+- The owner explicitly states that Custom-v2 `Equipo` and `Equipo Especial` continuation are **not literal copies of the original normal-page modules**, despite prior requests for literal reuse/copy.
+- The owner nevertheless approves the current rendered result and does not want additional iteration on this issue.
+- Therefore the current rendered result is frozen as approved; repository history must not claim that literal copy/paste was achieved.
+- A future literal-copy redesign would be a new owner-facing visual change, not a hidden refactor.
+
+Gate result:
+
+- **Visual/layout/text-filling gate CLOSED.**
+- Save/Share is now authorized as an invocation/integration package.
+- Save/Share must use the same `DesktopPcSheetWholeDraftRenderer` + `PcSheetPdfRenderPlan` path.
+- No visual/layout/text-filling redesign is authorized during Save/Share.
+- Implementation parity must be tested; only a demonstrated regression reopens visual QA.
+
+Approval checkpoint:
+
+`docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`
