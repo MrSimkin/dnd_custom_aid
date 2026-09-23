@@ -287,11 +287,11 @@ object PcSheetPdfExportPlanner {
 
     fun basePages(family: PcSheetVisualFamily): List<PcSheetTemplatePage> = when (family) {
         PcSheetVisualFamily.CLASSIC_DND_STYLE -> listOf(
+            // Owner-approved Classic Run 2 uses three application-designed normal pages:
+            // main; character/history/equipment; spell list.
             PcSheetTemplatePage(PcSheetBasePageRole.MAIN),
-            PcSheetTemplatePage(PcSheetBasePageRole.EQUIPMENT),
-            PcSheetTemplatePage(PcSheetBasePageRole.NARRATIVE),
+            PcSheetTemplatePage(PcSheetBasePageRole.EQUIPMENT_AND_NARRATIVE),
             PcSheetTemplatePage(PcSheetBasePageRole.SPELL_LIST),
-            PcSheetTemplatePage(PcSheetBasePageRole.NOTES),
         )
         PcSheetVisualFamily.CUSTOM_V1 -> listOf(
             PcSheetTemplatePage(PcSheetBasePageRole.MAIN, CUSTOM_V1_TEMPLATE_PATH, 1),

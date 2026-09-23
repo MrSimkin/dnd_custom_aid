@@ -1,0 +1,876 @@
+package io.github.mrsimkin.dndcustomaid.desktop
+
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
+import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
+import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
+import java.awt.Color
+import java.awt.geom.AffineTransform
+import java.io.InputStream
+import kotlin.math.abs
+import org.apache.pdfbox.multipdf.LayerUtility
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDFormContentStream
+import org.apache.pdfbox.pdmodel.PDPage
+import org.apache.pdfbox.pdmodel.PDResources
+import org.apache.pdfbox.pdmodel.common.PDRectangle
+import org.apache.pdfbox.pdmodel.font.PDFont
+import org.apache.pdfbox.pdmodel.font.PDType0Font
+import org.apache.pdfbox.util.Matrix
+
+/**
+ * Production-candidate Custom v1 Hybrid overlay.
+ *
+ * This promotes the owner-approved Run-6 visual mechanics out of QA fixtures. It intentionally
+ * renders only fields whose product semantics are available in PcSheetPdfRenderPlan and whose
+ * geometry was proven by the Run-6 baseline. Unsupported values stay blank rather than being
+ * inferred (for example alignment, AC component breakdown, or next-level XP threshold).
+ */
+internal class DesktopCustomV1HybridRenderer(
+    private val document: PDDocument,
+    private val resourceLoader: (String) -> InputStream?,
+) {
+    private val fonts = Fonts(document, resourceLoader)
+    private val layers = LayerUtility(document)
+
+fun render(
+        page: PDPage,
+        role: PcSheetBasePageRole,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        when (role) {
+            PcSheetBasePageRole.MAIN -> renderMain(page, plan)
+            PcSheetBasePageRole.EQUIPMENT -> renderEquipment(page, plan)
+            PcSheetBasePageRole.NARRATIVE -> renderNarrative(page, plan)
+            PcSheetBasePageRole.SPELL_LIST -> renderSpellList(page, plan)
+            PcSheetBasePageRole.NOTES -> renderNotes(page, plan)
+            else -> Unit
+        }
+    }
+
+    private fun renderMain(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        appendSection(page, "CustomV1 MAIN - Identification") { drawIdentification(it, plan) }
+        appendSection(page, "CustomV1 MAIN - Defense") { drawDefense(it, plan) }
+        appendSection(page, "CustomV1 MAIN - Core Stats") { drawCoreStats(it, plan) }
+        appendSection(page, "CustomV1 MAIN - Abilities") { drawAbilities(it, plan) }
+
+        SKILL_SECTIONS.forEach { section ->
+            appendSection(page, "CustomV1 MAIN - Skills ${section.name}") {
+                drawSkillSection(it, plan, section)
+            }
+        }
+
+        appendSection(page, "CustomV1 MAIN - Spellcasting Summary") { drawSpellcastingSummary(it, plan) }
+        appendSection(page, "CustomV1 MAIN - Attacks") { drawAttacks(it, plan) }
+        appendSection(page, "CustomV1 MAIN - Traits rows 1-2") { drawTraits(it, plan) }
+    }
+
+private fun renderNarrative(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        appendSection(page, "CustomV1 PAGE3 - Background fields") { drawBackgroundFields(it, plan) }
+        appendSection(page, "CustomV1 PAGE3 - Personality") { drawPersonality(it, plan) }
+        appendSection(page, "CustomV1 PAGE3 - Other Traits") { drawOtherTraits(it, plan) }
+        appendSection(page, "CustomV1 PAGE3 - Story") { drawStory(it, plan) }
+        appendSection(page, "CustomV1 PAGE3 - Notes") { drawNarrativeNotes(it, plan) }
+    }
+
+private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        appendSection(page, "CustomV1 SPELLS - Cantrips") { drawCantrips(it, plan) }
+        appendSection(page, "CustomV1 SPELLS - Level 1") { drawLevelOneSpells(it, plan) }
+        SPELL_LEVELS.forEach { geometry ->
+            appendSection(page, "CustomV1 SPELLS - Level ${geometry.level}") {
+                drawSpellLevel(it, plan, geometry)
+            }
+        }
+    }
+
+
+    private fun renderEquipment(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        appendSection(page, "CustomV1 EQUIPMENT - Ordinary") { drawEquipment(it, plan) }
+        appendSection(page, "CustomV1 EQUIPMENT - Coins") { drawCurrencies(it, plan) }
+        appendSection(page, "CustomV1 EQUIPMENT - Valuables") { drawValuables(it, plan) }
+        appendSection(page, "CustomV1 EQUIPMENT - Special") { drawSpecialEquipment(it, plan) }
+    }
+
+    private fun renderNotes(page: PDPage, plan: PcSheetPdfRenderPlan) {
+        appendSection(page, "CustomV1 NOTES - Text") { drawNotesPage(it, plan) }
+    }
+
+    private fun appendSection(
+        page: PDPage,
+        layerName: String,
+        draw: (PDFormContentStream) -> Unit,
+    ) {
+        val form = org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject(document).apply {
+            resources = PDResources()
+            setBBox(PDRectangle(page.cropBox.width, page.cropBox.height))
+        }
+        PDFormContentStream(form).use { stream ->
+            stream.setNonStrokingColor(Color.BLACK)
+            draw(stream)
+        }
+        layers.appendFormAsLayer(page, form, AffineTransform(), layerName)
+    }
+
+    private fun drawIdentification(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+
+        val classes = sheet.classes.sortedBy { it.sortOrder }
+            .joinToString(" / ") { "${it.name} ${it.level}" }
+        if (classes.isNotBlank()) {
+            textAboveRule(s, fonts.handwritten, IDENT_CLASS_RULE, classes, 10.5f, 9f, 2.2f, 2f)
+        }
+        sheet.background.race.trim().takeIf { it.isNotEmpty() }?.let {
+            textAboveRule(s, fonts.handwritten, IDENT_RACE_RULE, it, 10.5f, 9f, 2.2f, 2f)
+        }
+
+        if (aggregate.closure.progressMode == CharacterProgressMode.EXPERIENCE) {
+            centeredAboveRule(
+                s,
+                fonts.handwritten,
+                IDENT_XP_RULE,
+                formatInteger(aggregate.closure.experiencePoints),
+                10.5f,
+                2.2f,
+            )
+        }
+
+        // Alignment and next-level XP threshold are not represented by the current product model.
+        centered(s, fonts.handwritten, PORTRAIT_NAME_RECT, sheet.name, 14f, 0f)
+    }
+
+    private fun drawDefense(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        centered(s, fonts.semibold, DEFENSE_AC_RECT, sheet.armorClass.toString(), 22f, -1f)
+        centeredAboveRule(
+            s,
+            fonts.semibold,
+            DEFENSE_DEX_RULE,
+            signed(sheet.abilityModifier(CharacterAbility.DEXTERITY)),
+            10.5f,
+            2.5f,
+        )
+        // Armor / shield / misc AC decomposition is not currently stored; those boxes remain blank.
+    }
+
+    private fun drawCoreStats(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        centered(s, fonts.semibold, CORE_INIT_RECT, signed(sheet.initiativeModifier), 16f, -0.4f)
+        centered(s, fonts.semibold, CORE_PROF_RECT, signed(sheet.finalProficiencyBonus), 16f, -0.4f)
+        centered(s, fonts.semibold, CORE_MAX_HP_RECT, sheet.maxHp.toString(), 17f, -0.4f)
+        centered(s, fonts.semibold, CORE_CURRENT_HP_RECT, sheet.currentHp.toString(), 21f, -0.7f)
+        centered(s, fonts.semibold, CORE_SPEED_RECT, sheet.speed.toString(), 16f, -0.4f)
+
+        val hitDice = sheet.classes.sortedBy { it.sortOrder }
+            .joinToString(" / ") { "${it.hitDiceRemaining}d${it.hitDieSides}" }
+        if (hitDice.isNotBlank()) {
+            centered(s, fonts.semibold, CORE_HIT_DICE_RECT, hitDice, 10.5f, -0.2f)
+        }
+        // Inspiration is intentionally deferred: it was not included in the approved Run-6 baseline.
+    }
+
+    private fun drawAbilities(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        ABILITIES.forEach { placement ->
+            centered(
+                s,
+                fonts.semibold,
+                TopRect(placement.scoreX - 28f, 265.5f, 56f, 31f),
+                sheet.abilityScore(placement.ability).toString(),
+                18f,
+                -0.5f,
+            )
+            centered(
+                s,
+                fonts.semibold,
+                TopRect(placement.modX - 16f, 285f, 32f, 20f),
+                signed(sheet.abilityModifier(placement.ability)),
+                11.5f,
+                -0.2f,
+            )
+        }
+    }
+
+    private fun drawSkillSection(
+        s: PDFormContentStream,
+        plan: PcSheetPdfRenderPlan,
+        section: SkillSection,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        section.rows.forEach { row ->
+            val state = sheet.skill(row.skill)
+            markerCodePoint(state)?.let { cp ->
+                glyphInRect(s, fonts.symbol, cp, row.checkbox, 0.6f, 0.6f, opticalX = 0.65f)
+            }
+            centeredAboveRule(
+                s,
+                fonts.semibold,
+                row.valueRule,
+                signed(sheet.skillTotal(row.skill)),
+                8.8f,
+                2.0f,
+            )
+        }
+    }
+
+    private fun drawSpellcastingSummary(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val (saveDc, attack, ability) = spellcastingSummary(plan)
+        saveDc?.let { centered(s, fonts.semibold, SPELL_SAVE_RECT, it.toString(), 16f, -0.5f) }
+        attack?.let { centered(s, fonts.semibold, SPELL_ATTACK_RECT, signed(it), 16f, -0.5f) }
+        ability.takeIf { it.isNotBlank() }?.let {
+            centered(s, fonts.semibold, SPELL_ABILITY_RECT, it, 14f, -0.4f)
+        }
+    }
+
+    private fun drawAttacks(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .take(ATTACK_RULE_Y.size)
+            .forEachIndexed { index, entry ->
+                val y = ATTACK_RULE_Y[index]
+                textAboveRule(s, fonts.regular, Rule(215.291f, 354.189f, y), entry.name, 9.25f, 8.5f, 2.5f, 2.2f)
+                textAboveRule(s, fonts.regular, Rule(357.024f, 413.717f, y), entry.rangeText.orEmpty(), 9f, 8.5f, 2.5f, 1.5f)
+                textAboveRule(s, fonts.regular, Rule(416.551f, 461.905f, y), entry.attackModifier?.let(::signed).orEmpty(), 9f, 8.5f, 2.5f, 1.5f)
+                textAboveRule(s, fonts.regular, Rule(460.968f, 583.803f, y), entry.damageEffect, 9f, 8.5f, 2.5f, 2f)
+            }
+    }
+
+    private fun drawTraits(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val traits = plan.snapshot.aggregate.sheet.traits.sortedBy { it.sortOrder }.take(6)
+        traits.forEachIndexed { index, trait ->
+            val row = index / 3
+            val column = index % 3
+            val rule = TRAIT_COLUMNS[column].copy(topY = TRAIT_ROW_Y[row])
+            textAboveRule(s, fonts.regular, rule, trait.name, 9.25f, 8.5f, 2.5f, 2f)
+        }
+    }
+
+    private fun drawBackgroundFields(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val background = plan.snapshot.aggregate.sheet.background
+        drawRuledParagraph(s, fonts.regular, BACKGROUND_RULES, background.name, 9.25f, 2.6f, 2f)
+        drawRuledParagraph(s, fonts.regular, IDEALS_RULES, background.ideals, 9.25f, 2.6f, 2f)
+        drawRuledParagraph(s, fonts.regular, BONDS_RULES, background.bonds, 9.25f, 2.6f, 2f)
+        drawRuledParagraph(s, fonts.regular, FLAWS_RULES, background.flaws, 9.25f, 2.6f, 2f)
+    }
+
+    private fun drawRuledParagraph(
+        s: PDFormContentStream,
+        font: PDFont,
+        rules: List<Rule>,
+        text: String,
+        size: Float,
+        clearance: Float,
+        leftPadding: Float,
+    ) {
+        val clean = text.trim()
+        if (clean.isEmpty() || rules.isEmpty()) return
+        val width = rules.first().endX - rules.first().startX - leftPadding - 1f
+        val lines = wrapByWidth(font, clean, size, width)
+        rules.zip(lines.take(rules.size)).forEach { (rule, line) ->
+            textAboveRule(s, font, rule, line, size, size, clearance, leftPadding)
+        }
+    }
+
+    private fun drawStory(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val story = plan.snapshot.aggregate.sheet.background.story.trim()
+        if (story.isEmpty()) return
+        val lines = wrapByWidth(fonts.regular, story, 9.25f, 365f)
+        STORY_RULE_Y.zip(lines.take(STORY_RULE_Y.size)).forEach { (y, line) ->
+            textAboveRule(s, fonts.regular, Rule(215.291f, 583.795f, y), line, 9.25f, 9f, 2.8f, 2f)
+        }
+    }
+
+
+    private fun drawPersonality(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        drawRuledParagraph(
+            s,
+            fonts.regular,
+            PERSONALITY_RULES,
+            plan.snapshot.aggregate.sheet.background.personalityTraits,
+            9.25f,
+            2.6f,
+            2f,
+        )
+    }
+
+    private fun drawOtherTraits(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.sheet.traits
+            .sortedBy { it.sortOrder }
+            .drop(6)
+            .take(OTHER_TRAIT_RULES.size)
+            .forEachIndexed { index, trait ->
+                textAboveRule(
+                    s,
+                    fonts.regular,
+                    OTHER_TRAIT_RULES[index],
+                    trait.name,
+                    9.25f,
+                    8.5f,
+                    2.5f,
+                    2f,
+                )
+            }
+    }
+
+    private fun drawNarrativeNotes(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        drawRuledParagraph(
+            s,
+            fonts.regular,
+            NARRATIVE_NOTES_RULES,
+            notesText(plan),
+            9.25f,
+            2.8f,
+            2f,
+        )
+    }
+
+    private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filterNot { it.special }
+            .take(EQUIPMENT_RULES.size)
+            .forEachIndexed { index, item ->
+                val label = buildList {
+                    add(buildString {
+                        if (item.quantity > 1) append(item.quantity).append(" x ")
+                        append(item.name)
+                    })
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.weightLb?.let { weight ->
+                        add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
+                    }
+                }.joinToString(" · ")
+                textAboveRule(s, fonts.condensed, EQUIPMENT_RULES[index], label, 9.25f, 7.0f, 2.5f, 1.5f)
+            }
+    }
+
+    private fun drawCurrencies(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val currencies = plan.snapshot.aggregate.sheet.currencies.associateBy { it.key.lowercase() }
+        CURRENCY_KEYS.forEachIndexed { index, key ->
+            currencies[key]?.let { currency ->
+                centered(
+                    s,
+                    fonts.semibold,
+                    TopRect(535f, 88f + index * 20f, 55f, 18f),
+                    currency.amount.toString(),
+                    10.5f,
+                    -0.2f,
+                )
+            }
+        }
+    }
+
+    private fun drawValuables(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.successor.preferences.valuablesText
+            .split(Regex("[;\\n]+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .take(VALUABLE_RULE_Y.size)
+            .forEachIndexed { index, raw ->
+                val parsed = parseValuable(raw)
+                val y = VALUABLE_RULE_Y[index]
+                textAboveRule(
+                    s,
+                    fonts.regular,
+                    Rule(453.402f, 546.945f, y),
+                    parsed.first,
+                    9.0f,
+                    8.5f,
+                    2.4f,
+                    1.5f,
+                )
+                parsed.second?.let { value ->
+                    centeredAboveRule(s, fonts.semibold, Rule(549.779f, 583.795f, y), value, 9.5f, 2.4f)
+                }
+            }
+    }
+
+    private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filter { it.special }
+            .take(SPECIAL_RULE_Y.size)
+            .forEachIndexed { index, item ->
+                val y = SPECIAL_RULE_Y[index]
+                if (item.equipped || item.attuned) {
+                    glyphInRect(
+                        s,
+                        fonts.symbol,
+                        CHECK_CP,
+                        TopRect(113.244f, SPECIAL_CHECK_TOP[index], 9.669f, 12.287f),
+                        0.6f,
+                        0.6f,
+                    )
+                }
+                textAboveRule(
+                    s, fonts.regular, Rule(127.5f, 210f, y),
+                    item.name, 9.0f, 8.5f, 2.4f, 1.5f,
+                )
+                val detail = buildList {
+                    if (item.attuned) add("Sintonizado")
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                textAboveRule(
+                    s, fonts.regular, Rule(240.803f, 583.795f, y),
+                    detail, 9.0f, 8.5f, 2.4f, 1.5f,
+                )
+            }
+    }
+
+    private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val text = notesText(plan)
+        if (text.isBlank()) return
+        val leftWidth = NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f
+        val rightWidth = NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f
+        val leftLines = wrapByWidth(fonts.regular, text, 9.25f, leftWidth)
+        val left = leftLines.take(NOTES_LEFT_RULES.size)
+        left.forEachIndexed { index, line ->
+            textAboveRule(s, fonts.regular, NOTES_LEFT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+        }
+        val consumedText = left.joinToString(" ")
+        val remaining = if (left.size < NOTES_LEFT_RULES.size) {
+            emptyList()
+        } else {
+            val words = text.trim().split(Regex("\\s+"))
+            val consumedWords = consumedText.split(Regex("\\s+")).size
+            wrapByWidth(fonts.regular, words.drop(consumedWords).joinToString(" "), 9.25f, rightWidth)
+        }
+        remaining.take(NOTES_RIGHT_RULES.size).forEachIndexed { index, line ->
+            textAboveRule(s, fonts.regular, NOTES_RIGHT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+        }
+    }
+
+    private fun drawSpellLevel(
+        s: PDFormContentStream,
+        plan: PcSheetPdfRenderPlan,
+        g: SpellLevelGeometry,
+    ) {
+        plan.snapshot.aggregate.sheet.spellSlots.firstOrNull { it.level == g.level }?.let {
+            centered(s, fonts.semibold, g.totalRect, it.totalSlots.toString(), 15f, -0.35f)
+        }
+        spellsAtLevel(plan, g.level).take(g.maxRows).forEachIndexed { index, spell ->
+            val square = TopRect(g.squareX, g.firstSquareTop + index * g.rowStep, 9.669f, 12.287f)
+            if (spell.sourceAssociations.any { it.prepared }) {
+                glyphInRect(s, fonts.symbol, CHECK_CP, square, 0.6f, 0.6f, opticalX = 0.65f)
+            }
+            textAboveRule(
+                s,
+                fonts.regular,
+                Rule(g.textX, g.textX + 164.409f, square.top + square.height),
+                spell.name,
+                9.25f,
+                8.75f,
+                3.4f,
+                2f,
+            )
+        }
+    }
+
+    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
+                card.content.trim().takeIf { it.isNotEmpty() }?.let { body ->
+                    add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
+                }
+            }
+        }.joinToString(" ")
+    }
+
+    private fun parseValuable(raw: String): Pair<String, String?> {
+        val match = Regex("""^(.*?)\\s*\\((\\d+)\\s*po\\)\\s*$""", RegexOption.IGNORE_CASE).matchEntire(raw)
+        return if (match == null) {
+            raw to null
+        } else {
+            match.groupValues[1].trim() to match.groupValues[2]
+        }
+    }
+
+    private fun drawCantrips(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val spells = spellsAtLevel(plan, 0).take(CANTRIP_RULE_Y.size)
+        CANTRIP_RULE_Y.zip(spells).forEach { (ruleY, spell) ->
+            // Owner semantic: cantrips are always prepared, therefore no preparation mark is drawn.
+            textAboveRule(s, fonts.regular, Rule(39.5f, 203.95f, ruleY), spell.name, 9.25f, 8.75f, 3.2f, 2f)
+        }
+    }
+
+    private fun drawLevelOneSpells(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
+        val sheet = plan.snapshot.aggregate.sheet
+        sheet.spellSlots.firstOrNull { it.level == 1 }?.let {
+            centered(s, fonts.semibold, LEVEL1_SLOT_TOTAL_RECT, it.totalSlots.toString(), 15f, -0.35f)
+        }
+
+        val spells = spellsAtLevel(plan, 1).take(LEVEL1_SQUARES.size)
+        LEVEL1_SQUARES.zip(spells).forEach { (square, spell) ->
+            if (spell.sourceAssociations.any { it.prepared }) {
+                glyphInRect(s, fonts.symbol, CHECK_CP, square, 0.6f, 0.6f, opticalX = 0.65f)
+            }
+            textAboveRule(
+                s,
+                fonts.regular,
+                Rule(39.543f, 203.952f, square.top + square.height),
+                spell.name,
+                9.25f,
+                8.75f,
+                3.4f,
+                2f,
+            )
+        }
+        // Owner semantic: ESPACIOS GASTADOS remains empty.
+    }
+
+    private fun spellsAtLevel(plan: PcSheetPdfRenderPlan, level: Int): List<CharacterSpell> =
+        plan.snapshot.aggregate.sheet.spells
+            .filter { it.level == level }
+            .sortedWith(compareBy<CharacterSpell> { it.sortOrder }.thenBy { it.name.lowercase() })
+
+    private fun spellcastingSummary(plan: PcSheetPdfRenderPlan): Triple<Int?, Int?, String> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val successor = aggregate.successor
+        val profile = successor.spellcastingProfiles.firstOrNull()
+        if (profile != null) {
+            return Triple(
+                sheet.spellSaveDc(profile, successor),
+                sheet.spellAttackModifier(profile, successor),
+                abilityLabel(profile.ability, plan),
+            )
+        }
+
+        val legacy = when (sheet.spellcastingAbility.name) {
+            "STRENGTH" -> "FUE"
+            "DEXTERITY" -> "DES"
+            "CONSTITUTION" -> "CON"
+            "INTELLIGENCE" -> "INT"
+            "WISDOM" -> "SAB"
+            "CHARISMA" -> "CAR"
+            else -> ""
+        }
+        return Triple(sheet.spellSaveDc, sheet.spellAttackModifier, legacy)
+    }
+
+    private fun abilityLabel(reference: CharacterAbilityReference, plan: PcSheetPdfRenderPlan): String =
+        when (reference.builtIn) {
+            CharacterAbility.STRENGTH -> "FUE"
+            CharacterAbility.DEXTERITY -> "DES"
+            CharacterAbility.CONSTITUTION -> "CON"
+            CharacterAbility.INTELLIGENCE -> "INT"
+            CharacterAbility.WISDOM -> "SAB"
+            CharacterAbility.CHARISMA -> "CAR"
+            null -> reference.customAttributeId?.let { id ->
+                plan.snapshot.aggregate.successor.customAttributes
+                    .firstOrNull { it.id == id }
+                    ?.abbreviation
+                    .orEmpty()
+            }.orEmpty()
+        }
+
+    private fun markerCodePoint(skill: CharacterSkill): Int? = when (skill.training) {
+        SkillTraining.NONE -> null
+        SkillTraining.PROFICIENT -> CHECK_CP
+        SkillTraining.EXPERTISE -> DOUBLE_CHECK_CP
+    }
+
+    private fun textAboveRule(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        text: String,
+        preferredSize: Float,
+        minimumSize: Float,
+        clearance: Float,
+        leftPadding: Float = 0f,
+    ) {
+        if (text.isBlank()) return
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        var size = preferredSize
+        while (size > minimumSize && textWidth(font, text, size) > available) size -= 0.25f
+        if (textWidth(font, text, size) > available + 0.05f) return
+
+        val descent = requireNotNull(font.fontDescriptor).descent / 1000f * size
+        val baseline = PAGE_HEIGHT - rule.topY + clearance - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.newLineAtOffset(rule.startX + leftPadding, baseline)
+        s.showText(text)
+        s.endText()
+    }
+
+    private fun centeredAboveRule(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        text: String,
+        size: Float,
+        clearance: Float,
+    ) {
+        if (text.isBlank()) return
+        val width = textWidth(font, text, size)
+        val descent = requireNotNull(font.fontDescriptor).descent / 1000f * size
+        val baseline = PAGE_HEIGHT - rule.topY + clearance - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.newLineAtOffset(rule.startX + (rule.endX - rule.startX - width) / 2f, baseline)
+        s.showText(text)
+        s.endText()
+    }
+
+    private fun centered(
+        s: PDFormContentStream,
+        font: PDFont,
+        rect: TopRect,
+        text: String,
+        size: Float,
+        opticalY: Float,
+    ) {
+        if (text.isBlank()) return
+        val width = textWidth(font, text, size)
+        val ascent = (font.fontDescriptor?.ascent?.takeIf { it > 0 } ?: 750f) / 1000f * size
+        val descent = abs(font.fontDescriptor?.descent?.takeIf { it < 0 } ?: -250f) / 1000f * size
+        val bottom = PAGE_HEIGHT - (rect.top + rect.height)
+        val baseline = bottom + (rect.height - ascent - descent) / 2f + descent + opticalY
+
+        s.beginText()
+        s.setFont(font, size)
+        s.newLineAtOffset(rect.x + (rect.width - width) / 2f, baseline)
+        s.showText(text)
+        s.endText()
+    }
+
+    private fun glyphInRect(
+        s: PDFormContentStream,
+        font: PDFont,
+        codePoint: Int,
+        rect: TopRect,
+        insetX: Float,
+        insetY: Float,
+        opticalX: Float = 0f,
+        opticalY: Float = 0f,
+    ) {
+        val glyph = String(Character.toChars(codePoint))
+        val normalizedWidth = font.getStringWidth(glyph) / 1000f
+        val descriptor = requireNotNull(font.fontDescriptor)
+        val normalizedAscent = descriptor.ascent / 1000f
+        val normalizedDescent = descriptor.descent / 1000f
+        val normalizedHeight = normalizedAscent - normalizedDescent
+        if (normalizedWidth <= 0f || normalizedHeight <= 0f) return
+
+        val scaleX = (rect.width - insetX * 2f) / normalizedWidth
+        val scaleY = (rect.height - insetY * 2f) / normalizedHeight
+        val left = rect.x + insetX + opticalX
+        val targetBottom = PAGE_HEIGHT - (rect.top + rect.height) + insetY + opticalY
+        val baseline = targetBottom - normalizedDescent * scaleY
+
+        s.beginText()
+        s.setFont(font, 1f)
+        s.setTextMatrix(Matrix(scaleX, 0f, 0f, scaleY, left, baseline))
+        s.showText(glyph)
+        s.endText()
+    }
+
+    private fun wrapByWidth(font: PDFont, text: String, size: Float, maxWidth: Float): List<String> {
+        val output = mutableListOf<String>()
+        var current = ""
+        text.trim().split(Regex("\\s+")).forEach { word ->
+            val candidate = if (current.isBlank()) word else "$current $word"
+            if (textWidth(font, candidate, size) <= maxWidth) {
+                current = candidate
+            } else {
+                if (current.isNotBlank()) output += current
+                current = word
+            }
+        }
+        if (current.isNotBlank()) output += current
+        return output
+    }
+
+    private fun textWidth(font: PDFont, text: String, size: Float): Float =
+        font.getStringWidth(text) / 1000f * size
+
+    private fun signed(value: Int): String = if (value >= 0) "+$value" else value.toString()
+
+    private fun formatInteger(value: Int): String {
+        val raw = value.toString()
+        return raw.reversed().chunked(3).joinToString(".").reversed()
+    }
+
+    private class Fonts(
+        document: PDDocument,
+        resourceLoader: (String) -> InputStream?,
+    ) {
+        val regular = load(document, resourceLoader, "fonts/pdf/text/FiraSans-Regular.ttf")
+        val semibold = load(document, resourceLoader, "fonts/pdf/text/FiraSans-SemiBold.ttf")
+        val condensed = load(document, resourceLoader, "fonts/pdf/text/BarlowCondensed-Bold.ttf")
+        val handwritten = load(document, resourceLoader, "fonts/pdf/text/Kalam-Bold.ttf")
+        val symbol = load(document, resourceLoader, SYMBOL_FONT)
+
+        companion object {
+            private fun load(
+                document: PDDocument,
+                resourceLoader: (String) -> InputStream?,
+                path: String,
+            ): PDFont {
+                val input = resourceLoader(path) ?: error("Required PDF font unavailable: $path")
+                return input.use { PDType0Font.load(document, it, false) }
+            }
+        }
+    }
+
+
+    private data class SpellLevelGeometry(
+        val level: Int,
+        val totalRect: TopRect,
+        val squareX: Float,
+        val firstSquareTop: Float,
+        val textX: Float,
+        val rowStep: Float,
+        val maxRows: Int,
+    )
+
+    private data class Rule(val startX: Float, val endX: Float, val topY: Float)
+    private data class TopRect(val x: Float, val top: Float, val width: Float, val height: Float)
+    private data class AbilityPlacement(val ability: CharacterAbility, val scoreX: Float, val modX: Float)
+    private data class SkillRow(val skill: SkillKey, val checkbox: TopRect, val valueRule: Rule)
+    private data class SkillSection(val name: String, val rows: List<SkillRow>)
+
+    private companion object {
+        const val PAGE_HEIGHT = 792f
+        const val CHECK_CP = 0xE211
+        const val DOUBLE_CHECK_CP = 0xE212
+        const val SYMBOL_FONT = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
+
+        val IDENT_CLASS_RULE = Rule(307.417f, 442.063f, 53.508f)
+        val IDENT_RACE_RULE = Rule(307.417f, 442.063f, 73.350f)
+        val IDENT_XP_RULE = Rule(134.504f, 233.717f, 113.035f)
+        val PORTRAIT_NAME_RECT = TopRect(455f, 190f, 132f, 28f)
+
+        val DEFENSE_AC_RECT = TopRect(30f, 135f, 55f, 65f)
+        val DEFENSE_DEX_RULE = Rule(98.5f, 158f, 138.5f)
+
+        val CORE_INIT_RECT = TopRect(171f, 119f, 57.5f, 38f)
+        val CORE_PROF_RECT = TopRect(242f, 119f, 57.5f, 38f)
+        val CORE_MAX_HP_RECT = TopRect(312.5f, 119f, 57.5f, 38f)
+        val CORE_CURRENT_HP_RECT = TopRect(383.5f, 151f, 57.5f, 45f)
+        val CORE_SPEED_RECT = TopRect(171f, 188f, 57.5f, 37f)
+        val CORE_HIT_DICE_RECT = TopRect(312f, 188f, 59f, 37f)
+
+        val SPELL_SAVE_RECT = TopRect(147f, 421f, 55f, 39f)
+        val SPELL_ATTACK_RECT = TopRect(147f, 496f, 55f, 39f)
+        val SPELL_ABILITY_RECT = TopRect(147f, 568f, 55f, 39f)
+
+        val ABILITIES = listOf(
+            AbilityPlacement(CharacterAbility.STRENGTH, 58f, 85f),
+            AbilityPlacement(CharacterAbility.DEXTERITY, 154.25f, 184.25f),
+            AbilityPlacement(CharacterAbility.CONSTITUTION, 250.75f, 280.5f),
+            AbilityPlacement(CharacterAbility.INTELLIGENCE, 347.25f, 376.75f),
+            AbilityPlacement(CharacterAbility.WISDOM, 445.5f, 473.25f),
+            AbilityPlacement(CharacterAbility.CHARISMA, 539.75f, 569.5f),
+        )
+
+        val SKILL_SECTIONS = listOf(
+            SkillSection("STR", listOf(
+                SkillRow(SkillKey.ATHLETICS, TopRect(23.035f, 324.386f, 9.669f, 12.287f), Rule(85.398f, 108.075f, 336.972f)),
+            )),
+            SkillSection("DEX", listOf(
+                SkillRow(SkillKey.ACROBATICS, TopRect(119.413f, 324.353f, 9.669f, 12.286f), Rule(181.776f, 204.453f, 336.972f)),
+                SkillRow(SkillKey.SLEIGHT_OF_HAND, TopRect(119.413f, 338.526f, 9.669f, 12.287f), Rule(181.776f, 204.453f, 351.146f)),
+                SkillRow(SkillKey.STEALTH, TopRect(119.413f, 352.699f, 9.669f, 12.287f), Rule(181.776f, 204.453f, 365.319f)),
+            )),
+            SkillSection("INT", listOf(
+                SkillRow(SkillKey.ARCANA, TopRect(312.169f, 324.353f, 9.669f, 12.286f), Rule(374.531f, 397.208f, 336.972f)),
+                SkillRow(SkillKey.HISTORY, TopRect(312.169f, 338.526f, 9.669f, 12.287f), Rule(374.531f, 397.208f, 351.146f)),
+                SkillRow(SkillKey.INVESTIGATION, TopRect(312.169f, 352.699f, 9.669f, 12.287f), Rule(374.531f, 397.208f, 365.319f)),
+                SkillRow(SkillKey.NATURE, TopRect(312.169f, 366.872f, 9.669f, 12.287f), Rule(374.531f, 397.208f, 379.492f)),
+                SkillRow(SkillKey.RELIGION, TopRect(312.169f, 381.045f, 9.669f, 12.287f), Rule(374.531f, 397.208f, 393.665f)),
+            )),
+            SkillSection("WIS", listOf(
+                SkillRow(SkillKey.MEDICINE, TopRect(408.547f, 324.353f, 9.669f, 12.286f), Rule(470.909f, 493.586f, 336.972f)),
+                SkillRow(SkillKey.PERCEPTION, TopRect(408.547f, 338.526f, 9.669f, 12.287f), Rule(470.909f, 493.586f, 351.146f)),
+                SkillRow(SkillKey.INSIGHT, TopRect(408.547f, 352.699f, 9.669f, 12.287f), Rule(470.909f, 493.586f, 365.319f)),
+                SkillRow(SkillKey.SURVIVAL, TopRect(408.547f, 366.872f, 9.669f, 12.287f), Rule(470.909f, 493.586f, 379.492f)),
+                SkillRow(SkillKey.ANIMAL_HANDLING, TopRect(408.547f, 381.045f, 9.669f, 12.287f), Rule(470.909f, 493.586f, 393.665f)),
+            )),
+            SkillSection("CHA", listOf(
+                SkillRow(SkillKey.DECEPTION, TopRect(504.925f, 324.353f, 9.669f, 12.286f), Rule(567.287f, 589.964f, 336.972f)),
+                SkillRow(SkillKey.PERFORMANCE, TopRect(504.925f, 338.526f, 9.669f, 12.287f), Rule(567.287f, 589.964f, 351.146f)),
+                SkillRow(SkillKey.INTIMIDATION, TopRect(504.925f, 352.699f, 9.669f, 12.287f), Rule(567.287f, 589.964f, 365.319f)),
+                SkillRow(SkillKey.PERSUASION, TopRect(504.925f, 366.872f, 9.669f, 12.287f), Rule(567.287f, 589.964f, 379.492f)),
+            )),
+        )
+
+        val ATTACK_RULE_Y = listOf(444.689f, 464.531f, 484.374f, 504.217f, 524.059f)
+        val TRAIT_COLUMNS = listOf(
+            Rule(26f, 188.5f, 0f),
+            Rule(212.5f, 375f, 0f),
+            Rule(399f, 561.5f, 0f),
+        )
+        val TRAIT_ROW_Y = listOf(661.5f, 681.5f)
+
+        val BACKGROUND_RULES = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f)
+            .map { Rule(25f, 181f, it) }
+        val IDEALS_RULES = listOf(387.5f, 407.5f, 426f, 446f, 466f, 485.5f)
+            .map { Rule(25f, 181f, it) }
+        val BONDS_RULES = listOf(526.5f, 546f, 565f, 585f, 605f, 624.5f)
+            .map { Rule(25f, 181f, it) }
+        val FLAWS_RULES = listOf(665.5f, 685f, 704f, 725f, 743.5f, 764.5f)
+            .map { Rule(25f, 181f, it) }
+        val STORY_RULE_Y = listOf(387.996f, 407.839f, 427.681f, 447.524f)
+
+        val CANTRIP_RULE_Y = listOf(129.8f, 148.7f, 167.5f, 186.4f)
+        val LEVEL1_SLOT_TOTAL_RECT = TopRect(56.98f, 291.55f, 27.49f, 27.49f)
+        val LEVEL1_SQUARES = listOf(
+            TopRect(28.205f, 327.187f, 9.669f, 12.287f),
+            TopRect(28.205f, 347.030f, 9.669f, 12.287f),
+            TopRect(28.205f, 366.872f, 9.669f, 12.287f),
+            TopRect(28.205f, 386.715f, 9.669f, 12.287f),
+            TopRect(28.205f, 406.557f, 9.669f, 12.287f),
+        )
+
+        val PERSONALITY_RULES = listOf(248.5f, 268.5f, 287.5f, 307f, 327f, 347f)
+            .map { Rule(25f, 181f, it) }
+        val NARRATIVE_NOTES_RULES = listOf(606f, 625.5f, 645.5f, 665.5f, 685f, 705f, 725f, 744.5f, 764.5f)
+            .map { Rule(215.291f, 583.795f, it) }
+
+        val OTHER_TRAIT_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f)
+        val OTHER_TRAIT_RULES = OTHER_TRAIT_Y.flatMap { y ->
+            listOf(Rule(215.291f, 396.708f, y), Rule(402.378f, 583.795f, y))
+        }
+
+        val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
+        val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
+        val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
+        val CURRENCY_KEYS = listOf("pt", "po", "pp", "pc", "pe")
+        val VALUABLE_RULE_Y = listOf(307f, 327f, 347f, 366.5f)
+        val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
+        val SPECIAL_CHECK_TOP = listOf(
+            508.770f, 528.612f, 548.455f, 568.297f, 588.140f, 607.982f,
+            627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
+        )
+
+        val NOTES_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f)
+        val NOTES_LEFT_RULES = NOTES_Y.map { Rule(25f, 267.5f, it) }
+        val NOTES_RIGHT_RULES = NOTES_Y.map { Rule(311.669f, 583.795f, it) }
+
+        val SPELL_LEVELS = listOf(
+            SpellLevelGeometry(2, TopRect(56.98f, 538.05f, 27.49f, 27.49f), 28.205f, 573.687f, 39.543f, 20f, 9),
+            SpellLevelGeometry(3, TopRect(243.98f, 81.8f, 27.49f, 27.49f), 215.455f, 117.187f, 226.543f, 20f, 10),
+            SpellLevelGeometry(4, TopRect(243.98f, 321.05f, 27.49f, 27.49f), 215.455f, 356.187f, 226.543f, 20f, 10),
+            SpellLevelGeometry(5, TopRect(243.98f, 557.05f, 27.49f, 27.49f), 215.455f, 592.687f, 226.543f, 20f, 8),
+            SpellLevelGeometry(6, TopRect(437.0f, 81.8f, 27.49f, 27.49f), 408.205f, 117.187f, 419.543f, 20f, 8),
+            SpellLevelGeometry(7, TopRect(437.0f, 280.3f, 27.49f, 27.49f), 408.205f, 315.687f, 419.543f, 20f, 6),
+            SpellLevelGeometry(8, TopRect(437.0f, 458.8f, 27.49f, 27.49f), 408.205f, 494.187f, 419.543f, 20f, 6),
+            SpellLevelGeometry(9, TopRect(437.0f, 617.55f, 27.49f, 27.49f), 408.205f, 653.187f, 419.543f, 20f, 5),
+        )
+
+    }
+}

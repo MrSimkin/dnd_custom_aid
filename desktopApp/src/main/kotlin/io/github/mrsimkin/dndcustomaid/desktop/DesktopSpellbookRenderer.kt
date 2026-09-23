@@ -1,0 +1,643 @@
+package io.github.mrsimkin.dndcustomaid.desktop
+
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSpellbookEntry
+import java.awt.Color
+import kotlin.math.floor
+import kotlin.math.min
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
+import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.common.PDRectangle
+import org.apache.pdfbox.pdmodel.font.PDFont
+
+/**
+ * Application-owned printable Spellbook appended after the selected PC sheet family.
+ *
+ * This renderer is intentionally family-neutral: D-0074 allows one coherent application-owned
+ * reference design after the normal sheet and any family-specific continuation pages.
+ */
+internal class DesktopSpellbookRenderer(
+    private val document: PDDocument,
+) {
+    private val fonts = DesktopPdfFontRegistry(document)
+    private val primitives = DesktopPdfRenderingPrimitives(fonts)
+
+    fun append(plan: PcSheetPdfRenderPlan) {
+        val spellbook = requireNotNull(plan.snapshot.spellbook) {
+            "DesktopSpellbookRenderer requires a planned Spellbook."
+        }
+        if (spellbook.entries.isEmpty()) return
+
+        val prepared = spellbook.entries.map { prepareEntry(plan, it) }
+        val indexPages = buildIndexPages(prepared)
+        val basePageCount = document.numberOfPages
+        val pagination = paginate(
+            entries = prepared,
+            basePageCount = basePageCount,
+            indexPageCount = indexPages.size,
+        )
+
+        indexPages.forEachIndexed { index, rows ->
+            val absolutePage = basePageCount + index + 1
+            renderIndexPage(
+                plan = plan,
+                rows = rows,
+                startPages = pagination.startPages,
+                absolutePage = absolutePage,
+            )
+        }
+        pagination.pages.forEachIndexed { index, page ->
+            val absolutePage = basePageCount + indexPages.size + index + 1
+            renderSpellPage(plan, page, absolutePage)
+        }
+    }
+
+    private fun prepareEntry(
+        plan: PcSheetPdfRenderPlan,
+        entry: PcSheetSpellbookEntry,
+    ): PreparedSpell {
+        val body = mutableListOf<SpellbookLine>()
+        val spell = entry.spell
+
+        addWrapped(
+            body,
+            "Tiempo de lanzamiento: " + spell.castingTime +
+                " · Alcance: " + spell.rangeText +
+                " · Duración: " + spell.duration,
+            SpellbookLineKind.META,
+        )
+
+        val components = buildList {
+            if (spell.verbal) add("V")
+            if (spell.somatic) add("S")
+            if (spell.material) add("M")
+        }.joinToString(", ").ifBlank { "Ninguno registrado" }
+        val material = spell.materialText?.trim()?.takeIf { it.isNotEmpty() }
+        addWrapped(
+            body,
+            "Componentes: " + components + (material?.let { " (" + it + ")" }.orEmpty()),
+            SpellbookLineKind.META,
+        )
+
+        val flags = buildList {
+            if (spell.concentration) add("Concentración")
+            if (spell.ritual) add("Ritual")
+        }
+        if (flags.isNotEmpty()) {
+            addWrapped(body, flags.joinToString(" · "), SpellbookLineKind.META)
+        }
+
+        if (entry.sources.isEmpty()) {
+            addWrapped(body, "Fuente: sin asociación registrada.", SpellbookLineKind.SOURCE)
+        } else {
+            entry.sources.forEach { source ->
+                val sourceName = source.sourceName?.trim()?.takeIf { it.isNotEmpty() } ?: "Fuente sin nombre"
+                val details = buildList {
+                    add(sourceName)
+                    source.originKind?.let { add(originLabel(it)) }
+                    add(if (source.prepared) "Preparado" else "No preparado")
+                    abilityLabel(plan, source.castingAbility)?.let { add("Aptitud " + it) }
+                    source.saveDc?.let { add("CD " + it) }
+                    source.spellAttackModifier?.let { add("Ataque " + signed(it)) }
+                }
+                addWrapped(
+                    body,
+                    "Fuente: " + details.joinToString(" · "),
+                    SpellbookLineKind.SOURCE,
+                )
+            }
+        }
+
+        if (spell.description.isNotBlank()) {
+            addWrapped(body, spell.description, SpellbookLineKind.BODY)
+        }
+        spell.notes?.trim()?.takeIf { it.isNotEmpty() }?.let {
+            addWrapped(body, "Notas: " + it, SpellbookLineKind.NOTES)
+        }
+
+        return PreparedSpell(
+            entry = entry,
+            levelLabel = levelLabel(spell.level),
+            lines = body,
+        )
+    }
+
+    private fun addWrapped(
+        target: MutableList<SpellbookLine>,
+        text: String,
+        kind: SpellbookLineKind,
+    ) {
+        wrapText(
+            font = fonts.font(role(kind)),
+            text = text,
+            fontSizePt = fontSize(kind),
+            maxWidthPt = BODY_WIDTH,
+        ).forEach { line ->
+            target += SpellbookLine(line, kind)
+        }
+    }
+
+    private fun buildIndexPages(entries: List<PreparedSpell>): List<List<IndexRow>> {
+        val pages = mutableListOf<MutableList<IndexRow>>()
+        var current = mutableListOf<IndexRow>()
+        pages += current
+
+        entries.groupBy { it.entry.spell.level }.toSortedMap().forEach { (level, levelEntries) ->
+            if (current.size > INDEX_ROWS_PER_PAGE - 2) {
+                current = mutableListOf()
+                pages += current
+            }
+            current += IndexRow(levelHeader = levelLabel(level))
+            levelEntries.sortedBy { it.entry.spell.name.lowercase() }.forEach { entry ->
+                if (current.size >= INDEX_ROWS_PER_PAGE) {
+                    current = mutableListOf()
+                    pages += current
+                }
+                current += IndexRow(entry = entry)
+            }
+        }
+        return pages.filter { it.isNotEmpty() }
+    }
+
+    private fun paginate(
+        entries: List<PreparedSpell>,
+        basePageCount: Int,
+        indexPageCount: Int,
+    ): Pagination {
+        val pages = mutableListOf<MutableList<SpellSlice>>()
+        val startPages = mutableMapOf<String, Int>()
+        var cursorTop = CONTENT_TOP
+
+        fun newPage() {
+            pages.add(mutableListOf())
+            cursorTop = CONTENT_TOP
+        }
+
+        fun remaining(): Float = CONTENT_BOTTOM - cursorTop
+        fun currentPage(): MutableList<SpellSlice> {
+            if (pages.isEmpty()) newPage()
+            return pages.last()
+        }
+        fun absoluteCurrentPage(): Int =
+            basePageCount + indexPageCount + pages.size
+
+        entries.forEach { prepared ->
+            val allLines = prepared.lines
+            val fullHeight = FIRST_HEADER_HEIGHT + allLines.size * BODY_LINE_HEIGHT + ENTRY_GAP
+
+            if (pages.isEmpty()) newPage()
+
+            if (fullHeight <= remaining()) {
+                startPages[prepared.entry.spell.id.toString()] = absoluteCurrentPage()
+                currentPage() += SpellSlice(
+                    prepared = prepared,
+                    first = true,
+                    lineStart = 0,
+                    lineEnd = allLines.size,
+                    top = cursorTop,
+                )
+                cursorTop += fullHeight
+                return@forEach
+            }
+
+            if (fullHeight <= CONTENT_HEIGHT) {
+                newPage()
+                startPages[prepared.entry.spell.id.toString()] = absoluteCurrentPage()
+                currentPage() += SpellSlice(
+                    prepared = prepared,
+                    first = true,
+                    lineStart = 0,
+                    lineEnd = allLines.size,
+                    top = cursorTop,
+                )
+                cursorTop += fullHeight
+                return@forEach
+            }
+
+            var start = 0
+            var first = true
+            while (first || start < allLines.size) {
+                val headerHeight = if (first) FIRST_HEADER_HEIGHT else CONTINUATION_HEADER_HEIGHT
+                if (
+                    remaining() < headerHeight + BODY_LINE_HEIGHT + ENTRY_GAP &&
+                    cursorTop > CONTENT_TOP + 0.1f
+                ) {
+                    newPage()
+                }
+                val capacity = floor(
+                    (remaining() - headerHeight - ENTRY_GAP) / BODY_LINE_HEIGHT,
+                ).toInt().coerceAtLeast(1)
+                val end = min(allLines.size, start + capacity)
+
+                if (first) {
+                    startPages[prepared.entry.spell.id.toString()] = absoluteCurrentPage()
+                }
+                currentPage() += SpellSlice(
+                    prepared = prepared,
+                    first = first,
+                    lineStart = start,
+                    lineEnd = end,
+                    top = cursorTop,
+                )
+                cursorTop += headerHeight + (end - start) * BODY_LINE_HEIGHT + ENTRY_GAP
+                start = end
+                first = false
+                if (start < allLines.size) newPage()
+            }
+        }
+
+        return Pagination(
+            pages = pages.map { SpellPageLayout(it.toList()) },
+            startPages = startPages.toMap(),
+        )
+    }
+
+    private fun renderIndexPage(
+        plan: PcSheetPdfRenderPlan,
+        rows: List<IndexRow>,
+        startPages: Map<String, Int>,
+        absolutePage: Int,
+    ) {
+        val page = addPage()
+        PDPageContentStream(document, page).use { stream ->
+            drawPageHeader(stream, plan, "ÍNDICE DE CONJUROS", absolutePage)
+            var top = INDEX_TOP
+            rows.forEach { row ->
+                val levelHeader = row.levelHeader
+                val entry = row.entry
+                if (levelHeader != null) {
+                    drawText(
+                        stream, 48f, top, 500f, INDEX_ROW_HEIGHT,
+                        levelHeader.uppercase(),
+                        PdfTypographyRole.OPTIONAL_DECORATIVE,
+                        10f, 8f,
+                    )
+                } else if (entry != null) {
+                    val spell = entry.entry.spell
+                    drawText(
+                        stream, 56f, top, 330f, INDEX_ROW_HEIGHT,
+                        spell.name,
+                        PdfTypographyRole.SPELL_NAME,
+                        9f, 6.5f,
+                    )
+                    drawText(
+                        stream, 398f, top, 92f, INDEX_ROW_HEIGHT,
+                        entry.levelLabel,
+                        PdfTypographyRole.COMPACT_TABLE,
+                        8f, 6.5f,
+                    )
+                    drawText(
+                        stream, 512f, top, 44f, INDEX_ROW_HEIGHT,
+                        startPages[spell.id.toString()]?.toString().orEmpty(),
+                        PdfTypographyRole.NUMERIC_COMPACT,
+                        9f, 7f,
+                        align = PdfHorizontalAlignment.RIGHT,
+                    )
+                    hairline(stream, top + INDEX_ROW_HEIGHT - 1f)
+                }
+                top += INDEX_ROW_HEIGHT
+            }
+        }
+    }
+
+    private fun renderSpellPage(
+        plan: PcSheetPdfRenderPlan,
+        pageLayout: SpellPageLayout,
+        absolutePage: Int,
+    ) {
+        val page = addPage()
+        PDPageContentStream(document, page).use { stream ->
+            drawPageHeader(stream, plan, "LIBRO DE CONJUROS", absolutePage)
+            pageLayout.slices.forEach { slice ->
+                drawSpellSlice(stream, slice)
+            }
+        }
+    }
+
+    private fun drawSpellSlice(
+        stream: PDPageContentStream,
+        slice: SpellSlice,
+    ) {
+        val prepared = slice.prepared
+        val spell = prepared.entry.spell
+        val headerHeight = if (slice.first) FIRST_HEADER_HEIGHT else CONTINUATION_HEADER_HEIGHT
+
+        drawText(
+            stream, 48f, slice.top, 395f, 22f,
+            spell.name + if (slice.first) "" else " (continuación)",
+            PdfTypographyRole.SPELL_NAME,
+            if (slice.first) 14f else 11f,
+            if (slice.first) 9f else 8f,
+        )
+        drawText(
+            stream, 452f, slice.top, 104f, 22f,
+            prepared.levelLabel,
+            PdfTypographyRole.OPTIONAL_DECORATIVE,
+            9f, 7f,
+            align = PdfHorizontalAlignment.RIGHT,
+        )
+        sectionLine(stream, slice.top + headerHeight - 5f)
+
+        var lineTop = slice.top + headerHeight
+        prepared.lines
+            .subList(slice.lineStart, slice.lineEnd)
+            .forEach { line ->
+                drawText(
+                    stream, 52f, lineTop, BODY_WIDTH, BODY_LINE_HEIGHT,
+                    line.text,
+                    role(line.kind),
+                    fontSize(line.kind),
+                    fontSize(line.kind),
+                    fixed = true,
+                )
+                lineTop += BODY_LINE_HEIGHT
+            }
+        sectionLine(stream, lineTop + 1f)
+    }
+
+    private fun drawPageHeader(
+        stream: PDPageContentStream,
+        plan: PcSheetPdfRenderPlan,
+        title: String,
+        absolutePage: Int,
+    ) {
+        val characterName = plan.snapshot.aggregate.sheet.name
+        drawText(
+            stream, 40f, 28f, 280f, 30f,
+            characterName,
+            PdfTypographyRole.CHARACTER_NAME,
+            16f, 10f,
+        )
+        drawText(
+            stream, 330f, 31f, 242f, 28f,
+            title,
+            PdfTypographyRole.OPTIONAL_DECORATIVE,
+            13f, 9f,
+            align = PdfHorizontalAlignment.RIGHT,
+        )
+        stream.saveGraphicsState()
+        stream.setStrokingColor(INK)
+        stream.setLineWidth(0.9f)
+        val headerY = PAGE_HEIGHT - 70f
+        stream.moveTo(40f, headerY)
+        stream.lineTo(572f, headerY)
+        stream.stroke()
+        val footerY = 28f
+        stream.moveTo(40f, footerY)
+        stream.lineTo(572f, footerY)
+        stream.stroke()
+        stream.restoreGraphicsState()
+
+        drawText(
+            stream, 40f, 758f, 250f, 18f,
+            "LIBRO DE CONJUROS",
+            PdfTypographyRole.OPTIONAL_DECORATIVE,
+            7.5f, 6.5f,
+        )
+        drawText(
+            stream, 470f, 758f, 102f, 18f,
+            "PÁGINA " + absolutePage,
+            PdfTypographyRole.NUMERIC_COMPACT,
+            7.5f, 6.5f,
+            align = PdfHorizontalAlignment.RIGHT,
+        )
+    }
+
+    private fun drawText(
+        stream: PDPageContentStream,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        text: String,
+        role: PdfTypographyRole,
+        preferredSize: Float,
+        minimumSize: Float,
+        align: PdfHorizontalAlignment = PdfHorizontalAlignment.LEFT,
+        fixed: Boolean = false,
+    ) {
+        val result = primitives.drawTextBox(
+            stream,
+            PdfTextBoxSpec(
+                rect = rectFromTop(x, top, width, height),
+                text = text,
+                role = role,
+                preferredSizePt = preferredSize,
+                minimumSizePt = if (fixed) preferredSize else minimumSize,
+                horizontalAlignment = align,
+                verticalAlignment = PdfVerticalAlignment.CENTER,
+                wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
+                maximumLines = 1,
+                horizontalPaddingPt = 0f,
+                verticalPaddingPt = 0f,
+                fontSizeMode = if (fixed) PdfFontSizeMode.FIXED else PdfFontSizeMode.ADAPTIVE_TO_FIT,
+            ),
+        )
+        check(!result.hasOverflow) {
+            "Spellbook text overflow: " + text
+        }
+    }
+
+    private fun hairline(stream: PDPageContentStream, top: Float) {
+        stream.saveGraphicsState()
+        stream.setStrokingColor(RULE)
+        stream.setLineWidth(0.35f)
+        val y = PAGE_HEIGHT - top
+        stream.moveTo(56f, y)
+        stream.lineTo(556f, y)
+        stream.stroke()
+        stream.restoreGraphicsState()
+    }
+
+    private fun sectionLine(stream: PDPageContentStream, top: Float) {
+        stream.saveGraphicsState()
+        stream.setStrokingColor(INK)
+        stream.setLineWidth(0.55f)
+        val y = PAGE_HEIGHT - top
+        stream.moveTo(48f, y)
+        stream.lineTo(556f, y)
+        stream.stroke()
+        stream.restoreGraphicsState()
+    }
+
+    private fun addPage(): PDPage =
+        PDPage(PDRectangle.LETTER).also(document::addPage)
+
+    private fun rectFromTop(
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+    ): PdfRect = PdfRect(
+        x = x,
+        y = PAGE_HEIGHT - top - height,
+        width = width,
+        height = height,
+    )
+
+    private fun wrapText(
+        font: PDFont,
+        text: String,
+        fontSizePt: Float,
+        maxWidthPt: Float,
+    ): List<String> {
+        val normalized = text.replace("\r\n", "\n")
+        val output = mutableListOf<String>()
+        normalized.split("\n").forEach { rawParagraph ->
+            val paragraph = rawParagraph.trim()
+            if (paragraph.isEmpty()) {
+                output += ""
+                return@forEach
+            }
+            var current = ""
+            paragraph.split(Regex("\\s+")).forEach { word ->
+                val candidate = if (current.isEmpty()) word else current + " " + word
+                if (textWidth(font, candidate, fontSizePt) <= maxWidthPt) {
+                    current = candidate
+                } else {
+                    if (current.isNotEmpty()) {
+                        output += current
+                        current = ""
+                    }
+                    if (textWidth(font, word, fontSizePt) <= maxWidthPt) {
+                        current = word
+                    } else {
+                        var fragment = ""
+                        word.forEach { char ->
+                            val next = fragment + char
+                            if (fragment.isNotEmpty() && textWidth(font, next, fontSizePt) > maxWidthPt) {
+                                output += fragment
+                                fragment = char.toString()
+                            } else {
+                                fragment = next
+                            }
+                        }
+                        current = fragment
+                    }
+                }
+            }
+            if (current.isNotEmpty()) output += current
+        }
+        return output.ifEmpty { listOf("") }
+    }
+
+    private fun textWidth(font: PDFont, text: String, size: Float): Float =
+        font.getStringWidth(text) / 1000f * size
+
+    private fun role(kind: SpellbookLineKind): PdfTypographyRole = when (kind) {
+        SpellbookLineKind.META -> PdfTypographyRole.COMPACT_TABLE
+        SpellbookLineKind.SOURCE -> PdfTypographyRole.COMPACT_TABLE
+        SpellbookLineKind.BODY -> PdfTypographyRole.BODY
+        SpellbookLineKind.NOTES -> PdfTypographyRole.NOTE_TEXT
+    }
+
+    private fun fontSize(kind: SpellbookLineKind): Float = when (kind) {
+        SpellbookLineKind.META -> 8.2f
+        SpellbookLineKind.SOURCE -> 8.0f
+        SpellbookLineKind.BODY -> 9.0f
+        SpellbookLineKind.NOTES -> 8.4f
+    }
+
+    private fun abilityLabel(
+        plan: PcSheetPdfRenderPlan,
+        reference: CharacterAbilityReference,
+    ): String? = when {
+        reference.builtIn != null -> when (requireNotNull(reference.builtIn)) {
+            CharacterAbility.STRENGTH -> "FUE"
+            CharacterAbility.DEXTERITY -> "DES"
+            CharacterAbility.CONSTITUTION -> "CON"
+            CharacterAbility.INTELLIGENCE -> "INT"
+            CharacterAbility.WISDOM -> "SAB"
+            CharacterAbility.CHARISMA -> "CAR"
+        }
+        reference.customAttributeId != null -> plan.snapshot.aggregate.successor.customAttributes
+            .firstOrNull { it.id == reference.customAttributeId }
+            ?.name
+            ?: "Atributo personalizado"
+        else -> null
+    }
+
+    private fun originLabel(kind: CharacterSpellcastingOriginKind): String = when (kind) {
+        CharacterSpellcastingOriginKind.CLASS -> "Clase"
+        CharacterSpellcastingOriginKind.TRAIT -> "Rasgo"
+        CharacterSpellcastingOriginKind.RACE -> "Especie"
+        CharacterSpellcastingOriginKind.BACKGROUND -> "Trasfondo"
+        CharacterSpellcastingOriginKind.FEAT -> "Dote"
+        CharacterSpellcastingOriginKind.ITEM -> "Objeto"
+        CharacterSpellcastingOriginKind.MAGIC_ITEM -> "Objeto mágico"
+        CharacterSpellcastingOriginKind.GIFT -> "Don"
+        CharacterSpellcastingOriginKind.OTHER -> "Otro"
+    }
+
+    private fun levelLabel(level: Int): String =
+        if (level == 0) "Truco" else "Nivel " + level
+
+    private fun signed(value: Int): String =
+        if (value >= 0) "+" + value else value.toString()
+
+    private enum class SpellbookLineKind {
+        META,
+        SOURCE,
+        BODY,
+        NOTES,
+    }
+
+    private data class SpellbookLine(
+        val text: String,
+        val kind: SpellbookLineKind,
+    )
+
+    private data class PreparedSpell(
+        val entry: PcSheetSpellbookEntry,
+        val levelLabel: String,
+        val lines: List<SpellbookLine>,
+    )
+
+    private data class IndexRow(
+        val levelHeader: String? = null,
+        val entry: PreparedSpell? = null,
+    ) {
+        init {
+            require((levelHeader == null) != (entry == null))
+        }
+    }
+
+    private data class SpellSlice(
+        val prepared: PreparedSpell,
+        val first: Boolean,
+        val lineStart: Int,
+        val lineEnd: Int,
+        val top: Float,
+    )
+
+    private data class SpellPageLayout(
+        val slices: List<SpellSlice>,
+    )
+
+    private data class Pagination(
+        val pages: List<SpellPageLayout>,
+        val startPages: Map<String, Int>,
+    )
+
+    private companion object {
+        const val PAGE_HEIGHT = 792f
+        const val CONTENT_TOP = 88f
+        const val CONTENT_BOTTOM = 748f
+        const val CONTENT_HEIGHT = CONTENT_BOTTOM - CONTENT_TOP
+        const val BODY_WIDTH = 504f
+        const val BODY_LINE_HEIGHT = 12f
+        const val FIRST_HEADER_HEIGHT = 38f
+        const val CONTINUATION_HEADER_HEIGHT = 30f
+        const val ENTRY_GAP = 12f
+        const val INDEX_TOP = 92f
+        const val INDEX_ROW_HEIGHT = 15f
+        const val INDEX_ROWS_PER_PAGE = 42
+
+        val INK = Color(38, 38, 38)
+        val RULE = Color(160, 160, 160)
+    }
+}

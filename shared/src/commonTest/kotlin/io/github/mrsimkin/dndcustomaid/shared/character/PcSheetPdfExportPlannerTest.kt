@@ -10,6 +10,21 @@ import kotlin.uuid.Uuid
 
 class PcSheetPdfExportPlannerTest {
     @Test
+    fun classicUsesOwnerApprovedThreePageApplicationDesignedBase() {
+        val pages = PcSheetPdfExportPlanner.basePages(PcSheetVisualFamily.CLASSIC_DND_STYLE)
+
+        assertEquals(
+            listOf(
+                PcSheetBasePageRole.MAIN,
+                PcSheetBasePageRole.EQUIPMENT_AND_NARRATIVE,
+                PcSheetBasePageRole.SPELL_LIST,
+            ),
+            pages.map { it.role },
+        )
+        assertTrue(pages.all { it.sourceTemplatePath == null && it.sourcePageNumber == null })
+    }
+
+    @Test
     fun customV2FamiliesUseAlternativeFirstPagesButShareRemainingOwnerTemplatePages() {
         val perAttribute = PcSheetPdfExportPlanner.basePages(PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE)
         val perAbility = PcSheetPdfExportPlanner.basePages(PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY)

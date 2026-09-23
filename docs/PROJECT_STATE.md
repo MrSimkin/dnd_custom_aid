@@ -1,22 +1,60 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-17 (Chile local time)  
+**Last reconstructed:** 2026-09-21 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `f6350d34087aae55d5247f2ba23153814eeed04b` (PC Sheet PDF foundation PR #83)  
+**Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
 **Post-merge Scaffold:** `35295050340` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Next bounded package:** PC Sheet PDF Export — local renderer + authoritative template mapping
+**Current active package:** PC Sheet PDF Export — owner-review-2 visual repair ACTIVE
+
+### Superseding PDF visual state — 2026-09-20
+
+Current active branch: `wave7/pc-sheet-pdf-renderer-template-proof` / PR #85 (DRAFT / DO NOT MERGE).
+
+Approved/frozen base-sheet baselines:
+- Custom v1 Run 7;
+- Custom v2 per Attribute Run 4;
+- Custom v2 per Ability corrected Run 2;
+- Para Hoja de PJ Symbols v8.
+
+Current Classic candidate:
+- approved corrected Classic Run-2 commit `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
+- Scaffold `35480871986` / #2793 — SUCCESS;
+- complete nine-page Classic approval set: three normal pages plus all six D-0074 extension roles;
+- OWNER APPROVED / FROZEN.
+
+D-0074 + owner clarification require design-specific Extended pages for **all** families. The Custom base-sheet approvals do not close their Extended-page work.
 
 ## 1. Current topology
 
 `main` is the sole normal integrated-MVP trunk. New work uses short-lived outcome-oriented branches from current `main`.
 
 Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit, PC authority repository work or the PC Sheet PDF semantic foundation without new defect evidence.
+
+### Current active PDF branch / renderer state
+
+Active branch: `wave7/pc-sheet-pdf-renderer-template-proof`. Draft PR: **#85**.
+
+The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation is whole-export-first architecture with structured incremental QA rather than coordinate nudging.
+
+The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
+
+- PDFBox 3.0.8;
+- metric-based text/layout, explicit adaptive vs fixed font sizing and measured wrapping/overflow;
+- repeated-row/table and portrait Fit/Crop primitives;
+- deterministic sans/condensed/handwritten typography candidates;
+- native vector markers and the app single-check / double-check training grammar.
+
+The exact owner-authored `Para-hoja-de-pj` v1 is now committed as immutable provenance after SHA-256 verification. v4 is published as a contemporary redesign with legacy-refined and modern-clean families, stable renderer PUA aliases, complete documentation and a deterministic TTX-backed builder.
+
+Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN at `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`. Classic Run 1 is owner-rejected historical evidence only. Custom-v1 Extended Run 1 is owner-rejected historical evidence. Run 2 established the source-faithful extension direction but received bounded owner feedback on page-6 artifacts, block selection and typography. Custom-v1 Extended Runs 1–5 are historical rejected/superseded evidence. Custom-v1 Extended Run 6 is OWNER APPROVED / FROZEN at `69b308f3d5d493d06bd0107ac66c7524935aa9fa` (Scaffold #2885 SUCCESS, artifact `10609869599`). Custom-v2 Extended Run 7 is OWNER APPROVED / FROZEN and its integrated production audit is PASS at `0295f30ca77214284902b0e13a563dcdaf58b501`. Custom-v1 production promotion is also complete: integrated production audit PASS at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`, final push #3097 SUCCESS, PR #3098 SUCCESS, artifact `10660478619`. Classic Run-2 production promotion and its integrated semantic/pagination audit are now PASS at `30ac4d073e9fab47a498f4e6dc3d9266c633110e` (Scaffold #3151 / `35677870304` SUCCESS; artifact `10674062891`). Printed spent-slot markers remain intentionally blank for writable paper tracking. The application-owned optional Spellbook is also production-complete at `ac0cbb2b26202bf934ac4926b56899014390613e` (Scaffold #3161 / `35679451757` SUCCESS; artifact `10674370966`), with append-only preservation of all preceding family pages. Local portrait-byte handoff plus Crop/Fit is production-complete at `93490d2247da5ea46ef50563fd17da78840e659e` (Scaffold #3177 / `35683430947` SUCCESS; artifact `10676160917`), covering Classic, Custom v1 and both Custom-v2 portrait geometries with v2 frame-preservation guards. The `APP_MODIFIED_SHEET` plus originating-section continuation-cue candidate at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` (Scaffold #3195 / `35767630932`; artifact `10713481125`) is OWNER REJECTED / DO NOT USE. The visual recovery at implementation head `6ea493c9ee53cf727464a985bc6ef0b558a73e99` / artifact `10720833172` is OWNER REJECTED after a second owner review. The observations are regressions against pre-existing visual rules, not a new design contract. Those rules are consolidated in `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`; repair is active. WIP renderer `4e7ea99997de46ef8a9a8d1066b08fa362854cdd` correctly couples Classic text to physical rules but Scaffold #3245/#3246 exposed base-excerpt overflow and its rasterized v2-logo attempt must be reverted in favor of the established layered source-preserving repair. Canonical Custom Extended methodology remains `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`.
+
+Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
 ## 2. Integrated Wave 5 baseline
 
@@ -265,7 +303,7 @@ Known residual: owner-local backend install reported 3 high-severity npm vulnera
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` with PC Sheet PDF Export — local renderer + authoritative template mapping. The semantic/render-plan foundation is integrated; the next code must consume it rather than rebuilding export semantics. Routine safe green boundaries do not require separate owner confirmation.
+Resume Wave 7 from `wave7/pc-sheet-pdf-renderer-template-proof` / PR #85 for the active PDF renderer package. Custom-v2, Custom-v1 and Classic integrated production audits are PASS; the application-owned optional Spellbook and local portrait-byte/Crop-Fit production gates are also PASS. App Modified + continuation cues were implemented but the generated candidate was owner-rejected for regressions against previously approved visuals. Resume from `docs/checkpoints/2026-09-22_PC_SHEET_PDF_APP_MODIFIED_CONTINUATION_OWNER_QA_READY.md`, now retained as a rejected/recovery checkpoint, and restore exact frozen baselines before further product work. The semantic/render-plan foundation is integrated; production code must consume it rather than rebuilding export semantics. Routine safe green boundaries do not require separate owner confirmation.
 
 ### PC Sheet PDF Export — shared semantic/render-plan foundation
 
@@ -274,3 +312,21 @@ PR #83 integrated the D-0074 platform-neutral export plan over canonical PC data
 Validation: final implementation head `dea22b0823d6c4ad54e24839943d5952e2020392`; push Scaffold `35294590552` SUCCESS; PR Scaffold `35294792657` SUCCESS; merge `f6350d34087aae55d5247f2ba23153814eeed04b`; post-merge Scaffold `35295050340` SUCCESS.
 
 Custom v1/v2 source PDFs remain authoritative. Populated dummy-data examples are a mandatory owner approval gate when visual rendering reaches reviewable output.
+
+
+## PC Sheet PDF visual-process security - 2026-09-22
+
+Current visual work must read:
+
+- `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+- `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+- `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`.
+
+Owner-facing name for the application-designed legacy `CLASSIC_DND_STYLE` family is **Fantasy Sheet**. It must not be described as Classic, official, or official-like. An official-like D&D sheet would be a separate future family/gate.
+
+Every future PDF iteration must record run logs/results and pass an X/Y pre-print audit before an owner-facing proof is promoted.
+
+
+### PC Sheet PDF recovery VR-3 - pre-print pass
+
+Implementation `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd` passed Scaffold push #3261 and PR #3262. Exact proof artifact `10723153227` passed the durable terminology, ordered-layer and measured X/Y gates (15/15 anchors) plus Worker rendered-page preflight. Owner visual QA remains pending. PR #85 stays DRAFT / DO NOT MERGE; Save/Share remains blocked.
