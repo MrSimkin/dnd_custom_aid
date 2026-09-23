@@ -1247,7 +1247,9 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$prefix - VALUES") { s ->
             val mergedEquipment = buildList {
                 addAll(ordinary)
-                addAll(valuables.map { "Tesoro · $it" })
+                valuables.forEach { value ->
+                    addAll(wrapByWidth(resources.condensed, value, 8.4f, V2_EQUIPMENT_COLUMN_WIDTH))
+                }
             }
             mergedEquipment.forEachIndexed { index, line ->
                 val block = index / 38
