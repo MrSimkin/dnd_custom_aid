@@ -144,3 +144,28 @@ Next repository action:
 1. merge PR #86 after the documentation head is green;
 2. verify post-merge main CI;
 3. determine the next D-0074 surface package from current authoritative state (Android Player / authorized DM Android/tablet exposure) without reopening the approved Desktop PDF designs.
+
+
+## Integration closure
+
+PR #86 was subsequently marked ready and merged into `main` as:
+
+`c28ad548113b368413e479de544c85aa8c924ef4`
+
+Post-merge main Scaffold:
+
+- #3298 / `35902258755` - **SUCCESS**;
+- backend - PASS;
+- hosted database - PASS;
+- Kotlin build/test - PASS;
+- PC sheet proof generation/upload - PASS.
+
+Desktop Save/Share is therefore **INTEGRATED / VERIFIED**.
+
+The frozen visual authority remains unchanged:
+
+- renderer implementation `f7e4417c05a2981415ef3648ead740e20469fe33`;
+- owner-approved proof artifact `10756937024`;
+- accepted Custom-v2 Equipment / Equipo Especial deviation remains exactly as recorded.
+
+Next D-0074 package: expose the already-shared PDF export semantics/render plan through Android Player and authorized DM Android/tablet surfaces without reopening or reimplementing the approved Desktop renderer/layout.
