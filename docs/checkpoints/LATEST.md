@@ -2,26 +2,27 @@
 
 **Updated:** 2026-09-23 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `e6e153a53bba8aa532b5c371dcc16849a901a541`  
+**Last verified integrated main:** `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`  
 **Wave 7:** ACTIVE  
-**Current active branch:** `docs/wave7-pc-sheet-android-save-share-integrated`  
+**Current active branch:** `qa/pc-sheet-runtime-character-fixtures`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
-**PR #89:** MERGED / INTEGRATED as `e6e153a53bba8aa532b5c371dcc16849a901a541`; post-merge #3336 PASS
+**PR #91:** PC Sheet runtime QA character fixture pack - pending documentation-head CI/merge
 
 ## Read first on resume
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
+3. `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`;
+5. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
 4. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
-5. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
-6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-7. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-8. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
-9. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-10. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-11. `docs/PROJECT_STATE.md`;
-12. `docs/BRANCH_STATUS.md`.
+6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
+7. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
+8. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+9. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+10. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+11. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+12. `docs/PROJECT_STATE.md`;
+13. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -122,15 +123,18 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 3. Preserve the accepted Custom-v2 Equipment / Equipo Especial deviation exactly; no current continuation authorizes redesign.
 4. Historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected; integrated export invokes the later owner-approved frozen renderer, not that candidate.
 5. PR #86 Desktop Save/Share is integrated as `c28ad548113b368413e479de544c85aa8c924ef4`.
-6. PR #88 Android generated renderer bridge is integrated as `c5963881bdff2597770d3f6a26992b8567b2a35b`; post-merge main #3315 PASS.
-7. PR #89 Android Player/authorized-DM Save/Share is integrated as `e6e153a53bba8aa532b5c371dcc16849a901a541`; post-merge main #3336 / `35909497243` PASS.
-8. Android export exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
-9. Unsaved structural edits require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
-10. Native Save uses `CreateDocument(application/pdf)`; native Share uses a private cache PDF + non-exported FileProvider + Android chooser.
-11. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
-12. Android delivery and generated-renderer authority remain protected by dedicated CI guards.
-13. **Current boundary:** real Android device/runtime smoke of Save, Share, unsaved-export non-persistence and Current Snapshot fallback notice.
-14. Do not start the next Wave 7 package before recording that manual smoke result; this is the first genuine manual boundary.
-15. After that smoke closes, resume the next concrete Wave 7 package from current roadmap authority (Media / Handouts unless newer authority supersedes it).
+6. PR #88 Android generated renderer bridge is integrated as `c5963881bdff2597770d3f6a26992b8567b2a35b`.
+7. PR #89 Android Player/authorized-DM Save/Share is integrated as `e6e153a53bba8aa532b5c371dcc16849a901a541`.
+8. PR #90 lifecycle/documentation closure is integrated as `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`; post-merge #3344 PASS.
+9. **Runtime QA fixture pack is prepared on PR #91**: Aldren Vale (strict SRD 5.1 Fighter 5/Champion), Ilyra Quill (strict SRD 5.2.1 Wizard 5/Evoker), and Mara de los Siete Umbrales (CUSTOM high-volume Extended stress).
+10. All three fixtures are app-owned Character Backup v2 JSONs suitable for normal Android **Importar**; tests prove decode/round-trip/restore-as-copy.
+11. Guarded DEV SQL seed is prepared at `database/qa/seed_pc_sheet_runtime_characters.sql`; it stores those exact fixture documents in hosted `pc.snapshot`. It has **not** been executed against DEV in this work.
+12. Fixture implementation/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed push Scaffold #3348 / `35914303487`.
+13. Android export still exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
+14. Unsaved structural edits still require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
+15. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
+16. **Current boundary remains unchanged:** real Android device/runtime smoke of Save, Share, unsaved-export non-persistence and Current Snapshot fallback notice, now with reproducible QA characters ready.
+17. Do not start the next Wave 7 package before recording that manual smoke result.
+18. When QA resumes, follow `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`.
 
 No external provider action is required for this PDF-renderer stage.
