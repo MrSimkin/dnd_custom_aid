@@ -3,12 +3,12 @@
 **Updated:** 2026-09-23 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `e6e153a53bba8aa532b5c371dcc16849a901a541` (Android PC Sheet Save/Share PR #89)  
-**Post-merge Scaffold:** `35909497243` / #3336 — SUCCESS  
+**Last verified integrated `main`:** `6ce3ac35798a1ce915a3dac4227e983932d5ab9f` (Android PC Sheet Save/Share lifecycle closure PR #90)  
+**Post-merge Scaffold:** `35910516390` / #3344 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Android real-device Save/Share smoke MANUAL GATE
+**Current normal work:** PC Sheet PDF Export — Android real-device Save/Share smoke MANUAL GATE; QA character fixture pack on PR #91
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,9 +102,9 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-Current closure branch:
+Current QA-support branch:
 
-`docs/wave7-pc-sheet-android-save-share-integrated`
+`qa/pc-sheet-runtime-character-fixtures` / PR #91
 
 Integrated PDF/export chain:
 
@@ -112,7 +112,8 @@ Integrated PDF/export chain:
 - PR #86 — Desktop Save/Share — merged as `c28ad548113b368413e479de544c85aa8c924ef4`;
 - PR #88 — generated Android renderer bridge — merged as `c5963881bdff2597770d3f6a26992b8567b2a35b`;
 - PR #89 — Android Player / authorized-DM Save/Share — merged as `e6e153a53bba8aa532b5c371dcc16849a901a541`;
-- post-merge Scaffold #3336 / `35909497243` — SUCCESS.
+- PR #90 — Android Save/Share lifecycle/documentation closure — merged as `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`;
+- post-merge Scaffold #3344 / `35910516390` — SUCCESS.
 
 Frozen visual authority:
 
@@ -121,24 +122,35 @@ Frozen visual authority:
 - Custom-v2 Equipment / Equipo Especial continuation remains approved with the explicit accepted deviation that it is not a literal copy of the normal-page module;
 - historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected and must not be revived.
 
+Runtime-QA support prepared on PR #91:
+
+- `qa/pc-sheet/fixtures/01_aldren_vale_srd5_1_champion_fighter.json`;
+- `qa/pc-sheet/fixtures/02_ilyra_quill_srd5_2_1_evoker_wizard.json`;
+- `qa/pc-sheet/fixtures/03_mara_siete_umbrales_custom_extended.json`;
+- `database/qa/seed_pc_sheet_runtime_characters.sql`;
+- fixture README + automated codec/rules/export-plan tests;
+- fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` — push Scaffold #3348 PASS.
+
+The SQL seed is prepared only; it has not been executed against hosted DEV in this work.
+
 Current manual boundary:
 
-1. install/run the post-merge Android debug APK;
-2. Save a PC-sheet PDF through the real Android document picker and open the result;
+1. load the three QA characters through Android Importar or the guarded DEV SQL seed;
+2. Save a PC-sheet PDF through the real Android document picker and open it;
 3. Share a PC-sheet PDF through a compatible real target and confirm the FileProvider URI is readable;
 4. export once with pending unsaved structural edits and verify the character is not saved;
-5. request Current Snapshot and verify the existing fallback notice is visible;
-6. record PASS or the exact defect in the repository.
+5. stress Custom-v2 Extended pages with Mara;
+6. request Current Snapshot and verify the existing fallback notice is visible;
+7. record PASS or exact defects in the repository.
 
 Do **not** start the next Wave 7 package before this manual smoke result is recorded. Once it closes, continue from current `main`; roadmap authority currently points next to Media / Handouts unless newer authority supersedes it.
 
 Relevant durable records:
 
+- `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`;
 - `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
-- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
-- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
 - `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-- `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+- `qa/pc-sheet/README.md`;
 - `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`.
 
 ## Historical/stale open PRs

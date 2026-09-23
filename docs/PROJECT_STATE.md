@@ -1,16 +1,16 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-21 (Chile local time)  
+**Last reconstructed:** 2026-09-23 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
-**Post-merge Scaffold:** `35295050340` — SUCCESS  
+**Last verified integrated `main`:** `6ce3ac35798a1ce915a3dac4227e983932d5ab9f` (Android PC Sheet Save/Share lifecycle closure PR #90)  
+**Post-merge Scaffold:** `35910516390` / #3344 — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — owner-review-2 visual repair ACTIVE
+**Current active package:** PC Sheet PDF Export — Android real-device Save/Share smoke MANUAL GATE; reproducible QA fixture pack prepared on PR #91
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -367,3 +367,30 @@ Android export behavior:
 - Current Snapshot truthfully falls back to Permanent with the existing notice when no separate local snapshot aggregate exists.
 
 Repository validation is complete. The remaining gate is **manual Android device/runtime smoke**, because repository CI cannot tap a real document picker/share target. Do not classify that manual smoke as a visual-design gate.
+
+
+### PC Sheet runtime QA character pack — 2026-09-23
+
+The owner cannot run the pending Android real-device PDF smoke immediately, so a reproducible QA data pack is prepared on `qa/pc-sheet-runtime-character-fixtures` / PR #91.
+
+Durable resume record:
+
+`docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`
+
+Fixtures:
+
+- Aldren Vale — strict SRD 5.1 Human Acolyte Fighter 5 / Champion;
+- Ilyra Quill — strict SRD 5.2.1 High Elf Sage Wizard 5 / Evoker;
+- Mara de los Siete Umbrales — explicitly CUSTOM high-volume Extended-page stress character.
+
+All three are app-owned Character Backup v2 JSON documents suitable for the Android Character Directory `Importar` flow. Automated tests prove codec decode/round-trip/restore-as-copy and fixture-specific PDF QA invariants.
+
+A guarded DEV PostgreSQL seed is prepared at:
+
+`database/qa/seed_pc_sheet_runtime_characters.sql`
+
+It stores those exact backup documents in hosted `pc.snapshot`, requires an explicit existing DEV `app_user` UUID, and does not manufacture Player ownership/controller state. It has **not** been executed against DEV in this work.
+
+Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed push Scaffold #3348 / `35914303487`.
+
+The active project boundary remains the manual Android Save/Share smoke. Do not start Media / Handouts until that result is recorded.
