@@ -3,8 +3,8 @@
 **Last reconstructed:** 2026-09-23 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `5e778ced3b85fc66d4ca449727a3451e91c50d7e` (PC Sheet runtime QA character fixture pack PR #91)  
-**Post-merge Scaffold:** `35915153718` / #3360 — SUCCESS  
+**Last verified integrated `main`:** `026dc8ca00967e5ca3d932562e2a49d97e6eaaad` (PC Sheet runtime QA fixture integration closure PR #92)  
+**Post-merge Scaffold:** `35915730801` / #3367 — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
@@ -391,6 +391,6 @@ A guarded DEV PostgreSQL seed is prepared at:
 
 It stores those exact backup documents in hosted `pc.snapshot`, requires an explicit existing DEV `app_user` UUID, and does not manufacture Player ownership/controller state. It has **not** been executed against DEV in this work.
 
-Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed #3348/#3349; PR #91 merged as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; post-merge #3360 / `35915153718` PASS.
+Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed #3348/#3349; PR #91 merged as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 / `35915730801` PASS.
 
 The active project boundary remains the manual Android Save/Share smoke. Do not start Media / Handouts until that result is recorded.
