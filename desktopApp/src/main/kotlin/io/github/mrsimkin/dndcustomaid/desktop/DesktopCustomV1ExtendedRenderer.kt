@@ -1176,17 +1176,42 @@ internal class DesktopCustomV1ExtendedRenderer(
         }.joinToString(" · ")
 
         val lines = mutableListOf<String>()
-        val primary = listOf(inventoryContinuationLabel(item), status)
-            .filter { it.isNotEmpty() }
-            .joinToString(" · ")
-        lines += wrapByWidth(primary, resources.condensed, 8.4f, INVENTORY_ORDINARY_TEXT_WIDTH)
+        // Keep the logical item identity on one ruled line. ruleText() may reduce the condensed
+        // type slightly to fit, but it must not turn "5 lb" into an orphaned second item-looking row.
+        val primary = buildList {
+            add(inventoryContinuationLabel(item))
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.weightLb?.let { weight ->
+                add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
+            }
+        }.joinToString(" · ")
+        lines += primary
+
+        val operationalStatus = buildList {
+            if (item.equipped) add("Equipado")
+            if (item.attuned) add("Sintonizado")
+            addAll(inventoryUsageLabels(usage))
+        }.joinToString(" · ")
+        if (operationalStatus.isNotEmpty()) {
+            lines += wrapByWidth(
+                "Estado: $operationalStatus",
+                resources.condensed,
+                8.2f,
+                INVENTORY_ORDINARY_TEXT_WIDTH,
+            )
+        }
 
         val description = listOfNotNull(
             item.description?.trim()?.takeIf { it.isNotEmpty() },
             item.notes?.trim()?.takeIf { it.isNotEmpty() },
         ).joinToString(" · ")
         if (description.isNotEmpty()) {
-            lines += wrapByWidth(description, resources.condensed, 8.4f, INVENTORY_ORDINARY_TEXT_WIDTH)
+            lines += wrapByWidth(
+                "Nota: $description",
+                resources.condensed,
+                8.2f,
+                INVENTORY_ORDINARY_TEXT_WIDTH,
+            )
         }
         return lines
     }
