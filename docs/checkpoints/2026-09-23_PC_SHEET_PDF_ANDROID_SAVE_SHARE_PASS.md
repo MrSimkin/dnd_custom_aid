@@ -220,3 +220,30 @@ Do not reinterpret this as a visual-design gate.
 4. do not reopen the frozen visual gate unless a real renderer/parity regression is demonstrated.
 
 No external provider action is required for this package.
+
+
+## Integration closure
+
+PR #89 was subsequently marked ready and merged into `main` as:
+
+`e6e153a53bba8aa532b5c371dcc16849a901a541`
+
+Post-merge main Scaffold:
+
+- #3336 / `35909497243` - **SUCCESS**;
+- Android renderer sync guard - PASS;
+- Android PDF delivery guard - PASS;
+- Android debug APK assembly - PASS;
+- shared/Desktop Kotlin tests - PASS;
+- backend - PASS;
+- hosted database - PASS;
+- PC-sheet source-render and populated-proof uploads - PASS.
+
+Post-merge Android debug APK artifact:
+
+- artifact ID `10772299331`;
+- artifact name `dnd-custom-aid-debug-apk`.
+
+Android PC-sheet Save/Share is therefore **INTEGRATED / REPOSITORY-VERIFIED**.
+
+The remaining Android device/runtime smoke remains a genuine manual QA boundary, not a repository implementation defect and not a visual-design gate.
