@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -59,6 +61,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.android.pdf.AndroidPcSheetExportOptions
+import io.github.mrsimkin.dndcustomaid.android.pdf.AndroidPcSheetExportService
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupCodec
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
@@ -67,6 +71,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureReposito
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatDamageProfile
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
@@ -99,12 +105,21 @@ import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterHitPoints
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.visibleCharacterModules
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+
+private enum class PcSheetAndroidExportActionV4 {
+    SAVE,
+    SHARE,
+}
 
 @Composable
 internal fun CharacterEditorScreenV4(
