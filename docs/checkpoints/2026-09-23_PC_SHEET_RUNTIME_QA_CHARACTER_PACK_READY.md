@@ -200,3 +200,31 @@ When owner device QA becomes possible:
 7. only after that manual gate closes, continue to the next Wave 7 package.
 
 No PDF renderer/layout/product behavior changed in this fixture package.
+
+
+## Integration closure
+
+PR #91 was merged into `main` as:
+
+`5e778ced3b85fc66d4ca449727a3451e91c50d7e`
+
+Final exact-head validation before merge:
+
+- push #3358 / `35914808570` — **SUCCESS**;
+- PR #3359 / `35914813999` — **SUCCESS**.
+
+Post-merge main validation:
+
+- Scaffold #3360 / `35915153718` — **SUCCESS**;
+- backend — PASS;
+- hosted database — PASS;
+- Kotlin/shared/Desktop tests — PASS;
+- Android debug APK — PASS;
+- Android renderer + PDF delivery guards — PASS;
+- PC-sheet source-render and populated-proof uploads — PASS.
+
+The PC Sheet runtime QA character pack is therefore **INTEGRATED / REPOSITORY-VERIFIED**.
+
+The SQL seed remains prepared but **not executed against hosted DEV** in this work.
+
+The next action remains the real-device Android PDF smoke using these fixtures. No Media / Handouts work is authorized before that manual result is recorded.
