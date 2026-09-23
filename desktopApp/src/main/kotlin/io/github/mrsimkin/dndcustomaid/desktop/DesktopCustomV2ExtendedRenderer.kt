@@ -1252,15 +1252,31 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
             }
             mergedEquipment.forEachIndexed { index, line ->
+                // Fill top-to-bottom inside a column before moving right. Wrapped/status/note lines
+                // therefore remain visually attached to the item above instead of masquerading as
+                // a second item in the neighboring cell.
                 val block = index / 38
                 val withinBlock = index % 38
-                val row = withinBlock / 2
-                val column = withinBlock % 2
+                val column = withinBlock / 19
+                val row = withinBlock % 19
                 if (block < 2) {
                     val blockX = if (block == 0) 14f else 307f
                     val x1 = blockX + if (column == 0) 4f else 143f
                     val x2 = blockX + if (column == 0) 135f else 273f
-                    textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.4f, 6.8f, 2.3f)
+                    if (line.startsWith("Nota:") || line.startsWith("Estado:")) {
+                        textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.0f, 6.6f, 2.3f)
+                    } else {
+                        textAboveRuleScaled(
+                            s,
+                            resources.condensed,
+                            Rule(x1, x2, 139f + row * 17f),
+                            line,
+                            preferredSize = 8.4f,
+                            minimumSize = 7.0f,
+                            clearance = 2.3f,
+                            minimumHorizontalScale = 78f,
+                        )
+                    }
                 }
             }
 
@@ -1317,17 +1333,29 @@ internal class DesktopCustomV2ExtendedRenderer(
         }.joinToString(" · ")
 
         val lines = mutableListOf<String>()
-        val primary = listOf(inventoryContinuationLabel(item), status)
-            .filter { it.isNotEmpty() }
-            .joinToString(" · ")
-        lines += wrapByWidth(resources.condensed, primary, 8.4f, V2_EQUIPMENT_COLUMN_WIDTH)
+        val primary = buildList {
+            add(inventoryContinuationLabel(item))
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.weightLb?.let { weight ->
+                add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
+            }
+        }.joinToString(" · ")
+        lines += primary
+
+        val operationalStatus = buildList {
+            if (item.equipped) add("Equipado")
+            addAll(inventoryUsageLabels(usage))
+        }.joinToString(" · ")
+        if (operationalStatus.isNotEmpty()) {
+            lines += wrapByWidth(resources.condensed, "Estado: $operationalStatus", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
+        }
 
         val description = listOfNotNull(
             item.description?.trim()?.takeIf { it.isNotEmpty() },
             item.notes?.trim()?.takeIf { it.isNotEmpty() },
         ).joinToString(" · ")
         if (description.isNotEmpty()) {
-            lines += wrapByWidth(resources.condensed, description, 8.4f, V2_EQUIPMENT_COLUMN_WIDTH)
+            lines += wrapByWidth(resources.condensed, "Nota: $description", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
         }
         return lines
     }
