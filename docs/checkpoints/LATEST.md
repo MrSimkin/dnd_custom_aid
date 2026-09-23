@@ -2,11 +2,11 @@
 
 **Updated:** 2026-09-23 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `c5963881bdff2597770d3f6a26992b8567b2a35b`  
+**Last verified integrated main:** `e6e153a53bba8aa532b5c371dcc16849a901a541`  
 **Wave 7:** ACTIVE  
-**Current active branch:** `wave7/pc-sheet-pdf-android-save-share`  
+**Current active branch:** `docs/wave7-pc-sheet-android-save-share-integrated`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
-**PR #89:** Android Save/Share invocation - DRAFT pending documentation-head CI
+**PR #89:** MERGED / INTEGRATED as `e6e153a53bba8aa532b5c371dcc16849a901a541`; post-merge #3336 PASS
 
 ## Read first on resume
 
@@ -119,18 +119,18 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 
 1. PC-sheet visual/layout/text-filling gate remains **OWNER APPROVED / CLOSED**.
 2. Frozen renderer authority remains `f7e4417c05a2981415ef3648ead740e20469fe33`; approved proof artifact remains `10756937024`.
-3. Preserve the accepted Custom-v2 Equipment / Equipo Especial deviation exactly; Android invocation is not authorization to redesign it.
-4. Historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected; current Android export invokes the later owner-approved frozen renderer, not that rejected candidate.
+3. Preserve the accepted Custom-v2 Equipment / Equipo Especial deviation exactly; no current continuation authorizes redesign.
+4. Historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected; integrated export invokes the later owner-approved frozen renderer, not that candidate.
 5. PR #86 Desktop Save/Share is integrated as `c28ad548113b368413e479de544c85aa8c924ef4`.
-6. PR #88 Android renderer bridge is integrated as `c5963881bdff2597770d3f6a26992b8567b2a35b`; post-merge main #3315 PASS.
-7. Current Android Save/Share implementation/guard head is `30341a454b7a943e06d1cab5163972be948ff4a3`.
-8. Android Save/Share push #3330 / `35908294844` and PR #3331 / `35908301816` are **SUCCESS**.
-9. Android export surface exposes D-0074 family/state/custom-stat/portrait/Spellbook choices and remains available in Table Mode.
-10. Unsaved structural edits require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
-11. Native Save uses `CreateDocument(application/pdf)`; native Share uses a private cache PDF + non-exported FileProvider + Android chooser.
-12. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
-13. Android delivery is guarded by `scripts/check_android_pc_sheet_pdf_delivery.py`; generated renderer authority is still guarded separately.
-14. Merge PR #89 after the documentation head is green.
-15. After post-merge main validation, remaining PDF boundary is real-device chooser smoke (Save/Share/unsaved export/fallback notice), not another visual-design gate.
+6. PR #88 Android generated renderer bridge is integrated as `c5963881bdff2597770d3f6a26992b8567b2a35b`; post-merge main #3315 PASS.
+7. PR #89 Android Player/authorized-DM Save/Share is integrated as `e6e153a53bba8aa532b5c371dcc16849a901a541`; post-merge main #3336 / `35909497243` PASS.
+8. Android export exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
+9. Unsaved structural edits require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
+10. Native Save uses `CreateDocument(application/pdf)`; native Share uses a private cache PDF + non-exported FileProvider + Android chooser.
+11. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
+12. Android delivery and generated-renderer authority remain protected by dedicated CI guards.
+13. **Current boundary:** real Android device/runtime smoke of Save, Share, unsaved-export non-persistence and Current Snapshot fallback notice.
+14. Do not start the next Wave 7 package before recording that manual smoke result; this is the first genuine manual boundary.
+15. After that smoke closes, resume the next concrete Wave 7 package from current roadmap authority (Media / Handouts unless newer authority supersedes it).
 
 No external provider action is required for this PDF-renderer stage.
