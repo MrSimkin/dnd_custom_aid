@@ -337,11 +337,17 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .filterNot { it.special }
             .take(EQUIPMENT_RULES.size)
             .forEachIndexed { index, item ->
-                val label = buildString {
-                    if (item.quantity > 1) append(item.quantity).append(" x ")
-                    append(item.name)
-                }
-                textAboveRule(s, fonts.regular, EQUIPMENT_RULES[index], label, 9.25f, 8.5f, 2.5f, 1.5f)
+                val label = buildList {
+                    add(buildString {
+                        if (item.quantity > 1) append(item.quantity).append(" x ")
+                        append(item.name)
+                    })
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.weightLb?.let { weight ->
+                        add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
+                    }
+                }.joinToString(" · ")
+                textAboveRule(s, fonts.condensed, EQUIPMENT_RULES[index], label, 9.25f, 7.0f, 2.5f, 1.5f)
             }
     }
 
@@ -704,6 +710,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     ) {
         val regular = load(document, resourceLoader, "fonts/pdf/text/FiraSans-Regular.ttf")
         val semibold = load(document, resourceLoader, "fonts/pdf/text/FiraSans-SemiBold.ttf")
+        val condensed = load(document, resourceLoader, "fonts/pdf/text/BarlowCondensed-Bold.ttf")
         val handwritten = load(document, resourceLoader, "fonts/pdf/text/Kalam-Bold.ttf")
         val symbol = load(document, resourceLoader, SYMBOL_FONT)
 
