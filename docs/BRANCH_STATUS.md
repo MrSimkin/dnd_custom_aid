@@ -3,12 +3,12 @@
 **Updated:** 2026-09-23 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `c28ad548113b368413e479de544c85aa8c924ef4` (Desktop PC Sheet Save/Share PR #86)  
-**Post-merge Scaffold:** `35902258755` / #3298 — SUCCESS  
+**Last verified integrated `main`:** `e6e153a53bba8aa532b5c371dcc16849a901a541` (Android PC Sheet Save/Share PR #89)  
+**Post-merge Scaffold:** `35909497243` / #3336 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Android Player / authorized DM Android-tablet exposure NEXT
+**Current normal work:** PC Sheet PDF Export — Android real-device Save/Share smoke MANUAL GATE
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -41,6 +41,8 @@ Integrated Wave 7 implementation PRs:
 - #83 PC Sheet PDF Export shared semantic/render-plan foundation — merged as `f6350d34087aae55d5247f2ba23153814eeed04b`;
 - #85 PC Sheet PDF renderer/visual gate closure — merged as `49dfc78f132c9db9763513c591e877a1749285d5`;
 - #86 Desktop PC Sheet Save/Share integration — merged as `c28ad548113b368413e479de544c85aa8c924ef4`.
+- #88 Android PC Sheet generated renderer bridge — merged as `c5963881bdff2597770d3f6a26992b8567b2a35b`;
+- #89 Android Player / authorized-DM PC Sheet Save/Share — merged as `e6e153a53bba8aa532b5c371dcc16849a901a541`.
 
 PC authority administration validation: corrected push Scaffold `35291183960`, PR Scaffold `35291417403`, post-merge Scaffold `35291685597` — all SUCCESS. Initial push `35290905581` failed on narrow backend row-typing and Kotlin visibility compile issues while the hosted-database contract passed.
 
@@ -102,36 +104,40 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 Current closure branch:
 
-`docs/wave7-pc-sheet-desktop-save-share-integrated`
+`docs/wave7-pc-sheet-android-save-share-integrated`
 
-Integrated predecessor:
+Integrated PDF/export chain:
 
-- PR #86 merged into `main` as `c28ad548113b368413e479de544c85aa8c924ef4`;
-- post-merge Scaffold #3298 / `35902258755` - SUCCESS;
-- Desktop Save/Share implementation `fafd0f136e5b5dd283b17865e3edc494261f4126`;
-- exact renderer-parity test passed;
-- no PDF renderer/layout file changed.
+- PR #85 — final owner-approved frozen renderer/visual state — merged as `49dfc78f132c9db9763513c591e877a1749285d5`;
+- PR #86 — Desktop Save/Share — merged as `c28ad548113b368413e479de544c85aa8c924ef4`;
+- PR #88 — generated Android renderer bridge — merged as `c5963881bdff2597770d3f6a26992b8567b2a35b`;
+- PR #89 — Android Player / authorized-DM Save/Share — merged as `e6e153a53bba8aa532b5c371dcc16849a901a541`;
+- post-merge Scaffold #3336 / `35909497243` — SUCCESS.
 
 Frozen visual authority:
 
 - renderer `f7e4417c05a2981415ef3648ead740e20469fe33`;
 - proof artifact `10756937024`;
-- Custom-v2 Equipment / Equipo Especial continuation remains approved with the explicit accepted deviation that it is not a literal copy of the normal-page module.
+- Custom-v2 Equipment / Equipo Especial continuation remains approved with the explicit accepted deviation that it is not a literal copy of the normal-page module;
+- historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected and must not be revived.
 
-Next continuation sequence:
+Current manual boundary:
 
-1. merge this documentation closure after green CI;
-2. continue from current `main`;
-3. inspect Android Player and authorized DM Android/tablet surfaces plus current shared PC/export plumbing;
-4. implement the smallest coherent D-0074 Android export exposure package;
-5. consume existing `PcSheetPdfExportPlanner` semantics and preserve the frozen visual contract;
-6. do not reopen the completed Desktop visual-design gate unless a real regression is demonstrated.
+1. install/run the post-merge Android debug APK;
+2. Save a PC-sheet PDF through the real Android document picker and open the result;
+3. Share a PC-sheet PDF through a compatible real target and confirm the FileProvider URI is readable;
+4. export once with pending unsaved structural edits and verify the character is not saved;
+5. request Current Snapshot and verify the existing fallback notice is visible;
+6. record PASS or the exact defect in the repository.
+
+Do **not** start the next Wave 7 package before this manual smoke result is recorded. Once it closes, continue from current `main`; roadmap authority currently points next to Media / Handouts unless newer authority supersedes it.
 
 Relevant durable records:
 
+- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
+- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
 - `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
 - `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-- `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
 - `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 - `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`.
 

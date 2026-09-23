@@ -197,18 +197,36 @@ Validation: final head `dea22b0823d6c4ad54e24839943d5952e2020392`; push Scaffold
 
 No renderer, persistence migration, backend/provider change or export UI was introduced.
 
-##### PC Sheet PDF Export — local renderer + authoritative template mapping
+##### PC Sheet PDF Export — physical renderer + Desktop/Android delivery
 
-**NEXT BOUNDED PACKAGE.**
+**REPOSITORY IMPLEMENTATION COMPLETE / INTEGRATED — manual Android device smoke pending.**
 
-Build the first physical static-PDF renderer on top of the integrated shared plan:
+Integrated milestones:
 
-- local/offline generation;
-- owner v1/v2 PDFs used as authoritative base pages;
-- concrete field/template placement metadata and renderer primitives;
-- generated/Extended-page support where D-0074 requires it;
-- keep Classic independently designed;
-- preserve the mandatory owner visual gate: populated dummy-data examples must be reviewed before any visual family is considered approved.
+- PR #85 — final physical renderer and owner visual approval integrated; frozen renderer `f7e4417c05a2981415ef3648ead740e20469fe33`, owner-approved proof artifact `10756937024`;
+- PR #86 — Desktop Save/Share integrated through the shared plan and frozen renderer;
+- PR #88 — Android renderer bridge integrated as a mechanically generated port of the frozen Desktop renderer authority, with shared owner assets and CI drift guard;
+- PR #89 — Android Player / authorized-DM Save/Share integrated through the shared planner and generated frozen renderer.
+
+Current implemented behavior:
+
+- local/offline static PDF generation;
+- owner v1/v2 PDFs remain authoritative base pages;
+- Fantasy Sheet remains independently application-designed;
+- family-native Extended pages, portrait Crop/Fit and optional Spellbook;
+- export-time family/state/custom-stat/portrait/Spellbook selection;
+- Desktop Save/Share;
+- Android Save through the native document picker;
+- Android Share through a private cache file + non-exported FileProvider + chooser;
+- explicit Android `Exportar sin guardar` path that projects visible drafts without persisting them;
+- Current Snapshot fallback notice remains explicit where no separate snapshot aggregate exists;
+- dedicated CI guards prevent Android renderer drift and delivery-path regression.
+
+Validation includes owner visual approval plus green integrated repository CI through Android Save/Share post-merge Scaffold #3336 / `35909497243`.
+
+**Current gate:** real Android device/runtime smoke for document-picker Save, chooser Share, unsaved-export non-persistence and Current Snapshot fallback notice. This is a manual platform-integration check, not another PDF visual-design gate.
+
+Do not start the next Wave 7 package until that smoke result is recorded. After it closes, the next concrete Wave 7 package is Media / Handouts unless newer authority supersedes this roadmap.
 
 Freeze/unfreeze remains an approved requirement but is not implementation-ready: no current freeze field/contract exists and D-0072 does not define what PC operations freezing blocks. Do not invent this behavior.
 
