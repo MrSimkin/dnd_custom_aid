@@ -3,8 +3,8 @@
 **Updated:** 2026-09-23 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `5e778ced3b85fc66d4ca449727a3451e91c50d7e` (PC Sheet runtime QA fixture pack PR #91)  
-**Post-merge Scaffold:** `35915153718` / #3360 — SUCCESS  
+**Last verified integrated `main`:** `026dc8ca00967e5ca3d932562e2a49d97e6eaaad` (PC Sheet runtime QA fixture integration closure PR #92)  
+**Post-merge Scaffold:** `35915730801` / #3367 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
@@ -102,9 +102,9 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-Current documentation closure branch:
+Current branch direction:
 
-`docs/pc-sheet-runtime-character-fixtures-integrated`
+No implementation branch is active. Continue from integrated `main` only after the pending manual Android device/runtime smoke is recorded.
 
 Integrated PDF/export + QA chain:
 
@@ -114,7 +114,8 @@ Integrated PDF/export + QA chain:
 - PR #89 — Android Player / authorized-DM Save/Share — merged as `e6e153a53bba8aa532b5c371dcc16849a901a541`;
 - PR #90 — Android Save/Share lifecycle closure — merged as `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`;
 - PR #91 — runtime QA character fixture pack — merged as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`;
-- post-merge Scaffold #3360 / `35915153718` — SUCCESS.
+- PR #92 — fixture integration/navigation closure — merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`;
+- post-merge Scaffold #3367 / `35915730801` — SUCCESS.
 
 Runtime-QA fixtures now on `main`:
 
