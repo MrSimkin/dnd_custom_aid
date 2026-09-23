@@ -45,11 +45,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    sourceSets.getByName("main").assets.srcDir(rootProject.file("assets"))
 }
 
 dependencies {
     implementation(projects.shared)
     implementation(libs.descope.kotlin)
+    implementation(libs.pdfbox.android)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation("androidx.compose.animation:animation")

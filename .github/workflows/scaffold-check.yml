@@ -41,6 +41,8 @@ jobs:
         run: python3 scripts/check_player_table_mode_affordances.py
       - name: Guard Player T2 dice presentation and Custom Throw
         run: python3 scripts/check_player_dice_t2.py
+      - name: Guard Android PC sheet renderer sync
+        run: python3 scripts/generate_android_pc_sheet_renderer.py --check
       - name: Prepare stable CI debug keystore
         run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
       - name: Build and test Kotlin surfaces
