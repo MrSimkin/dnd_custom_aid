@@ -3,14 +3,14 @@
 **Last reconstructed:** 2026-09-23 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `6ce3ac35798a1ce915a3dac4227e983932d5ab9f` (Android PC Sheet Save/Share lifecycle closure PR #90)  
-**Post-merge Scaffold:** `35910516390` / #3344 — SUCCESS  
+**Last verified integrated `main`:** `5e778ced3b85fc66d4ca449727a3451e91c50d7e` (PC Sheet runtime QA character fixture pack PR #91)  
+**Post-merge Scaffold:** `35915153718` / #3360 — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Android real-device Save/Share smoke MANUAL GATE; reproducible QA fixture pack prepared on PR #91
+**Current active package:** PC Sheet PDF Export — Android real-device Save/Share smoke MANUAL GATE; reproducible QA fixture pack integrated through PR #91
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -371,7 +371,7 @@ Repository validation is complete. The remaining gate is **manual Android device
 
 ### PC Sheet runtime QA character pack — 2026-09-23
 
-The owner cannot run the pending Android real-device PDF smoke immediately, so a reproducible QA data pack is prepared on `qa/pc-sheet-runtime-character-fixtures` / PR #91.
+The owner cannot run the pending Android real-device PDF smoke immediately, so a reproducible QA data pack is integrated into `main` through PR #91.
 
 Durable resume record:
 
@@ -391,6 +391,6 @@ A guarded DEV PostgreSQL seed is prepared at:
 
 It stores those exact backup documents in hosted `pc.snapshot`, requires an explicit existing DEV `app_user` UUID, and does not manufacture Player ownership/controller state. It has **not** been executed against DEV in this work.
 
-Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed push Scaffold #3348 / `35914303487`.
+Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed #3348/#3349; PR #91 merged as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; post-merge #3360 / `35915153718` PASS.
 
 The active project boundary remains the manual Android Save/Share smoke. Do not start Media / Handouts until that result is recorded.
