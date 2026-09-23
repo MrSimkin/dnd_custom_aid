@@ -2121,7 +2121,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 }
 
                 val extracted = PDFTextStripper().getText(document)
-                assertTrue(extracted.contains("TESORO / OBJETOS / OTROS"))
+                assertFalse(extracted.contains("TESORO / OBJETOS / OTROS"))
                 assertTrue(extracted.contains("137"))
                 assertTrue(extracted.contains("Sintonizado"))
                 assertTrue(extracted.contains("Viales vacíos"))
