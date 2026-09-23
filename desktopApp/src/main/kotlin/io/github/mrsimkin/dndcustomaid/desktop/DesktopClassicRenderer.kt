@@ -336,31 +336,33 @@ internal class DesktopClassicRenderer {
                     s, p, 24f, 112f, 276f, 606f,
                     "RASGOS Y CARACTERÍSTICAS - CONTINUACIÓN",
                 )
-                leftEntries
-                    .drop(pageIndex * CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
-                    .take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
-                    .forEachIndexed { index, entry ->
-                        featureEntry(
-                            s, p, 36f, 148f + index * 90f, 252f,
-                            entry.name, entry.source, entry.description,
-                        )
-                    }
-                ruledLines(s, 36f, 434f, 252f, 266f, 12)
+                continuousFeatureEntries(
+                    s = s,
+                    p = p,
+                    x = 36f,
+                    top = 148f,
+                    width = 252f,
+                    height = 552f,
+                    entries = leftEntries
+                        .drop(pageIndex * CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
+                        .take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE),
+                )
 
                 titledFrame(
                     s, p, 312f, 112f, 276f, 606f,
                     "RASGOS DE RAZA / TRASFONDO / OTROS",
                 )
-                rightEntries
-                    .drop(pageIndex * CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
-                    .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
-                    .forEachIndexed { index, entry ->
-                        featureEntry(
-                            s, p, 324f, 148f + index * 90f, 252f,
-                            entry.name, entry.source, entry.description,
-                        )
-                    }
-                ruledLines(s, 324f, 344f, 252f, 356f, 16)
+                continuousFeatureEntries(
+                    s = s,
+                    p = p,
+                    x = 324f,
+                    top = 148f,
+                    width = 252f,
+                    height = 552f,
+                    entries = rightEntries
+                        .drop(pageIndex * CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                        .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE),
+                )
 
                 footer(
                     s, p, doc.numberOfPages,
@@ -2375,38 +2377,75 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             align = PdfHorizontalAlignment.CENTER)
     }
 
-        private fun featureEntry(
+    private fun continuousFeatureEntries(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
         x: Float,
         top: Float,
         width: Float,
-        name: String,
-        source: String,
-        description: String,
+        height: Float,
+        entries: List<ClassicFeature>,
     ) {
-        text(
-            s, p, x, top, width * 0.55f, 18f,
-            name, PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
-        )
-        text(
-            s, p, x + width * 0.55f, top, width * 0.45f, 18f,
-            source, PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 6f,
-            align = PdfHorizontalAlignment.RIGHT,
-        )
-        ruledTextArea(
-            s = s,
-            p = p,
-            x = x,
-            top = top + 20f,
-            width = width,
-            height = 58f,
-            content = listOf(description),
-            fontSize = 8.1f,
-            lineGap = 14.5f,
-            role = PdfTypographyRole.BODY,
-        )
-        hairline(s, x, top + 80f, x + width, top + 80f)
+        val lineGap = 20f
+        val physicalRows = (height / lineGap).toInt().coerceAtLeast(1)
+
+        repeat(physicalRows) { row ->
+            hairline(s, x, top + (row + 1) * lineGap, x + width, top + (row + 1) * lineGap)
+        }
+
+        var rowIndex = 0
+        entries.forEach { entry ->
+            if (rowIndex >= physicalRows) return@forEach
+
+            val headerTop = top + rowIndex * lineGap
+            text(
+                s, p, x + 1f, headerTop + 0.5f, width * 0.68f - 1f, lineGap - 1.5f,
+                entry.name, PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
+                vertical = PdfVerticalAlignment.BOTTOM,
+            )
+            text(
+                s, p, x + width * 0.68f, headerTop + 0.5f, width * 0.32f - 1f, lineGap - 1.5f,
+                entry.source, PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 6f,
+                align = PdfHorizontalAlignment.RIGHT,
+                vertical = PdfVerticalAlignment.BOTTOM,
+            )
+            rowIndex += 1
+
+            entry.description
+                .replace("\r\n", "\n")
+                .split("\n")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .forEach { physicalLine ->
+                    var remaining = physicalLine
+                    while (remaining.isNotBlank() && rowIndex < physicalRows) {
+                        val rowTop = top + rowIndex * lineGap
+                        val result = p.drawTextBox(
+                            s,
+                            PdfTextBoxSpec(
+                                rect = rect(x + 2f, rowTop + 0.5f, width - 4f, lineGap - 1.5f),
+                                text = remaining,
+                                role = PdfTypographyRole.BODY,
+                                preferredSizePt = 8.1f,
+                                minimumSizePt = 8.1f,
+                                horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                                verticalAlignment = PdfVerticalAlignment.BOTTOM,
+                                wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                                maximumLines = 1,
+                                horizontalPaddingPt = 0f,
+                                verticalPaddingPt = 0.45f,
+                                lineHeightMultiplier = 1f,
+                                fontSizeMode = PdfFontSizeMode.FIXED,
+                            ),
+                        )
+                        remaining = result.overflowText?.trim().orEmpty()
+                        rowIndex += 1
+                    }
+                    if (remaining.isNotBlank()) {
+                        overflowDiagnostics += "continuous-feature value='${physicalLine}' overflow='${remaining}'"
+                    }
+                }
+        }
     }
 
     private fun ruledLines(
