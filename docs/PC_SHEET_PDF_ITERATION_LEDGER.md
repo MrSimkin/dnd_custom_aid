@@ -178,3 +178,78 @@ The next generated proof iteration must append a new `VR-3` entry **before owner
 - Status: **IMPLEMENTATION + AUTOMATED PRE-PRINT GATES PASS / WORKER VISUAL PREFLIGHT PASS / OWNER VISUAL QA PENDING**.
 - PR #85 remains DRAFT / DO NOT MERGE.
 - Save/Share remains blocked until owner visual approval.
+
+
+### VR-4 - owner-marked bounded repair / final visual gate candidate
+
+- Owner review source: annotated screenshots against VR-3 proof; findings are clarifications of existing visual-contract rules, not new design requirements.
+- Final implementation head: `f7e4417c05a2981415ef3648ead740e20469fe33`.
+- Push Scaffold: #3279 / `35873556136` - **SUCCESS**.
+- PR Scaffold: #3280 / `35873560390` - **SUCCESS**.
+- Final populated-proof artifact: `10756937024` (`pc-sheet-populated-template-proofs`).
+- Backend: PASS.
+- Hosted database: PASS.
+- Kotlin build/test: PASS.
+- Source-render upload: PASS.
+- Populated-proof upload: PASS.
+
+Owner findings mapped to implementation:
+
+1. **Custom v1 Equipment**
+   - owner status before repair: PASS WITH OBSERVATION;
+   - compact/condensed Equipment treatment added;
+   - logical item identity (item + location + weight) is kept together when feasible;
+   - operational state and notes remain subordinate labeled lines rather than item-like rows;
+   - no redesign of the approved v1 family.
+
+2. **Custom v2 headings**
+   - section labels no longer behave like gray data rows;
+   - headings use the family heading grammar with white breathing space and established Corbel-bold treatment.
+
+3. **Custom v2 Equipment / Equipo Especial**
+   - Extended Equipment now reuses the normal-family two-column module grammar instead of the rejected three-column invention;
+   - Equipment metadata stays in the same column beneath its item;
+   - Equipo Especial reuses native location-row semantics;
+   - recognized source rows (Cabeza/Rostro/Cuello/etc.) select the row and are not printed a second time over the source label.
+
+4. **Fantasy Sheet ruled-space model**
+   - fixed-height semantic feature-card allocation was removed from trait continuation;
+   - one continuous physical ruled grid now governs the writable region;
+   - content consumes consecutive rows only as needed;
+   - unused capacity remains visible ruled paper;
+   - unexplained blank white holes are not part of the accepted grammar.
+
+Intermediate verification:
+
+- first bounded repair exposed a long v2 treasure-row fit failure plus a stale v1 text-run assertion; both were repaired without weakening the visual rules;
+- `87ac73e4da63e257b5349aa8cd97d971b9264a68` then passed push #3276 / `35871179109` and PR #3277 / `35871183759`;
+- Worker visual inspection found two remaining filling artifacts: orphaned v1 weight text and v2 metadata spilling into a neighboring Equipment cell;
+- final cleanup produced `f7e4417c05a2981415ef3648ead740e20469fe33`, and both final workflows are green.
+
+Worker visual preflight of the final artifact:
+
+- Fantasy trait continuation: continuous visible ruled field, consecutive content rows, no unexplained blank white hole;
+- Custom v1 Equipment: logical item identity stays together; state/note lines remain visibly subordinate;
+- Custom v2 per Attribute and per Ability: headings read as headings; Equipment uses duplicated native module grammar; item metadata remains vertically associated; special-equipment recognized locations no longer overprint source labels.
+
+Contract status:
+
+- TERM-001: PASS.
+- ARCH-001: PASS.
+- XY-001: no regression detected from the bounded repair; final CI and rendered-page preflight pass.
+- NAME-001: PASS - owner-facing family remains **Fantasy Sheet**; legacy `CLASSIC_DND_STYLE` is internal compatibility only.
+- RUN-001: PASS - failed/intermediate runs were read and classified before promotion.
+- GOLDEN-001: unchanged - prior owner-approved proofs remain historical visual authority until the owner explicitly approves this candidate.
+
+Status: **IMPLEMENTATION + CI + WORKER VISUAL PREFLIGHT PASS / OWNER FINAL VISUAL QA PENDING**.
+
+Gate:
+
+- PR #85 remains DRAFT / DO NOT MERGE;
+- Save/Share remains blocked;
+- if owner approves this exact candidate, freeze it and move to Desktop Save/Share integration using the same production renderer/render plan, followed only by implementation-parity verification;
+- if owner reports another defect, append a bounded next iteration rather than restarting PDF design.
+
+Detailed continuity checkpoint:
+
+`docs/checkpoints/2026-09-23_PC_SHEET_PDF_OWNER_MARKED_REPAIR_FINAL_VISUAL_GATE.md`
