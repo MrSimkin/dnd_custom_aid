@@ -1,14 +1,14 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-22 (Chile local time)  
+**Updated:** 2026-09-23 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `2dc74e2d9c7d853a068e9052ec4928bf5178eb9f` (PC Sheet PDF foundation docs closure PR #84)  
-**Post-merge Scaffold:** `35295050340` — SUCCESS  
+**Last verified integrated `main`:** `c28ad548113b368413e479de544c85aa8c924ef4` (Desktop PC Sheet Save/Share PR #86)  
+**Post-merge Scaffold:** `35902258755` / #3298 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — owner-review-2 visual repair ACTIVE
+**Current normal work:** PC Sheet PDF Export — Android Player / authorized DM Android-tablet exposure NEXT
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -38,7 +38,9 @@ Integrated Wave 7 implementation PRs:
 - #75 Desktop Encounter Manager local authoring core — merged as `7000535b78df2b2a7149b019796ff3d5903fdb3d`;
 - #77 Desktop PC Manager inspection/audit core — merged as `e14784390971f2e27025dd2fff1f5000658eb2f0`;
 - #79 PC ownership/controller administration repository core — merged as `2e12400ee18026c702d6727793a3aea5d23d07b4`;
-- #83 PC Sheet PDF Export shared semantic/render-plan foundation — merged as `f6350d34087aae55d5247f2ba23153814eeed04b`.
+- #83 PC Sheet PDF Export shared semantic/render-plan foundation — merged as `f6350d34087aae55d5247f2ba23153814eeed04b`;
+- #85 PC Sheet PDF renderer/visual gate closure — merged as `49dfc78f132c9db9763513c591e877a1749285d5`;
+- #86 Desktop PC Sheet Save/Share integration — merged as `c28ad548113b368413e479de544c85aa8c924ef4`.
 
 PC authority administration validation: corrected push Scaffold `35291183960`, PR Scaffold `35291417403`, post-merge Scaffold `35291685597` — all SUCCESS. Initial push `35290905581` failed on narrow backend row-typing and Kotlin visibility compile issues while the hosted-database contract passed.
 
@@ -98,46 +100,37 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-Active branch:
+Current closure branch:
 
-`wave7/pc-sheet-pdf-desktop-save-share`
+`docs/wave7-pc-sheet-desktop-save-share-integrated`
 
-Draft PR:
+Integrated predecessor:
 
-**#86 - Desktop PC Sheet Save/Share integration**
+- PR #86 merged into `main` as `c28ad548113b368413e479de544c85aa8c924ef4`;
+- post-merge Scaffold #3298 / `35902258755` - SUCCESS;
+- Desktop Save/Share implementation `fafd0f136e5b5dd283b17865e3edc494261f4126`;
+- exact renderer-parity test passed;
+- no PDF renderer/layout file changed.
 
-Integrated/frozen predecessor:
+Frozen visual authority:
 
-- PR #85 merged into `main` as `49dfc78f132c9db9763513c591e877a1749285d5`;
-- final visual renderer implementation `f7e4417c05a2981415ef3648ead740e20469fe33` is OWNER APPROVED / FROZEN;
-- final proof artifact `10756937024`;
-- Custom-v2 Equipment / Equipo Especial continuation retains the explicitly accepted owner deviation: approved as rendered, not a literal copy of the normal-page module.
-
-Current implementation:
-
-- Save/Share implementation commit `fafd0f136e5b5dd283b17865e3edc494261f4126`;
-- push Scaffold #3294 / `35900383811` - SUCCESS;
-- PR Scaffold #3295 / `35900422551` - SUCCESS;
-- Desktop PC Manager exposes the D-0074 export selections;
-- Save uses a local file chooser and writes the exact renderer bytes;
-- Share stages the exact same bytes as a temporary PDF and places the file on the desktop clipboard;
-- renderer parity is guarded by direct-vs-service plan/text/page/pixel comparison;
-- no PDF renderer/layout file changed in this package.
+- renderer `f7e4417c05a2981415ef3648ead740e20469fe33`;
+- proof artifact `10756937024`;
+- Custom-v2 Equipment / Equipo Especial continuation remains approved with the explicit accepted deviation that it is not a literal copy of the normal-page module.
 
 Next continuation sequence:
 
-1. read `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
-2. keep the owner-approved renderer frozen;
-3. merge PR #86 after its documentation head is green;
-4. verify post-merge main CI;
-5. then determine the next D-0074 Android Player / authorized DM Android-tablet export exposure package from current architecture;
-6. do not reopen the completed visual-design gate unless a real parity/rendering regression is demonstrated.
+1. merge this documentation closure after green CI;
+2. continue from current `main`;
+3. inspect Android Player and authorized DM Android/tablet surfaces plus current shared PC/export plumbing;
+4. implement the smallest coherent D-0074 Android export exposure package;
+5. consume existing `PcSheetPdfExportPlanner` semantics and preserve the frozen visual contract;
+6. do not reopen the completed Desktop visual-design gate unless a real regression is demonstrated.
 
 Relevant durable records:
 
 - `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
 - `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_OWNER_MARKED_REPAIR_FINAL_VISUAL_GATE.md`;
 - `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
 - `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 - `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`.
