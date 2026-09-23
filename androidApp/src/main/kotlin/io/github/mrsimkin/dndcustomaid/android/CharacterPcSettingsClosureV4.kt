@@ -31,7 +31,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.android.pdf.AndroidPcSheetExportOptions
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleOverrideMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
@@ -45,6 +50,7 @@ private enum class PcSettingsPageClosureV4 {
     CUSTOM_SKILLS,
     CUSTOM_MARKERS,
     MODULES,
+    PDF_EXPORT,
 }
 
 @Composable
@@ -62,6 +68,11 @@ internal fun CharacterPcSettingsClosureV4(
     onOpenSupercompact: () -> Unit,
     backupExportEnabled: Boolean,
     onExportBackup: () -> Unit,
+    pcSheetExportBusy: Boolean,
+    pcSheetHasUnsavedChanges: Boolean,
+    pcSheetExportMessage: String?,
+    onSavePcSheetPdf: (AndroidPcSheetExportOptions) -> Unit,
+    onSharePcSheetPdf: (AndroidPcSheetExportOptions) -> Unit,
     onOpenApplicationSettings: () -> Unit,
 ) {
     var pendingLifecycleStatusName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -110,6 +121,8 @@ internal fun CharacterPcSettingsClosureV4(
                 onOpenSupercompact = onOpenSupercompact,
                 backupExportEnabled = backupExportEnabled,
                 onExportBackup = onExportBackup,
+                pcSheetExportBusy = pcSheetExportBusy,
+                pcSheetExportMessage = pcSheetExportMessage,
                 onOpenApplicationSettings = onOpenApplicationSettings,
             )
 
@@ -149,6 +162,20 @@ internal fun CharacterPcSettingsClosureV4(
                     onStateChange = onClosureStateChange,
                 )
             }
+
+            PcSettingsPageClosureV4.PDF_EXPORT -> PcSettingsPdfExportClosureV4(
+                characterName = characterName,
+                hasCustomStatistics =
+                    (pcContext?.successorState?.customAttributes?.isNotEmpty() == true) ||
+                        closureState.customSkills.isNotEmpty(),
+                hasPortrait = !closureState.portraitRef.isNullOrBlank(),
+                hasUnsavedChanges = pcSheetHasUnsavedChanges,
+                busy = pcSheetExportBusy,
+                statusMessage = pcSheetExportMessage,
+                onBack = { pageName = PcSettingsPageClosureV4.MAIN.name },
+                onSave = onSavePcSheetPdf,
+                onShare = onSharePcSheetPdf,
+            )
         }
     }
 
@@ -203,6 +230,8 @@ private fun PcSettingsMainClosureV4(
     onOpenSupercompact: () -> Unit,
     backupExportEnabled: Boolean,
     onExportBackup: () -> Unit,
+    pcSheetExportBusy: Boolean,
+    pcSheetExportMessage: String?,
     onOpenApplicationSettings: () -> Unit,
 ) {
     val visibleModules = CharacterModuleKind.entries.count { module ->
@@ -376,6 +405,19 @@ private fun PcSettingsMainClosureV4(
                     onStatusChange = onStatusChange,
                 )
                 PcSettingsDividerClosureV4()
+                PcNavigationRowClosureV4(
+                    title = "Hoja de personaje PDF",
+                    summary = if (pcSheetExportBusy) "Generando…" else "Guardar / Compartir",
+                    onClick = { onNavigate(PcSettingsPageClosureV4.PDF_EXPORT) },
+                )
+                pcSheetExportMessage?.takeIf { it.isNotBlank() }?.let { message ->
+                    Text(
+                        message,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                PcSettingsDividerClosureV4()
                 PcActionRowClosureV4(
                     title = "Respaldo local",
                     action = "Exportar",
@@ -401,6 +443,243 @@ private fun PcSettingsMainClosureV4(
             }
         }
     }
+}
+
+@Composable
+private fun PcSettingsPdfExportClosureV4(
+    characterName: String,
+    hasCustomStatistics: Boolean,
+    hasPortrait: Boolean,
+    hasUnsavedChanges: Boolean,
+    busy: Boolean,
+    statusMessage: String?,
+    onBack: () -> Unit,
+    onSave: (AndroidPcSheetExportOptions) -> Unit,
+    onShare: (AndroidPcSheetExportOptions) -> Unit,
+) {
+    var familyName by rememberSaveable { mutableStateOf(PcSheetVisualFamily.CLASSIC_DND_STYLE.name) }
+    var stateName by rememberSaveable { mutableStateOf(PcSheetExportStateSelection.PERMANENT.name) }
+    var customModeName by rememberSaveable {
+        mutableStateOf(PcSheetCustomStatisticsPresentation.EXTENDED_PAGE.name)
+    }
+    var portraitModeName by rememberSaveable { mutableStateOf(PcSheetPortraitFitMode.CROP_TO_FILL.name) }
+    var includeSpellDescriptions by rememberSaveable { mutableStateOf(false) }
+
+    val family = runCatching { PcSheetVisualFamily.valueOf(familyName) }
+        .getOrDefault(PcSheetVisualFamily.CLASSIC_DND_STYLE)
+    val state = runCatching { PcSheetExportStateSelection.valueOf(stateName) }
+        .getOrDefault(PcSheetExportStateSelection.PERMANENT)
+    val customMode = runCatching { PcSheetCustomStatisticsPresentation.valueOf(customModeName) }
+        .getOrDefault(PcSheetCustomStatisticsPresentation.EXTENDED_PAGE)
+    val portraitMode = runCatching { PcSheetPortraitFitMode.valueOf(portraitModeName) }
+        .getOrDefault(PcSheetPortraitFitMode.CROP_TO_FILL)
+    val options = AndroidPcSheetExportOptions(
+        visualFamily = family,
+        stateSelection = state,
+        customStatisticsPresentation = customMode,
+        portraitFitMode = portraitMode,
+        includeSpellDescriptions = includeSpellDescriptions,
+    )
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+        contentPadding = PaddingValues(
+            start = appSpacingV4(7.dp),
+            end = appSpacingV4(7.dp),
+            top = appSpacingV4(5.dp),
+            bottom = appSpacingV4(28.dp),
+        ),
+        verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+    ) {
+        item(key = "pdf-export-header") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+            ) {
+                StableBackIconButton(onClick = onBack, contentDescription = "Volver a Ajustes de personaje")
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Hoja de personaje PDF", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        characterName.ifBlank { "Ficha de personaje" },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        if (hasUnsavedChanges) {
+            item(key = "pdf-export-unsaved") {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                ) {
+                    Text(
+                        "Hay cambios sin guardar. El PDF puede usar lo que ves ahora sin guardar esos cambios en el personaje; se pedirá confirmación.",
+                        modifier = Modifier.padding(appSpacingV4(8.dp)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+                }
+            }
+        }
+
+        item(key = "pdf-export-design") {
+            PcSettingsSectionClosureV4("Diseño") {
+                PdfChoiceRowClosureV4(
+                    title = "Familia visual",
+                    value = pcSheetFamilyLabelClosureV4(family),
+                    options = PcSheetVisualFamily.entries.map { it.name to pcSheetFamilyLabelClosureV4(it) },
+                    enabled = !busy,
+                    onSelect = { familyName = it },
+                )
+            }
+        }
+
+        item(key = "pdf-export-state") {
+            PcSettingsSectionClosureV4("Estado exportado") {
+                PdfChoiceRowClosureV4(
+                    title = "Estado",
+                    value = pcSheetStateLabelClosureV4(state),
+                    options = PcSheetExportStateSelection.entries.map { it.name to pcSheetStateLabelClosureV4(it) },
+                    enabled = !busy,
+                    onSelect = { stateName = it },
+                )
+                if (state == PcSheetExportStateSelection.CURRENT_SNAPSHOT) {
+                    Text(
+                        "Si este dispositivo no dispone de un snapshot separado, el exportador usará el estado permanente y lo informará.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        if (hasCustomStatistics) {
+            item(key = "pdf-export-custom") {
+                PcSettingsSectionClosureV4("Estadísticas personalizadas") {
+                    PdfChoiceRowClosureV4(
+                        title = "Presentación",
+                        value = pcSheetCustomModeLabelClosureV4(customMode),
+                        options = PcSheetCustomStatisticsPresentation.entries.map {
+                            it.name to pcSheetCustomModeLabelClosureV4(it)
+                        },
+                        enabled = !busy,
+                        onSelect = { customModeName = it },
+                    )
+                }
+            }
+        }
+
+        if (hasPortrait) {
+            item(key = "pdf-export-portrait") {
+                PcSettingsSectionClosureV4("Retrato") {
+                    PdfChoiceRowClosureV4(
+                        title = "Ajuste",
+                        value = pcSheetPortraitModeLabelClosureV4(portraitMode),
+                        options = PcSheetPortraitFitMode.entries.map {
+                            it.name to pcSheetPortraitModeLabelClosureV4(it)
+                        },
+                        enabled = !busy,
+                        onSelect = { portraitModeName = it },
+                    )
+                }
+            }
+        }
+
+        item(key = "pdf-export-spellbook") {
+            PcSettingsSectionClosureV4("Spellbook") {
+                PcToggleRowClosureV4(
+                    title = "Incluir descripciones de conjuros",
+                    checked = includeSpellDescriptions,
+                    enabled = !busy,
+                    onCheckedChange = { includeSpellDescriptions = it },
+                )
+            }
+        }
+
+        item(key = "pdf-export-actions") {
+            PcSettingsSectionClosureV4("Salida") {
+                PcActionRowClosureV4(
+                    title = "Guardar PDF",
+                    action = if (busy) "Generando…" else "Guardar…",
+                    enabled = !busy,
+                    onClick = { onSave(options) },
+                )
+                PcSettingsDividerClosureV4()
+                PcActionRowClosureV4(
+                    title = "Compartir PDF",
+                    action = if (busy) "Generando…" else "Compartir",
+                    enabled = !busy,
+                    onClick = { onShare(options) },
+                )
+                statusMessage?.takeIf { it.isNotBlank() }?.let { message ->
+                    Text(
+                        message,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PdfChoiceRowClosureV4(
+    title: String,
+    value: String,
+    options: List<Pair<String, String>>,
+    enabled: Boolean,
+    onSelect: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = appSpacingV4(4.dp)),
+        horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+        Box {
+            OutlinedButton(onClick = { expanded = true }, enabled = enabled) { Text(value) }
+            DropdownMenu(expanded = enabled && expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { (key, label) ->
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            expanded = false
+                            onSelect(key)
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun pcSheetFamilyLabelClosureV4(family: PcSheetVisualFamily): String = when (family) {
+    PcSheetVisualFamily.CLASSIC_DND_STYLE -> "Fantasy Sheet"
+    PcSheetVisualFamily.CUSTOM_V1 -> "Custom v1"
+    PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> "Custom v2 · Atributo"
+    PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> "Custom v2 · Habilidad"
+}
+
+private fun pcSheetStateLabelClosureV4(state: PcSheetExportStateSelection): String = when (state) {
+    PcSheetExportStateSelection.PERMANENT -> "Permanente"
+    PcSheetExportStateSelection.CURRENT_SNAPSHOT -> "Snapshot actual"
+}
+
+private fun pcSheetCustomModeLabelClosureV4(mode: PcSheetCustomStatisticsPresentation): String = when (mode) {
+    PcSheetCustomStatisticsPresentation.EXTENDED_PAGE -> "Extended"
+    PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET -> "Hoja modificada"
+    PcSheetCustomStatisticsPresentation.MODIFIED_SHEET_AND_COMPLETE_EXTENDED_PAGE -> "Modificada + Extended"
+}
+
+private fun pcSheetPortraitModeLabelClosureV4(mode: PcSheetPortraitFitMode): String = when (mode) {
+    PcSheetPortraitFitMode.CROP_TO_FILL -> "Recortar para llenar"
+    PcSheetPortraitFitMode.FIT_ENTIRE_IMAGE -> "Imagen completa"
 }
 
 @Composable
