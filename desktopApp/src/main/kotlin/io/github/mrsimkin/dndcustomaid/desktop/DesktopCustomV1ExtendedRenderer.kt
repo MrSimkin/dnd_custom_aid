@@ -1074,10 +1074,10 @@ internal class DesktopCustomV1ExtendedRenderer(
                 val (startX, endX) = INVENTORY_ORDINARY_COLUMNS[column]
                 ruleText(
                     s,
-                    resources.fira,
+                    resources.condensed,
                     Rule(startX, endX, INVENTORY_ORDINARY_RULES[row]),
                     value,
-                    8.2f,
+                    8.4f,
                 )
             }
 
@@ -1162,14 +1162,6 @@ internal class DesktopCustomV1ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val lines = mutableListOf<String>()
-        lines += wrapByWidth(
-            inventoryContinuationLabel(item),
-            resources.fira,
-            8.2f,
-            INVENTORY_ORDINARY_TEXT_WIDTH,
-        )
-
         val status = buildList {
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.weightLb?.let { weight ->
@@ -1182,16 +1174,19 @@ internal class DesktopCustomV1ExtendedRenderer(
             if (item.attuned) add("Sintonizado")
             addAll(inventoryUsageLabels(usage))
         }.joinToString(" · ")
-        if (status.isNotEmpty()) {
-            lines += wrapByWidth(status, resources.fira, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
-        }
+
+        val lines = mutableListOf<String>()
+        val primary = listOf(inventoryContinuationLabel(item), status)
+            .filter { it.isNotEmpty() }
+            .joinToString(" · ")
+        lines += wrapByWidth(primary, resources.condensed, 8.4f, INVENTORY_ORDINARY_TEXT_WIDTH)
 
         val description = listOfNotNull(
             item.description?.trim()?.takeIf { it.isNotEmpty() },
             item.notes?.trim()?.takeIf { it.isNotEmpty() },
         ).joinToString(" · ")
         if (description.isNotEmpty()) {
-            lines += wrapByWidth(description, resources.fira, 8.2f, INVENTORY_ORDINARY_TEXT_WIDTH)
+            lines += wrapByWidth(description, resources.condensed, 8.4f, INVENTORY_ORDINARY_TEXT_WIDTH)
         }
         return lines
     }
@@ -2157,6 +2152,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val heading: PDFont,
         val fira: PDFont,
         val firaSemibold: PDFont,
+        val condensed: PDFont,
         val symbol: PDFont,
     ) {
         companion object {
@@ -2175,6 +2171,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     heading = heading,
                     fira = resourceFont(document, resourceLoader, FIRA_RESOURCE),
                     firaSemibold = resourceFont(document, resourceLoader, FIRA_SEMIBOLD_RESOURCE),
+                    condensed = resourceFont(document, resourceLoader, BARLOW_CONDENSED_RESOURCE),
                     symbol = resourceFont(document, resourceLoader, SYMBOL_RESOURCE),
                 )
             }
@@ -2225,6 +2222,7 @@ internal class DesktopCustomV1ExtendedRenderer(
 
         const val FIRA_RESOURCE = "fonts/pdf/text/FiraSans-Regular.ttf"
         const val FIRA_SEMIBOLD_RESOURCE = "fonts/pdf/text/FiraSans-SemiBold.ttf"
+        const val BARLOW_CONDENSED_RESOURCE = "fonts/pdf/text/BarlowCondensed-Bold.ttf"
         const val SYMBOL_RESOURCE = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
 
         const val MODULES_PER_PAGE = 6
