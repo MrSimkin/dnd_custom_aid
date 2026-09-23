@@ -2,25 +2,26 @@
 
 **Updated:** 2026-09-23 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `b44e8a44bc838bd17082a67050488bc510ca6b2f`  
+**Last verified integrated main:** `c5963881bdff2597770d3f6a26992b8567b2a35b`  
 **Wave 7:** ACTIVE  
-**Current active branch:** `wave7/pc-sheet-pdf-android-renderer-bridge`  
+**Current active branch:** `wave7/pc-sheet-pdf-android-save-share`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
-**PR #88:** Android renderer bridge - DRAFT pending documentation-head CI
+**PR #89:** Android Save/Share invocation - DRAFT pending documentation-head CI
 
 ## Read first on resume
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
-4. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
-5. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-6. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-7. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
-8. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-9. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-10. `docs/PROJECT_STATE.md`;
-11. `docs/BRANCH_STATUS.md`.
+3. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
+4. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
+5. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
+6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
+7. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+8. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+9. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+10. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+11. `docs/PROJECT_STATE.md`;
+12. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -118,15 +119,18 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 
 1. PC-sheet visual/layout/text-filling gate remains **OWNER APPROVED / CLOSED**.
 2. Frozen renderer authority remains `f7e4417c05a2981415ef3648ead740e20469fe33`; approved proof artifact remains `10756937024`.
-3. Preserve the accepted Custom-v2 Equipment / Equipo Especial deviation exactly; Android work is not authorization to redesign it.
-4. PR #86 Desktop Save/Share is integrated as `c28ad548113b368413e479de544c85aa8c924ef4`; post-merge #3298 PASS.
-5. PR #87 docs/CI closure is integrated as `b44e8a44bc838bd17082a67050488bc510ca6b2f`; post-merge main #3307 PASS.
-6. Current Android renderer bridge implementation is `53872e8dab57e6dca49a8292b6c1855fb784f133`.
-7. Android bridge push #3309 / `35904995876` and PR #3310 / `35905025318` are **SUCCESS**.
-8. Generated Android renderer sources are guarded against Desktop-authority drift by `scripts/generate_android_pc_sheet_renderer.py --check`.
-9. Built APK artifact `10771041791` was inspected and contains both owner templates, approved renderer fonts, Android renderer bridge and PdfBox-Android classes.
-10. Runtime Android PDF generation has **not yet been invoked through product UI**; do not claim it has.
-11. Merge PR #88 after its documentation head is green.
-12. Next bounded package after merge: Android Player / authorized DM Save/Share invocation using the shared planner + generated renderer bridge, with D-0027 unsaved-edit warning semantics and no visual redesign.
+3. Preserve the accepted Custom-v2 Equipment / Equipo Especial deviation exactly; Android invocation is not authorization to redesign it.
+4. Historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected; current Android export invokes the later owner-approved frozen renderer, not that rejected candidate.
+5. PR #86 Desktop Save/Share is integrated as `c28ad548113b368413e479de544c85aa8c924ef4`.
+6. PR #88 Android renderer bridge is integrated as `c5963881bdff2597770d3f6a26992b8567b2a35b`; post-merge main #3315 PASS.
+7. Current Android Save/Share implementation/guard head is `30341a454b7a943e06d1cab5163972be948ff4a3`.
+8. Android Save/Share push #3330 / `35908294844` and PR #3331 / `35908301816` are **SUCCESS**.
+9. Android export surface exposes D-0074 family/state/custom-stat/portrait/Spellbook choices and remains available in Table Mode.
+10. Unsaved structural edits require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
+11. Native Save uses `CreateDocument(application/pdf)`; native Share uses a private cache PDF + non-exported FileProvider + Android chooser.
+12. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
+13. Android delivery is guarded by `scripts/check_android_pc_sheet_pdf_delivery.py`; generated renderer authority is still guarded separately.
+14. Merge PR #89 after the documentation head is green.
+15. After post-merge main validation, remaining PDF boundary is real-device chooser smoke (Save/Share/unsaved export/fallback notice), not another visual-design gate.
 
 No external provider action is required for this PDF-renderer stage.

@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -59,6 +61,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.android.pdf.AndroidPcSheetExportOptions
+import io.github.mrsimkin.dndcustomaid.android.pdf.AndroidPcSheetExportService
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupCodec
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
@@ -67,6 +71,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureReposito
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatDamageProfile
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
@@ -99,12 +105,21 @@ import io.github.mrsimkin.dndcustomaid.shared.character.setCharacterHitPoints
 import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.suggestedCharacterModules
 import io.github.mrsimkin.dndcustomaid.shared.character.visibleCharacterModules
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+
+private enum class PcSheetAndroidExportActionV4 {
+    SAVE,
+    SHARE,
+}
 
 @Composable
 internal fun CharacterEditorScreenV4(
@@ -229,7 +244,21 @@ internal fun CharacterEditorScreenV4(
     var confirmUnsavedLeave by rememberSaveable(characterId.toString(), "unsaved-leave") { mutableStateOf(false) }
     var leaveAfterSave by rememberSaveable(characterId.toString(), "leave-after-save") { mutableStateOf(false) }
     var backupExportMessage by rememberSaveable(characterId.toString(), "backup-export-message") { mutableStateOf<String?>(null) }
+    var pcSheetExportBusy by remember(characterId) { mutableStateOf(false) }
+    var pcSheetExportMessage by rememberSaveable(characterId.toString(), "pc-sheet-export-message") {
+        mutableStateOf<String?>(null)
+    }
+    var pendingPcSheetSavePath by rememberSaveable(characterId.toString(), "pc-sheet-save-path") {
+        mutableStateOf<String?>(null)
+    }
+    var pendingPcSheetSaveNotice by rememberSaveable(characterId.toString(), "pc-sheet-save-notice") {
+        mutableStateOf<String?>(null)
+    }
+    var pendingPcSheetAction by remember { mutableStateOf<PcSheetAndroidExportActionV4?>(null) }
+    var pendingPcSheetOptions by remember { mutableStateOf<AndroidPcSheetExportOptions?>(null) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val pcSheetExportService = remember(context) { AndroidPcSheetExportService(context) }
     val backupExportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json"),
     ) { uri ->
@@ -247,6 +276,40 @@ internal fun CharacterEditorScreenV4(
                 "Respaldo exportado correctamente."
             } else {
                 "No se pudo escribir el respaldo en el archivo seleccionado."
+            }
+        }
+    }
+
+    val pcSheetSaveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/pdf"),
+    ) { uri ->
+        val stagedPath = pendingPcSheetSavePath
+        pendingPcSheetSavePath = null
+        val staged = stagedPath?.let(::File)
+        if (uri == null) {
+            staged?.delete()
+            pendingPcSheetSaveNotice = null
+            pcSheetExportMessage = "Guardado de PDF cancelado."
+        } else if (staged == null || !staged.isFile) {
+            pendingPcSheetSaveNotice = null
+            pcSheetExportMessage = "El PDF temporal ya no está disponible; vuelve a generar la hoja."
+        } else {
+            pcSheetExportBusy = true
+            coroutineScope.launch {
+                val result = runCatching {
+                    withContext(Dispatchers.IO) {
+                        pcSheetExportService.writeToDocument(staged, uri)
+                    }
+                }
+                staged.delete()
+                pcSheetExportMessage = if (result.isSuccess) {
+                    "PDF guardado correctamente." +
+                        pendingPcSheetSaveNotice?.let { " $it" }.orEmpty()
+                } else {
+                    result.exceptionOrNull()?.message ?: "No se pudo escribir el PDF seleccionado."
+                }
+                pendingPcSheetSaveNotice = null
+                pcSheetExportBusy = false
             }
         }
     }
@@ -435,6 +498,167 @@ internal fun CharacterEditorScreenV4(
         if (h1ModuleDraftJson != storedH1ModuleDraftJson) add("Módulos de clase / formas / compañeros: cambios pendientes")
         if (proficiencyDraftJson != storedProficiencyDraftJson) add("Competencias: cambios pendientes")
     }.distinct()
+
+    fun currentPcSheetExportAggregate(): PcSheetExportAggregate {
+        val candidate = requireNotNull(
+            draft.toSheetOrNull(stored, blankRequiredAsZero = true),
+        ) {
+            "Los cambios actuales no forman una ficha exportable."
+        }
+        val equipment = equipmentDraftFromJsonV4(equipmentDraftJson)
+        val spellcasting = characterSpellcastingDraftFromJsonV4(spellcastingDraftJson)
+        val notes = characterNotesDraftFromJsonV4(notesDraftJson)
+        val modules = characterH1ModuleDraftFromJsonV4(h1ModuleDraftJson)
+        val profiles = characterSpellcastingProfilesFromJsonV4(spellcastingProfilesDraftJson)
+        val reconciledSpellcasting = reconcileCharacterSpellcastingBootstrap(
+            classes = candidate.classes,
+            existingSources = spellcasting.sources,
+            existingProfiles = profiles,
+        )
+        val bootstrapNeeded = needsCharacterSpellcastingBootstrap(
+            classes = candidate.classes,
+            existingSources = stored.spellcastingSources,
+        )
+        val integratedSheet = setCharacterHitPoints(
+            sheet = candidate,
+            currentHp = candidate.currentHp,
+            maxHp = candidate.maxHp,
+        ).copy(
+            tempHp = candidate.tempHp.coerceAtLeast(0),
+            combatEntries = combatEntriesFromJsonV4(combatDraftJson),
+            inventoryItems = equipment.items,
+            currencies = equipment.currencies,
+            background = characterBackgroundFromJsonV4(backgroundDraftJson),
+            traits = characterTraitsFromJsonV4(traitsDraftJson),
+            spellcastingSources = reconciledSpellcasting.sources,
+            spells = spellcasting.spells,
+            spellcasterEnabled = candidate.spellcasterEnabled || bootstrapNeeded,
+            generalNotes = notes.generalNotes,
+            noteCards = notes.cards,
+            proficiencies = characterProficienciesFromJsonV4(proficiencyDraftJson),
+            classOptions = modules.classOptions,
+            forms = modules.forms,
+            companions = modules.companions,
+        )
+        val canonicalOrigins = characterCanonicalOriginsDraftFromJsonP7V4(canonicalOriginsDraftJson).normalized()
+        val provenanceState = canonicalOrigins.projectOnto(successorState)
+        val liveTraitIds = integratedSheet.traits.mapTo(mutableSetOf()) { it.id }
+        val projectedTraitProvenance = refreshResolvedTraitProvenanceLabelsP7V4(
+            items = characterTraitProvenanceFromJsonP7V4(traitProvenanceDraftJson)
+                .filter { it.traitId in liveTraitIds },
+            classes = integratedSheet.classes,
+            successorState = provenanceState,
+        )
+        val projectedSuccessor = provenanceState.copy(
+            combatDamage = characterCombatDamageProfilesFromJsonV4(combatDamageDraftJson),
+            spellcastingProfiles = reconciledSpellcasting.profiles,
+            traitProvenance = projectedTraitProvenance,
+        )
+        val projectedClosure = closureState.copy(
+            inventoryUsage = equipment.inventoryUsage,
+        )
+        return PcSheetExportAggregate(
+            sheet = integratedSheet,
+            closure = projectedClosure,
+            successor = projectedSuccessor,
+        )
+    }
+
+    fun startPcSheetExport(
+        action: PcSheetAndroidExportActionV4,
+        options: AndroidPcSheetExportOptions,
+    ) {
+        if (pcSheetExportBusy) return
+        val exportingUnsavedChanges = hasUnsavedChanges
+        val aggregate = runCatching { currentPcSheetExportAggregate() }
+            .getOrElse { error ->
+                pcSheetExportMessage = error.message ?: "No se pudo preparar el estado actual para exportar."
+                return
+            }
+        val sources = PcSheetExportSources(permanent = aggregate)
+        pcSheetExportBusy = true
+        pcSheetExportMessage = "Generando PDF local…"
+
+        coroutineScope.launch {
+            val result = runCatching {
+                withContext(Dispatchers.IO) {
+                    val generated = pcSheetExportService.generate(options.request(), sources)
+                    val purpose = if (action == PcSheetAndroidExportActionV4.SAVE) "save" else "share"
+                    val staged = pcSheetExportService.stage(
+                        generated = generated,
+                        characterName = aggregate.sheet.name,
+                        purpose = purpose,
+                    )
+                    generated to staged
+                }
+            }
+            val pair = result.getOrElse { error ->
+                pcSheetExportMessage = error.message ?: "No se pudo generar el PDF."
+                pcSheetExportBusy = false
+                return@launch
+            }
+            val generated = pair.first
+            val staged = pair.second
+            val notice = generated.plan.notices
+                .joinToString(" ") { it.message }
+                .trim()
+                .takeIf { it.isNotEmpty() }
+            val unsavedNotice = if (exportingUnsavedChanges) {
+                "El PDF usa los cambios visibles sin guardarlos en el personaje."
+            } else {
+                null
+            }
+            val combinedNotice = listOfNotNull(unsavedNotice, notice).joinToString(" ").takeIf { it.isNotBlank() }
+
+            when (action) {
+                PcSheetAndroidExportActionV4.SAVE -> {
+                    pendingPcSheetSavePath = staged.absolutePath
+                    pendingPcSheetSaveNotice = combinedNotice
+                    pcSheetExportBusy = false
+                    pcSheetSaveLauncher.launch(
+                        pcSheetExportService.suggestedFileName(
+                            aggregate.sheet.name,
+                            options.visualFamily,
+                        ),
+                    )
+                }
+
+                PcSheetAndroidExportActionV4.SHARE -> {
+                    val shareResult = runCatching {
+                        val uri = pcSheetExportService.shareUri(staged)
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "application/pdf"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(
+                            Intent.createChooser(intent, "Compartir hoja de personaje PDF"),
+                        )
+                    }
+                    pcSheetExportMessage = if (shareResult.isSuccess) {
+                        "PDF preparado para compartir." +
+                            combinedNotice?.let { " " + it }.orEmpty()
+                    } else {
+                        shareResult.exceptionOrNull()?.message ?: "No se pudo abrir el selector para compartir."
+                    }
+                    pcSheetExportBusy = false
+                }
+            }
+        }
+    }
+
+    fun requestPcSheetExport(
+        action: PcSheetAndroidExportActionV4,
+        options: AndroidPcSheetExportOptions,
+    ) {
+        if (pcSheetExportBusy) return
+        if (hasUnsavedChanges) {
+            pendingPcSheetAction = action
+            pendingPcSheetOptions = options
+        } else {
+            startPcSheetExport(action, options)
+        }
+    }
 
     fun requestBack() {
         if (hasUnsavedChanges) {
@@ -889,6 +1113,15 @@ internal fun CharacterEditorScreenV4(
                     .ifBlank { "personaje" }
                 backupExportLauncher.launch("${safeBase}_respaldo_dnd-custom-aid.json")
             },
+            pcSheetExportBusy = pcSheetExportBusy,
+            pcSheetHasUnsavedChanges = hasUnsavedChanges,
+            pcSheetExportMessage = pcSheetExportMessage,
+            onSavePcSheetPdf = { options ->
+                requestPcSheetExport(PcSheetAndroidExportActionV4.SAVE, options)
+            },
+            onSharePcSheetPdf = { options ->
+                requestPcSheetExport(PcSheetAndroidExportActionV4.SHARE, options)
+            },
             onOpenApplicationSettings = onOpenApplicationSettings,
         )
     } else {
@@ -1187,6 +1420,48 @@ internal fun CharacterEditorScreenV4(
                 }
             }
         }
+    }
+
+    if (pendingPcSheetAction != null && pendingPcSheetOptions != null) {
+        val missingRequiredNumbers = draft.missingRequiredNumberLabels()
+        AlertDialog(
+            onDismissRequest = {
+                pendingPcSheetAction = null
+                pendingPcSheetOptions = null
+            },
+            title = { Text("Exportar cambios sin guardar") },
+            text = {
+                Text(
+                    buildString {
+                        append("El PDF usará los cambios que ves ahora, pero esos cambios no se guardarán en el personaje.")
+                        if (missingRequiredNumbers.isNotEmpty()) {
+                            append(" Los campos numéricos requeridos vacíos se proyectarán como 0 solo para esta exportación.")
+                        }
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val action = pendingPcSheetAction
+                        val options = pendingPcSheetOptions
+                        pendingPcSheetAction = null
+                        pendingPcSheetOptions = null
+                        if (action != null && options != null) {
+                            startPcSheetExport(action, options)
+                        }
+                    },
+                ) { Text("Exportar sin guardar") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        pendingPcSheetAction = null
+                        pendingPcSheetOptions = null
+                    },
+                ) { Text("Cancelar") }
+            },
+        )
     }
 
     backupExportMessage?.let { message ->
