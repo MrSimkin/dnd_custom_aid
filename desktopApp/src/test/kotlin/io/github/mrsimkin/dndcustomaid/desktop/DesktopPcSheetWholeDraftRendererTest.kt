@@ -1849,7 +1849,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             val extracted = PDFTextStripper().getText(document)
             assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+ordinario").containsMatchIn(extracted))
             assertTrue(extracted.contains("Consumible"))
-            assertTrue(extracted.contains("Uso rápido 2"))
+            assertTrue(Regex("Uso\\s+rápido\\s+2").containsMatchIn(extracted))
             assertTrue(extracted.contains("Almacenado"))
             assertTrue(extracted.contains("Sintonizado"))
             assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+especial").containsMatchIn(extracted))
