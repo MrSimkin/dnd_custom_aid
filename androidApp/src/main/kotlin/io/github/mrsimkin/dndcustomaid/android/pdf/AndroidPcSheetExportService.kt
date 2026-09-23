@@ -3,13 +3,33 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.FileProvider
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import java.io.File
 import java.net.URI
+
+internal data class AndroidPcSheetExportOptions(
+    val visualFamily: PcSheetVisualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+    val stateSelection: PcSheetExportStateSelection = PcSheetExportStateSelection.PERMANENT,
+    val customStatisticsPresentation: PcSheetCustomStatisticsPresentation =
+        PcSheetCustomStatisticsPresentation.EXTENDED_PAGE,
+    val portraitFitMode: PcSheetPortraitFitMode = PcSheetPortraitFitMode.CROP_TO_FILL,
+    val includeSpellDescriptions: Boolean = false,
+) {
+    fun request(): PcSheetPdfExportRequest = PcSheetPdfExportRequest(
+        visualFamily = visualFamily,
+        stateSelection = stateSelection,
+        customStatisticsPresentation = customStatisticsPresentation,
+        portraitFitMode = portraitFitMode,
+        includeSpellDescriptions = includeSpellDescriptions,
+    )
+}
 
 internal data class AndroidPcSheetGeneratedPdf(
     val plan: PcSheetPdfRenderPlan,
