@@ -43,6 +43,8 @@ jobs:
         run: python3 scripts/check_player_dice_t2.py
       - name: Guard Android PC sheet renderer sync
         run: python3 scripts/generate_android_pc_sheet_renderer.py --check
+      - name: Guard Android PC sheet PDF delivery
+        run: python3 scripts/check_android_pc_sheet_pdf_delivery.py
       - name: Prepare stable CI debug keystore
         run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
       - name: Build and test Kotlin surfaces
