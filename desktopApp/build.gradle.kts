@@ -32,9 +32,11 @@ compose.desktop {
 
 
 tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    val pcSheetProofDir = layout.buildDirectory.dir("pc-sheet-proofs")
+    outputs.dir(pcSheetProofDir)
     systemProperty(
         "pcSheetProofDir",
-        layout.buildDirectory.dir("pc-sheet-proofs").get().asFile.absolutePath,
+        pcSheetProofDir.get().asFile.absolutePath,
     )
     testLogging {
         events("failed")
