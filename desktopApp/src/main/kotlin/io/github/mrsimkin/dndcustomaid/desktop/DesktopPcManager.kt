@@ -35,6 +35,13 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMember
@@ -51,10 +58,16 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import io.github.mrsimkin.dndcustomaid.shared.spine.IntegratedSpineRepository
 import io.github.mrsimkin.dndcustomaid.shared.spine.PcAuthority
 import io.github.mrsimkin.dndcustomaid.shared.spine.Revision
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import javax.swing.JFileChooser
+import javax.swing.JOptionPane
+import javax.swing.filechooser.FileNameExtensionFilter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
 internal data class DesktopPcSyncAudit(
@@ -75,6 +88,32 @@ internal data class DesktopPcDetails(
     val controller: AccountIdentity?,
     val sync: DesktopPcSyncAudit,
 )
+
+internal data class DesktopPcSheetExportOptions(
+    val visualFamily: PcSheetVisualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+    val stateSelection: PcSheetExportStateSelection = PcSheetExportStateSelection.PERMANENT,
+    val customStatisticsPresentation: PcSheetCustomStatisticsPresentation =
+        PcSheetCustomStatisticsPresentation.EXTENDED_PAGE,
+    val portraitFitMode: PcSheetPortraitFitMode = PcSheetPortraitFitMode.CROP_TO_FILL,
+    val includeSpellDescriptions: Boolean = false,
+) {
+    fun request(): PcSheetPdfExportRequest = PcSheetPdfExportRequest(
+        visualFamily = visualFamily,
+        stateSelection = stateSelection,
+        customStatisticsPresentation = customStatisticsPresentation,
+        portraitFitMode = portraitFitMode,
+        includeSpellDescriptions = includeSpellDescriptions,
+    )
+}
+
+internal fun desktopPcSheetExportSources(details: DesktopPcDetails): PcSheetExportSources =
+    PcSheetExportSources(
+        permanent = PcSheetExportAggregate(
+            sheet = details.character,
+            closure = details.closure,
+            successor = details.successor,
+        ),
+    )
 
 internal fun eligiblePcAuthorityMembers(
     members: List<HostedCampaignMember>,
@@ -189,6 +228,9 @@ internal fun DesktopPcManagerScreen(
     var authorityMembers by remember { mutableStateOf<List<HostedCampaignMember>>(emptyList()) }
     var selectedOwnerId by remember { mutableStateOf<Uuid?>(null) }
     var selectedControllerId by remember { mutableStateOf<Uuid?>(null) }
+    var exportOptions by remember(selectedId) { mutableStateOf(DesktopPcSheetExportOptions()) }
+    var exportBusy by remember { mutableStateOf(false) }
+    val exportService = remember { DesktopPcSheetExportService() }
     val coroutineScope = rememberCoroutineScope()
 
     if (activeCampaign == null) {
@@ -289,6 +331,77 @@ internal fun DesktopPcManagerScreen(
                     Text("PC locales en campaña: " + pcs.size)
                 }
             } else {
+                val selectedDetails = details
+
+                fun exportNoticeText(generated: DesktopPcSheetGeneratedPdf): String =
+                    generated.plan.notices
+                        .joinToString(" ") { it.message }
+                        .trim()
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { " $it" }
+                        .orEmpty()
+
+                fun savePcSheetPdf() {
+                    val target = choosePcSheetSaveTarget(
+                        exportService.suggestedFileName(
+                            selectedDetails.character.name,
+                            exportOptions.visualFamily,
+                        ),
+                    ) ?: return
+
+                    exportBusy = true
+                    statusMessage = "Generando PDF local…"
+                    coroutineScope.launch {
+                        try {
+                            val generated = withContext(Dispatchers.IO) {
+                                exportService.generate(
+                                    request = exportOptions.request(),
+                                    sources = desktopPcSheetExportSources(selectedDetails),
+                                )
+                            }
+                            val saved = withContext(Dispatchers.IO) {
+                                exportService.save(generated, target)
+                            }
+                            statusMessage = "PDF guardado en " + saved.absolutePath + "." + exportNoticeText(generated)
+                            onQaEvent("PC Manager: PDF guardado para " + selectedDetails.character.id)
+                        } catch (error: Throwable) {
+                            statusMessage = error.message ?: "No se pudo generar o guardar el PDF."
+                        } finally {
+                            exportBusy = false
+                        }
+                    }
+                }
+
+                fun sharePcSheetPdf() {
+                    exportBusy = true
+                    statusMessage = "Generando PDF local para compartir…"
+                    coroutineScope.launch {
+                        try {
+                            val generated = withContext(Dispatchers.IO) {
+                                exportService.generate(
+                                    request = exportOptions.request(),
+                                    sources = desktopPcSheetExportSources(selectedDetails),
+                                )
+                            }
+                            val shareFile = withContext(Dispatchers.IO) {
+                                exportService.createShareFile(
+                                    generated = generated,
+                                    characterName = selectedDetails.character.name,
+                                )
+                            }
+                            exportService.copyFileToClipboard(shareFile)
+                            statusMessage =
+                                "PDF copiado al portapapeles como archivo; puedes pegarlo en correo, chat o destino compatible." +
+                                    exportNoticeText(generated)
+                            onQaEvent("PC Manager: PDF preparado para compartir para " + selectedDetails.character.id)
+                        } catch (error: Throwable) {
+                            statusMessage = error.message ?: "No se pudo generar o preparar el PDF para compartir."
+                        } finally {
+                            exportBusy = false
+                        }
+                    }
+                }
+
                 LazyColumn(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -441,6 +554,17 @@ internal fun DesktopPcManagerScreen(
                         }
                     }
 
+                    item {
+                        PcSheetPdfExportPanel(
+                            details = selectedDetails,
+                            options = exportOptions,
+                            busy = exportBusy,
+                            onOptionsChange = { exportOptions = it },
+                            onSave = ::savePcSheetPdf,
+                            onShare = ::sharePcSheetPdf,
+                        )
+                    }
+
                     if (correctionMode && correctionDraft != null) {
                         item {
                             PcCorrectionEditor(
@@ -509,6 +633,165 @@ internal fun DesktopPcManagerScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PcSheetPdfExportPanel(
+    details: DesktopPcDetails,
+    options: DesktopPcSheetExportOptions,
+    busy: Boolean,
+    onOptionsChange: (DesktopPcSheetExportOptions) -> Unit,
+    onSave: () -> Unit,
+    onShare: () -> Unit,
+) {
+    PcAuditSection("Exportar hoja de PJ (PDF)") {
+        Text(
+            "Generación local/offline usando el mismo renderer aprobado. Guardar y Compartir no alteran el diseño ni el contenido del PDF.",
+            style = MaterialTheme.typography.body2,
+        )
+
+        PcSheetExportChoiceRow(
+            label = "Diseño",
+            values = PcSheetVisualFamily.entries,
+            selected = options.visualFamily,
+            render = ::pcSheetFamilyLabel,
+            onSelect = { onOptionsChange(options.copy(visualFamily = it)) },
+        )
+        PcSheetExportChoiceRow(
+            label = "Estado",
+            values = PcSheetExportStateSelection.entries,
+            selected = options.stateSelection,
+            render = ::pcSheetStateLabel,
+            onSelect = { onOptionsChange(options.copy(stateSelection = it)) },
+        )
+
+        val hasCustomStatistics =
+            details.successor.customAttributes.isNotEmpty() || details.closure.customSkills.isNotEmpty()
+        if (hasCustomStatistics) {
+            PcSheetExportChoiceRow(
+                label = "Estadísticas personalizadas",
+                values = PcSheetCustomStatisticsPresentation.entries,
+                selected = options.customStatisticsPresentation,
+                render = ::pcSheetCustomStatisticsLabel,
+                onSelect = { onOptionsChange(options.copy(customStatisticsPresentation = it)) },
+            )
+        }
+
+        if (!details.closure.portraitRef.isNullOrBlank()) {
+            PcSheetExportChoiceRow(
+                label = "Retrato",
+                values = PcSheetPortraitFitMode.entries,
+                selected = options.portraitFitMode,
+                render = ::pcSheetPortraitFitLabel,
+                onSelect = { onOptionsChange(options.copy(portraitFitMode = it)) },
+            )
+        } else {
+            PcAuditLine("Retrato", "sin retrato asociado")
+        }
+
+        Text("Spellbook", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+        if (options.includeSpellDescriptions) {
+            Button(onClick = { onOptionsChange(options.copy(includeSpellDescriptions = false)) }) {
+                Text("Incluir descripciones: sí")
+            }
+        } else {
+            TextButton(onClick = { onOptionsChange(options.copy(includeSpellDescriptions = true)) }) {
+                Text("Incluir descripciones: no")
+            }
+        }
+
+        if (options.stateSelection == PcSheetExportStateSelection.CURRENT_SNAPSHOT) {
+            Text(
+                "Si este Desktop no dispone de un snapshot actual separado, el planner exportará el estado permanente y lo informará.",
+                style = MaterialTheme.typography.caption,
+            )
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(enabled = !busy, onClick = onSave) {
+                Text(if (busy) "Generando…" else "Guardar PDF…")
+            }
+            Button(enabled = !busy, onClick = onShare) {
+                Text(if (busy) "Generando…" else "Compartir PDF")
+            }
+        }
+        Text(
+            "Compartir prepara un PDF temporal y lo coloca en el portapapeles del sistema como archivo; pégalo en un destino compatible.",
+            style = MaterialTheme.typography.caption,
+        )
+    }
+}
+
+@Composable
+private fun <T> PcSheetExportChoiceRow(
+    label: String,
+    values: List<T>,
+    selected: T,
+    render: (T) -> String,
+    onSelect: (T) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            values.forEach { value ->
+                if (value == selected) {
+                    Button(onClick = { onSelect(value) }) { Text(render(value)) }
+                } else {
+                    TextButton(onClick = { onSelect(value) }) { Text(render(value)) }
+                }
+            }
+        }
+    }
+}
+
+private fun pcSheetFamilyLabel(family: PcSheetVisualFamily): String = when (family) {
+    PcSheetVisualFamily.CLASSIC_DND_STYLE -> "Fantasy Sheet"
+    PcSheetVisualFamily.CUSTOM_V1 -> "Custom v1"
+    PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> "Custom v2 · Atributo"
+    PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> "Custom v2 · Habilidad"
+}
+
+private fun pcSheetStateLabel(state: PcSheetExportStateSelection): String = when (state) {
+    PcSheetExportStateSelection.PERMANENT -> "Permanente"
+    PcSheetExportStateSelection.CURRENT_SNAPSHOT -> "Snapshot actual"
+}
+
+private fun pcSheetCustomStatisticsLabel(mode: PcSheetCustomStatisticsPresentation): String = when (mode) {
+    PcSheetCustomStatisticsPresentation.EXTENDED_PAGE -> "Extended"
+    PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET -> "Hoja modificada"
+    PcSheetCustomStatisticsPresentation.MODIFIED_SHEET_AND_COMPLETE_EXTENDED_PAGE -> "Modificada + Extended"
+}
+
+private fun pcSheetPortraitFitLabel(mode: PcSheetPortraitFitMode): String = when (mode) {
+    PcSheetPortraitFitMode.CROP_TO_FILL -> "Recortar para llenar"
+    PcSheetPortraitFitMode.FIT_ENTIRE_IMAGE -> "Imagen completa"
+}
+
+private fun choosePcSheetSaveTarget(suggestedName: String): File? {
+    val chooser = JFileChooser().apply {
+        dialogTitle = "Guardar hoja de PJ como PDF"
+        selectedFile = File(suggestedName)
+        fileFilter = FileNameExtensionFilter("Documento PDF (*.pdf)", "pdf")
+    }
+    if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) return null
+
+    val selected = chooser.selectedFile ?: return null
+    val target = if (selected.extension.equals("pdf", ignoreCase = true)) {
+        selected
+    } else {
+        File(selected.parentFile, selected.name + ".pdf")
+    }
+    if (target.exists()) {
+        val answer = JOptionPane.showConfirmDialog(
+            null,
+            "El archivo ya existe. ¿Deseas reemplazarlo?",
+            "Reemplazar PDF",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE,
+        )
+        if (answer != JOptionPane.YES_OPTION) return null
+    }
+    return target
 }
 
 @Composable

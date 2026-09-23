@@ -100,72 +100,46 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 Active branch:
 
-`wave7/pc-sheet-pdf-renderer-template-proof`
+`wave7/pc-sheet-pdf-desktop-save-share`
 
 Draft PR:
 
-**#85 — do not merge**
+**#86 - Desktop PC Sheet Save/Share integration**
 
-Current state:
+Integrated/frozen predecessor:
 
-- PDF recovery process security is now governed by `docs/PC_SHEET_PDF_ITERATION_LEDGER.md` and `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-- owner-facing family name is **Fantasy Sheet** for legacy internal enum `CLASSIC_DND_STYLE`; historical “Classic” filenames remain provenance only;
-- every proof promotion requires run-log reading, ordered layer verification, terminology verification, dynamic X/Y audit and Worker visual inspection;
+- PR #85 merged into `main` as `49dfc78f132c9db9763513c591e877a1749285d5`;
+- final visual renderer implementation `f7e4417c05a2981415ef3648ead740e20469fe33` is OWNER APPROVED / FROZEN;
+- final proof artifact `10756937024`;
+- Custom-v2 Equipment / Equipo Especial continuation retains the explicitly accepted owner deviation: approved as rendered, not a literal copy of the normal-page module.
 
-- Strategy 1 / Hybrid is proven for the owner-authored Custom templates;
-- Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN;
-- Custom v1 Run-7 base sheet is OWNER APPROVED / FROZEN;
-- Custom v2 per-Attribute Run-4 base sheet is OWNER APPROVED / FROZEN;
-- Custom v2 per-Ability corrected Run-2 base sheet is OWNER APPROVED / FROZEN;
-- Custom v1 Extended Run 1 is OWNER REJECTED / historical evidence only;
-- Custom v1 Extended Run 2 is NOT APPROVED after owner review; it is close but has page-6 white-cut artifacts, block-selection issues and incorrect Ability/skill typography;
-- Custom v1 Extended Run 3 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
-- Custom v1 Extended Run 4 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
-- Custom v1 Extended Run 5 was owner-reviewed and is NOT APPROVED / SUPERSEDED;
-- Custom v1 Extended Run 6 is OWNER APPROVED / FROZEN at `69b308f3d5d493d06bd0107ac66c7524935aa9fa`;
-- Run-6 Scaffold `35529317947` / #2885 is SUCCESS; proof artifact `10609869599`;
-- the complete Custom-v1 visual family (base + all six Extended roles) is frozen and its integrated production audit is PASS at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`;
-- Custom-v2 Extended Run 7 is owner-approved/frozen and its integrated production audit is PASS at `0295f30ca77214284902b0e13a563dcdaf58b501`;
-- canonical Custom Extended layered methodology is `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-- Custom v1 Extended Run-2 Scaffold `35484718817` / #2817 is SUCCESS;
-- Classic corrected Run 2 complete family is owner-approved/frozen and its integrated production audit is PASS at `30ac4d073e9fab47a498f4e6dc3d9266c633110e` (Scaffold #3151 / `35677870304` SUCCESS; artifact `10674062891`); spent-slot controls remain blank/writable per the active renderer protocol;
-- the application-owned optional Spellbook production gate is PASS at `ac0cbb2b26202bf934ac4926b56899014390613e` (Scaffold #3161 / `35679451757` SUCCESS; artifact `10674370966`); all preceding family pages remain unchanged when the appendix is appended;
-- local portrait-byte handoff plus Crop/Fit production is PASS at `93490d2247da5ea46ef50563fd17da78840e659e` (Scaffold #3177 / `35683430947` SUCCESS; artifact `10676160917`); Classic, Custom v1 and both Custom-v2 first-page variants are covered, v2 decorative frames are preserved, and the taller per-Ability portrait geometry has an explicit regression guard;
-- App Modified + continuation candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` / artifact `10713481125` is OWNER REJECTED / DO NOT USE because it regressed previously approved Classic/v1/v2 visual mechanics;
-- recovery implementation `6ea493c9ee53cf727464a985bc6ef0b558a73e99` / artifact `10720833172` is OWNER REJECTED; replacement VR-3 implementation `a5cb2311a0beb8454291d8b9985cb1b13f37a3dd` passed push #3261 + PR #3262, exact artifact `10723153227`, 15/15 measured X/Y gates and Worker visual preflight; OWNER VISUAL QA PENDING;
-- WIP repair `4e7ea99997de46ef8a9a8d1066b08fa362854cdd` failed Scaffold #3245/#3246 because stricter Classic physical-rule coupling exposed base excerpt overflow; do not undo rule coupling. Route full text to continuation. The WIP rasterized v2-logo change is non-authoritative and must be reverted to layered STRUCTURE/CLEANUP repair;
-- Classic Run 1 is OWNER REJECTED / historical evidence only;
-- Classic corrected Run 2 complete nine-page family is OWNER APPROVED / FROZEN;
-- Classic baseline commit is `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`;
-- Scaffold `35480871986` / #2793 is SUCCESS;
-- stable pointer: `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-- PR #85 remains DRAFT / DO NOT MERGE.
+Current implementation:
+
+- Save/Share implementation commit `fafd0f136e5b5dd283b17865e3edc494261f4126`;
+- push Scaffold #3294 / `35900383811` - SUCCESS;
+- PR Scaffold #3295 / `35900422551` - SUCCESS;
+- Desktop PC Manager exposes the D-0074 export selections;
+- Save uses a local file chooser and writes the exact renderer bytes;
+- Share stages the exact same bytes as a temporary PDF and places the file on the desktop clipboard;
+- renderer parity is guarded by direct-vs-service plan/text/page/pixel comparison;
+- no PDF renderer/layout file changed in this package.
 
 Next continuation sequence:
 
-1. follow `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md` and continue the owner-review-2 repair; do not resend artifact `10720833172`;
-2. preserve layered Custom construction and revert the WIP raster-logo shortcut;
-3. resolve Classic base overflow by bounded excerpts + complete Extended routing, then generate a small proof set and visually preflight it;
-4. only after owner approval begin Desktop Save/Share/export invocation; do not merge PR #85 before the remaining gates.
+1. read `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
+2. keep the owner-approved renderer frozen;
+3. merge PR #86 after its documentation head is green;
+4. verify post-merge main CI;
+5. then determine the next D-0074 Android Player / authorized DM Android-tablet export exposure package from current architecture;
+6. do not reopen the completed visual-design gate unless a real parity/rendering regression is demonstrated.
 
 Relevant durable records:
 
-- `docs/checkpoints/2026-09-21_PC_SHEET_PDF_PORTRAIT_HANDOFF_PRODUCTION_PASS.md`;
-- `docs/checkpoints/2026-09-21_PC_SHEET_PDF_SPELLBOOK_PRODUCTION_PASS.md`;
-- `docs/checkpoints/2026-09-21_PC_SHEET_PDF_CLASSIC_INTEGRATED_PRODUCTION_AUDIT_PASS.md`;
-- `docs/PC_SHEET_PDF_STRATEGY_RUN_PROTOCOL.md`;
-- `docs/PC_SHEET_CUSTOM_V1_APPROVED_BASELINE.md`;
-- `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_APPROVED.md`;
-- `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`;
-- `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN6_OWNER_REVIEW.md`;
-- `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN5_OWNER_REVIEW.md`;
-- `docs/checkpoints/2026-09-20_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN4_OWNER_REVIEW.md`;
-- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_OWNER_REVIEW.md`;
-- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN3_WIP_SAFETY.md`;
-- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CUSTOM_V1_EXTENDED_RUN2_OWNER_REVIEW.md`;
-- `docs/PC_SHEET_CUSTOM_V2_APPROVED_BASELINES.md`;
-- `docs/PC_SHEET_CLASSIC_APPROVED_BASELINE.md`;
-- `docs/checkpoints/2026-09-19_PC_SHEET_PDF_CLASSIC_RUN2_OWNER_APPROVED.md`;
+- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
+- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
+- `docs/checkpoints/2026-09-23_PC_SHEET_PDF_OWNER_MARKED_REPAIR_FINAL_VISUAL_GATE.md`;
+- `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+- `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 - `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`.
 
 ## Historical/stale open PRs
