@@ -308,12 +308,17 @@ internal class DesktopClassicRenderer {
         }
 
         val orderedProficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
-        val languageOverflow = orderedProficiencies
+        val languages = orderedProficiencies
             .filter { it.type == CharacterProficiencyType.LANGUAGE }
-            .drop(BASE_LANGUAGE_CAPACITY)
+        val languageOverflow = languages.drop(BASE_LANGUAGE_CAPACITY)
+        val baseLanguageReferences = languages.take(BASE_LANGUAGE_CAPACITY).filter { proficiency ->
+            proficiency.name.length > CLASSIC_BASE_LANGUAGE_NAME_CHARS ||
+                !proficiency.notes.isNullOrBlank()
+        }
         val otherProficiencies = orderedProficiencies
             .filter { it.type != CharacterProficiencyType.LANGUAGE }
-        val proficiencyEntries = (languageOverflow + otherProficiencies)
+        val proficiencyEntries = (languageOverflow + baseLanguageReferences + otherProficiencies)
+            .distinctBy { it.id }
             .flatMap(::proficiencyFeatureSlices)
 
         val rightEntries = rightTraitEntries + proficiencyEntries + classicReferenceFeatures(plan)
@@ -409,6 +414,24 @@ internal class DesktopClassicRenderer {
         if (classSummary.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Clases", classSummary)
         if (speciesName.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Raza", speciesName)
         if (subclassSummary.length > CLASSIC_IDENTITY_VALUE_CHARS) add("Subclases", subclassSummary)
+
+        plan.snapshot.customStatistics.attributes.forEach { projection ->
+            val attribute = projection.attribute
+            val heading = "${attribute.name} (${attribute.abbreviation})"
+            if (heading.length > CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS) {
+                add("Atributo personalizado", heading)
+            }
+        }
+        plan.snapshot.customStatistics.skills.forEach { projection ->
+            if (projection.skill.name.length > CLASSIC_CUSTOM_SKILL_NAME_CHARS) {
+                add("Habilidad personalizada", projection.skill.name)
+            }
+        }
+        sheet.spells
+            .filter { it.name.length > CLASSIC_SPELL_NAME_CHARS }
+            .forEach { spell ->
+                add("Conjuro", "Nivel ${spell.level} · ${spell.name}")
+            }
 
         val narrative = listOf(background.name, background.summary, background.story)
             .filter { it.isNotBlank() }
@@ -624,7 +647,10 @@ internal class DesktopClassicRenderer {
         }
 
         sheet.companions.sortedBy { it.sortOrder }.forEachIndexed { index, companion ->
+            val displayedCompanion = companion.name +
+                companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty()
             val hasReferenceDetail =
+                displayedCompanion.length > CLASSIC_BASE_ALLY_VALUE_CHARS ||
                 !companion.source.isNullOrBlank() ||
                     companion.armorClass != null ||
                     companion.maxHp != null ||
@@ -722,6 +748,9 @@ internal class DesktopClassicRenderer {
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
     ): List<ClassicFeature> {
         val body = buildList {
+            if (trait.name.length > CLASSIC_FEATURE_NAME_CHARS) {
+                add("Nombre completo: " + trait.name)
+            }
             trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
             trait.source.trim().takeIf { it.isNotEmpty() }?.let { add("Fuente: $it") }
             trait.maxUses?.let { max ->
@@ -739,7 +768,10 @@ internal class DesktopClassicRenderer {
             .ifEmpty { listOf("") }
         return chunks.mapIndexed { index, chunk ->
             ClassicFeature(
-                name = if (index == 0) trait.name else trait.name + " (cont.)",
+                name = classicSingleLineExcerpt(
+                    if (index == 0) trait.name else trait.name + " (cont.)",
+                    CLASSIC_FEATURE_NAME_CHARS,
+                ),
                 source = traitTypeLabel(trait.type),
                 description = chunk,
                 type = trait.type,
@@ -750,17 +782,23 @@ internal class DesktopClassicRenderer {
     private fun proficiencyFeatureSlices(
         proficiency: io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency,
     ): List<ClassicFeature> {
-        val body = listOf(
-            proficiency.source.orEmpty().trim(),
-            proficiency.notes.orEmpty().trim(),
-        ).filter { it.isNotEmpty() }.joinToString(" · ")
+        val body = buildList {
+            if (proficiency.name.length > CLASSIC_FEATURE_NAME_CHARS) {
+                add("Nombre completo: " + proficiency.name)
+            }
+            proficiency.source.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+            proficiency.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
         val chunks = wrapForChars(body, CLASSIC_TRAIT_BODY_CHARS)
             .chunked(CLASSIC_TRAIT_BODY_LINES)
             .map { it.joinToString("\n") }
             .ifEmpty { listOf("") }
         return chunks.mapIndexed { index, chunk ->
             ClassicFeature(
-                name = if (index == 0) proficiency.name else proficiency.name + " (cont.)",
+                name = classicSingleLineExcerpt(
+                    if (index == 0) proficiency.name else proficiency.name + " (cont.)",
+                    CLASSIC_FEATURE_NAME_CHARS,
+                ),
                 source = proficiencyTypeLabel(proficiency.type),
                 description = chunk,
                 type = CharacterTraitType.OTHER,
@@ -916,16 +954,41 @@ internal class DesktopClassicRenderer {
         source: String,
         notes: String,
     ): List<ClassicResourceRow> {
-        val noteChunks = wrapForChars(notes, CLASSIC_RESOURCE_NOTE_CHARS)
+        val cleanName = name.trim()
+        val cleanRecovery = recovery.trim()
+        val cleanSource = source.trim()
+        val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_RESOURCE_NAME_CHARS)
+        val projectedRecovery = classicBaseExcerpt(
+            cleanRecovery,
+            CLASSIC_RESOURCE_RECOVERY_CHARS,
+            CLASSIC_RESOURCE_NOTE_LINES,
+        )
+        val projectedSource = classicSingleLineExcerpt(cleanSource, CLASSIC_RESOURCE_SOURCE_CHARS)
+        val detailText = buildList {
+            notes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            if (cleanName.length > CLASSIC_RESOURCE_NAME_CHARS) add("Nombre completo: $cleanName")
+            if (
+                wrapForChars(cleanRecovery, CLASSIC_RESOURCE_RECOVERY_CHARS).size >
+                CLASSIC_RESOURCE_NOTE_LINES
+            ) {
+                add("Recuperación completa: $cleanRecovery")
+            }
+            if (cleanSource.length > CLASSIC_RESOURCE_SOURCE_CHARS) add("Fuente completa: $cleanSource")
+        }.joinToString(" · ")
+        val noteChunks = wrapForChars(detailText, CLASSIC_RESOURCE_NOTE_CHARS)
             .chunked(CLASSIC_RESOURCE_NOTE_LINES)
             .map { it.joinToString("\n") }
             .ifEmpty { listOf("") }
         return noteChunks.mapIndexed { index, note ->
             ClassicResourceRow(
-                name = if (index == 0) name else "$name (cont.)",
+                name = if (index == 0) {
+                    projectedName
+                } else {
+                    classicSingleLineExcerpt("$projectedName (cont.)", CLASSIC_RESOURCE_NAME_CHARS)
+                },
                 value = value.takeIf { index == 0 }.orEmpty(),
-                recovery = recovery.takeIf { index == 0 }.orEmpty(),
-                source = source.takeIf { index == 0 }.orEmpty(),
+                recovery = projectedRecovery.takeIf { index == 0 }.orEmpty(),
+                source = projectedSource.takeIf { index == 0 }.orEmpty(),
                 notes = note,
             )
         }
@@ -935,7 +998,13 @@ internal class DesktopClassicRenderer {
         plan.snapshot.aggregate.sheet.classOptions
             .sortedBy { it.sortOrder }
             .flatMap { option ->
+                val cleanName = option.name.trim()
+                val cleanSource = option.source.orEmpty().trim()
+                val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_OPTION_NAME_CHARS)
+                val projectedSource = classicSingleLineExcerpt(cleanSource, CLASSIC_OPTION_SOURCE_CHARS)
                 val description = buildList {
+                    if (cleanName.length > CLASSIC_OPTION_NAME_CHARS) add("Nombre completo: $cleanName")
+                    if (cleanSource.length > CLASSIC_OPTION_SOURCE_CHARS) add("Fuente completa: $cleanSource")
                     add("Tipo: " + optionKindLabel(option.kind))
                     option.effectSummary.trim().takeIf { it.isNotEmpty() }?.let(::add)
                     option.costText?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Coste: $it") }
@@ -948,8 +1017,15 @@ internal class DesktopClassicRenderer {
                     .ifEmpty { listOf("") }
                 chunks.mapIndexed { index, chunk ->
                     ClassicOptionRow(
-                        name = if (index == 0) option.name else option.name + " (cont.)",
-                        source = option.source.orEmpty().trim().takeIf { index == 0 }.orEmpty(),
+                        name = if (index == 0) {
+                            projectedName
+                        } else {
+                            classicSingleLineExcerpt(
+                                "$projectedName (cont.)",
+                                CLASSIC_OPTION_NAME_CHARS,
+                            )
+                        },
+                        source = projectedSource.takeIf { index == 0 }.orEmpty(),
                         description = chunk,
                     )
                 }
@@ -1017,19 +1093,8 @@ internal class DesktopClassicRenderer {
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
-        val specialRows = specialItems.map { item ->
-            ClassicSpecialItem(
-                name = item.name,
-                attuned = item.attuned,
-                note = buildList {
-                    if (item.quantity != 1) add("Cant. ${item.quantity}")
-                    item.weightLb?.let { add("Peso " + formatWeight(it)) }
-                    inventoryState(item, usageByItem[item.id]).takeIf { it.isNotBlank() }?.let(::add)
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                }.joinToString(" · "),
-            )
+        val specialRows = specialItems.flatMap { item ->
+            classicSpecialItemRows(item, usageByItem[item.id])
         }
 
         val noteEntries = buildList {
@@ -1060,12 +1125,14 @@ internal class DesktopClassicRenderer {
                 .forEach { currency ->
                     add("${currency.name}: ${currency.amount}")
                 }
-            aggregate.successor.preferences.valuablesText
+            val valuables = aggregate.successor.preferences.valuablesText
                 .split(';')
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
-                .drop(CLASSIC_BASE_VALUABLE_CAPACITY)
-                .forEach(::add)
+            valuables.take(CLASSIC_BASE_VALUABLE_CAPACITY)
+                .filter { it.length > CLASSIC_BASE_ALLY_VALUE_CHARS }
+                .forEach { add("Tesoro / valor: $it") }
+            valuables.drop(CLASSIC_BASE_VALUABLE_CAPACITY).forEach(::add)
         }.flatMap { note ->
             wrapForChars(note, CLASSIC_INVENTORY_NOTE_CHARS)
                 .chunked(CLASSIC_INVENTORY_NOTE_LINES)
@@ -1119,6 +1186,43 @@ internal class DesktopClassicRenderer {
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }
+        }
+    }
+
+    private fun classicSpecialItemRows(
+        item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
+        usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+    ): List<ClassicSpecialItem> {
+        val cleanName = item.name.trim()
+        val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_SPECIAL_ITEM_NAME_CHARS)
+        val detail = buildList {
+            if (cleanName.length > CLASSIC_SPECIAL_ITEM_NAME_CHARS) {
+                add("Nombre completo: $cleanName")
+            }
+            if (item.quantity != 1) add("Cant. ${item.quantity}")
+            item.weightLb?.let { add("Peso " + formatWeight(it)) }
+            inventoryState(item, usage).takeIf { it.isNotBlank() }?.let(::add)
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
+        val chunks = wrapForChars(detail, CLASSIC_SPECIAL_ITEM_NOTE_CHARS)
+            .chunked(CLASSIC_SPECIAL_ITEM_NOTE_LINES)
+            .map { it.joinToString("\n") }
+            .ifEmpty { listOf("") }
+        return chunks.mapIndexed { index, chunk ->
+            ClassicSpecialItem(
+                name = if (index == 0) {
+                    projectedName
+                } else {
+                    classicSingleLineExcerpt(
+                        "$projectedName (cont.)",
+                        CLASSIC_SPECIAL_ITEM_NAME_CHARS,
+                    )
+                },
+                attuned = item.attuned && index == 0,
+                note = chunk,
+            )
         }
     }
 
@@ -1665,20 +1769,27 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             titledFrame(s, p, 264f, 580f, 156f, 138f, "IDIOMAS")
             ruledTextArea(
                 s, p, 276f, 612f, 132f, 92f,
-                languages.take(BASE_LANGUAGE_CAPACITY).map { it.name },
+                languages.take(BASE_LANGUAGE_CAPACITY).map {
+                    classicSingleLineExcerpt(it.name, CLASSIC_BASE_LANGUAGE_NAME_CHARS)
+                },
                 8.8f,
             )
 
             val alliesAndTreasure = buildList {
                 sheet.companions.sortedBy { it.sortOrder }.take(BASE_COMPANION_CAPACITY).forEach { companion ->
                     add(
-                        companion.name +
-                            companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
+                        classicSingleLineExcerpt(
+                            companion.name +
+                                companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
+                            CLASSIC_BASE_ALLY_VALUE_CHARS,
+                        ),
                     )
                 }
                 aggregate.successor.preferences.valuablesText
                     .split(';').map { it.trim() }.filter { it.isNotEmpty() }
-                    .take(1).forEach(::add)
+                    .take(CLASSIC_BASE_VALUABLE_CAPACITY)
+                    .map { classicSingleLineExcerpt(it, CLASSIC_BASE_ALLY_VALUE_CHARS) }
+                    .forEach(::add)
             }
             titledFrame(s, p, 432f, 580f, 156f, 138f, "ALIADOS Y TESORO")
             ruledTextArea(s, p, 444f, 612f, 132f, 92f, alliesAndTreasure, 8.1f)
@@ -1871,7 +1982,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
         )
         text(s, p, 36f, 66f, 195f, 12f, "APTITUD MÁGICA", PdfTypographyRole.OPTIONAL_DECORATIVE, 6.8f, 6f)
-        text(s, p, 239f, 27f, 112f, 15f, ability, PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 7.5f,
+        text(
+            s, p, 239f, 27f, 112f, 15f,
+            classicSingleLineExcerpt(ability, CLASSIC_SPELLCASTING_ABILITY_CHARS),
+            PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 7.5f,
             align = PdfHorizontalAlignment.CENTER)
         miniRunicStat(s, p, 239f, 45f, 112f, 38f, "MODIFICADOR", modifier)
         miniRunicStat(s, p, 363f, 30f, 101f, 52f, "CD DE SALVACIÓN", saveDc)
@@ -1932,7 +2046,8 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             )
             text(
                 s, p, x + 21f, rowTop, width - 31f, 18f,
-                spell?.name.orEmpty(), PdfTypographyRole.SPELL_NAME, 8.1f, 7f,
+                classicSingleLineExcerpt(spell?.name.orEmpty(), CLASSIC_SPELL_NAME_CHARS),
+                PdfTypographyRole.SPELL_NAME, 8.1f, 7f,
             )
             hairline(s, x + 21f, rowTop + 20f, x + width - 10f, rowTop + 20f)
         }
@@ -2230,7 +2345,11 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, x, top, width, height, 0.9f)
         text(
             s, p, x + 8f, top + 7f, width - 16f, 18f,
-            "$title ($abbreviation)", PdfTypographyRole.OPTIONAL_DECORATIVE,
+            classicSingleLineExcerpt(
+                "$title ($abbreviation)",
+                CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS,
+            ),
+            PdfTypographyRole.OPTIONAL_DECORATIVE,
             10f, 8.5f, align = PdfHorizontalAlignment.CENTER,
         )
         circleOutline(s, x + 38f, top + 58f, 28f)
@@ -2248,7 +2367,8 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         )
         text(
             s, p, x + 10f, top + 101f, width - 20f, 15f,
-            "Habilidades gobernadas por $abbreviation",
+            "Habilidades gobernadas por " +
+                classicSingleLineExcerpt(abbreviation, CLASSIC_CUSTOM_ABBREVIATION_CHARS),
             PdfTypographyRole.OPTIONAL_DECORATIVE, 6.7f, 5.8f,
             align = PdfHorizontalAlignment.CENTER,
         )
@@ -2257,7 +2377,8 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
             text(
                 s, p, x + 24f, rowTop, width - 56f, 18f,
-                row.name, PdfTypographyRole.BODY, 7.8f, 6.6f,
+                classicSingleLineExcerpt(row.name, CLASSIC_CUSTOM_SKILL_NAME_CHARS),
+                PdfTypographyRole.BODY, 7.8f, 6.6f,
             )
             text(
                 s, p, x + width - 30f, rowTop, 22f, 18f,
@@ -2300,7 +2421,8 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
             text(
                 s, p, x + 25f, rowTop, width - 58f, 19f,
-                row.name, PdfTypographyRole.BODY, 7.8f, 6.6f,
+                classicSingleLineExcerpt(row.name, CLASSIC_CUSTOM_SKILL_NAME_CHARS),
+                PdfTypographyRole.BODY, 7.8f, 6.6f,
             )
             text(
                 s, p, x + width - 29f, rowTop, 20f, 19f,
@@ -2405,12 +2527,14 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             val headerTop = top + rowIndex * lineGap
             text(
                 s, p, x + 1f, headerTop + 0.5f, width * 0.68f - 1f, lineGap - 1.5f,
-                entry.name, PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
+                classicSingleLineExcerpt(entry.name, CLASSIC_FEATURE_NAME_CHARS),
+                PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
                 vertical = PdfVerticalAlignment.BOTTOM,
             )
             text(
                 s, p, x + width * 0.68f, headerTop + 0.5f, width * 0.32f - 1f, lineGap - 1.5f,
-                entry.source, PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 6f,
+                classicSingleLineExcerpt(entry.source, CLASSIC_FEATURE_SOURCE_CHARS),
+                PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 6f,
                 align = PdfHorizontalAlignment.RIGHT,
                 vertical = PdfVerticalAlignment.BOTTOM,
             )
@@ -2533,10 +2657,17 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             s, p, x + 7f, top + 8f, 8f,
             if (attuned) PdfMarkerKind.DIAMOND_FILLED else PdfMarkerKind.DIAMOND_OUTLINE,
         )
-        text(s, p, x + 18f, top, width - 18f, 18f, name, PdfTypographyRole.SPELL_NAME, 8.6f, 7.4f)
+        text(
+            s, p, x + 18f, top, width - 18f, 18f,
+            classicSingleLineExcerpt(name, CLASSIC_SPECIAL_ITEM_NAME_CHARS),
+            PdfTypographyRole.SPELL_NAME, 8.6f, 7.4f,
+        )
         text(
             s, p, x + 18f, top + 19f, width - 18f, 20f,
             note, PdfTypographyRole.BODY, 7.7f, 6.6f,
+            wrap = true,
+            maxLines = CLASSIC_SPECIAL_ITEM_NOTE_LINES,
+            vertical = PdfVerticalAlignment.TOP,
         )
         hairline(s, x + 18f, top + 41f, x + width, top + 41f)
     }
@@ -2551,10 +2682,15 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         source: String,
         description: String,
     ) {
-        text(s, p, x, top, 196f, 18f, name, PdfTypographyRole.SPELL_NAME, 9f, 7.8f)
+        text(
+            s, p, x, top, 196f, 18f,
+            classicSingleLineExcerpt(name, CLASSIC_OPTION_NAME_CHARS),
+            PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
+        )
         text(
             s, p, x + 202f, top, 118f, 18f,
-            source, PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.2f,
+            classicSingleLineExcerpt(source, CLASSIC_OPTION_SOURCE_CHARS),
+            PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.2f,
             align = PdfHorizontalAlignment.CENTER,
         )
         text(
@@ -2591,7 +2727,17 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         top: Float,
         row: ClassicResourceRow,
     ) {
-        val values = listOf(row.name, row.value, row.recovery, row.source, row.notes)
+        val values = listOf(
+            classicSingleLineExcerpt(row.name, CLASSIC_RESOURCE_NAME_CHARS),
+            row.value,
+            classicBaseExcerpt(
+                row.recovery,
+                CLASSIC_RESOURCE_RECOVERY_CHARS,
+                CLASSIC_RESOURCE_NOTE_LINES,
+            ),
+            classicSingleLineExcerpt(row.source, CLASSIC_RESOURCE_SOURCE_CHARS),
+            row.notes,
+        )
         val widths = listOf(162f, 68f, 104f, 72f, 134f)
         var cursor = x
         values.forEachIndexed { index, value ->
@@ -3024,6 +3170,8 @@ private fun ruledTextArea(
         const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 2
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
+        const val CLASSIC_FEATURE_NAME_CHARS = 26
+        const val CLASSIC_FEATURE_SOURCE_CHARS = 16
         const val CLASSIC_HEADER_NAME_CHARS = 20
         const val CLASSIC_IDENTITY_VALUE_CHARS = 22
         const val CLASSIC_BACKGROUND_NARRATIVE_CHARS = 50
@@ -3038,13 +3186,21 @@ private fun ruledTextArea(
         const val CLASSIC_COMBAT_PREVIEW_CHARS = 20
         const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
+        const val CLASSIC_RESOURCE_NAME_CHARS = 24
+        const val CLASSIC_RESOURCE_RECOVERY_CHARS = 18
+        const val CLASSIC_RESOURCE_SOURCE_CHARS = 12
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
         const val CLASSIC_RESOURCE_NOTE_LINES = 2
         const val CLASSIC_OPTION_ROWS_PER_PAGE = 3
+        const val CLASSIC_OPTION_NAME_CHARS = 28
+        const val CLASSIC_OPTION_SOURCE_CHARS = 18
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
         const val CLASSIC_OPTION_DETAIL_LINES = 3
         const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 12
         const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 3
+        const val CLASSIC_SPECIAL_ITEM_NAME_CHARS = 30
+        const val CLASSIC_SPECIAL_ITEM_NOTE_CHARS = 42
+        const val CLASSIC_SPECIAL_ITEM_NOTE_LINES = 2
         const val CLASSIC_INVENTORY_NOTES_PER_PAGE = 3
         const val CLASSIC_BASE_INVENTORY_NAME_CHARS = 30
         const val CLASSIC_BASE_INVENTORY_NOTE_CHARS = 24
@@ -3054,6 +3210,13 @@ private fun ruledTextArea(
         const val CLASSIC_INVENTORY_NOTE_CHARS = 50
         const val CLASSIC_INVENTORY_NOTE_LINES = 2
         const val CLASSIC_BASE_VALUABLE_CAPACITY = 1
+        const val CLASSIC_BASE_LANGUAGE_NAME_CHARS = 20
+        const val CLASSIC_BASE_ALLY_VALUE_CHARS = 20
+        const val CLASSIC_SPELL_NAME_CHARS = 24
+        const val CLASSIC_SPELLCASTING_ABILITY_CHARS = 18
+        const val CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS = 26
+        const val CLASSIC_CUSTOM_ABBREVIATION_CHARS = 8
+        const val CLASSIC_CUSTOM_SKILL_NAME_CHARS = 22
         val CLASSIC_BASE_CURRENCY_KEYS = setOf("pc", "pp", "pe", "po", "pt")
         const val CLASSIC_BASE_CANTRIP_CAPACITY = 5
         const val CLASSIC_BASE_LEVEL1_CAPACITY = 13

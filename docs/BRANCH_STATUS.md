@@ -3,12 +3,12 @@
 **Updated:** 2026-09-24 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `289eafda731c4b1c61e76a947a86ab5d948c537c` (PR #98 in-app DEV-tools launch repair)  
-**Post-merge Scaffold:** `36060380623` — SUCCESS  
+**Last verified integrated `main`:** `be1a1457eba10d2d2afaa2bb96858b3c169cffb0` (PR #99 canonical resume-route consolidation)  
+**Post-merge Scaffold:** `36063266121` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Stage 2 Aldren Save exposed a second Fantasy Sheet bounded-routing failure; generalized bounded-text routing repair is the active route before manual QA resumes
+**Current normal work:** PC Sheet PDF Export — generalized bounded-text repair candidate `0.5.0-preqa.3` is branch-CI validated at `29138e7322feae111b6207acb45da896a207d749` / Scaffold `36065636679`; integrate then resume owner Aldren Save
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -122,17 +122,17 @@ Owner runtime QA on `0.5.0-preqa.2` proves:
 
 The subsequent Aldren Fantasy Sheet / Permanente Save attempt still fails before a usable PDF is saved, now on long equipment/weapon descriptive text. Because this follows the earlier compact combat/resource overflow, the active engineering route is **generalized Fantasy Sheet bounded-text routing**, not an equipment-only patch.
 
-Next implementation branch must start from current `main` and:
+Active repair branch:
 
-1. inventory every bounded Fantasy Sheet base-field write;
-2. classify direct-safe vs preview+full-detail vs missing-destination values;
-3. centralize safe bounded preview/full-detail routing where appropriate;
-4. preserve complete semantic content and keep the safety guard active;
-5. cover the real Aldren fixture and stress cases in automated regression;
-6. preserve approved visual/pagination baselines;
-7. produce a new validated merged-main APK before owner Stage 2 Save is rerun.
+`fix/fantasy-sheet-generalized-bounded-text-routing`
 
-Do **not** proceed to Aldren Share, Ilyra, Mara, Current Snapshot, Media/Handouts or the final physical-device gate before this repair and Aldren Save pass.
+Validated implementation head `29138e7322feae111b6207acb45da896a207d749` / Scaffold `36065636679` — SUCCESS.
+
+The branch implements generalized compact-preview/full-detail routing, preserves the final overflow guard, synchronizes the generated Android renderer, advances the QA build to `0.5.0-preqa.3` / `50300`, exercises Aldren plus Mara stress content, and preserves approved pagination baselines.
+
+Next lifecycle step is PR/integration from this validated branch, then merged-main Scaffold. Only after that should owner Stage 2 Aldren Save be rerun.
+
+Do **not** proceed to Aldren Share, Ilyra, Mara, Current Snapshot, Media/Handouts or the final physical-device gate before the merged repair and owner-observed Aldren Save pass.
 
 Canonical resume authority:
 

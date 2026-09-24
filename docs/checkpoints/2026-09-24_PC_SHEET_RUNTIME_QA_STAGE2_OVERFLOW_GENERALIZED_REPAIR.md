@@ -2,9 +2,10 @@
 
 **Date:** 2026-09-24 (Chile local time)  
 **Integrated main entering this checkpoint:** `289eafda731c4b1c61e76a947a86ab5d948c537c`  
-**Current validated Android QA build:** `0.5.0-preqa.2` / build `50200`  
+**Current integrated Android QA build entering repair:** `0.5.0-preqa.2` / build `50200`  
+**Repair candidate Android QA build:** `0.5.0-preqa.3` / build `50300`  
 **Active product area:** PC Sheet PDF Export — Android runtime QA  
-**Status:** MANUAL QA BLOCKED ON GENERALIZED FANTASY-SHEET BOUNDED-TEXT ROUTING REPAIR
+**Status:** GENERALIZED REPAIR IMPLEMENTED / BRANCH CI PASS / AWAITING INTEGRATION THEN OWNER STAGE-2 RERUN
 
 ## 1. What is already proven
 
@@ -129,6 +130,55 @@ Before editing the currently failing equipment line in isolation:
 
 The implementation should prefer semantic routing plus measured rendering over magic string-specific exceptions.
 
+## 4.1 Repair implementation and branch validation
+
+Repair branch:
+
+`fix/fantasy-sheet-generalized-bounded-text-routing`
+
+Validated implementation head:
+
+`29138e7322feae111b6207acb45da896a207d749`
+
+Validated Scaffold run:
+
+`36065636679` — **SUCCESS** across backend, hosted-database and Kotlin jobs.
+
+The implementation keeps Desktop as renderer authority and regenerates/synchronizes the Android renderer. The final overflow safety guard remains enabled.
+
+The repair generalizes compact/bounded projections rather than special-casing Aldren's sword. It now explicitly bounds and routes potentially long content across the affected Fantasy surfaces, including:
+
+- special/synchronized equipment rows;
+- inventory names/state/location previews;
+- resource names/recovery/source plus detail notes;
+- class-option names/source plus detail body;
+- trait/proficiency continuation headers;
+- base languages and allies/treasure previews where needed;
+- long spell names and spellcasting labels;
+- custom-stat titles and custom-skill names.
+
+Complete semantic values are preserved in continuation/detail surfaces when compact previews are used. Silent clipping is not the policy.
+
+### Fixture evidence
+
+Aldren real-fixture regression now requires the generated PDF to preserve, among other prior combat/resource details:
+
+- `Peso 3`;
+- `Mano derecha`;
+- `1d8 cortante; versátil 1d10.`;
+- `Arma marcial.`.
+
+Mara's full stress fixture is also rendered through Fantasy Sheet and verifies long special-item, option and resource content without triggering unrouted overflow.
+
+### CI learning retained
+
+The first generalized candidate exposed two test/geometry issues before acceptance:
+
+1. promoting short base languages to reference merely because they had a source expanded an approved test from 6 to 8 pages; this was reverted so only genuinely long/detail-bearing base-language content is promoted;
+2. Mara PDF text extraction split long special-item semantics across physical continuation rows, so the regression was corrected to test semantic preservation rather than require punctuation to remain adjacent in PDF text extraction.
+
+The final branch run restores approved pagination baselines and passes all 78 Desktop tests plus the repository's Android/renderer-sync/build guards.
+
 ## 5. Acceptance boundary
 
 Repository/CI acceptance requires:
@@ -140,10 +190,10 @@ Repository/CI acceptance requires:
 - generated Android renderer remains synchronized with Desktop authority;
 - full Scaffold passes.
 
-Owner/manual continuation after a new merged APK:
+After this repair is merged and merged-main Scaffold passes, owner/manual continuation is:
 
 1. update the existing emulator app without uninstalling;
-2. verify the new build/version;
+2. verify `0.5.0-preqa.3` / build `50300`;
 3. re-open Aldren Fantasy Sheet / Permanente;
 4. repeat `Guardar PDF`;
 5. require file picker + readable populated PDF with no bounded-routing diagnostic;

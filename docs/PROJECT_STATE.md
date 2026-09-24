@@ -3,14 +3,14 @@
 **Last reconstructed:** 2026-09-24 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `289eafda731c4b1c61e76a947a86ab5d948c537c` (PR #98 in-app DEV-tools launch repair)  
-**Post-merge Scaffold:** `36060380623` — SUCCESS  
+**Last verified integrated `main`:** `be1a1457eba10d2d2afaa2bb96858b3c169cffb0` (PR #99 canonical resume-route consolidation)  
+**Post-merge Scaffold:** `36063266121` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Stage 1 DEV-tools repair is runtime-proven on `0.5.0-preqa.2`; hosted Player sync is verified/converged; Stage 2 Aldren Save exposed a second Fantasy Sheet bounded-routing failure in equipment text; generalized bounded-text routing repair is the active route
+**Current active package:** PC Sheet PDF Export — Stage 1 DEV-tools repair is runtime-proven on `0.5.0-preqa.2`; hosted Player sync is verified/converged; generalized Fantasy bounded-text repair is implemented as `0.5.0-preqa.3` with validated implementation head `29138e7322feae111b6207acb45da896a207d749` and Scaffold `36065636679` SUCCESS; integration then owner Aldren Save rerun is the active route
 
 ### Superseding PDF visual state — 2026-09-20
 
