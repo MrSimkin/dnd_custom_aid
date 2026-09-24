@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.shared.character
 
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -39,6 +42,41 @@ class PcSheetQaCharacterFixturesTest {
             assertEquals(target, imported.character.id)
             assertEquals(destination, imported.character.campaignId)
             assertNotEquals(document.character.id, imported.character.id)
+        }
+    }
+
+    @Test
+    fun allQaFixturesCanApplyAsAuthoritativeHostedCurrentState() {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        try {
+            AppDatabase.Schema.create(driver)
+            val database = AppDatabase(driver)
+            val campaigns = CampaignRepository(database)
+            val backups = CharacterBackupRepository(database)
+            val first = fixture(fixtureNames.first())
+            val campaignId = first.character.campaignId
+
+            campaigns.upsertCampaign(
+                id = campaignId,
+                rawName = "QA - PC Sheet PDF Runtime",
+            )
+
+            fixtureNames.forEach { name ->
+                val document = fixture(name)
+                assertEquals(campaignId, document.character.campaignId)
+
+                val applied = backups.applyCurrentState(document)
+
+                assertEquals(document.character.id, applied.character.id)
+                assertEquals(document.character.campaignId, applied.character.campaignId)
+                assertEquals(document.character.name, applied.character.name)
+                assertEquals(document.character, backups.exportCharacter(
+                    characterId = document.character.id,
+                    exportedAtEpochSeconds = document.exportedAtEpochSeconds,
+                ).character)
+            }
+        } finally {
+            driver.close()
         }
     }
 
