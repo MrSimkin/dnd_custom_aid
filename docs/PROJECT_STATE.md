@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-23 (Chile local time)  
+**Last reconstructed:** 2026-09-24 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified integrated `main`:** `026dc8ca00967e5ca3d932562e2a49d97e6eaaad` (PC Sheet runtime QA fixture integration closure PR #92)  
@@ -389,8 +389,8 @@ A guarded DEV PostgreSQL seed is prepared at:
 
 `database/qa/seed_pc_sheet_runtime_characters.sql`
 
-It stores those exact backup documents in hosted `pc.snapshot`, requires an explicit existing DEV `app_user` UUID, and does not manufacture Player ownership/controller state. It has **not** been executed against DEV in this work.
+The original guarded seed remains the canonical fixture-loading design. Hosted DEV QA data is now **READY / VERIFIED** through an owner-run pure-PostgreSQL Neon SQL Editor adaptation generated from the exact integrated fixture files: Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA; Aldren, Ilyra and Mara are present with their deterministic IDs and are owned/controlled by Gmail without advancing snapshot revision/content.
 
 Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed #3348/#3349; PR #91 merged as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 / `35915730801` PASS.
 
-The active project boundary remains the manual Android Save/Share smoke. Do not start Media / Handouts until that result is recorded.
+Durable hosted-setup evidence: `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`. The active project boundary remains the manual Android Save/Share smoke. Do not start Media / Handouts until that result is recorded.
