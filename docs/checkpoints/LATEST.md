@@ -2,9 +2,9 @@
 
 **Updated:** 2026-09-24 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`  
+**Last verified integrated main entering the active repair:** `799c0327dc81a30376a82182df21cb137e6ad1cf`  
 **Wave 7:** ACTIVE  
-**Current active branch:** none — manual Android device/runtime QA boundary on integrated `main`  
+**Current active branch:** `fix/pc-sheet-fantasy-aldren-runtime-overflow` / PR #96 — owner-observed Aldren Android runtime overflow repair; manual rerun still required  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -12,17 +12,19 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`;
-5. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
-6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
-7. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
-8. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-9. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-10. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
-11. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-12. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-13. `docs/PROJECT_STATE.md`;
-14. `docs/BRANCH_STATUS.md`.
+3. `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`;
+4. `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`;
+5. `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`;
+6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
+7. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
+8. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
+9. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
+10. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+11. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+12. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+13. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+14. `docs/PROJECT_STATE.md`;
+15. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -133,8 +135,8 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 13. Android export still exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
 14. Unsaved structural edits still require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
 15. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
-16. **Current boundary remains unchanged:** real Android device/runtime smoke of Save, Share, unsaved-export non-persistence and Current Snapshot fallback notice. Hosted Player-path QA data is now prepared and verified.
+16. Hosted Player-path sync is now manually verified and converged, but the first Aldren Fantasy Sheet runtime attempt exposed a bounded-routing failure before PDF creation. PR #96 carries the narrow repair and exact-fixture regression.
 17. Do not start the next Wave 7 package before recording that manual smoke result.
-18. When QA resumes, follow `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`.
+18. **Current boundary:** integrate PR #96 with green CI, install/update its debug APK, then rerun Aldren Fantasy Sheet Permanent Save + Share. Follow `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
 
 No external provider action is required for this PDF-renderer stage.

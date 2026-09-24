@@ -862,17 +862,22 @@ internal class AndroidClassicRenderer {
                 CharacterTrackableValueKind.CURRENT_MAX,
                 -> resource.maxValue
             }
-            val recoveryText = listOf(
-                resource.recovery.orEmpty().trim(),
+            val legacyRecoveryText = resource.recovery.orEmpty().trim()
+            val structuredRecovery = listOf(
                 recovery?.cadence?.let(::recoveryLabel).orEmpty(),
                 recovery?.amountMode?.let {
                     recoveryAmountLabel(it, recovery.fixedAmount)
                 }.orEmpty(),
-            ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
+            ).filter { it.isNotEmpty() }
+            val recoveryText = structuredRecovery
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString(" · ")
+                ?: legacyRecoveryText
             val notes = listOf(
+                legacyRecoveryText.takeIf { structuredRecovery.isNotEmpty() }.orEmpty(),
                 recovery?.notes.orEmpty().trim(),
                 resource.notes.orEmpty().trim(),
-            ).filter { it.isNotEmpty() }.joinToString(" · ")
+            ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
             splitClassicResourceRow(
                 name = resource.name,
                 value = maximum?.let { "${resource.currentValue} / $it" }
@@ -1501,7 +1506,7 @@ private fun appendSpellContinuationPages(
                 ).joinToString(" · ")
                 text(
                     s, p, rightX + 211f, top, 97f, 18f,
-                    classicSingleLineExcerpt(detail, CLASSIC_COMBAT_DETAIL_CHARS),
+                    classicSingleLineExcerpt(detail, CLASSIC_COMBAT_PREVIEW_CHARS),
                     PdfTypographyRole.BODY, 8.2f, 7f,
                 )
                 hairline(s, rightX + 10f, top + 20f, rightX + rightW - 10f, top + 20f)
@@ -2596,8 +2601,8 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                 s, p, cursor + 3f, top, widths[index] - 6f, 40f, value,
                 if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
                 if (index == 0) 8.2f else 7.6f, 6.5f,
-                wrap = index == 4,
-                maxLines = if (index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
+                wrap = index == 2 || index == 4,
+                maxLines = if (index == 2 || index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
                 align = if (index == 1) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -3032,6 +3037,7 @@ private fun ruledTextArea(
         const val CLASSIC_SPECIES_NAME_CHARS = 28
         const val CLASSIC_COMBAT_NAME_CHARS = 30
         const val CLASSIC_COMBAT_DETAIL_CHARS = 34
+        const val CLASSIC_COMBAT_PREVIEW_CHARS = 20
         const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
