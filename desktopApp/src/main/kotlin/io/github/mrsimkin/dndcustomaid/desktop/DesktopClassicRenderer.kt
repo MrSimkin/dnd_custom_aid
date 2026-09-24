@@ -1504,7 +1504,7 @@ private fun appendSpellContinuationPages(
                 ).joinToString(" · ")
                 text(
                     s, p, rightX + 211f, top, 97f, 18f,
-                    classicSingleLineExcerpt(detail, CLASSIC_COMBAT_DETAIL_CHARS),
+                    classicSingleLineExcerpt(detail, CLASSIC_COMBAT_PREVIEW_CHARS),
                     PdfTypographyRole.BODY, 8.2f, 7f,
                 )
                 hairline(s, rightX + 10f, top + 20f, rightX + rightW - 10f, top + 20f)
@@ -3034,7 +3034,8 @@ private fun ruledTextArea(
         const val CLASSIC_RULED_ENTRY_LINES = 2
         const val CLASSIC_SPECIES_NAME_CHARS = 28
         const val CLASSIC_COMBAT_NAME_CHARS = 30
-        const val CLASSIC_COMBAT_DETAIL_CHARS = 20
+        const val CLASSIC_COMBAT_DETAIL_CHARS = 34
+        const val CLASSIC_COMBAT_PREVIEW_CHARS = 20
         const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
