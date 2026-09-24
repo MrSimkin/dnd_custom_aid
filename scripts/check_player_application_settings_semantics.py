@@ -70,6 +70,11 @@ require(haptic_prefs, "val strength: CharacterHapticStrengthV4 = CharacterHaptic
 require(haptic_prefs, "?: CharacterHapticStrengthV4.MEDIUM", "missing/legacy non-none fallback")
 require(haptic_hook, "if (enabled && hapticPreferences.strength != CharacterHapticStrengthV4.NONE)", "global haptic dispatch short-circuit")
 require(ui, "Ninguna desactiva la respuesta háptica generada por la app", "T9 user-facing explanation")
+require(ui, 'Text("Herramientas DEV"', "debug QA settings entry")
+require(ui, 'MainActivity::class.java.name.substringBeforeLast(\'.\') + ".HostedDevAuthActivity"', "debug QA activity class target")
+if 'context.packageName + ".HostedDevAuthActivity"' in ui:
+    errors.append("debug QA launcher incorrectly derives activity class from applicationId")
+
 
 # Representative compatibility semantics mirrored from the source thresholds.
 def legacy_density(phone: int, tablet: int, landscape: bool) -> str:
