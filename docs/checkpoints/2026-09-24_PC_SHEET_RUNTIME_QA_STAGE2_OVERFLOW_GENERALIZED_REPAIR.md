@@ -136,7 +136,7 @@ Repair branch:
 
 `fix/fantasy-sheet-generalized-bounded-text-routing`
 
-Validated branch head:
+Validated implementation head:
 
 `29138e7322feae111b6207acb45da896a207d749`
 
