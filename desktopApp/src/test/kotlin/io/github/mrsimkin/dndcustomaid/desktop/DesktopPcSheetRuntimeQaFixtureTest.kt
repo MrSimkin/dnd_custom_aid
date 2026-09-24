@@ -52,6 +52,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(normalized.contains("Una acción adicional este turno"))
             assertTrue(normalized.contains("Descanso corto/largo"))
             assertTrue(normalized.contains("A máximo"))
+            assertTrue(normalized.contains("Descanso corto o largo"))
         }
     }
 
