@@ -1,6 +1,6 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-23 (Chile local time)  
+**Updated:** 2026-09-24 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified integrated main:** `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`  
 **Wave 7:** ACTIVE  
@@ -13,16 +13,16 @@
 1. `AGENTS.md`;
 2. this file;
 3. `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`;
-4. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
-5. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
-6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
-7. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-8. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-9. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
-10. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-11. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-12. `docs/PROJECT_STATE.md`;
-13. `docs/BRANCH_STATUS.md`.
+5. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
+6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
+7. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
+8. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
+9. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+10. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
+11. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+12. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
+13. `docs/PROJECT_STATE.md`;
+14. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -128,13 +128,13 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 8. PR #90 lifecycle/documentation closure is integrated as `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`; post-merge #3344 PASS.
 9. **Runtime QA fixture pack is integrated on main through PR #91**: Aldren Vale (strict SRD 5.1 Fighter 5/Champion), Ilyra Quill (strict SRD 5.2.1 Wizard 5/Evoker), and Mara de los Siete Umbrales (CUSTOM high-volume Extended stress).
 10. All three fixtures are app-owned Character Backup v2 JSONs suitable for normal Android **Importar**; tests prove decode/round-trip/restore-as-copy.
-11. Guarded DEV SQL seed is prepared at `database/qa/seed_pc_sheet_runtime_characters.sql`; it stores those exact fixture documents in hosted `pc.snapshot`. It has **not** been executed against DEV in this work.
+11. Hosted DEV QA data is now **READY / VERIFIED**: the exact three integrated fixture payloads are present in deterministic campaign `QA - PC Sheet PDF Runtime`; Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA and owns/controls all three PCs. See `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`.
 12. Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed #3348/#3349; final docs head passed #3358/#3359; fixture merge `5e778ced3b85fc66d4ca449727a3451e91c50d7e` passed post-merge #3360 / `35915153718`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad` and post-merge #3367 / `35915730801` passed.
 13. Android export still exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
 14. Unsaved structural edits still require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
 15. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
-16. **Current boundary remains unchanged:** real Android device/runtime smoke of Save, Share, unsaved-export non-persistence and Current Snapshot fallback notice, now with reproducible QA characters ready.
+16. **Current boundary remains unchanged:** real Android device/runtime smoke of Save, Share, unsaved-export non-persistence and Current Snapshot fallback notice. Hosted Player-path QA data is now prepared and verified.
 17. Do not start the next Wave 7 package before recording that manual smoke result.
-18. When QA resumes, follow `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`.
+18. When QA resumes, follow `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`.
 
 No external provider action is required for this PDF-renderer stage.
