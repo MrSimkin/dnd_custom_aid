@@ -126,7 +126,7 @@ Active repair branch:
 
 `fix/fantasy-sheet-generalized-bounded-text-routing`
 
-Validated head `29138e7322feae111b6207acb45da896a207d749` / Scaffold `36065636679` — SUCCESS.
+Validated implementation head `29138e7322feae111b6207acb45da896a207d749` / Scaffold `36065636679` — SUCCESS.
 
 The branch implements generalized compact-preview/full-detail routing, preserves the final overflow guard, synchronizes the generated Android renderer, advances the QA build to `0.5.0-preqa.3` / `50300`, exercises Aldren plus Mara stress content, and preserves approved pagination baselines.
 
