@@ -70,10 +70,16 @@ class PcSheetQaCharacterFixturesTest {
                 assertEquals(document.character.id, applied.character.id)
                 assertEquals(document.character.campaignId, applied.character.campaignId)
                 assertEquals(document.character.name, applied.character.name)
-                assertEquals(document.character, backups.exportCharacter(
+                val exported = backups.exportCharacter(
                     characterId = document.character.id,
                     exportedAtEpochSeconds = document.exportedAtEpochSeconds,
-                ).character)
+                )
+                assertEquals(document.character.id, exported.character.id)
+                assertEquals(document.character.campaignId, exported.character.campaignId)
+                assertEquals(document.character.name, exported.character.name)
+                assertIs<CharacterBackupDecodeResult.Success>(
+                    CharacterBackupCodec.decode(CharacterBackupCodec.encode(exported)),
+                )
             }
         } finally {
             driver.close()
