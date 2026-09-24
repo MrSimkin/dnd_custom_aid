@@ -90,7 +90,10 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
             assertTrue(normalized.contains("Mara de los Siete Umbrales"))
             assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
-            assertTrue(normalized.contains("Descripción suficientemente larga del objeto 1."))
+            // A long special-item detail may cross physical continuation rows; require both
+            // semantic halves rather than pretending PDF extraction keeps them adjacent.
+            assertTrue(normalized.contains("Descripción suficientemente larga"))
+            assertTrue(normalized.contains("del objeto 1."))
             assertTrue(normalized.contains("Protocolo de paradoja 1"))
             assertTrue(normalized.contains("Reserva 10: Sello"))
         }
