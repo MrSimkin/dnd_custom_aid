@@ -35,6 +35,16 @@ internal enum class AndroidHostedMutationState {
     BLOCKED,
 }
 
+internal enum class AndroidHostedSyncPhase {
+    FIRST_DELIVERY,
+    MEMBERSHIP_BOOTSTRAP,
+    ACTIVE_CAMPAIGNS,
+    INITIAL_PC_PULL,
+    QUEUE_LOCAL_PC_SNAPSHOTS,
+    SECOND_DELIVERY,
+    FINAL_PC_PULL,
+}
+
 internal data class AndroidQueuedHostedCampaignCreation(
     val campaign: Campaign,
     val mutationId: Uuid,
@@ -64,6 +74,8 @@ internal sealed interface AndroidHostedCampaignBootstrapOutcome {
 
     data class Failure(
         val message: String,
+        val phase: AndroidHostedSyncPhase,
+        val diagnostic: String,
     ) : AndroidHostedCampaignBootstrapOutcome
 }
 
@@ -149,13 +161,17 @@ internal class AndroidHostedCampaignBootstrapController(
             return AndroidHostedCampaignBootstrapOutcome.NoRememberedSession
         }
 
+        var phase = AndroidHostedSyncPhase.FIRST_DELIVERY
         return try {
             val now = currentEpochSeconds()
+            phase = AndroidHostedSyncPhase.FIRST_DELIVERY
             val firstDelivery = delivery.deliverReady(
                 attemptedAtEpochSeconds = now,
             )
+            phase = AndroidHostedSyncPhase.MEMBERSHIP_BOOTSTRAP
             val campaignResult = bootstrap.refresh()
 
+            phase = AndroidHostedSyncPhase.ACTIVE_CAMPAIGNS
             val activeHostedCampaigns = apiClient.campaigns()
             val activeHostedById = activeHostedCampaigns.associateBy { it.id }
             val activeHostedCampaignIds = activeHostedById.keys
@@ -190,6 +206,7 @@ internal class AndroidHostedCampaignBootstrapController(
             var queuedPcSnapshotCount = 0
 
             for (campaignId in eligibleCampaignIds.sortedBy(Uuid::toString)) {
+                phase = AndroidHostedSyncPhase.INITIAL_PC_PULL
                 val remoteBefore = apiClient.campaignPcs(campaignId)
                 val remoteBeforeById = remoteBefore.associateBy { it.id }
                 val initialPull = HostedPcSnapshotPullService(
@@ -210,6 +227,7 @@ internal class AndroidHostedCampaignBootstrapController(
                     remoteById = remoteBeforeById,
                 )
 
+                phase = AndroidHostedSyncPhase.QUEUE_LOCAL_PC_SNAPSHOTS
                 val pendingPcIds = outbox.allMutations()
                     .asSequence()
                     .filter { it.type == HostedMutationType.PC_SNAPSHOT_PUT }
@@ -244,6 +262,7 @@ internal class AndroidHostedCampaignBootstrapController(
                 }
             }
 
+            phase = AndroidHostedSyncPhase.SECOND_DELIVERY
             val secondDelivery = delivery.deliverReady(
                 attemptedAtEpochSeconds = currentEpochSeconds(),
             )
@@ -254,6 +273,7 @@ internal class AndroidHostedCampaignBootstrapController(
             var pcConflictCount = 0
 
             for (campaignId in eligibleCampaignIds.sortedBy(Uuid::toString)) {
+                phase = AndroidHostedSyncPhase.FINAL_PC_PULL
                 val remoteFinal = apiClient.campaignPcs(campaignId)
                 val remoteFinalById = remoteFinal.associateBy { it.id }
                 val finalPull = HostedPcSnapshotPullService(
@@ -312,12 +332,16 @@ internal class AndroidHostedCampaignBootstrapController(
                     else ->
                         "No se pudo sincronizar con el servidor. Los cambios locales se conservaron para reintentar."
                 },
+                phase = phase,
+                diagnostic = "HOSTED_API HTTP ${error.statusCode} / ${error.code.name}",
             )
         } catch (cancelled: CancellationException) {
             throw cancelled
-        } catch (_: Exception) {
+        } catch (error: Exception) {
             AndroidHostedCampaignBootstrapOutcome.Failure(
                 message = "No se pudo sincronizar con el servidor. Los cambios locales se conservaron para reintentar.",
+                phase = phase,
+                diagnostic = error::class.simpleName ?: "Exception",
             )
         }
     }

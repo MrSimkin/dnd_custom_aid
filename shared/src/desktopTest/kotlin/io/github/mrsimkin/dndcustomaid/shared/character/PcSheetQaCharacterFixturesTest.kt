@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.shared.character
 
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -40,6 +43,21 @@ class PcSheetQaCharacterFixturesTest {
             assertEquals(destination, imported.character.campaignId)
             assertNotEquals(document.character.id, imported.character.id)
         }
+    }
+
+    @Test
+    fun aldrenCanApplyAsAuthoritativeHostedCurrentState() {
+        assertCanApplyAsAuthoritativeHostedCurrentState(fixtureNames[0])
+    }
+
+    @Test
+    fun ilyraCanApplyAsAuthoritativeHostedCurrentState() {
+        assertCanApplyAsAuthoritativeHostedCurrentState(fixtureNames[1])
+    }
+
+    @Test
+    fun maraCanApplyAsAuthoritativeHostedCurrentState() {
+        assertCanApplyAsAuthoritativeHostedCurrentState(fixtureNames[2])
     }
 
     @Test
@@ -177,6 +195,40 @@ class PcSheetQaCharacterFixturesTest {
                 PcSheetExtendedPageKind.NOTES,
             ),
         ))
+    }
+
+    private fun assertCanApplyAsAuthoritativeHostedCurrentState(name: String) {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        try {
+            AppDatabase.Schema.create(driver)
+            val database = AppDatabase(driver)
+            val campaigns = CampaignRepository(database)
+            val backups = CharacterBackupRepository(database)
+            val document = fixture(name)
+
+            campaigns.upsertCampaign(
+                id = document.character.campaignId,
+                rawName = "QA - PC Sheet PDF Runtime",
+            )
+
+            val applied = backups.applyCurrentState(document)
+            assertEquals(document.character.id, applied.character.id)
+            assertEquals(document.character.campaignId, applied.character.campaignId)
+            assertEquals(document.character.name, applied.character.name)
+
+            val exported = backups.exportCharacter(
+                characterId = document.character.id,
+                exportedAtEpochSeconds = document.exportedAtEpochSeconds,
+            )
+            assertEquals(document.character.id, exported.character.id)
+            assertEquals(document.character.campaignId, exported.character.campaignId)
+            assertEquals(document.character.name, exported.character.name)
+            assertIs<CharacterBackupDecodeResult.Success>(
+                CharacterBackupCodec.decode(CharacterBackupCodec.encode(exported)),
+            )
+        } finally {
+            driver.close()
+        }
     }
 
     private fun fixture(name: String): CharacterBackupDocument {

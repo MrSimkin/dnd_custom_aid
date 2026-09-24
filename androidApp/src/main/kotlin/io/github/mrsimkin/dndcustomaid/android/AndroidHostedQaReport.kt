@@ -66,6 +66,8 @@ internal fun hostedQaReport(
         is AndroidHostedCampaignBootstrapOutcome.Failure -> {
             appendLine("=== HOSTED SYNC RESULT ===")
             appendLine("Result: FAILURE")
+            appendLine("Phase: ${outcome.phase.name}")
+            appendLine("Diagnostic: ${outcome.diagnostic}")
             appendLine("Message: ${outcome.message.replace('\n', ' ')}")
         }
 
