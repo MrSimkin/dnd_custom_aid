@@ -3,12 +3,7 @@
     <application>
         <activity
             android:name=".HostedDevAuthActivity"
-            android:exported="true"
-            android:label="DnD Aid - QA DEV">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false"
+            android:label="DnD Aid - QA DEV" />
     </application>
 </manifest>
