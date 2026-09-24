@@ -3,12 +3,12 @@
 **Updated:** 2026-09-24 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `026dc8ca00967e5ca3d932562e2a49d97e6eaaad` (PC Sheet runtime QA fixture integration closure PR #92)  
+**Last verified integrated `main` entering the active repair:** `799c0327dc81a30376a82182df21cb137e6ad1cf`  
 **Post-merge Scaffold:** `35915730801` / #3367 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Android real-device Save/Share smoke MANUAL GATE; QA character fixture pack integrated
+**Current normal work:** PC Sheet PDF Export — PR #96 Aldren Fantasy Sheet Android runtime overflow repair; manual Save/Share rerun pending
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -104,7 +104,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 Current branch direction:
 
-No implementation branch is active. Continue from integrated `main` only after the pending manual Android device/runtime smoke is recorded.
+Active short-lived repair branch: `fix/pc-sheet-fantasy-aldren-runtime-overflow` / PR #96. It is authorized by the owner-observed Android runtime failure and must return to `main` after CI/merge. The manual Save/Share gate remains open until the repaired APK is rerun.
 
 Integrated PDF/export + QA chain:
 
@@ -126,7 +126,7 @@ Runtime-QA fixtures now on `main`:
 - `qa/pc-sheet/README.md`;
 - automated codec/import/rules/export-plan tests.
 
-Hosted DEV QA data is now **READY / VERIFIED**. The exact three integrated fixture payloads are present in deterministic campaign `QA - PC Sheet PDF Runtime`; Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA and owns/controls all three PCs. See `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`.
+Hosted DEV QA data is now **READY / VERIFIED**. The exact three integrated fixture payloads are present in deterministic campaign `QA - PC Sheet PDF Runtime`; Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA and owns/controls all three PCs. See `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
 
 Current manual boundary:
 
