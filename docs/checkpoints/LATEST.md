@@ -2,12 +2,12 @@
 
 **Updated:** 2026-09-24 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `289eafda731c4b1c61e76a947a86ab5d948c537c` (PR #98 in-app DEV-tools launch repair)  
-**Post-merge Scaffold:** `36060380623` — SUCCESS  
+**Last verified integrated main:** `be1a1457eba10d2d2afaa2bb96858b3c169cffb0` (PR #99 canonical resume-route consolidation)  
+**Post-merge Scaffold:** `36063266121` — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`  
-**Current active route:** PC Sheet PDF — generalized Fantasy Sheet bounded-text routing repair before Stage 2 Save can resume  
-**Current active branch:** `fix/fantasy-sheet-generalized-bounded-text-routing` — generalized Fantasy Sheet bounded-text routing repair in progress  
+**Current active route:** PC Sheet PDF — generalized Fantasy Sheet bounded-text repair has branch CI PASS; integrate it, then resume owner Stage-2 Aldren Save  
+**Current active branch:** `fix/fantasy-sheet-generalized-bounded-text-routing` — head `29138e7322feae111b6207acb45da896a207d749`; Scaffold `36065636679` SUCCESS; PR/integration next  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -137,7 +137,7 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 16. Hosted Player-path sync is manually verified and converged. The first Aldren Fantasy Sheet runtime attempt exposed compact combat/resource bounded-routing failures; PR #96 repaired that first set and is integrated as `eece864e5867f477b8bdd57596a1bee1638b4ceb`.
 17. Owner Stage 1 then exposed an in-app DEV-tools navigation crash in `0.5.0-preqa.1`; PR #98 repaired it, advanced the QA build to `0.5.0-preqa.2`, and merged as `289eafda731c4b1c61e76a947a86ab5d948c537c`. Runtime owner QA confirms the DEV screen opens, Gmail Player auth works, hosted sync remains converged, 3 PCs are unchanged, conflicts are zero and outbox is empty.
 18. Owner Stage 2 reached Aldren Fantasy Sheet / Permanente successfully, but the actual Save/generation attempt exposed a **new bounded-routing failure in long equipment/weapon descriptive content** before a usable PDF save.
-19. The repeated pattern is now treated as a defect class, not another string-specific patch. **Current route:** audit all Fantasy Sheet bounded base writes and implement generalized preview/full-detail routing while preserving complete semantics and the safety guard.
-20. Do not proceed to Aldren Share, Ilyra, Mara, Current Snapshot or the final physical-device gate until Aldren Save passes the generalized repair. Follow the Canonical active checkpoint above.
+19. The repeated pattern is treated as a defect class, not another string-specific patch. The generalized preview/full-detail routing repair is implemented on `fix/fantasy-sheet-generalized-bounded-text-routing` at `29138e7322feae111b6207acb45da896a207d749`; branch Scaffold `36065636679` is SUCCESS. Aldren and Mara real fixtures pass while approved pagination baselines remain intact.
+20. **Current route:** integrate the validated repair, verify merged-main Scaffold, then install/update `0.5.0-preqa.3` and rerun Aldren Save. Do not proceed to Aldren Share, Ilyra, Mara, Current Snapshot or the final physical-device gate until the owner-observed Aldren Save passes. Follow the Canonical active checkpoint above.
 
 No external provider action is required for this PDF-renderer stage.
