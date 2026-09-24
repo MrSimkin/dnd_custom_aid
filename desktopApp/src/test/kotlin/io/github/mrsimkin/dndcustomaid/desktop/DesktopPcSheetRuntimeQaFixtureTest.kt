@@ -51,6 +51,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(extracted.contains("Una acción adicional este turno"))
             assertTrue(extracted.contains("Descanso corto/largo"))
             assertTrue(extracted.contains("A máximo"))
+            assertTrue(extracted.contains("Descanso corto o largo"))
         }
     }
 
