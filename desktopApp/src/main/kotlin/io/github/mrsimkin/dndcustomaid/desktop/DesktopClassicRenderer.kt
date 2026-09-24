@@ -860,13 +860,16 @@ internal class DesktopClassicRenderer {
                 CharacterTrackableValueKind.CURRENT_MAX,
                 -> resource.maxValue
             }
-            val recoveryText = listOf(
-                resource.recovery.orEmpty().trim(),
+            val structuredRecovery = listOf(
                 recovery?.cadence?.let(::recoveryLabel).orEmpty(),
                 recovery?.amountMode?.let {
                     recoveryAmountLabel(it, recovery.fixedAmount)
                 }.orEmpty(),
-            ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
+            ).filter { it.isNotEmpty() }
+            val recoveryText = structuredRecovery
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString(" · ")
+                ?: resource.recovery.orEmpty().trim()
             val notes = listOf(
                 recovery?.notes.orEmpty().trim(),
                 resource.notes.orEmpty().trim(),
@@ -1481,7 +1484,7 @@ private fun appendSpellContinuationPages(
             val combatEntries = sheet.combatEntries.sortedBy { it.sortOrder }
             combatEntries.take(BASE_COMBAT_CAPACITY).forEachIndexed { index, entry ->
                 val top = 300f + index * 23f
-                previewText(
+                text(
                     s, p, rightX + 10f, top, 148f, 18f,
                     classicSingleLineExcerpt(entry.name, CLASSIC_COMBAT_NAME_CHARS),
                     PdfTypographyRole.BODY, 8.5f, 7.2f,
@@ -1497,7 +1500,7 @@ private fun appendSpellContinuationPages(
                     entry.rangeText?.takeIf { it.isNotBlank() },
                     entry.notes?.takeIf { it.isNotBlank() },
                 ).joinToString(" · ")
-                previewText(
+                text(
                     s, p, rightX + 211f, top, 97f, 18f,
                     classicSingleLineExcerpt(detail, CLASSIC_COMBAT_DETAIL_CHARS),
                     PdfTypographyRole.BODY, 8.2f, 7f,
@@ -2595,11 +2598,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                 if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
                 if (index == 0) 8.2f else 7.6f, 6.5f,
                 wrap = index == 2 || index == 4,
-                maxLines = when (index) {
-                    2 -> 3
-                    4 -> CLASSIC_RESOURCE_NOTE_LINES
-                    else -> 1
-                },
+                maxLines = if (index == 2 || index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
                 align = if (index == 1) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -2879,46 +2878,6 @@ private fun ruledTextArea(
         s.restoreGraphicsState()
     }
 
-    private fun previewText(
-        s: PDPageContentStream,
-        p: DesktopPdfRenderingPrimitives,
-        x: Float,
-        top: Float,
-        width: Float,
-        height: Float,
-        value: String,
-        role: PdfTypographyRole,
-        preferred: Float,
-        minimum: Float,
-    ) {
-        val clean = value.trim()
-        if (clean.isEmpty()) return
-
-        var candidate = clean
-        while (candidate.isNotEmpty()) {
-            val result = p.drawTextBox(
-                s,
-                PdfTextBoxSpec(
-                    rect = rect(x, top, width, height),
-                    text = candidate,
-                    role = role,
-                    preferredSizePt = preferred,
-                    minimumSizePt = minimum,
-                    horizontalPaddingPt = 0.6f,
-                    verticalPaddingPt = 0.35f,
-                ),
-            )
-            if (!result.hasOverflow) return
-
-            val core = candidate.removeSuffix("...").trimEnd()
-            if (core.length <= 1) {
-                overflowDiagnostics += "preview could not fit bounded cell: $value"
-                return
-            }
-            candidate = core.dropLast(1).trimEnd() + "..."
-        }
-    }
-
     private fun text(
         s: PDPageContentStream,
         p: DesktopPdfRenderingPrimitives,
@@ -3073,7 +3032,7 @@ private fun ruledTextArea(
         const val CLASSIC_RULED_ENTRY_LINES = 2
         const val CLASSIC_SPECIES_NAME_CHARS = 28
         const val CLASSIC_COMBAT_NAME_CHARS = 30
-        const val CLASSIC_COMBAT_DETAIL_CHARS = 34
+        const val CLASSIC_COMBAT_DETAIL_CHARS = 20
         const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
