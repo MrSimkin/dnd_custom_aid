@@ -3,12 +3,12 @@
 **Updated:** 2026-09-24 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main` entering the active repair:** `799c0327dc81a30376a82182df21cb137e6ad1cf`  
-**Post-merge Scaffold:** `35915730801` / #3367 — SUCCESS  
+**Last verified integrated `main`:** `eece864e5867f477b8bdd57596a1bee1638b4ceb` (PR #96 Aldren Fantasy runtime repair)  
+**Post-merge Scaffold:** `36057383682` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #96 Aldren Fantasy Sheet Android runtime overflow repair; manual Save/Share rerun pending
+**Current normal work:** PC Sheet PDF Export — PR #96 integrated; repaired Aldren Fantasy Sheet Save/Share manual rerun pending
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -104,7 +104,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 Current branch direction:
 
-Active short-lived repair branch: `fix/pc-sheet-fantasy-aldren-runtime-overflow` / PR #96. It is authorized by the owner-observed Android runtime failure and must return to `main` after CI/merge. The manual Save/Share gate remains open until the repaired APK is rerun.
+No implementation branch is active. PR #96 (`fix/pc-sheet-fantasy-aldren-runtime-overflow`) is integrated as `eece864e5867f477b8bdd57596a1bee1638b4ceb`; its post-merge Scaffold `36057383682` passed. The manual Save/Share gate remains open until the repaired APK is rerun.
 
 Integrated PDF/export + QA chain:
 

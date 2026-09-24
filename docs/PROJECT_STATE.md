@@ -3,14 +3,14 @@
 **Last reconstructed:** 2026-09-24 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main` entering the active repair:** `799c0327dc81a30376a82182df21cb137e6ad1cf`  
-**Post-merge Scaffold:** `35915730801` / #3367 — SUCCESS  
+**Last verified integrated `main`:** `eece864e5867f477b8bdd57596a1bee1638b4ceb` (PR #96 Aldren Fantasy runtime repair)  
+**Post-merge Scaffold:** `36057383682` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — PR #96 Aldren Fantasy Sheet Android runtime overflow repair; hosted Player sync is verified/converged, but Save/Share remains a MANUAL GATE
+**Current active package:** PC Sheet PDF Export — PR #96 runtime repair integrated; hosted Player sync is verified/converged; repaired Aldren Save/Share remains the MANUAL GATE
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -393,4 +393,4 @@ The original guarded seed remains the canonical fixture-loading design. Hosted D
 
 Fixture/test head `a06b2fe5712426e6b42e5ea88f0fe0b2f9529fd1` passed #3348/#3349; PR #91 merged as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 / `35915730801` PASS.
 
-Durable hosted-setup evidence: `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`. Hosted Player-path sync has since been manually verified and converged. The first Aldren Fantasy Sheet runtime export then failed safely on six bounded-routing overflows before a PDF was produced. PR #96 reproduces and repairs that defect, moves QA diagnostics behind a debug-only in-app settings entry, and advances Android to `0.5.0-preqa.1` / `50100`. Resume from `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`; Save/Share remains unpassed until the repaired APK is manually rerun. Do not start Media / Handouts before that gate is recorded.
+Durable hosted-setup evidence: `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`. Hosted Player-path sync has since been manually verified and converged. The first Aldren Fantasy Sheet runtime export then failed safely on six bounded-routing overflows before a PDF was produced. PR #96 reproduced and repaired that defect and is integrated as `eece864e5867f477b8bdd57596a1bee1638b4ceb`; push `36056511437`, PR `36056515058`, and post-merge `36057383682` all passed. It also moves QA diagnostics behind a debug-only in-app settings entry and advances Android to `0.5.0-preqa.1` / `50100`. Resume from `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`; Save/Share remains unpassed until the repaired APK is manually rerun. Do not start Media / Handouts before that gate is recorded.
