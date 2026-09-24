@@ -7,7 +7,7 @@
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`  
 **Current active route:** PC Sheet PDF — generalized Fantasy Sheet bounded-text repair has branch CI PASS; integrate it, then resume owner Stage-2 Aldren Save  
-**Current active branch:** `fix/fantasy-sheet-generalized-bounded-text-routing` — head `29138e7322feae111b6207acb45da896a207d749`; Scaffold `36065636679` SUCCESS; PR/integration next  
+**Current active branch:** `fix/fantasy-sheet-generalized-bounded-text-routing` — implementation validated at `29138e7322feae111b6207acb45da896a207d749`; Scaffold `36065636679` SUCCESS; PR/integration next  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
