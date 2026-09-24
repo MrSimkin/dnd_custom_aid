@@ -836,7 +836,7 @@ internal fun AppSettingsScreen(
                                     context.startActivity(
                                         Intent().setClassName(
                                             context.packageName,
-                                            context.packageName + ".HostedDevAuthActivity",
+                                            MainActivity::class.java.name.substringBeforeLast('.') + ".HostedDevAuthActivity",
                                         ),
                                     )
                                 },
