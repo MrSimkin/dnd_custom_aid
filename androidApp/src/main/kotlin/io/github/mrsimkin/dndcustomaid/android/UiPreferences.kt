@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -689,6 +691,7 @@ internal fun AppSettingsScreen(
     onDismiss: () -> Unit,
 ) {
     var showAbout by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val phoneLike = minOf(configuration.screenWidthDp, configuration.screenHeightDp) < 600
     val veryLargePhoneText = phoneLike && preferences.fontScalePercent >= 145
@@ -815,6 +818,33 @@ internal fun AppSettingsScreen(
                         selected = preferences.themeChoice,
                         onSelect = { onPreferencesChange(preferences.copy(themeChoice = it)) },
                     )
+                }
+                if (BuildConfig.DEBUG) {
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(5.dp))) {
+                            Text(
+                                "Herramientas DEV",
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                "Solo disponible en builds debug. Abre autenticación, sincronización y diagnóstico QA hospedado.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            OutlinedButton(
+                                onClick = {
+                                    context.startActivity(
+                                        Intent().setClassName(
+                                            context.packageName,
+                                            context.packageName + ".HostedDevAuthActivity",
+                                        ),
+                                    )
+                                },
+                            ) {
+                                Text("Abrir QA / diagnóstico DEV")
+                            }
+                        }
+                    }
                 }
                 item { SettingsSheetPreview(preferences) }
             }
