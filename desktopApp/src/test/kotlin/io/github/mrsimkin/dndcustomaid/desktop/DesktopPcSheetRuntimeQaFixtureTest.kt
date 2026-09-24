@@ -13,6 +13,8 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.text.PDFTextStripper
 
 class DesktopPcSheetRuntimeQaFixtureTest {
     @Test
@@ -38,6 +40,18 @@ class DesktopPcSheetRuntimeQaFixtureTest {
         }
 
         assertTrue(bytes.size > 20_000)
+
+        Loader.loadPDF(bytes).use { pdf ->
+            val extracted = PDFTextStripper().getText(pdf)
+            // Compact base previews may truncate, but the canonical detail must survive through
+            // the Fantasy continuation/reference routing.
+            assertTrue(extracted.contains("Dueling incluido; dos ataques con la acción Atacar."))
+            assertTrue(extracted.contains("Munición; recarga."))
+            assertTrue(extracted.contains("Recupera 1d10 + 5 PG"))
+            assertTrue(extracted.contains("Una acción adicional este turno"))
+            assertTrue(extracted.contains("Descanso corto/largo"))
+            assertTrue(extracted.contains("A máximo"))
+        }
     }
 
     private fun fixture(name: String) = assertIs<CharacterBackupDecodeResult.Success>(
