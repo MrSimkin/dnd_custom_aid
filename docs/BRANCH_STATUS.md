@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-23 (Chile local time)  
+**Updated:** 2026-09-24 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified integrated `main`:** `026dc8ca00967e5ca3d932562e2a49d97e6eaaad` (PC Sheet runtime QA fixture integration closure PR #92)  
@@ -126,7 +126,7 @@ Runtime-QA fixtures now on `main`:
 - `qa/pc-sheet/README.md`;
 - automated codec/import/rules/export-plan tests.
 
-The SQL seed is prepared but was **not executed against hosted DEV** in this work.
+Hosted DEV QA data is now **READY / VERIFIED**. The exact three integrated fixture payloads are present in deterministic campaign `QA - PC Sheet PDF Runtime`; Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA and owns/controls all three PCs. See `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`.
 
 Current manual boundary:
 
@@ -142,7 +142,7 @@ Do **not** start Media / Handouts before this manual smoke result is recorded.
 
 Resume authority:
 
-`docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`
+`docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`
 
 ## Historical/stale open PRs
 
