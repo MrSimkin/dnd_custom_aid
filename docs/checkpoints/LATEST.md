@@ -2,9 +2,10 @@
 
 **Updated:** 2026-09-24 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main entering the active repair:** `799c0327dc81a30376a82182df21cb137e6ad1cf`  
+**Last verified integrated main:** `eece864e5867f477b8bdd57596a1bee1638b4ceb`  
+**Post-merge Scaffold:** `36057383682` — SUCCESS  
 **Wave 7:** ACTIVE  
-**Current active branch:** `fix/pc-sheet-fantasy-aldren-runtime-overflow` / PR #96 — owner-observed Aldren Android runtime overflow repair; manual rerun still required  
+**Current active branch:** none — PR #96 is integrated; repaired Aldren Android Save/Share manual rerun is the active boundary  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -135,8 +136,8 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 13. Android export still exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
 14. Unsaved structural edits still require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
 15. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
-16. Hosted Player-path sync is now manually verified and converged, but the first Aldren Fantasy Sheet runtime attempt exposed a bounded-routing failure before PDF creation. PR #96 carries the narrow repair and exact-fixture regression.
+16. Hosted Player-path sync is manually verified and converged. The first Aldren Fantasy Sheet runtime attempt exposed a bounded-routing failure before PDF creation; PR #96 repaired it and is integrated as `eece864e5867f477b8bdd57596a1bee1638b4ceb`, with push/PR/post-merge Scaffold all SUCCESS.
 17. Do not start the next Wave 7 package before recording that manual smoke result.
-18. **Current boundary:** integrate PR #96 with green CI, install/update its debug APK, then rerun Aldren Fantasy Sheet Permanent Save + Share. Follow `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
+18. **Current boundary:** install/update the integrated `0.5.0-preqa.1` debug APK, then rerun Aldren Fantasy Sheet Permanent Save + Share. Follow `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
 
 No external provider action is required for this PDF-renderer stage.
