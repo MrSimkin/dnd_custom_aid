@@ -5,7 +5,7 @@
 **Last verified integrated main:** `eece864e5867f477b8bdd57596a1bee1638b4ceb`  
 **Post-merge Scaffold:** `36057383682` — SUCCESS  
 **Wave 7:** ACTIVE  
-**Current active branch:** none — PR #96 is integrated; repaired Aldren Android Save/Share manual rerun is the active boundary  
+**Current active branch:** `fix/android-debug-tools-launch` — Stage 1 in-app DEV tools launch repair; Aldren Save/Share rerun remains downstream  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -13,7 +13,8 @@
 
 1. `AGENTS.md`;
 2. this file;
-3. `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`;
+3. `docs/checkpoints/2026-09-24_ANDROID_IN_APP_DEV_TOOLS_LAUNCH_REPAIR.md`;
+4. `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`;
 4. `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`;
 5. `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`;
 6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
