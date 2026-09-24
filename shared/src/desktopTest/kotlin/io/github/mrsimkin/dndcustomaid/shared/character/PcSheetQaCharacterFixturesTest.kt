@@ -65,14 +65,17 @@ class PcSheetQaCharacterFixturesTest {
                 val document = fixture(name)
                 assertEquals(campaignId, document.character.campaignId)
 
+                println("HOSTED_QA_APPLY_START $name")
                 val applied = try {
                     backups.applyCurrentState(document)
                 } catch (error: IllegalArgumentException) {
+                    println("HOSTED_QA_APPLY_FAILURE $name :: ${error.message}")
                     throw AssertionError(
                         "Hosted current-state apply failed for $name: ${error.message}",
                         error,
                     )
                 }
+                println("HOSTED_QA_APPLY_PASS $name")
 
                 assertEquals(document.character.id, applied.character.id)
                 assertEquals(document.character.campaignId, applied.character.campaignId)
