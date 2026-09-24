@@ -5,7 +5,7 @@
 **Current integrated Android QA build entering repair:** `0.5.0-preqa.2` / build `50200`  
 **Repair candidate Android QA build:** `0.5.0-preqa.3` / build `50300`  
 **Active product area:** PC Sheet PDF Export — Android runtime QA  
-**Status:** GENERALIZED REPAIR IMPLEMENTED / BRANCH CI PASS / AWAITING INTEGRATION THEN OWNER STAGE-2 RERUN
+**Status:** GENERALIZED REPAIR INTEGRATED / MERGED-MAIN CI PASS / OWNER STAGE-2 ALDREN SAVE RERUN REQUIRED
 
 ## 1. What is already proven
 
@@ -179,6 +179,23 @@ The first generalized candidate exposed two test/geometry issues before acceptan
 
 The final branch run restores approved pagination baselines and passes all 78 Desktop tests plus the repository's Android/renderer-sync/build guards.
 
+## 4.2 Integration closure
+
+PR #100 — `fix: generalize Fantasy Sheet bounded-text routing` — merged to `main` as:
+
+`fd781262abfeb47003298562e540721a8515071a`.
+
+Validation chain:
+
+- implementation Scaffold `36065636679` — SUCCESS;
+- final branch push Scaffold `36066397124` — SUCCESS;
+- PR Scaffold `36066422878` — SUCCESS;
+- merged-main Scaffold `36067012766` — **SUCCESS**.
+
+The repair is therefore repository/CI accepted and integrated. No further renderer change is pending before owner runtime QA.
+
+The current boundary is now manual Android runtime evidence, not engineering implementation.
+
 ## 5. Acceptance boundary
 
 Repository/CI acceptance requires:
@@ -190,7 +207,7 @@ Repository/CI acceptance requires:
 - generated Android renderer remains synchronized with Desktop authority;
 - full Scaffold passes.
 
-After this repair is merged and merged-main Scaffold passes, owner/manual continuation is:
+The repair is merged and merged-main Scaffold passes. Owner/manual continuation is now:
 
 1. update the existing emulator app without uninstalling;
 2. verify `0.5.0-preqa.3` / build `50300`;
