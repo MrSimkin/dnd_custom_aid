@@ -8,7 +8,7 @@ Git must distinguish approved product state, implemented state, accepted/manual 
 
 `main` is the sole normal integrated trunk. Use short-lived outcome-oriented branches from current `main`; shared foundations integrate early. Permanent Player/Desktop/Server/provider silos are prohibited absent a concrete later need.
 
-Wave 5 is complete/integrated. Normal continuation is Wave 6 reusable/persistent content architecture.
+The exact current continuation is not duplicated in this workflow file. A fresh session follows `RESUME.md -> docs/checkpoints/LATEST.md -> Canonical active checkpoint`.
 
 ## 3. Owner vs technical responsibility
 
@@ -21,13 +21,16 @@ Technical agents normally decide schema/table layout, class/type decomposition, 
 Before implementation:
 
 1. verify remote repository/branch/PR/CI state;
-2. read mandatory authority files and current checkpoint;
-3. separate approved semantics, implemented constraints, routine engineering and genuine unresolved owner choices;
-4. identify real provider/manual boundaries.
+2. for fresh-context work, follow `RESUME.md -> docs/checkpoints/LATEST.md -> Canonical active checkpoint` before broader archaeology;
+3. read only the additional authority files needed by that active task;
+4. separate approved semantics, implemented constraints, routine engineering and genuine unresolved owner choices;
+5. identify real provider/manual boundaries.
 
 Then choose the simplest safe design, implement the smallest coherent batch, run focused + aggregate checks appropriate to risk, update operative memory, leave durable Git evidence, integrate through the normal branch/PR workflow, and continue until a genuine owner/manual/provider boundary.
 
 Historical checkpoints remain evidence, not automatic `next` instructions.
+
+When the active work route changes, the same coherent repository change must update/create its checkpoint and move the **Canonical active checkpoint** pointer in `docs/checkpoints/LATEST.md`. Update broader state/branch documents when materially affected. A new checkpoint file by itself does not become the active route.
 
 ## 5. Verification discipline
 
@@ -55,7 +58,7 @@ Existing DEV Worker: `dnd-custom-aid-api` at `https://dnd-custom-aid-api.mrsimki
 
 Wave 5 deployment is already verified. Do not create a replacement Worker or redeploy it for documentation-only changes. Redeploy only when Worker code materially changes or newer evidence requires it, preserving configured secrets.
 
-Normal DEV owner/DM identity is Outlook-backed. Gmail is historical/inactive by default; preserve historical evidence.
+Normal DEV owner/DM identity is Outlook-backed. Gmail is historical/inactive by default, but a current canonical checkpoint may deliberately assign Gmail as a secondary Player for bounded QA; follow that checkpoint without rewriting the normal default. Preserve historical evidence.
 
 ## 8. Secrets/cost
 
@@ -65,17 +68,10 @@ External-service operating budget is USD $0 unless explicitly changed. New provi
 
 ## 9. Current implementation sequence
 
-```text
-completed baseline/shared/hosted foundations
--> completed Wave 4 Player <-> Server
--> completed Wave 5 Desktop + Campaign Administration
--> NOW Wave 6 reusable/persistent content architecture
--> Wave 7 authoring Managers
--> DM live workspace
--> combat exchange/handoff
--> SRD clarification
--> backup/operator completion
--> integrated owner QA
-```
+The live implementation sequence is intentionally not duplicated here because it changes more often than workflow rules.
 
-For current exact continuation, use `docs/checkpoints/LATEST.md`.
+For current exact continuation, use:
+
+`RESUME.md -> docs/checkpoints/LATEST.md -> Canonical active checkpoint`.
+
+Roadmap/dependency documents remain useful for broader sequencing after the active checkpoint is satisfied.

@@ -2,31 +2,28 @@
 
 **Updated:** 2026-09-24 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified integrated main:** `eece864e5867f477b8bdd57596a1bee1638b4ceb`  
-**Post-merge Scaffold:** `36057383682` — SUCCESS  
+**Last verified integrated main:** `289eafda731c4b1c61e76a947a86ab5d948c537c` (PR #98 in-app DEV-tools launch repair)  
+**Post-merge Scaffold:** `36060380623` — SUCCESS  
 **Wave 7:** ACTIVE  
-**Current active branch:** `fix/android-debug-tools-launch` — Stage 1 in-app DEV tools launch repair; Aldren Save/Share rerun remains downstream  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`  
+**Current active route:** PC Sheet PDF — generalized Fantasy Sheet bounded-text routing repair before Stage 2 Save can resume  
+**Current active branch:** none on integrated `main`; create the repair branch from current main after this routing/documentation consolidation  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
 ## Read first on resume
 
 1. `AGENTS.md`;
-2. this file;
-3. `docs/checkpoints/2026-09-24_ANDROID_IN_APP_DEV_TOOLS_LAUNCH_REPAIR.md`;
-4. `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`;
-4. `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`;
-5. `docs/checkpoints/2026-09-23_PC_SHEET_RUNTIME_QA_CHARACTER_PACK_READY.md`;
-6. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md`;
-7. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_RENDERER_BRIDGE_PASS.md`;
-8. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_DESKTOP_SAVE_SHARE_PASS.md`;
-9. `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`;
-10. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-11. `docs/PC_SHEET_PDF_ITERATION_LEDGER.md`;
-12. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-13. `docs/decisions/D-0074_PC_SHEET_PDF_EXPORT_PRODUCT_DEFINITION.md`;
-14. `docs/PROJECT_STATE.md`;
-15. `docs/BRANCH_STATUS.md`.
+2. `RESUME.md`;
+3. this file;
+4. `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`;
+5. `docs/checkpoints/2026-09-24_ANDROID_IN_APP_DEV_TOOLS_LAUNCH_REPAIR.md`;
+6. `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`;
+7. `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`;
+8. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+9. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+10. `docs/PROJECT_STATE.md`;
+11. `docs/BRANCH_STATUS.md`.
 
 ## Current PDF visual truth
 
@@ -137,8 +134,10 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 13. Android export still exposes D-0074 family/state/custom-stat/portrait/Spellbook choices, remains available in Table Mode, and uses the shared planner + generated frozen renderer.
 14. Unsaved structural edits still require explicit **Exportar sin guardar** confirmation; PDF projection does not call repository Save.
 15. Current Snapshot still lacks a separate local aggregate; shared planner fallback + user-visible notice remains the truthful behavior.
-16. Hosted Player-path sync is manually verified and converged. The first Aldren Fantasy Sheet runtime attempt exposed a bounded-routing failure before PDF creation; PR #96 repaired it and is integrated as `eece864e5867f477b8bdd57596a1bee1638b4ceb`, with push/PR/post-merge Scaffold all SUCCESS.
-17. Do not start the next Wave 7 package before recording that manual smoke result.
-18. **Current boundary:** install/update the integrated `0.5.0-preqa.1` debug APK, then rerun Aldren Fantasy Sheet Permanent Save + Share. Follow `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
+16. Hosted Player-path sync is manually verified and converged. The first Aldren Fantasy Sheet runtime attempt exposed compact combat/resource bounded-routing failures; PR #96 repaired that first set and is integrated as `eece864e5867f477b8bdd57596a1bee1638b4ceb`.
+17. Owner Stage 1 then exposed an in-app DEV-tools navigation crash in `0.5.0-preqa.1`; PR #98 repaired it, advanced the QA build to `0.5.0-preqa.2`, and merged as `289eafda731c4b1c61e76a947a86ab5d948c537c`. Runtime owner QA confirms the DEV screen opens, Gmail Player auth works, hosted sync remains converged, 3 PCs are unchanged, conflicts are zero and outbox is empty.
+18. Owner Stage 2 reached Aldren Fantasy Sheet / Permanente successfully, but the actual Save/generation attempt exposed a **new bounded-routing failure in long equipment/weapon descriptive content** before a usable PDF save.
+19. The repeated pattern is now treated as a defect class, not another string-specific patch. **Current route:** audit all Fantasy Sheet bounded base writes and implement generalized preview/full-detail routing while preserving complete semantics and the safety guard.
+20. Do not proceed to Aldren Share, Ilyra, Mara, Current Snapshot or the final physical-device gate until Aldren Save passes the generalized repair. Follow the Canonical active checkpoint above.
 
 No external provider action is required for this PDF-renderer stage.

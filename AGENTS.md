@@ -8,34 +8,30 @@ Git is the project's durable source of truth and operative memory. Chat context 
 
 `main` is the sole normal integrated-MVP trunk. Use short-lived outcome-oriented branches. Branch existence alone never establishes authority.
 
-Authority/navigation order:
+Fresh-context authority/navigation order:
 
-1. `README.md`;
-2. `AGENTS.md`;
-3. `MANIFEST.md`;
-4. `docs/PROJECT_STATE.md`;
-5. `docs/checkpoints/LATEST.md`;
-6. the checkpoint referenced by `LATEST.md`;
-7. `docs/BRANCH_STATUS.md`;
-8. `docs/DECISIONS.md`, `docs/DECISIONS_RECENT.md`, relevant detailed decisions;
-9. `docs/CONVENTIONS.md`;
-10. `docs/PRODUCT.md`;
-11. `docs/ROADMAP.md`;
-12. `docs/WORKFLOW.md`;
-13. `docs/ARCHITECTURE.md`;
-14. `docs/TESTING.md`.
+1. this `AGENTS.md` for mandatory rules;
+2. `RESUME.md` for the stable fast-resume contract;
+3. `docs/checkpoints/LATEST.md`;
+4. the single **Canonical active checkpoint** named by `LATEST.md`;
+5. `docs/PROJECT_STATE.md` and `docs/BRANCH_STATUS.md` when the active checkpoint/task needs broader state;
+6. `MANIFEST.md`, decisions, conventions, product, roadmap, workflow, architecture and testing docs only as needed.
+
+If a user says only **"see/resume repo dnd_custom_aid"**, do not walk historical waves/PRs first. Verify current remote `main`, then follow the route above.
 
 Historical checkpoints remain evidence; do not follow old `next` instructions when newer authority supersedes them.
+
+Route changes are incomplete unless the same coherent repository change updates the checkpoint and `docs/checkpoints/LATEST.md` canonical pointer. Keep `RESUME.md` stable; move the pointer, not the entry route.
 
 ## 2. Current stage
 
 Integrated-MVP implementation is authorized and in progress.
 
-Wave 4 Player <-> Server is complete/integrated for its recorded scope. Wave 5 Desktop shell + Campaign Administration is complete, owner-QA accepted and integrated through PR #44 merge commit `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed.
+The exact current stage/package/defect/manual boundary is intentionally not duplicated in this rules file. It is defined by:
 
-Wave 6 reusable/persistent content architecture is active. Its first bounded reusable-content persistence foundation is integrated through PR #46 merge commit `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
+`RESUME.md -> docs/checkpoints/LATEST.md -> Canonical active checkpoint`.
 
-Normal continuation remains Wave 6, but the next bounded package must be determined from current architecture, decisions and roadmap. Do not restart PR #42/#43/#44/#46, completed Wave 4 packages, provider activation, Wave 5 owner QA or the integrated Wave 6 foundation without new evidence of a real defect.
+Do not infer current work from historical Wave text, old PRs, branch existence, or remembered chat context. Do not restart completed scope without new defect evidence.
 
 ## 3. Product/architecture invariants
 
