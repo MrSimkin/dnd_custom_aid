@@ -313,7 +313,6 @@ internal class DesktopClassicRenderer {
         val languageOverflow = languages.drop(BASE_LANGUAGE_CAPACITY)
         val baseLanguageReferences = languages.take(BASE_LANGUAGE_CAPACITY).filter { proficiency ->
             proficiency.name.length > CLASSIC_BASE_LANGUAGE_NAME_CHARS ||
-                !proficiency.source.isNullOrBlank() ||
                 !proficiency.notes.isNullOrBlank()
         }
         val otherProficiencies = orderedProficiencies
