@@ -4,29 +4,27 @@ Personal/small-scale tabletop RPG assistant beginning with D&D, with Android Pla
 
 ## Start here
 
-This repository is the project's durable source of truth and operative memory. A fresh human or AI worker should read, in order:
+This repository is the project's durable source of truth and operative memory.
 
-1. `AGENTS.md`;
-2. `MANIFEST.md`;
-3. `docs/PROJECT_STATE.md`;
-4. `docs/checkpoints/LATEST.md` and the checkpoint it references;
-5. `docs/BRANCH_STATUS.md`;
-6. `docs/DECISIONS.md`, `docs/DECISIONS_RECENT.md` and relevant detailed decisions;
-7. `docs/CONVENTIONS.md`, `docs/PRODUCT.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`.
+For a fresh human or AI session — especially when the instruction is simply **"see/resume repo dnd_custom_aid"** — use the fast route:
 
-Historical checkpoints remain evidence for their time, not automatic resume instructions.
+1. read `AGENTS.md` for mandatory rules;
+2. read `RESUME.md`;
+3. read `docs/checkpoints/LATEST.md`;
+4. follow its single **Canonical active checkpoint**;
+5. load only the additional authority files required by that active checkpoint/task.
+
+Historical checkpoints remain evidence for their time, not automatic resume instructions. Do not reconstruct current work from old PRs, branch names, or stale prose before following the canonical resume pointer.
 
 ## Current project position
 
 `main` is the sole normal integrated-MVP trunk.
 
-Wave 5 — Desktop shell + hosted Campaign Administration — is **COMPLETE / OWNER-QA ACCEPTED / INTEGRATED**. PR #44 (`feat: add Desktop hosted campaign administration`) merged as `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed backend, hosted-database and Kotlin/build/test/APK jobs.
+The exact current stage, active defect/package, manual boundary and next action are intentionally **not duplicated in README** because duplicated current-state prose becomes stale. Use:
 
-Do not restart Wave 5 or redeploy its already verified Cloudflare Worker merely because documentation changed.
+`RESUME.md -> docs/checkpoints/LATEST.md -> Canonical active checkpoint`.
 
-Wave 6 is now active with its first reusable-content persistence foundation **INTEGRATED** through PR #46, merge `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed.
-
-Wave 6 continues from that foundation. Determine the next bounded package from current architecture, decisions and roadmap; do not rebuild the foundation and do not assume a later package already exists.
+Stable architecture/product information remains below.
 
 ## Architecture snapshot
 
