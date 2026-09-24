@@ -6,22 +6,23 @@ This file maps current project-control authority so a fresh human or AI can resu
 
 `main` is the sole normal integrated-MVP trunk. Current practical truth is controlled by:
 
-- `docs/checkpoints/LATEST.md` — practical resume pointer;
-- `docs/PROJECT_STATE.md` — global current state;
+- `RESUME.md` — stable fresh-context entry route;
+- `docs/checkpoints/LATEST.md` — single mutable practical resume pointer;
+- the **Canonical active checkpoint** named by `LATEST.md`;
+- `docs/PROJECT_STATE.md` — broader current state;
 - `docs/BRANCH_STATUS.md` — branch lifecycle;
-- the checkpoint referenced by `LATEST.md` — milestone evidence;
 - approved detailed decisions under `docs/decisions/`.
 
-Wave 5 is complete/integrated. PR #44 merged as `306377df1a453f531af4b670d2b231c88a3c9419`; post-merge Scaffold `35168920031` passed all jobs.
-
-Wave 6 reusable/persistent content architecture is active. Its first reusable-content persistence foundation is integrated through PR #46 merge `013abbb9e57af0ba04fe1e8b678e8ed29522bedd`; post-merge Scaffold `35220099721` passed. The next bounded Wave 6 package must be determined from current authority rather than assumed from stale branch history.
+The exact active wave/package/defect is deliberately not duplicated here. Follow the canonical resume route rather than assuming a continuation from historical wave text.
 
 ## Start/resume files
 
-- `README.md` — entry point/read order;
+- `README.md` — human-facing entry point;
 - `AGENTS.md` — mandatory operating/provider/security rules;
-- `docs/PROJECT_STATE.md` — current implementation state;
-- `docs/checkpoints/LATEST.md` — exact practical continuation;
+- `RESUME.md` — stable fast-resume route;
+- `docs/checkpoints/LATEST.md` — single mutable practical continuation pointer;
+- canonical checkpoint named by `LATEST.md` — exact active task evidence/next action;
+- `docs/PROJECT_STATE.md` — broader current implementation state;
 - `docs/BRANCH_STATUS.md` — branch lifecycle;
 - `docs/DECISIONS_RECENT.md` — recent decision navigation;
 - `docs/ROADMAP.md` — dependency-driven waves;
@@ -51,19 +52,15 @@ D-0072/D-0073 approve the Wave 6 Personal -> Campaign independent-copy/provenanc
 - `scripts/` — permanent guard scripts;
 - `assets/character-sheets/templates/` — PC Sheet PDF visual authorities.
 
-## Current wave map
+## Current route
 
-```text
-Wave 1 baseline convergence                       COMPLETE
-Wave 2 Shared Integrated-MVP Spine                COMPLETE
-Wave 3 hosted foundation / real DEV activation    COMPLETE
-Wave 4 Player <-> Server                          COMPLETE
-Wave 5 Desktop shell + Campaign Administration    COMPLETE / OWNER-QA ACCEPTED / INTEGRATED
-Wave 6 reusable/persistent content architecture   ACTIVE — FOUNDATION INTEGRATED (#46)
-Wave 7 Desktop authoring Managers                 AFTER RELEVANT WAVE 6 FOUNDATIONS
-```
+The manifest intentionally does not carry a duplicated live wave/branch pointer.
 
-The next Wave 6 implementation package is not predeclared by this manifest. Determine it from the current architecture, decisions and roadmap.
+Use:
+
+`RESUME.md -> docs/checkpoints/LATEST.md -> Canonical active checkpoint`.
+
+Completed historical waves/packages remain discoverable through project state, branch status and checkpoints without being mistaken for the current continuation.
 
 ## Provider/cost/security memory
 
