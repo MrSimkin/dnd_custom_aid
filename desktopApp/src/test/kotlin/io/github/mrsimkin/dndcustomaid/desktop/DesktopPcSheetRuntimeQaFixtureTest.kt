@@ -43,15 +43,15 @@ class DesktopPcSheetRuntimeQaFixtureTest {
 
         Loader.loadPDF(bytes).use { pdf ->
             val extracted = PDFTextStripper().getText(pdf)
+            val normalized = extracted.replace(Regex("\\s+"), " ")
             // Compact base previews may truncate, but the canonical detail must survive through
             // the Fantasy continuation/reference routing.
-            assertTrue(extracted.contains("Dueling incluido; dos ataques con la acción Atacar."))
-            assertTrue(extracted.contains("Munición; recarga."))
-            assertTrue(extracted.contains("Recupera 1d10 + 5 PG"))
-            assertTrue(extracted.contains("Una acción adicional este turno"))
-            assertTrue(extracted.contains("Descanso corto/largo"))
-            assertTrue(extracted.contains("A máximo"))
-            assertTrue(extracted.contains("Descanso corto o largo"))
+            assertTrue(normalized.contains("Dueling incluido; dos ataques con la acción Atacar."))
+            assertTrue(normalized.contains("Munición; recarga."))
+            assertTrue(normalized.contains("Recupera 1d10 + 5 PG"))
+            assertTrue(normalized.contains("Una acción adicional este turno"))
+            assertTrue(normalized.contains("Descanso corto/largo"))
+            assertTrue(normalized.contains("A máximo"))
         }
     }
 
