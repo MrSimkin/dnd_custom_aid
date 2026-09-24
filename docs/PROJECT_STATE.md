@@ -3,18 +3,18 @@
 **Last reconstructed:** 2026-09-24 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `eece864e5867f477b8bdd57596a1bee1638b4ceb` (PR #96 Aldren Fantasy runtime repair)  
-**Post-merge Scaffold:** `36057383682` — SUCCESS  
+**Last verified integrated `main`:** `289eafda731c4b1c61e76a947a86ab5d948c537c` (PR #98 in-app DEV-tools launch repair)  
+**Post-merge Scaffold:** `36060380623` — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — PR #96 runtime repair integrated; hosted Player sync is verified/converged; repaired Aldren Save/Share remains the MANUAL GATE
+**Current active package:** PC Sheet PDF Export — Stage 1 DEV-tools repair is runtime-proven on `0.5.0-preqa.2`; hosted Player sync is verified/converged; Stage 2 Aldren Save exposed a second Fantasy Sheet bounded-routing failure in equipment text; generalized bounded-text routing repair is the active route
 
 ### Superseding PDF visual state — 2026-09-20
 
-Current active branch: `wave7/pc-sheet-pdf-renderer-template-proof` / PR #85 (DRAFT / DO NOT MERGE).
+The historical renderer-proof work from PR #85 is integrated/frozen evidence, **not the current active branch**. Current work is routed exclusively by `RESUME.md -> docs/checkpoints/LATEST.md`.
 
 Approved/frozen base-sheet baselines:
 - Custom v1 Run 7;
@@ -36,11 +36,11 @@ D-0074 + owner clarification require design-specific Extended pages for **all** 
 
 Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit, PC authority repository work or the PC Sheet PDF semantic foundation without new defect evidence.
 
-### Current active PDF branch / renderer state
+### Current active PDF route / renderer state
 
-Active branch: `wave7/pc-sheet-pdf-renderer-template-proof`. Draft PR: **#85**.
+No historical PR #85 renderer-proof branch is current continuation authority. The visual renderer is owner-approved/frozen subject only to concrete owner-observed runtime defects.
 
-The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation is whole-export-first architecture with structured incremental QA rather than coordinate nudging.
+The active runtime route is the generalized Fantasy Sheet bounded-text repair recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 
