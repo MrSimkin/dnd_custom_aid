@@ -3,12 +3,12 @@
 **Updated:** 2026-09-24 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified integrated `main`:** `eece864e5867f477b8bdd57596a1bee1638b4ceb` (PR #96 Aldren Fantasy runtime repair)  
-**Post-merge Scaffold:** `36057383682` — SUCCESS  
+**Last verified integrated `main`:** `289eafda731c4b1c61e76a947a86ab5d948c537c` (PR #98 in-app DEV-tools launch repair)  
+**Post-merge Scaffold:** `36060380623` — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #96 integrated; repaired Aldren Fantasy Sheet Save/Share manual rerun pending
+**Current normal work:** PC Sheet PDF Export — Stage 2 Aldren Save exposed a second Fantasy Sheet bounded-routing failure; generalized bounded-text routing repair is the active route before manual QA resumes
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -104,45 +104,39 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 Current branch direction:
 
-No implementation branch is active. PR #96 (`fix/pc-sheet-fantasy-aldren-runtime-overflow`) is integrated as `eece864e5867f477b8bdd57596a1bee1638b4ceb`; its post-merge Scaffold `36057383682` passed. The manual Save/Share gate remains open until the repaired APK is rerun.
+No historical implementation branch is continuation authority. Integrated `main` includes:
 
-Integrated PDF/export + QA chain:
+- PR #96 — first Aldren Fantasy compact combat/resource runtime overflow repair — merged as `eece864e5867f477b8bdd57596a1bee1638b4ceb`;
+- PR #98 — in-app DEV/QA tools launch repair + `0.5.0-preqa.2` — merged as `289eafda731c4b1c61e76a947a86ab5d948c537c`; post-merge Scaffold `36060380623` SUCCESS.
 
-- PR #85 — final owner-approved frozen renderer/visual state — merged as `49dfc78f132c9db9763513c591e877a1749285d5`;
-- PR #86 — Desktop Save/Share — merged as `c28ad548113b368413e479de544c85aa8c924ef4`;
-- PR #88 — generated Android renderer bridge — merged as `c5963881bdff2597770d3f6a26992b8567b2a35b`;
-- PR #89 — Android Player / authorized-DM Save/Share — merged as `e6e153a53bba8aa532b5c371dcc16849a901a541`;
-- PR #90 — Android Save/Share lifecycle closure — merged as `6ce3ac35798a1ce915a3dac4227e983932d5ab9f`;
-- PR #91 — runtime QA character fixture pack — merged as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`;
-- PR #92 — fixture integration/navigation closure — merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`;
-- post-merge Scaffold #3367 / `35915730801` — SUCCESS.
+Owner runtime QA on `0.5.0-preqa.2` proves:
 
-Runtime-QA fixtures now on `main`:
+- DEV/QA screen opens from application settings;
+- Gmail Player session can authenticate;
+- hosted campaign count = 1;
+- hosted PC count = 3;
+- applied PCs = 0 / unchanged PCs = 3;
+- campaign/PC conflicts = 0;
+- queued/retryable/blocked mutations = 0;
+- local hosted outbox is empty.
 
-- `qa/pc-sheet/fixtures/01_aldren_vale_srd5_1_champion_fighter.json`;
-- `qa/pc-sheet/fixtures/02_ilyra_quill_srd5_2_1_evoker_wizard.json`;
-- `qa/pc-sheet/fixtures/03_mara_siete_umbrales_custom_extended.json`;
-- `database/qa/seed_pc_sheet_runtime_characters.sql`;
-- `qa/pc-sheet/README.md`;
-- automated codec/import/rules/export-plan tests.
+The subsequent Aldren Fantasy Sheet / Permanente Save attempt still fails before a usable PDF is saved, now on long equipment/weapon descriptive text. Because this follows the earlier compact combat/resource overflow, the active engineering route is **generalized Fantasy Sheet bounded-text routing**, not an equipment-only patch.
 
-Hosted DEV QA data is now **READY / VERIFIED**. The exact three integrated fixture payloads are present in deterministic campaign `QA - PC Sheet PDF Runtime`; Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA and owns/controls all three PCs. Hosted-setup evidence remains `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`. The current runtime-repair continuation is `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
+Next implementation branch must start from current `main` and:
 
-Current manual boundary:
+1. inventory every bounded Fantasy Sheet base-field write;
+2. classify direct-safe vs preview+full-detail vs missing-destination values;
+3. centralize safe bounded preview/full-detail routing where appropriate;
+4. preserve complete semantic content and keep the safety guard active;
+5. cover the real Aldren fixture and stress cases in automated regression;
+6. preserve approved visual/pagination baselines;
+7. produce a new validated merged-main APK before owner Stage 2 Save is rerun.
 
-1. load the three QA characters through Android **Importar** or the guarded DEV SQL seed;
-2. Save a PDF through the real Android document picker and open it;
-3. Share through a compatible real target and confirm URI readability;
-4. use Ilyra for Spellbook + unsaved-edit non-persistence QA;
-5. use Mara for Custom-v2 Attribute/Ability + Extended-page stress;
-6. request Current Snapshot and verify the known fallback notice;
-7. record PASS or exact defects in the repository.
+Do **not** proceed to Aldren Share, Ilyra, Mara, Current Snapshot, Media/Handouts or the final physical-device gate before this repair and Aldren Save pass.
 
-Do **not** start Media / Handouts before this manual smoke result is recorded.
+Canonical resume authority:
 
-Resume authority:
-
-`docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`
 
 ## Historical/stale open PRs
 
