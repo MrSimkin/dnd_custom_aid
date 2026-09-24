@@ -860,6 +860,7 @@ internal class DesktopClassicRenderer {
                 CharacterTrackableValueKind.CURRENT_MAX,
                 -> resource.maxValue
             }
+            val legacyRecoveryText = resource.recovery.orEmpty().trim()
             val structuredRecovery = listOf(
                 recovery?.cadence?.let(::recoveryLabel).orEmpty(),
                 recovery?.amountMode?.let {
@@ -869,11 +870,12 @@ internal class DesktopClassicRenderer {
             val recoveryText = structuredRecovery
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString(" · ")
-                ?: resource.recovery.orEmpty().trim()
+                ?: legacyRecoveryText
             val notes = listOf(
+                legacyRecoveryText.takeIf { structuredRecovery.isNotEmpty() }.orEmpty(),
                 recovery?.notes.orEmpty().trim(),
                 resource.notes.orEmpty().trim(),
-            ).filter { it.isNotEmpty() }.joinToString(" · ")
+            ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
             splitClassicResourceRow(
                 name = resource.name,
                 value = maximum?.let { "${resource.currentValue} / $it" }
