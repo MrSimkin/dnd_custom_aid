@@ -126,7 +126,7 @@ Runtime-QA fixtures now on `main`:
 - `qa/pc-sheet/README.md`;
 - automated codec/import/rules/export-plan tests.
 
-Hosted DEV QA data is now **READY / VERIFIED**. The exact three integrated fixture payloads are present in deterministic campaign `QA - PC Sheet PDF Runtime`; Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA and owns/controls all three PCs. See `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
+Hosted DEV QA data is now **READY / VERIFIED**. The exact three integrated fixture payloads are present in deterministic campaign `QA - PC Sheet PDF Runtime`; Outlook remains `DM / ACTIVE`; Gmail is deliberately `PLAYER / ACTIVE` for this QA and owns/controls all three PCs. Hosted-setup evidence remains `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_HOSTED_PLAYER_SETUP_READY.md`. The current runtime-repair continuation is `docs/checkpoints/2026-09-24_PC_SHEET_FANTASY_ALDREN_RUNTIME_OVERFLOW_REPAIR.md`.
 
 Current manual boundary:
 
