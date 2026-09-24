@@ -2,8 +2,9 @@
 
 **Date:** 2026-09-24 (Chile local time)  
 **Integrated main entering this repair:** `799c0327dc81a30376a82182df21cb137e6ad1cf`  
-**Active repair:** PR #96 / `fix/pc-sheet-fantasy-aldren-runtime-overflow`  
-**Current repair candidate:** `97f1df4ea9ccd81605ddcab468c9f48eb72981ad`  
+**Integrated repair:** PR #96 merged into `main` as `eece864e5867f477b8bdd57596a1bee1638b4ceb`  
+**Final repair head:** `931c179d2973d87f4a5fa6f4a4265e1c93fea65a`  
+**Validation:** push Scaffold `36056511437` SUCCESS; PR Scaffold `36056515058` SUCCESS; post-merge Scaffold `36057383682` SUCCESS  
 **Manual gate:** NOT CLOSED — Aldren Save/Share must be rerun with the repaired APK.
 
 ## Why this repair exists
@@ -139,7 +140,7 @@ Rationale:
 
 ## Remaining manual boundary
 
-After PR #96 is integrated and its merged-main Scaffold is green:
+PR #96 is integrated and its merged-main Scaffold is green. The remaining owner action is:
 
 1. install/update the fresh `dnd-custom-aid-debug-apk` on the existing Android Virtual Device **without uninstalling**, preserving the current local/Descope state;
 2. expect only the normal application launcher;
