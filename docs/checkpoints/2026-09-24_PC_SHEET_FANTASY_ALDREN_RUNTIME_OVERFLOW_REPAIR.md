@@ -100,11 +100,11 @@ This is not silent data loss: the base preview is bounded while the full referen
 
 ### Resource recovery
 
-When structured recovery metadata exists, it is authoritative for the continuation row rather than concatenating it with semantically duplicated legacy free text.
+When structured recovery metadata exists, its cadence/amount is authoritative for the Recovery column. Legacy free-text recovery remains visible as review detail in Notes rather than being concatenated into the narrow Recovery cell.
 
-The recovery cell may wrap within its existing multi-line physical row.
+The recovery cell may wrap within its existing multi-line physical row, while note continuation remains bounded by the existing continuation machinery.
 
-The regression checks that `Descanso corto/largo` and `A máximo` survive in output.
+The regression checks that `Descanso corto/largo`, `A máximo`, and Aldren's legacy `Descanso corto o largo` review text all survive in output.
 
 ## QA ergonomics accepted during this repair
 
