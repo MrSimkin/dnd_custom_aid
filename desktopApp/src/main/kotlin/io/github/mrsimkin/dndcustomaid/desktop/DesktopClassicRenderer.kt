@@ -1123,37 +1123,40 @@ internal class DesktopClassicRenderer {
             .filter { it.id !in specialIds }
             .filter { item ->
                 item.id !in baseIds ||
-                    item.weightLb != null ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank() ||
-                    (
-                        usageByItem[item.id]?.carryState == CharacterInventoryCarryState.CARRIED &&
-                            !item.equipped &&
-                            !item.attuned
-                    ) ||
                     item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
                     inventoryBaseNote(item, usageByItem[item.id]).length >
                         CLASSIC_BASE_INVENTORY_NOTE_CHARS
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
-        val specialRows = specialItems.flatMap { item ->
-            classicSpecialItemRows(item, usageByItem[item.id])
-        }
+        // Special equipment already represented in the base table stays there. Only genuinely
+        // unrepresented special items receive another full inventory row.
+        val specialRows = specialItems
+            .filter { it.id !in baseIds }
+            .flatMap { item -> classicSpecialItemRows(item, usageByItem[item.id]) }
 
         val noteEntries = buildList {
+            // For base-represented items, continuation carries only information the compact base
+            // row cannot express; it does not replay the whole item.
             ordered
-                .filter { it.id !in specialIds }
+                .filter { it.id in baseIds }
                 .forEach { item ->
                     val state = inventoryState(item, usageByItem[item.id])
                     val details = buildList {
-                        if (item.name.length > CLASSIC_INVENTORY_ROW_NAME_CHARS) {
+                        if (item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS) {
                             add("Nombre completo: " + item.name)
                         }
+                        item.weightLb?.let { add("Peso: " + formatWeight(it) + " lb") }
                         item.location?.trim()?.takeIf {
-                            it.isNotEmpty() && it.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS
+                            it.isNotEmpty() &&
+                                inventoryBaseNote(item, usageByItem[item.id]).length >
+                                    CLASSIC_BASE_INVENTORY_NOTE_CHARS
                         }?.let { add("Ubicación: " + it) }
-                        if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) {
+                        if (
+                            state.isNotBlank() &&
+                            inventoryBaseNote(item, usageByItem[item.id]).length >
+                                CLASSIC_BASE_INVENTORY_NOTE_CHARS
+                        ) {
                             add("Estado: " + state)
                         }
                         item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1219,7 +1222,7 @@ internal class DesktopClassicRenderer {
                         )
                     }
 
-                titledFrame(s, p, 312f, 528f, 276f, 190f, "VALOR / UBICACIÓN / NOTAS")
+                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / DETALLES / NOTAS")
                 ruledTextArea(
                     s, p, 324f, 564f, 252f, 140f,
                     noteEntries
