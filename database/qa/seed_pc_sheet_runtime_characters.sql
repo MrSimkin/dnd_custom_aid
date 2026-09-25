@@ -1,5 +1,10 @@
 \set ON_ERROR_STOP on
 
+-- The fixture files are committed as UTF-8. Pin psql's client encoding before any
+-- \copy so Windows/local code pages cannot reinterpret UTF-8 bytes as Latin-1/CP1252
+-- and persist mojibake (for example Común -> ComÃºn).
+\encoding UTF8
+
 -- DEV/QA ONLY.
 -- Seeds the three PC-sheet runtime QA fixtures into the hosted PostgreSQL spine.
 -- Run from repository root so the client-side \copy paths resolve.
@@ -189,6 +194,25 @@ WHERE campaign_id = :'qa_campaign_id'::uuid
 \if :qa_seed_ok
 \else
   \echo 'ERROR: expected three active QA PC snapshots; rolling back.'
+  ROLLBACK;
+  \quit 3
+\endif
+
+SELECT CASE WHEN EXISTS (
+  SELECT 1
+  FROM pc
+  WHERE id = '7a000000-0000-4000-8000-000000000101'::uuid
+    AND snapshot #>> '{character,traits,0,notes}' LIKE '%Común%'
+    AND snapshot #>> '{character,traits,0,notes}' LIKE '%Élfico%'
+    AND snapshot #>> '{character,inventoryItems,2,description}' LIKE '%versátil%'
+    AND snapshot #>> '{character,generalNotes}' LIKE '%2–5%'
+    AND snapshot #>> '{character,traits,0,source}' LIKE '%—%'
+) THEN 'true' ELSE 'false' END AS qa_unicode_ok
+\gset
+
+\if :qa_unicode_ok
+\else
+  \echo 'ERROR: UTF-8 sentinel text did not survive fixture import; rolling back.'
   ROLLBACK;
   \quit 3
 \endif
