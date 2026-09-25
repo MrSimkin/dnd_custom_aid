@@ -2328,7 +2328,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
         const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
-        val BASE_V1_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc", "pe")
+        val BASE_V1_CURRENCY_KEYS = setOf("cp", "sp", "ep", "gp", "pp")
         val INVENTORY_ORDINARY_COLUMNS = listOf(
             27.5f to 137.5f,
             169.937f to 300.331f,
