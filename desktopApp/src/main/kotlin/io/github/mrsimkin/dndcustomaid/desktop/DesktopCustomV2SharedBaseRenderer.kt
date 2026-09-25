@@ -96,7 +96,12 @@ internal class DesktopCustomV2SharedBaseRenderer(
         drawRuledParagraph(s, BACKGROUND_RULES, backgroundText, 9.25f, 2.6f, 2f)
         drawRuledParagraph(s, BONDS_RULES, background.bonds, 9.25f, 2.6f, 2f)
         drawRuledParagraph(s, IDEALS_RULES, background.ideals, 9.25f, 2.6f, 2f)
-        drawRuledParagraph(s, STORY_RULES, background.story, 9.25f, 2.8f, 2f)
+        val notes = notesText(plan)
+        val storyAndNotes = buildList {
+            background.story.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            notes.takeIf { it.isNotBlank() }?.let { add("Notas: $it") }
+        }.joinToString(" · ")
+        drawRuledParagraph(s, STORY_RULES, storyAndNotes, 9.25f, 2.8f, 2f)
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
