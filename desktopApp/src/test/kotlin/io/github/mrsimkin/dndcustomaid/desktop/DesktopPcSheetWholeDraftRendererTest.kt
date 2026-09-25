@@ -349,7 +349,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         extendedPdf.outputStream().use { renderer.renderDraft(extendedPlan, it) }
 
         Loader.loadPDF(extendedPdf).use { document ->
-            assertEquals(6, document.numberOfPages)
+            assertTrue(document.numberOfPages >= extendedPlan.basePages.size)
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("ESTADÍSTICAS PERSONALIZADAS"))
             assertTrue(Regex("Atributo\\s+4").containsMatchIn(extracted))
@@ -1856,7 +1856,8 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Sintonizado"))
             assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+especial").containsMatchIn(extracted))
             assertTrue(
-                Regex("Piezas\\s+de\\s+mithril:\\s+7").containsMatchIn(extracted),
+                Regex("Piezas\\s+de\\s+mithril[\\s\\S]*?7").containsMatchIn(extracted),
+                "Custom currency name and amount must survive in the native Monedas rows.",
             )
             assertTrue(extracted.contains("Tesoro canónico 9"))
 
@@ -1914,7 +1915,6 @@ class DesktopPcSheetWholeDraftRendererTest {
         pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
         Loader.loadPDF(pdf).use { document ->
-            assertEquals(7, document.numberOfPages)
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(layers.any { it.startsWith("V1X SPELLS P1 - STRUCTURE") })
             assertTrue(layers.any { it.startsWith("V1X SPELLS P2 - STRUCTURE") })
@@ -1931,20 +1931,22 @@ class DesktopPcSheetWholeDraftRendererTest {
                 )
             }
 
-            val first = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
-            val second = PDFRenderer(document).renderImageWithDPI(6, 220f, ImageType.RGB)
+            val firstIndex = document.numberOfPages - 2
+            val secondIndex = document.numberOfPages - 1
+            val first = PDFRenderer(document).renderImageWithDPI(firstIndex, 220f, ImageType.RGB)
+            val second = PDFRenderer(document).renderImageWithDPI(secondIndex, 220f, ImageType.RGB)
             assertTrue(
                 ImageIO.write(
                     first,
                     "png",
-                    File(proofDir, "custom-v1-production-extended-spells-pass5-page-6.png"),
+                    File(proofDir, "custom-v1-production-extended-spells-pass5-page-${firstIndex + 1}.png"),
                 ),
             )
             assertTrue(
                 ImageIO.write(
                     second,
                     "png",
-                    File(proofDir, "custom-v1-production-extended-spells-pass5-page-7.png"),
+                    File(proofDir, "custom-v1-production-extended-spells-pass5-page-${secondIndex + 1}.png"),
                 ),
             )
         }
@@ -1993,7 +1995,6 @@ class DesktopPcSheetWholeDraftRendererTest {
         pdf.outputStream().use { renderer.renderDraft(plan, it) }
 
         Loader.loadPDF(pdf).use { document ->
-            assertEquals(6, document.numberOfPages)
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(layers.any { it.startsWith("V1X NOTES P1 - STRUCTURE") })
             assertTrue(layers.any { it.startsWith("V1X NOTES P1 - VALUES") })
@@ -2010,12 +2011,13 @@ class DesktopPcSheetWholeDraftRendererTest {
                 )
             }
 
-            val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
+            val pageIndex = document.numberOfPages - 1
+            val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 220f, ImageType.RGB)
             assertTrue(
                 ImageIO.write(
                     image,
                     "png",
-                    File(proofDir, "custom-v1-production-extended-notes-pass6-page-6.png"),
+                    File(proofDir, "custom-v1-production-extended-notes-pass6-page-${pageIndex + 1}.png"),
                 ),
             )
         }
@@ -3149,7 +3151,9 @@ class DesktopPcSheetWholeDraftRendererTest {
                 }
                 assertTrue(baseText.contains("EXTENSIÓN:"))
                 assertTrue(baseText.contains("CONJUROS"))
-                assertTrue(baseText.contains("NOTAS"))
+                if (plan.basePages.any { it.role == PcSheetBasePageRole.NOTES }) {
+                    assertTrue(baseText.contains("NOTAS"))
+                }
                 assertFalse(baseText.contains(" - CONTINÚA EN EXTENSIÓN"))
 
                 repeat(plan.basePages.size) { pageIndex ->
@@ -3265,8 +3269,12 @@ class DesktopPcSheetWholeDraftRendererTest {
                         audit("IDIOMAS", 342f, 578f, 602f)
                         audit("ALIADOS Y TESORO", 510f, 578f, 602f)
                         audit("RASGOS DE RAZA / TRASFONDO / OTROS", 450f, 110f, 136f)
-                        audit("NOTAS DE CAMPAÑA", 204f, 110f, 136f)
-                        audit("REFERENCIAS Y RECORDATORIOS", 493f, 416f, 442f)
+                        // The standalone Fantasy Notes page is now content-aware. Keep its XY
+                        // contract when present, but do not require a redundant page to exist.
+                        if (allText.contains("NOTAS DE CAMPAÑA")) {
+                            audit("NOTAS DE CAMPAÑA", 204f, 110f, 136f)
+                            audit("REFERENCIAS Y RECORDATORIOS", 493f, 416f, 442f)
+                        }
                     }
 
                     PcSheetVisualFamily.CUSTOM_V1 -> {
