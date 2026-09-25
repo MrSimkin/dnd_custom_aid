@@ -979,11 +979,12 @@ internal class AndroidClassicRenderer {
             splitClassicResourceRow(
                 name = resource.name,
                 value = if (oneUse) {
-                    resource.currentValue.coerceIn(0, 1).toString() + " / 1"
+                    ""
                 } else {
                     maximum?.let { "${resource.currentValue} / $it" }
                         ?: resource.currentValue.toString()
                 },
+                oneUseAvailable = if (oneUse) resource.currentValue > 0 else null,
                 recovery = recoveryText,
                 source = resource.source.orEmpty().trim(),
                 notes = notes,
@@ -1001,11 +1002,12 @@ internal class AndroidClassicRenderer {
             splitClassicResourceRow(
                 name = marker.name,
                 value = if (oneUse) {
-                    marker.currentValue.coerceIn(0, 1).toString() + " / 1"
+                    ""
                 } else {
                     maximum?.let { "${marker.currentValue} / $it" }
                         ?: marker.currentValue.toString()
                 },
+                oneUseAvailable = if (oneUse) marker.currentValue > 0 else null,
                 recovery = buildList {
                     recoveryLabel(marker.recovery.cadence).takeIf { it.isNotEmpty() }?.let(::add)
                     if (!oneUse || marker.recovery.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
@@ -1025,6 +1027,7 @@ internal class AndroidClassicRenderer {
     private fun splitClassicResourceRow(
         name: String,
         value: String,
+        oneUseAvailable: Boolean?,
         recovery: String,
         source: String,
         notes: String,
@@ -1062,6 +1065,7 @@ internal class AndroidClassicRenderer {
                     classicSingleLineExcerpt("$projectedName (cont.)", CLASSIC_RESOURCE_NAME_CHARS)
                 },
                 value = value.takeIf { index == 0 }.orEmpty(),
+                oneUseAvailable = oneUseAvailable.takeIf { index == 0 },
                 recovery = projectedRecovery.takeIf { index == 0 }.orEmpty(),
                 source = projectedSource.takeIf { index == 0 }.orEmpty(),
                 notes = note,
@@ -2859,6 +2863,16 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             )
             cursor += widths[index]
         }
+        row.oneUseAvailable?.let { available ->
+            marker(
+                s,
+                p,
+                x + 162f + 34f,
+                top + 19f,
+                8f,
+                if (available) PdfMarkerKind.CIRCLE_OUTLINE else PdfMarkerKind.CIRCLE_FILLED,
+            )
+        }
         hairline(s, x, top + 42f, x + widths.sum(), top + 42f)
     }
 
@@ -3216,6 +3230,7 @@ private fun ruledTextArea(
     private data class ClassicResourceRow(
         val name: String,
         val value: String,
+        val oneUseAvailable: Boolean?,
         val recovery: String,
         val source: String,
         val notes: String,
