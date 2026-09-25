@@ -82,6 +82,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
 
         appendTraitsExtendedPages(plan)
+        appendCombatExtendedPages(plan)
 
         appendResourcesExtendedPages(plan)
 
@@ -652,27 +653,6 @@ internal class DesktopCustomV2ExtendedRenderer(
             addFull("Estado", characterStatusLabel(sheet.status))
         }
 
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                if (
-                    index >= BASE_V2_COMBAT_CAPACITY ||
-                    entry.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank()
-                ) {
-                    addFull(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
-
         when (closure.progressMode) {
             CharacterProgressMode.EXPERIENCE -> addFull("Experiencia", closure.experiencePoints.toString())
             CharacterProgressMode.MILESTONE -> addFull("Progreso", closure.milestoneProgress)
@@ -758,17 +738,6 @@ internal class DesktopCustomV2ExtendedRenderer(
                     ).filter { it.isNotBlank() }.joinToString(" · "),
                 )
             }
-
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val entry = combatById[profile.combatEntryId]
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression + component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                addFull("Daño estructurado", (entry?.name ?: "Ataque") + ": " + components)
-            }
-        }
 
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
         successor.spellcastingProfiles.forEach { profile ->
@@ -895,6 +864,82 @@ internal class DesktopCustomV2ExtendedRenderer(
 
         if (metadata.isEmpty()) return listOf(trait.name)
         return wrapByWidth(resources.fira, trait.name + ": " + metadata, 7.7f, 281f)
+    }
+
+    private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val lines = combatContinuationLines(plan)
+        if (lines.isEmpty()) return
+        val pages = pageCount(lines.size, COMBAT_LINES_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            val pageLines = lines
+                .drop(pageIndex * COMBAT_LINES_PER_PAGE)
+                .take(COMBAT_LINES_PER_PAGE)
+            val prefix = if (pageIndex == 0) "V2X COMBAT" else "V2X COMBAT P${pageIndex + 1}"
+            appendLayer(page, "$prefix - STRUCTURE") { s ->
+                pageHeaderStructure(s)
+                fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
+                bandedRows(s, 14f, 598f, 139f, COMBAT_LINES_PER_PAGE, 17f, 0)
+            }
+            appendLayer(page, "$prefix - LABELS") { s ->
+                pageTitle(s, "COMBATE / ACCIONES")
+                centeredFixedScale(
+                    s, resources.corbelBold,
+                    TopRect(14f, 97f, 584f, 20f),
+                    "DETALLE Y REFERENCIA DE COMBATE",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
+            appendLayer(page, "$prefix - VALUES") { s ->
+                pageLines.forEachIndexed { index, line ->
+                    textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(18f, 594f, 139f + index * 17f),
+                        line,
+                        7.8f,
+                        6.6f,
+                        2.3f,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun combatContinuationLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val structuredByEntry = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+        return sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .flatMap { entry ->
+                val structured = structuredByEntry[entry.id]
+                    ?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val detail = buildList {
+                    add(combatTypeLabel(entry.type) + " · " + entry.name)
+                    entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                    entry.rangeText?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.damageEffect.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (
+                        structured.isNotBlank() &&
+                        !entry.damageEffect.replace(" ", "").equals(
+                            structured.replace(" ", ""),
+                            ignoreCase = true,
+                        )
+                    ) {
+                        add("Daño estructurado: $structured")
+                    }
+                }.joinToString(" · ")
+                wrapByWidth(resources.fira, detail, 7.8f, 570f)
+            }
     }
 
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
@@ -2469,6 +2514,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             "Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha",
             "Brazo izquierdo", "Brazo derecho", "Pecho", "Piernas", "Pies",
         )
+        const val COMBAT_LINES_PER_PAGE = 32
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_OPTIONS_PER_PAGE = 18
         const val BASE_V2_NOTES_CAPACITY = 40
