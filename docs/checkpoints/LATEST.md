@@ -6,8 +6,8 @@
 **Post-merge Scaffold:** `36067012766` — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md`  
-**Current active route:** PC Sheet PDF — coherent cross-family runtime repair ACTIVE; fix Unicode ingress, semantic routing, content-aware packing, resource semantics and Custom-v2 equipment typography before later manual QA resumes  
-**Current implementation branch:** `fix/pc-sheet-cross-family-runtime-repair` from main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef`; early fixes pin UTF-8 for the QA seed and suppress empty spell base pages  
+**Current active route:** PC Sheet PDF — cross-family runtime repair implementation GREEN; install `0.5.0-preqa.4` and rerun Aldren/Permanente across all four families before later manual QA resumes  
+**Current implementation branch:** `fix/pc-sheet-cross-family-runtime-repair` from main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef`; repair candidate `0.5.0-preqa.4` built green at `17d93d32561a6cc46d228b2bd6b0aa8dca466ea8` / Scaffold `36163990848`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -138,5 +138,6 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 18. Owner Stage 2 reached Aldren Fantasy Sheet / Permanente successfully, but the actual Save/generation attempt exposed a **new bounded-routing failure in long equipment/weapon descriptive content** before a usable PDF save.
 19. The repeated pattern is treated as a defect class, not another string-specific patch. The generalized preview/full-detail routing repair is implemented on `fix/fantasy-sheet-generalized-bounded-text-routing` at `29138e7322feae111b6207acb45da896a207d749`; branch Scaffold `36065636679` is SUCCESS. Aldren and Mara real fixtures pass while approved pagination baselines remain intact.
 20. PR #100 merged the generalized repair as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffold `36067012766` is SUCCESS. Owner runtime on `0.5.0-preqa.3` confirms Save/open across Fantasy, Custom v1 and both Custom-v2 variants. The cross-family Aldren survey is now COMPLETE and proves shared defects in Unicode, semantic continuation routing, inventory/currency routing, unnecessary spell/notes pages and page packing, plus family-specific resource and Custom-v2 typography defects. **Current route:** stop later manual QA and implement the repair package specified by the Canonical active checkpoint. Do not proceed to Share, Ilyra, Mara, Current Snapshot or the final physical-device gate until the repaired Aldren cross-family rerun passes.
+21. Cross-family repair implementation is now GREEN on `fix/pc-sheet-cross-family-runtime-repair`. `0.5.0-preqa.4` / versionCode `50400` was built from `17d93d32561a6cc46d228b2bd6b0aa8dca466ea8`; Scaffold `36163990848` is SUCCESS across backend, hosted database, guards, Android assemble and Kotlin/Desktop tests. **Next:** rerun Aldren/Permanente in all four families on Android. Do not expand QA scope until that rerun passes.
 
 No external provider action is required for this PDF-renderer stage.
