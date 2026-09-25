@@ -1510,7 +1510,17 @@ private fun appendSpellContinuationPages(
         fun addWrapped(label: String, value: String) {
             val clean = value.trim()
             if (clean.isEmpty()) return
-            lines += wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
+            val wrapped = wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
+            if (wrapped.isEmpty()) return
+            val usedOnPage = lines.size % CLASSIC_REFERENCE_LINES_PER_PAGE
+            if (
+                usedOnPage != 0 &&
+                wrapped.size <= CLASSIC_REFERENCE_LINES_PER_PAGE &&
+                usedOnPage + wrapped.size > CLASSIC_REFERENCE_LINES_PER_PAGE
+            ) {
+                repeat(CLASSIC_REFERENCE_LINES_PER_PAGE - usedOnPage) { lines += "" }
+            }
+            lines += wrapped
         }
 
         val baseLanguageIds = sheet.proficiencies
