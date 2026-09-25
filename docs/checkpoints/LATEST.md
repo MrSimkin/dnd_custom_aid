@@ -6,8 +6,8 @@
 **Post-merge Scaffold:** `36067012766` — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`  
-**Current active route:** PC Sheet PDF — OWNER MANUAL QA: update emulator to `0.5.0-preqa.3`, rerun Aldren Fantasy Sheet / Permanente Save, then Share only if Save passes  
-**Current implementation branch:** none — generalized repair is integrated; manual owner gate is active  
+**Current active route:** PC Sheet PDF — OWNER MANUAL QA: Fantasy Save mechanism passed on `0.5.0-preqa.3`; survey Aldren/Permanente across Custom v1, Custom v2 per Attribute and Custom v2 per Ability before repairing the five recorded content/layout defects  
+**Current implementation branch:** none — cross-family manual survey is active; no renderer repair should start until the survey matrix is complete  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -138,6 +138,6 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 17. Owner Stage 1 then exposed an in-app DEV-tools navigation crash in `0.5.0-preqa.1`; PR #98 repaired it, advanced the QA build to `0.5.0-preqa.2`, and merged as `289eafda731c4b1c61e76a947a86ab5d948c537c`. Runtime owner QA confirms the DEV screen opens, Gmail Player auth works, hosted sync remains converged, 3 PCs are unchanged, conflicts are zero and outbox is empty.
 18. Owner Stage 2 reached Aldren Fantasy Sheet / Permanente successfully, but the actual Save/generation attempt exposed a **new bounded-routing failure in long equipment/weapon descriptive content** before a usable PDF save.
 19. The repeated pattern is treated as a defect class, not another string-specific patch. The generalized preview/full-detail routing repair is implemented on `fix/fantasy-sheet-generalized-bounded-text-routing` at `29138e7322feae111b6207acb45da896a207d749`; branch Scaffold `36065636679` is SUCCESS. Aldren and Mara real fixtures pass while approved pagination baselines remain intact.
-20. PR #100 merged the generalized repair as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffold `36067012766` is SUCCESS. **Current route:** install/update `0.5.0-preqa.3` on the existing emulator without uninstalling, rerun Aldren Fantasy Sheet / Permanente -> `Guardar PDF`, and require a readable populated PDF with no bounded-routing diagnostic. Test Share only after Save passes. Do not proceed to Ilyra, Mara, Current Snapshot or the final physical-device gate until the owner-observed Aldren Save passes.
+20. PR #100 merged the generalized repair as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffold `36067012766` is SUCCESS. Owner runtime on `0.5.0-preqa.3` confirms Fantasy Save/open now passes with no bounded-routing diagnostic, but inspection exposed five new content/layout defects: mojibake, wasted Traits continuation capacity, combat/action references under Traits, misleading one-use resource rendering/continuation rows, and ordinary inventory details routed into the value/location/notes panel. **Current route:** before any repair, survey the same Aldren/Permanente export in Custom v1 and both Custom-v2 variants to determine shared vs Fantasy-specific scope. Do not test Share, Ilyra, Mara, Current Snapshot or the final physical-device gate until this cross-family survey is complete.
 
 No external provider action is required for this PDF-renderer stage.
