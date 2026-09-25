@@ -10,7 +10,7 @@ class PcSheetPdfInventorySemanticsTest {
     @Test
     fun ordinaryEquipmentIdentityIsQuantityNameAndWeightOnly() {
         val item = CharacterInventoryItem(
-            id = Uuid.parse("91000000-0000-4000-8000-000000000001"),
+            id = Uuid.random(),
             name = "Virotes",
             quantity = 20,
             weightLb = 0.075,
@@ -38,7 +38,7 @@ class PcSheetPdfInventorySemanticsTest {
     @Test
     fun specialEquipmentKeepsItsOwnDedicatedSemantics() {
         val item = CharacterInventoryItem(
-            id = Uuid.parse("91000000-0000-4000-8000-000000000002"),
+            id = Uuid.random(),
             name = "Espada larga",
             quantity = 1,
             weightLb = 3.0,
