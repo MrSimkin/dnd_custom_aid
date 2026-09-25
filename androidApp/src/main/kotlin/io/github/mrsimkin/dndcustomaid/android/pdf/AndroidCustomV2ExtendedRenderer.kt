@@ -1108,12 +1108,23 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val current = row.currentValue
                 val maximum = row.maximum
                 if (current != null) {
-                    val canUseSymbols = maximum != null &&
-                        maximum in 1..9 &&
-                        current in 0..maximum
-                    if (!canUseSymbols) {
-                        val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
-                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                    when {
+                        maximum == 1 && current in 0..1 -> {
+                            textAboveRule(
+                                s,
+                                resources.firaSemibold,
+                                Rule(250f, 348f, y),
+                                if (current > 0) "Disponible" else "Usado",
+                                7.1f,
+                                6.4f,
+                                2.2f,
+                            )
+                        }
+                        maximum != null && maximum in 2..9 && current in 0..maximum -> Unit
+                        else -> {
+                            val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
+                            centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                        }
                     }
                 }
 
@@ -1145,16 +1156,27 @@ internal class AndroidCustomV2ExtendedRenderer(
                 if (
                     current != null &&
                     maximum != null &&
-                    maximum in 1..9 &&
                     current in 0..maximum
                 ) {
-                    drawSquareCounter(
-                        s,
-                        236f,
-                        141.5f + index * 17f,
-                        current,
-                        maximum,
-                    )
+                    if (maximum == 1) {
+                        val codePoint = if (current > 0) 0xE300 else 0xE301
+                        glyphInRect(
+                            s,
+                            resources.symbol,
+                            codePoint,
+                            TopRect(232f, 136.5f + index * 17f, 10f, 10f),
+                            0.7f,
+                            0.7f,
+                        )
+                    } else if (maximum in 2..9) {
+                        drawSquareCounter(
+                            s,
+                            236f,
+                            141.5f + index * 17f,
+                            current,
+                            maximum,
+                        )
+                    }
                 }
             }
 
@@ -2520,7 +2542,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
-        val BASE_V2_CURRENCY_KEYS = setOf("pp", "gp", "sp", "cp")
+        val BASE_V2_CURRENCY_KEYS = setOf("cp", "sp", "ep", "gp", "pp")
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_CONTINUATION_CAPACITY = 57
         const val INVENTORY_VALUABLES_CAPACITY = 19
