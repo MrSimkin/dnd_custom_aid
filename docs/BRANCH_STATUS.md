@@ -109,9 +109,10 @@ After a closure merges, normal implementation starts from current `main`; do not
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`;
 - implementation support checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md`;
-- `0.5.0-preqa.4` / `50400` is mechanically green but **OWNER MANUAL QA FAILED**;
-- current work is engineering repair, not manual QA expansion;
-- Share, Ilyra, Mara, Current Snapshot, Media/Handouts and final physical-device QA remain blocked until a repaired Aldren/Permanente four-family rerun passes.
+- final repaired implementation head `cfaa98f92cecb846babcf83f180783839ccd56c6` is green on push `36196067865` and PR `36196073964`;
+- `0.5.0-preqa.5` / `50500` candidate `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523` is green on push `36196696061` and PR `36196702100`; preferred APK artifact `10890483613`;
+- current work is the bounded owner Aldren/Permanente four-family rerun; PR #104 remains DRAFT / DO NOT MERGE;
+- Share, Ilyra, Mara, Current Snapshot, Media/Handouts and final physical-device QA remain blocked until that rerun passes.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
 

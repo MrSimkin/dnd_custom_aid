@@ -9,11 +9,11 @@
 
 The Aldren/Permanente Android survey on `0.5.0-preqa.3` proved Save/open across all four PDF families but exposed shared defects in Unicode ingress, semantic continuation routing, inventory/currency handling and page packing, plus family-specific resource and Custom-v2 equipment typography defects.
 
-The complete evidence and acceptance requirements remain in:
+The authoritative owner-observed preqa.4 failure evidence and acceptance gate are:
 
-`docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md`
+`docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`
 
-This checkpoint records implementation progress only; it does not supersede that evidence.
+This checkpoint records implementation/candidate progress only; it does not supersede that owner review.
 
 
 ## Owner clarifications consolidated 2026-09-25

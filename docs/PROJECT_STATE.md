@@ -301,6 +301,12 @@ Object-storage provider selection remains deferred until Media/Handouts/assets c
 
 Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect package reachability and available fixed versions when a relevant hardening package is scheduled.
 
+### PC Sheet post-preqa.4 repair / preqa.5 candidate — 2026-09-25
+
+The owner-observed `0.5.0-preqa.4` cross-family failure remains the acceptance authority, but the repair package is now repository-green. Final implementation head `cfaa98f92cecb846babcf83f180783839ccd56c6` passed push Scaffold `36196067865` and PR Scaffold `36196073964`. The distinguishable Android candidate is `0.5.0-preqa.5` / `50500` at `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523`; push `36196696061` and PR `36196702100` both passed, with preferred debug-APK artifact `10890483613`.
+
+The next boundary is owner manual QA for **Aldren Vale / Permanente only** across Fantasy Sheet, Custom v1, Custom v2 per Attribute and Custom v2 per Ability. PR #104 remains DRAFT / DO NOT MERGE. Share, Ilyra, Mara, Current Snapshot, Media/Handouts and final physical-device QA remain blocked until that four-family rerun passes.
+
 ## 8. Resume rule
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
