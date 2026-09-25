@@ -346,10 +346,26 @@ internal class DesktopCustomV2SharedBaseRenderer(
         return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String =
-        plan.snapshot.aggregate.sheet
-            .pdfCampaignNoteParagraphs()
-            .joinToString(" ")
+    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Rasgos de personalidad: $it")
+            }
+            sheet.background.flaws.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Defectos: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
+        }.joinToString(" ")
+    }
 
     private class Fonts(document: PDDocument, loader: (String) -> InputStream?) {
         val regular = load(document, loader, "fonts/pdf/text/FiraSans-Regular.ttf")
