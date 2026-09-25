@@ -69,6 +69,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         if (needsTraitsExtendedPage(plan)) {
             appendTraitsExtendedPages(plan)
         }
+        appendCombatExtendedPages(plan)
         if (needsResourcesExtendedPage(plan)) {
             appendResourcesExtendedPages(plan)
         }
@@ -411,27 +412,6 @@ internal class DesktopCustomV1ExtendedRenderer(
             addFull("Estado", characterStatusLabel(sheet.status))
         }
 
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                if (
-                    index >= BASE_V1_COMBAT_CAPACITY ||
-                    entry.type != CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank()
-                ) {
-                    addFull(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
-
         if (closure.progressMode == CharacterProgressMode.MILESTONE) {
             addFull("Progreso", closure.milestoneProgress)
         }
@@ -517,18 +497,6 @@ internal class DesktopCustomV1ExtendedRenderer(
                     ).filter { it.isNotBlank() }.joinToString(" · "),
                 )
             }
-
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val entry = combatById[profile.combatEntryId]
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression +
-                    component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                addFull("Daño estructurado", (entry?.name ?: "Ataque") + ": " + components)
-            }
-        }
 
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
         successor.spellcastingProfiles.drop(1).forEach { profile ->
@@ -669,6 +637,78 @@ internal class DesktopCustomV1ExtendedRenderer(
                 wrapByWidth(value, resources.fira, 8.4f, TRAIT_LEFT_TEXT_WIDTH)
             }
         }
+
+    private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val lines = combatContinuationLines(plan)
+        if (lines.isEmpty()) return
+        val pages = pageCount(lines.size, COMBAT_LINES_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            val pageLines = lines
+                .drop(pageIndex * COMBAT_LINES_PER_PAGE)
+                .take(COMBAT_LINES_PER_PAGE)
+            val prefix = "V1X COMBAT P${pageIndex + 1}"
+            appendLayer(page, "$prefix - STRUCTURE") { s ->
+                drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+                sourceBands(s, 25f, 585f, 128.5f, COMBAT_LINES_PER_PAGE, 20f)
+            }
+            appendLayer(page, "$prefix - LABELS") { s ->
+                centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Combate / Acciones", 18f)
+                centeredText(
+                    s, resources.fira,
+                    27f, 96f, 556f, 14f,
+                    "DETALLE Y REFERENCIA DE COMBATE",
+                    7.5f,
+                )
+            }
+            appendLayer(page, "$prefix - VALUES") { s ->
+                pageLines.forEachIndexed { index, line ->
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(27.5f, 582f, 128.5f + index * 20f),
+                        line,
+                        8.2f,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun combatContinuationLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val structuredByEntry = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+        return sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .flatMap { entry ->
+                val structured = structuredByEntry[entry.id]
+                    ?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val detail = buildList {
+                    add(combatTypeLabel(entry.type) + " · " + entry.name)
+                    entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                    entry.rangeText?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.damageEffect.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (
+                        structured.isNotBlank() &&
+                        !entry.damageEffect.replace(" ", "").equals(
+                            structured.replace(" ", ""),
+                            ignoreCase = true,
+                        )
+                    ) {
+                        add("Daño estructurado: $structured")
+                    }
+                }.joinToString(" · ")
+                wrapByWidth(detail, resources.fira, 8.2f, 550f)
+            }
+    }
 
     private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
         val aggregate = plan.snapshot.aggregate
@@ -2263,6 +2303,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
 
+        const val COMBAT_LINES_PER_PAGE = 28
         const val RESOURCE_FIRST_RULE_TOP = 128.5f
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_STEP = 20f
