@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — coherent cross-family repair is IN PROGRESS on `fix/pc-sheet-cross-family-runtime-correctness`; content-aware base pages, Custom-v1 currency keys, and dedicated Custom-v1/v2 combat continuation are landed, while Fantasy combat routing, Custom-v2 currency reapply, inventory/page packing, resource semantics, Custom-v2 location typography and hosted Unicode integrity remain before owner QA resumes
+**Current active package:** PC Sheet PDF Export — OWNER-REQUESTED PAUSE. Draft PR #103 on `fix/pc-sheet-cross-family-runtime-correctness` preserves the WIP repair. Last implementation/code HEAD before pause is `4e7f2f7127f607d9d97c7de22fa1fcc01514c1b9`; subsequent branch commits are consolidation docs. Resume only through `docs/checkpoints/2026-09-24_PC_SHEET_CROSS_FAMILY_RUNTIME_CORRECTNESS_REPAIR_WIP.md`; do not merge/reseed/build/resume QA until the owner explicitly restarts work
 
 ### Superseding PDF visual state — 2026-09-20
 
