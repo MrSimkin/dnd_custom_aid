@@ -1160,7 +1160,13 @@ internal class DesktopClassicRenderer {
         // the Treasure/Notes block. This may repeat the compact item identity intentionally, but
         // not the item's data across unrelated semantic destinations.
         val specialRows = specialItems
-            .flatMap { item -> classicSpecialItemRows(item, usageByItem[item.id]) }
+            .flatMap { item ->
+                classicSpecialItemRows(
+                    item = item,
+                    usage = usageByItem[item.id],
+                    representedInBase = item.id in baseIds,
+                )
+            }
 
         val noteEntries = buildList {
             sheet.currencies
@@ -1237,6 +1243,7 @@ internal class DesktopClassicRenderer {
     private fun classicSpecialItemRows(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+        representedInBase: Boolean,
     ): List<ClassicSpecialItem> {
         val cleanName = item.name.trim()
         val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_SPECIAL_ITEM_NAME_CHARS)
@@ -1244,8 +1251,10 @@ internal class DesktopClassicRenderer {
             if (cleanName.length > CLASSIC_SPECIAL_ITEM_NAME_CHARS) {
                 add("Nombre completo: $cleanName")
             }
-            if (item.quantity != 1) add("Cant. ${item.quantity}")
-            item.weightLb?.let { add("Peso " + formatWeight(it)) }
+            if (!representedInBase) {
+                if (item.quantity != 1) add("Cant. ${item.quantity}")
+                item.weightLb?.let { add("Peso " + formatWeight(it) + " lb") }
+            }
             inventoryState(item, usage).takeIf { it.isNotBlank() }?.let(::add)
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
