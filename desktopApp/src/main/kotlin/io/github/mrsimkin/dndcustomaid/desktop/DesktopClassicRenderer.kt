@@ -825,7 +825,7 @@ internal class DesktopClassicRenderer {
 
         return sheet.combatEntries
             .sortedBy { it.sortOrder }
-            .flatMap { entry ->
+            .mapIndexedNotNull { index, entry ->
                 val structured = structuredByEntry[entry.id]
                     ?.components
                     ?.joinToString(" + ") { component ->
@@ -833,24 +833,36 @@ internal class DesktopClassicRenderer {
                             component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
                     }
                     .orEmpty()
+                val baseDetail = listOfNotNull(
+                    entry.damageEffect.takeIf { it.isNotBlank() },
+                    entry.rangeText?.takeIf { it.isNotBlank() },
+                    entry.notes?.takeIf { it.isNotBlank() },
+                ).joinToString(" · ")
+                val structuredAddsInformation =
+                    structured.isNotBlank() &&
+                        !entry.damageEffect.replace(" ", "").equals(
+                            structured.replace(" ", ""),
+                            ignoreCase = true,
+                        )
+                val needsContinuation =
+                    index >= BASE_COMBAT_CAPACITY ||
+                        entry.type != CharacterCombatEntryType.ATTACK ||
+                        entry.name.length > CLASSIC_COMBAT_NAME_CHARS ||
+                        baseDetail.length > CLASSIC_COMBAT_PREVIEW_CHARS ||
+                        structuredAddsInformation
+                if (!needsContinuation) return@mapIndexedNotNull null
+
                 val detail = buildList {
                     add(combatTypeLabel(entry.type) + " · " + entry.name)
                     entry.attackModifier?.let { add("Ataque " + signed(it)) }
                     entry.rangeText?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     entry.damageEffect.trim().takeIf { it.isNotEmpty() }?.let(::add)
                     entry.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    if (
-                        structured.isNotBlank() &&
-                        !entry.damageEffect.replace(" ", "").equals(
-                            structured.replace(" ", ""),
-                            ignoreCase = true,
-                        )
-                    ) {
-                        add("Daño estructurado: $structured")
-                    }
+                    if (structuredAddsInformation) add("Daño estructurado: $structured")
                 }.joinToString(" · ")
                 wrapForChars(detail, CLASSIC_COMBAT_REFERENCE_CHARS)
             }
+            .flatten()
     }
 
     private fun appendResourcesPages(
