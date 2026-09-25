@@ -302,10 +302,47 @@ object PcSheetPdfExportPlanner {
                 aggregate.sheet.spellSlots.any { it.totalSlots > 0 } ||
                 aggregate.sheet.spellcastingSources.isNotEmpty()
 
+        val v1CampaignNoteLines = approximateWrappedLineCount(
+            aggregate.sheet.pdfCampaignNoteParagraphs(),
+            V1_NARRATIVE_NOTE_APPROX_CHARS,
+        )
+        val v1NeedsDedicatedNotesPage =
+            aggregate.sheet.pdfOrdinaryEquipmentDetailParagraphs().isNotEmpty() ||
+                v1CampaignNoteLines > V1_NARRATIVE_NOTE_CAPACITY
+
         return basePages(family).filter { page ->
-            page.role != PcSheetBasePageRole.SPELL_LIST || hasSpellPageContent
+            when {
+                page.role == PcSheetBasePageRole.SPELL_LIST -> hasSpellPageContent
+                family == PcSheetVisualFamily.CUSTOM_V1 &&
+                    page.role == PcSheetBasePageRole.NOTES -> v1NeedsDedicatedNotesPage
+                else -> true
+            }
         }
     }
+
+    private fun approximateWrappedLineCount(
+        paragraphs: List<String>,
+        maxChars: Int,
+    ): Int {
+        var lines = 0
+        paragraphs.forEach { paragraph ->
+            var currentLength = 0
+            paragraph.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.forEach { word ->
+                val candidate = if (currentLength == 0) word.length else currentLength + 1 + word.length
+                if (candidate <= maxChars || currentLength == 0) {
+                    currentLength = candidate
+                } else {
+                    lines += 1
+                    currentLength = word.length
+                }
+            }
+            if (currentLength > 0) lines += 1
+        }
+        return lines
+    }
+
+    private const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
+    private const val V1_NARRATIVE_NOTE_CAPACITY = 9
 
     fun basePages(family: PcSheetVisualFamily): List<PcSheetTemplatePage> = when (family) {
         PcSheetVisualFamily.CLASSIC_DND_STYLE -> listOf(
