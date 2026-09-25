@@ -56,6 +56,8 @@ Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Cus
 
 Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
 
+Do not infer a continuation branch from the remote branch list. If `LATEST.md` names an active implementation branch, that exact ref is authoritative and all other old repair/docs/tmp branches are historical only.
+
 ## 2. Integrated Wave 5 baseline
 
 Wave 5 verified Desktop behavior includes local campaign/workbench persistence, real Descope email-OTP authentication, hosted campaign bootstrap/convergence, authoritative campaign member administration, canonical Outlook DEV owner/DM identity, device-local settings and explicit hosted-session lifecycle/sign-out semantics.
