@@ -51,11 +51,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(normalized.contains("Recupera 1d10 + 5 PG"))
             assertTrue(normalized.contains("Una acción adicional este turno"))
             assertTrue(normalized.contains("Descanso corto/largo"))
-            assertTrue(normalized.contains("Disponible"))
+            assertTrue(normalized.contains("1 / 1"))
+            assertTrue(!normalized.contains("Disponible"))
+            assertTrue(!normalized.contains("Gastado"))
             assertTrue(!normalized.contains("A máximo"))
-            // Stage-2 owner runtime regression: the complete special-equipment detail must
-            // survive outside compact cells instead of relying on Android font shrink.
-            assertTrue(normalized.contains("Peso 3"))
+            // Base Equipment owns quantity/weight. Special continuation owns location/state/detail
+            // without replaying already-visible compact inventory facts.
             assertTrue(normalized.contains("Mano derecha"))
             assertTrue(normalized.contains("1d8 cortante; versátil 1d10."))
             assertTrue(normalized.contains("Arma marcial."))
