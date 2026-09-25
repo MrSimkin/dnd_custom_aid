@@ -302,10 +302,13 @@ internal class AndroidClassicRenderer {
         val baseDisplayed = classBase + speciesBase + featBase + additionalBase
         val baseDisplayedIds = baseDisplayed.mapTo(mutableSetOf()) { it.id }
 
-        val overflowTraits = orderedTraits.filter { it.id !in baseDisplayedIds }
+        val overflowTraits = orderedTraits.filter {
+            it.id !in baseDisplayedIds && !traitHasDedicatedActionOrResource(it, plan)
+        }
         val clippedClassTraitIds = classicBaseClassProjection(classBase).clippedTraitIds
         val referenceTraits = baseDisplayed.filter { trait ->
-            trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait)
+            !traitHasDedicatedActionOrResource(trait, plan) &&
+                (trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait))
         }
         val traitEntries = (overflowTraits + referenceTraits)
             .distinctBy { it.id }
@@ -779,6 +782,20 @@ internal class AndroidClassicRenderer {
         return identityNames.any { it.equals(trait.name.trim(), ignoreCase = true) }
     }
 
+    private fun traitHasDedicatedActionOrResource(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        val name = trait.name.trim()
+        if (name.isEmpty()) return false
+        val sheet = plan.snapshot.aggregate.sheet
+        return sheet.resources.any { it.name.trim().equals(name, ignoreCase = true) } ||
+            sheet.combatEntries.any {
+                it.type != CharacterCombatEntryType.ATTACK &&
+                    it.name.trim().equals(name, ignoreCase = true)
+            }
+    }
+
     private fun traitNeedsReferenceContinuation(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
     ): Boolean =
@@ -1145,7 +1162,13 @@ internal class AndroidClassicRenderer {
         // the Treasure/Notes block. This may repeat the compact item identity intentionally, but
         // not the item's data across unrelated semantic destinations.
         val specialRows = specialItems
-            .flatMap { item -> classicSpecialItemRows(item, usageByItem[item.id]) }
+            .flatMap { item ->
+                classicSpecialItemRows(
+                    item = item,
+                    usage = usageByItem[item.id],
+                    representedInBase = item.id in baseIds,
+                )
+            }
 
         val noteEntries = buildList {
             sheet.currencies
@@ -1222,6 +1245,7 @@ internal class AndroidClassicRenderer {
     private fun classicSpecialItemRows(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+        representedInBase: Boolean,
     ): List<ClassicSpecialItem> {
         val cleanName = item.name.trim()
         val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_SPECIAL_ITEM_NAME_CHARS)
@@ -1229,8 +1253,10 @@ internal class AndroidClassicRenderer {
             if (cleanName.length > CLASSIC_SPECIAL_ITEM_NAME_CHARS) {
                 add("Nombre completo: $cleanName")
             }
-            if (item.quantity != 1) add("Cant. ${item.quantity}")
-            item.weightLb?.let { add("Peso " + formatWeight(it)) }
+            if (!representedInBase) {
+                if (item.quantity != 1) add("Cant. ${item.quantity}")
+                item.weightLb?.let { add("Peso " + formatWeight(it) + " lb") }
+            }
             inventoryState(item, usage).takeIf { it.isNotBlank() }?.let(::add)
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -3261,7 +3287,7 @@ private fun ruledTextArea(
         const val CLASSIC_BACKGROUND_NARRATIVE_LINES = 3
         const val CLASSIC_BACKGROUND_DETAIL_CHARS = 46
         const val CLASSIC_BACKGROUND_DETAIL_LINES = 2
-        const val CLASSIC_RULED_ENTRY_CHARS = 54
+        const val CLASSIC_RULED_ENTRY_CHARS = 64
         const val CLASSIC_RULED_ENTRY_LINES = 2
         const val CLASSIC_SPECIES_NAME_CHARS = 28
         const val CLASSIC_COMBAT_NAME_CHARS = 30
