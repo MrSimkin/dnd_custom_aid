@@ -228,7 +228,11 @@ object PcSheetPdfExportPlanner {
             }
         }
 
-        val portraitRef = selectedAggregate.closure.portraitRef?.trim()?.takeIf { it.isNotEmpty() }
+        // PDF export is read-only: repair recognizable legacy mojibake in the selected
+        // projection without mutating repository/database state.
+        val exportAggregate = selectedAggregate.repairTextForPdfExport()
+
+        val portraitRef = exportAggregate.closure.portraitRef?.trim()?.takeIf { it.isNotEmpty() }
         val portraitAvailable = portraitRef != null && portraitRef in sources.locallyAvailablePortraitRefs
         if (portraitRef != null && !portraitAvailable) {
             notices += PcSheetExportNotice(
@@ -237,7 +241,7 @@ object PcSheetPdfExportPlanner {
             )
         }
 
-        val customStatistics = customStatisticsProjection(selectedAggregate)
+        val customStatistics = customStatisticsProjection(exportAggregate)
         val hasCustomStatistics = !customStatistics.isEmpty
         val baseLayoutMode = when {
             !hasCustomStatistics -> PcSheetBaseLayoutMode.FAITHFUL
@@ -253,7 +257,7 @@ object PcSheetPdfExportPlanner {
         }
 
         val spellbook = if (request.includeSpellDescriptions && selectedAggregate.sheet.spells.isNotEmpty()) {
-            spellbookPlan(selectedAggregate)
+            spellbookPlan(exportAggregate)
         } else {
             if (request.includeSpellDescriptions && selectedAggregate.sheet.spells.isEmpty()) {
                 notices += PcSheetExportNotice(
@@ -268,7 +272,7 @@ object PcSheetPdfExportPlanner {
             request = request,
             snapshot = PcSheetExportSnapshot(
                 selectedState = effectiveState,
-                aggregate = selectedAggregate,
+                aggregate = exportAggregate,
                 customStatistics = customStatistics,
                 portrait = PcSheetPortraitPlan(
                     portraitRef = portraitRef,
