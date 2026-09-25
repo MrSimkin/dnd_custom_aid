@@ -6,8 +6,8 @@
 **Post-merge Scaffold:** `36067012766` — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-24_PC_SHEET_CROSS_FAMILY_RUNTIME_CORRECTNESS_REPAIR_WIP.md`  
-**Current active route:** PC Sheet PDF — shared cross-family runtime-correctness repair is IN PROGRESS on `fix/pc-sheet-cross-family-runtime-correctness`; resume from the WIP checkpoint and complete implementation/CI before any more owner QA  
-**Current implementation branch:** `fix/pc-sheet-cross-family-runtime-correctness` — consolidated WIP HEAD `9cf0f86bd9097da321a06083b1b3832d7b009b7c`; do not restart from main or duplicate landed repairs  
+**Current active route:** PC Sheet PDF — OWNER-REQUESTED PAUSE. Cross-family runtime-correctness repair is preserved on draft PR #103 / `fix/pc-sheet-cross-family-runtime-correctness`. On explicit resume, continue from the canonical WIP checkpoint; until then do not implement, merge, reseed DEV, build a new APK or resume owner QA  
+**Current implementation branch:** `fix/pc-sheet-cross-family-runtime-correctness` — last implementation/code HEAD before pause `4e7f2f7127f607d9d97c7de22fa1fcc01514c1b9`; draft PR #103 remains OPEN / DO NOT MERGE. Later commits on the branch are pause/consolidation documentation only; do not restart from main or duplicate landed repairs  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
