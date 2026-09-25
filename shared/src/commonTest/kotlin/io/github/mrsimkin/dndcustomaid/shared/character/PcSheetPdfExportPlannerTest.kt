@@ -62,6 +62,56 @@ class PcSheetPdfExportPlannerTest {
     }
 
     @Test
+    fun customV1NotesPageAppearsOnlyForRealOverflowOrEquipmentDetail() {
+        fun planFor(sheet: CharacterSheet) = PcSheetPdfExportPlanner.plan(
+            PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = sheet,
+                    closure = CharacterClosureState(),
+                    successor = CharacterSuccessorState(),
+                ),
+            ),
+        )
+
+        val shortNotes = baseSheet().copy(generalNotes = "Nota breve de campaña.")
+        assertFalse(
+            planFor(shortNotes).basePages.any { it.role == PcSheetBasePageRole.NOTES },
+            "Short campaign notes belong on the native v1 narrative Notes area.",
+        )
+
+        val itemWithDetail = CharacterInventoryItem(
+            id = uuid("31000000-0000-0000-0000-000000000001"),
+            name = "Mochila",
+            quantity = 1,
+            weightLb = 5.0,
+            equipped = false,
+            notes = "Contiene mapas.",
+            sortOrder = 0,
+            special = false,
+            description = "Equipo de viaje.",
+            location = "Espalda",
+            attuned = false,
+        )
+        val detailed = shortNotes.copy(inventoryItems = listOf(itemWithDetail))
+        assertTrue(
+            planFor(detailed).basePages.any { it.role == PcSheetBasePageRole.NOTES },
+            "Ordinary-item detail needs the dedicated Notes surface rather than another Equipment row.",
+        )
+
+        val longCampaignNotes = baseSheet().copy(
+            generalNotes = (1..120).joinToString(" ") { "palabra$it" },
+        )
+        assertTrue(
+            planFor(longCampaignNotes).basePages.any { it.role == PcSheetBasePageRole.NOTES },
+            "Campaign notes that exceed the native narrative area need the dedicated Notes page.",
+        )
+    }
+
+    @Test
     fun customStatisticsModesSelectFaithfulOrModifiedBaseAndMandatoryExtendedPage() {
         val aggregate = aggregateWithCustomStatistics()
         val sources = PcSheetExportSources(permanent = aggregate)
