@@ -2,6 +2,8 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import java.awt.Color
 import java.awt.geom.AffineTransform
 import java.io.InputStream
@@ -303,15 +305,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
         font.getStringWidth(text) / 1000f * size
 
     private fun inventoryLabel(item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem): String =
-        buildList {
-            add(buildString {
-                if (item.quantity > 1) append(item.quantity).append(" x ")
-                append(item.name)
-            })
-            item.weightLb?.let { weight ->
-                add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-            }
-        }.joinToString(" · ")
+        item.pdfCompactEquipmentLabel()
 
     private fun positionedSpecialItems(
         items: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>,
@@ -352,6 +346,11 @@ internal class DesktopCustomV2SharedBaseRenderer(
                     add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
                 }
             }
+            sheet.inventoryItems
+                .sortedBy { it.sortOrder }
+                .filterNot { it.special }
+                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+                .forEach(::add)
         }.joinToString(" ")
     }
 
