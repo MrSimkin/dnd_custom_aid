@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — `fix/pc-sheet-cross-family-runtime-repair` is the active implementation branch from main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef`. Implement the coherent repair package from the Aldren cross-family review before Share/Ilyra/Mara/Current Snapshot QA resumes
+**Current normal work:** PC Sheet PDF Export — `fix/pc-sheet-cross-family-runtime-repair` remains active. `0.5.0-preqa.4` manual Aldren cross-family QA failed; implement the repair package in `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md` before Share/Ilyra/Mara/Current Snapshot QA resumes
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -130,13 +130,13 @@ PR #100 merged as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffo
 
 Integrated scope implements generalized compact-preview/full-detail routing, preserves the final overflow guard, synchronizes the generated Android renderer, advances the QA build to `0.5.0-preqa.3` / `50300`, exercises Aldren plus Mara stress content, and preserves approved pagination baselines.
 
-Active implementation branch: `fix/pc-sheet-cross-family-runtime-repair`. Current lifecycle boundary is engineering repair; owner Android runtime QA resumes only after the branch produces a new distinguishable QA build and Aldren cross-family acceptance candidate.
+Active implementation branch: `fix/pc-sheet-cross-family-runtime-repair`. `preqa.4` is mechanically green but owner manual QA failed. Current lifecycle boundary is engineering repair against the preqa.4 review; owner Android runtime QA resumes only after a new distinguishable candidate is produced.
 
 Do **not** proceed to Aldren Share until Save passes; do not proceed to Ilyra, Mara, Current Snapshot, Media/Handouts or the final physical-device gate before the owner-observed Aldren Save pass.
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`
 
 ## Historical/stale open PRs
 
