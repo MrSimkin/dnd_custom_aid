@@ -16,6 +16,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
@@ -1239,13 +1241,8 @@ internal class DesktopCustomV1ExtendedRenderer(
         append(item.name)
     }
 
-    private fun inventoryBaseLabel(item: CharacterInventoryItem): String = buildList {
-        add(inventoryContinuationLabel(item))
-        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        item.weightLb?.let { weight ->
-            add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
-        }
-    }.joinToString(" · ")
+    private fun inventoryBaseLabel(item: CharacterInventoryItem): String =
+        item.pdfCompactEquipmentLabel()
 
     private fun inventoryDetailContinuationLines(
         item: CharacterInventoryItem,
@@ -1266,18 +1263,6 @@ internal class DesktopCustomV1ExtendedRenderer(
             )
         }
 
-        val detail = listOfNotNull(
-            item.description?.trim()?.takeIf { it.isNotEmpty() },
-            item.notes?.trim()?.takeIf { it.isNotEmpty() },
-        ).joinToString(" · ")
-        if (detail.isNotEmpty()) {
-            lines += wrapByWidth(
-                item.name + " — Nota: " + detail,
-                resources.condensed,
-                8.2f,
-                INVENTORY_ORDINARY_TEXT_WIDTH,
-            )
-        }
         return lines
     }
 
@@ -1285,30 +1270,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val status = buildList {
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(
-                    if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
-                    else weight.toString() + " lb",
-                )
-            }
-            if (item.equipped) add("Equipado")
-            if (item.attuned) add("Sintonizado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-
         val lines = mutableListOf<String>()
-        // Keep the logical item identity on one ruled line. ruleText() may reduce the condensed
-        // type slightly to fit, but it must not turn "5 lb" into an orphaned second item-looking row.
-        val primary = buildList {
-            add(inventoryContinuationLabel(item))
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
-            }
-        }.joinToString(" · ")
-        lines += primary
+        // Full continuation is only for an item whose compact identity itself did not fit the
+        // native Equipment capacity. Location/description/notes remain Notes semantics.
+        lines += item.pdfCompactEquipmentLabel()
 
         val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
@@ -1324,18 +1289,6 @@ internal class DesktopCustomV1ExtendedRenderer(
             )
         }
 
-        val description = listOfNotNull(
-            item.description?.trim()?.takeIf { it.isNotEmpty() },
-            item.notes?.trim()?.takeIf { it.isNotEmpty() },
-        ).joinToString(" · ")
-        if (description.isNotEmpty()) {
-            lines += wrapByWidth(
-                "Nota: $description",
-                resources.condensed,
-                8.2f,
-                INVENTORY_ORDINARY_TEXT_WIDTH,
-            )
-        }
         return lines
     }
 
@@ -1610,6 +1563,11 @@ internal class DesktopCustomV1ExtendedRenderer(
                 val body = card.content.trim()
                 if (body.isNotEmpty()) add("${card.title}: $body")
             }
+            sheet.inventoryItems
+                .sortedBy { it.sortOrder }
+                .filterNot { it.special }
+                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+                .forEach(::add)
         }.joinToString("\n\n")
     }
 
