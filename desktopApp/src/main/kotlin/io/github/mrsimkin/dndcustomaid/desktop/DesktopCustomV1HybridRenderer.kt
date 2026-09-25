@@ -14,7 +14,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import java.awt.Color
@@ -520,17 +519,11 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .pdfCampaignNoteParagraphs()
             .joinToString(" ")
 
-    private fun dedicatedNotesText(plan: PcSheetPdfRenderPlan): String {
-        val sheet = plan.snapshot.aggregate.sheet
-        return buildList {
-            val campaignOverflow = wrapApproxByChars(
-                campaignNotesText(plan),
-                V1_NARRATIVE_NOTE_APPROX_CHARS,
-            ).drop(NARRATIVE_NOTES_RULES.size).joinToString(" ")
-            campaignOverflow.takeIf { it.isNotBlank() }?.let(::add)
-            sheet.pdfOrdinaryEquipmentDetailParagraphs().forEach(::add)
-        }.joinToString("\n\n")
-    }
+    private fun dedicatedNotesText(plan: PcSheetPdfRenderPlan): String =
+        wrapApproxByChars(
+            campaignNotesText(plan),
+            V1_NARRATIVE_NOTE_APPROX_CHARS,
+        ).drop(NARRATIVE_NOTES_RULES.size).joinToString(" ")
 
     private fun wrapApproxByChars(text: String, maxChars: Int): List<String> {
         val clean = text.trim()
