@@ -716,7 +716,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 wrapByWidth(detail, resources.fira, 8.2f, 550f)
             }
             .flatten()
-    }    }
+    }
 
     private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
         val aggregate = plan.snapshot.aggregate
