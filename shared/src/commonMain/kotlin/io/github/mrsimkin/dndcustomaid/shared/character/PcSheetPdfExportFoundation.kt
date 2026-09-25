@@ -256,10 +256,10 @@ object PcSheetPdfExportPlanner {
             else -> listOf(PcSheetExtendedPageKind.CUSTOM_STATISTICS)
         }
 
-        val spellbook = if (request.includeSpellDescriptions && selectedAggregate.sheet.spells.isNotEmpty()) {
+        val spellbook = if (request.includeSpellDescriptions && exportAggregate.sheet.spells.isNotEmpty()) {
             spellbookPlan(exportAggregate)
         } else {
-            if (request.includeSpellDescriptions && selectedAggregate.sheet.spells.isEmpty()) {
+            if (request.includeSpellDescriptions && exportAggregate.sheet.spells.isEmpty()) {
                 notices += PcSheetExportNotice(
                     code = PcSheetExportNoticeCode.SPELLBOOK_REQUESTED_WITHOUT_ATTACHED_SPELLS,
                     message = "Se solicitaron descripciones de conjuros, pero el personaje no tiene conjuros asociados.",
@@ -284,7 +284,7 @@ object PcSheetPdfExportPlanner {
             baseLayoutMode = baseLayoutMode,
             basePages = contentAwareBasePages(
                 family = request.visualFamily,
-                aggregate = selectedAggregate,
+                aggregate = exportAggregate,
             ),
             mandatoryExtendedPages = mandatoryExtendedPages,
             overflowRoutes = overflowRoutes(),
