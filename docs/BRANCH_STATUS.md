@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-24 (Chile local time)  
+**Updated:** 2026-09-25 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `fd781262abfeb47003298562e540721a8515071a` (PR #100 generalized Fantasy bounded-text repair)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — cross-family Aldren survey is complete; no implementation branch is active yet. Next branch must implement the shared repair package defined in `docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md` before later manual QA resumes
+**Current normal work:** PC Sheet PDF Export — `fix/pc-sheet-cross-family-runtime-repair` is the active implementation branch from main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef`. Implement the coherent repair package from the Aldren cross-family review before Share/Ilyra/Mara/Current Snapshot QA resumes
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -130,7 +130,7 @@ PR #100 merged as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffo
 
 Integrated scope implements generalized compact-preview/full-detail routing, preserves the final overflow guard, synchronizes the generated Android renderer, advances the QA build to `0.5.0-preqa.3` / `50300`, exercises Aldren plus Mara stress content, and preserves approved pagination baselines.
 
-There is no active implementation branch for this defect. Current lifecycle boundary is owner Android runtime QA: Aldren Fantasy Sheet / Permanente Save on `0.5.0-preqa.3`.
+Active implementation branch: `fix/pc-sheet-cross-family-runtime-repair`. Current lifecycle boundary is engineering repair; owner Android runtime QA resumes only after the branch produces a new distinguishable QA build and Aldren cross-family acceptance candidate.
 
 Do **not** proceed to Aldren Share until Save passes; do not proceed to Ilyra, Mara, Current Snapshot, Media/Handouts or the final physical-device gate before the owner-observed Aldren Save pass.
 

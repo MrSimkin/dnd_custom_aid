@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-24 (Chile local time)  
+**Last reconstructed:** 2026-09-25 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `fd781262abfeb47003298562e540721a8515071a` (PR #100 generalized Fantasy bounded-text repair)  
@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Aldren/Permanente cross-family Android survey is COMPLETE on `0.5.0-preqa.3`; Save/open PASS across all four formats, but shared Unicode/semantic-routing/page-packing/inventory-currency defects and family-specific resource/Custom-v2 typography defects require a coherent repair before Share/Ilyra/Mara/Current Snapshot QA resumes
+**Current active package:** PC Sheet PDF Export — cross-family runtime repair ACTIVE on `fix/pc-sheet-cross-family-runtime-repair` from main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef`; shared Unicode/semantic-routing/page-packing/inventory-currency defects plus resource/Custom-v2 typography defects are being repaired before Share/Ilyra/Mara/Current Snapshot QA resumes
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -40,7 +40,7 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 
 No historical PR #85 renderer-proof branch is current continuation authority. The visual renderer is owner-approved/frozen subject only to concrete owner-observed runtime defects.
 
-The active runtime route is the generalized Fantasy Sheet bounded-text repair recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
+The active runtime route is the cross-family Aldren repair recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 
