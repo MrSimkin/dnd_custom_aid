@@ -147,13 +147,9 @@ internal class AndroidCustomV1ExtendedRenderer(
         val sheet = plan.snapshot.aggregate.sheet
         val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
         val overflowNames = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
-        val detailLines = traitDescriptionLines(orderedTraits)
-        val metadata = traitMetadataLines(orderedTraits)
-        val supplements = traitSupplementLines(plan)
+        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
         return overflowNames.isNotEmpty() ||
-            detailLines.isNotEmpty() ||
-            metadata.isNotEmpty() ||
-            supplements.isNotEmpty() ||
+            rightLines.isNotEmpty() ||
             sheet.proficiencies.isNotEmpty()
     }
 
@@ -186,8 +182,10 @@ internal class AndroidCustomV1ExtendedRenderer(
             sheet.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE },
         )
 
-        val detailLines = traitDescriptionLines(orderedTraits)
-        val metadataLines = traitMetadataLines(orderedTraits) + traitSupplementLines(plan)
+        // Treat the two right-hand ruled areas as one continuation stream. This avoids
+        // allocating separate mostly-empty pages for "Detalles" and "Notas" when they are
+        // semantically one compact continuation.
+        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
 
         val pages = maxOf(
             1,
@@ -197,13 +195,13 @@ internal class AndroidCustomV1ExtendedRenderer(
             pageCount(proficiencies.size, TRAIT_LEFT_ROWS),
             pageCount(languages.size, TRAIT_LEFT_ROWS),
             pageCount(otherNames.size, TRAIT_OTHER_CAPACITY),
-            pageCount(detailLines.size, TRAIT_DETAIL_ROWS),
-            pageCount(metadataLines.size, TRAIT_NOTE_ROWS),
+            pageCount(rightLines.size, TRAIT_RIGHT_CAPACITY),
         )
 
         repeat(pages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
+            val rightPage = rightLines.pageSlice(pageIndex, TRAIT_RIGHT_CAPACITY)
             renderTraitsPage(
                 page = page,
                 classNames = classNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
@@ -212,8 +210,8 @@ internal class AndroidCustomV1ExtendedRenderer(
                 proficiencies = proficiencies.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
                 languages = languages.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
                 otherNames = otherNames.pageSlice(pageIndex, TRAIT_OTHER_CAPACITY),
-                detailLines = detailLines.pageSlice(pageIndex, TRAIT_DETAIL_ROWS),
-                noteLines = metadataLines.pageSlice(pageIndex, TRAIT_NOTE_ROWS),
+                detailLines = rightPage.take(TRAIT_DETAIL_ROWS),
+                noteLines = rightPage.drop(TRAIT_DETAIL_ROWS).take(TRAIT_NOTE_ROWS),
                 pageIndex = pageIndex,
             )
         }
@@ -292,50 +290,56 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun traitDescriptionLines(
+    private fun traitDetailLines(
+        plan: PcSheetPdfRenderPlan,
         traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-    ): List<String> = traits.flatMap { trait ->
-        val description = trait.description.trim()
-        if (description.isEmpty()) {
-            emptyList()
-        } else {
-            wrapByWidth(
-                trait.name + ": " + description,
-                resources.fira,
-                8.5f,
-                TRAIT_RIGHT_TEXT_WIDTH,
-            )
-        }
-    }
+    ): List<String> {
+        val sheet = plan.snapshot.aggregate.sheet
+        val resourceNames = sheet.resources
+            .map { it.name.trim().lowercase() }
+            .filter { it.isNotEmpty() }
+            .toSet()
+        val actionNames = sheet.combatEntries
+            .filter { it.type != CharacterCombatEntryType.ATTACK }
+            .map { it.name.trim().lowercase() }
+            .filter { it.isNotEmpty() }
+            .toSet()
 
-    private fun traitMetadataLines(
-        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-    ): List<String> = traits.flatMap { trait ->
-        val meaningful = trait.source.trim().isNotEmpty() ||
-            trait.maxUses != null ||
-            !trait.recovery.isNullOrBlank() ||
-            trait.activation != null ||
-            !trait.notes.isNullOrBlank()
-        if (!meaningful) {
-            emptyList()
-        } else {
-            val metadata = buildList {
-                add(traitTypeLabel(trait.type))
-                trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
-                trait.activation?.let { add(activationLabel(it)) }
-                trait.maxUses?.let { maximum ->
-                    val remaining = (maximum - trait.spentUses).coerceIn(0, maximum)
-                    add("Usos $remaining / $maximum")
+        return traits.flatMap { trait ->
+            val normalizedName = trait.name.trim().lowercase()
+            val hasDedicatedActionOrResource =
+                normalizedName in resourceNames || normalizedName in actionNames
+            if (hasDedicatedActionOrResource) {
+                // The name may remain visible on the base trait surface, but detailed use/action
+                // semantics are authoritative in Resources and Combat, not replayed here.
+                emptyList()
+            } else {
+                val detail = buildList {
+                    trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (trait.maxUses != null) {
+                        val maximum = requireNotNull(trait.maxUses)
+                        val remaining = (maximum - trait.spentUses).coerceIn(0, maximum)
+                        add("Usos $remaining / $maximum")
+                        trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    }
+                    trait.activation
+                        ?.takeIf { it != CharacterActivationType.PASSIVE }
+                        ?.let { add(activationLabel(it)) }
+                }.distinct().joinToString(" · ")
+
+                if (detail.isBlank()) {
+                    emptyList()
+                } else {
+                    wrapByWidth(
+                        trait.name + ": " + detail,
+                        resources.fira,
+                        8.4f,
+                        TRAIT_RIGHT_TEXT_WIDTH,
+                    )
                 }
-                trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             }
-            wrapByWidth(
-                trait.name + ": " + metadata.joinToString(" · "),
-                resources.fira,
-                8.4f,
-                TRAIT_RIGHT_TEXT_WIDTH,
-            )
         }
     }
 
@@ -381,10 +385,6 @@ internal class AndroidCustomV1ExtendedRenderer(
             }
         }
 
-        // Base v1 page 3 has no dedicated summary/religion fields.
-        addFull("Resumen de trasfondo", background.summary)
-        addFull("Fe / religión", background.religionFaith)
-
         // Preserve only narrative overflow beyond the exact frozen v1 base capacities.
         addCharOverflow("Rasgos de personalidad", background.personalityTraits, 42, 6)
         addWidthOverflow("Ideales", background.ideals, 9.25f, 153f, 6)
@@ -407,12 +407,6 @@ internal class AndroidCustomV1ExtendedRenderer(
             classLevel.name + " " + classLevel.level
         }
         if (classSummary.length > 32) addFull("Clases", classSummary)
-        orderedClasses.forEach { classLevel ->
-            classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
-                addFull("Subclase", classLevel.name + " - " + subclass)
-            }
-        }
-
         if (sheet.name.length > 36) addFull("Nombre", sheet.name)
         if (sheet.status != io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.ACTIVE) {
             addFull("Estado", characterStatusLabel(sheet.status))
@@ -1573,15 +1567,32 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
+    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Resumen de trasfondo: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
+        }.joinToString(" ")
+    }
+
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            val campaignText = sheet.pdfCampaignNoteParagraphs().joinToString(" ")
-            val campaignOverflow = wrapForRulesByChars(
-                campaignText,
+            val narrativeOverflow = wrapForRulesByChars(
+                narrativeNotesText(plan),
                 V1_NARRATIVE_NOTE_APPROX_CHARS,
             ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
-            campaignOverflow.takeIf { it.isNotBlank() }?.let(::add)
+            narrativeOverflow.takeIf { it.isNotBlank() }?.let(::add)
             sheet.pdfOrdinaryEquipmentDetailParagraphs().forEach(::add)
         }.joinToString("\n\n")
     }
@@ -2364,6 +2375,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val TRAIT_OTHER_CAPACITY = 12
         const val TRAIT_DETAIL_ROWS = 4
         const val TRAIT_NOTE_ROWS = 5
+        const val TRAIT_RIGHT_CAPACITY = TRAIT_DETAIL_ROWS + TRAIT_NOTE_ROWS
         const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
 
