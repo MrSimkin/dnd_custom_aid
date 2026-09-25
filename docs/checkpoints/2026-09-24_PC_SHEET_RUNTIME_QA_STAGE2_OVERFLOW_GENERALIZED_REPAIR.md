@@ -5,7 +5,7 @@
 **Current integrated Android QA build entering repair:** `0.5.0-preqa.2` / build `50200`  
 **Repair candidate Android QA build:** `0.5.0-preqa.3` / build `50300`  
 **Active product area:** PC Sheet PDF Export — Android runtime QA  
-**Status:** FANTASY SAVE MECHANISM PASS / OWNER CONTENT-LAYOUT DEFECTS RECORDED / CROSS-FAMILY ALDREN SURVEY ACTIVE BEFORE REPAIR
+**Status:** FANTASY SAVE MECHANISM PASS / CROSS-FAMILY SURVEY COMPLETED / SUPERSEDED FOR CURRENT ROUTING BY DETAILED CROSS-FAMILY REVIEW
 
 ## 1. What is already proven
 
@@ -274,6 +274,8 @@ The accidental session close is not part of this overflow repair unless a tiny s
 
 Fresh sessions must enter through:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> this checkpoint`.
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md`.
+
+This checkpoint remains historical evidence for the bounded-routing repair and the first Fantasy runtime rerun.
 
 Do not resume from PR #96, PR #98, the hosted-player setup checkpoint, or stale Wave 6 root prose as if they were the current task.
