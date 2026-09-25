@@ -5,7 +5,7 @@
 **Current integrated Android QA build entering repair:** `0.5.0-preqa.2` / build `50200`  
 **Repair candidate Android QA build:** `0.5.0-preqa.3` / build `50300`  
 **Active product area:** PC Sheet PDF Export — Android runtime QA  
-**Status:** GENERALIZED REPAIR INTEGRATED / MERGED-MAIN CI PASS / OWNER STAGE-2 ALDREN SAVE RERUN REQUIRED
+**Status:** FANTASY SAVE MECHANISM PASS / CROSS-FAMILY SURVEY COMPLETED / SUPERSEDED FOR CURRENT ROUTING BY DETAILED CROSS-FAMILY REVIEW
 
 ## 1. What is already proven
 
@@ -216,6 +216,56 @@ The repair is merged and merged-main Scaffold passes. Owner/manual continuation 
 5. require file picker + readable populated PDF with no bounded-routing diagnostic;
 6. only then test Share and continue later QA stages.
 
+## 5.1 Owner runtime result on `0.5.0-preqa.3`
+
+Owner installed `0.5.0-preqa.3` / build `50300` on the existing Android emulator without uninstalling local state, reopened Aldren Vale, selected Fantasy Sheet + Permanente, and repeated `Guardar PDF`.
+
+### Mechanism/runtime result — PASS
+
+The specific Stage-2 Save mechanism now passes:
+
+- no bounded-routing production diagnostic appeared;
+- Android document Save completed;
+- the produced PDF opens successfully;
+- Aldren Vale is present and the document is populated/readable;
+- no obvious corruption/blank-document failure blocked inspection.
+
+Therefore PR #100 remains accepted for the bounded-routing/runtime defect it repaired.
+
+### Owner-observed content/layout defects — FAIL for final Fantasy acceptance
+
+The owner found five additional defects after the PDF became inspectable:
+
+1. **Character/text corruption (mojibake).** Spanish accented text is visibly corrupted in the exported PDF, e.g. `ComÃºn` instead of `Común` and `Ã‰lfico` instead of `Élfico`. Similar corruption is visible in trait/action prose.
+2. **Large wasted space on Traits continuation pages.** The continuation layout statically reserves separate left/right semantic columns and leaves substantial empty ruled space when one category exhausts before the other. The page does not rebalance or reuse available capacity.
+3. **Combat/action reference content appears under Traits.** Full action/attack references such as Second Wind, Action Surge and structured damage are routed through the generic Traits continuation/reference surface. This preserves data but is semantically misplaced.
+4. **One-use/binary resource presentation is misleading.** Resources whose maximum is 1 render as a numeric `1 / 1` value instead of an appropriate binary marker (circle/square/check-style representation). Continuation rows also consume a named resource row while leaving most numeric/recovery cells blank, producing visually nonsensical empty space.
+5. **Ordinary inventory detail appears outside the Inventory table.** Non-special objects such as Ballesta ligera, Virotes and Mochila de explorador are repeated/routed into `VALOR / UBICACIÓN / NOTAS` rather than remaining semantically represented within the inventory table/detail structure, creating apparent duplication/misplacement.
+
+These observations were supplied with six owner screenshots during Android QA. The screenshots are conversation evidence; the durable repository record is the exact textual defect description above.
+
+### Decision: survey other visual families before repair
+
+Do **not** repair these five observations yet.
+
+Before changing renderer code, use the same Aldren Vale / Permanente state to perform a short comparative export survey across the remaining visual-family options:
+
+1. Custom v1;
+2. Custom v2 — per Attribute;
+3. Custom v2 — per Ability.
+
+For each family, verify Save/open succeeds and explicitly check whether the same five defect classes reproduce.
+
+Purpose: distinguish shared Android/PDF-pipeline defects from Fantasy-specific semantic/layout defects before implementation. This avoids repairing Fantasy in isolation and later discovering that encoding or routing behavior is common to Custom families.
+
+During this survey:
+
+- do not start Share yet;
+- do not move to Ilyra/Mara/Current Snapshot yet;
+- do not modify renderer/product code;
+- record each family outcome in a cross-family defect matrix;
+- after the three-family survey, stop and design one repair package from the complete evidence.
+
 ## 6. QA ergonomics follow-up
 
 The accidental session close is not part of this overflow repair unless a tiny safe change is naturally coupled. It is recorded as UX evidence: the debug QA activity lacks an obvious ordinary back affordance. Do not allow this note to expand the bounded rendering repair into unrelated redesign.
@@ -224,6 +274,8 @@ The accidental session close is not part of this overflow repair unless a tiny s
 
 Fresh sessions must enter through:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> this checkpoint`.
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md`.
+
+This checkpoint remains historical evidence for the bounded-routing repair and the first Fantasy runtime rerun.
 
 Do not resume from PR #96, PR #98, the hosted-player setup checkpoint, or stale Wave 6 root prose as if they were the current task.

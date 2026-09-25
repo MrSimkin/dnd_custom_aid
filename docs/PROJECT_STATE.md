@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — generalized Fantasy bounded-text repair is integrated in PR #100 / `fd781262abfeb47003298562e540721a8515071a`, merged-main Scaffold `36067012766` SUCCESS, QA build `0.5.0-preqa.3` / `50300`; owner Aldren Fantasy Sheet / Permanente Save rerun is the active manual gate
+**Current active package:** PC Sheet PDF Export — Aldren/Permanente cross-family Android survey is COMPLETE on `0.5.0-preqa.3`; Save/open PASS across all four formats, but shared Unicode/semantic-routing/page-packing/inventory-currency defects and family-specific resource/Custom-v2 typography defects require a coherent repair before Share/Ilyra/Mara/Current Snapshot QA resumes
 
 ### Superseding PDF visual state — 2026-09-20
 
