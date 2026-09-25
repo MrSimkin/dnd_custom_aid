@@ -1095,43 +1095,38 @@ internal class AndroidClassicRenderer {
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val baseIds = ordered.take(BASE_EQUIPMENT_CAPACITY).mapTo(mutableSetOf()) { it.id }
 
+        fun baseItemNeedsContinuation(
+            item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
+        ): Boolean {
+            val usage = usageByItem[item.id]
+            val compactState = inventoryBaseNote(item, usage)
+            return item.name.trim().length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
+                compactState.length > CLASSIC_BASE_INVENTORY_NOTE_CHARS ||
+                item.weightLb != null ||
+                !item.description.isNullOrBlank() ||
+                !item.notes.isNullOrBlank()
+        }
+
         val specialItems = ordered.filter { item ->
-            (item.special || item.attuned) && item.id !in baseIds
+            (item.special || item.attuned) &&
+                (item.id !in baseIds || baseItemNeedsContinuation(item))
         }
         val specialIds = ordered
             .filter { it.special || it.attuned }
             .mapTo(mutableSetOf()) { it.id }
 
         val ordinaryRows = ordered
-            .filter { it.id !in specialIds && it.id !in baseIds }
+            .filter { item ->
+                item.id !in specialIds &&
+                    (item.id !in baseIds || baseItemNeedsContinuation(item))
+            }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
         val specialRows = specialItems.flatMap { item ->
             classicSpecialItemRows(item, usageByItem[item.id])
         }
 
-        val overflowIds = (ordered.filter { it.id !in baseIds }).mapTo(mutableSetOf()) { it.id }
         val noteEntries = buildList {
-            ordered
-                .filter { it.id in overflowIds }
-                .forEach { item ->
-                    val state = inventoryState(item, usageByItem[item.id])
-                    val details = buildList {
-                        val location = item.location?.trim().orEmpty()
-                        if (location.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS) add("Ubicación: " + location)
-                        if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) add("Estado: " + state)
-                        val compactDetail = listOfNotNull(
-                            item.description?.trim()?.takeIf { it.isNotEmpty() },
-                            item.notes?.trim()?.takeIf { it.isNotEmpty() },
-                        ).joinToString(" · ")
-                        if (compactDetail.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS) {
-                            add(compactDetail)
-                        }
-                    }
-                    if (details.isNotEmpty()) {
-                        add(item.name + ": " + details.joinToString(" · "))
-                    }
-                }
             sheet.currencies
                 .filter { it.amount != 0 && it.key.lowercase() !in CLASSIC_BASE_CURRENCY_KEYS }
                 .sortedBy { it.sortOrder }
@@ -1249,15 +1244,24 @@ private fun classicInventoryRows(
             item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
         }.joinToString(" · ")
-        return listOf(
+
+        val nameChunks = wrapForChars(item.name.trim(), CLASSIC_INVENTORY_ROW_NAME_CHARS)
+            .ifEmpty { listOf("") }
+        val stateChunks = wrapForChars(state, CLASSIC_INVENTORY_ROW_STATE_CHARS)
+            .ifEmpty { listOf("") }
+        val noteChunks = wrapForChars(notes, CLASSIC_INVENTORY_ROW_NOTE_CHARS)
+            .ifEmpty { listOf("") }
+        val rows = maxOf(nameChunks.size, stateChunks.size, noteChunks.size, 1)
+
+        return (0 until rows).map { index ->
             InventoryRow(
-                quantity = item.quantity.toString(),
-                name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
-                weight = item.weightLb?.let(::formatWeight).orEmpty(),
-                state = classicSingleLineExcerpt(state, CLASSIC_INVENTORY_ROW_STATE_CHARS),
-                notes = classicSingleLineExcerpt(notes, CLASSIC_INVENTORY_ROW_NOTE_CHARS),
-            ),
-        )
+                quantity = item.quantity.toString().takeIf { index == 0 }.orEmpty(),
+                name = nameChunks.getOrNull(index).orEmpty(),
+                weight = item.weightLb?.let(::formatWeight).takeIf { index == 0 }.orEmpty(),
+                state = stateChunks.getOrNull(index).orEmpty(),
+                notes = noteChunks.getOrNull(index).orEmpty(),
+            )
+        }
     }
 
     private fun inventoryState(
