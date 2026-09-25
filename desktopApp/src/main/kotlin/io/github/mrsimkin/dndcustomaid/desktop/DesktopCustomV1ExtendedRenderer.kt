@@ -673,8 +673,8 @@ internal class DesktopCustomV1ExtendedRenderer(
                         8.2f,
                     )
                 }
-            appendLayer(page, "$prefix - MARKERS") { }
             }
+            appendLayer(page, "$prefix - MARKERS") { }
         }
     }
 
