@@ -278,11 +278,29 @@ object PcSheetPdfExportPlanner {
                 spellbook = spellbook,
             ),
             baseLayoutMode = baseLayoutMode,
-            basePages = basePages(request.visualFamily),
+            basePages = contentAwareBasePages(
+                family = request.visualFamily,
+                aggregate = selectedAggregate,
+            ),
             mandatoryExtendedPages = mandatoryExtendedPages,
             overflowRoutes = overflowRoutes(),
             notices = notices.toList(),
         )
+    }
+
+    private fun contentAwareBasePages(
+        family: PcSheetVisualFamily,
+        aggregate: PcSheetExportAggregate,
+    ): List<PcSheetTemplatePage> {
+        val hasSpellPageContent =
+            aggregate.sheet.spellcasterEnabled ||
+                aggregate.sheet.spells.isNotEmpty() ||
+                aggregate.sheet.spellSlots.any { it.totalSlots > 0 } ||
+                aggregate.sheet.spellcastingSources.isNotEmpty()
+
+        return basePages(family).filter { page ->
+            page.role != PcSheetBasePageRole.SPELL_LIST || hasSpellPageContent
+        }
     }
 
     fun basePages(family: PcSheetVisualFamily): List<PcSheetTemplatePage> = when (family) {
