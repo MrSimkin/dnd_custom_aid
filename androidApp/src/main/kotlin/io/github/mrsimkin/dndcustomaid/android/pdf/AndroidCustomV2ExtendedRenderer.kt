@@ -30,6 +30,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import android.graphics.Bitmap
