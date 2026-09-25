@@ -1141,9 +1141,7 @@ internal class AndroidClassicRenderer {
             .filter { it.id !in specialIds }
             .filter { item ->
                 item.id !in baseIds ||
-                    item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
-                    inventoryBaseNote(item, usageByItem[item.id]).length >
-                        CLASSIC_BASE_INVENTORY_NOTE_CHARS
+                    item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
@@ -1157,26 +1155,14 @@ internal class AndroidClassicRenderer {
             // For base-represented items, continuation carries only information the compact base
             // row cannot express; it does not replay the whole item.
             ordered
-                .filter { it.id in baseIds }
+                .filter { it.id !in specialIds }
                 .forEach { item ->
                     val state = inventoryState(item, usageByItem[item.id])
                     val details = buildList {
-                        if (item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS) {
-                            add("Nombre completo: " + item.name)
+                        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                            add("Ubicación: " + it)
                         }
-                        item.weightLb?.let { add("Peso: " + formatWeight(it) + " lb") }
-                        item.location?.trim()?.takeIf {
-                            it.isNotEmpty() &&
-                                inventoryBaseNote(item, usageByItem[item.id]).length >
-                                    CLASSIC_BASE_INVENTORY_NOTE_CHARS
-                        }?.let { add("Ubicación: " + it) }
-                        if (
-                            state.isNotBlank() &&
-                            inventoryBaseNote(item, usageByItem[item.id]).length >
-                                CLASSIC_BASE_INVENTORY_NOTE_CHARS
-                        ) {
-                            add("Estado: " + state)
-                        }
+                        state.takeIf { it.isNotBlank() }?.let { add("Estado: " + it) }
                         item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                         item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     }
@@ -1294,19 +1280,16 @@ internal class AndroidClassicRenderer {
 private fun classicInventoryRows(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
-    ): List<InventoryRow> {
-        val state = inventoryState(item, usage)
-        val location = item.location?.trim().orEmpty()
-        return listOf(
+    ): List<InventoryRow> =
+        listOf(
             InventoryRow(
                 quantity = item.quantity.toString(),
                 name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
                 weight = item.weightLb?.let(::formatWeight).orEmpty(),
-                state = classicSingleLineExcerpt(state, CLASSIC_INVENTORY_ROW_STATE_CHARS),
-                notes = classicSingleLineExcerpt(location, CLASSIC_INVENTORY_ROW_NOTE_CHARS),
+                state = "",
+                notes = "",
             ),
         )
-    }
 
     private fun inventoryState(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
@@ -1776,7 +1759,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             coinStrip(s, p, 276f, 136f, sheet.currencies)
             tableHeader(
                 s, p, 276f, 180f,
-                listOf(36f to "Cant.", 146f to "Objeto", 112f to "Notas"),
+                listOf(36f to "Cant.", 146f to "Objeto", 112f to "Peso"),
             )
             inventory.take(BASE_EQUIPMENT_CAPACITY).forEachIndexed { index, item ->
                 val top = 202f + index * 27f
@@ -2130,20 +2113,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
     private fun inventoryBaseNote(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
-    ): String = buildList {
-        when {
-            item.attuned -> add("Sintonizado")
-            item.equipped -> add("Equipado")
-        }
-        when (usage?.kind) {
-            CharacterConsumableKind.CONSUMABLE -> add("Consumible")
-            CharacterConsumableKind.AMMUNITION -> add("Munición")
-            CharacterConsumableKind.NONE, null -> Unit
-        }
-        if (usage?.quickUseAmount != null && usage.quickUseAmount != 1) add("Uso rápido ${usage.quickUseAmount}")
-        if (usage?.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
-        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-    }.joinToString(" · ")
+    ): String = item.weightLb?.let { formatWeight(it) + " lb" }.orEmpty()
 
     private fun traitSummary(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,

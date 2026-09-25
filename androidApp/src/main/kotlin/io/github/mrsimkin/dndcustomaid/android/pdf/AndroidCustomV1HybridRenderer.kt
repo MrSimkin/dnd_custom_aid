@@ -13,6 +13,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import com.tom_roush.harmony.awt.AWTColor as Color
@@ -341,17 +343,16 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .filterNot { it.special }
             .take(EQUIPMENT_RULES.size)
             .forEachIndexed { index, item ->
-                val label = buildList {
-                    add(buildString {
-                        if (item.quantity > 1) append(item.quantity).append(" x ")
-                        append(item.name)
-                    })
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.weightLb?.let { weight ->
-                        add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-                    }
-                }.joinToString(" · ")
-                textAboveRule(s, fonts.condensed, EQUIPMENT_RULES[index], label, 9.25f, 7.0f, 2.5f, 1.5f)
+                textAboveRule(
+                    s,
+                    fonts.condensed,
+                    EQUIPMENT_RULES[index],
+                    item.pdfCompactEquipmentLabel(),
+                    9.25f,
+                    7.0f,
+                    2.5f,
+                    1.5f,
+                )
             }
     }
 
@@ -372,28 +373,41 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawValuables(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        plan.snapshot.aggregate.successor.preferences.valuablesText
-            .split(Regex("[;\\n]+"))
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .take(VALUABLE_RULE_Y.size)
-            .forEachIndexed { index, raw ->
-                val parsed = parseValuable(raw)
-                val y = VALUABLE_RULE_Y[index]
-                textAboveRule(
-                    s,
-                    fonts.regular,
-                    Rule(453.402f, 546.945f, y),
-                    parsed.first,
-                    9.0f,
-                    8.5f,
-                    2.4f,
-                    1.5f,
-                )
-                parsed.second?.let { value ->
-                    centeredAboveRule(s, fonts.semibold, Rule(549.779f, 583.795f, y), value, 9.5f, 2.4f)
+        val aggregate = plan.snapshot.aggregate
+        val entries = buildList {
+            aggregate.sheet.currencies
+                .filter { !it.isDefault }
+                .sortedBy { it.sortOrder }
+                .forEach { currency ->
+                    // The adjacent treasure/value area is the native place for custom currency.
+                    // Keep the amount with the currency name so the fixed PO-value column cannot
+                    // accidentally relabel a non-GP unit.
+                    add((currency.name + ": " + currency.amount) to null)
                 }
+            aggregate.successor.preferences.valuablesText
+                .split(Regex("[;\\n]+"))
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .map(::parseValuable)
+                .forEach(::add)
+        }
+
+        entries.take(VALUABLE_RULE_Y.size).forEachIndexed { index, parsed ->
+            val y = VALUABLE_RULE_Y[index]
+            textAboveRule(
+                s,
+                fonts.regular,
+                Rule(453.402f, 546.945f, y),
+                parsed.first,
+                9.0f,
+                8.5f,
+                2.4f,
+                1.5f,
+            )
+            parsed.second?.let { value ->
+                centeredAboveRule(s, fonts.semibold, Rule(549.779f, 583.795f, y), value, 9.5f, 2.4f)
             }
+        }
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -488,6 +502,11 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                     add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
                 }
             }
+            sheet.inventoryItems
+                .sortedBy { it.sortOrder }
+                .filterNot { it.special }
+                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+                .forEach(::add)
         }.joinToString(" ")
     }
 

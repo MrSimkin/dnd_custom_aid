@@ -4,6 +4,8 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import java.io.InputStream
@@ -305,16 +307,7 @@ internal class AndroidCustomV2SharedBaseRenderer(
         font.getStringWidth(text) / 1000f * size
 
     private fun inventoryLabel(item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem): String =
-        buildList {
-            add(buildString {
-                if (item.quantity > 1) append(item.quantity).append(" x ")
-                append(item.name)
-            })
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-            }
-        }.joinToString(" · ")
+        item.pdfCompactEquipmentLabel()
 
     private fun positionedSpecialItems(
         items: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>,
@@ -355,6 +348,11 @@ internal class AndroidCustomV2SharedBaseRenderer(
                     add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
                 }
             }
+            sheet.inventoryItems
+                .sortedBy { it.sortOrder }
+                .filterNot { it.special }
+                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+                .forEach(::add)
         }.joinToString(" ")
     }
 
