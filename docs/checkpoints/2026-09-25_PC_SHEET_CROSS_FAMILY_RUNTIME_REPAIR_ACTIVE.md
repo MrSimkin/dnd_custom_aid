@@ -3,7 +3,7 @@
 **Date:** 2026-09-25 (Chile local time)  
 **Branch:** `fix/pc-sheet-cross-family-runtime-repair`  
 **Branch base:** main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef` (PR #102 cross-family QA handoff)  
-**Status:** IMPLEMENTATION ACTIVE / LATER MANUAL QA PAUSED
+**Status:** IMPLEMENTATION GREEN / ALDREN CROSS-FAMILY MANUAL QA READY
 
 ## Why this branch exists
 
@@ -82,33 +82,27 @@ Repository precedent supports these rules:
    - Custom-v1 page 3 owns normal campaign notes;
    - Custom-v1 page 5 is now conditional and contains only campaign overflow plus warranted ordinary-equipment detail;
    - further Custom-v1 Notes pages are true overflow only;
-   - Custom-v2 standalone Notes packing remains to be decided from actual spare `DETALLES / NOTAS` capacity rather than suppressed heuristically.
+   - Custom-v2 keeps the standalone Notes page when it is the guaranteed destination for genuine campaign/ordinary-equipment detail; the existing Traits `DETALLES / NOTAS` area is not treated as free capacity unless its actual occupancy is known.
 
-7. **Regression contract migration in progress**
-   - tests are being changed from obsolete exact physical page counts to semantic layer/content/data-preservation assertions where pagination is intentionally content-aware;
+7. **Regression and build validation complete for the repair candidate**
+   - obsolete exact physical page-count assertions were replaced where pagination is intentionally content-aware, while content/data-preservation assertions remain;
    - Android generated renderers are synchronized after Desktop authority changes;
-   - latest Scaffold validation is still pending; no repaired QA APK has been promoted yet.
+   - Scaffold run `36163990848` passed completely at commit `17d93d32561a6cc46d228b2bd6b0aa8dca466ea8`: backend PASS, hosted database PASS, all guards PASS, Android assemble PASS, shared/desktop tests PASS, artifact uploads PASS;
+   - the distinguishable Android candidate is `0.5.0-preqa.4` / versionCode `50400`;
+   - extracted APK SHA-256: `b3c93fc3c838534cdce61885f04443193a3b502626c531c89458ecc8a2bec29a`.
 
 ## Remaining repair/validation focus
 
-- prove the repaired semantic routing and one-use resource presentation with a green Scaffold run and fresh Aldren runtime PDFs;
-- finish content-aware Custom-v2 Notes packing only where existing compatible `DETALLES / NOTAS` capacity is demonstrably available;
-- revalidate Custom-v2 special-equipment Location typography in the fresh runtime output;
-- audit residual page amplification after the spell, inventory, currency and Notes repairs rather than targeting an arbitrary page count;
-- keep bounded-overflow/data-preservation guards active while obsolete fixed-page-count tests are migrated.
+- install `0.5.0-preqa.4` and rerun Aldren/Permanente across all four PDF families;
+- visually confirm the repaired Custom-v2 special-equipment Location fill on-device;
+- inspect residual page count/packing from the fresh Aldren PDFs, judging semantic usefulness rather than an arbitrary target count;
+- if and only if the Aldren rerun exposes a remaining defect, repair that concrete defect before resuming Share, Ilyra, Mara or Current Snapshot.
 
 ## Current engineering order
 
-1. complete semantic routing for combat/actions/damage;
-2. restore native standard/custom currency placement and remove the temporary Custom-v2 currency-as-equipment/treasure-continuation experiment;
-3. normalize ordinary Equipment to quantity + name + weight, with detail-only continuation for location/description/notes;
-4. add conservative export-time mojibake repair while retaining UTF-8 ingress hardening;
-5. repair/retain one-use resource semantics and Custom-v2 Location typography;
-6. finish content-aware packing/Notes behavior without clipping or losing detail;
-7. expand cross-family Aldren regressions and update assertions whose page count changed intentionally;
-8. synchronize generated Android renderer sources and require Scaffold PASS;
-9. produce a new distinguishable QA APK;
-10. rerun Aldren in all four families.
+Steps 1–9 of the repair sequence are complete and validated by the green `preqa.4` Scaffold run.
+
+**Next and only active step:** rerun Aldren/Permanente in all four families on Android using `0.5.0-preqa.4`, then compare the resulting PDFs against the acceptance evidence before expanding manual QA scope.
 
 Do not resume Share, Ilyra, Mara, Current Snapshot or final physical-device QA before the repaired Aldren cross-family rerun passes.
 
