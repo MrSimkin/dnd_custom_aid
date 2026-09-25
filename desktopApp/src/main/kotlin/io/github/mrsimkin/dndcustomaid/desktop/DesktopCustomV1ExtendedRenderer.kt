@@ -654,11 +654,11 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - VALUES") { s ->
             rows.forEachIndexed { index, row ->
                 val top = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
-                ruleText(s, resources.fira, Rule(27.5f, 201f, top), row.name, 8.0f)
-                ruleText(s, resources.fira, Rule(207f, 281f, top), row.range, 7.8f)
-                ruleText(s, resources.firaSemibold, Rule(287f, 331f, top), row.bonus, 8.0f)
-                ruleText(s, resources.fira, Rule(337f, 456f, top), row.effect, 7.8f)
-                ruleText(s, resources.fira, Rule(462f, 583.795f, top), row.notes, 7.6f)
+                combatCellText(s, resources.fira, Rule(27.5f, 201f, top), row.name, 8.0f)
+                combatCellText(s, resources.fira, Rule(207f, 281f, top), row.range, 7.8f)
+                combatCellText(s, resources.firaSemibold, Rule(287f, 331f, top), row.bonus, 8.0f)
+                combatCellText(s, resources.fira, Rule(337f, 456f, top), row.effect, 7.8f)
+                combatCellText(s, resources.fira, Rule(462f, 583.795f, top), row.notes, 7.6f)
             }
         }
         appendLayer(page, "$prefix - MARKERS") { }
@@ -1988,6 +1988,39 @@ internal class DesktopCustomV1ExtendedRenderer(
         s.endText()
     }
 
+    private fun combatCellText(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        preferredSize: Float,
+        leftPadding: Float = 2f,
+    ) {
+        if (value.isBlank()) return
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        var size = preferredSize
+        while (size > MINIMUM_BODY_SIZE && textWidth(font, value, size) > available) {
+            size -= 0.2f
+        }
+        val rawWidth = textWidth(font, value, size)
+        val horizontalScale = if (rawWidth <= available) {
+            100f
+        } else {
+            (available / rawWidth * 100f).coerceAtMost(100f)
+        }
+        require(horizontalScale >= COMBAT_MINIMUM_HORIZONTAL_SCALE) {
+            "Custom-v1 combat cell requires excessive compression: '$value' ($horizontalScale%)"
+        }
+        s.beginText()
+        s.setNonStrokingColor(Color.BLACK)
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(rule.startX + leftPadding, H - rule.topY + 3.2f)
+        s.showText(value)
+        s.setHorizontalScaling(100f)
+        s.endText()
+    }
+
     private fun ruleText(
         s: PDFormContentStream,
         font: PDFont,
@@ -2521,6 +2554,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val MINIMUM_LABEL_HORIZONTAL_SCALE = 50f
         const val SOURCE_LABEL_BASELINE_OFFSET = 3.0f
         const val MINIMUM_BODY_SIZE = 5.8f
+        const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 55f
 
         val SOURCE_GRAY = Color(211, 210, 210)
 
