@@ -42,6 +42,7 @@ enum class PcSheetBasePageRole {
 enum class PcSheetExtendedPageKind {
     CUSTOM_STATISTICS,
     TRAITS_AND_FEATURES,
+    COMBAT_AND_ACTIONS,
     RESOURCES_AND_OPTIONS,
     INVENTORY_AND_EQUIPMENT,
     SPELLS,
@@ -51,6 +52,7 @@ enum class PcSheetExtendedPageKind {
 enum class PcSheetExportContentSection {
     CUSTOM_STATISTICS,
     TRAITS_AND_FEATURES,
+    COMBAT_AND_ACTIONS,
     RESOURCES_AND_OPTIONS,
     INVENTORY_AND_EQUIPMENT,
     SPELLS,
@@ -431,6 +433,10 @@ object PcSheetPdfExportPlanner {
         PcSheetOverflowRoute(
             section = PcSheetExportContentSection.TRAITS_AND_FEATURES,
             extensionKind = PcSheetExtendedPageKind.TRAITS_AND_FEATURES,
+        ),
+        PcSheetOverflowRoute(
+            section = PcSheetExportContentSection.COMBAT_AND_ACTIONS,
+            extensionKind = PcSheetExtendedPageKind.COMBAT_AND_ACTIONS,
         ),
         PcSheetOverflowRoute(
             section = PcSheetExportContentSection.RESOURCES_AND_OPTIONS,
