@@ -2290,7 +2290,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val BOTTOM_LINES_PER_PAGE = 15
         const val BOTTOM_TEXT_WIDTH = 150f
 
-        const val BASE_V1_TRAIT_NAME_CAPACITY = 6
+        const val BASE_V1_TRAIT_NAME_CAPACITY = 30 // 6 on main + 24 on narrative page
         const val TRAIT_LEFT_ROWS = 3
         const val TRAIT_OTHER_CAPACITY = 12
         const val TRAIT_DETAIL_ROWS = 4
