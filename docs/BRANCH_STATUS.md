@@ -104,6 +104,8 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** `fix/pc-sheet-cross-family-runtime-repair`.
 
+**Sole active implementation PR:** draft **#104**. Historical stale PRs #36, #37, #49 and #103 are closed/superseded.
+
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`;
 - implementation support checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md`;
