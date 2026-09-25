@@ -70,6 +70,7 @@ internal class DesktopClassicRenderer {
             }
             appendCustomStatisticsPages(doc, p, plan)
             appendTraitsPages(doc, p, plan)
+            appendCombatPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
             appendInventoryPages(doc, p, plan)
             appendSpellContinuationPages(doc, p, plan)
@@ -482,34 +483,6 @@ internal class DesktopClassicRenderer {
             add("Estado", characterStatusLabel(sheet.status))
         }
 
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                val baseDetail = listOfNotNull(
-                    entry.damageEffect.takeIf { it.isNotBlank() },
-                    entry.rangeText?.takeIf { it.isNotBlank() },
-                    entry.notes?.takeIf { it.isNotBlank() },
-                ).joinToString(" · ")
-                if (
-                    index >= BASE_COMBAT_CAPACITY ||
-                    entry.type != CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank() ||
-                    entry.name.length > CLASSIC_COMBAT_NAME_CHARS ||
-                    baseDetail.length > CLASSIC_COMBAT_DETAIL_CHARS
-                ) {
-                    add(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
-
         if (closure.progressMode == CharacterProgressMode.MILESTONE) {
             add("Progreso", closure.milestoneProgress)
         }
@@ -590,20 +563,6 @@ internal class DesktopClassicRenderer {
                     ).filter { it.isNotBlank() }.joinToString(" · "),
                 )
             }
-
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression +
-                    component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                add(
-                    "Daño estructurado",
-                    (combatById[profile.combatEntryId]?.name ?: "Ataque") + ": " + components,
-                )
-            }
-        }
 
         val spellSourceOrder = sheet.spellcastingSources.associate { it.id to it.sortOrder }
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
@@ -833,6 +792,65 @@ internal class DesktopClassicRenderer {
         CharacterActivationType.BONUS_ACTION -> "Acción adicional"
         CharacterActivationType.REACTION -> "Reacción"
         CharacterActivationType.OTHER -> "Otra"
+    }
+
+    private fun appendCombatPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val lines = classicCombatContinuationLines(plan)
+        if (lines.isEmpty()) return
+
+        val pages = pageCount(lines.size, CLASSIC_COMBAT_LINES_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "COMBATE / ACCIONES")
+                titledFrame(s, p, 24f, 112f, 564f, 606f, "DETALLE Y REFERENCIA DE COMBATE")
+                ruledTextArea(
+                    s, p, 36f, 148f, 540f, 552f,
+                    lines.pageSlice(pageIndex, CLASSIC_COMBAT_LINES_PER_PAGE),
+                    8.2f,
+                )
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / COMBATE Y ACCIONES")
+            }
+        }
+    }
+
+    private fun classicCombatContinuationLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val structuredByEntry = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+
+        return sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .flatMap { entry ->
+                val structured = structuredByEntry[entry.id]
+                    ?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val detail = buildList {
+                    add(combatTypeLabel(entry.type) + " · " + entry.name)
+                    entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                    entry.rangeText?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.damageEffect.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (
+                        structured.isNotBlank() &&
+                        !entry.damageEffect.replace(" ", "").equals(
+                            structured.replace(" ", ""),
+                            ignoreCase = true,
+                        )
+                    ) {
+                        add("Daño estructurado: $structured")
+                    }
+                }.joinToString(" · ")
+                wrapForChars(detail, CLASSIC_COMBAT_REFERENCE_CHARS)
+            }
     }
 
     private fun appendResourcesPages(
@@ -3183,6 +3201,8 @@ private fun ruledTextArea(
         const val CLASSIC_RULED_ENTRY_CHARS = 54
         const val CLASSIC_RULED_ENTRY_LINES = 2
         const val CLASSIC_SPECIES_NAME_CHARS = 28
+        const val CLASSIC_COMBAT_LINES_PER_PAGE = 25
+        const val CLASSIC_COMBAT_REFERENCE_CHARS = 82
         const val CLASSIC_COMBAT_NAME_CHARS = 30
         const val CLASSIC_COMBAT_DETAIL_CHARS = 34
         const val CLASSIC_COMBAT_PREVIEW_CHARS = 20
