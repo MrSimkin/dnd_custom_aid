@@ -908,10 +908,6 @@ internal class DesktopClassicRenderer {
                         resourceTableRow(s, p, 36f, top, row)
                     } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
                 }
-                repeat(2) { index ->
-                    resourceBlankRow(s, p, 36f, 368f + index * 24f)
-                }
-
                 titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
                 val pageOptions = options
                     .drop(pageIndex * CLASSIC_OPTION_ROWS_PER_PAGE)
@@ -965,7 +961,7 @@ internal class DesktopClassicRenderer {
             splitClassicResourceRow(
                 name = resource.name,
                 value = if (oneUse) {
-                    if (resource.currentValue > 0) "Disponible" else "Gastado"
+                    resource.currentValue.coerceIn(0, 1).toString() + " / 1"
                 } else {
                     maximum?.let { "${resource.currentValue} / $it" }
                         ?: resource.currentValue.toString()
@@ -987,7 +983,7 @@ internal class DesktopClassicRenderer {
             splitClassicResourceRow(
                 name = marker.name,
                 value = if (oneUse) {
-                    if (marker.currentValue > 0) "Disponible" else "Gastado"
+                    marker.currentValue.coerceIn(0, 1).toString() + " / 1"
                 } else {
                     maximum?.let { "${marker.currentValue} / $it" }
                         ?: marker.currentValue.toString()
@@ -1151,39 +1147,6 @@ internal class DesktopClassicRenderer {
             .flatMap { item -> classicSpecialItemRows(item, usageByItem[item.id]) }
 
         val noteEntries = buildList {
-            // For base-represented items, continuation carries only information the compact base
-            // row cannot express; it does not replay the whole item.
-            ordered
-                .filter { it.id !in specialIds }
-                .forEach { item ->
-                    val usage = usageByItem[item.id]
-                    val hasNarrativeDetail =
-                        !item.description.isNullOrBlank() || !item.notes.isNullOrBlank()
-                    val usageState = if (usage == null) {
-                        ""
-                    } else {
-                        buildList {
-                            when (usage.kind) {
-                                CharacterConsumableKind.CONSUMABLE -> add("Consumible")
-                                CharacterConsumableKind.AMMUNITION -> add("Munición")
-                                CharacterConsumableKind.NONE -> Unit
-                            }
-                            if (usage.quickUseAmount != 1) add("Uso " + usage.quickUseAmount)
-                            if (usage.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
-                        }.joinToString(" · ")
-                    }
-                    if (hasNarrativeDetail || usageState.isNotEmpty()) {
-                        val details = buildList {
-                            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                                add("Ubicación: " + it)
-                            }
-                            usageState.takeIf { it.isNotBlank() }?.let { add("Estado: " + it) }
-                            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                        }
-                        add(item.name + ": " + details.joinToString(" · "))
-                    }
-                }
             // Base-represented special equipment keeps its compact row; any richer detail
             // is preserved here instead of replaying the item as another special-equipment record.
             specialItems
