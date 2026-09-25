@@ -25,6 +25,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
@@ -1164,7 +1166,7 @@ internal class AndroidClassicRenderer {
                     }
                 }
             sheet.currencies
-                .filter { it.key.lowercase() !in CLASSIC_BASE_CURRENCY_KEYS }
+                .filter { !it.isDefault }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
                     add("${currency.name}: ${currency.amount}")
@@ -1752,7 +1754,7 @@ private fun appendSpellContinuationPages(
             )
 
 titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
-            coinStrip(s, p, 276f, 136f, sheet.currencies.associateBy { it.key.lowercase() })
+            coinStrip(s, p, 276f, 136f, sheet.currencies)
             tableHeader(
                 s, p, 276f, 180f,
                 listOf(36f to "Cant.", 146f to "Objeto", 112f to "Notas"),
@@ -1993,19 +1995,19 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         p: AndroidPdfRenderingPrimitives,
         x: Float,
         top: Float,
-        currencies: Map<String, io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>,
+        currencies: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>,
     ) {
         val coins = listOf(
-            "PC" to "pc",
-            "PP" to "pp",
-            "PE" to "pe",
-            "PO" to "po",
-            "PPT" to "pt",
+            "PC" to StandardCurrencyKind.COPPER,
+            "PP" to StandardCurrencyKind.SILVER,
+            "PE" to StandardCurrencyKind.ELECTRUM,
+            "PO" to StandardCurrencyKind.GOLD,
+            "PPT" to StandardCurrencyKind.PLATINUM,
         )
-        coins.forEachIndexed { index, (label, key) ->
+        coins.forEachIndexed { index, (label, kind) ->
             miniRunicStat(
                 s, p, x + index * 58f, top, 52f, 34f,
-                label, currencies[key]?.amount?.toString().orEmpty(),
+                label, currencies.standardCurrency(kind)?.amount?.toString().orEmpty(),
             )
         }
     }
@@ -3263,7 +3265,6 @@ private fun ruledTextArea(
         const val CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS = 26
         const val CLASSIC_CUSTOM_ABBREVIATION_CHARS = 8
         const val CLASSIC_CUSTOM_SKILL_NAME_CHARS = 22
-        val CLASSIC_BASE_CURRENCY_KEYS = setOf("pc", "pp", "pe", "po", "pt")
         const val CLASSIC_BASE_CANTRIP_CAPACITY = 5
         const val CLASSIC_BASE_LEVEL1_CAPACITY = 13
         const val CLASSIC_BASE_LEVEL2_CAPACITY = 9
