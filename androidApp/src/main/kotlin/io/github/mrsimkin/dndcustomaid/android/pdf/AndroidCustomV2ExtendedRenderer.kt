@@ -84,6 +84,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
 
         appendTraitsExtendedPages(plan)
+        appendCombatExtendedPages(plan)
 
         appendResourcesExtendedPages(plan)
 
@@ -654,27 +655,6 @@ internal class AndroidCustomV2ExtendedRenderer(
             addFull("Estado", characterStatusLabel(sheet.status))
         }
 
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                if (
-                    index >= BASE_V2_COMBAT_CAPACITY ||
-                    entry.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank()
-                ) {
-                    addFull(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
-
         when (closure.progressMode) {
             CharacterProgressMode.EXPERIENCE -> addFull("Experiencia", closure.experiencePoints.toString())
             CharacterProgressMode.MILESTONE -> addFull("Progreso", closure.milestoneProgress)
@@ -760,17 +740,6 @@ internal class AndroidCustomV2ExtendedRenderer(
                     ).filter { it.isNotBlank() }.joinToString(" · "),
                 )
             }
-
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val entry = combatById[profile.combatEntryId]
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression + component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                addFull("Daño estructurado", (entry?.name ?: "Ataque") + ": " + components)
-            }
-        }
 
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
         successor.spellcastingProfiles.forEach { profile ->
@@ -897,6 +866,82 @@ internal class AndroidCustomV2ExtendedRenderer(
 
         if (metadata.isEmpty()) return listOf(trait.name)
         return wrapByWidth(resources.fira, trait.name + ": " + metadata, 7.7f, 281f)
+    }
+
+    private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val lines = combatContinuationLines(plan)
+        if (lines.isEmpty()) return
+        val pages = pageCount(lines.size, COMBAT_LINES_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            val pageLines = lines
+                .drop(pageIndex * COMBAT_LINES_PER_PAGE)
+                .take(COMBAT_LINES_PER_PAGE)
+            val prefix = if (pageIndex == 0) "V2X COMBAT" else "V2X COMBAT P${pageIndex + 1}"
+            appendLayer(page, "$prefix - STRUCTURE") { s ->
+                pageHeaderStructure(s)
+                fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
+                bandedRows(s, 14f, 598f, 139f, COMBAT_LINES_PER_PAGE, 17f, 0)
+            }
+            appendLayer(page, "$prefix - LABELS") { s ->
+                pageTitle(s, "COMBATE / ACCIONES")
+                centeredFixedScale(
+                    s, resources.corbelBold,
+                    TopRect(14f, 97f, 584f, 20f),
+                    "DETALLE Y REFERENCIA DE COMBATE",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
+            appendLayer(page, "$prefix - VALUES") { s ->
+                pageLines.forEachIndexed { index, line ->
+                    textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(18f, 594f, 139f + index * 17f),
+                        line,
+                        7.8f,
+                        6.6f,
+                        2.3f,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun combatContinuationLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val structuredByEntry = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+        return sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .flatMap { entry ->
+                val structured = structuredByEntry[entry.id]
+                    ?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val detail = buildList {
+                    add(combatTypeLabel(entry.type) + " · " + entry.name)
+                    entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                    entry.rangeText?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.damageEffect.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    entry.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (
+                        structured.isNotBlank() &&
+                        !entry.damageEffect.replace(" ", "").equals(
+                            structured.replace(" ", ""),
+                            ignoreCase = true,
+                        )
+                    ) {
+                        add("Daño estructurado: $structured")
+                    }
+                }.joinToString(" · ")
+                wrapByWidth(resources.fira, detail, 7.8f, 570f)
+            }
     }
 
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
@@ -1139,14 +1184,14 @@ internal class AndroidCustomV2ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
-            val usage = usageByItem[item.id]
-            item.takeIf {
-                index >= BASE_V2_EQUIPMENT_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    item.equipped ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank()
+        var consumedBaseLines = 0
+        val ordinaryContinuation = ordinary.mapNotNull { item ->
+            val lines = inventoryContinuationLines(item, usageByItem[item.id])
+            if (consumedBaseLines + lines.size <= BASE_V2_EQUIPMENT_CAPACITY) {
+                consumedBaseLines += lines.size
+                null
+            } else {
+                item
             }
         }
         val ordinaryLines = ordinaryContinuation.flatMap { item ->
@@ -1157,16 +1202,12 @@ internal class AndroidCustomV2ExtendedRenderer(
             val usage = usageByItem[item.id]
             item.takeIf {
                 index >= BASE_V2_SPECIAL_CAPACITY ||
-                    item.attuned ||
-                    usageMeaningful(usage) ||
-                    item.quantity != 1 ||
-                    item.weightLb != null ||
-                    specialLocationNeedsText(item.location)
+                    usageMeaningful(usage)
             }
         }
         val treasureLines = buildList {
             sheet.currencies
-                .filter { it.key.lowercase() !in BASE_V2_CURRENCY_KEYS }
+                .filter { it.amount != 0 && it.key.lowercase() !in BASE_V2_CURRENCY_KEYS }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
                     add(currency.name + ": " + currency.amount)
@@ -1745,9 +1786,30 @@ internal class AndroidCustomV2ExtendedRenderer(
     ) {
         require(maximum in 1..9)
         require(current in 0..maximum)
+        if (maximum == 1) {
+            // One-use resources use the same owner-accepted semantic as Custom v1:
+            // outline circle = available, filled circle = spent.
+            val cp = if (current == 1) 0xE300 else 0xE301
+            glyphInRect(
+                s,
+                resources.symbol,
+                cp,
+                TopRect(startX, centerTop - 6f, 12f, 12f),
+                0.7f,
+                0.7f,
+            )
+            return
+        }
         repeat(maximum) { index ->
-            val cp = if (index < current) 0xE304 else 0xE303
-            glyphInRect(s, resources.symbol, cp, TopRect(startX + index * 13f, centerTop - 5f, 10f, 10f), 0.7f, 0.7f)
+            val cp = if (index < current) 0xE303 else 0xE304
+            glyphInRect(
+                s,
+                resources.symbol,
+                cp,
+                TopRect(startX + index * 13f, centerTop - 5f, 10f, 10f),
+                0.7f,
+                0.7f,
+            )
         }
     }
 
@@ -2458,7 +2520,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
-        val BASE_V2_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc")
+        val BASE_V2_CURRENCY_KEYS = setOf("pp", "gp", "sp", "cp")
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_CONTINUATION_CAPACITY = 57
         const val INVENTORY_VALUABLES_CAPACITY = 19
@@ -2471,6 +2533,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             "Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha",
             "Brazo izquierdo", "Brazo derecho", "Pecho", "Piernas", "Pies",
         )
+        const val COMBAT_LINES_PER_PAGE = 32
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_OPTIONS_PER_PAGE = 18
         const val BASE_V2_NOTES_CAPACITY = 40
