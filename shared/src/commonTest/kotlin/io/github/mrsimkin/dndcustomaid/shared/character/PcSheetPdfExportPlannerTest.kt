@@ -36,6 +36,84 @@ class PcSheetPdfExportPlannerTest {
     }
 
     @Test
+    fun planOmitsEmptySpellPagesAndShortStandaloneNotesPages() {
+        val sheet = baseSheet().copy(
+            spellcasterEnabled = false,
+            spells = emptyList(),
+            spellSlots = emptyList(),
+            spellcastingSources = emptyList(),
+            generalNotes = "Nota breve que cabe en la superficie narrativa existente.",
+        )
+        val sources = PcSheetExportSources(
+            permanent = PcSheetExportAggregate(
+                sheet = sheet,
+                closure = CharacterClosureState(),
+                successor = CharacterSuccessorState(),
+            ),
+        )
+
+        listOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE,
+            PcSheetVisualFamily.CUSTOM_V1,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        ).forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources,
+            )
+            assertFalse(plan.basePages.any { it.role == PcSheetBasePageRole.SPELL_LIST })
+            if (family != PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+                assertFalse(plan.basePages.any { it.role == PcSheetBasePageRole.NOTES })
+            }
+        }
+    }
+
+    @Test
+    fun planKeepsSpellPageWhenRealSpellContentExists() {
+        val source = CharacterSpellcastingSource(
+            id = uuid("10000000-0000-0000-0000-000000000009"),
+            name = "Wizard",
+            linkedClassId = null,
+            sortOrder = 0,
+            originKind = CharacterSpellcastingOriginKind.CLASS,
+        )
+        val sheet = baseSheet().copy(
+            spellcasterEnabled = true,
+            spellcastingSources = listOf(source),
+            spells = listOf(
+                spell(
+                    id = "20000000-0000-0000-0000-000000000009",
+                    name = "Luz",
+                    level = 0,
+                    sources = listOf(CharacterSpellSourceAssociation(source.id, prepared = true)),
+                ),
+            ),
+        )
+        val sources = PcSheetExportSources(
+            permanent = PcSheetExportAggregate(
+                sheet = sheet,
+                closure = CharacterClosureState(),
+                successor = CharacterSuccessorState(),
+            ),
+        )
+
+        PcSheetVisualFamily.entries.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources,
+            )
+            assertTrue(plan.basePages.any { it.role == PcSheetBasePageRole.SPELL_LIST })
+        }
+    }
+
+    @Test
     fun customStatisticsModesSelectFaithfulOrModifiedBaseAndMandatoryExtendedPage() {
         val aggregate = aggregateWithCustomStatistics()
         val sources = PcSheetExportSources(permanent = aggregate)
