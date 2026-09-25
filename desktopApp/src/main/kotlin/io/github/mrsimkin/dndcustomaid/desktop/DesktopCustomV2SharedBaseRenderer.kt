@@ -43,6 +43,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
     private fun renderEquipmentAndNarrative(page: PDPage, plan: PcSheetPdfRenderPlan) {
         append(page, "CustomV2 BASE - Equipment") { drawEquipment(it, plan) }
         append(page, "CustomV2 BASE - Background") { drawBackground(it, plan) }
+        append(page, "CustomV2 BASE - Special Location Typography") { drawSpecialLocationLabels(it) }
         append(page, "CustomV2 BASE - Special Equipment") { drawSpecialEquipment(it, plan) }
     }
 
@@ -172,6 +173,30 @@ internal class DesktopCustomV2SharedBaseRenderer(
             notes.takeIf { it.isNotBlank() }?.let { add("Notas: $it") }
         }.joinToString(" · ")
         drawRuledParagraph(s, STORY_RULES, storyAndNotes, 9.25f, 2.8f, 2f)
+    }
+
+    private fun drawSpecialLocationLabels(s: PDFormContentStream) {
+        SPECIAL_RULE_Y.forEachIndexed { index, y ->
+            val rowTop = y - 15.5f
+            s.saveGraphicsState()
+            s.setNonStrokingColor(if (index % 2 == 0) LOCATION_ROW_GRAY else Color.WHITE)
+            s.addRect(14f, H - rowTop - 16.5f, 72f, 16.5f)
+            s.fill()
+            s.restoreGraphicsState()
+
+            SPECIAL_LOCATION_LABELS_DISPLAY.getOrNull(index)?.let { label ->
+                textAboveRule(
+                    s,
+                    fonts.regular,
+                    Rule(18f, 84f, y),
+                    label,
+                    7.4f,
+                    6.6f,
+                    2.2f,
+                    0f,
+                )
+            }
+        }
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -462,6 +487,11 @@ internal class DesktopCustomV2SharedBaseRenderer(
             "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
             "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
         )
+        val SPECIAL_LOCATION_LABELS_DISPLAY = listOf(
+            "Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha",
+            "Brazo izquierdo", "Brazo derecho", "Pecho", "Piernas", "Pies",
+        )
+        val LOCATION_ROW_GRAY: Color = Color(227, 227, 227)
 
         val NOTES_Y = List(20) { 104f + it * 17f }
         val NOTES_LEFT = NOTES_Y.map { Rule(14f, 302.5f, it) }
