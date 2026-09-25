@@ -1112,6 +1112,7 @@ internal class DesktopClassicRenderer {
             val compactState = inventoryBaseNote(item, usage)
             return item.name.trim().length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
                 compactState.length > CLASSIC_BASE_INVENTORY_NOTE_CHARS ||
+                (usage?.carryState == CharacterInventoryCarryState.CARRIED && !item.equipped && !item.attuned) ||
                 item.weightLb != null ||
                 !item.description.isNullOrBlank() ||
                 !item.notes.isNullOrBlank()
