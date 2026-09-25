@@ -576,30 +576,29 @@ internal class DesktopCustomV1ExtendedRenderer(
     }
 
     private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val lines = combatReferenceLines(plan)
-        if (lines.isEmpty()) return
+        val rows = combatReferenceRows(plan)
+        if (rows.isEmpty()) return
 
-        val pages = pageCount(lines.size, COMBAT_LINES_PER_PAGE)
+        val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
         repeat(pages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderCombatPage(
                 page = page,
-                lines = lines.pageSlice(pageIndex, COMBAT_LINES_PER_PAGE),
+                rows = rows.pageSlice(pageIndex, COMBAT_ROWS_PER_PAGE),
                 pageIndex = pageIndex,
             )
         }
     }
 
-    private fun combatReferenceLines(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun combatReferenceRows(plan: PcSheetPdfRenderPlan): List<CombatReferenceRow> {
         val aggregate = plan.snapshot.aggregate
         val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
 
         return aggregate.sheet.combatEntries
             .sortedBy { it.sortOrder }
             .mapIndexedNotNull { index, entry ->
-                val damage = damageByCombatId[entry.id]
-                val structuredDamage = damage?.components
+                val structuredDamage = damageByCombatId[entry.id]?.components
                     ?.joinToString(" + ") { component ->
                         component.expression +
                             component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
@@ -613,29 +612,26 @@ internal class DesktopCustomV1ExtendedRenderer(
                 if (!needsReference) {
                     null
                 } else {
-                    buildList {
-                        add(combatTypeLabel(entry.type) + " — " + entry.name)
-                        entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                        entry.damageEffect.takeIf { it.isNotBlank() }?.let { add("Efecto / daño: $it") }
-                        entry.rangeText?.takeIf { it.isNotBlank() }?.let { add("Alcance: $it") }
-                        entry.notes?.takeIf { it.isNotBlank() }?.let { add("Notas: $it") }
-                        structuredDamage.takeIf { it.isNotBlank() }?.let { add("Daño estructurado: $it") }
-                    }.joinToString(" · ")
+                    val extraDamage = structuredDamage.takeIf {
+                        it.isNotBlank() && !it.equals(entry.damageEffect.trim(), ignoreCase = true)
+                    }
+                    CombatReferenceRow(
+                        name = combatTypeLabel(entry.type) + " — " + entry.name,
+                        range = entry.rangeText.orEmpty().trim(),
+                        bonus = entry.attackModifier?.let(::signed).orEmpty(),
+                        effect = entry.damageEffect.trim(),
+                        notes = listOf(
+                            entry.notes.orEmpty().trim(),
+                            extraDamage?.let { "Daño: $it" }.orEmpty(),
+                        ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    )
                 }
-            }
-            .flatMap { value ->
-                wrapByWidth(
-                    value,
-                    resources.fira,
-                    8.4f,
-                    COMBAT_TEXT_WIDTH,
-                )
             }
     }
 
     private fun renderCombatPage(
         page: PDPage,
-        lines: List<String>,
+        rows: List<CombatReferenceRow>,
         pageIndex: Int,
     ) {
         val prefix = "V1X COMBAT P${pageIndex + 1}"
@@ -646,33 +642,30 @@ internal class DesktopCustomV1ExtendedRenderer(
                 25f,
                 585f,
                 COMBAT_FIRST_RULE_TOP,
-                COMBAT_LINES_PER_PAGE,
-                COMBAT_STEP,
+                COMBAT_ROWS_PER_PAGE,
+                COMBAT_ROW_STEP,
             )
+            listOf(205f, 285f, 335f, 460f).forEach { x ->
+                verticalRule(s, x, 112f, COMBAT_FIRST_RULE_TOP + COMBAT_ROWS_PER_PAGE * COMBAT_ROW_STEP, 0.45f)
+            }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Combate / Acciones", 18f)
-            centeredText(
-                s,
-                resources.fira,
-                27f,
-                96f,
-                556f,
-                14f,
-                "REFERENCIA DE COMBATE / ACCIÓN / DAÑO",
-                7.5f,
-            )
+            centeredText(s, resources.fira, 27f, 96f, 176f, 14f, "TIPO / NOMBRE", 7.5f)
+            centeredText(s, resources.fira, 207f, 96f, 76f, 14f, "RANGO", 7.5f)
+            centeredText(s, resources.fira, 287f, 96f, 46f, 14f, "BONIF.", 7.5f)
+            centeredText(s, resources.fira, 337f, 96f, 121f, 14f, "DAÑO / EFECTO", 7.5f)
+            centeredText(s, resources.fira, 462f, 96f, 121f, 14f, "NOTAS", 7.5f)
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            lines.forEachIndexed { index, line ->
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(27.5f, 583.795f, COMBAT_FIRST_RULE_TOP + index * COMBAT_STEP),
-                    line,
-                    8.4f,
-                )
+            rows.forEachIndexed { index, row ->
+                val top = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
+                ruleText(s, resources.fira, Rule(27.5f, 201f, top), row.name, 8.0f)
+                ruleText(s, resources.fira, Rule(207f, 281f, top), row.range, 7.8f)
+                ruleText(s, resources.firaSemibold, Rule(287f, 331f, top), row.bonus, 8.0f)
+                ruleText(s, resources.fira, Rule(337f, 456f, top), row.effect, 7.8f)
+                ruleText(s, resources.fira, Rule(462f, 583.795f, top), row.notes, 7.6f)
             }
         }
         appendLayer(page, "$prefix - MARKERS") { }
@@ -2212,6 +2205,14 @@ internal class DesktopCustomV1ExtendedRenderer(
         val slotRule: Rule?,
     )
 
+    private data class CombatReferenceRow(
+        val name: String,
+        val range: String,
+        val bonus: String,
+        val effect: String,
+        val notes: String,
+    )
+
     private data class TreasureEntry(
         val label: String,
         val value: String?,
@@ -2424,9 +2425,9 @@ internal class DesktopCustomV1ExtendedRenderer(
         )
 
         const val BASE_V1_COMBAT_CAPACITY = 5
-        const val COMBAT_LINES_PER_PAGE = 29
+        const val COMBAT_ROWS_PER_PAGE = 14
         const val COMBAT_FIRST_RULE_TOP = 128f
-        const val COMBAT_STEP = 21f
+        const val COMBAT_ROW_STEP = 42f
         const val COMBAT_TEXT_WIDTH = 556f
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
         const val BASE_V1_SPECIAL_CAPACITY = 12
