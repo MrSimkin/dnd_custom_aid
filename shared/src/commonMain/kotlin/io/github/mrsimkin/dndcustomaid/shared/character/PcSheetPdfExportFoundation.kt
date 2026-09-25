@@ -278,11 +278,56 @@ object PcSheetPdfExportPlanner {
                 spellbook = spellbook,
             ),
             baseLayoutMode = baseLayoutMode,
-            basePages = basePages(request.visualFamily),
+            basePages = activeBasePages(request.visualFamily, selectedAggregate),
             mandatoryExtendedPages = mandatoryExtendedPages,
             overflowRoutes = overflowRoutes(),
             notices = notices.toList(),
         )
+    }
+
+    private fun activeBasePages(
+        family: PcSheetVisualFamily,
+        aggregate: PcSheetExportAggregate,
+    ): List<PcSheetTemplatePage> {
+        val sheet = aggregate.sheet
+        val hasSpellContent =
+            sheet.spellcasterEnabled ||
+                sheet.spells.isNotEmpty() ||
+                sheet.spellSlots.isNotEmpty() ||
+                sheet.spellcastingSources.isNotEmpty() ||
+                aggregate.successor.spellcastingProfiles.isNotEmpty()
+
+        val notesText = buildList {
+            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
+                val title = card.title.trim()
+                val body = card.content.trim()
+                when {
+                    title.isNotEmpty() && body.isNotEmpty() -> add("$title: $body")
+                    title.isNotEmpty() -> add(title)
+                    body.isNotEmpty() -> add(body)
+                }
+            }
+        }.joinToString("\n\n")
+
+        val notesFitExistingNarrative = when (family) {
+            PcSheetVisualFamily.CUSTOM_V1 -> notesText.length <= CUSTOM_V1_INLINE_NOTES_CHAR_BUDGET
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+            -> {
+                val story = sheet.background.story.trim()
+                story.length + notesText.length <= CUSTOM_V2_STORY_AND_NOTES_CHAR_BUDGET
+            }
+            PcSheetVisualFamily.CLASSIC_DND_STYLE -> false
+        }
+
+        return basePages(family).filter { page ->
+            when (page.role) {
+                PcSheetBasePageRole.SPELL_LIST -> hasSpellContent
+                PcSheetBasePageRole.NOTES -> notesText.isNotBlank() && !notesFitExistingNarrative
+                else -> true
+            }
+        }
     }
 
     fun basePages(family: PcSheetVisualFamily): List<PcSheetTemplatePage> = when (family) {
@@ -313,6 +358,9 @@ object PcSheetPdfExportPlanner {
             PcSheetTemplatePage(PcSheetBasePageRole.NOTES, CUSTOM_V2_TEMPLATE_PATH, 5),
         )
     }
+
+    private const val CUSTOM_V1_INLINE_NOTES_CHAR_BUDGET = 720
+    private const val CUSTOM_V2_STORY_AND_NOTES_CHAR_BUDGET = 760
 
     private fun customStatisticsProjection(
         aggregate: PcSheetExportAggregate,
