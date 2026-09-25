@@ -307,8 +307,7 @@ object PcSheetPdfExportPlanner {
             V1_NARRATIVE_NOTE_APPROX_CHARS,
         )
         val v1NeedsDedicatedNotesPage =
-            aggregate.sheet.pdfOrdinaryEquipmentDetailParagraphs().isNotEmpty() ||
-                v1CampaignNoteLines > V1_NARRATIVE_NOTE_CAPACITY
+            v1CampaignNoteLines > V1_NARRATIVE_NOTE_CAPACITY
 
         return basePages(family).filter { page ->
             when {
