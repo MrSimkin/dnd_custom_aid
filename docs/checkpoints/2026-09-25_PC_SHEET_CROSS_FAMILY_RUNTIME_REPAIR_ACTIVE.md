@@ -58,15 +58,44 @@ Repository precedent supports these rules:
    - Fantasy now honors the planner decision instead of drawing its spell page unconditionally.
    - commits: `1a6f2b21cbd5fc9015980c3a18c362649e883a79`, `cd0f905fe8290e2da39e7b7c3cf80ad47fccf105`, `38d4d5d60b6a3dc40de8cb5e289061d8adb9a7ed`, `0ded9e440a420dd4f2c69c1a444c40ab7c7460ee`.
 
-## Confirmed root defects still being repaired
 
-- Custom v1 and Custom v2 explicitly inject combat/action entries and structured damage into their Traits supplement channel;
-- Fantasy similarly mixes combat/reference detail into Traits continuation;
-- base-represented inventory items are re-emitted on continuation pages merely because they carry detail/status metadata;
-- currency handling must use native standard/custom currency capacity first and remain semantically distinct from equipment;
-- Custom-v2 one-use resource squares and Fantasy numeric one-use rows remain incorrect;
-- Custom-v2 base special-equipment Location fill still uses the wrong visual path;
-- Notes/content packing still needs repair after semantic destinations are separated.
+3. **Read-only export-time Unicode recovery**
+   - the export planner now normalizes only recognizable reversible UTF-8-as-Windows-1252/Latin-1 mojibake in the selected PDF projection;
+   - clean Unicode remains unchanged and persisted character data is never rewritten;
+   - regressions cover accented Spanish and en/em-dash corruption.
+
+4. **Native currency placement restored from verified source geometry**
+   - the frozen Custom-v1 page-2 source render was inspected directly: after the five standard coin rows, `Monedas` contains **two blank native custom-currency rows**; these now receive the first two true custom currencies;
+   - the frozen Custom-v2 page-1 source render was inspected directly: four standard `TESORO` rows sit beside four `OTROS` rows; Electrum/non-native/custom currencies use `OTROS` before any continuation;
+   - `Gemas / Joyas / Arte` is no longer treated as Custom-v1 custom-currency capacity;
+   - semantic standard-currency identity wins over imperfect legacy `isDefault` flags, preventing standard coins from being duplicated as custom overflow.
+
+5. **Ordinary Equipment semantics centralized**
+   - normal inventory identity is quantity + name + weight only across Fantasy, Custom v1 and Custom v2;
+   - location/description/notes no longer inflate the ordinary Equipment row;
+   - a bare location by itself does not allocate a detail/Notes page;
+   - when richer ordinary-item detail is worth preserving, location may accompany it on a detail/Notes surface;
+   - represented special equipment keeps its dedicated semantics instead of being replayed solely for quantity/weight metadata.
+
+6. **Notes/page packing repaired in the first compatible surfaces**
+   - Fantasy campaign notes reuse an already-needed inventory/detail continuation before a standalone Notes page is allocated;
+   - Custom-v1 page 3 owns normal campaign notes;
+   - Custom-v1 page 5 is now conditional and contains only campaign overflow plus warranted ordinary-equipment detail;
+   - further Custom-v1 Notes pages are true overflow only;
+   - Custom-v2 standalone Notes packing remains to be decided from actual spare `DETALLES / NOTAS` capacity rather than suppressed heuristically.
+
+7. **Regression contract migration in progress**
+   - tests are being changed from obsolete exact physical page counts to semantic layer/content/data-preservation assertions where pagination is intentionally content-aware;
+   - Android generated renderers are synchronized after Desktop authority changes;
+   - latest Scaffold validation is still pending; no repaired QA APK has been promoted yet.
+
+## Remaining repair/validation focus
+
+- prove the repaired semantic routing and one-use resource presentation with a green Scaffold run and fresh Aldren runtime PDFs;
+- finish content-aware Custom-v2 Notes packing only where existing compatible `DETALLES / NOTAS` capacity is demonstrably available;
+- revalidate Custom-v2 special-equipment Location typography in the fresh runtime output;
+- audit residual page amplification after the spell, inventory, currency and Notes repairs rather than targeting an arbitrary page count;
+- keep bounded-overflow/data-preservation guards active while obsolete fixed-page-count tests are migrated.
 
 ## Current engineering order
 
