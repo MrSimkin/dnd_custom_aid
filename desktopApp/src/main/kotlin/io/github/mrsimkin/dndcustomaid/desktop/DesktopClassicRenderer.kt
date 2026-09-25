@@ -1156,16 +1156,31 @@ internal class DesktopClassicRenderer {
             ordered
                 .filter { it.id !in specialIds }
                 .forEach { item ->
-                    val state = inventoryState(item, usageByItem[item.id])
-                    val details = buildList {
-                        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                            add("Ubicación: " + it)
-                        }
-                        state.takeIf { it.isNotBlank() }?.let { add("Estado: " + it) }
-                        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    val usage = usageByItem[item.id]
+                    val hasNarrativeDetail =
+                        !item.description.isNullOrBlank() || !item.notes.isNullOrBlank()
+                    val usageState = if (usage == null) {
+                        ""
+                    } else {
+                        buildList {
+                            when (usage.kind) {
+                                CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+                                CharacterConsumableKind.AMMUNITION -> add("Munición")
+                                CharacterConsumableKind.NONE -> Unit
+                            }
+                            if (usage.quickUseAmount != 1) add("Uso " + usage.quickUseAmount)
+                            if (usage.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
+                        }.joinToString(" · ")
                     }
-                    if (details.isNotEmpty()) {
+                    if (hasNarrativeDetail || usageState.isNotEmpty()) {
+                        val details = buildList {
+                            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                                add("Ubicación: " + it)
+                            }
+                            usageState.takeIf { it.isNotBlank() }?.let { add("Estado: " + it) }
+                            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                        }
                         add(item.name + ": " + details.joinToString(" · "))
                     }
                 }
