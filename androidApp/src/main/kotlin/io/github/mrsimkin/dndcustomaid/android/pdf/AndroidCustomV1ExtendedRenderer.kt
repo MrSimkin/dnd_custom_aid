@@ -2413,6 +2413,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
         const val BASE_V1_SPECIAL_CAPACITY = 12
         const val BASE_V1_VALUABLE_CAPACITY = 4
+        const val BASE_V1_CUSTOM_CURRENCY_CAPACITY = 2
         const val INVENTORY_ORDINARY_CAPACITY = 54
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
