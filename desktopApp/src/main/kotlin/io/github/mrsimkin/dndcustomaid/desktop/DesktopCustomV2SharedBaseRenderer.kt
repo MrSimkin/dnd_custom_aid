@@ -308,7 +308,6 @@ internal class DesktopCustomV2SharedBaseRenderer(
                 if (item.quantity > 1) append(item.quantity).append(" x ")
                 append(item.name)
             })
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.weightLb?.let { weight ->
                 add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
             }
