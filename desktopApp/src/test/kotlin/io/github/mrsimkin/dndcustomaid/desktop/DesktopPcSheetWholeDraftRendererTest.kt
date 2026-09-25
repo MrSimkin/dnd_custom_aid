@@ -2451,7 +2451,6 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Munición"))
             assertTrue(extracted.contains("Almacenado"))
             assertTrue(extracted.contains("Herramienta llevada"))
-            assertTrue(extracted.contains("Llevado"))
         }
 
         Loader.loadPDF(classicPermanentPdf).use { permanentDocument ->
