@@ -948,7 +948,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 wrapByWidth(resources.fira, detail, 7.8f, 570f)
             }
             .flatten()
-    }    }
+    }
 
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
         if (!needsResourcesExtendedPage(plan)) return
