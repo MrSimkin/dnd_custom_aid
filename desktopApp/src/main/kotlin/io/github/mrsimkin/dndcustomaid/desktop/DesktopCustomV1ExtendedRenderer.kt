@@ -1049,31 +1049,45 @@ internal class DesktopCustomV1ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
+        val ordinaryLines = ordinary.flatMapIndexed { index, item ->
             val usage = usageByItem[item.id]
-            item.takeIf {
+            val baseLabel = inventoryBaseLabel(item)
+            val needsFullContinuation =
                 index >= BASE_V1_EQUIPMENT_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    item.equipped ||
-                    item.attuned ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank()
+                    wrapByWidth(
+                        baseLabel,
+                        resources.condensed,
+                        7.0f,
+                        INVENTORY_ORDINARY_TEXT_WIDTH,
+                    ).size > 1
+            if (needsFullContinuation) {
+                inventoryContinuationLines(item, usage)
+            } else {
+                inventoryDetailContinuationLines(item, usage)
             }
-        }
-        val ordinaryLines = ordinaryContinuation.flatMap { item ->
-            inventoryContinuationLines(item, usageByItem[item.id])
         }
 
         val special = ordered.filter { it.special }
         val specialContinuation = special.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
+            val baseDetail = buildList {
+                if (item.attuned) add("Sintonizado")
+                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            val baseDetailOverflows =
+                baseDetail.isNotBlank() &&
+                    textWidth(resources.fira, baseDetail, 8.5f) > V1_BASE_SPECIAL_DETAIL_WIDTH
+            val baseNameOverflows =
+                textWidth(resources.fira, item.name, 8.5f) > V1_BASE_SPECIAL_NAME_WIDTH
             item.takeIf {
                 index >= BASE_V1_SPECIAL_CAPACITY ||
-                    item.attuned ||
-                    usageMeaningful(usage) ||
                     item.quantity != 1 ||
                     item.weightLb != null ||
-                    specialLocationNeedsText(item.location)
+                    usageMeaningful(usage) ||
+                    baseNameOverflows ||
+                    baseDetailOverflows
             }
         }
 
@@ -1227,6 +1241,48 @@ internal class DesktopCustomV1ExtendedRenderer(
     private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
         if (item.quantity > 1) append(item.quantity).append(" x ")
         append(item.name)
+    }
+
+    private fun inventoryBaseLabel(item: CharacterInventoryItem): String = buildList {
+        add(inventoryContinuationLabel(item))
+        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        item.weightLb?.let { weight ->
+            add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
+        }
+    }.joinToString(" · ")
+
+    private fun inventoryDetailContinuationLines(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<String> {
+        val lines = mutableListOf<String>()
+        val operationalStatus = buildList {
+            if (item.equipped) add("Equipado")
+            if (item.attuned) add("Sintonizado")
+            addAll(inventoryUsageLabels(usage))
+        }.joinToString(" · ")
+        if (operationalStatus.isNotEmpty()) {
+            lines += wrapByWidth(
+                item.name + " — Estado: " + operationalStatus,
+                resources.condensed,
+                8.2f,
+                INVENTORY_ORDINARY_TEXT_WIDTH,
+            )
+        }
+
+        val detail = listOfNotNull(
+            item.description?.trim()?.takeIf { it.isNotEmpty() },
+            item.notes?.trim()?.takeIf { it.isNotEmpty() },
+        ).joinToString(" · ")
+        if (detail.isNotEmpty()) {
+            lines += wrapByWidth(
+                item.name + " — Nota: " + detail,
+                resources.condensed,
+                8.2f,
+                INVENTORY_ORDINARY_TEXT_WIDTH,
+            )
+        }
+        return lines
     }
 
     private fun inventoryContinuationLines(
@@ -2403,6 +2459,8 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
         const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
+        const val V1_BASE_SPECIAL_NAME_WIDTH = 82.5f
+        const val V1_BASE_SPECIAL_DETAIL_WIDTH = 343f
         val INVENTORY_ORDINARY_COLUMNS = listOf(
             27.5f to 137.5f,
             169.937f to 300.331f,
