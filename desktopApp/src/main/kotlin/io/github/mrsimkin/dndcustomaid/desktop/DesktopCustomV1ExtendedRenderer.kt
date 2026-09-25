@@ -1018,15 +1018,14 @@ internal class DesktopCustomV1ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
-            val usage = usageByItem[item.id]
-            item.takeIf {
-                index >= BASE_V1_EQUIPMENT_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    item.equipped ||
-                    item.attuned ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank()
+        var consumedBaseLines = 0
+        val ordinaryContinuation = ordinary.mapNotNull { item ->
+            val lines = inventoryContinuationLines(item, usageByItem[item.id])
+            if (consumedBaseLines + lines.size <= BASE_V1_EQUIPMENT_CAPACITY) {
+                consumedBaseLines += lines.size
+                null
+            } else {
+                item
             }
         }
         val ordinaryLines = ordinaryContinuation.flatMap { item ->
@@ -1038,11 +1037,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             val usage = usageByItem[item.id]
             item.takeIf {
                 index >= BASE_V1_SPECIAL_CAPACITY ||
-                    item.attuned ||
-                    usageMeaningful(usage) ||
-                    item.quantity != 1 ||
-                    item.weightLb != null ||
-                    specialLocationNeedsText(item.location)
+                    usageMeaningful(usage)
             }
         }
 
@@ -2363,7 +2358,7 @@ internal class DesktopCustomV1ExtendedRenderer(
 
         const val BASE_V1_COMBAT_CAPACITY = 5
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
-        const val BASE_V1_SPECIAL_CAPACITY = 13
+        const val BASE_V1_SPECIAL_CAPACITY = 12
         const val BASE_V1_VALUABLE_CAPACITY = 8
         const val INVENTORY_ORDINARY_CAPACITY = 54
         const val INVENTORY_TREASURE_CAPACITY = 4
