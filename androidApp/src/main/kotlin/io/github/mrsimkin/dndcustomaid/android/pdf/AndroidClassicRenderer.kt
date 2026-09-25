@@ -944,26 +944,33 @@ internal class AndroidClassicRenderer {
                 CharacterTrackableValueKind.CURRENT_MAX,
                 -> resource.maxValue
             }
+            val oneUse = maximum == 1
             val legacyRecoveryText = resource.recovery.orEmpty().trim()
-            val structuredRecovery = listOf(
-                recovery?.cadence?.let(::recoveryLabel).orEmpty(),
-                recovery?.amountMode?.let {
-                    recoveryAmountLabel(it, recovery.fixedAmount)
-                }.orEmpty(),
-            ).filter { it.isNotEmpty() }
+            val structuredRecovery = buildList {
+                recovery?.cadence?.let(::recoveryLabel)?.takeIf { it.isNotEmpty() }?.let(::add)
+                if (!oneUse || recovery?.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                    recovery?.amountMode
+                        ?.let { recoveryAmountLabel(it, recovery.fixedAmount) }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.let(::add)
+                }
+            }
             val recoveryText = structuredRecovery
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString(" · ")
                 ?: legacyRecoveryText
             val notes = listOf(
-                legacyRecoveryText.takeIf { structuredRecovery.isNotEmpty() }.orEmpty(),
                 recovery?.notes.orEmpty().trim(),
                 resource.notes.orEmpty().trim(),
             ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
             splitClassicResourceRow(
                 name = resource.name,
-                value = maximum?.let { "${resource.currentValue} / $it" }
-                    ?: resource.currentValue.toString(),
+                value = if (oneUse) {
+                    if (resource.currentValue > 0) "Disponible" else "Gastado"
+                } else {
+                    maximum?.let { "${resource.currentValue} / $it" }
+                        ?: resource.currentValue.toString()
+                },
                 recovery = recoveryText,
                 source = resource.source.orEmpty().trim(),
                 notes = notes,
@@ -977,14 +984,23 @@ internal class AndroidClassicRenderer {
                 CharacterTrackableValueKind.CURRENT_MAX,
                 -> marker.maxValue
             }
+            val oneUse = maximum == 1
             splitClassicResourceRow(
                 name = marker.name,
-                value = maximum?.let { "${marker.currentValue} / $it" }
-                    ?: marker.currentValue.toString(),
-                recovery = listOf(
-                    recoveryLabel(marker.recovery.cadence),
-                    recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
-                ).filter { it.isNotEmpty() }.joinToString(" · "),
+                value = if (oneUse) {
+                    if (marker.currentValue > 0) "Disponible" else "Gastado"
+                } else {
+                    maximum?.let { "${marker.currentValue} / $it" }
+                        ?: marker.currentValue.toString()
+                },
+                recovery = buildList {
+                    recoveryLabel(marker.recovery.cadence).takeIf { it.isNotEmpty() }?.let(::add)
+                    if (!oneUse || marker.recovery.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                        recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount)
+                            .takeIf { it.isNotEmpty() }
+                            ?.let(::add)
+                    }
+                }.joinToString(" · "),
                 source = "",
                 notes = marker.notes.orEmpty().trim(),
             )
