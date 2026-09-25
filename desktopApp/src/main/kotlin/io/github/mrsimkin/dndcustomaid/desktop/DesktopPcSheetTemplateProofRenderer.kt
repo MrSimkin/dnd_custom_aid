@@ -522,21 +522,6 @@ private fun drawCustomV2Common(
             }
         }
 
-        sheet.inventoryItems.filterNot { it.special }
-            .take(V2_OBJECT_RULE_Y.size)
-            .forEachIndexed { index, item ->
-                val label = buildList {
-                    add(buildString {
-                        if (item.quantity > 1) append(item.quantity).append(" x ")
-                        append(item.name)
-                    })
-                    item.weightLb?.let { weight ->
-                        add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-                    }
-                }.joinToString(" · ")
-                fillOnRulePx(stream, primitives, 370f, 300f, V2_OBJECT_RULE_Y[index], label, 7.2f)
-            }
-
         // The source family's adjacent OTROS rows are the native escape hatch for currency
         // units not represented by the four fixed coin slots: Electrum and user-defined currency.
         // Currency has priority here; special equipment is fully represented on the shared
