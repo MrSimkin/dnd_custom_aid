@@ -1247,6 +1247,8 @@ internal class AndroidCustomV2ExtendedRenderer(
         val specialContinuation = special.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
             val baseDetail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { add(formatInventoryWeight(it)) }
                 if (item.attuned) add("Sintonizado")
                 item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1261,8 +1263,6 @@ internal class AndroidCustomV2ExtendedRenderer(
             } ?: false
             item.takeIf {
                 index >= BASE_V2_SPECIAL_CAPACITY ||
-                    item.quantity != 1 ||
-                    item.weightLb != null ||
                     usageMeaningful(usage) ||
                     baseNameOverflows ||
                     baseDetailOverflows ||

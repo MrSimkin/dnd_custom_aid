@@ -131,6 +131,14 @@ internal class AndroidCustomV2SharedBaseRenderer(
             }
             textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
             val detail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { weight ->
+                    add(
+                        "Peso " +
+                            if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
+                            else weight.toString() + " lb",
+                    )
+                }
                 if (item.attuned) add("Sintonizado")
                 item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)

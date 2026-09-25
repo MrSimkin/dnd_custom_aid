@@ -77,9 +77,9 @@ internal class AndroidClassicRenderer {
             appendTraitsPages(doc, p, plan)
             appendCombatPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
-            appendInventoryPages(doc, p, plan)
+            val packedCampaignNotes = appendInventoryPages(doc, p, plan)
             appendSpellContinuationPages(doc, p, plan)
-            appendNotesPages(doc, p, plan)
+            appendNotesPages(doc, p, plan, packedCampaignNotes)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Fantasy Sheet production encountered content outside its bounded base/continuation routing:\n" +
@@ -1125,7 +1125,7 @@ internal class AndroidClassicRenderer {
         doc: PDDocument,
         p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
-    ) {
+    ): Int {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
@@ -1170,6 +1170,25 @@ internal class AndroidClassicRenderer {
                         add(item.name + ": " + details.joinToString(" · "))
                     }
                 }
+            // Base-represented special equipment keeps its compact row; any richer detail
+            // is preserved here instead of replaying the item as another special-equipment record.
+            specialItems
+                .filter { it.id in baseIds }
+                .forEach { item ->
+                    val details = buildList {
+                        inventoryState(item, usageByItem[item.id])
+                            .takeIf { it.isNotBlank() }
+                            ?.let { add("Estado: " + it) }
+                        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                            add("Ubicación: " + it)
+                        }
+                        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    }
+                    if (details.isNotEmpty()) {
+                        add(item.name + ": " + details.joinToString(" · "))
+                    }
+                }
             sheet.currencies
                 .filter { !it.isDefault }
                 .sortedBy { it.sortOrder }
@@ -1190,13 +1209,22 @@ internal class AndroidClassicRenderer {
                 .map { it.joinToString("\n") }
         }
 
-        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return
+        val campaignNotes = classicNoteEntries(plan)
+        val hasCompatibleInventoryPage =
+            ordinaryRows.isNotEmpty() || specialRows.isNotEmpty() || noteEntries.isNotEmpty()
+        val packedNoteEntries = if (hasCompatibleInventoryPage) {
+            noteEntries + campaignNotes
+        } else {
+            noteEntries
+        }
+
+        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && packedNoteEntries.isEmpty()) return 0
 
         val pages = maxOf(
             1,
             pageCount(ordinaryRows.size, CLASSIC_INVENTORY_ROWS_PER_PAGE),
             pageCount(specialRows.size, CLASSIC_SPECIAL_ITEMS_PER_PAGE),
-            pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
+            pageCount(packedNoteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
         )
         repeat(pages) { pageIndex ->
             val page = addPage(doc)
@@ -1229,7 +1257,7 @@ internal class AndroidClassicRenderer {
                 titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / DETALLES / NOTAS")
                 ruledTextArea(
                     s, p, 324f, 564f, 252f, 140f,
-                    noteEntries
+                    packedNoteEntries
                         .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
                         .take(CLASSIC_INVENTORY_NOTES_PER_PAGE),
                     8.3f,
@@ -1238,6 +1266,7 @@ internal class AndroidClassicRenderer {
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }
         }
+        return if (hasCompatibleInventoryPage) campaignNotes.size else 0
     }
 
     private fun classicSpecialItemRows(
@@ -1453,9 +1482,10 @@ private fun appendSpellContinuationPages(
         doc: PDDocument,
         p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
+        alreadyPackedEntries: Int,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val entries = classicNoteEntries(plan)
+        val entries = classicNoteEntries(plan).drop(alreadyPackedEntries)
         if (entries.isEmpty()) return
 
         val references = buildList {

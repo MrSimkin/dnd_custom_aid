@@ -1075,6 +1075,8 @@ internal class AndroidCustomV1ExtendedRenderer(
         val specialContinuation = special.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
             val baseDetail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { add(formatInventoryWeight(it)) }
                 if (item.attuned) add("Sintonizado")
                 item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1087,8 +1089,6 @@ internal class AndroidCustomV1ExtendedRenderer(
                 textWidth(resources.fira, item.name, 8.5f) > V1_BASE_SPECIAL_NAME_WIDTH
             item.takeIf {
                 index >= BASE_V1_SPECIAL_CAPACITY ||
-                    item.quantity != 1 ||
-                    item.weightLb != null ||
                     usageMeaningful(usage) ||
                     baseNameOverflows ||
                     baseDetailOverflows
@@ -2409,7 +2409,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val COMBAT_STEP = 21f
         const val COMBAT_TEXT_WIDTH = 556f
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
-        const val BASE_V1_SPECIAL_CAPACITY = 13
+        const val BASE_V1_SPECIAL_CAPACITY = 12
         const val BASE_V1_VALUABLE_CAPACITY = 4
         const val INVENTORY_ORDINARY_CAPACITY = 54
         const val INVENTORY_TREASURE_CAPACITY = 4
