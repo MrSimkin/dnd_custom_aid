@@ -332,23 +332,75 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        plan.snapshot.aggregate.sheet.inventoryItems
+        val aggregate = plan.snapshot.aggregate
+        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
+        val lines = mutableListOf<String>()
+        aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filterNot { it.special }
-            .take(EQUIPMENT_RULES.size)
-            .forEachIndexed { index, item ->
-                val label = buildList {
-                    add(buildString {
-                        if (item.quantity > 1) append(item.quantity).append(" x ")
-                        append(item.name)
-                    })
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.weightLb?.let { weight ->
-                        add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-                    }
-                }.joinToString(" · ")
-                textAboveRule(s, fonts.condensed, EQUIPMENT_RULES[index], label, 9.25f, 7.0f, 2.5f, 1.5f)
+            .forEach { item ->
+                val itemLines = equipmentBaseLines(item, usageByItem[item.id])
+                if (lines.size + itemLines.size <= EQUIPMENT_RULES.size) {
+                    lines += itemLines
+                }
             }
+        lines.forEachIndexed { index, line ->
+            textAboveRule(
+                s,
+                fonts.condensed,
+                EQUIPMENT_RULES[index],
+                line,
+                9.0f,
+                7.0f,
+                2.5f,
+                1.5f,
+            )
+        }
+    }
+
+    private fun equipmentBaseLines(
+        item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
+        usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+    ): List<String> {
+        val primary = buildList {
+            add(buildString {
+                if (item.quantity > 1) append(item.quantity).append(" x ")
+                append(item.name)
+            })
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.weightLb?.let { weight ->
+                add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
+            }
+        }.joinToString(" · ")
+        val lines = wrapByWidth(fonts.condensed, primary, 8.8f, EQUIPMENT_BASE_TEXT_WIDTH).toMutableList()
+
+        val operational = buildList {
+            if (item.equipped) add("Equipado")
+            if (item.attuned) add("Sintonizado")
+            when (usage?.kind) {
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION -> add("Munición")
+                else -> Unit
+            }
+            if (usage?.quickUseAmount != null && usage.quickUseAmount != 1) {
+                add("Uso rápido " + usage.quickUseAmount)
+            }
+            if (usage?.carryState == io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState.STORED) {
+                add("Almacenado")
+            }
+        }.joinToString(" · ")
+        if (operational.isNotBlank()) {
+            lines += wrapByWidth(fonts.condensed, "Estado: $operational", 8.0f, EQUIPMENT_BASE_TEXT_WIDTH)
+        }
+
+        val detail = listOfNotNull(
+            item.description?.trim()?.takeIf { it.isNotEmpty() },
+            item.notes?.trim()?.takeIf { it.isNotEmpty() },
+        ).joinToString(" · ")
+        if (detail.isNotBlank()) {
+            lines += wrapByWidth(fonts.condensed, "Nota: $detail", 8.0f, EQUIPMENT_BASE_TEXT_WIDTH)
+        }
+        return lines
     }
 
     private fun drawCurrencies(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -414,6 +466,9 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                     item.name, 9.0f, 8.5f, 2.4f, 1.5f,
                 )
                 val detail = buildList {
+                    item.weightLb?.let { weight ->
+                        add("Peso " + if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else "$weight lb")
+                    }
                     if (item.attuned) add("Sintonizado")
                     item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -846,6 +901,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             listOf(Rule(215.291f, 396.708f, y), Rule(402.378f, 583.795f, y))
         }
 
+        const val EQUIPMENT_BASE_TEXT_WIDTH = 106f
         val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
         val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
