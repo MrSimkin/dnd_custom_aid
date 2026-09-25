@@ -65,7 +65,9 @@ internal class DesktopClassicRenderer {
 
             drawMain(doc, p, plan)
             drawCharacterAndEquipment(doc, p, plan)
-            drawSpells(doc, p, plan)
+            if (plan.basePages.any { it.role == PcSheetBasePageRole.SPELL_LIST }) {
+                drawSpells(doc, p, plan)
+            }
             appendCustomStatisticsPages(doc, p, plan)
             appendTraitsPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
