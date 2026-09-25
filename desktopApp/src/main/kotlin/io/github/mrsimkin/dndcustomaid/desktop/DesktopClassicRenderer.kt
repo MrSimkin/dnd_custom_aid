@@ -300,10 +300,13 @@ internal class DesktopClassicRenderer {
         val baseDisplayed = classBase + speciesBase + featBase + additionalBase
         val baseDisplayedIds = baseDisplayed.mapTo(mutableSetOf()) { it.id }
 
-        val overflowTraits = orderedTraits.filter { it.id !in baseDisplayedIds }
+        val overflowTraits = orderedTraits.filter {
+            it.id !in baseDisplayedIds && !traitHasDedicatedActionOrResource(it, plan)
+        }
         val clippedClassTraitIds = classicBaseClassProjection(classBase).clippedTraitIds
         val referenceTraits = baseDisplayed.filter { trait ->
-            trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait)
+            !traitHasDedicatedActionOrResource(trait, plan) &&
+                (trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait))
         }
         val traitEntries = (overflowTraits + referenceTraits)
             .distinctBy { it.id }
@@ -775,6 +778,20 @@ internal class DesktopClassicRenderer {
             aggregate.successor.subraceIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
         )
         return identityNames.any { it.equals(trait.name.trim(), ignoreCase = true) }
+    }
+
+    private fun traitHasDedicatedActionOrResource(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        val name = trait.name.trim()
+        if (name.isEmpty()) return false
+        val sheet = plan.snapshot.aggregate.sheet
+        return sheet.resources.any { it.name.trim().equals(name, ignoreCase = true) } ||
+            sheet.combatEntries.any {
+                it.type != CharacterCombatEntryType.ATTACK &&
+                    it.name.trim().equals(name, ignoreCase = true)
+            }
     }
 
     private fun traitNeedsReferenceContinuation(
@@ -3259,7 +3276,7 @@ private fun ruledTextArea(
         const val CLASSIC_BACKGROUND_NARRATIVE_LINES = 3
         const val CLASSIC_BACKGROUND_DETAIL_CHARS = 46
         const val CLASSIC_BACKGROUND_DETAIL_LINES = 2
-        const val CLASSIC_RULED_ENTRY_CHARS = 54
+        const val CLASSIC_RULED_ENTRY_CHARS = 64
         const val CLASSIC_RULED_ENTRY_LINES = 2
         const val CLASSIC_SPECIES_NAME_CHARS = 28
         const val CLASSIC_COMBAT_NAME_CHARS = 30
