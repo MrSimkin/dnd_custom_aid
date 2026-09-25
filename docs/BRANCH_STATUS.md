@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-24 (Chile local time)  
+**Updated:** 2026-09-25 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `fd781262abfeb47003298562e540721a8515071a` (PR #100 generalized Fantasy bounded-text repair)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — cross-family Aldren survey is complete; no implementation branch is active yet. Next branch must implement the shared repair package defined in `docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md` before later manual QA resumes
+**Current normal work:** PC Sheet PDF Export — `fix/pc-sheet-cross-family-runtime-repair` is the sole active implementation branch. `0.5.0-preqa.4` failed owner manual QA; continue only the repair package in `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,41 +102,22 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-Current branch direction:
+**Sole active non-main branch:** `fix/pc-sheet-cross-family-runtime-repair`.
 
-No historical implementation branch is continuation authority. Integrated `main` includes:
+Current authority:
+- canonical checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`;
+- implementation support checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md`;
+- `0.5.0-preqa.4` / `50400` is mechanically green but **OWNER MANUAL QA FAILED**;
+- current work is engineering repair, not manual QA expansion;
+- Share, Ilyra, Mara, Current Snapshot, Media/Handouts and final physical-device QA remain blocked until a repaired Aldren/Permanente four-family rerun passes.
 
-- PR #96 — first Aldren Fantasy compact combat/resource runtime overflow repair — merged as `eece864e5867f477b8bdd57596a1bee1638b4ceb`;
-- PR #98 — in-app DEV/QA tools launch repair + `0.5.0-preqa.2` — merged as `289eafda731c4b1c61e76a947a86ab5d948c537c`; post-merge Scaffold `36060380623` SUCCESS.
+Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
 
-Owner runtime QA on `0.5.0-preqa.2` proves:
-
-- DEV/QA screen opens from application settings;
-- Gmail Player session can authenticate;
-- hosted campaign count = 1;
-- hosted PC count = 3;
-- applied PCs = 0 / unchanged PCs = 3;
-- campaign/PC conflicts = 0;
-- queued/retryable/blocked mutations = 0;
-- local hosted outbox is empty.
-
-The subsequent Aldren Fantasy Sheet / Permanente Save attempt still fails before a usable PDF is saved, now on long equipment/weapon descriptive text. Because this follows the earlier compact combat/resource overflow, the active engineering route is **generalized Fantasy Sheet bounded-text routing**, not an equipment-only patch.
-
-Completed repair branch:
-
-`fix/fantasy-sheet-generalized-bounded-text-routing`
-
-PR #100 merged as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffold `36067012766` — SUCCESS.
-
-Integrated scope implements generalized compact-preview/full-detail routing, preserves the final overflow guard, synchronizes the generated Android renderer, advances the QA build to `0.5.0-preqa.3` / `50300`, exercises Aldren plus Mara stress content, and preserves approved pagination baselines.
-
-There is no active implementation branch for this defect. Current lifecycle boundary is owner Android runtime QA: Aldren Fantasy Sheet / Permanente Save on `0.5.0-preqa.3`.
-
-Do **not** proceed to Aldren Share until Save passes; do not proceed to Ilyra, Mara, Current Snapshot, Media/Handouts or the final physical-device gate before the owner-observed Aldren Save pass.
+The prior branches `fix/fantasy-sheet-generalized-bounded-text-routing`, `fix/pc-sheet-cross-family-runtime-correctness`, `fix/pc-sheet-fantasy-aldren-runtime-overflow` and all `docs/pc-sheet-*` refs are specifically **not continuation authority**.
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md -> fix/pc-sheet-cross-family-runtime-repair`
 
 ## Historical/stale open PRs
 
