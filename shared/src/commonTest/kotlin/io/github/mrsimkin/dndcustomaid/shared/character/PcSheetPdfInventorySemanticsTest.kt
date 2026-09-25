@@ -36,6 +36,26 @@ class PcSheetPdfInventorySemanticsTest {
     }
 
     @Test
+    fun bareOrdinaryLocationDoesNotAllocateDetailSemantics() {
+        val item = CharacterInventoryItem(
+            id = Uuid.random(),
+            name = "Mochila",
+            quantity = 1,
+            weightLb = 5.0,
+            equipped = false,
+            notes = null,
+            sortOrder = 0,
+            special = false,
+            description = null,
+            location = "Espalda",
+            attuned = false,
+        )
+
+        assertEquals("Mochila · 5 lb", item.pdfCompactEquipmentLabel())
+        assertEquals(null, item.pdfOrdinaryEquipmentDetailOrNull())
+    }
+
+    @Test
     fun specialEquipmentKeepsItsOwnDedicatedSemantics() {
         val item = CharacterInventoryItem(
             id = Uuid.random(),
