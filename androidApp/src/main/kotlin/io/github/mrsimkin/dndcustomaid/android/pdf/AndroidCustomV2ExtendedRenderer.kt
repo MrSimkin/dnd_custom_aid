@@ -1143,7 +1143,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                             s,
                             resources.firaSemibold,
                             Rule(226f, 348f, y),
-                            if (current > 0) "Disponible" else "Gastado",
+                            current.coerceIn(0, 1).toString() + " / 1",
                             8.0f,
                             2.2f,
                         )
@@ -1239,7 +1239,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             if (needsFullContinuation) {
                 inventoryContinuationLines(item, usage)
             } else {
-                inventoryDetailContinuationLines(item, usage)
+                emptyList()
             }
         }
 
