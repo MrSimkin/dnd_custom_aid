@@ -12,6 +12,12 @@ Use this file when a fresh human/AI session is told to **see/resume the `dnd_cus
 
 Do **not** reconstruct the current task from branch names, old PRs, historical checkpoints, README prose, or a remembered chat before following `LATEST.md`.
 
+### Branch-selection rule
+
+If `docs/checkpoints/LATEST.md` names a current implementation branch, that exact branch is the **only non-main continuation authority**. Ignore every other remote branch/ref unless the canonical active checkpoint explicitly names it for evidence. Do not infer active work from branch recency, branch-name similarity, open PR state, or historical `next` instructions.
+
+If `main` and that named active branch differ in routing metadata, the route published on current `main` is the entry authority and the named active branch is the implementation authority.
+
 ## Route-update contract
 
 `docs/checkpoints/LATEST.md` is the single mutable practical resume pointer.
