@@ -8,6 +8,7 @@
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`  
 **Current active route:** PC Sheet PDF — `0.5.0-preqa.4` Aldren cross-family manual QA FAILED; continue semantic routing/packing repair before another Aldren rerun  
 **Current implementation branch:** `fix/pc-sheet-cross-family-runtime-repair` — the sole non-main continuation authority; ignore all other historical/stale refs unless the canonical checkpoint names them as evidence  
+**Current implementation PR:** draft #104 — the sole active implementation PR; prior stale PRs #36, #37, #49 and #103 are CLOSED / superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
