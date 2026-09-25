@@ -16,7 +16,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import com.tom_roush.harmony.awt.AWTColor as Color
@@ -427,46 +426,87 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        plan.snapshot.aggregate.sheet.inventoryItems
+        val special = plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filter { it.special }
-            .take(SPECIAL_RULE_Y.size)
-            .forEachIndexed { index, item ->
-                val y = SPECIAL_RULE_Y[index]
-                if (item.equipped || item.attuned) {
-                    glyphInRect(
-                        s,
-                        fonts.symbol,
-                        CHECK_CP,
-                        TopRect(113.244f, SPECIAL_CHECK_TOP[index], 9.669f, 12.287f),
-                        0.6f,
-                        0.6f,
-                    )
-                }
-                textAboveRule(
-                    s, fonts.regular, Rule(127.5f, 210f, y),
-                    item.name, 9.0f, 8.5f, 2.4f, 1.5f,
-                )
-                val detail = buildList {
-                    if (item.quantity != 1) add("Cant. " + item.quantity)
-                    item.weightLb?.let { weight ->
-                        add(
-                            "Peso " +
-                                if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
-                                else weight.toString() + " lb",
-                        )
-                    }
-                    if (item.attuned) add("Sintonizado")
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                }.joinToString(" · ")
-                textAboveRule(
-                    s, fonts.regular, Rule(240.803f, 583.795f, y),
-                    detail, 9.0f, 8.5f, 2.4f, 1.5f,
+
+        positionedSpecialItems(special, SPECIAL_RULE_Y.size).forEach { (rowIndex, item) ->
+            val y = SPECIAL_RULE_Y[rowIndex]
+            if (item.equipped || item.attuned) {
+                glyphInRect(
+                    s,
+                    fonts.symbol,
+                    CHECK_CP,
+                    TopRect(113.244f, SPECIAL_CHECK_TOP[rowIndex], 9.669f, 12.287f),
+                    0.6f,
+                    0.6f,
                 )
             }
+            textAboveRule(
+                s, fonts.regular, Rule(127.5f, 210f, y),
+                item.name, 9.0f, 8.5f, 2.4f, 1.5f,
+            )
+            val detail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { weight ->
+                    add(
+                        "Peso " +
+                            if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
+                            else weight.toString() + " lb",
+                    )
+                }
+                if (item.attuned) add("Sintonizado")
+                if (specialLocationNeedsText(item.location)) {
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: " + it) }
+                }
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            textAboveRule(
+                s, fonts.regular, Rule(240.803f, 583.795f, y),
+                detail, 9.0f, 8.5f, 2.4f, 1.5f,
+            )
+        }
     }
+
+    private fun positionedSpecialItems(
+        items: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>,
+        rowCount: Int,
+    ): List<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>> {
+        val available = (0 until rowCount).toMutableSet()
+        val positioned = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>>()
+        items.take(rowCount).forEach { item ->
+            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
+            val fallback = available
+                .filter { it >= SPECIAL_LOCATION_LABELS.size }
+                .minOrNull()
+                ?: available.minOrNull()
+            val row = preferred ?: fallback ?: return@forEach
+            available.remove(row)
+            positioned += row to item
+        }
+        return positioned.sortedBy { it.first }
+    }
+
+    private fun specialLocationRow(location: String?): Int? =
+        SPECIAL_LOCATION_LABELS.indexOf(normalizedInventoryLocation(location)).takeIf { it >= 0 }
+
+    private fun specialLocationNeedsText(location: String?): Boolean {
+        val normalized = normalizedInventoryLocation(location)
+        return normalized.isNotEmpty() && normalized !in SPECIAL_LOCATION_LABELS
+    }
+
+    private fun normalizedInventoryLocation(location: String?): String =
+        location
+            ?.lowercase()
+            ?.replace('á', 'a')
+            ?.replace('é', 'e')
+            ?.replace('í', 'i')
+            ?.replace('ó', 'o')
+            ?.replace('ú', 'u')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+            .orEmpty()
 
     private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
         val text = dedicatedNotesText(plan)
@@ -522,17 +562,11 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .pdfCampaignNoteParagraphs()
             .joinToString(" ")
 
-    private fun dedicatedNotesText(plan: PcSheetPdfRenderPlan): String {
-        val sheet = plan.snapshot.aggregate.sheet
-        return buildList {
-            val campaignOverflow = wrapApproxByChars(
-                campaignNotesText(plan),
-                V1_NARRATIVE_NOTE_APPROX_CHARS,
-            ).drop(NARRATIVE_NOTES_RULES.size).joinToString(" ")
-            campaignOverflow.takeIf { it.isNotBlank() }?.let(::add)
-            sheet.pdfOrdinaryEquipmentDetailParagraphs().forEach(::add)
-        }.joinToString("\n\n")
-    }
+    private fun dedicatedNotesText(plan: PcSheetPdfRenderPlan): String =
+        wrapApproxByChars(
+            campaignNotesText(plan),
+            V1_NARRATIVE_NOTE_APPROX_CHARS,
+        ).drop(NARRATIVE_NOTES_RULES.size).joinToString(" ")
 
     private fun wrapApproxByChars(text: String, maxChars: Int): List<String> {
         val clean = text.trim()
@@ -926,6 +960,10 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         )
         val VALUABLE_RULE_Y = listOf(307f, 327f, 347f, 366.5f)
         val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
+        val SPECIAL_LOCATION_LABELS = listOf(
+            "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
+            "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
+        )
         val SPECIAL_CHECK_TOP = listOf(
             508.770f, 528.612f, 548.455f, 568.297f, 588.140f, 607.982f,
             627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
