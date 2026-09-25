@@ -16,8 +16,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
@@ -1560,16 +1561,13 @@ internal class DesktopCustomV1ExtendedRenderer(
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                val body = card.content.trim()
-                if (body.isNotEmpty()) add("${card.title}: $body")
-            }
-            sheet.inventoryItems
-                .sortedBy { it.sortOrder }
-                .filterNot { it.special }
-                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
-                .forEach(::add)
+            val campaignText = sheet.pdfCampaignNoteParagraphs().joinToString(" ")
+            val campaignOverflow = wrapForRulesByChars(
+                campaignText,
+                V1_NARRATIVE_NOTE_APPROX_CHARS,
+            ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
+            campaignOverflow.takeIf { it.isNotBlank() }?.let(::add)
+            sheet.pdfOrdinaryEquipmentDetailParagraphs().forEach(::add)
         }.joinToString("\n\n")
     }
 
@@ -2394,6 +2392,8 @@ internal class DesktopCustomV1ExtendedRenderer(
             slotRule = slotY?.let { Rule(x + 39f, x + 79f, it) },
         )
 
+        const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
+        const val BASE_V1_NARRATIVE_NOTE_CAPACITY = 9
         const val BASE_V1_NOTES_WRAP_CHARS = 68
         const val NOTES_COLUMN_CAPACITY = 17
         const val BASE_V1_NOTES_CAPACITY = NOTES_COLUMN_CAPACITY * 2
