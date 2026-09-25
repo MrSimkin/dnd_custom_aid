@@ -3,7 +3,7 @@
 **Date:** 2026-09-25 (Chile local time)  
 **Branch:** `fix/pc-sheet-cross-family-runtime-repair`  
 **Branch base:** main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef` (PR #102 cross-family QA handoff)  
-**Status:** PREQA.4 OWNER QA FAILED / POST-QA REPAIR IMPLEMENTED / CURRENT-HEAD CI PENDING
+**Status:** PREQA.5 CANDIDATE GREEN / ALDREN FOUR-FAMILY MANUAL RERUN REQUIRED
 
 ## Why this branch exists
 
@@ -125,19 +125,32 @@ Repository precedent supports these rules:
    - this repair removes the harmful consequence (Virotes/ammunition metadata no longer allocates a continuation page), but does **not** invent unverified native ammunition coordinates/semantics;
    - source-template PDF coordinate inspection was not available through the required PDF screenshot path in this environment, so direct `MUNICIONES` population remains a bounded visual follow-up if the next owner rerun still requires it.
 
+## Preqa.5 candidate publication
+
+- post-preqa.4 implementation head: `cfaa98f92cecb846babcf83f180783839ccd56c6`;
+- implementation Scaffold push `36196067865` — SUCCESS;
+- implementation Scaffold PR `36196073964` — SUCCESS;
+- distinguishable Android QA candidate: `0.5.0-preqa.5` / versionCode `50500`;
+- candidate commit: `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523`;
+- candidate Scaffold push `36196696061` — SUCCESS;
+- candidate Scaffold PR `36196702100` — SUCCESS;
+- preferred push APK artifact: `10890483613` (`dnd-custom-aid-debug-apk`);
+- matching populated-template proof artifact: `10890428782`;
+- matching source-render artifact: `10890508517`;
+- PR #104 remains **DRAFT / DO NOT MERGE** until the bounded owner rerun passes.
+
 ## Remaining repair/validation focus
 
-- obtain a full green Scaffold on the current post-preqa.4 implementation head;
-- only after green, advance the distinguishable Android QA build to `0.5.0-preqa.5` / versionCode `50500`;
-- rerun Aldren/Permanente across Fantasy, Custom v1, Custom v2 per Attribute and Custom v2 per Ability;
+- rerun Aldren/Permanente across Fantasy, Custom v1, Custom v2 per Attribute and Custom v2 per Ability using the exact preqa.5 candidate above;
+- judge the output against the authoritative preqa.4 acceptance gate, including Unicode, Save/open, routing, structured combat, one-use resources, record-aware packing and absence of semantic duplication;
 - judge packing by semantic usefulness and absence of sparse/duplicate pages rather than an arbitrary page-count target;
 - do not resume Share, Ilyra, Mara or Current Snapshot until that four-family Aldren rerun passes.
 
 ## Current engineering order
 
-**Current gate:** repository implementation/test validation of the post-preqa.4 repair. The owner is not being asked to rerun Android yet.
+**Current gate:** bounded owner manual rerun of Aldren Vale / Permanente in all four PDF families using `0.5.0-preqa.5` / `50500`.
 
-**After a green current-head Scaffold:** publish the distinguishable preqa.5 candidate, record its exact commit/run/artifact, then perform the bounded Aldren four-family rerun.
+Repository implementation validation is green. No additional renderer work is authorized unless the bounded rerun exposes a concrete owner-observed defect.
 
 Do not resume Share, Ilyra, Mara, Current Snapshot or final physical-device QA before the repaired Aldren cross-family rerun passes.
 
