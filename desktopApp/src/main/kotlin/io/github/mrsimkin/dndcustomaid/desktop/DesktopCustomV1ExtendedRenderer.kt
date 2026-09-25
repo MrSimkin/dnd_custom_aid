@@ -1096,19 +1096,15 @@ internal class DesktopCustomV1ExtendedRenderer(
                 .filter { !it.isDefault }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
-                    // A custom currency is not a gp-valued treasure row. Keep its amount
-                    // in the object label so the native VALOR PO column cannot misstate its unit.
                     add(TreasureEntry("${currency.name}: ${currency.amount}", null))
                 }
-
             aggregate.successor.preferences.valuablesText
                 .split(';')
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
-                .drop(BASE_V1_VALUABLE_CAPACITY)
                 .map(::parseValuable)
                 .forEach(::add)
-        }
+        }.drop(BASE_V1_VALUABLE_CAPACITY)
 
         if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasure.isEmpty()) return
 
@@ -2454,7 +2450,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val COMBAT_TEXT_WIDTH = 556f
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
         const val BASE_V1_SPECIAL_CAPACITY = 13
-        const val BASE_V1_VALUABLE_CAPACITY = 8
+        const val BASE_V1_VALUABLE_CAPACITY = 4
         const val INVENTORY_ORDINARY_CAPACITY = 54
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
