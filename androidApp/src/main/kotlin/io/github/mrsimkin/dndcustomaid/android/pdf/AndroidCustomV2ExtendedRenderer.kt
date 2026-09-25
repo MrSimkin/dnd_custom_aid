@@ -990,21 +990,31 @@ internal class AndroidCustomV2ExtendedRenderer(
             .map { resource ->
                 val recovery = recoveryByResource[resource.id]
                 val kind = configurationByResource[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
+                val maximum = when (kind) {
+                    CharacterTrackableValueKind.BINARY -> 1
+                    CharacterTrackableValueKind.COUNTER,
+                    CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
+                }
+                val oneUse = maximum == 1
+                val structuredRecovery = buildList {
+                    recovery?.cadence?.let(::recoveryLabel)?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (!oneUse || recovery?.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                        recovery?.amountMode
+                            ?.let { recoveryAmountLabel(it, recovery.fixedAmount) }
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let(::add)
+                    }
+                    recovery?.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                }
                 ResourceRenderRow(
                     name = resource.name,
                     currentValue = resource.currentValue,
-                    maximum = when (kind) {
-                        CharacterTrackableValueKind.BINARY -> 1
-                        CharacterTrackableValueKind.COUNTER,
-                        CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
-                    },
+                    maximum = maximum,
                     valueKind = kind,
-                    recovery = listOf(
-                        resource.recovery.orEmpty().trim(),
-                        recovery?.cadence?.let(::recoveryLabel).orEmpty(),
-                        recovery?.amountMode?.let { recoveryAmountLabel(it, recovery.fixedAmount) }.orEmpty(),
-                        recovery?.notes.orEmpty().trim(),
-                    ).filter { it.isNotEmpty() }.distinct().joinToString(" · "),
+                    recovery = structuredRecovery
+                        .takeIf { it.isNotEmpty() }
+                        ?.joinToString(" · ")
+                        ?: resource.recovery.orEmpty().trim(),
                     detail = listOf(
                         resource.source.orEmpty().trim(),
                         resource.notes.orEmpty().trim(),
@@ -1051,6 +1061,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     name = nameLines.getOrNull(index).orEmpty(),
                     currentValue = row.currentValue.takeIf { index == 0 },
                     maximum = row.maximum.takeIf { index == 0 },
+                    oneUse = row.maximum == 1 && index == 0,
                     recovery = recoveryLines.getOrNull(index).orEmpty(),
                     detail = detailLines.getOrNull(index).orEmpty(),
                 )
@@ -1123,12 +1134,23 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val current = row.currentValue
                 val maximum = row.maximum
                 if (current != null) {
-                    val canUseSymbols = maximum != null &&
-                        maximum in 1..9 &&
-                        current in 0..maximum
-                    if (!canUseSymbols) {
-                        val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
-                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                    if (row.oneUse) {
+                        centeredAboveRule(
+                            s,
+                            resources.firaSemibold,
+                            Rule(226f, 348f, y),
+                            if (current > 0) "Disponible" else "Gastado",
+                            8.0f,
+                            2.2f,
+                        )
+                    } else {
+                        val canUseSymbols = maximum != null &&
+                            maximum in 1..9 &&
+                            current in 0..maximum
+                        if (!canUseSymbols) {
+                            val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
+                            centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                        }
                     }
                 }
 
@@ -1158,6 +1180,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val current = row.currentValue
                 val maximum = row.maximum
                 if (
+                    !row.oneUse &&
                     current != null &&
                     maximum != null &&
                     maximum in 1..9 &&
@@ -2392,6 +2415,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         val name: String,
         val currentValue: Int?,
         val maximum: Int?,
+        val oneUse: Boolean,
         val recovery: String,
         val detail: String,
     )
