@@ -1,13 +1,13 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-24 (Chile local time)  
+**Updated:** 2026-09-25 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main:** `fd781262abfeb47003298562e540721a8515071a` (PR #100 generalized Fantasy bounded-text repair)  
 **Post-merge Scaffold:** `36067012766` — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md`  
-**Current active route:** PC Sheet PDF — Aldren cross-family survey COMPLETE; stop later manual QA and design/implement the shared PDF repair package for Unicode, semantic routing, content-aware packing, resources and Custom-v2 equipment typography  
-**Current implementation branch:** none yet — next branch must start from current main and implement the repair package defined by the canonical cross-family review checkpoint  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`  
+**Current active route:** PC Sheet PDF — `0.5.0-preqa.4` Aldren cross-family manual QA FAILED; continue semantic routing/packing repair before another Aldren rerun  
+**Current implementation branch:** `fix/pc-sheet-cross-family-runtime-repair` — the sole non-main continuation authority; ignore all other historical/stale refs unless the canonical checkpoint names them as evidence  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -16,12 +16,14 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md`;
-5. `docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`;
+4. `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`;
+5. `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md` on the named active branch, only as implementation history/support;
 6. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 7. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
 8. `docs/PROJECT_STATE.md`;
 9. `docs/BRANCH_STATUS.md`.
+
+**Branch rule:** after this pointer is read, do not inspect or switch to any other historical repair/docs branch to infer current work.
 
 ## Current PDF visual truth
 
@@ -137,5 +139,7 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 18. Owner Stage 2 reached Aldren Fantasy Sheet / Permanente successfully, but the actual Save/generation attempt exposed a **new bounded-routing failure in long equipment/weapon descriptive content** before a usable PDF save.
 19. The repeated pattern is treated as a defect class, not another string-specific patch. The generalized preview/full-detail routing repair is implemented on `fix/fantasy-sheet-generalized-bounded-text-routing` at `29138e7322feae111b6207acb45da896a207d749`; branch Scaffold `36065636679` is SUCCESS. Aldren and Mara real fixtures pass while approved pagination baselines remain intact.
 20. PR #100 merged the generalized repair as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffold `36067012766` is SUCCESS. Owner runtime on `0.5.0-preqa.3` confirms Save/open across Fantasy, Custom v1 and both Custom-v2 variants. The cross-family Aldren survey is now COMPLETE and proves shared defects in Unicode, semantic continuation routing, inventory/currency routing, unnecessary spell/notes pages and page packing, plus family-specific resource and Custom-v2 typography defects. **Current route:** stop later manual QA and implement the repair package specified by the Canonical active checkpoint. Do not proceed to Share, Ilyra, Mara, Current Snapshot or the final physical-device gate until the repaired Aldren cross-family rerun passes.
+
+22. `0.5.0-preqa.4` generated/opened all four Aldren PDFs but **FAILED owner manual QA**. The authoritative defect list is `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`. Continue only on `fix/pc-sheet-cross-family-runtime-repair`; do not resume Share, Ilyra, Mara, Current Snapshot or final physical-device QA until the repaired Aldren rerun passes.
 
 No external provider action is required for this PDF-renderer stage.
