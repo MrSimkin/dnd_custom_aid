@@ -193,6 +193,29 @@ WHERE campaign_id = :'qa_campaign_id'::uuid
   \quit 3
 \endif
 
+-- Unicode integrity sentinel. The Android PDF QA depends on preserving canonical fixture text
+-- exactly; mojibake here would make every renderer family appear broken downstream.
+SELECT CASE WHEN EXISTS (
+  SELECT 1
+  FROM pc
+  WHERE id = '7a000000-0000-4000-8000-000000000101'::uuid
+    AND snapshot::text LIKE '%Común%'
+    AND snapshot::text LIKE '%Élfico%'
+    AND snapshot::text LIKE '%Acólito%'
+    AND snapshot::text LIKE '%acción%'
+    AND snapshot::text LIKE '%versátil%'
+    AND snapshot::text LIKE '%2–5%'
+    AND snapshot::text LIKE '%—%'
+) THEN 'true' ELSE 'false' END AS qa_unicode_ok
+\gset
+
+\if :qa_unicode_ok
+\else
+  \echo 'ERROR: Aldren QA snapshot failed Unicode integrity sentinels; rolling back.'
+  ROLLBACK;
+  \quit 3
+\endif
+
 COMMIT;
 
 SELECT
