@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-25 (Chile local time)  
+**Last reconstructed:** 2026-09-24 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `fd781262abfeb47003298562e540721a8515071a` (PR #100 generalized Fantasy bounded-text repair)  
@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — cross-family runtime repair ACTIVE on `fix/pc-sheet-cross-family-runtime-repair` from main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef`; shared Unicode/semantic-routing/page-packing/inventory-currency defects plus resource/Custom-v2 typography defects are being repaired before Share/Ilyra/Mara/Current Snapshot QA resumes
+**Current active package:** PC Sheet PDF Export — Aldren/Permanente cross-family Android survey is COMPLETE on `0.5.0-preqa.3`; Save/open PASS across all four formats, but shared Unicode/semantic-routing/page-packing/inventory-currency defects and family-specific resource/Custom-v2 typography defects require a coherent repair before Share/Ilyra/Mara/Current Snapshot QA resumes
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -40,7 +40,7 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 
 No historical PR #85 renderer-proof branch is current continuation authority. The visual renderer is owner-approved/frozen subject only to concrete owner-observed runtime defects.
 
-The active runtime route is the cross-family Aldren repair recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
+The active runtime route is the generalized Fantasy Sheet bounded-text repair recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 
@@ -55,6 +55,8 @@ The exact owner-authored `Para-hoja-de-pj` v1 is now committed as immutable prov
 Para Hoja de PJ Symbols v8 is OWNER APPROVED / FROZEN. Custom v1 base pages, Custom v2 per-Attribute base pages and Custom v2 per-Ability base pages are owner-approved/frozen. Classic Run 2 corrected complete family is OWNER APPROVED / FROZEN at `3dbcff8f5f9a2413f6deb8e400daeb6288b4f6b1`. Classic Run 1 is owner-rejected historical evidence only. Custom-v1 Extended Run 1 is owner-rejected historical evidence. Run 2 established the source-faithful extension direction but received bounded owner feedback on page-6 artifacts, block selection and typography. Custom-v1 Extended Runs 1–5 are historical rejected/superseded evidence. Custom-v1 Extended Run 6 is OWNER APPROVED / FROZEN at `69b308f3d5d493d06bd0107ac66c7524935aa9fa` (Scaffold #2885 SUCCESS, artifact `10609869599`). Custom-v2 Extended Run 7 is OWNER APPROVED / FROZEN and its integrated production audit is PASS at `0295f30ca77214284902b0e13a563dcdaf58b501`. Custom-v1 production promotion is also complete: integrated production audit PASS at `5d09271231dd395e44f0c4c2a33cdb39509cc6b5`, final push #3097 SUCCESS, PR #3098 SUCCESS, artifact `10660478619`. Classic Run-2 production promotion and its integrated semantic/pagination audit are now PASS at `30ac4d073e9fab47a498f4e6dc3d9266c633110e` (Scaffold #3151 / `35677870304` SUCCESS; artifact `10674062891`). Printed spent-slot markers remain intentionally blank for writable paper tracking. The application-owned optional Spellbook is also production-complete at `ac0cbb2b26202bf934ac4926b56899014390613e` (Scaffold #3161 / `35679451757` SUCCESS; artifact `10674370966`), with append-only preservation of all preceding family pages. Local portrait-byte handoff plus Crop/Fit is production-complete at `93490d2247da5ea46ef50563fd17da78840e659e` (Scaffold #3177 / `35683430947` SUCCESS; artifact `10676160917`), covering Classic, Custom v1 and both Custom-v2 portrait geometries with v2 frame-preservation guards. The `APP_MODIFIED_SHEET` plus originating-section continuation-cue candidate at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` (Scaffold #3195 / `35767630932`; artifact `10713481125`) is OWNER REJECTED / DO NOT USE. The visual recovery at implementation head `6ea493c9ee53cf727464a985bc6ef0b558a73e99` / artifact `10720833172` is OWNER REJECTED after a second owner review. The observations are regressions against pre-existing visual rules, not a new design contract. Those rules are consolidated in `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`; repair is active. WIP renderer `4e7ea99997de46ef8a9a8d1066b08fa362854cdd` correctly couples Classic text to physical rules but Scaffold #3245/#3246 exposed base-excerpt overflow and its rasterized v2-logo attempt must be reverted in favor of the established layered source-preserving repair. Canonical Custom Extended methodology remains `docs/PC_SHEET_CUSTOM_EXTENDED_STRATEGY.md`.
 
 Resume from the latest checkpoint referenced by `docs/checkpoints/LATEST.md`.
+
+Do not infer a continuation branch from the remote branch list. If `LATEST.md` names an active implementation branch, that exact ref is authoritative and all other old repair/docs/tmp branches are historical only.
 
 ## 2. Integrated Wave 5 baseline
 
