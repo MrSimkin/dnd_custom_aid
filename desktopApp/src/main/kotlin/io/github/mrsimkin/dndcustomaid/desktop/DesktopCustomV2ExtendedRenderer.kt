@@ -2659,6 +2659,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val COMBAT_ROWS_PER_PAGE = 14
+        const val COMBAT_MINIMUM_BODY_SIZE = 6.0f
+        const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 72f
         const val COMBAT_FIRST_RULE_TOP = 137f
         const val COMBAT_ROW_STEP = 42f
         const val COMBAT_TEXT_WIDTH = 576f
