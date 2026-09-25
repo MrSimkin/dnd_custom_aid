@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — no implementation branch active; Fantasy Save/open passed on `0.5.0-preqa.3`, five owner-observed content/layout defects are recorded, and an Aldren/Permanente cross-family Custom-v1/v2 survey must complete before a repair branch is opened
+**Current normal work:** PC Sheet PDF Export — cross-family Aldren survey is complete; no implementation branch is active yet. Next branch must implement the shared repair package defined in `docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md` before later manual QA resumes
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
