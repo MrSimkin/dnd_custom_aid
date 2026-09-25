@@ -919,25 +919,25 @@ internal class DesktopClassicRenderer {
                 -> resource.maxValue
             }
             val legacyRecoveryText = resource.recovery.orEmpty().trim()
-            val structuredRecovery = listOf(
-                recovery?.cadence?.let(::recoveryLabel).orEmpty(),
-                recovery?.amountMode?.let {
-                    recoveryAmountLabel(it, recovery.fixedAmount)
-                }.orEmpty(),
-            ).filter { it.isNotEmpty() }
-            val recoveryText = structuredRecovery
-                .takeIf { it.isNotEmpty() }
-                ?.joinToString(" · ")
-                ?: legacyRecoveryText
+            val structuredCadence = recovery?.cadence?.let(::recoveryLabel).orEmpty()
+            val structuredAmount = recovery?.amountMode?.let {
+                recoveryAmountLabel(it, recovery.fixedAmount)
+            }.orEmpty()
+            val recoveryText = structuredCadence.takeIf { it.isNotEmpty() } ?: legacyRecoveryText
             val notes = listOf(
-                legacyRecoveryText.takeIf { structuredRecovery.isNotEmpty() }.orEmpty(),
+                structuredAmount,
+                legacyRecoveryText.takeIf {
+                    structuredCadence.isNotEmpty() &&
+                        !legacyRecoveryText.equals(structuredCadence, ignoreCase = true)
+                }.orEmpty(),
                 recovery?.notes.orEmpty().trim(),
                 resource.notes.orEmpty().trim(),
             ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
             splitClassicResourceRow(
                 name = resource.name,
-                value = maximum?.let { "${resource.currentValue} / $it" }
+                value = maximum?.let { resource.currentValue.toString() + " / " + it }
                     ?: resource.currentValue.toString(),
+                binaryAvailable = maximum == 1 && resource.currentValue > 0,
                 recovery = recoveryText,
                 source = resource.source.orEmpty().trim(),
                 notes = notes,
@@ -953,8 +953,9 @@ internal class DesktopClassicRenderer {
             }
             splitClassicResourceRow(
                 name = marker.name,
-                value = maximum?.let { "${marker.currentValue} / $it" }
+                value = maximum?.let { marker.currentValue.toString() + " / " + it }
                     ?: marker.currentValue.toString(),
+                binaryAvailable = maximum == 1 && marker.currentValue > 0,
                 recovery = listOf(
                     recoveryLabel(marker.recovery.cadence),
                     recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
@@ -970,6 +971,7 @@ internal class DesktopClassicRenderer {
     private fun splitClassicResourceRow(
         name: String,
         value: String,
+        binaryAvailable: Boolean,
         recovery: String,
         source: String,
         notes: String,
@@ -1007,6 +1009,7 @@ internal class DesktopClassicRenderer {
                     classicSingleLineExcerpt("$projectedName (cont.)", CLASSIC_RESOURCE_NAME_CHARS)
                 },
                 value = value.takeIf { index == 0 }.orEmpty(),
+                binaryAvailable = binaryAvailable.takeIf { index == 0 },
                 recovery = projectedRecovery.takeIf { index == 0 }.orEmpty(),
                 source = projectedSource.takeIf { index == 0 }.orEmpty(),
                 notes = note,
@@ -2761,15 +2764,29 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         val widths = listOf(162f, 68f, 104f, 72f, 134f)
         var cursor = x
         values.forEachIndexed { index, value ->
-            text(
-                s, p, cursor + 3f, top, widths[index] - 6f, 40f, value,
-                if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
-                if (index == 0) 8.2f else 7.6f, 6.5f,
-                wrap = index == 2 || index == 4,
-                maxLines = if (index == 2 || index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
-                align = if (index == 1) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
-                vertical = PdfVerticalAlignment.TOP,
-            )
+            if (index == 1 && row.binaryAvailable != null) {
+                marker(
+                    s, p,
+                    cursor + 16f, top + 13f, 9f,
+                    if (row.binaryAvailable) PdfMarkerKind.CIRCLE_OUTLINE else PdfMarkerKind.CIRCLE_FILLED,
+                )
+                text(
+                    s, p, cursor + 29f, top + 1f, widths[index] - 31f, 24f,
+                    if (row.binaryAvailable) "Disponible" else "Usado",
+                    PdfTypographyRole.BODY, 7.1f, 6.2f,
+                    vertical = PdfVerticalAlignment.TOP,
+                )
+            } else {
+                text(
+                    s, p, cursor + 3f, top, widths[index] - 6f, 40f, value,
+                    if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
+                    if (index == 0) 8.2f else 7.6f, 6.5f,
+                    wrap = index == 2 || index == 4,
+                    maxLines = if (index == 2 || index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
+                    align = if (index == 1) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
+                    vertical = PdfVerticalAlignment.TOP,
+                )
+            }
             cursor += widths[index]
         }
         hairline(s, x, top + 42f, x + widths.sum(), top + 42f)
@@ -3129,6 +3146,7 @@ private fun ruledTextArea(
     private data class ClassicResourceRow(
         val name: String,
         val value: String,
+        val binaryAvailable: Boolean?,
         val recovery: String,
         val source: String,
         val notes: String,
@@ -3211,8 +3229,8 @@ private fun ruledTextArea(
         const val CLASSIC_RESOURCE_NAME_CHARS = 24
         const val CLASSIC_RESOURCE_RECOVERY_CHARS = 18
         const val CLASSIC_RESOURCE_SOURCE_CHARS = 12
-        const val CLASSIC_RESOURCE_NOTE_CHARS = 30
-        const val CLASSIC_RESOURCE_NOTE_LINES = 2
+        const val CLASSIC_RESOURCE_NOTE_CHARS = 34
+        const val CLASSIC_RESOURCE_NOTE_LINES = 3
         const val CLASSIC_OPTION_ROWS_PER_PAGE = 3
         const val CLASSIC_OPTION_NAME_CHARS = 28
         const val CLASSIC_OPTION_SOURCE_CHARS = 18
