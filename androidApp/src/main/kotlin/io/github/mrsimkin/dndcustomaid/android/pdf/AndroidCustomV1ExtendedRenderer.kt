@@ -1069,7 +1069,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             if (needsFullContinuation) {
                 inventoryContinuationLines(item, usage)
             } else {
-                inventoryDetailContinuationLines(item, usage)
+                emptyList()
             }
         }
 
