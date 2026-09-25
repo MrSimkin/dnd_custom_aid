@@ -4,6 +4,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
