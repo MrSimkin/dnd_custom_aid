@@ -156,15 +156,10 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     private fun drawDefense(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
         val sheet = plan.snapshot.aggregate.sheet
         centered(s, fonts.semibold, DEFENSE_AC_RECT, sheet.armorClass.toString(), 22f, -1f)
-        centeredAboveRule(
-            s,
-            fonts.semibold,
-            DEFENSE_DEX_RULE,
-            signed(sheet.abilityModifier(CharacterAbility.DEXTERITY)),
-            10.5f,
-            2.5f,
-        )
-        // Armor / shield / misc AC decomposition is not currently stored; those boxes remain blank.
+        // The product model currently stores final AC but not a trustworthy armor/shield/Dex
+        // decomposition. Leave every decomposition component blank rather than implying that
+        // the raw Dexterity modifier contributes to heavy-armor AC.
+        // Armor / shield / misc AC decomposition remains blank until modeled explicitly.
     }
 
     private fun drawCoreStats(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
