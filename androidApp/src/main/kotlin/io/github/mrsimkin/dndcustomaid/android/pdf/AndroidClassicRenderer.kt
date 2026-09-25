@@ -939,7 +939,7 @@ internal class AndroidClassicRenderer {
                 name = resource.name,
                 value = maximum?.let { resource.currentValue.toString() + " / " + it }
                     ?: resource.currentValue.toString(),
-                binaryAvailable = maximum == 1 && resource.currentValue > 0,
+                binaryAvailable = maximum?.takeIf { it == 1 }?.let { resource.currentValue > 0 },
                 recovery = recoveryText,
                 source = resource.source.orEmpty().trim(),
                 notes = notes,
@@ -957,7 +957,7 @@ internal class AndroidClassicRenderer {
                 name = marker.name,
                 value = maximum?.let { marker.currentValue.toString() + " / " + it }
                     ?: marker.currentValue.toString(),
-                binaryAvailable = maximum == 1 && marker.currentValue > 0,
+                binaryAvailable = maximum?.takeIf { it == 1 }?.let { marker.currentValue > 0 },
                 recovery = listOf(
                     recoveryLabel(marker.recovery.cadence),
                     recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
@@ -973,7 +973,7 @@ internal class AndroidClassicRenderer {
     private fun splitClassicResourceRow(
         name: String,
         value: String,
-        binaryAvailable: Boolean,
+        binaryAvailable: Boolean?,
         recovery: String,
         source: String,
         notes: String,
