@@ -24,6 +24,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import java.awt.Color
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
@@ -1264,11 +1266,23 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
 
-        // Custom-v2 has no currency surface on its base pages. Keep money and valuables
-        // semantically separate from equipment by using the second continuation block as treasure.
+        val nativeV2Kinds = setOf(
+            StandardCurrencyKind.PLATINUM,
+            StandardCurrencyKind.GOLD,
+            StandardCurrencyKind.SILVER,
+            StandardCurrencyKind.COPPER,
+        )
+        val nonNativeCurrencies = sheet.currencies
+            .filter { currency ->
+                !currency.isDefault ||
+                    currency.standardCurrencyKindOrNull() !in nativeV2Kinds
+            }
+            .sortedBy { it.sortOrder }
+
         val treasureLines = buildList {
-            sheet.currencies
-                .sortedBy { it.sortOrder }
+            // The first adjacent OTROS rows are already consumed on the base page.
+            nonNativeCurrencies
+                .drop(BASE_V2_OTHER_CURRENCY_CAPACITY)
                 .forEach { currency ->
                     add(currency.name + ": " + currency.amount)
                 }
@@ -1278,6 +1292,8 @@ internal class DesktopCustomV2ExtendedRenderer(
                     .map { it.trim() }
                     .filter { it.isNotEmpty() },
             )
+        }.flatMap { value ->
+            wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
         }
 
         if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
@@ -1386,17 +1402,13 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
 
             treasure.forEachIndexed { index, value ->
-                val column = index / INVENTORY_ROWS_PER_COLUMN
-                val row = index % INVENTORY_ROWS_PER_COLUMN
-                val x1 = 307f + if (column == 0) 4f else 143f
-                val x2 = 307f + if (column == 0) 135f else 273f
                 textAboveRule(
                     s,
                     resources.fira,
-                    Rule(x1, x2, 139f + row * 17f),
+                    Rule(311f, 594f, 139f + index * 17f),
                     value,
-                    8.4f,
-                    7.0f,
+                    8.0f,
+                    6.8f,
                     2.3f,
                 )
             }
@@ -2632,7 +2644,9 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val INVENTORY_BLOCK_CAPACITY = 38
         const val INVENTORY_CONTINUATION_CAPACITY = 76
         const val INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY = INVENTORY_BLOCK_CAPACITY
-        const val INVENTORY_TREASURE_CAPACITY = INVENTORY_BLOCK_CAPACITY
+        const val INVENTORY_TREASURE_CAPACITY = INVENTORY_ROWS_PER_COLUMN
+        const val BASE_V2_OTHER_CURRENCY_CAPACITY = 4
+        const val V2_TREASURE_COLUMN_WIDTH = 283f
         const val INVENTORY_SPECIAL_CAPACITY = 12
         val SPECIAL_LOCATION_LABELS = listOf(
             "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
