@@ -3336,6 +3336,8 @@ private fun ruledTextArea(
         const val CLASSIC_NOTES_ENTRIES_PER_PAGE = 13
         const val CLASSIC_NOTES_CHARS_PER_LINE = 58
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
+        const val CLASSIC_REFERENCE_LINES_PER_PAGE = 12
+        const val CLASSIC_REFERENCE_CHARS_PER_LINE = 32
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)
