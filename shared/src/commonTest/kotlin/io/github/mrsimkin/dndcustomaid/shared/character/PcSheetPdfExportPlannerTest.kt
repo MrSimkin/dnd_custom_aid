@@ -97,9 +97,9 @@ class PcSheetPdfExportPlannerTest {
             attuned = false,
         )
         val detailed = shortNotes.copy(inventoryItems = listOf(itemWithDetail))
-        assertTrue(
+        assertFalse(
             planFor(detailed).basePages.any { it.role == PcSheetBasePageRole.NOTES },
-            "Ordinary-item detail needs the dedicated Notes surface rather than another Equipment row.",
+            "Ordinary-item metadata alone must not allocate a dedicated Notes page.",
         )
 
         val longCampaignNotes = baseSheet().copy(
