@@ -3,7 +3,7 @@
 **Date:** 2026-09-25 (Chile local time)  
 **Branch:** `fix/pc-sheet-cross-family-runtime-repair`  
 **Branch base:** main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef` (PR #102 cross-family QA handoff)  
-**Status:** IMPLEMENTATION GREEN / ALDREN CROSS-FAMILY MANUAL QA READY
+**Status:** PREQA.4 OWNER QA FAILED / POST-QA REPAIR IMPLEMENTED / CURRENT-HEAD CI PENDING
 
 ## Why this branch exists
 
@@ -34,7 +34,7 @@ These rules are authoritative for the active repair and supersede any temporary 
 3. **Normal Equipment is intentionally compact**
    - the normal Equipment line represents inventory identity, quantity and weight;
    - normal-item location, description and notes do not belong on the ordinary Equipment line merely because they exist;
-   - those details may be preserved in a semantically appropriate detail/notes continuation when warranted, without replaying the item as a duplicate inventory entry;
+   - ordinary location/description/notes are not auto-promoted into Equipment or Notes merely for preservation; if a family has a genuine dedicated detail surface they may appear there only when semantically warranted and without replaying the item as a second inventory entry;
    - expected normal case is one line per ordinary item, with a second physical line only for exceptional name/quantity/weight overflow;
    - special equipment keeps its dedicated location/state semantics.
 
@@ -84,25 +84,60 @@ Repository precedent supports these rules:
    - further Custom-v1 Notes pages are true overflow only;
    - Custom-v2 keeps the standalone Notes page when it is the guaranteed destination for genuine campaign/ordinary-equipment detail; the existing Traits `DETALLES / NOTAS` area is not treated as free capacity unless its actual occupancy is known.
 
-7. **Regression and build validation complete for the repair candidate**
-   - obsolete exact physical page-count assertions were replaced where pagination is intentionally content-aware, while content/data-preservation assertions remain;
-   - Android generated renderers are synchronized after Desktop authority changes;
-   - Scaffold run `36163990848` passed completely at commit `17d93d32561a6cc46d228b2bd6b0aa8dca466ea8`: backend PASS, hosted database PASS, all guards PASS, Android assemble PASS, shared/desktop tests PASS, artifact uploads PASS;
-   - the distinguishable Android candidate is `0.5.0-preqa.4` / versionCode `50400`;
-   - extracted APK SHA-256: `b3c93fc3c838534cdce61885f04443193a3b502626c531c89458ecc8a2bec29a`.
+7. **Preqa.4 became the owner-observed failure baseline**
+   - Scaffold `36163990848` was mechanically green at `17d93d32561a6cc46d228b2bd6b0aa8dca466ea8`;
+   - Android `0.5.0-preqa.4` / `50400` generated/opened all four Aldren PDFs, but owner manual QA **FAILED**;
+   - the authoritative defect list and acceptance gate are now `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`;
+   - therefore the old “manual QA ready” state is historical evidence only.
+
+8. **Post-preqa.4 semantic/packing repair**
+   - Fantasy:
+     - race identity is no longer treated as a racial-trait entry;
+     - proficiencies/background/reference metadata are removed from Traits continuation and routed to References/Notes;
+     - action/resource-backed traits do not replay their detailed semantics in Traits;
+     - Traits continuation uses measured physical capacity instead of the old 3-left/2-right artificial page limits;
+     - special-equipment continuation no longer repeats quantity/weight already visible on base Equipment and packs four Aldren special items in the native block;
+     - one-use resources use row-aligned paper markers: outline = available, filled = spent;
+     - Equipment detail is no longer labelled as treasure.
+   - Custom v1:
+     - body-location-aware special-equipment slot mapping replaces sequential wrong-row placement;
+     - structured Combat/Actions continuation uses name/type, range, bonus, effect/damage and notes columns;
+     - structured recovery suppresses duplicate legacy recovery and redundant `A máximo` for one-use resources;
+     - raw Dexterity is no longer presented as an AC decomposition when the model does not store armor/shield decomposition;
+     - resource/action-backed traits do not replay full details in Traits;
+     - Details + Notes are paginated as one right-hand continuation stream rather than independent sparse streams;
+     - background/faith/subclass references use page-3 narrative Notes/overflow, not Traits;
+     - ammunition/status metadata cannot create an Equipment continuation;
+     - ordinary item metadata is not promoted into dedicated Notes.
+   - Custom v2:
+     - normal Equipment remains on the native Equipment/Narrative page; page-1 `OBJETOS` is no longer populated from ordinary inventory;
+     - ordinary item metadata is excluded from Notes;
+     - one-use resources render explicit `current / 1` rather than `Disponible/Gastado`;
+     - structured Combat/Actions continuation replaces prose-only rows;
+     - special-equipment location placement/typography and extended location spellings are corrected;
+     - species identity and action/resource-backed traits are excluded from detailed Traits replay;
+     - personality/flaws/faith/subclass reference facts use the existing Notes page rather than Traits.
+   - Cross-family fixture regression now requires `Virotes` to appear once in each Custom family and forbids `Estado: Munición` as a continuation-only artifact.
+   - Android generated renderers are synchronized after every Desktop authority change.
+
+9. **Known bounded residual**
+   - preqa.4 showed the v2 source sheet's dedicated `MUNICIONES` tracker unused;
+   - this repair removes the harmful consequence (Virotes/ammunition metadata no longer allocates a continuation page), but does **not** invent unverified native ammunition coordinates/semantics;
+   - source-template PDF coordinate inspection was not available through the required PDF screenshot path in this environment, so direct `MUNICIONES` population remains a bounded visual follow-up if the next owner rerun still requires it.
 
 ## Remaining repair/validation focus
 
-- install `0.5.0-preqa.4` and rerun Aldren/Permanente across all four PDF families;
-- visually confirm the repaired Custom-v2 special-equipment Location fill on-device;
-- inspect residual page count/packing from the fresh Aldren PDFs, judging semantic usefulness rather than an arbitrary target count;
-- if and only if the Aldren rerun exposes a remaining defect, repair that concrete defect before resuming Share, Ilyra, Mara or Current Snapshot.
+- obtain a full green Scaffold on the current post-preqa.4 implementation head;
+- only after green, advance the distinguishable Android QA build to `0.5.0-preqa.5` / versionCode `50500`;
+- rerun Aldren/Permanente across Fantasy, Custom v1, Custom v2 per Attribute and Custom v2 per Ability;
+- judge packing by semantic usefulness and absence of sparse/duplicate pages rather than an arbitrary page-count target;
+- do not resume Share, Ilyra, Mara or Current Snapshot until that four-family Aldren rerun passes.
 
 ## Current engineering order
 
-Steps 1–9 of the repair sequence are complete and validated by the green `preqa.4` Scaffold run.
+**Current gate:** repository implementation/test validation of the post-preqa.4 repair. The owner is not being asked to rerun Android yet.
 
-**Next and only active step:** rerun Aldren/Permanente in all four families on Android using `0.5.0-preqa.4`, then compare the resulting PDFs against the acceptance evidence before expanding manual QA scope.
+**After a green current-head Scaffold:** publish the distinguishable preqa.5 candidate, record its exact commit/run/artifact, then perform the bounded Aldren four-family rerun.
 
 Do not resume Share, Ilyra, Mara, Current Snapshot or final physical-device QA before the repaired Aldren cross-family rerun passes.
 
