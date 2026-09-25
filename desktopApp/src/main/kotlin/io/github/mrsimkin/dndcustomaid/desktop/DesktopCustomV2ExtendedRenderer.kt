@@ -1788,9 +1788,30 @@ internal class DesktopCustomV2ExtendedRenderer(
     ) {
         require(maximum in 1..9)
         require(current in 0..maximum)
+        if (maximum == 1) {
+            // One-use resources use the same owner-accepted semantic as Custom v1:
+            // outline circle = available, filled circle = spent.
+            val cp = if (current == 1) 0xE300 else 0xE301
+            glyphInRect(
+                s,
+                resources.symbol,
+                cp,
+                TopRect(startX, centerTop - 6f, 12f, 12f),
+                0.7f,
+                0.7f,
+            )
+            return
+        }
         repeat(maximum) { index ->
-            val cp = if (index < current) 0xE304 else 0xE303
-            glyphInRect(s, resources.symbol, cp, TopRect(startX + index * 13f, centerTop - 5f, 10f, 10f), 0.7f, 0.7f)
+            val cp = if (index < current) 0xE303 else 0xE304
+            glyphInRect(
+                s,
+                resources.symbol,
+                cp,
+                TopRect(startX + index * 13f, centerTop - 5f, 10f, 10f),
+                0.7f,
+                0.7f,
+            )
         }
     }
 
