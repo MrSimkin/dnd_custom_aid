@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — active implementation branch `fix/pc-sheet-cross-family-runtime-correctness`; consolidated WIP route is `docs/checkpoints/2026-09-24_PC_SHEET_CROSS_FAMILY_RUNTIME_CORRECTNESS_REPAIR_WIP.md`. Continue that branch; do not restart or resume manual QA yet
+**Current normal work:** PC Sheet PDF Export — OWNER-REQUESTED PAUSE. Active WIP is preserved on draft PR #103 / `fix/pc-sheet-cross-family-runtime-correctness`; last implementation/code HEAD before pause is `4e7f2f7127f607d9d97c7de22fa1fcc01514c1b9`. Do not change code, merge, reseed DEV or resume manual QA until the owner explicitly resumes. Canonical continuation is `docs/checkpoints/2026-09-24_PC_SHEET_CROSS_FAMILY_RUNTIME_CORRECTNESS_REPAIR_WIP.md`
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -130,13 +130,15 @@ PR #100 merged as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffo
 
 Integrated scope implements generalized compact-preview/full-detail routing, preserves the final overflow guard, synchronizes the generated Android renderer, advances the QA build to `0.5.0-preqa.3` / `50300`, exercises Aldren plus Mara stress content, and preserves approved pagination baselines.
 
-There is no active implementation branch for this defect. Current lifecycle boundary is owner Android runtime QA: Aldren Fantasy Sheet / Permanente Save on `0.5.0-preqa.3`.
+The previous generalized Fantasy bounded-text defect is integrated, but the cross-family Aldren survey opened a new active WIP repair branch. That branch is `fix/pc-sheet-cross-family-runtime-correctness`, tracked by draft PR #103, and is currently OWNER-PAUSED rather than completed or merge-ready.
 
 Do **not** proceed to Aldren Share until Save passes; do not proceed to Ilyra, Mara, Current Snapshot, Media/Handouts or the final physical-device gate before the owner-observed Aldren Save pass.
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-24_PC_SHEET_RUNTIME_QA_STAGE2_OVERFLOW_GENERALIZED_REPAIR.md`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-24_PC_SHEET_CROSS_FAMILY_RUNTIME_CORRECTNESS_REPAIR_WIP.md`
+
+On resume, inspect PR #103 and exact-head CI first. Do not restart from the older Stage-2 generalized-repair checkpoint.
 
 ## Historical/stale open PRs
 
