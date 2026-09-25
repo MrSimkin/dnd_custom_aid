@@ -653,6 +653,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
                 sourceBands(s, 25f, 585f, 128.5f, COMBAT_LINES_PER_PAGE, 20f)
             }
+            appendLayer(page, "$prefix - CLEANUP") { }
             appendLayer(page, "$prefix - LABELS") { s ->
                 centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Combate / Acciones", 18f)
                 centeredText(
@@ -672,6 +673,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                         8.2f,
                     )
                 }
+            appendLayer(page, "$prefix - MARKERS") { }
             }
         }
     }
