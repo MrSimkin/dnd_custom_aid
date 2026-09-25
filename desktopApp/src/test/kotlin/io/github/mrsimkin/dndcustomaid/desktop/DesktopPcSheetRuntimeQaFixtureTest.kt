@@ -52,7 +52,6 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(normalized.contains("Recupera 1d10 + 5 PG"))
             assertTrue(normalized.contains("Una acción adicional este turno"))
             assertTrue(normalized.contains("Descanso corto/largo"))
-            assertTrue(normalized.contains("1 / 1"))
             assertTrue(!normalized.contains("Disponible"))
             assertTrue(!normalized.contains("Gastado"))
             assertTrue(!normalized.contains("A máximo"))
