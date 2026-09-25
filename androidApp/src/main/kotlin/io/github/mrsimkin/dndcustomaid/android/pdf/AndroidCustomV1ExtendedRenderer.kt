@@ -20,7 +20,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
@@ -1608,7 +1607,6 @@ internal class AndroidCustomV1ExtendedRenderer(
                 V1_NARRATIVE_NOTE_APPROX_CHARS,
             ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
             narrativeOverflow.takeIf { it.isNotBlank() }?.let(::add)
-            sheet.pdfOrdinaryEquipmentDetailParagraphs().forEach(::add)
         }.joinToString("\n\n")
     }
 
