@@ -1422,7 +1422,10 @@ private fun appendSpellContinuationPages(
         plan: PcSheetPdfRenderPlan,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val entries = classicNoteEntries(plan)
+        val entries = classicNotePhysicalLines(plan)
+            .drop(CLASSIC_BASE_NOTE_LINES)
+            .chunked(CLASSIC_NOTES_LINES_PER_ENTRY)
+            .map { it.joinToString("\n") }
         if (entries.isEmpty()) return
 
         val references = buildList {
@@ -1458,7 +1461,7 @@ private fun appendSpellContinuationPages(
         }
     }
 
-    private fun classicNoteEntries(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun classicNotePhysicalLines(plan: PcSheetPdfRenderPlan): List<String> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
             sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
@@ -1473,9 +1476,7 @@ private fun appendSpellContinuationPages(
                 if (value.isNotEmpty()) add(value)
             }
         }.flatMap { note ->
-            wrapForChars(note, CLASSIC_NOTES_CHARS_PER_LINE)
-                .chunked(CLASSIC_NOTES_LINES_PER_ENTRY)
-                .map { it.joinToString("\n") }
+            wrapForChars(note, CLASSIC_BASE_NOTES_CHARS_PER_LINE)
         }
     }
 
@@ -1684,8 +1685,21 @@ private fun appendSpellContinuationPages(
             // portrait area blank. The border/frame remains part of the approved Classic grammar.
             fantasyFrame(s, 36f, 136f, 202f, 150f, 0.65f)
 
-            titledFrame(s, p, 24f, 314f, 226f, 108f, "DESCRIPCIÓN")
-            ruledBackground(s, 34f, 346f, 206f, 66f, firstRuleOffset = 28f, lineGap = 22f)
+            val baseNoteLines = classicNotePhysicalLines(plan).take(CLASSIC_BASE_NOTE_LINES)
+            titledFrame(
+                s, p, 24f, 314f, 226f, 108f,
+                if (baseNoteLines.isEmpty()) "DESCRIPCIÓN" else "NOTAS",
+            )
+            if (baseNoteLines.isEmpty()) {
+                ruledBackground(s, 34f, 346f, 206f, 66f, firstRuleOffset = 28f, lineGap = 22f)
+            } else {
+                ruledTextArea(
+                    s, p, 34f, 346f, 206f, 66f,
+                    baseNoteLines,
+                    7.6f,
+                    lineGap = 16f,
+                )
+            }
 
             titledFrame(s, p, 24f, 436f, 226f, 282f, "HISTORIA Y PERSONALIDAD")
             val historyAndPersonality = listOf(
@@ -3260,6 +3274,8 @@ private fun ruledTextArea(
         const val CLASSIC_EXT_TOP_ROWS = 9
         const val CLASSIC_EXT_BOTTOM_ROWS = 10
         const val CLASSIC_NOTES_ENTRIES_PER_PAGE = 13
+        const val CLASSIC_BASE_NOTE_LINES = 4
+        const val CLASSIC_BASE_NOTES_CHARS_PER_LINE = 46
         const val CLASSIC_NOTES_CHARS_PER_LINE = 58
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
 
