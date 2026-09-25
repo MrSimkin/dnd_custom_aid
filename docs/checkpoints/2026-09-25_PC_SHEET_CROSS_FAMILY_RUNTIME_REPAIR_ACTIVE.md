@@ -3,7 +3,7 @@
 **Date:** 2026-09-25 (Chile local time)  
 **Branch:** `fix/pc-sheet-cross-family-runtime-repair`  
 **Branch base:** main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef` (PR #102 cross-family QA handoff)  
-**Status:** PREQA.5 CANDIDATE GREEN / ALDREN FOUR-FAMILY MANUAL RERUN REQUIRED
+**Status:** PREQA.5 OWNER RERUN PASS / ACCEPTED MINOR LAYOUT RESIDUAL / READY FOR INTEGRATION
 
 ## Why this branch exists
 
@@ -137,22 +137,36 @@ Repository precedent supports these rules:
 - preferred push APK artifact: `10890483613` (`dnd-custom-aid-debug-apk`);
 - matching populated-template proof artifact: `10890428782`;
 - matching source-render artifact: `10890508517`;
-- PR #104 remains **DRAFT / DO NOT MERGE** until the bounded owner rerun passes.
+- the bounded owner rerun has now passed; PR #104 may leave draft state and integrate after branch/main reconciliation plus green CI.
+
+## Owner preqa.5 bounded rerun result — 2026-09-25
+
+The owner reran Aldren Vale / Permanente across Fantasy Sheet, Custom v1, Custom v2 per Attribute and Custom v2 per Ability using the exact `0.5.0-preqa.5` / `50500` candidate.
+
+**Gate result: PASS with one explicitly accepted minor visual residual.**
+
+Observed residual in Custom v1 and Custom v2 continuation pages:
+- column/header text can overlap the first rendered row;
+- vertical row spacing is excessively tall across the affected page, not just the captured region.
+
+The owner explicitly classified this as minor/non-blocking and authorized continuing while fixing it opportunistically along the way. No content-loss or semantic-routing defect was reported with it, and no other defect was reported in the bounded rerun.
+
+This residual must remain visible in routing/history so a later cleanup does not accidentally reopen the already-passed Aldren semantic gate or redesign frozen base-sheet geometry.
 
 ## Remaining repair/validation focus
 
-- rerun Aldren/Permanente across Fantasy, Custom v1, Custom v2 per Attribute and Custom v2 per Ability using the exact preqa.5 candidate above;
-- judge the output against the authoritative preqa.4 acceptance gate, including Unicode, Save/open, routing, structured combat, one-use resources, record-aware packing and absence of semantic duplication;
-- judge packing by semantic usefulness and absence of sparse/duplicate pages rather than an arbitrary page-count target;
-- do not resume Share, Ilyra, Mara or Current Snapshot until that four-family Aldren rerun passes.
+- the Aldren/Permanente four-family repair gate is closed as PASS with the accepted minor continuation-page layout residual recorded above;
+- resume the previously blocked Android runtime sequence from the hosted-player checkpoint: Aldren Share through a real target, then Ilyra Custom v2 + Spellbook with unsaved-export verification, Mara Custom-v2 Attribute/Ability Extended coverage, and one Current Snapshot fallback-notice check;
+- keep the accepted v1/v2 continuation header-overlap/excessive-row-height issue as a bounded visual cleanup item; do not let it block the resumed runtime sequence;
+- do not start Media / Handouts until the resumed manual Android runtime sequence is recorded.
 
 ## Current engineering order
 
-**Current gate:** bounded owner manual rerun of Aldren Vale / Permanente in all four PDF families using `0.5.0-preqa.5` / `50500`.
+**Current gate:** Aldren Vale / Permanente four-family rerun is OWNER PASS. Resume the staged Android runtime smoke, beginning with Aldren Share through a real compatible target, then Ilyra, Mara and Current Snapshot as already defined by the hosted-player QA checkpoint.
 
-Repository implementation validation is green. No additional renderer work is authorized unless the bounded rerun exposes a concrete owner-observed defect.
+Repository implementation validation is green. The Custom v1/v2 continuation-page header overlap and excessive row height are accepted minor follow-up work and are not a blocker for this resumed runtime sequence.
 
-Do not resume Share, Ilyra, Mara, Current Snapshot or final physical-device QA before the repaired Aldren cross-family rerun passes.
+Do not start Media / Handouts until the resumed manual Android runtime result is recorded.
 
 Fresh sessions resume through:
 
