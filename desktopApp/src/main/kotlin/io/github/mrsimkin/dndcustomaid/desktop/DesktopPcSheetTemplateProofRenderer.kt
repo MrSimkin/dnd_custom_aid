@@ -543,8 +543,9 @@ private fun drawCustomV2Common(
         // Equipment/Narrative page and must not displace money back into Equipment continuation.
         sheet.currencies
             .filter { currency ->
-                !currency.isDefault ||
-                    currency.standardCurrencyKindOrNull() !in nativeKinds
+                val kind = currency.standardCurrencyKindOrNull()
+                (kind != null && kind !in nativeKinds) ||
+                    (!currency.isDefault && kind == null)
             }
             .sortedBy { it.sortOrder }
             .take(V2_OTHER_RULE_Y.size)
