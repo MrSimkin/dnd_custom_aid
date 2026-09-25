@@ -918,7 +918,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         val structuredByEntry = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
         return sheet.combatEntries
             .sortedBy { it.sortOrder }
-            .flatMap { entry ->
+            .mapIndexedNotNull { index, entry ->
                 val structured = structuredByEntry[entry.id]
                     ?.components
                     ?.joinToString(" + ") { component ->
@@ -926,25 +926,31 @@ internal class AndroidCustomV2ExtendedRenderer(
                             component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
                     }
                     .orEmpty()
+                val structuredAddsInformation =
+                    structured.isNotBlank() &&
+                        !entry.damageEffect.replace(" ", "").equals(
+                            structured.replace(" ", ""),
+                            ignoreCase = true,
+                        )
+                val needsContinuation =
+                    index >= BASE_V2_COMBAT_CAPACITY ||
+                        entry.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK ||
+                        !entry.notes.isNullOrBlank() ||
+                        structuredAddsInformation
+                if (!needsContinuation) return@mapIndexedNotNull null
+
                 val detail = buildList {
                     add(combatTypeLabel(entry.type) + " · " + entry.name)
                     entry.attackModifier?.let { add("Ataque " + signed(it)) }
                     entry.rangeText?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     entry.damageEffect.trim().takeIf { it.isNotEmpty() }?.let(::add)
                     entry.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    if (
-                        structured.isNotBlank() &&
-                        !entry.damageEffect.replace(" ", "").equals(
-                            structured.replace(" ", ""),
-                            ignoreCase = true,
-                        )
-                    ) {
-                        add("Daño estructurado: $structured")
-                    }
+                    if (structuredAddsInformation) add("Daño estructurado: $structured")
                 }.joinToString(" · ")
                 wrapByWidth(resources.fira, detail, 7.8f, 570f)
             }
-    }
+            .flatten()
+    }    }
 
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
         if (!needsResourcesExtendedPage(plan)) return
