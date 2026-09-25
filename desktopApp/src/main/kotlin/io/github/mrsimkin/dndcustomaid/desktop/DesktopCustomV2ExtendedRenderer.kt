@@ -1182,14 +1182,14 @@ internal class DesktopCustomV2ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
-            val usage = usageByItem[item.id]
-            item.takeIf {
-                index >= BASE_V2_EQUIPMENT_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    item.equipped ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank()
+        var consumedBaseLines = 0
+        val ordinaryContinuation = ordinary.mapNotNull { item ->
+            val lines = inventoryContinuationLines(item, usageByItem[item.id])
+            if (consumedBaseLines + lines.size <= BASE_V2_EQUIPMENT_CAPACITY) {
+                consumedBaseLines += lines.size
+                null
+            } else {
+                item
             }
         }
         val ordinaryLines = ordinaryContinuation.flatMap { item ->
@@ -1200,11 +1200,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             val usage = usageByItem[item.id]
             item.takeIf {
                 index >= BASE_V2_SPECIAL_CAPACITY ||
-                    item.attuned ||
-                    usageMeaningful(usage) ||
-                    item.quantity != 1 ||
-                    item.weightLb != null ||
-                    specialLocationNeedsText(item.location)
+                    usageMeaningful(usage)
             }
         }
         val treasureLines = buildList {
