@@ -354,9 +354,9 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawCurrencies(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val currencies = plan.snapshot.aggregate.sheet.currencies.associateBy { it.key.lowercase() }
-        CURRENCY_KEYS.forEachIndexed { index, key ->
-            currencies[key]?.let { currency ->
+        val currencies = plan.snapshot.aggregate.sheet.currencies
+        CURRENCY_KINDS.forEachIndexed { index, kind ->
+            currencies.standardCurrency(kind)?.let { currency ->
                 centered(
                     s,
                     fonts.semibold,
@@ -851,7 +851,13 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
         val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
-        val CURRENCY_KEYS = listOf("pt", "po", "pp", "pc", "pe")
+        val CURRENCY_KINDS = listOf(
+            StandardCurrencyKind.PLATINUM,
+            StandardCurrencyKind.GOLD,
+            StandardCurrencyKind.SILVER,
+            StandardCurrencyKind.COPPER,
+            StandardCurrencyKind.ELECTRUM,
+        )
         val VALUABLE_RULE_Y = listOf(307f, 327f, 347f, 366.5f)
         val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
         val SPECIAL_CHECK_TOP = listOf(
