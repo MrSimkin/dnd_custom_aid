@@ -800,10 +800,11 @@ internal class DesktopClassicRenderer {
         wrapForChars(traitSummary(trait), CLASSIC_RULED_ENTRY_CHARS).size >
             CLASSIC_RULED_ENTRY_LINES ||
             trait.name.length > CLASSIC_SPECIES_NAME_CHARS ||
-            (
-                !trait.notes.isNullOrBlank() &&
-                    (trait.activation == null || trait.activation == CharacterActivationType.PASSIVE)
-                )
+            !trait.notes.isNullOrBlank() ||
+            trait.maxUses != null ||
+            trait.spentUses != 0 ||
+            !trait.recovery.isNullOrBlank() ||
+            trait.activation?.let { it != CharacterActivationType.PASSIVE } == true
 
     private fun traitFeatureSlices(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
