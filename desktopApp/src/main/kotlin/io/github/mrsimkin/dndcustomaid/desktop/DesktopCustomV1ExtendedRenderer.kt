@@ -1565,15 +1565,32 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
+    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Resumen de trasfondo: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
+        }.joinToString(" ")
+    }
+
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            val campaignText = sheet.pdfCampaignNoteParagraphs().joinToString(" ")
-            val campaignOverflow = wrapForRulesByChars(
-                campaignText,
+            val narrativeOverflow = wrapForRulesByChars(
+                narrativeNotesText(plan),
                 V1_NARRATIVE_NOTE_APPROX_CHARS,
             ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
-            campaignOverflow.takeIf { it.isNotBlank() }?.let(::add)
+            narrativeOverflow.takeIf { it.isNotBlank() }?.let(::add)
             sheet.pdfOrdinaryEquipmentDetailParagraphs().forEach(::add)
         }.joinToString("\n\n")
     }
