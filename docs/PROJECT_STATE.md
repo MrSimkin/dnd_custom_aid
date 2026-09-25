@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — generalized Fantasy bounded-text repair is integrated in PR #100 / `fd781262abfeb47003298562e540721a8515071a`, merged-main Scaffold `36067012766` SUCCESS, QA build `0.5.0-preqa.3` / `50300`; owner Aldren Fantasy Sheet / Permanente Save rerun is the active manual gate
+**Current active package:** PC Sheet PDF Export — Fantasy Save/open is runtime-PASS on `0.5.0-preqa.3`, but owner inspection recorded five content/layout defects (mojibake, Traits space waste, combat references under Traits, one-use resource presentation/continuation layout, inventory-detail misrouting); active manual gate is an Aldren/Permanente cross-family survey of Custom v1 + both Custom-v2 variants before any repair
 
 ### Superseding PDF visual state — 2026-09-20
 
