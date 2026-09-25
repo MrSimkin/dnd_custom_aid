@@ -13,6 +13,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailParagraphs
@@ -375,7 +376,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         // The frozen v1 source has two intentionally blank currency rows immediately below
         // Electrum. They are the native custom-currency capacity; do not misuse Gemas/Joyas/Arte.
         currencies
-            .filter { !it.isDefault }
+            .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
             .sortedBy { it.sortOrder }
             .take(CUSTOM_CURRENCY_ROWS)
             .forEachIndexed { index, currency ->

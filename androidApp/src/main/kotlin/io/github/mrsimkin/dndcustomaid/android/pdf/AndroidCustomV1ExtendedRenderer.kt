@@ -29,6 +29,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import java.io.InputStream
@@ -1098,7 +1099,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         val treasure = buildList {
             sheet.currencies
-                .filter { !it.isDefault }
+                .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
                 .sortedBy { it.sortOrder }
                 .drop(BASE_V1_CUSTOM_CURRENCY_CAPACITY)
                 .forEach { currency ->

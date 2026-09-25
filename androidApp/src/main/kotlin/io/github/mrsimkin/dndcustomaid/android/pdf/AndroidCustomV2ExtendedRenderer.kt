@@ -1278,8 +1278,9 @@ internal class AndroidCustomV2ExtendedRenderer(
         )
         val nonNativeCurrencies = sheet.currencies
             .filter { currency ->
-                !currency.isDefault ||
-                    currency.standardCurrencyKindOrNull() !in nativeV2Kinds
+                val kind = currency.standardCurrencyKindOrNull()
+                (kind != null && kind !in nativeV2Kinds) ||
+                    (!currency.isDefault && kind == null)
             }
             .sortedBy { it.sortOrder }
 
