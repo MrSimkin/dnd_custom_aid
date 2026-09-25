@@ -223,6 +223,7 @@ internal class DesktopPcSheetVisualCompletionRenderer(
         PcSheetVisualFamily.CLASSIC_DND_STYLE -> when (kind) {
             PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
             PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0)
+            PcSheetExtendedPageKind.COMBAT_AND_ACTIONS -> listOf(0)
             PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
             PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
             PcSheetExtendedPageKind.SPELLS -> listOf(2)
@@ -232,6 +233,7 @@ internal class DesktopPcSheetVisualCompletionRenderer(
         PcSheetVisualFamily.CUSTOM_V1 -> when (kind) {
             PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
             PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0, 2)
+            PcSheetExtendedPageKind.COMBAT_AND_ACTIONS -> listOf(0)
             PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
             PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
             PcSheetExtendedPageKind.SPELLS -> listOf(3)
@@ -243,6 +245,7 @@ internal class DesktopPcSheetVisualCompletionRenderer(
         -> when (kind) {
             PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
             PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0)
+            PcSheetExtendedPageKind.COMBAT_AND_ACTIONS -> listOf(0)
             PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
             PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
             PcSheetExtendedPageKind.SPELLS -> listOf(2)
@@ -263,6 +266,7 @@ internal class DesktopPcSheetVisualCompletionRenderer(
     private fun kindLabel(kind: PcSheetExtendedPageKind): String = when (kind) {
         PcSheetExtendedPageKind.CUSTOM_STATISTICS -> "ESTADÍSTICAS"
         PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> "RASGOS"
+        PcSheetExtendedPageKind.COMBAT_AND_ACTIONS -> "COMBATE"
         PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> "RECURSOS"
         PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> "INVENTARIO"
         PcSheetExtendedPageKind.SPELLS -> "CONJUROS"
