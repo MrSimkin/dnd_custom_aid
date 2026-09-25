@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Aldren/Permanente cross-family Android survey is COMPLETE on `0.5.0-preqa.3`; Save/open PASS across all four formats, but shared Unicode/semantic-routing/page-packing/inventory-currency defects and family-specific resource/Custom-v2 typography defects require a coherent repair before Share/Ilyra/Mara/Current Snapshot QA resumes
+**Current active package:** PC Sheet PDF Export — coherent cross-family repair is IN PROGRESS on `fix/pc-sheet-cross-family-runtime-correctness`; content-aware base pages, Custom-v1 currency keys, and dedicated Custom-v1/v2 combat continuation are landed, while Fantasy combat routing, Custom-v2 currency reapply, inventory/page packing, resource semantics, Custom-v2 location typography and hosted Unicode integrity remain before owner QA resumes
 
 ### Superseding PDF visual state — 2026-09-20
 
