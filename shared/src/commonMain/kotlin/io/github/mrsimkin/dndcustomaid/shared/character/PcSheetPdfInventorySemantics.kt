@@ -40,3 +40,26 @@ fun CharacterInventoryItem.pdfOrdinaryEquipmentDetailOrNull(): String? {
 
     return detail.takeIf { it.isNotEmpty() }?.let { "$name — $it" }
 }
+
+
+/**
+ * Semantic PDF notes: campaign notes plus ordinary-item metadata that does not belong on an
+ * Equipment identity row. Special equipment keeps its dedicated location/detail surface.
+ */
+fun CharacterSheet.pdfNoteParagraphs(): List<String> = buildList {
+    generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
+    noteCards.sortedBy { it.sortOrder }.forEach { card ->
+        val title = card.title.trim()
+        val body = card.content.trim()
+        when {
+            title.isNotEmpty() && body.isNotEmpty() -> add("$title: $body")
+            title.isNotEmpty() -> add(title)
+            body.isNotEmpty() -> add(body)
+        }
+    }
+    inventoryItems
+        .sortedBy { it.sortOrder }
+        .filterNot { it.special }
+        .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+        .forEach(::add)
+}
