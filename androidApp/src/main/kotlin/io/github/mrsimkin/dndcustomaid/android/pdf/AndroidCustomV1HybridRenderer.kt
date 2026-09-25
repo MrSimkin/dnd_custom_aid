@@ -13,8 +13,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import com.tom_roush.harmony.awt.AWTColor as Color
@@ -330,7 +331,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             s,
             fonts.regular,
             NARRATIVE_NOTES_RULES,
-            notesText(plan),
+            campaignNotesText(plan),
             9.25f,
             2.8f,
             2f,
@@ -467,7 +468,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val text = notesText(plan)
+        val text = dedicatedNotesText(plan)
         if (text.isBlank()) return
         val leftWidth = NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f
         val rightWidth = NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f
@@ -515,21 +516,40 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+    private fun campaignNotesText(plan: PcSheetPdfRenderPlan): String =
+        plan.snapshot.aggregate.sheet
+            .pdfCampaignNoteParagraphs()
+            .joinToString(" ")
+
+    private fun dedicatedNotesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                card.content.trim().takeIf { it.isNotEmpty() }?.let { body ->
-                    add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
-                }
+            val campaignOverflow = wrapApproxByChars(
+                campaignNotesText(plan),
+                V1_NARRATIVE_NOTE_APPROX_CHARS,
+            ).drop(NARRATIVE_NOTES_RULES.size).joinToString(" ")
+            campaignOverflow.takeIf { it.isNotBlank() }?.let(::add)
+            sheet.pdfOrdinaryEquipmentDetailParagraphs().forEach(::add)
+        }.joinToString("\n\n")
+    }
+
+    private fun wrapApproxByChars(text: String, maxChars: Int): List<String> {
+        val clean = text.trim()
+        if (clean.isEmpty()) return emptyList()
+
+        val result = mutableListOf<String>()
+        var current = ""
+        clean.split(Regex("\\s+")).forEach { word ->
+            val candidate = if (current.isEmpty()) word else "$current $word"
+            if (candidate.length <= maxChars || current.isEmpty()) {
+                current = candidate
+            } else {
+                result += current
+                current = word
             }
-            sheet.inventoryItems
-                .sortedBy { it.sortOrder }
-                .filterNot { it.special }
-                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
-                .forEach(::add)
-        }.joinToString(" ")
+        }
+        if (current.isNotEmpty()) result += current
+        return result
     }
 
     private fun parseValuable(raw: String): Pair<String, String?> {
@@ -895,6 +915,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
         const val CUSTOM_CURRENCY_ROWS = 2
+        const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
         val CURRENCY_KINDS = listOf(
             StandardCurrencyKind.PLATINUM,
             StandardCurrencyKind.GOLD,
