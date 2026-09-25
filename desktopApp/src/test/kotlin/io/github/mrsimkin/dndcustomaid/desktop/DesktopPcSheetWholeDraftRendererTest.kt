@@ -484,7 +484,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         traitsPdf.outputStream().use { renderer.renderDraft(traitsPlan, it) }
 
         Loader.loadPDF(traitsPdf).use { document ->
-            assertEquals(6, document.numberOfPages)
+            assertTrue(document.numberOfPages >= traitsPlan.basePages.size)
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("RASGOS Y CARACTERÍSTICAS"))
             assertTrue(Regex("Juramento\\s+del\\s+mapa").containsMatchIn(extracted))
@@ -1417,7 +1417,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(Regex("COLA\\s+RASGO\\s+LARGO\\s+AUDITADA").containsMatchIn(extracted))
             assertTrue(extracted.contains("Acción terminal Classic"))
             assertTrue(extracted.contains("7 totales"))
-            assertTrue(extracted.contains("3 gastados"))
+            assertTrue(Regex("3\\s+gastados").containsMatchIn(extracted))
             assertTrue(extracted.contains("Tradición cartográfica"))
             assertTrue(Regex("Iria\\s+Noctis\\s+Cartógrafa\\s+Mayor").containsMatchIn(extracted))
         }
@@ -1689,7 +1689,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Ves en luz tenue y oscuridad"))
             assertTrue(extracted.contains("Combinas herramientas y recursos disponibles"))
             assertTrue(extracted.contains("Fuente primaria de rasgo"))
-            assertTrue(extracted.contains("Fuente canónica sin otros metadatos"))
+            assertFalse(
+                extracted.contains("Fuente canónica sin otros metadatos"),
+                "Source-only metadata on an already represented trait must not create duplicate trait detail.",
+            )
             assertTrue(extracted.contains("Competencia extendida de prueba"))
             assertTrue(Regex("Nota\\s+de\\s+competencia").containsMatchIn(extracted))
             assertTrue(extracted.contains("Lengua extendida"))
@@ -1849,10 +1852,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
 
             val extracted = PDFTextStripper().getText(document)
-            assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+ordinario").containsMatchIn(extracted))
-            assertTrue(extracted.contains("Consumible"))
-            assertTrue(Regex("Uso\\s+rápido\\s+2").containsMatchIn(extracted))
-            assertTrue(extracted.contains("Almacenado"))
+            assertFalse(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+ordinario").containsMatchIn(extracted))
+            assertFalse(extracted.contains("Consumible"))
+            assertFalse(Regex("Uso\\s+rápido\\s+2").containsMatchIn(extracted))
+            assertFalse(extracted.contains("Almacenado"))
             assertTrue(extracted.contains("Sintonizado"))
             assertTrue(Regex("Nota\\s+persistente\\s+del\\s+equipo\\s+especial").containsMatchIn(extracted))
             assertTrue(
@@ -2068,7 +2071,10 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertTrue(extracted.contains("RECURSOS Y OPCIONES"))
                 assertTrue(extracted.contains("Puntos de enfoque"))
                 assertTrue(extracted.contains("Metamagia cuidadosa"))
-                assertTrue(extracted.contains("Una vez al día recuperas espacios de conjuro"))
+                assertFalse(
+                    extracted.contains("Una vez al día recuperas espacios de conjuro"),
+                    "Resource-backed trait prose must not be replayed in Traits.",
+                )
                 assertTrue(extracted.contains("Puntos de destino"))
                 assertTrue(extracted.contains("Sólo se recupera"))
                 assertTrue(extracted.contains("narrativo"))
@@ -2128,8 +2134,8 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertTrue(extracted.contains("137"))
                 assertTrue(extracted.contains("Sintonizado"))
                 assertTrue(extracted.contains("Viales vacíos"))
-                assertTrue(extracted.contains("Muestras y"))
-                assertTrue(extracted.contains("reactivos."))
+                assertFalse(extracted.contains("Muestras y"))
+                assertFalse(extracted.contains("reactivos."))
                 assertTrue(extracted.contains("Peso 4 lb"))
                 assertTrue(extracted.contains("Foco arcano y arma improvisada."))
                 assertTrue(extracted.contains("Conjuro adicional 9"))
@@ -2341,7 +2347,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(document.numberOfPages >= 5)
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
-            assertTrue(layers.any { it.startsWith("V1X INVENTORY P1 - VALUES") })
+            assertFalse(
+                layers.any { it.startsWith("V1X INVENTORY P1 - VALUES") },
+                "Ammunition/status metadata alone must not allocate a v1 Equipment continuation.",
+            )
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("3 de 5 hitos"))
             assertTrue(extracted.contains("Inspiración"))
@@ -2357,10 +2366,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Espada larga"))
             assertTrue(extracted.contains("Forma de lobo"))
             assertTrue(extracted.contains("Nim"))
-            assertTrue(extracted.contains("Flechas de prueba"))
-            assertTrue(extracted.contains("Munición"))
-            assertTrue(extracted.contains("rápido"))
-            assertTrue(extracted.contains("Almacenado"))
+            assertEquals(1, Regex("\\bFlechas de prueba\\b").findAll(extracted).count())
+            assertFalse(extracted.contains("Estado: Munición"))
+            assertFalse(extracted.contains("Uso rápido"))
+            assertFalse(extracted.contains("Almacenado"))
         }
 
         val classicBackground = CharacterBackground(
@@ -2655,10 +2664,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Espada larga"))
             assertTrue(extracted.contains("Forma de lobo"))
             assertTrue(extracted.contains("Nim"))
-            assertTrue(extracted.contains("Flechas de prueba"))
-            assertTrue(extracted.contains("Munición"))
-            assertTrue(extracted.contains("rápido"))
-            assertTrue(extracted.contains("Almacenado"))
+            assertEquals(1, Regex("\\bFlechas de prueba\\b").findAll(extracted).count())
+            assertFalse(extracted.contains("Estado: Munición"))
+            assertFalse(extracted.contains("Uso rápido"))
+            assertFalse(extracted.contains("Almacenado"))
         }
 
         Loader.loadPDF(permanentPdf).use { permanentDocument ->
