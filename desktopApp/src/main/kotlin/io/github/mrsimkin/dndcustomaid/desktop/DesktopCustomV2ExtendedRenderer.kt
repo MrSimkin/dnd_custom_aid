@@ -2518,7 +2518,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
-        val BASE_V2_CURRENCY_KEYS = setOf("pp", "gp", "sp", "cp")
+        val BASE_V2_CURRENCY_KEYS = setOf("cp", "sp", "ep", "gp", "pp")
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_CONTINUATION_CAPACITY = 57
         const val INVENTORY_VALUABLES_CAPACITY = 19
