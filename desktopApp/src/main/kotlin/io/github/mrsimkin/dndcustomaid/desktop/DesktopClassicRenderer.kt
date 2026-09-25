@@ -1168,6 +1168,25 @@ internal class DesktopClassicRenderer {
                         add(item.name + ": " + details.joinToString(" · "))
                     }
                 }
+            // Base-represented special equipment keeps its compact row; any richer detail
+            // is preserved here instead of replaying the item as another special-equipment record.
+            specialItems
+                .filter { it.id in baseIds }
+                .forEach { item ->
+                    val details = buildList {
+                        inventoryState(item, usageByItem[item.id])
+                            .takeIf { it.isNotBlank() }
+                            ?.let { add("Estado: " + it) }
+                        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                            add("Ubicación: " + it)
+                        }
+                        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    }
+                    if (details.isNotEmpty()) {
+                        add(item.name + ": " + details.joinToString(" · "))
+                    }
+                }
             sheet.currencies
                 .filter { !it.isDefault }
                 .sortedBy { it.sortOrder }
