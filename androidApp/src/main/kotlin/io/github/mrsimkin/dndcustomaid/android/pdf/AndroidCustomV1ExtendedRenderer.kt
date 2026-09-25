@@ -71,6 +71,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         if (needsTraitsExtendedPage(plan)) {
             appendTraitsExtendedPages(plan)
         }
+        appendCombatExtendedPages(plan)
         if (needsResourcesExtendedPage(plan)) {
             appendResourcesExtendedPages(plan)
         }
@@ -413,27 +414,6 @@ internal class AndroidCustomV1ExtendedRenderer(
             addFull("Estado", characterStatusLabel(sheet.status))
         }
 
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                if (
-                    index >= BASE_V1_COMBAT_CAPACITY ||
-                    entry.type != CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank()
-                ) {
-                    addFull(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
-
         if (closure.progressMode == CharacterProgressMode.MILESTONE) {
             addFull("Progreso", closure.milestoneProgress)
         }
@@ -520,18 +500,6 @@ internal class AndroidCustomV1ExtendedRenderer(
                 )
             }
 
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val entry = combatById[profile.combatEntryId]
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression +
-                    component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                addFull("Daño estructurado", (entry?.name ?: "Ataque") + ": " + components)
-            }
-        }
-
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
         successor.spellcastingProfiles.drop(1).forEach { profile ->
             val sourceName = spellSources[profile.sourceId]?.name ?: "Fuente mágica"
@@ -603,6 +571,109 @@ internal class AndroidCustomV1ExtendedRenderer(
         }
 
         return lines
+    }
+
+    private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val lines = combatReferenceLines(plan)
+        if (lines.isEmpty()) return
+
+        val pages = pageCount(lines.size, COMBAT_LINES_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderCombatPage(
+                page = page,
+                lines = lines.pageSlice(pageIndex, COMBAT_LINES_PER_PAGE),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun combatReferenceLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+
+        return aggregate.sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .mapIndexedNotNull { index, entry ->
+                val damage = damageByCombatId[entry.id]
+                val structuredDamage = damage?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val needsReference =
+                    index >= BASE_V1_COMBAT_CAPACITY ||
+                        entry.type != CharacterCombatEntryType.ATTACK ||
+                        !entry.notes.isNullOrBlank() ||
+                        structuredDamage.isNotBlank()
+                if (!needsReference) {
+                    null
+                } else {
+                    buildList {
+                        add(combatTypeLabel(entry.type) + " — " + entry.name)
+                        entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                        entry.damageEffect.takeIf { it.isNotBlank() }?.let { add("Efecto / daño: $it") }
+                        entry.rangeText?.takeIf { it.isNotBlank() }?.let { add("Alcance: $it") }
+                        entry.notes?.takeIf { it.isNotBlank() }?.let { add("Notas: $it") }
+                        structuredDamage.takeIf { it.isNotBlank() }?.let { add("Daño estructurado: $it") }
+                    }.joinToString(" · ")
+                }
+            }
+            .flatMap { value ->
+                wrapByWidth(
+                    value,
+                    resources.fira,
+                    8.4f,
+                    COMBAT_TEXT_WIDTH,
+                )
+            }
+    }
+
+    private fun renderCombatPage(
+        page: PDPage,
+        lines: List<String>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X COMBAT P${pageIndex + 1}"
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            sourceBands(
+                s,
+                25f,
+                585f,
+                COMBAT_FIRST_RULE_TOP,
+                COMBAT_LINES_PER_PAGE,
+                COMBAT_STEP,
+            )
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Combate / Acciones", 18f)
+            centeredText(
+                s,
+                resources.fira,
+                27f,
+                96f,
+                556f,
+                14f,
+                "REFERENCIA DE COMBATE / ACCIÓN / DAÑO",
+                7.5f,
+            )
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            lines.forEachIndexed { index, line ->
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(27.5f, 583.795f, COMBAT_FIRST_RULE_TOP + index * COMBAT_STEP),
+                    line,
+                    8.4f,
+                )
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun characterStatusLabel(
@@ -2323,6 +2394,10 @@ internal class AndroidCustomV1ExtendedRenderer(
         )
 
         const val BASE_V1_COMBAT_CAPACITY = 5
+        const val COMBAT_LINES_PER_PAGE = 29
+        const val COMBAT_FIRST_RULE_TOP = 128f
+        const val COMBAT_STEP = 21f
+        const val COMBAT_TEXT_WIDTH = 556f
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
         const val BASE_V1_SPECIAL_CAPACITY = 13
         const val BASE_V1_VALUABLE_CAPACITY = 8
