@@ -907,8 +907,8 @@ internal class AndroidCustomV2ExtendedRenderer(
                         2.3f,
                     )
                 }
-            appendLayer(page, "$prefix - MARKERS") { }
             }
+            appendLayer(page, "$prefix - MARKERS") { }
         }
     }
 
