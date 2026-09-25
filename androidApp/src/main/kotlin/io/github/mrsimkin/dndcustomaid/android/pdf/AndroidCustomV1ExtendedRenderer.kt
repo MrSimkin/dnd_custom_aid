@@ -1099,6 +1099,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             sheet.currencies
                 .filter { !it.isDefault }
                 .sortedBy { it.sortOrder }
+                .drop(BASE_V1_CUSTOM_CURRENCY_CAPACITY)
                 .forEach { currency ->
                     add(TreasureEntry("${currency.name}: ${currency.amount}", null))
                 }
@@ -1106,9 +1107,10 @@ internal class AndroidCustomV1ExtendedRenderer(
                 .split(';')
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
+                .drop(BASE_V1_VALUABLE_CAPACITY)
                 .map(::parseValuable)
                 .forEach(::add)
-        }.drop(BASE_V1_VALUABLE_CAPACITY)
+        }
 
         if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasure.isEmpty()) return
 
