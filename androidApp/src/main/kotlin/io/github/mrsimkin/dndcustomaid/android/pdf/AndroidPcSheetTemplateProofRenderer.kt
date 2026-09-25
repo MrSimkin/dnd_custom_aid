@@ -505,7 +505,7 @@ private fun drawCustomV2Common(
     ) {
         val sheet = plan.snapshot.aggregate.sheet
         val currencies = sheet.currencies.associateBy { it.key.lowercase() }
-        val treasureKeys = listOf("pt", "po", "pp", "pc")
+        val treasureKeys = listOf("pp", "gp", "sp", "cp")
         treasureKeys.forEachIndexed { index, key ->
             currencies[key]?.let { currency ->
                 fillCenteredTextPx(
