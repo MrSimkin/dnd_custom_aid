@@ -29,7 +29,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import android.graphics.Bitmap
@@ -99,7 +98,10 @@ internal class AndroidCustomV2ExtendedRenderer(
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
         val sheet = plan.snapshot.aggregate.sheet
-        return sheet.traits.isNotEmpty() ||
+        val semanticTraits = sheet.traits.any {
+            !isSpeciesIdentityTrait(it, plan) && !traitHasDedicatedActionOrResource(it, plan)
+        }
+        return semanticTraits ||
             sheet.proficiencies.isNotEmpty() ||
             traitSupplementLines(plan).isNotEmpty()
     }
@@ -450,7 +452,9 @@ internal class AndroidCustomV2ExtendedRenderer(
         if (!needsTraitsExtendedPage(plan)) return
 
         val sheet = plan.snapshot.aggregate.sheet
-        val traits = sheet.traits.sortedBy { it.sortOrder }
+        val traits = sheet.traits
+            .sortedBy { it.sortOrder }
+            .filterNot { isSpeciesIdentityTrait(it, plan) || traitHasDedicatedActionOrResource(it, plan) }
         fun featurePriority(trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait): Int =
             if (
                 trait.maxUses != null ||
@@ -631,29 +635,11 @@ internal class AndroidCustomV2ExtendedRenderer(
         addOverflow("Vínculos", background.bonds, 76, 3)
         addOverflow("Ideales", background.ideals, 76, 3)
         addOverflow("Historia", background.story, 76, 12)
-        addFull("Rasgos de personalidad", background.personalityTraits)
-        addFull("Defectos", background.flaws)
-        addFull("Fe / religión", background.religionFaith)
-
-        successor.speciesIdentity?.name?.trim()?.takeIf {
-            it.isNotEmpty() && !it.equals(background.race.trim(), ignoreCase = true)
-        }?.let { addFull("Raza canónica", it) }
-        successor.subraceIdentity?.name?.trim()?.takeIf { it.isNotEmpty() }?.let { addFull("Subraza", it) }
-        successor.backgroundIdentity?.name?.trim()?.takeIf {
-            it.isNotEmpty() && !it.equals(background.name.trim(), ignoreCase = true)
-        }?.let { addFull("Trasfondo canónico", it) }
-
         val orderedClasses = sheet.classes.sortedBy { it.sortOrder }
         val classSummary = orderedClasses.joinToString(" / ") { classLevel ->
             classLevel.name + " " + classLevel.level
         }
         if (classSummary.length > 32) addFull("Clases", classSummary)
-        orderedClasses.forEach { classLevel ->
-            classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
-                addFull("Subclase", classLevel.name + " - " + subclass)
-            }
-        }
-
         if (sheet.name.length > 36) addFull("Nombre", sheet.name)
         if (sheet.status != io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.ACTIVE) {
             addFull("Estado", characterStatusLabel(sheet.status))
@@ -936,6 +922,34 @@ internal class AndroidCustomV2ExtendedRenderer(
         CharacterMovementType.CLIMB -> "Trepar"
         CharacterMovementType.BURROW -> "Excavar"
         CharacterMovementType.OTHER -> "Otro"
+    }
+
+    private fun isSpeciesIdentityTrait(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        if (trait.type != CharacterTraitType.SPECIES_RACE) return false
+        val aggregate = plan.snapshot.aggregate
+        val identityNames = listOfNotNull(
+            aggregate.sheet.background.race.trim().takeIf { it.isNotEmpty() },
+            aggregate.successor.speciesIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+            aggregate.successor.subraceIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+        )
+        return identityNames.any { it.equals(trait.name.trim(), ignoreCase = true) }
+    }
+
+    private fun traitHasDedicatedActionOrResource(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        val name = trait.name.trim()
+        if (name.isEmpty()) return false
+        val sheet = plan.snapshot.aggregate.sheet
+        return sheet.resources.any { it.name.trim().equals(name, ignoreCase = true) } ||
+            sheet.combatEntries.any {
+                it.type != CharacterCombatEntryType.ATTACK &&
+                    it.name.trim().equals(name, ignoreCase = true)
+            }
     }
 
     private fun fullTraitDetailLines(
@@ -1716,16 +1730,21 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                val body = card.content.trim()
-                if (body.isNotEmpty()) add("${card.title}: $body")
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Rasgos de personalidad: $it")
             }
-            sheet.inventoryItems
-                .sortedBy { it.sortOrder }
-                .filterNot { it.special }
-                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
-                .forEach(::add)
+            sheet.background.flaws.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Defectos: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
         }.joinToString("\n\n")
     }
 
