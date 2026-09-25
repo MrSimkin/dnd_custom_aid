@@ -1513,14 +1513,6 @@ private fun appendSpellContinuationPages(
             lines += wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
         }
 
-        addWrapped(
-            "Resumen",
-            "Percepción ${sheet.passivePerception} · Iniciativa ${signed(sheet.initiativeModifier)} · " +
-                "CA ${sheet.armorClass} · Nivel ${sheet.totalLevel}",
-        )
-        sheet.spellSaveDc?.let { addWrapped("Conjuros", "CD $it") }
-        sheet.spellAttackModifier?.let { addWrapped("Conjuros", "Ataque ${signed(it)}") }
-
         val baseLanguageIds = sheet.proficiencies
             .filter { it.type == CharacterProficiencyType.LANGUAGE }
             .sortedBy { it.sortOrder }
