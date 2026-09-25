@@ -26,6 +26,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import java.awt.Color
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
@@ -1449,13 +1451,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         append(item.name)
     }
 
-    private fun inventoryBaseLabel(item: CharacterInventoryItem): String = buildList {
-        add(inventoryContinuationLabel(item))
-        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        item.weightLb?.let { weight ->
-            add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
-        }
-    }.joinToString(" · ")
+    private fun inventoryBaseLabel(item: CharacterInventoryItem): String =
+        item.pdfCompactEquipmentLabel()
 
     private fun inventoryDetailContinuationLines(
         item: CharacterInventoryItem,
@@ -1475,18 +1472,6 @@ internal class DesktopCustomV2ExtendedRenderer(
             )
         }
 
-        val detail = listOfNotNull(
-            item.description?.trim()?.takeIf { it.isNotEmpty() },
-            item.notes?.trim()?.takeIf { it.isNotEmpty() },
-        ).joinToString(" · ")
-        if (detail.isNotEmpty()) {
-            lines += wrapByWidth(
-                resources.condensed,
-                item.name + " — Nota: " + detail,
-                8.2f,
-                V2_EQUIPMENT_COLUMN_WIDTH,
-            )
-        }
         return lines
     }
 
@@ -1494,27 +1479,10 @@ internal class DesktopCustomV2ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val status = buildList {
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(
-                    if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
-                    else weight.toString() + " lb",
-                )
-            }
-            if (item.equipped) add("Equipado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-
         val lines = mutableListOf<String>()
-        val primary = buildList {
-            add(inventoryContinuationLabel(item))
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
-            }
-        }.joinToString(" · ")
-        lines += primary
+        // True Equipment overflow carries only compact identity; descriptive metadata is routed
+        // to Notes instead of becoming apparent duplicate equipment rows.
+        lines += item.pdfCompactEquipmentLabel()
 
         val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
@@ -1524,13 +1492,6 @@ internal class DesktopCustomV2ExtendedRenderer(
             lines += wrapByWidth(resources.condensed, "Estado: $operationalStatus", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
         }
 
-        val description = listOfNotNull(
-            item.description?.trim()?.takeIf { it.isNotEmpty() },
-            item.notes?.trim()?.takeIf { it.isNotEmpty() },
-        ).joinToString(" · ")
-        if (description.isNotEmpty()) {
-            lines += wrapByWidth(resources.condensed, "Nota: $description", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
-        }
         return lines
     }
 
@@ -1758,6 +1719,11 @@ internal class DesktopCustomV2ExtendedRenderer(
                 val body = card.content.trim()
                 if (body.isNotEmpty()) add("${card.title}: $body")
             }
+            sheet.inventoryItems
+                .sortedBy { it.sortOrder }
+                .filterNot { it.special }
+                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+                .forEach(::add)
         }.joinToString("\n\n")
     }
 
