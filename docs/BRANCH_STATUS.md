@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #100 generalized bounded-text repair is integrated as `fd781262abfeb47003298562e540721a8515071a` / merged-main Scaffold `36067012766` SUCCESS; owner Aldren Save is now the manual gate
+**Current normal work:** PC Sheet PDF Export — no implementation branch active; Fantasy Save/open passed on `0.5.0-preqa.3`, five owner-observed content/layout defects are recorded, and an Aldren/Permanente cross-family Custom-v1/v2 survey must complete before a repair branch is opened
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
