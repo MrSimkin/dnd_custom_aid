@@ -32,13 +32,19 @@ fun CharacterInventoryItem.pdfCompactEquipmentLabel(): String =
 fun CharacterInventoryItem.pdfOrdinaryEquipmentDetailOrNull(): String? {
     if (special) return null
 
+    val descriptionText = description?.trim().orEmpty()
+    val notesText = notes?.trim().orEmpty()
+    // A bare storage/location tag is useful metadata, but it is not enough by itself to justify
+    // allocating a PDF detail/Notes surface. If richer detail exists, preserve location with it.
+    if (descriptionText.isEmpty() && notesText.isEmpty()) return null
+
     val detail = buildList {
         location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: $it") }
-        description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        descriptionText.takeIf { it.isNotEmpty() }?.let(::add)
+        notesText.takeIf { it.isNotEmpty() }?.let(::add)
     }.joinToString(" · ")
 
-    return detail.takeIf { it.isNotEmpty() }?.let { "$name — $it" }
+    return "$name — $detail"
 }
 
 
