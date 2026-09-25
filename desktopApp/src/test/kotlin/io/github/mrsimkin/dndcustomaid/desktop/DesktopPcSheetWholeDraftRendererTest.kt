@@ -148,8 +148,14 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ),
                 ),
                 combatEntries = base.sheet.combatEntries.take(4).mapIndexed { index, entry ->
-                    if (index == 0) entry.copy(name = "Lanza de cobre", sortOrder = index)
-                    else entry.copy(sortOrder = index)
+                    entry.copy(
+                        name = if (index == 0) "Lanza de cobre" else entry.name,
+                        type = CharacterCombatEntryType.ATTACK,
+                        damageEffect = "1d6",
+                        rangeText = "5 pies",
+                        notes = null,
+                        sortOrder = index,
+                    )
                 },
                 inventoryItems = inventory,
                 background = CharacterBackground(
