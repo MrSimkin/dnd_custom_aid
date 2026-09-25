@@ -783,22 +783,35 @@ internal class DesktopCustomV1ExtendedRenderer(
             .map { resource ->
                 val recovery = recoveryByResource[resource.id]
                 val kind = configurationByResource[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
+                val maximum = when (kind) {
+                    CharacterTrackableValueKind.BINARY -> 1
+                    CharacterTrackableValueKind.COUNTER,
+                    CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
+                }
+                val oneUse = maximum == 1
+                val structuredRecovery = buildList {
+                    recovery?.cadence?.let(::recoveryLabel)?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (!oneUse || recovery?.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                        recovery?.amountMode
+                            ?.let { recoveryAmountLabel(it, recovery.fixedAmount) }
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let(::add)
+                    }
+                    recovery?.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                }
                 ResourceRenderRow(
                     name = resource.name,
                     currentValue = resource.currentValue,
-                    maximum = when (kind) {
-                        CharacterTrackableValueKind.BINARY -> 1
-                        CharacterTrackableValueKind.COUNTER,
-                        CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
-                    },
-                    recoveryAndDetail = listOf(
-                        resource.recovery.orEmpty().trim(),
-                        recovery?.cadence?.let(::recoveryLabel).orEmpty(),
-                        recovery?.amountMode?.let { recoveryAmountLabel(it, recovery.fixedAmount) }.orEmpty(),
-                        recovery?.notes.orEmpty().trim(),
-                        resource.source.orEmpty().trim(),
-                        resource.notes.orEmpty().trim(),
-                    ).filter { it.isNotEmpty() }.distinct().joinToString(" · "),
+                    maximum = maximum,
+                    recoveryAndDetail = buildList {
+                        val recoveryText = structuredRecovery
+                            .takeIf { it.isNotEmpty() }
+                            ?.joinToString(" · ")
+                            ?: resource.recovery.orEmpty().trim()
+                        recoveryText.takeIf { it.isNotEmpty() }?.let(::add)
+                        resource.source.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                        resource.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    }.distinct().joinToString(" · "),
                     sortOrder = resource.sortOrder,
                     sourceRank = 0,
                 )
@@ -807,19 +820,25 @@ internal class DesktopCustomV1ExtendedRenderer(
         val markers = aggregate.successor.customMarkers
             .sortedBy { it.sortOrder }
             .map { marker ->
+                val maximum = when (marker.valueKind) {
+                    CharacterTrackableValueKind.BINARY -> 1
+                    CharacterTrackableValueKind.COUNTER,
+                    CharacterTrackableValueKind.CURRENT_MAX -> marker.maxValue
+                }
+                val oneUse = maximum == 1
                 ResourceRenderRow(
                     name = marker.name,
                     currentValue = marker.currentValue,
-                    maximum = when (marker.valueKind) {
-                        CharacterTrackableValueKind.BINARY -> 1
-                        CharacterTrackableValueKind.COUNTER,
-                        CharacterTrackableValueKind.CURRENT_MAX -> marker.maxValue
-                    },
-                    recoveryAndDetail = listOf(
-                        recoveryLabel(marker.recovery.cadence),
-                        recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
-                        marker.notes.orEmpty().trim(),
-                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    maximum = maximum,
+                    recoveryAndDetail = buildList {
+                        recoveryLabel(marker.recovery.cadence).takeIf { it.isNotEmpty() }?.let(::add)
+                        if (!oneUse || marker.recovery.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                            recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount)
+                                .takeIf { it.isNotEmpty() }
+                                ?.let(::add)
+                        }
+                        marker.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    }.joinToString(" · "),
                     sortOrder = marker.sortOrder,
                     sourceRank = 1,
                 )
