@@ -324,7 +324,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             s,
             fonts.regular,
             NARRATIVE_NOTES_RULES,
-            campaignNotesText(plan),
+            narrativeNotesText(plan),
             9.25f,
             2.8f,
             2f,
@@ -550,14 +550,27 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         }
     }
 
-    private fun campaignNotesText(plan: PcSheetPdfRenderPlan): String =
-        plan.snapshot.aggregate.sheet
-            .pdfCampaignNoteParagraphs()
-            .joinToString(" ")
+    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Resumen de trasfondo: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
+        }.joinToString(" ")
+    }
 
     private fun dedicatedNotesText(plan: PcSheetPdfRenderPlan): String =
         wrapApproxByChars(
-            campaignNotesText(plan),
+            narrativeNotesText(plan),
             V1_NARRATIVE_NOTE_APPROX_CHARS,
         ).drop(NARRATIVE_NOTES_RULES.size).joinToString(" ")
 
