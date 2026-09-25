@@ -1,4 +1,5 @@
 \set ON_ERROR_STOP on
+\encoding UTF8
 
 -- DEV/QA ONLY.
 -- Seeds the three PC-sheet runtime QA fixtures into the hosted PostgreSQL spine.
