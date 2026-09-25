@@ -1996,8 +1996,11 @@ class DesktopPcSheetWholeDraftRendererTest {
 
         Loader.loadPDF(pdf).use { document ->
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
-            assertTrue(layers.any { it.startsWith("V1X NOTES P1 - STRUCTURE") })
-            assertTrue(layers.any { it.startsWith("V1X NOTES P1 - VALUES") })
+            assertTrue(plan.basePages.any { it.role == PcSheetBasePageRole.NOTES })
+            assertFalse(
+                layers.any { it.startsWith("V1X NOTES") },
+                "Forty short notes fit in the native narrative Notes area plus the dedicated Notes page.",
+            )
             assertFalse(layers.any { it.startsWith("V1X TRAITS") })
             assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
             assertFalse(layers.any { it.startsWith("V1X INVENTORY") })
