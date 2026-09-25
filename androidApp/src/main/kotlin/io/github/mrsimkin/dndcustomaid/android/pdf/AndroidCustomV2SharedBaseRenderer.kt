@@ -120,10 +120,12 @@ internal class AndroidCustomV2SharedBaseRenderer(
                     opticalY = -0.7f,
                 )
             }
-            if (specialLocationRow(item.location) != rowIndex) {
-                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
-                    textAboveRule(s, fonts.regular, Rule(14f, 94f, y), location, 8.5f, 7.5f, 2.5f, 1f)
-                }
+            // The owner template contains decorative location words in this column. Once a
+            // row is populated those words are not data; clear the value cell and render the
+            // character's actual location with the same application fill typography used elsewhere.
+            clearLocationValueCell(s, y)
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
+                textAboveRule(s, fonts.regular, Rule(14f, 94f, y), location, 8.5f, 7.5f, 2.5f, 1f)
             }
             textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
             val detail = buildList {
@@ -133,6 +135,21 @@ internal class AndroidCustomV2SharedBaseRenderer(
             }.joinToString(" · ")
             textAboveRule(s, fonts.regular, Rule(303f, 596f, y), detail, 9.25f, 8.5f, 2.5f, 2f)
         }
+    }
+
+    private fun clearLocationValueCell(s: PDFormContentStream, ruleTop: Float) {
+        val ruleBottom = H - ruleTop
+        s.saveGraphicsState()
+        s.setNonStrokingColor(Color.WHITE)
+        // Leave the table's vertical borders intact while covering the decorative source value.
+        s.addRect(15f, ruleBottom + 0.7f, 78f, 14.8f)
+        s.fill()
+        s.setStrokingColor(Color.BLACK)
+        s.setLineWidth(0.45f)
+        s.moveTo(14f, ruleBottom)
+        s.lineTo(94f, ruleBottom)
+        s.stroke()
+        s.restoreGraphicsState()
     }
 
     private fun drawSpellBlock(s: PDFormContentStream, plan: PcSheetPdfRenderPlan, block: SpellBlock) {
