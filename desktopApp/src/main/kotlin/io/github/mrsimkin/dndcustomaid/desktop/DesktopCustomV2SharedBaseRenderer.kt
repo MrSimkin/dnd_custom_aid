@@ -73,19 +73,89 @@ internal class DesktopCustomV2SharedBaseRenderer(
     }
 
     private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val ordinary = plan.snapshot.aggregate.sheet.inventoryItems
+        val aggregate = plan.snapshot.aggregate
+        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
+        val lines = mutableListOf<String>()
+        aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filterNot { it.special }
-            .take(EQUIPMENT_RULES.size * 2)
+            .forEach { item ->
+                val itemLines = equipmentBaseLines(item, usageByItem[item.id])
+                if (lines.size + itemLines.size <= EQUIPMENT_RULES.size * 2) {
+                    lines += itemLines
+                }
+            }
 
-        EQUIPMENT_RULES.forEachIndexed { row, y ->
-            ordinary.getOrNull(row * 2)?.let { item ->
-                textAboveRule(s, fonts.condensed, Rule(14f, 149.5f, y), inventoryLabel(item), 9.25f, 7.0f, 2.5f, 2f)
+        lines.forEachIndexed { index, line ->
+            val column = index / EQUIPMENT_RULES.size
+            val row = index % EQUIPMENT_RULES.size
+            val rule = if (column == 0) {
+                Rule(14f, 149.5f, EQUIPMENT_RULES[row])
+            } else {
+                Rule(156f, 291.5f, EQUIPMENT_RULES[row])
             }
-            ordinary.getOrNull(row * 2 + 1)?.let { item ->
-                textAboveRule(s, fonts.condensed, Rule(156f, 291.5f, y), inventoryLabel(item), 9.25f, 7.0f, 2.5f, 2f)
-            }
+            textAboveRule(s, fonts.condensed, rule, line, 8.8f, 7.0f, 2.5f, 2f)
         }
+    }
+
+    private fun equipmentBaseLines(
+        item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
+        usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+    ): List<String> {
+        val primary = buildList {
+            add(buildString {
+                if (item.quantity > 1) append(item.quantity).append(" x ")
+                append(item.name)
+            })
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.weightLb?.let { weight ->
+                add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else "$weight lb")
+            }
+        }.joinToString(" · ")
+        val lines = wrapWords(
+            fonts.condensed,
+            primary.split(Regex("\\s+")),
+            8.4f,
+            EQUIPMENT_BASE_TEXT_WIDTH,
+        ).toMutableList()
+
+        val operational = buildList {
+            if (item.equipped) add("Equipado")
+            if (item.attuned) add("Sintonizado")
+            when (usage?.kind) {
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION -> add("Munición")
+                else -> Unit
+            }
+            if (usage?.quickUseAmount != null && usage.quickUseAmount != 1) {
+                add("Uso rápido " + usage.quickUseAmount)
+            }
+            if (usage?.carryState == io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState.STORED) {
+                add("Almacenado")
+            }
+        }.joinToString(" · ")
+        if (operational.isNotBlank()) {
+            lines += wrapWords(
+                fonts.condensed,
+                "Estado: $operational".split(Regex("\\s+")),
+                8.0f,
+                EQUIPMENT_BASE_TEXT_WIDTH,
+            )
+        }
+
+        val detail = listOfNotNull(
+            item.description?.trim()?.takeIf { it.isNotEmpty() },
+            item.notes?.trim()?.takeIf { it.isNotEmpty() },
+        ).joinToString(" · ")
+        if (detail.isNotBlank()) {
+            lines += wrapWords(
+                fonts.condensed,
+                "Nota: $detail".split(Regex("\\s+")),
+                8.0f,
+                EQUIPMENT_BASE_TEXT_WIDTH,
+            )
+        }
+        return lines
     }
 
     private fun drawBackground(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -130,6 +200,9 @@ internal class DesktopCustomV2SharedBaseRenderer(
             }
             textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
             val detail = buildList {
+                item.weightLb?.let { weight ->
+                    add("Peso " + if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else "$weight lb")
+                }
                 if (item.attuned) add("Sintonizado")
                 item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -377,6 +450,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
         const val CHECK_CP = 0xE211
         const val SYMBOL_FONT = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
 
+        const val EQUIPMENT_BASE_TEXT_WIDTH = 125f
         val EQUIPMENT_RULES = List(23) { 114.5f + it * 17f }
         val BACKGROUND_RULES = listOf(114.5f, 131.5f, 148.5f).map { Rule(297.5f, 597.5f, it) }
         val BONDS_RULES = listOf(182.5f, 199.5f, 216.5f).map { Rule(297.5f, 597.5f, it) }
