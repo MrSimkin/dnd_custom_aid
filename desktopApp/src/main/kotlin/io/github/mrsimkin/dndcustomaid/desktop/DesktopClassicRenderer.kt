@@ -1190,6 +1190,8 @@ internal class DesktopClassicRenderer {
                 .filter { it.id in baseIds }
                 .forEach { item ->
                     val details = buildList {
+                        if (item.quantity != 1) add("Cant. " + item.quantity)
+                        item.weightLb?.let { add("Peso " + formatWeight(it) + " lb") }
                         inventoryState(item, usageByItem[item.id])
                             .takeIf { it.isNotBlank() }
                             ?.let { add("Estado: " + it) }
