@@ -1094,59 +1094,47 @@ internal class DesktopClassicRenderer {
         val baseIds = ordered.take(BASE_EQUIPMENT_CAPACITY).mapTo(mutableSetOf()) { it.id }
 
         val specialItems = ordered.filter { item ->
-            item.special || item.attuned
+            (item.special || item.attuned) && item.id !in baseIds
         }
-        val specialIds = specialItems.mapTo(mutableSetOf()) { it.id }
+        val specialIds = ordered
+            .filter { it.special || it.attuned }
+            .mapTo(mutableSetOf()) { it.id }
 
         val ordinaryRows = ordered
-            .filter { it.id !in specialIds }
-            .filter { item ->
-                item.id !in baseIds ||
-                    item.weightLb != null ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank() ||
-                    (
-                        usageByItem[item.id]?.carryState == CharacterInventoryCarryState.CARRIED &&
-                            !item.equipped &&
-                            !item.attuned
-                    ) ||
-                    item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
-                    inventoryBaseNote(item, usageByItem[item.id]).length >
-                        CLASSIC_BASE_INVENTORY_NOTE_CHARS
-            }
+            .filter { it.id !in specialIds && it.id !in baseIds }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
         val specialRows = specialItems.flatMap { item ->
             classicSpecialItemRows(item, usageByItem[item.id])
         }
 
+        val overflowIds = (ordered.filter { it.id !in baseIds }).mapTo(mutableSetOf()) { it.id }
         val noteEntries = buildList {
             ordered
-                .filter { it.id !in specialIds }
+                .filter { it.id in overflowIds }
                 .forEach { item ->
                     val state = inventoryState(item, usageByItem[item.id])
                     val details = buildList {
-                        if (item.name.length > CLASSIC_INVENTORY_ROW_NAME_CHARS) {
-                            add("Nombre completo: " + item.name)
+                        val location = item.location?.trim().orEmpty()
+                        if (location.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS) add("Ubicación: " + location)
+                        if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) add("Estado: " + state)
+                        val compactDetail = listOfNotNull(
+                            item.description?.trim()?.takeIf { it.isNotEmpty() },
+                            item.notes?.trim()?.takeIf { it.isNotEmpty() },
+                        ).joinToString(" · ")
+                        if (compactDetail.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS) {
+                            add(compactDetail)
                         }
-                        item.location?.trim()?.takeIf {
-                            it.isNotEmpty() && it.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS
-                        }?.let { add("Ubicación: " + it) }
-                        if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) {
-                            add("Estado: " + state)
-                        }
-                        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     }
                     if (details.isNotEmpty()) {
                         add(item.name + ": " + details.joinToString(" · "))
                     }
                 }
             sheet.currencies
-                .filter { it.key.lowercase() !in CLASSIC_BASE_CURRENCY_KEYS }
+                .filter { it.amount != 0 && it.key.lowercase() !in CLASSIC_BASE_CURRENCY_KEYS }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
-                    add("${currency.name}: ${currency.amount}")
+                    add(currency.name + ": " + currency.amount)
                 }
             val valuables = aggregate.successor.preferences.valuablesText
                 .split(';')
@@ -1154,7 +1142,7 @@ internal class DesktopClassicRenderer {
                 .filter { it.isNotEmpty() }
             valuables.take(CLASSIC_BASE_VALUABLE_CAPACITY)
                 .filter { it.length > CLASSIC_BASE_ALLY_VALUE_CHARS }
-                .forEach { add("Tesoro / valor: $it") }
+                .forEach { add("Tesoro / valor: " + it) }
             valuables.drop(CLASSIC_BASE_VALUABLE_CAPACITY).forEach(::add)
         }.flatMap { note ->
             wrapForChars(note, CLASSIC_INVENTORY_NOTE_CHARS)
@@ -1254,14 +1242,18 @@ private fun classicInventoryRows(
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
     ): List<InventoryRow> {
         val state = inventoryState(item, usage)
-        val location = item.location?.trim().orEmpty()
+        val notes = buildList {
+            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
         return listOf(
             InventoryRow(
                 quantity = item.quantity.toString(),
                 name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
                 weight = item.weightLb?.let(::formatWeight).orEmpty(),
                 state = classicSingleLineExcerpt(state, CLASSIC_INVENTORY_ROW_STATE_CHARS),
-                notes = classicSingleLineExcerpt(location, CLASSIC_INVENTORY_ROW_NOTE_CHARS),
+                notes = classicSingleLineExcerpt(notes, CLASSIC_INVENTORY_ROW_NOTE_CHARS),
             ),
         )
     }
@@ -1975,11 +1967,11 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         currencies: Map<String, io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>,
     ) {
         val coins = listOf(
-            "PC" to "pc",
-            "PP" to "pp",
-            "PE" to "pe",
-            "PO" to "po",
-            "PPT" to "pt",
+            "PC" to "cp",
+            "PP" to "sp",
+            "PE" to "ep",
+            "PO" to "gp",
+            "PPT" to "pp",
         )
         coins.forEachIndexed { index, (label, key) ->
             miniRunicStat(
@@ -3257,7 +3249,7 @@ private fun ruledTextArea(
         const val CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS = 26
         const val CLASSIC_CUSTOM_ABBREVIATION_CHARS = 8
         const val CLASSIC_CUSTOM_SKILL_NAME_CHARS = 22
-        val CLASSIC_BASE_CURRENCY_KEYS = setOf("pc", "pp", "pe", "po", "pt")
+        val CLASSIC_BASE_CURRENCY_KEYS = setOf("cp", "sp", "ep", "gp", "pp")
         const val CLASSIC_BASE_CANTRIP_CAPACITY = 5
         const val CLASSIC_BASE_LEVEL1_CAPACITY = 13
         const val CLASSIC_BASE_LEVEL2_CAPACITY = 9
