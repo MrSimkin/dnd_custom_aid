@@ -75,9 +75,9 @@ internal class DesktopClassicRenderer {
             appendTraitsPages(doc, p, plan)
             appendCombatPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
-            appendInventoryPages(doc, p, plan)
+            val packedCampaignNotes = appendInventoryPages(doc, p, plan)
             appendSpellContinuationPages(doc, p, plan)
-            appendNotesPages(doc, p, plan)
+            appendNotesPages(doc, p, plan, packedCampaignNotes)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Fantasy Sheet production encountered content outside its bounded base/continuation routing:\n" +
@@ -1123,7 +1123,7 @@ internal class DesktopClassicRenderer {
         doc: PDDocument,
         p: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
-    ) {
+    ): Int {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
@@ -1207,13 +1207,22 @@ internal class DesktopClassicRenderer {
                 .map { it.joinToString("\n") }
         }
 
-        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return
+        val campaignNotes = classicNoteEntries(plan)
+        val hasCompatibleInventoryPage =
+            ordinaryRows.isNotEmpty() || specialRows.isNotEmpty() || noteEntries.isNotEmpty()
+        val packedNoteEntries = if (hasCompatibleInventoryPage) {
+            noteEntries + campaignNotes
+        } else {
+            noteEntries
+        }
+
+        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && packedNoteEntries.isEmpty()) return 0
 
         val pages = maxOf(
             1,
             pageCount(ordinaryRows.size, CLASSIC_INVENTORY_ROWS_PER_PAGE),
             pageCount(specialRows.size, CLASSIC_SPECIAL_ITEMS_PER_PAGE),
-            pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
+            pageCount(packedNoteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
         )
         repeat(pages) { pageIndex ->
             val page = addPage(doc)
@@ -1246,7 +1255,7 @@ internal class DesktopClassicRenderer {
                 titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / DETALLES / NOTAS")
                 ruledTextArea(
                     s, p, 324f, 564f, 252f, 140f,
-                    noteEntries
+                    packedNoteEntries
                         .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
                         .take(CLASSIC_INVENTORY_NOTES_PER_PAGE),
                     8.3f,
@@ -1255,6 +1264,7 @@ internal class DesktopClassicRenderer {
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }
         }
+        return if (hasCompatibleInventoryPage) campaignNotes.size else 0
     }
 
     private fun classicSpecialItemRows(
@@ -1470,9 +1480,10 @@ private fun appendSpellContinuationPages(
         doc: PDDocument,
         p: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
+        alreadyPackedEntries: Int,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val entries = classicNoteEntries(plan)
+        val entries = classicNoteEntries(plan).drop(alreadyPackedEntries)
         if (entries.isEmpty()) return
 
         val references = buildList {
