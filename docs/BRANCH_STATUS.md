@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — cross-family Aldren survey is complete; no implementation branch is active yet. Next branch must implement the shared repair package defined in `docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md` before later manual QA resumes
+**Current normal work:** PC Sheet PDF Export — active implementation branch `fix/pc-sheet-cross-family-runtime-correctness`; consolidated WIP route is `docs/checkpoints/2026-09-24_PC_SHEET_CROSS_FAMILY_RUNTIME_CORRECTNESS_REPAIR_WIP.md`. Continue that branch; do not restart or resume manual QA yet
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
