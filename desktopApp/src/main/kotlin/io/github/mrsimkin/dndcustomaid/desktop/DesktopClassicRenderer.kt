@@ -1434,18 +1434,14 @@ private fun appendSpellContinuationPages(
     ) {
         val sheet = plan.snapshot.aggregate.sheet
         val entries = classicNoteEntries(plan).drop(alreadyPackedEntries)
-        if (entries.isEmpty()) return
+        val references = classicReferenceNoteLines(plan)
+        if (entries.isEmpty() && references.isEmpty()) return
 
-        val references = buildList {
-            add("Percepción pasiva: ${sheet.passivePerception}.")
-            add("Iniciativa: ${signed(sheet.initiativeModifier)}.")
-            add("Clase de armadura: ${sheet.armorClass}.")
-            add("Nivel total: ${sheet.totalLevel}.")
-            sheet.spellSaveDc?.let { add("CD de conjuros: $it.") }
-            sheet.spellAttackModifier?.let { add("Ataque de conjuros: ${signed(it)}.") }
-        }
-
-        val pages = pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE)
+        val pages = maxOf(
+            1,
+            pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE),
+            pageCount(references.size, CLASSIC_REFERENCE_LINES_PER_PAGE),
+        )
         repeat(pages) { pageIndex ->
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
@@ -1462,11 +1458,78 @@ private fun appendSpellContinuationPages(
                 grid(s, 410f, 148f, 166f, 240f, 10, 14)
 
                 titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
-                ruledTextArea(s, p, 410f, 454f, 166f, 246f, references, 8.1f)
+                ruledTextArea(
+                    s, p, 410f, 454f, 166f, 246f,
+                    references.pageSlice(pageIndex, CLASSIC_REFERENCE_LINES_PER_PAGE),
+                    8.1f,
+                )
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
             }
         }
+    }
+
+    private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val lines = mutableListOf<String>()
+
+        fun addWrapped(label: String, value: String) {
+            val clean = value.trim()
+            if (clean.isEmpty()) return
+            lines += wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
+        }
+
+        addWrapped(
+            "Resumen",
+            "Percepción ${sheet.passivePerception} · Iniciativa ${signed(sheet.initiativeModifier)} · " +
+                "CA ${sheet.armorClass} · Nivel ${sheet.totalLevel}",
+        )
+        sheet.spellSaveDc?.let { addWrapped("Conjuros", "CD $it") }
+        sheet.spellAttackModifier?.let { addWrapped("Conjuros", "Ataque ${signed(it)}") }
+
+        sheet.proficiencies
+            .sortedBy { it.sortOrder }
+            .filter { proficiency ->
+                proficiency.type != CharacterProficiencyType.LANGUAGE ||
+                    proficiency.name.length > CLASSIC_BASE_LANGUAGE_NAME_CHARS ||
+                    !proficiency.notes.isNullOrBlank()
+            }
+            .forEach { proficiency ->
+                addWrapped(
+                    proficiencyTypeLabel(proficiency.type),
+                    listOf(
+                        proficiency.name,
+                        proficiency.source.orEmpty().trim(),
+                        proficiency.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                )
+            }
+
+        sheet.traits
+            .sortedBy { it.sortOrder }
+            .filter { isSpeciesIdentityTrait(it, plan) }
+            .forEach { trait ->
+                addWrapped(
+                    "Raza",
+                    listOf(
+                        trait.name,
+                        trait.description.trim(),
+                        trait.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                )
+            }
+
+        classicReferenceFeatures(plan).forEach { feature ->
+            addWrapped(
+                feature.name,
+                listOf(feature.source, feature.description)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · "),
+            )
+        }
+
+        return lines
     }
 
     private fun classicNoteEntries(plan: PcSheetPdfRenderPlan): List<String> {
