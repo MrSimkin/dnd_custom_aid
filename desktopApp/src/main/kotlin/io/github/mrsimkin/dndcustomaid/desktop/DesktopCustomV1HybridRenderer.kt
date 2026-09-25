@@ -368,27 +368,41 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                 )
             }
         }
+
+        // The frozen v1 source has two intentionally blank currency rows immediately below
+        // Electrum. They are the native custom-currency capacity; do not misuse Gemas/Joyas/Arte.
+        currencies
+            .filter { !it.isDefault }
+            .sortedBy { it.sortOrder }
+            .take(CUSTOM_CURRENCY_ROWS)
+            .forEachIndexed { index, currency ->
+                val top = 188f + index * 20f
+                centered(
+                    s,
+                    fonts.regular,
+                    TopRect(403f, top, 129f, 18f),
+                    currency.name,
+                    8.5f,
+                    -0.2f,
+                )
+                centered(
+                    s,
+                    fonts.semibold,
+                    TopRect(535f, top, 55f, 18f),
+                    currency.amount.toString(),
+                    10.5f,
+                    -0.2f,
+                )
+            }
     }
 
     private fun drawValuables(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
         val aggregate = plan.snapshot.aggregate
-        val entries = buildList {
-            aggregate.sheet.currencies
-                .filter { !it.isDefault }
-                .sortedBy { it.sortOrder }
-                .forEach { currency ->
-                    // The adjacent treasure/value area is the native place for custom currency.
-                    // Keep the amount with the currency name so the fixed PO-value column cannot
-                    // accidentally relabel a non-GP unit.
-                    add((currency.name + ": " + currency.amount) to null)
-                }
-            aggregate.successor.preferences.valuablesText
-                .split(Regex("[;\\n]+"))
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .map(::parseValuable)
-                .forEach(::add)
-        }
+        val entries = aggregate.successor.preferences.valuablesText
+            .split(Regex("[;\\n]+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .map(::parseValuable)
 
         entries.take(VALUABLE_RULE_Y.size).forEachIndexed { index, parsed ->
             val y = VALUABLE_RULE_Y[index]
@@ -878,6 +892,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
         val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
+        const val CUSTOM_CURRENCY_ROWS = 2
         val CURRENCY_KINDS = listOf(
             StandardCurrencyKind.PLATINUM,
             StandardCurrencyKind.GOLD,
