@@ -1139,34 +1139,13 @@ internal class DesktopClassicRenderer {
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
-        // Special equipment already represented in the base table stays there. Only genuinely
-        // unrepresented special items receive another full inventory row.
+        // Special equipment details belong in the dedicated special-equipment block, never in
+        // the Treasure/Notes block. This may repeat the compact item identity intentionally, but
+        // not the item's data across unrelated semantic destinations.
         val specialRows = specialItems
-            .filter { it.id !in baseIds }
             .flatMap { item -> classicSpecialItemRows(item, usageByItem[item.id]) }
 
         val noteEntries = buildList {
-            // Base-represented special equipment keeps its compact row; any richer detail
-            // is preserved here instead of replaying the item as another special-equipment record.
-            specialItems
-                .filter { it.id in baseIds }
-                .forEach { item ->
-                    val details = buildList {
-                        if (item.quantity != 1) add("Cant. " + item.quantity)
-                        item.weightLb?.let { add("Peso " + formatWeight(it) + " lb") }
-                        inventoryState(item, usageByItem[item.id])
-                            .takeIf { it.isNotBlank() }
-                            ?.let { add("Estado: " + it) }
-                        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                            add("Ubicación: " + it)
-                        }
-                        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    }
-                    if (details.isNotEmpty()) {
-                        add(item.name + ": " + details.joinToString(" · "))
-                    }
-                }
             sheet.currencies
                 .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
                 .sortedBy { it.sortOrder }
@@ -1187,22 +1166,13 @@ internal class DesktopClassicRenderer {
                 .map { it.joinToString("\n") }
         }
 
-        val campaignNotes = classicNoteEntries(plan)
-        val hasCompatibleInventoryPage =
-            ordinaryRows.isNotEmpty() || specialRows.isNotEmpty() || noteEntries.isNotEmpty()
-        val packedNoteEntries = if (hasCompatibleInventoryPage) {
-            noteEntries + campaignNotes
-        } else {
-            noteEntries
-        }
-
-        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && packedNoteEntries.isEmpty()) return 0
+        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return 0
 
         val pages = maxOf(
             1,
             pageCount(ordinaryRows.size, CLASSIC_INVENTORY_ROWS_PER_PAGE),
             pageCount(specialRows.size, CLASSIC_SPECIAL_ITEMS_PER_PAGE),
-            pageCount(packedNoteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
+            pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
         )
         repeat(pages) { pageIndex ->
             val page = addPage(doc)
@@ -1227,15 +1197,15 @@ internal class DesktopClassicRenderer {
                     .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
                     .forEachIndexed { index, item ->
                         specialItem(
-                            s, p, 36f, 564f + index * 46f, 252f,
+                            s, p, 36f, 558f + index * 39f, 252f,
                             item.name, item.attuned, item.note,
                         )
                     }
 
-                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / DETALLES / NOTAS")
+                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
                 ruledTextArea(
                     s, p, 324f, 564f, 252f, 140f,
-                    packedNoteEntries
+                    noteEntries
                         .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
                         .take(CLASSIC_INVENTORY_NOTES_PER_PAGE),
                     8.3f,
@@ -1244,7 +1214,7 @@ internal class DesktopClassicRenderer {
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }
         }
-        return if (hasCompatibleInventoryPage) campaignNotes.size else 0
+        return 0
     }
 
     private fun classicSpecialItemRows(
@@ -2700,22 +2670,22 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         note: String,
     ) {
         marker(
-            s, p, x + 7f, top + 8f, 8f,
+            s, p, x + 7f, top + 7f, 8f,
             if (attuned) PdfMarkerKind.DIAMOND_FILLED else PdfMarkerKind.DIAMOND_OUTLINE,
         )
         text(
-            s, p, x + 18f, top, width - 18f, 18f,
+            s, p, x + 18f, top, width - 18f, 15f,
             classicSingleLineExcerpt(name, CLASSIC_SPECIAL_ITEM_NAME_CHARS),
-            PdfTypographyRole.SPELL_NAME, 8.6f, 7.4f,
+            PdfTypographyRole.SPELL_NAME, 8.3f, 7.2f,
         )
         text(
-            s, p, x + 18f, top + 19f, width - 18f, 20f,
-            note, PdfTypographyRole.BODY, 7.7f, 6.6f,
+            s, p, x + 18f, top + 15f, width - 18f, 18f,
+            note, PdfTypographyRole.BODY, 7.2f, 6.2f,
             wrap = true,
             maxLines = CLASSIC_SPECIAL_ITEM_NOTE_LINES,
             vertical = PdfVerticalAlignment.TOP,
         )
-        hairline(s, x + 18f, top + 41f, x + width, top + 41f)
+        hairline(s, x + 18f, top + 36f, x + width, top + 36f)
     }
 
     private fun optionEntry(
@@ -3245,7 +3215,7 @@ private fun ruledTextArea(
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
         const val CLASSIC_OPTION_DETAIL_LINES = 3
         const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 12
-        const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 3
+        const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 4
         const val CLASSIC_SPECIAL_ITEM_NAME_CHARS = 30
         const val CLASSIC_SPECIAL_ITEM_NOTE_CHARS = 42
         const val CLASSIC_SPECIAL_ITEM_NOTE_LINES = 2
