@@ -11,6 +11,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import java.awt.Color
@@ -339,16 +341,16 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .filterNot { it.special }
             .take(EQUIPMENT_RULES.size)
             .forEachIndexed { index, item ->
-                val label = buildList {
-                    add(buildString {
-                        if (item.quantity > 1) append(item.quantity).append(" x ")
-                        append(item.name)
-                    })
-                    item.weightLb?.let { weight ->
-                        add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-                    }
-                }.joinToString(" · ")
-                textAboveRule(s, fonts.condensed, EQUIPMENT_RULES[index], label, 9.25f, 7.0f, 2.5f, 1.5f)
+                textAboveRule(
+                    s,
+                    fonts.condensed,
+                    EQUIPMENT_RULES[index],
+                    item.pdfCompactEquipmentLabel(),
+                    9.25f,
+                    7.0f,
+                    2.5f,
+                    1.5f,
+                )
             }
     }
 
@@ -498,6 +500,11 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                     add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
                 }
             }
+            sheet.inventoryItems
+                .sortedBy { it.sortOrder }
+                .filterNot { it.special }
+                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+                .forEach(::add)
         }.joinToString(" ")
     }
 
