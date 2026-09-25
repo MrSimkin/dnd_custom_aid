@@ -1518,10 +1518,17 @@ private fun appendSpellContinuationPages(
         sheet.spellSaveDc?.let { addWrapped("Conjuros", "CD $it") }
         sheet.spellAttackModifier?.let { addWrapped("Conjuros", "Ataque ${signed(it)}") }
 
+        val baseLanguageIds = sheet.proficiencies
+            .filter { it.type == CharacterProficiencyType.LANGUAGE }
+            .sortedBy { it.sortOrder }
+            .take(BASE_LANGUAGE_CAPACITY)
+            .mapTo(mutableSetOf()) { it.id }
+
         sheet.proficiencies
             .sortedBy { it.sortOrder }
             .filter { proficiency ->
                 proficiency.type != CharacterProficiencyType.LANGUAGE ||
+                    proficiency.id !in baseLanguageIds ||
                     proficiency.name.length > CLASSIC_BASE_LANGUAGE_NAME_CHARS ||
                     !proficiency.notes.isNullOrBlank()
             }

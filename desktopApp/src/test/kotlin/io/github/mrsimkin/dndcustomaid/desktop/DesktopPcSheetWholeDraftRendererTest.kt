@@ -2443,7 +2443,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         Loader.loadPDF(classicPdf).use { document ->
             assertTrue(document.numberOfPages >= 5)
             val extracted = PDFTextStripper().getText(document)
-            assertTrue(extracted.contains("3 de 5 hitos"))
+            assertTrue(Regex("3\\s+de\\s+5\\s+hitos").containsMatchIn(extracted))
             assertTrue(extracted.contains("PG temporales"))
             assertTrue(extracted.contains("Agotamiento"))
             assertTrue(extracted.contains("Asustado"))
