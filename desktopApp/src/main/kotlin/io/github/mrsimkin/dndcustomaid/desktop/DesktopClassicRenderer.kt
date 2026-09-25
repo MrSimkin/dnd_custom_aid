@@ -285,7 +285,9 @@ internal class DesktopClassicRenderer {
         plan: PcSheetPdfRenderPlan,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+        val orderedTraits = sheet.traits
+            .sortedBy { it.sortOrder }
+            .filterNot { isSpeciesIdentityTrait(it, plan) }
         val classBase = orderedTraits.filter { it.type == CharacterTraitType.CLASS }
             .take(BASE_CLASS_TRAIT_CAPACITY)
         val speciesBase = orderedTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
@@ -314,21 +316,7 @@ internal class DesktopClassicRenderer {
             it.type != CharacterTraitType.CLASS && it.type != CharacterTraitType.FEAT
         }
 
-        val orderedProficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
-        val languages = orderedProficiencies
-            .filter { it.type == CharacterProficiencyType.LANGUAGE }
-        val languageOverflow = languages.drop(BASE_LANGUAGE_CAPACITY)
-        val baseLanguageReferences = languages.take(BASE_LANGUAGE_CAPACITY).filter { proficiency ->
-            proficiency.name.length > CLASSIC_BASE_LANGUAGE_NAME_CHARS ||
-                !proficiency.notes.isNullOrBlank()
-        }
-        val otherProficiencies = orderedProficiencies
-            .filter { it.type != CharacterProficiencyType.LANGUAGE }
-        val proficiencyEntries = (languageOverflow + baseLanguageReferences + otherProficiencies)
-            .distinctBy { it.id }
-            .flatMap(::proficiencyFeatureSlices)
-
-        val rightEntries = rightTraitEntries + proficiencyEntries + classicReferenceFeatures(plan)
+        val rightEntries = rightTraitEntries
         if (leftEntries.isEmpty() && rightEntries.isEmpty()) return
 
         val pages = maxOf(
@@ -775,19 +763,30 @@ internal class DesktopClassicRenderer {
         CharacterMovementType.OTHER -> "Otro"
     }
 
+    private fun isSpeciesIdentityTrait(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        if (trait.type != CharacterTraitType.SPECIES_RACE) return false
+        val aggregate = plan.snapshot.aggregate
+        val identityNames = listOfNotNull(
+            aggregate.sheet.background.race.trim().takeIf { it.isNotEmpty() },
+            aggregate.successor.speciesIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+            aggregate.successor.subraceIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+        )
+        return identityNames.any { it.equals(trait.name.trim(), ignoreCase = true) }
+    }
+
     private fun traitNeedsReferenceContinuation(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
     ): Boolean =
-        (trait.type == CharacterTraitType.SPECIES_RACE && trait.description.isNotBlank()) ||
-            wrapForChars(traitSummary(trait), CLASSIC_RULED_ENTRY_CHARS).size >
-                CLASSIC_RULED_ENTRY_LINES ||
+        wrapForChars(traitSummary(trait), CLASSIC_RULED_ENTRY_CHARS).size >
+            CLASSIC_RULED_ENTRY_LINES ||
             trait.name.length > CLASSIC_SPECIES_NAME_CHARS ||
-            trait.source.isNotBlank() ||
-            !trait.notes.isNullOrBlank() ||
-            trait.maxUses != null ||
-            trait.spentUses != 0 ||
-            !trait.recovery.isNullOrBlank() ||
-            (trait.activation != null && trait.activation != CharacterActivationType.PASSIVE)
+            (
+                !trait.notes.isNullOrBlank() &&
+                    (trait.activation == null || trait.activation == CharacterActivationType.PASSIVE)
+                )
 
     private fun traitFeatureSlices(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
@@ -1673,7 +1672,9 @@ private fun appendSpellContinuationPages(
 
             val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
             val classTraits = orderedTraits.filter { it.type == CharacterTraitType.CLASS }
-            val speciesTraits = orderedTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
+            val speciesTraits = orderedTraits.filter {
+                it.type == CharacterTraitType.SPECIES_RACE && !isSpeciesIdentityTrait(it, plan)
+            }
             val feats = orderedTraits.filter { it.type == CharacterTraitType.FEAT }
 
             titledFrame(s, p, rightX, 410f, rightW, 184f, "RASGOS DE CLASE")
@@ -1804,15 +1805,16 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             }
 
             val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+            val semanticTraits = orderedTraits.filterNot { isSpeciesIdentityTrait(it, plan) }
             val usedTraitIds = buildSet {
-                orderedTraits.filter { it.type == CharacterTraitType.CLASS }
+                semanticTraits.filter { it.type == CharacterTraitType.CLASS }
                     .take(BASE_CLASS_TRAIT_CAPACITY).forEach { add(it.id) }
-                orderedTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
+                semanticTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
                     .take(BASE_SPECIES_TRAIT_CAPACITY).forEach { add(it.id) }
-                orderedTraits.filter { it.type == CharacterTraitType.FEAT }
+                semanticTraits.filter { it.type == CharacterTraitType.FEAT }
                     .take(BASE_FEAT_CAPACITY).forEach { add(it.id) }
             }
-            val additionalTraits = orderedTraits.filter { it.id !in usedTraitIds }
+            val additionalTraits = semanticTraits.filter { it.id !in usedTraitIds }
             titledFrame(s, p, 264f, 434f, 324f, 132f, "RASGOS ADICIONALES")
             ruledTextArea(
                 s, p, 276f, 466f, 300f, 88f,
@@ -3212,8 +3214,8 @@ private fun ruledTextArea(
         const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
         const val CLASSIC_STANDARD_GROUPS_PER_PAGE = 3
         const val CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP = 4
-        const val CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE = 3
-        const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 2
+        const val CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE = 5
+        const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 5
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
         const val CLASSIC_FEATURE_NAME_CHARS = 26
