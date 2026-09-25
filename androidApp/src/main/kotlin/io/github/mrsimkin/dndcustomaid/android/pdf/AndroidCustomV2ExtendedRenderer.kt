@@ -884,6 +884,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
                 bandedRows(s, 14f, 598f, 139f, COMBAT_LINES_PER_PAGE, 17f, 0)
             }
+            appendLayer(page, "$prefix - CLEANUP") { }
             appendLayer(page, "$prefix - LABELS") { s ->
                 pageTitle(s, "COMBATE / ACCIONES")
                 centeredFixedScale(
@@ -906,6 +907,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                         2.3f,
                     )
                 }
+            appendLayer(page, "$prefix - MARKERS") { }
             }
         }
     }
