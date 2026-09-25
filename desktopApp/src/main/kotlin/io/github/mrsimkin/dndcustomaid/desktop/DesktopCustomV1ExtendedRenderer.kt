@@ -665,6 +665,21 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
+    private fun verticalRule(
+        s: PDFormContentStream,
+        x: Float,
+        top: Float,
+        bottomTop: Float,
+        width: Float,
+    ) {
+        s.saveGraphicsState()
+        s.setLineWidth(width)
+        s.moveTo(x, H - top)
+        s.lineTo(x, H - bottomTop)
+        s.stroke()
+        s.restoreGraphicsState()
+    }
+
     private fun characterStatusLabel(
         status: io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus,
     ): String = when (status) {
