@@ -1373,7 +1373,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             tableLabel(s, 99f, 514f, 204f, "NOMBRE")
             tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
             SPECIAL_LOCATION_LABELS_DISPLAY.forEachIndexed { row, label ->
-                textAboveRule(s, resources.corbel, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
+                textAboveRule(s, resources.fira, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
             }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
