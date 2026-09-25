@@ -36,6 +36,32 @@ class PcSheetPdfExportPlannerTest {
     }
 
     @Test
+    fun nonSpellcasterPlansDoNotEmitEmptySpellBasePages() {
+        PcSheetVisualFamily.entries.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                PcSheetExportSources(permanent = aggregate()),
+            )
+            assertFalse(plan.basePages.any { it.role == PcSheetBasePageRole.SPELL_LIST }, family.name)
+        }
+
+        val spellcaster = aggregate().let { aggregate ->
+            aggregate.copy(sheet = aggregate.sheet.copy(spellcasterEnabled = true))
+        }
+        val spellcasterPlan = PcSheetPdfExportPlanner.plan(
+            PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            PcSheetExportSources(permanent = spellcaster),
+        )
+        assertTrue(spellcasterPlan.basePages.any { it.role == PcSheetBasePageRole.SPELL_LIST })
+    }
+
+    @Test
     fun customStatisticsModesSelectFaithfulOrModifiedBaseAndMandatoryExtendedPage() {
         val aggregate = aggregateWithCustomStatistics()
         val sources = PcSheetExportSources(permanent = aggregate)
