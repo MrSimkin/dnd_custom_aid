@@ -17,6 +17,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
