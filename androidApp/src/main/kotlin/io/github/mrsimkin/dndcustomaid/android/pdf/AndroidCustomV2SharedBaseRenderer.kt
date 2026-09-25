@@ -4,8 +4,8 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfOrdinaryEquipmentDetailOrNull
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import java.io.InputStream
@@ -122,12 +122,13 @@ internal class AndroidCustomV2SharedBaseRenderer(
                     opticalY = -0.7f,
                 )
             }
-            // The owner template contains decorative location words in this column. Once a
-            // row is populated those words are not data; clear the value cell and render the
-            // character's actual location with the same application fill typography used elsewhere.
-            clearLocationValueCell(s, y)
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
-                textAboveRule(s, fonts.regular, Rule(14f, 94f, y), location, 8.5f, 7.5f, 2.5f, 1f)
+            // Native rows already contain the approved body-location label. Preserve that
+            // source typography instead of drawing a second label on top of it. Only fallback
+            // blank rows need an explicit location value.
+            if (rowIndex >= SPECIAL_LOCATION_LABELS.size) {
+                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
+                    textAboveRule(s, fonts.regular, Rule(14f, 94f, y), location, 8.5f, 7.5f, 2.5f, 1f)
+                }
             }
             textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
             val detail = buildList {
@@ -347,22 +348,10 @@ internal class AndroidCustomV2SharedBaseRenderer(
         return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
-        val sheet = plan.snapshot.aggregate.sheet
-        return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                card.content.trim().takeIf { it.isNotEmpty() }?.let { body ->
-                    add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
-                }
-            }
-            sheet.inventoryItems
-                .sortedBy { it.sortOrder }
-                .filterNot { it.special }
-                .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
-                .forEach(::add)
-        }.joinToString(" ")
-    }
+    private fun notesText(plan: PcSheetPdfRenderPlan): String =
+        plan.snapshot.aggregate.sheet
+            .pdfCampaignNoteParagraphs()
+            .joinToString(" ")
 
     private class Fonts(document: PDDocument, loader: (String) -> InputStream?) {
         val regular = load(document, loader, "fonts/pdf/text/FiraSans-Regular.ttf")
