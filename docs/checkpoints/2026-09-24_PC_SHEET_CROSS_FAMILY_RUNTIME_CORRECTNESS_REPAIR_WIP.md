@@ -3,45 +3,47 @@
 **Date:** 2026-09-24 (Chile local time)  
 **Base main:** `3453b2dac88644fd26ccb8b1c6ce47c634d99cef`  
 **Active branch:** `fix/pc-sheet-cross-family-runtime-correctness`  
-**Branch HEAD at consolidation:** `f4ffe283ecf382f57461ac47d2c09206dad1d82a`  
-**Status:** IMPLEMENTATION IN PROGRESS / CONNECTION-INTERRUPTION RECOVERY CHECKPOINT / DO NOT RESUME MANUAL QA YET
+**Draft PR:** #103 — `fix: repair cross-family PC sheet runtime correctness`  
+**Last implementation/code HEAD before pause:** `4e7f2f7127f607d9d97c7de22fa1fcc01514c1b9`  
+**Status:** OWNER-REQUESTED PAUSE / IMPLEMENTATION WIP / DO NOT MERGE / DO NOT RESUME MANUAL QA
 
-## 1. Why this checkpoint exists
+## 1. Resume rule
 
-The owner explicitly requested durable consolidation because the chat/session is close to its limit and the connection interrupted active implementation.
+This file is the durable continuation authority for the paused repair.
 
-This checkpoint supersedes any assumption that the repair package is still only at design stage. Work has started and several shared causes are already patched on the active branch.
+Fresh session order:
 
-Fresh sessions must resume:
+`AGENTS.md -> RESUME.md -> docs/checkpoints/LATEST.md -> this checkpoint`
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> this checkpoint`
+Then inspect **PR #103** and the active branch before changing anything.
 
-Then continue from **Section 6 — Exact next implementation sequence**.
+Do **not** restart the repair from `main`, do not recreate already-landed fixes, and do not resume owner Android QA until the branch is green, the hosted Aldren fixture is reseeded with UTF-8 integrity, and a new distinguishable APK exists.
 
-## 2. Authority / QA evidence
+## 2. Why this repair exists
 
-The complete owner/runtime defect evidence remains:
+Owner Android runtime QA on `0.5.0-preqa.3` successfully saved/opened Aldren across all four visual families, then the cross-family review established a defect class rather than one isolated string bug.
+
+Canonical evidence remains:
 
 `docs/checkpoints/2026-09-24_PC_SHEET_ALDREN_CROSS_FAMILY_PDF_REVIEW.md`
 
-That checkpoint established:
+Observed problems included:
 
-- Save/open PASS across all four visual families on Android;
-- shared mojibake / Unicode corruption;
-- combat/action/structured damage incorrectly routed through Traits/reference overflow;
-- equipment/inventory replay and currency misrouting;
-- unnecessary spell and Notes pages;
-- excessive page amplification / poor packing;
-- one-use resource presentation defects in Fantasy and Custom-v2;
-- Custom-v2 Equipo Especial / Ubicación typography defect.
+- mojibake / Unicode corruption such as `ComÃºn`, `Ã‰lfico`, `â€“`;
+- combat/action/structured-damage detail appearing under Traits/reference surfaces;
+- inventory/equipment replay and ordinary currency misrouting;
+- unnecessary spell/Notes pages;
+- excessive page amplification;
+- unclear one-use resource semantics in Fantasy and Custom-v2;
+- Custom-v2 Equipo Especial / Ubicación typography mismatch.
 
-Do not discard or narrow that evidence.
+The repair must preserve the owner-approved/frozen family visual baselines except where concrete runtime defects require bounded corrections.
 
-## 3. Findings established during implementation investigation
+## 3. Important root-cause findings
 
-### 3.1 Fixture Unicode is correct
+### 3.1 Unicode
 
-The canonical Aldren fixture contains correct Unicode, including:
+The canonical Aldren JSON fixture itself contains correct Unicode, including:
 
 - `Común`;
 - `Élfico`;
@@ -50,166 +52,185 @@ The canonical Aldren fixture contains correct Unicode, including:
 - `versátil`;
 - en/em dash characters.
 
-Static accented labels drawn by the Android PDF renderer are also known to render correctly.
+The Worker response path explicitly returns `application/json; charset=utf-8`, and the Android hosted client uses Ktor JSON directly with no manual byte reinterpretation.
 
-Therefore the visible `ComÃºn` / `Ã‰lfico` / `â€“` corruption is **not sourced by the fixture and is not simply a missing PDF glyph/font problem**.
+The guarded DEV seed used `psql \\copy` but did **not** previously force the psql client encoding. That is a plausible source for the exact mojibake pattern if the seed was executed from a non-UTF-8 client environment.
 
-Working conclusion: the runtime character strings are already corrupted before PDF drawing, most likely on the hosted QA snapshot / sync / persistence path. This still requires an explicit data-integrity guard/fix before the package closes.
+Current branch repair:
 
-### 3.2 Blank spell/Notes pages are planner-level
+- `database/qa/seed_pc_sheet_runtime_characters.sql` now starts with `\\encoding UTF8`;
+- the seed has an Aldren Unicode sentinel that verifies representative accented text and dash characters before COMMIT;
+- renderer-level mojibake replacement hacks were deliberately **not** added.
 
-`PcSheetPdfExportPlanner.basePages(...)` historically returned spell and Notes base pages unconditionally.
+**Still required:** rerun the corrected guarded DEV QA seed through the established owner/DEV procedure. The current hosted/local Aldren snapshot must not be assumed repaired merely because the SQL script is fixed.
 
-The active branch now computes content-aware active base pages:
+### 3.2 Blank spell/Notes pages
 
-- suppress Spell List when there is no spellcasting content;
-- suppress dedicated Notes page when short notes can be packed into an existing compatible narrative page.
+The planner historically emitted these base roles too broadly.
 
-### 3.3 Currency misrouting included a concrete key mismatch
+Current branch now uses content-aware base-page selection:
 
-The character model/fixture uses canonical currency keys:
+- no Spell List page for a non-spellcaster;
+- no separate Notes base page when short notes can be packed into a compatible narrative surface;
+- Custom-v2 can place short notes in its existing story/narrative area.
 
-- `cp`;
-- `sp`;
-- `ep`;
-- `gp`;
-- `pp`.
+### 3.3 Currency routing
 
-Extended renderers were filtering against Spanish-style keys such as `pc`, `po`, `pe`, so normal currencies were falsely treated as non-base/custom treasure and pushed into extension inventory surfaces.
+Canonical currency keys are:
 
-### 3.4 Combat/damage contamination of Traits is explicit code
+`cp / sp / ep / gp / pp`
 
-Both Custom extended renderers injected:
+Both Custom families now use that canonical set when deciding whether currency belongs on the normal base surface versus custom/extended treasure handling.
 
-- combat entries;
-- action/attack references;
-- structured damage profiles
+### 3.4 Combat is no longer a Traits concern
 
-inside `traitSupplementLines(...)`.
+A shared semantic `COMBAT_AND_ACTIONS` continuation route exists.
 
-The active branch removes those blocks and introduces a dedicated semantic `COMBAT_AND_ACTIONS` continuation route plus family-specific combat/action continuation pages.
+Fantasy, Custom-v1 and Custom-v2 now have dedicated combat/action continuation rendering instead of injecting combat/action/structured damage into Traits.
 
-## 4. Landed repair commits on active branch
+A later correction tightened this further: continuation is **not unconditional**. It is emitted only when the base combat surface cannot fully represent required semantics, including examples such as:
 
-The following changes are already remote and must not be reimplemented from scratch:
+- entries beyond family base capacity;
+- non-attack actions whose action type would otherwise be lost;
+- clipped/long base detail;
+- meaningful notes;
+- structured damage that adds information not already represented.
 
-1. `204559ba48ba78d7df421b21467f5bac1b03584c`
-   - content-aware PDF base-page selection;
-   - Spell page suppressed when character has no spell content;
-   - dedicated Notes page suppressed when notes fit an existing compatible narrative surface.
+This prevents replacing the old generalized spill problem with a new “always add a combat page” problem.
 
-2. `d49f7aac4df9373a2760bb44c4dc05ea61480765`
-   - Custom-v2 packs short notes into the existing narrative/story area.
+## 4. Landed repair scope on PR #103
 
-3. `1ed3b4905ad0359f9f9a95d37d0b704b3cbc3386`
-   - Fantasy renderer honors the planner and does not draw a spell page when `SPELL_LIST` is absent.
+Do not reimplement these from scratch.
 
-4. `b39500538b5b41755b4e33e7eac5c7c196dbd348`
-   - Custom-v1 standard currency key set corrected to `cp/sp/ep/gp/pp`.
+### Shared/planner
 
-5. `016f401965cd409445da5123b05f9763d9dd3e88`
-   - Custom-v2 currency-key correction was initially committed here, **but later Custom-v2 editing overwrote it**. Reapply it; do not assume it remains present.
+- content-aware active base pages;
+- explicit `COMBAT_AND_ACTIONS` content/extension route;
+- runtime regression coverage expanded around Aldren cross-family semantics.
 
-6. `0ba30866e16bf1cb4a8cadab9750e9e538ccec2d`
-   - explicit semantic `COMBAT_AND_ACTIONS` content/extension route added to shared PDF foundation.
+### Fantasy
 
-7. `931932bd32e9f5bd3631118b519d227b4e6dc49c`
-   - Custom-v2 removes combat/action + structured damage from Traits supplements;
-   - adds dedicated `COMBATE / ACCIONES` continuation rendering preserving full detail.
+- planner spell-page suppression honored;
+- dedicated combat/action continuation separate from Traits;
+- combat continuation bounded to genuine unrepresented detail;
+- one-use resources use explicit binary status only when max = 1;
+- ordinary non-binary resources remain numeric;
+- inventory continuation policy was corrected after CI exposed data loss:
+  - a base item can still continue when its compact row cannot fully represent weight/state/detail;
+  - `CARRIED` / `Llevado` state is explicitly preserved;
+  - long special-item detail such as Aldren's `versátil 1d10` remains inside inventory/equipment continuation rather than being discarded or pushed into a generic Traits bucket.
 
-8. `f4ffe283ecf382f57461ac47d2c09206dad1d82a`
-   - Custom-v1 removes combat/action + structured damage from Traits supplements;
-   - adds dedicated `Combate / Acciones` continuation rendering preserving full detail.
+### Custom v1
 
-## 5. Important incomplete/unsafe state
+- canonical currency filtering;
+- combat/action/structured-damage removed from Traits supplements;
+- dedicated combat continuation;
+- continuation bounded to actual overflow/reference need;
+- existing one-use circle semantics preserved;
+- five semantic extension layers retained for new combat pages:
+  `STRUCTURE / CLEANUP / LABELS / VALUES / MARKERS`.
 
-The branch is **not yet QA-ready**.
+### Custom v2
 
-Known incomplete items:
+- canonical currency filtering includes `ep`;
+- short notes can pack into the narrative surface;
+- combat/action/structured-damage removed from Traits supplements;
+- dedicated bounded combat continuation;
+- combat pages use the complete five-layer semantic stack;
+- one-use resources now present an explicit binary marker plus `Disponible` / `Usado` instead of an unexplained filled square;
+- the pre-interruption branch already contained the Equipo Especial / Ubicación typography repair and base-equipment capacity work; keep it, but final acceptance still depends on green CI + owner rerun.
 
-1. Reapply Custom-v2 currency key set to `setOf("cp", "sp", "ep", "gp", "pp")`; current HEAD lost that earlier edit during subsequent file replacement.
-2. Fantasy still routes combat/action references through its Traits continuation implementation. It needs the same semantic split.
-3. Inventory continuation policy still promotes too much detail merely because items have notes/descriptions; must distinguish:
-   - already represented on base;
-   - extra detail that genuinely needs continuation;
-   - true overflow.
-4. One-use resource semantics remain:
-   - Custom-v1 acceptable;
-   - Custom-v2 filled-square semantics unacceptable;
-   - Fantasy numeric `1 / 1` + continuation-row behavior unacceptable.
-5. Custom-v2 base Equipo Especial `Ubicación` typography mismatch remains.
-6. Shared pagination/packing remains only partially addressed.
-7. Unicode/hosted data-integrity root cause remains unresolved.
-8. Desktop-authority -> Android generated renderer sync has **not yet been run** for this branch.
-9. Tests/CI have **not yet validated** the current branch.
-10. Version has not yet been bumped and no replacement APK has been built.
-11. Do not resume Share/Ilyra/Mara/Current Snapshot or physical-device QA.
+### Desktop / Android parity
 
-## 6. Exact next implementation sequence
+The touched Desktop renderer authority changes have been mirrored into the generated Android renderer files during this repair.
 
-Resume in this order:
+A previous intermediate CI run confirmed the generated-renderer sync guard could pass after synchronization. The final paused head still requires complete exact-head CI confirmation.
 
-1. **Repair the branch inconsistency first**
-   - reapply Custom-v2 canonical currency keys;
-   - compile/check shared enum/route edits for exhaustive `when` fallout.
+## 5. CI history that matters
 
-2. **Fantasy combat semantic split**
-   - remove combat/action/structured-damage references from Traits;
-   - add dedicated Fantasy `COMBATE / ACCIONES` continuation page;
-   - preserve full detail and bounded overflow guard.
+An intermediate repair head `d00079b726dac8c09486a89835d453462a517baa` reached the real Gradle test suite after:
 
-3. **Resource semantics**
-   - preserve Custom-v1 circle behavior;
-   - Custom-v2: replace unexplained filled-square-only representation with explicit available/spent one-use semantics;
-   - Fantasy: replace bare numeric `1 / 1` for one-use resources with legible binary markers and prevent recovery-detail wrapping from creating absurd continuation rows/pages.
+- resume-route guard PASS;
+- Player static guards PASS;
+- Android renderer-sync guard PASS;
+- Android PDF delivery guard PASS;
+- backend PASS;
+- hosted-database PASS.
 
-4. **Inventory/currency**
-   - base rows must consume ordinary item identity/details already representable there;
-   - extension pages only for true overflow/additional detail;
-   - no standard currency in inventory extension;
-   - avoid replaying whole inventory sets.
+Its Desktop test suite reported **79 tests / 7 failures**.
 
-5. **Custom-v2 typography**
-   - fix base Equipo Especial Location value font/size using application fill typography, not the oversized source-label styling.
+The failures were useful and were not all stale assertions:
 
-6. **Content-aware packing**
-   - fill compatible capacity before allocating additional pages;
-   - do not hard-code a desired page count;
-   - retain complete semantic detail.
+1. Aldren Fantasy lost full special-equipment detail such as `versátil 1d10`.
+2. Aldren cross-family Unicode/runtime semantic regression assertion failed for Fantasy.
+3. Custom combat continuation pages lacked the full semantic layer stack.
+4. Current Snapshot Fantasy lost inventory operational state such as `Almacenado`.
+5. Several historical exact page-count assertions increased because combat continuation had initially been emitted too broadly.
+6. A Classic “base-only” fixture was not actually base-only because it inherited dense combat detail.
 
-7. **Unicode runtime data integrity**
-   - trace hosted fixture -> hosted JSON/snapshot -> local apply -> PDF plan;
-   - assert representative exact strings before rendering;
-   - fix the earliest corruption boundary;
-   - no mojibake string-replacement hacks in renderer code.
+Subsequent branch changes before the pause addressed those issues by:
 
-8. **Regression and generated Android parity**
-   - add/update cross-family Aldren tests;
-   - ensure exact Unicode survives;
-   - ensure no combat under Traits;
-   - ensure standard currencies do not enter inventory continuation;
-   - ensure non-spellcaster has no blank spell page;
-   - ensure one-use resources are semantically legible;
-   - ensure bounded-overflow safety still runs;
-   - regenerate Android renderer from Desktop authority and run renderer-sync guard.
+- preserving clipped base-item detail/state in Inventory continuation;
+- preserving carried/stored state;
+- adding complete Custom combat semantic layers;
+- bounding combat continuation by actual need;
+- isolating the historical Classic base proof fixture to genuinely base-representable attacks;
+- hardening the DEV seed to UTF-8.
 
-9. **Lifecycle**
-   - run tests/Scaffold;
-   - inspect generated PDFs programmatically and visually where possible;
-   - update version to next QA build only after repair is coherent;
-   - merge via PR only after green CI;
-   - produce clearly named APK;
-   - resume Aldren cross-family owner QA before later fixtures.
+## 6. Validation state at the moment of pause
 
-## 7. Manual QA boundary
+At implementation/code HEAD:
 
-Do not ask the owner for more PDF inspection yet.
+`4e7f2f7127f607d9d97c7de22fa1fcc01514c1b9`
 
-The next owner action should occur only after:
+the latest exact-head Scaffold runs had started:
 
-- implementation is coherent;
-- tests/CI pass;
-- Android generated renderer is synchronized;
-- a new distinguishable QA APK is available.
+- push run `36085757016`;
+- PR run `36085760604`.
 
-Then rerun Aldren across all four formats first.
+At the moment the owner requested the pause, those runs were **in progress**. There is therefore **NO final PASS claim** for the paused implementation head.
+
+Documentation-only consolidation commits made after that head may trigger additional CI runs. Treat those as lifecycle noise unless they expose a real docs/resume-route problem.
+
+## 7. Exact next steps when project work resumes
+
+Resume from PR #103 and perform these in order:
+
+1. Verify current `main`, branch HEAD, PR #103 and latest exact-code CI state.
+2. Read the most recent failed/successful Kotlin job rather than rerunning work blindly.
+3. If CI still fails:
+   - separate genuine data/semantic regressions from intentionally superseded historical assertions;
+   - fix product behavior first;
+   - update tests only when their old assumption is no longer part of the approved contract.
+4. Reconfirm generated Android renderer parity.
+5. Run/obtain a fully green Scaffold for the coherent repair.
+6. Inspect generated Aldren PDFs programmatically and visually where possible:
+   - exact Unicode survives;
+   - no combat/action detail appears under Traits;
+   - ordinary currencies stay out of inventory continuation;
+   - non-spellcaster has no blank spell page;
+   - one-use resource meaning is explicit;
+   - special/ordinary inventory detail is not lost;
+   - page growth is driven by real overflow, not unconditional continuation.
+7. Through the established DEV QA procedure, rerun the corrected guarded UTF-8 seed so hosted Aldren is actually repaired. Do not expose or commit secrets.
+8. Confirm the corrected hosted revision can be pulled to the emulator cleanly with no conflict/outbox problem.
+9. Only after code + hosted QA data are coherent:
+   - bump to the next QA version;
+   - build a clearly named replacement APK;
+   - keep PR #103 draft until all branch checks are green.
+10. Resume owner QA with **Aldren across all four families first**. Do not jump ahead to Ilyra, Mara, Current Snapshot, Share/final physical-device gate until that repaired Aldren survey passes.
+
+## 8. Explicit pause boundary
+
+Owner requested a stop on 2026-09-24.
+
+Until the owner explicitly resumes the project:
+
+- do not make further functional/code changes;
+- do not merge PR #103;
+- do not bump version/build a replacement APK;
+- do not reseed hosted DEV data;
+- do not ask the owner for more PDF inspection;
+- do not advance to later QA fixtures.
+
+This checkpoint is intentionally sufficient for a new chat to continue without relying on conversation memory.
