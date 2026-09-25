@@ -11,6 +11,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import org.apache.pdfbox.Loader
@@ -60,6 +61,54 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(normalized.contains("Mano derecha"))
             assertTrue(normalized.contains("1d8 cortante; versátil 1d10."))
             assertTrue(normalized.contains("Arma marcial."))
+        }
+    }
+
+    @Test
+    fun aldrenCustomFamiliesDoNotReplayAmmunitionMetadataAsEquipmentOverflow() {
+        val document = fixture("01_aldren_vale_srd5_1_champion_fighter.json")
+        val families = listOf(
+            PcSheetVisualFamily.CUSTOM_V1,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+
+        families.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+            val bytes = ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+
+            Loader.loadPDF(bytes).use { pdf ->
+                val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                assertEquals(
+                    1,
+                    Regex("\\bVirotes\\b").findAll(normalized).count(),
+                    "$family must represent Virotes once, using native Equipment capacity",
+                )
+                assertTrue(
+                    !normalized.contains("Estado: Munición"),
+                    "$family must not allocate Equipment continuation solely for ammunition metadata",
+                )
+                if (family != PcSheetVisualFamily.CUSTOM_V1) {
+                    assertTrue(normalized.contains("1 / 1"))
+                    assertTrue(!normalized.contains("Disponible"))
+                    assertTrue(!normalized.contains("Gastado"))
+                }
+            }
         }
     }
 
