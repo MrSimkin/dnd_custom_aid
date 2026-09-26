@@ -1545,8 +1545,15 @@ internal class DesktopCustomV2ExtendedRenderer(
     ): List<String> {
         val lines = mutableListOf<String>()
         // True Equipment overflow carries only compact identity; descriptive metadata is routed
-        // to Notes instead of becoming apparent duplicate equipment rows.
-        lines += item.pdfCompactEquipmentLabel()
+        // to Notes instead of becoming apparent duplicate equipment rows. Long identity labels
+        // may consume multiple physical continuation rows rather than dropping below the compact
+        // readability target.
+        lines += wrapByWidth(
+            resources.condensed,
+            item.pdfCompactEquipmentLabel(),
+            7.0f,
+            INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH,
+        )
 
         val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
@@ -2723,6 +2730,9 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val COMBAT_TEXT_WIDTH = 576f
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
+        // Conservative raw-width ceiling at the 7 pt / 78% compact target for the narrowest
+        // continuation equipment rule (~128 pt usable width).
+        const val INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH = 164f
         const val V2_BASE_EQUIPMENT_TEXT_WIDTH = 132f
         const val V2_BASE_SPECIAL_LOCATION_WIDTH = 79f
         const val V2_BASE_SPECIAL_NAME_WIDTH = 196f
