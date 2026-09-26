@@ -60,9 +60,11 @@ The active branch now:
 - expands `combatReferenceRows(plan)` into physically wrapped rows before pagination;
 - uses the existing font metrics and `wrapByWidth` helper at the 6 pt / 72% readability boundary;
 - leaves `combatCellText` and its fail-closed guard intact;
-- includes a real Ilyra regression requiring Fire Bolt, Potent Cantrip semantics, SRD 5.2.1 text, and Memorize Spell to survive rendering in both Custom-v2 variants.
+- keeps each Special Equipment row limited to compact operational facts;
+- routes full special-item description/notes into the existing wrapped equipment-continuation line area rather than crushing them into one special row;
+- includes a real Ilyra regression for **both** Custom-v2 variants, with Spellbook descriptions enabled, requiring Fire Bolt / Potent Cantrip semantics, SRD 5.2.1 text, Memorize Spell, and the full special Spellbook description/notes to survive rendering.
 
-Scaffold validation is pending.
+Latest Scaffold validation is pending.
 
 ## CI progression — second latent blocker exposed
 
