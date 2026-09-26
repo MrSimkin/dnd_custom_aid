@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #106 is integrated and `preqa.7` / build `50700` is repository-green. Resume owner QA at Ilyra staged Step 2: Custom v2 · Atributo, Spellbook ON, harmless unsaved edit, choose `Exportar sin guardar`, verify PDF contains the draft, then verify persisted Ilyra data is unchanged after reload.
+**Current normal work:** PC Sheet PDF Export — no active implementation repair. Staged Android runtime smoke is active on `main`: Aldren Share PASS, Ilyra Step 2 PASS, **Mara active**. Run Custom v2 · Atributo + Permanente first; after PASS run Custom v2 · Habilidad + Permanente. Current Snapshot follows Mara.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -112,7 +112,7 @@ Current authority:
 - PR #106 post-merge Scaffold #3895 / `36269693233` — SUCCESS;
 - `0.5.0-preqa.7` / `50700` is the current owner-ready runtime candidate;
 - Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 reached and selected `Exportar sin guardar`, then two post-confirmation renderer blockers were repaired/integrated by PR #106. Pending owner runtime is successful PDF generation with the unsaved draft visible and reload proving non-persistence;
+- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 Step 2 is OWNER PASS including post-confirmation PDF generation, unsaved-draft projection and reload/non-persistence. Mara both Custom-v2 variants are the current pending runtime target;
 - Media/Handouts remains blocked until that runtime sequence is recorded.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
@@ -121,7 +121,7 @@ The prior branches `fix/fantasy-sheet-generalized-bounded-text-routing`, `fix/pc
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md -> main`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_RUNTIME_SMOKE_ILYRA_PASS_MARA_ACTIVE.md -> main`
 
 ## Historical/stale open PRs
 
