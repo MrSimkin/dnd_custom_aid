@@ -6,7 +6,7 @@
 **Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md`  
-**Current active route:** PR #106 is MERGED / INTEGRATED and merged-main Scaffold #3895 is SUCCESS. Owner action is READY on `0.5.0-preqa.7` / build `50700`: rerun Ilyra staged Step 2 with **Custom v2 · Atributo + Spellbook ON + one harmless unsaved edit**, choose `Exportar sin guardar`, require PDF generation to complete, verify the PDF reflects the unsaved draft, then reload Ilyra and verify persisted character data did not change. The confirmation path itself was already proven before the repair; the remaining acceptance is successful post-confirmation rendering + draft projection + non-persistence.
+**Current active route:** Ilyra staged Step 2 on `0.5.0-preqa.7` / build `50700` has now passed post-confirmation rendering and **PDF draft projection**. Owner confirmed the generated PDF contains the unsaved edits `Ilyra Quill - QA TEST` and FUE 25. The only remaining Step-2 assertion is non-persistence: leave the dirty editor **without saving**, reopen Ilyra from the character list, and verify persisted values are still `Ilyra Quill` and FUE 8.
 **Current implementation branch:** none — PR #106 is merged; `main` is the continuation authority
 **Current implementation PR:** none — PR #106 is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
