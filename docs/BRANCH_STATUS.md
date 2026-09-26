@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #105 is integrated on `main`; `0.5.0-preqa.6` / build `50600` is repository-green and ready for owner Ilyra Fantasy repair-verification, followed by the staged Ilyra Custom-v2 + Spellbook persistence smoke.
+**Current normal work:** PC Sheet PDF Export — Ilyra Fantasy repair is OWNER PASS; Custom-v2 staged runtime smoke exposed a combat continuation compression blocker; repair branch `fix/pc-sheet-ilyra-customv2-combat-row-wrap` is active.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
