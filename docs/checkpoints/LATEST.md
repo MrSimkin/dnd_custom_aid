@@ -6,7 +6,7 @@
 **Post-merge Scaffold:** `36203501345` / #3826 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`  
-**Current active route:** Ilyra runtime exposed a Fantasy Sheet **REFERENCIAS Y RECORDATORIOS** physical-row overflow after Aldren Share PASS; font-metric reference-row wrapping repair is active on `fix/pc-sheet-ilyra-fantasy-trait-pagination`; manual smoke is paused until a green distinguishable Android candidate is available
+**Current active route:** Aldren Share PASS; Ilyra runtime is BLOCKED by a Fantasy Sheet base-page **DOTES** bounded-preview overflow. Scaffold #3840/#3845 failed diagnostic repairs; no QA APK is valid. Active work is a base-feat physically bounded preview + full-detail continuation repair on `fix/pc-sheet-ilyra-fantasy-trait-pagination`.
 **Current implementation branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination` — sole non-main continuation authority
 **Current implementation PR:** none — PR #104 is MERGED / INTEGRATED; prior stale PRs #36, #37, #49 and #103 are CLOSED / superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
