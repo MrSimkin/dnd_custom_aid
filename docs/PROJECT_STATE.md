@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Ilyra Fantasy repair OWNER PASS; original Ilyra Custom-v2 staged Step 2 is now blocked by an Extended combat-cell excessive-compression defect; generalized multi-row combat continuation repair is active on `fix/pc-sheet-ilyra-customv2-combat-row-wrap`
+**Current active package:** PC Sheet PDF Export — Ilyra Fantasy repair OWNER PASS; original Ilyra Custom-v2 staged Step 2 reached and selected `Exportar sin guardar`, but post-confirmation PDF rendering is blocked by an Extended combat-cell excessive-compression defect. Draft-in-PDF and persisted-data-unchanged assertions remain pending. Generalized multi-row combat continuation repair is active on `fix/pc-sheet-ilyra-customv2-combat-row-wrap`.
 
 ### Superseding PDF visual state — 2026-09-20
 
