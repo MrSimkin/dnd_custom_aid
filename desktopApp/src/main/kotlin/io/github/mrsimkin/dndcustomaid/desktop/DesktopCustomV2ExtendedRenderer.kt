@@ -894,8 +894,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         val maximumRawWidthAtReadableScale =
             available / (COMBAT_MINIMUM_HORIZONTAL_SCALE / 100f)
         return wrapByWidth(
-            clean,
             font,
+            clean,
             COMBAT_MINIMUM_BODY_SIZE,
             maximumRawWidthAtReadableScale,
         )
