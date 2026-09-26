@@ -6,7 +6,7 @@
 **Post-merge Scaffold:** `36203501345` / #3826 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md`  
-**Current active route:** PC Sheet PDF — preqa.5 Aldren cross-family repair is OWNER PASS / INTEGRATED; resume staged Android runtime smoke beginning with Aldren Share  
+**Current active route:** PAUSED BY OWNER AT END OF DAY — preqa.5 Aldren cross-family repair is OWNER PASS / INTEGRATED; on resume, first action is staged Android runtime smoke **Aldren Share** (not yet executed)  
 **Current implementation branch:** none — normal continuation authority is current `main`  
 **Current implementation PR:** none — PR #104 is MERGED / INTEGRATED; prior stale PRs #36, #37, #49 and #103 are CLOSED / superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
@@ -144,5 +144,6 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 22. `0.5.0-preqa.4` generated/opened all four Aldren PDFs but **FAILED owner manual QA**. The authoritative defect list is `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`.
 23. The repair is repository-green at implementation head `cfaa98f92cecb846babcf83f180783839ccd56c6` (push `36196067865` / #3817 SUCCESS; PR `36196073964` / #3818 SUCCESS). The distinguishable Android candidate is `0.5.0-preqa.5` / `50500` at `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523`; candidate push `36196696061` / #3819 and PR `36196702100` / #3820 are both SUCCESS. Preferred APK artifact: `10890483613`. Owner rerun across Aldren/Permanente Fantasy + Custom v1 + both Custom-v2 modes is **PASS**. Accepted residual: Custom v1/v2 continuation pages may show header/first-row overlap plus excessive vertical row height; owner explicitly classifies it as minor/non-blocking.
 24. PR #104 integrated the passed repair into `main` as `8b1618d56d5483524559f9598bc8862acfe91c9a`; post-merge Scaffold #3826 / `36203501345` is SUCCESS. **Current route:** staged Android runtime smoke at Aldren Share, then Ilyra Custom v2 + Spellbook/unsaved-export persistence check, Mara both Custom-v2 Extended variants, and one Current Snapshot fallback-notice check. Media/Handouts remains blocked until that runtime sequence is recorded.
+25. **End-of-day pause, 2026-09-25:** owner stopped for the day before executing Aldren Share. No result has been recorded for Share, Ilyra, Mara or Current Snapshot in this resumed sequence. Resume exactly at **Aldren Share**; do not repeat the already-passed Aldren four-family Save/open/content QA.
 
 No external provider action is required for this PDF-renderer stage.
