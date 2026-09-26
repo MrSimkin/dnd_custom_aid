@@ -222,9 +222,29 @@ The next owner action is **Mara 3A only**:
 
 Only after Mara 3A PASS proceed to Mara 3B **Custom v2 · Habilidad**.
 
+## Owner runtime rerun — preqa.8 / Mara 3A
+
+Owner reran **Mara 3A** on **`0.5.0-preqa.8` / build `50800`** with:
+
+- **Custom v2 · Atributo**;
+- **Permanente**;
+- **Extended**;
+- Spellbook OFF/as-is.
+
+Observed result so far:
+
+- **PDF export completes with no renderer error**;
+- the prior `Manipulación de éter` source-fit diagnostic did not recur;
+- no replacement fail-closed diagnostic was reported during export.
+
+Therefore:
+
+- Mara 3A export-generation — **PASS**;
+- Mara 3A PDF open/readability + Extended/custom-stat/continuation inspection — **PENDING**.
+
 ## Owner boundary
 
-**Owner action is now required on preqa.8 / build 50800.** Install it as an update over preqa.7; do not uninstall local app state. Then rerun Mara 3A exactly as specified above.
+**Owner action is now narrowed to Mara 3A PDF inspection.** Export-generation already passed on preqa.8 / build 50800; inspect/open the generated PDF and verify the Extended/custom-stat/continuation content before declaring 3A PASS.
 
 After that, rerun **Mara 3A only**:
 
