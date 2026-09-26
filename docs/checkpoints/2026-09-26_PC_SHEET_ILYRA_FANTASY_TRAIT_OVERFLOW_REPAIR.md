@@ -74,17 +74,25 @@ Integration closure:
 
 Repository/CI repair acceptance is closed. Remaining evidence is owner runtime verification.
 
+## Owner runtime verification — preqa.6
+
+Owner installed the merged-main **`0.5.0-preqa.6` / build `50600`** candidate and reran Ilyra Fantasy Sheet + Permanente.
+
+Observed result so far:
+
+- the previous bounded-routing diagnostic is **gone**;
+- specifically, the prior `puntuaciones finales INT 18 y DES 14 ... overflow='14'` failure did not recur.
+
+This closes the original crash/blocker symptom. Final repair-verification still requires confirming the saved PDF opens/readable and preserves the full **Ability Score Improvement** semantics before Step 2 is resumed.
+
 ## Manual boundary
 
 Exact next owner action:
 
-1. install merged-main **`0.5.0-preqa.6` / build `50600`** as an update; **do not uninstall** the existing app;
-2. verify the installed version is `0.5.0-preqa.6` / `50600`;
-3. open **Ilyra Quill -> Hoja de personaje PDF**;
-4. select **Fantasy Sheet + Permanente**; Spellbook is not required for this repair-verification step;
-5. choose **Guardar PDF**;
-6. require: no bounded-routing diagnostic, save completes, PDF opens/readable, and the full **Ability Score Improvement** semantics survive somewhere appropriate in the PDF;
-7. report PASS or the exact observed defect.
+1. open the Fantasy PDF just generated for **Ilyra Quill**;
+2. confirm it opens/readable;
+3. verify the full **Ability Score Improvement** meaning is present somewhere appropriate in the PDF, including the final values **INT 18** and **DES 14**;
+4. report PASS or the exact observed defect.
 
 Only after this repair-verification PASS resume the original staged Step 2: Ilyra **Custom v2 + Spellbook** with a harmless unsaved edit and `Exportar sin guardar`, verifying the PDF sees the draft while persisted character data remains unchanged.
 
