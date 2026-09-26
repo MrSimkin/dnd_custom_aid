@@ -45,8 +45,27 @@ Two branch Scaffold attempts are historical failed diagnostics:
 
 No APK from those failed runs is valid for owner QA.
 
+## Branch validation evidence
+
+Corrected minimal repair validation:
+
+- Scaffold **#3854** / run `36265067594` — **SUCCESS**;
+- canonical resume-route guard — PASS;
+- Android renderer-sync guard — PASS;
+- Android PDF-delivery guard — PASS;
+- full Kotlin build/tests — PASS;
+- real Ilyra fixture regression — PASS;
+- Android debug APK artifact upload — PASS;
+- PC-sheet render/proof artifact uploads — PASS;
+- backend — PASS;
+- hosted database — PASS.
+
+The green repair keeps the change narrow: the Fantasy base-page **DOTES** preview consumes at most its physically available ruled rows, and any clipped feat is explicitly promoted to the existing full-detail traits continuation. The failed reference/measurement experiments were removed before this successful run.
+
+A distinguishable owner candidate is now being stamped as **`0.5.0-preqa.6` / build `50600`**. It requires its own green Scaffold run before PR/integration and owner installation.
+
 ## Manual boundary
 
-Do not continue the Ilyra Custom-v2 + Spellbook unsaved-export persistence smoke on the current APK. First require green repository validation, publish a distinguishable Android QA candidate, and install it as an update without uninstalling local state. Then resume at Ilyra.
+Do not continue the Ilyra Custom-v2 + Spellbook unsaved-export persistence smoke on the currently installed preqa.5 APK. The minimal repair is repository-green; next require the stamped preqa.6 / build 50600 candidate to pass Scaffold, integrate through PR, then install that APK as an update without uninstalling local state. Resume at Ilyra only after that.
 
 Mara, Current Snapshot and Media/Handouts remain pending.
