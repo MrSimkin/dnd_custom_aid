@@ -97,3 +97,27 @@ Resume with **Step 1 — Aldren Share** only:
 After that result, continue one QA step at a time. Do **not** repeat the already-passed four-family Aldren Save/open/content inspection unless a new defect requires it.
 
 **Session status:** PAUSED BY OWNER / SAFE TO STOP.
+
+
+## Runtime-smoke continuation — 2026-09-26
+
+Owner resumed the staged Android runtime smoke and reported the Step 1 result:
+
+- **Aldren Share: PASS**;
+- the generated/shared PDF was received and opened correctly on the second PC;
+- no unreadable/corrupt-PDF failure was reported;
+- the already-passed Aldren four-family Save/open/content QA remains closed and must not be repeated without new defect evidence.
+
+### Current exact action — Step 2: Ilyra
+
+1. Open **Ilyra Quill** in the hosted Player-path QA campaign.
+2. Select **Custom v2 + Spellbook**.
+3. Make one harmless edit without saving the character first.
+4. Export and choose **`Exportar sin guardar`** when prompted.
+5. Verify the generated PDF reflects that unsaved edit.
+6. Return to/reload Ilyra and verify the persisted character data **did not change**.
+7. Record PASS or the exact observed defect.
+
+Mara and Current Snapshot remain pending after Ilyra. **Media / Handouts remains blocked** until the full staged runtime-smoke sequence is recorded.
+
+**Current session status:** STEP 1 PASS / STEP 2 ILYRA ACTIVE.
