@@ -113,6 +113,29 @@ Generalized correction now active:
 
 The real-Mara two-family regression remains the acceptance test. A fresh Scaffold on the corrected head is required.
 
+## Branch validation discovery — Scaffold #3918
+
+Scaffold **#3918** advanced beyond both earlier Mara blockers:
+
+- the original source-matched `Manipulación de éter` failure did not recur;
+- the prefixed featured-trait continuation line no longer failed after re-wrapping.
+
+The real-Mara regression then exposed a third narrow fit edge in ordinary inventory continuation:
+
+`Compact v2 label requires excessive compression: 2 x Frasco de tinta que recuerda la última palabra escrita 2 · 0.5 lb (77.72368%)`
+
+This inventory helper intentionally targets a **78%** compact horizontal-scale floor. Mara needs only **77.72%**, a ~0.28 percentage-point miss.
+
+Generalized correction now active:
+
+1. keep **78%** as the target used during font-size fitting;
+2. if the label still narrowly misses at minimum font size, allow at most the same **2 percentage-point micro-fit tolerance**;
+3. preserve the fail-closed guard below **76%**;
+4. do not special-case the item/string;
+5. apply the same logic to Desktop and Android.
+
+The real-Mara regression remains the acceptance gate. A fresh Scaffold is required.
+
 ## Owner boundary
 
 No owner action is required on the current preqa.7 APK.
