@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — no active implementation repair. Staged Android runtime smoke is active on `main`: Aldren Share PASS, Ilyra Step 2 PASS, **Mara active**. Run Custom v2 · Atributo + Permanente first; after PASS run Custom v2 · Habilidad + Permanente. Current Snapshot follows Mara.
+**Current normal work:** PC Sheet PDF Export — staged runtime smoke exposed a Mara 3A Custom-v2 Attribute Extended source-label fit blocker; repair branch `fix/pc-sheet-mara-source-microfit` is active.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,9 +102,9 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** none as continuation authority; any merged PR #106 source ref is historical/inert.
+**Sole active non-main branch:** `fix/pc-sheet-mara-source-microfit`.
 
-**Sole active implementation PR:** none. PR #106 — `fix: preserve Ilyra Custom-v2 continuation content` — is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`; merged-main Scaffold #3895 is SUCCESS.
+**Sole active implementation PR:** none yet; Mara source-label micro-fit repair validation is pending before PR creation.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md`;
