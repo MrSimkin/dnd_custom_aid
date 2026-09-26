@@ -104,7 +104,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination`.
 
-**Sole active implementation PR:** none yet; Ilyra Fantasy trait-pagination repair branch validation is pending before PR creation. PR #104 remains historical integrated evidence.
+**Sole active implementation PR:** none yet; Ilyra Fantasy base-feat bounded-preview repair branch validation is pending before PR creation. PR #104 remains historical integrated evidence.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;
@@ -112,7 +112,7 @@ Current authority:
 - PR #104 post-merge Scaffold #3826 / `36203501345` — SUCCESS;
 - `0.5.0-preqa.5` / `50500` remains the owner-tested runtime behavior;
 - Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- Aldren Share is PASS; Ilyra exposed a new Fantasy Sheet trait-continuation physical-row overflow before completing the intended Custom-v2 + Spellbook persistence check; manual smoke is paused while the active repair branch is validated;
+- Aldren Share is PASS; Ilyra exposed a Fantasy Sheet base-page DOTES bounded-preview overflow before completing the intended Custom-v2 + Spellbook persistence check; manual smoke is paused while the active repair branch is validated;
 - Media/Handouts remains blocked until that runtime sequence is recorded.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
