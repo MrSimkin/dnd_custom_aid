@@ -104,7 +104,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** none as continuation authority; the merged PR #105 source ref may remain as inert historical Git state.
 
-**Sole active implementation PR:** none. PR #105 — `fix: bound Fantasy feat previews by physical rows` — is MERGED / INTEGRATED as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`; merged-main Scaffold #3861 is SUCCESS.
+**Sole active implementation PR:** PR #106 — `fix: preserve Ilyra Custom-v2 continuation content`; branch/versioned validation is green and PR-head validation is pending.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;
