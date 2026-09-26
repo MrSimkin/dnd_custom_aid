@@ -64,7 +64,7 @@ The active branch now:
 - routes full special-item description/notes into the existing wrapped equipment-continuation line area rather than crushing them into one special row;
 - includes a real Ilyra regression for **both** Custom-v2 variants, with Spellbook descriptions enabled, requiring Fire Bolt / Potent Cantrip semantics, SRD 5.2.1 text, Memorize Spell, and the full special Spellbook description/notes to survive rendering.
 
-Latest Scaffold validation is pending.
+Corrected branch validation is now green: Scaffold **#3887** / run `36268568144` — **SUCCESS**. Backend, hosted database, Android renderer-sync/delivery guards, full Kotlin tests, and the strengthened real-Ilyra Custom-v2 regression all passed.
 
 ## CI progression — second latent blocker exposed
 
@@ -95,9 +95,28 @@ Keep the Special Equipment row for compact operational facts (for example weight
 
 The existing fail-closed one-line guards remain active for their bounded cells.
 
+
+## Green branch acceptance — #3887
+
+Scaffold **#3887** / run `36268568144` completed **SUCCESS** after both bounded-data repairs were present together.
+
+The real Ilyra regression passed for both Custom-v2 variants with Spellbook descriptions enabled and requires preservation of:
+
+- Fire Bolt;
+- Potent Cantrip semantics;
+- SRD 5.2.1 text;
+- Memorize Spell;
+- `Libro de 100 páginas`;
+- `incluidos los añadidos por Evocation Savant`;
+- Ilyra's full Spellbook notes.
+
+No readability floor was lowered. The combat fail-closed compression guard remains active, and Special Equipment descriptive metadata remains preserved through the existing inventory continuation semantic destination.
+
+A distinguishable owner candidate is now stamped as **`0.5.0-preqa.7` / build `50700`** and requires its own green Scaffold run before PR/integration.
+
 ## Owner boundary
 
-Do not retry Ilyra on the current `preqa.6` APK. Keep the harmless unsaved edit discarded/not persisted.
+Do not retry Ilyra on the current `preqa.6` APK. The next candidate is `0.5.0-preqa.7` / build `50700`, but it is not owner-ready until versioned branch, PR-head, and merged-main validation are green. Keep the harmless unsaved edit discarded/not persisted.
 
 No owner action is required until a new distinguishable QA candidate passes branch, PR-head, and merged-main Scaffold validation.
 
