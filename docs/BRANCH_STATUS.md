@@ -104,7 +104,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination`.
 
-**Sole active implementation PR:** none yet; Ilyra Fantasy base-feat bounded-preview repair branch validation is pending before PR creation. PR #104 remains historical integrated evidence.
+**Sole active implementation PR:** PR #105 — `fix: bound Fantasy feat previews by physical rows`; branch validation is green and PR-head validation is pending. PR #104 remains historical integrated evidence.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;
