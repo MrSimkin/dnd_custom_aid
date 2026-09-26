@@ -3,12 +3,12 @@
 **Updated:** 2026-09-26 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified functional `main`:** `c8276d8afaec97c704a8e0e0fd4724e870fa43f0` (PR #105 Ilyra Fantasy feat-preview repair integrated)  
-**Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
+**Last verified functional `main`:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
+**Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Ilyra Fantasy repair is OWNER PASS; Ilyra Custom-v2 staged smoke successfully reached/selected `Exportar sin guardar`, then post-confirmation Extended combat rendering failed on the Potent Cantrip compression guard. Active branch `fix/pc-sheet-ilyra-customv2-combat-row-wrap` repairs that blocker; PDF-draft projection and non-persistence verification remain pending.
+**Current normal work:** PC Sheet PDF Export — PR #106 is integrated and `preqa.7` / build `50700` is repository-green. Resume owner QA at Ilyra staged Step 2: Custom v2 · Atributo, Spellbook ON, harmless unsaved edit, choose `Exportar sin guardar`, verify PDF contains the draft, then verify persisted Ilyra data is unchanged after reload.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,9 +102,9 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** none as continuation authority; the merged PR #105 source ref may remain as inert historical Git state.
+**Sole active non-main branch:** none as continuation authority; any merged PR #106 source ref is historical/inert.
 
-**Sole active implementation PR:** PR #106 — `fix: preserve Ilyra Custom-v2 continuation content`; branch/versioned validation is green and PR-head validation is pending.
+**Sole active implementation PR:** none. PR #106 — `fix: preserve Ilyra Custom-v2 continuation content` — is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`; merged-main Scaffold #3895 is SUCCESS.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;

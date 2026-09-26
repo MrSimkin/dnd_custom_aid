@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-26 (Chile local time)  
 **Base main:** `9fa65392c8e24ec0fa842569d376e9b0ca46b0c1`  
-**Active branch:** `fix/pc-sheet-ilyra-customv2-combat-row-wrap`  
-**Status:** OWNER RUNTIME DEFECT REPRODUCED / GENERALIZED MULTI-ROW COMBAT CONTINUATION REPAIR ACTIVE
+**Active branch:** none — PR #106 merged; `main` is authoritative  
+**Status:** REPAIR MERGED / MERGED-MAIN GREEN / OWNER PREQA.7 STEP-2 COMPLETION READY
 
 ## Prior completed evidence
 
@@ -135,22 +135,51 @@ Corrected end-to-end repair validation:
 
 The distinguishable owner candidate **`0.5.0-preqa.7` / build `50700`** passed versioned Scaffold **#3890**. PR **#106** — `fix: preserve Ilyra Custom-v2 continuation content` — is now the active implementation PR. Require PR-head and merged-main Scaffold success before owner installation.
 
+## Integration closure — PR #106
+
+Validation chain:
+
+- combined corrected repair Scaffold **#3887** / run `36268568144` — SUCCESS;
+- exact versioned **`0.5.0-preqa.7` / build `50700`** Scaffold **#3890** — SUCCESS;
+- PR **#106** — `fix: preserve Ilyra Custom-v2 continuation content`;
+- PR-head Scaffold **#3894** / run `36269391791` — SUCCESS;
+- squash-merged to `main` as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`;
+- merged-main Scaffold **#3895** / run `36269693233` — **SUCCESS**;
+- merged-main Android artifact: `dnd-custom-aid-debug-apk`, artifact id `10915645814`.
+
+Repository/CI acceptance for both discovered blockers is closed:
+
+1. long Custom-v2 combat reference content is expanded across readable physical rows without lowering the 6 pt / 72% readability floor;
+2. long special-item description/notes are preserved through wrapped equipment-continuation lines instead of being forced into one Special Equipment row.
+
+The real Ilyra regression passes in both Custom-v2 variants with Spellbook descriptions enabled and preserves Fire Bolt / Potent Cantrip / SRD 5.2.1 semantics, Memorize Spell, and the full special Spellbook description/notes.
+
+The remaining boundary is owner runtime evidence for successful **post-`Exportar sin guardar`** rendering, draft projection into the PDF, and non-persistence back into Ilyra.
+
 ## Owner boundary
 
-Do not retry Ilyra on the current `preqa.6` APK. The next candidate is `0.5.0-preqa.7` / build `50700`, but it is not owner-ready until versioned branch, PR-head, and merged-main validation are green. Keep the harmless unsaved edit discarded/not persisted.
+Exact next owner action on **`0.5.0-preqa.7` / build `50700`**:
 
-No owner action is required until the distinguishable **preqa.7 / build 50700** candidate passes versioned branch, PR-head, and merged-main Scaffold validation.
+1. install the merged-main preqa.7 APK **as an update**; do not uninstall the current app;
+2. open **Ilyra Quill**;
+3. make one harmless, unmistakable edit and **do not save the character**;
+4. open **Hoja de personaje PDF**;
+5. choose **Custom v2 · Atributo**;
+6. turn **Spellbook ON**;
+7. start the export;
+8. when the unsaved-change confirmation appears, choose **`Exportar sin guardar`**;
+9. require PDF generation to complete without the former combat or Spellbook inventory diagnostics;
+10. open the generated PDF and verify the harmless unsaved edit is present;
+11. return to/reload Ilyra and verify the harmless edit is **not** persisted in the character;
+12. report PASS or the exact observed defect.
 
-After that, resume the exact Ilyra staged Step 2:
-- Custom v2 · Atributo;
-- Spellbook ON;
-- harmless unsaved edit;
-- export;
-- choose `Exportar sin guardar` again;
-- require PDF generation to complete without the combat compression diagnostic;
-- verify the generated PDF reflects the unsaved draft;
-- reload Ilyra and verify persisted data did not change.
+Already-proven evidence that must not be forgotten or unnecessarily retested as a separate objective:
 
-Do not repeat the already-established fact that the confirmation path exists merely as a separate test objective; the rerun is required only because successful post-confirmation rendering and persistence semantics are still unproven.
+- unsaved changes are detected — PASS;
+- `Exportar sin guardar` is presented — PASS;
+- owner can select `Exportar sin guardar` — PASS;
+- the prior failure occurred **after** that selection.
+
+The rerun is necessary because successful rendering after the choice, draft-in-PDF projection, and non-persistence were previously blocked and remain the acceptance boundary.
 
 Mara, Current Snapshot and Media / Handouts remain pending.

@@ -2,13 +2,13 @@
 
 **Updated:** 2026-09-26 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified functional main:** `c8276d8afaec97c704a8e0e0fd4724e870fa43f0` (PR #105 Ilyra Fantasy feat-preview repair integrated)  
-**Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
+**Last verified functional main:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
+**Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md`  
-**Current active route:** Ilyra staged Step 2 reached and selected **`Exportar sin guardar`** successfully, then Custom-v2 Extended rendering failed on the Potent Cantrip combat-cell readability guard before PDF creation. Thus confirmation-path behavior is proven, but PDF-draft projection and non-persistence are still unverified. Generalized multi-row combat continuation repair is active on `fix/pc-sheet-ilyra-customv2-combat-row-wrap`; no owner retry until a new green QA candidate is integrated.
-**Current implementation branch:** `fix/pc-sheet-ilyra-customv2-combat-row-wrap` — sole non-main continuation authority
-**Current implementation PR:** none — PR #105 is MERGED / INTEGRATED as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`; prior stale PRs remain historical/superseded  
+**Current active route:** PR #106 is MERGED / INTEGRATED and merged-main Scaffold #3895 is SUCCESS. Owner action is READY on `0.5.0-preqa.7` / build `50700`: rerun Ilyra staged Step 2 with **Custom v2 · Atributo + Spellbook ON + one harmless unsaved edit**, choose `Exportar sin guardar`, require PDF generation to complete, verify the PDF reflects the unsaved draft, then reload Ilyra and verify persisted character data did not change. The confirmation path itself was already proven before the repair; the remaining acceptance is successful post-confirmation rendering + draft projection + non-persistence.
+**Current implementation branch:** none — PR #106 is merged; `main` is the continuation authority
+**Current implementation PR:** none — PR #106 is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 

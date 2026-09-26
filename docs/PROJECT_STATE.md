@@ -3,14 +3,14 @@
 **Last reconstructed:** 2026-09-26 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified functional `main`:** `c8276d8afaec97c704a8e0e0fd4724e870fa43f0` (PR #105 Ilyra Fantasy feat-preview repair integrated)  
-**Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
+**Last verified functional `main`:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
+**Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Ilyra Fantasy repair OWNER PASS; original Ilyra Custom-v2 staged Step 2 reached and selected `Exportar sin guardar`, but post-confirmation PDF rendering is blocked by an Extended combat-cell excessive-compression defect. Draft-in-PDF and persisted-data-unchanged assertions remain pending. Generalized multi-row combat continuation repair is active on `fix/pc-sheet-ilyra-customv2-combat-row-wrap`.
+**Current active package:** PC Sheet PDF Export — Ilyra Fantasy repair OWNER PASS; PR #106 fixes the post-`Exportar sin guardar` Custom-v2 combat and special-Spellbook continuation blockers and is integrated on `main` with Scaffold #3895 SUCCESS. Android QA `0.5.0-preqa.7` / build `50700` is ready for owner runtime completion of Ilyra Step 2. Remaining assertions: generated PDF reflects the unsaved draft and persisted Ilyra data remains unchanged after reload.
 
 ### Superseding PDF visual state — 2026-09-20
 
