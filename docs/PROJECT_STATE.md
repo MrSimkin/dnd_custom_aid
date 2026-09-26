@@ -3,14 +3,14 @@
 **Last reconstructed:** 2026-09-26 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified functional `main`:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
-**Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
+**Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
+**Post-merge Scaffold:** `36276643170` / #3929 — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Aldren Share PASS; Ilyra Step 2 PASS; Mara 3A runtime exposed three linked Extended-path blockers. The generalized repair now passes the real Mara fixture for both Custom-v2 variants. `0.5.0-preqa.8` / build `50800` is stamped and branch-green at Scaffold #3926; PR-head and merged-main validation remain before owner rerun.
+**Current active package:** PC Sheet PDF Export — Aldren Share PASS; Ilyra Step 2 PASS; Mara 3A preqa.7 defect chain repaired and integrated by PR #107. `0.5.0-preqa.8` / build `50800` is OWNER READY after consolidated #3927, PR-head #3928 and merged-main #3929 SUCCESS. Current manual runtime target: Mara 3A Custom v2 · Atributo + Permanente + Extended only; after PASS proceed to Mara 3B.
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -40,7 +40,7 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 
 No historical PR #85 renderer-proof branch is current continuation authority. The visual renderer is owner-approved/frozen subject only to concrete owner-observed runtime defects.
 
-The active runtime route is the owner-ready Ilyra Custom-v2 post-`Exportar sin guardar` verification on `0.5.0-preqa.7` / build `50700`, recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
+The active runtime route is the owner-ready Mara 3A rerun on `0.5.0-preqa.8` / build `50800`, recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 

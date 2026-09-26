@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-26 (Chile local time)  
 **Base main:** `4f484cbd30a2e67265dba710c1f2865b035e0082`  
-**Active branch:** `fix/pc-sheet-mara-source-microfit`  
-**Status:** REPAIR IMPLEMENTED / REAL-MARA REGRESSION GREEN / PREQA.8 BRANCH CANDIDATE GREEN / PR PENDING
+**Active branch:** none — PR #107 merged; `main` is authoritative  
+**Status:** PR #107 MERGED / MERGED-MAIN GREEN / OWNER PREQA.8 MARA 3A READY
 
 ## Completed staged runtime before Mara
 
@@ -191,11 +191,40 @@ The distinguishable Android candidate is now fully stamped and branch-green:
 
 The implementation/candidate gate is closed. Next repository lifecycle step is PR-head validation, merge, then merged-main Scaffold. Owner runtime remains blocked until those integration gates are green.
 
+## Integration closure — PR #107
+
+The Mara repair package is fully integrated and repository-green:
+
+- consolidated exact branch head: `cb104724ddaa7a8008511fcea72efc2fbf0cf9e4`;
+- consolidated branch Scaffold **#3927** / run `36276020368` — SUCCESS;
+- PR **#107** — `fix: preserve Mara Custom-v2 Extended overflow content`;
+- PR-head Scaffold **#3928** / run `36276363705` — SUCCESS;
+- squash/merge result on `main`: `15f86ec8285e69969054d40defaa2c16259b8dce`;
+- merged-main Scaffold **#3929** / run `36276643170` — **SUCCESS**;
+- full Kotlin/build/rendering suite — PASS;
+- real Mara fixture for both Custom-v2 variants — PASS;
+- Android renderer-sync and PDF-delivery guards — PASS;
+- backend and hosted database — PASS;
+- Android debug APK, PC-sheet source renders and populated proof artifacts — PASS.
+
+The repository repair/integration gate is closed. **`0.5.0-preqa.8` / build `50800` is owner-ready.**
+
+The next owner action is **Mara 3A only**:
+
+1. install preqa.8 over preqa.7 without uninstalling local state;
+2. open **Mara de los Siete Umbrales**;
+3. export **Custom v2 · Atributo**;
+4. use **Permanente** and **Extended**;
+5. keep Spellbook OFF/as-is;
+6. Guardar PDF and open it;
+7. require no renderer diagnostic and readable preservation of custom statistics plus Traits/Features, Resources/Options, Inventory/Equipment and Notes/overflow continuation;
+8. report PASS or the exact observed defect.
+
+Only after Mara 3A PASS proceed to Mara 3B **Custom v2 · Habilidad**.
+
 ## Owner boundary
 
-No owner action is required on the current preqa.7 APK.
-
-Do not retry Mara 3A yet. The distinguishable repaired Android QA candidate is branch-green, but it still requires PR-head validation, integration, and merged-main Scaffold success.
+**Owner action is now required on preqa.8 / build 50800.** Install it as an update over preqa.7; do not uninstall local app state. Then rerun Mara 3A exactly as specified above.
 
 After that, rerun **Mara 3A only**:
 

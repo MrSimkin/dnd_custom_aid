@@ -3,12 +3,12 @@
 **Updated:** 2026-09-26 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified functional `main`:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
-**Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
+**Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
+**Post-merge Scaffold:** `36276643170` / #3929 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Mara 3A generalized repair is implemented and branch-green on `0.5.0-preqa.8` / build `50800` (Scaffold #3926 SUCCESS). PR creation/PR-head validation is the next lifecycle step; owner rerun remains blocked until merged-main is green.
+**Current normal work:** PC Sheet PDF Export — PR #107 Mara repair is integrated/green. `0.5.0-preqa.8` / build `50800` is owner-ready for Mara 3A Custom v2 · Atributo + Permanente + Extended. Mara 3B remains gated on Mara 3A PASS.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,17 +102,17 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** `fix/pc-sheet-mara-source-microfit`.
+**Sole active non-main branch:** none as continuation authority; merged repair refs are historical evidence only.
 
-**Sole active implementation PR:** none yet; `preqa.8` exact branch candidate is green and ready to enter PR validation.
+**Sole active implementation PR:** none. PR #107 is MERGED / INTEGRATED as `15f86ec8285e69969054d40defaa2c16259b8dce`; merged-main Scaffold #3929 is SUCCESS.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;
 - normal continuation branch: `main`;
-- PR #106 post-merge Scaffold #3895 / `36269693233` — SUCCESS;
-- `0.5.0-preqa.8` / `50800` is the current repaired candidate; branch-head Scaffold #3926 is SUCCESS, but owner runtime remains blocked until PR/integration/merged-main validation;
+- PR #107 post-merge Scaffold #3929 / `36276643170` — SUCCESS;
+- `0.5.0-preqa.8` / `50800` is OWNER READY; consolidated #3927, PR-head #3928 and merged-main #3929 are SUCCESS;
 - Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 Step 2 is OWNER PASS. Mara 3A exposed three Extended-path blockers; the generalized repair now passes the real Mara fixture for both Custom-v2 families and awaits PR/integration before owner rerun;
+- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 Step 2 is OWNER PASS. Mara 3A exposed three Extended-path blockers; PR #107 generalized and integrated the repair, and the current pending runtime action is the Mara 3A owner rerun on preqa.8;
 - Media/Handouts remains blocked until that runtime sequence is recorded.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
@@ -121,7 +121,7 @@ The prior branches `fix/fantasy-sheet-generalized-bounded-text-routing`, `fix/pc
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md -> fix/pc-sheet-mara-source-microfit`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md -> main`
 
 ## Historical/stale open PRs
 

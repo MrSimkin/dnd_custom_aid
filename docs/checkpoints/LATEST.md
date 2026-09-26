@@ -2,13 +2,13 @@
 
 **Updated:** 2026-09-26 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified functional main:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
-**Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
+**Last verified functional main:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
+**Post-merge Scaffold:** `36276643170` / #3929 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`  
-**Current active route:** Mara repair package is repository-green on the real Mara fixture for both Custom-v2 variants. `0.5.0-preqa.8` / build `50800` is stamped and exact branch-head Scaffold #3926 is SUCCESS. **No owner action yet:** open/validate the repair PR, merge it, and require merged-main Scaffold success before rerunning Mara 3A.
-**Current implementation branch:** `fix/pc-sheet-mara-source-microfit` — sole non-main continuation authority
-**Current implementation PR:** none yet — exact `preqa.8` branch candidate is green; PR creation/PR-head validation is the next lifecycle step  
+**Current active route:** repository repair/integration is closed and **`0.5.0-preqa.8` / build `50800` is OWNER READY**. Current owner action: rerun **Mara 3A only — Custom v2 · Atributo + Permanente + Extended**, save/open the PDF, and inspect custom-stat/Traits/Resources/Inventory/Notes continuation. Do not run Mara 3B until Mara 3A PASS.
+**Current implementation branch:** none — PR #107 is merged; `main` is continuation authority
+**Current implementation PR:** none — PR #107 is MERGED / INTEGRATED as `15f86ec8285e69969054d40defaa2c16259b8dce`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -149,5 +149,6 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 27. **Ilyra Fantasy repair verification PASS, 2026-09-26:** `0.5.0-preqa.6` / build `50600` removed the Fantasy/DOTES bounded-routing failure. Owner confirmed the generated PDF opens/readable and preserves full Ability Score Improvement semantics including INT 18 and DES 14.
 28. **Ilyra staged Step 2 post-confirmation repair, 2026-09-26:** unsaved changes were detected; `Exportar sin guardar` was presented and owner explicitly selected it. Rendering then failed on Potent Cantrip combat compression. The real-Ilyra regression exposed a second latent special-Spellbook one-row overflow after combat was repaired. PR #106 generalized both routes, stamped `0.5.0-preqa.7` / `50700`, and integrated as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`; branch #3887, versioned #3890, PR-head #3894 and merged-main #3895 are SUCCESS. Owner rerun then completed successfully: PDF contained unsaved `Ilyra Quill - QA TEST` and FUE 25, and after leaving without saving/reopening Ilyra the stored baseline `Ilyra Quill` / FUE 8 returned. **Ilyra Step 2 = OWNER PASS / CLOSED.**
 29. **Mara active, 2026-09-26:** next staged runtime target is Mara de los Siete Umbrales. Execute 3A **Custom v2 · Atributo + Permanente** first and inspect Extended/custom-stat/overflow continuation behavior; after PASS, execute 3B **Custom v2 · Habilidad + Permanente**. Do not start Current Snapshot until both Mara variants are recorded.
+30. **Mara repair integrated / owner-ready, 2026-09-26:** preqa.7 Mara 3A exposed three linked Extended-path defects (source-label micro-fit, featured-trait continuation re-wrap, and long ordinary-equipment identity continuation). The real-Mara regression burned down the chain through #3915/#3918/#3921 and reached green combined validation at #3924. `0.5.0-preqa.8` / `50800` passed exact candidate #3926, consolidated head #3927, PR-head #3928, and merged-main #3929. PR #107 merged as `15f86ec8285e69969054d40defaa2c16259b8dce`. **Current owner action:** rerun Mara 3A only on preqa.8.
 
 No external provider action is required for this PDF-renderer stage.
