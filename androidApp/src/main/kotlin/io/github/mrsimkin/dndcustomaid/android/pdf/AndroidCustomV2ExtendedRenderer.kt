@@ -596,9 +596,14 @@ internal class AndroidCustomV2ExtendedRenderer(
         val lines = featureDescriptionLines(trait, width)
         val overflow = lines.drop(FEATURE_DESCRIPTION_LINES)
         if (overflow.isEmpty()) return emptyList()
-        return overflow.mapIndexed { index, line ->
-            if (index == 0) trait.name + ": " + line else line
-        }
+
+        val continuationText = trait.name + ": " + overflow.joinToString(" ")
+        return wrapByWidth(
+            resources.fira,
+            continuationText,
+            7.7f,
+            TRAIT_CONTINUATION_TEXT_WIDTH,
+        )
     }
 
     private fun traitSupplementLines(plan: PcSheetPdfRenderPlan): List<String> {
@@ -1542,8 +1547,15 @@ internal class AndroidCustomV2ExtendedRenderer(
     ): List<String> {
         val lines = mutableListOf<String>()
         // True Equipment overflow carries only compact identity; descriptive metadata is routed
-        // to Notes instead of becoming apparent duplicate equipment rows.
-        lines += item.pdfCompactEquipmentLabel()
+        // to Notes instead of becoming apparent duplicate equipment rows. Long identity labels
+        // may consume multiple physical continuation rows rather than dropping below the compact
+        // readability target.
+        lines += wrapByWidth(
+            resources.condensed,
+            item.pdfCompactEquipmentLabel(),
+            7.0f,
+            INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH,
+        )
 
         val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
@@ -1960,7 +1972,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
         val rawWidth = textWidth(font, text, size)
         val scale = minOf(100f, available / rawWidth * 100f)
-        require(scale >= minimumHorizontalScale) {
+        require(scale >= minimumHorizontalScale - COMPACT_LABEL_MICRO_FIT_DELTA) {
             "Compact v2 label requires excessive compression: $text ($scale%)"
         }
         val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
@@ -2256,15 +2268,21 @@ internal class AndroidCustomV2ExtendedRenderer(
         horizontalScale: Float,
     ) {
         val available = rule.endX - rule.startX - 2f
-        val scaledWidth = textWidth(font, text, size) * horizontalScale / 100f
-        require(scaledWidth <= available + 0.05f) {
-            "Source-matched text does not fit: $text ($scaledWidth > $available)"
+        val rawWidth = textWidth(font, text, size)
+        val nominalWidth = rawWidth * horizontalScale / 100f
+        val effectiveScale = if (nominalWidth <= available + 0.05f || rawWidth <= 0f) {
+            horizontalScale
+        } else {
+            (available / rawWidth * 100f).coerceAtMost(horizontalScale)
+        }
+        require(effectiveScale >= horizontalScale - SOURCE_MATCHED_MICRO_FIT_DELTA) {
+            "Source-matched text does not fit: $text ($nominalWidth > $available; requiredScale=$effectiveScale)"
         }
         val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
         val baseline = H - rule.topY + clearance - descent
         s.beginText()
         s.setFont(font, size)
-        s.setHorizontalScaling(horizontalScale)
+        s.setHorizontalScaling(effectiveScale)
         s.newLineAtOffset(rule.startX + 1f, baseline)
         s.showText(text)
         s.setHorizontalScaling(100f)
@@ -2689,6 +2707,8 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_COMPACT_SCALE = 78f
         const val SOURCE_CORBEL_HEADING_SCALE = 81f
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
+        const val SOURCE_MATCHED_MICRO_FIT_DELTA = 2f
+        const val COMPACT_LABEL_MICRO_FIT_DELTA = 2f
         const val BASE_V2_TRAIT_CAPACITY = 18
         const val ATTRIBUTE_COLUMNS_PER_PAGE = 3
         const val ATTRIBUTE_LINKED_SKILLS_PER_COLUMN = 6
@@ -2701,6 +2721,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val FEATURE_DESCRIPTION_LINES = 3
         const val TRAIT_NAME_INDEX_PER_PAGE = 10
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
+        const val TRAIT_CONTINUATION_TEXT_WIDTH = 281f
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val COMBAT_ROWS_PER_PAGE = 14
@@ -2711,6 +2732,9 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val COMBAT_TEXT_WIDTH = 576f
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
+        // Conservative raw-width ceiling at the 7 pt / 78% compact target for the narrowest
+        // continuation equipment rule (~128 pt usable width).
+        const val INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH = 164f
         const val V2_BASE_EQUIPMENT_TEXT_WIDTH = 132f
         const val V2_BASE_SPECIAL_LOCATION_WIDTH = 79f
         const val V2_BASE_SPECIAL_NAME_WIDTH = 196f

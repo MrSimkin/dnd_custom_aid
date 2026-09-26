@@ -5,10 +5,10 @@
 **Last verified functional main:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
 **Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_RUNTIME_SMOKE_ILYRA_PASS_MARA_ACTIVE.md`  
-**Current active route:** staged Android runtime smoke — **Aldren Share PASS + Ilyra Step 2 PASS**. Ilyra `Exportar sin guardar` now fully proves draft-in-PDF plus non-persistence after reload. **Current owner action: Mara 3A only — Custom v2 · Atributo + Permanente; save/open and inspect Extended/custom-stat/overflow continuation behavior.** After 3A PASS, run Mara 3B Custom v2 · Habilidad. Current Snapshot remains after Mara; Media / Handouts remains blocked.
-**Current implementation branch:** none — PR #106 is merged; `main` is the continuation authority
-**Current implementation PR:** none — PR #106 is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`  
+**Current active route:** Mara repair package is repository-green on the real Mara fixture for both Custom-v2 variants. `0.5.0-preqa.8` / build `50800` is stamped and exact branch-head Scaffold #3926 is SUCCESS. **No owner action yet:** open/validate the repair PR, merge it, and require merged-main Scaffold success before rerunning Mara 3A.
+**Current implementation branch:** `fix/pc-sheet-mara-source-microfit` — sole non-main continuation authority
+**Current implementation PR:** none yet — exact `preqa.8` branch candidate is green; PR creation/PR-head validation is the next lifecycle step  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -17,7 +17,7 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-26_PC_SHEET_RUNTIME_SMOKE_ILYRA_PASS_MARA_ACTIVE.md`;
+4. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;
 5. `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md` and `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md` only as historical acceptance/repair evidence;
 6. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 7. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
