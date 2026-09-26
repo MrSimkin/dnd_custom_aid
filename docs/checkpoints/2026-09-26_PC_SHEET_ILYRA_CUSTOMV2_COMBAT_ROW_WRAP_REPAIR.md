@@ -133,7 +133,7 @@ Corrected end-to-end repair validation:
 - backend — PASS;
 - hosted database — PASS.
 
-The distinguishable owner candidate is now **`0.5.0-preqa.7` / build `50700`**. It requires its own versioned Scaffold success, PR-head success, and merged-main Scaffold success before owner installation.
+The distinguishable owner candidate **`0.5.0-preqa.7` / build `50700`** passed versioned Scaffold **#3890**. PR **#106** — `fix: preserve Ilyra Custom-v2 continuation content` — is now the active implementation PR. Require PR-head and merged-main Scaffold success before owner installation.
 
 ## Owner boundary
 
