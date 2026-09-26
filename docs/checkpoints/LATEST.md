@@ -5,9 +5,9 @@
 **Last verified functional main:** `8b1618d56d5483524559f9598bc8862acfe91c9a` (PR #104 cross-family runtime repair integrated)  
 **Post-merge Scaffold:** `36203501345` / #3826 — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md`  
-**Current active route:** staged Android runtime smoke — **Aldren Share PASS** from owner report on 2026-09-26 (received PDF opened correctly on second PC); current action is **Ilyra Custom v2 + Spellbook / Exportar sin guardar persistence check**  
-**Current implementation branch:** none — normal continuation authority is current `main`  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`  
+**Current active route:** Ilyra runtime exposed a new Fantasy Sheet trait-continuation physical-row overflow after Aldren Share PASS; repair is active on `fix/pc-sheet-ilyra-fantasy-trait-pagination`; manual smoke is paused until a green distinguishable Android candidate is available
+**Current implementation branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination` — sole non-main continuation authority
 **Current implementation PR:** none — PR #104 is MERGED / INTEGRATED; prior stale PRs #36, #37, #49 and #103 are CLOSED / superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
