@@ -112,6 +112,37 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun ilyraFantasySheetRendersWithoutUnroutedTraitOverflow() {
+        val document = fixture("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = document.character,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        assertTrue(bytes.size > 20_000)
+        Loader.loadPDF(bytes).use { pdf ->
+            val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            assertTrue(normalized.contains("Ability Score Improvement"))
+            assertTrue(normalized.contains("puntuaciones finales INT 18 y DES 14"))
+            assertTrue(normalized.contains("Memorize Spell"))
+        }
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(
