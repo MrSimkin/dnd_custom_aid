@@ -112,7 +112,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
-    fun ilyraFantasySheetRendersWithoutUnroutedTraitOverflow() {
+    fun ilyraFantasySheetBoundsFeatPreviewAndPreservesFullContinuation() {
         val document = fixture("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val plan = PcSheetPdfExportPlanner.plan(
             request = PcSheetPdfExportRequest(
