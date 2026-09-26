@@ -6,7 +6,7 @@
 **Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md`  
-**Current active route:** Ilyra staged Step 2 is BLOCKED by a Custom-v2 Extended combat-cell readability guard on the Potent Cantrip note. Generalized multi-row combat continuation repair is active on `fix/pc-sheet-ilyra-customv2-combat-row-wrap`; no owner retry until a new green QA candidate is integrated.
+**Current active route:** Ilyra staged Step 2 reached and selected **`Exportar sin guardar`** successfully, then Custom-v2 Extended rendering failed on the Potent Cantrip combat-cell readability guard before PDF creation. Thus confirmation-path behavior is proven, but PDF-draft projection and non-persistence are still unverified. Generalized multi-row combat continuation repair is active on `fix/pc-sheet-ilyra-customv2-combat-row-wrap`; no owner retry until a new green QA candidate is integrated.
 **Current implementation branch:** `fix/pc-sheet-ilyra-customv2-combat-row-wrap` — sole non-main continuation authority
 **Current implementation PR:** none — PR #105 is MERGED / INTEGRATED as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`; prior stale PRs remain historical/superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
