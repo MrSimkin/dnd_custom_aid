@@ -64,6 +64,35 @@ The active branch now:
 
 Scaffold validation is pending.
 
+## CI progression — second latent blocker exposed
+
+Scaffold **#3880** reached the full Kotlin/rendering test gate after all fast guards passed.
+
+The new real-Ilyra Custom-v2 regression no longer failed on the Potent Cantrip combat-cell compression guard. That confirms the multi-row combat expansion moved rendering past the owner-observed blocker.
+
+The same end-to-end regression then failed later in the Custom-v2 inventory continuation with:
+
+`Text does not fit: Peso 3 lb · Libro de 100 páginas; contiene una selección legal de conjuros de Ilyra hasta nivel 5, incluidos los añadidos por Evocation Savant. · Contiene la selección legal de conjuros de Ilyra hasta nivel 5.`
+
+This is Ilyra's **special Spellbook inventory item**. The current Special Equipment continuation gives each special item only one physical `DESCRIPCIÓN / ESTADO` row and attempts to render weight + full description + notes into that row.
+
+Therefore the staged blocker chain is now:
+
+1. owner runtime: `Exportar sin guardar` selected successfully;
+2. owner runtime: Potent Cantrip combat note blocked rendering;
+3. branch repair: combat reference now expands across readable physical rows;
+4. CI: rendering advances beyond combat;
+5. CI: special Spellbook detail then exposes a second single-row overflow;
+6. PDF-draft projection and persisted-data-unchanged assertions remain pending until the whole Ilyra export completes.
+
+### Inventory repair direction
+
+Do not shrink or horizontally crush the full Spellbook description into one Special Equipment row.
+
+Keep the Special Equipment row for compact operational facts (for example weight / attunement / usage state), and route the full descriptive metadata into the existing inventory continuation line area, wrapped at its native column width. Preserve all description/notes text; do not special-case the word `Spellbook`.
+
+The existing fail-closed one-line guards remain active for their bounded cells.
+
 ## Owner boundary
 
 Do not retry Ilyra on the current `preqa.6` APK. Keep the harmless unsaved edit discarded/not persisted.
