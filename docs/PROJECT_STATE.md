@@ -40,7 +40,7 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 
 No historical PR #85 renderer-proof branch is current continuation authority. The visual renderer is owner-approved/frozen subject only to concrete owner-observed runtime defects.
 
-The active runtime route is the generalized Fantasy Sheet bounded-text repair recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
+The active runtime route is the owner-ready Ilyra Custom-v2 post-`Exportar sin guardar` verification on `0.5.0-preqa.7` / build `50700`, recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 

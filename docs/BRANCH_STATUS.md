@@ -107,12 +107,12 @@ After a closure merges, normal implementation starts from current `main`; do not
 **Sole active implementation PR:** none. PR #106 — `fix: preserve Ilyra Custom-v2 continuation content` — is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`; merged-main Scaffold #3895 is SUCCESS.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;
+- canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md`;
 - normal continuation branch: `main`;
-- PR #104 post-merge Scaffold #3826 / `36203501345` — SUCCESS;
-- `0.5.0-preqa.5` / `50500` remains the owner-tested runtime behavior;
+- PR #106 post-merge Scaffold #3895 / `36269693233` — SUCCESS;
+- `0.5.0-preqa.7` / `50700` is the current owner-ready runtime candidate;
 - Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- Aldren Share is PASS; Ilyra exposed a Fantasy Sheet base-page DOTES bounded-preview overflow before completing the intended Custom-v2 + Spellbook persistence check; manual smoke is paused while the active repair branch is validated;
+- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 reached and selected `Exportar sin guardar`, then two post-confirmation renderer blockers were repaired/integrated by PR #106. Pending owner runtime is successful PDF generation with the unsaved draft visible and reload proving non-persistence;
 - Media/Handouts remains blocked until that runtime sequence is recorded.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
@@ -121,7 +121,7 @@ The prior branches `fix/fantasy-sheet-generalized-bounded-text-routing`, `fix/pc
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md -> main`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md -> main`
 
 ## Historical/stale open PRs
 
