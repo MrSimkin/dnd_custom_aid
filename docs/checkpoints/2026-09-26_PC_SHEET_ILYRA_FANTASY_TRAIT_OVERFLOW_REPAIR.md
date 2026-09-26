@@ -1,9 +1,9 @@
-# Checkpoint — Ilyra Fantasy Sheet reference-row overflow repair
+# Checkpoint — Ilyra Fantasy Sheet base-feat bounded overflow repair
 
 **Date:** 2026-09-26 (Chile local time)  
 **Base main:** `63a56a5de91b7d77c301918331a26d32f79c5f60`  
 **Active branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination`  
-**Status:** OWNER RUNTIME DEFECT REPRODUCED / FONT-METRIC REFERENCE-ROW WRAPPING REPAIR ACTIVE
+**Status:** OWNER RUNTIME DEFECT REPRODUCED / BASE-FEAT BOUNDED PREVIEW ROUTING REPAIR ACTIVE
 
 ## Owner runtime evidence
 
@@ -19,25 +19,31 @@ This is a genuine renderer defect, not a user-data or fixture reconstruction err
 
 ## Root cause
 
-The failing content is duplicated into Fantasy Sheet's **REFERENCIAS Y RECORDATORIOS** area. That surface pre-wrapped reference text with an approximate character-count heuristic before passing each logical line to a fixed-width ruled row. At the frozen 8.1 pt font and 166 pt reference width, the logical line ending in `INT 18 y DES 14.` physically requires an extra rendered row. The approximate wrapper therefore under-counted the page's physical row demand and the final `14.` reached the fail-closed overflow guard.
+The real-fixture regression established that the failing text is rendered in Fantasy Sheet's **base-page DOTES** ruled box. The first two repair attempts targeted continuation/reference pagination and therefore did not address the failing surface.
 
-The guard correctly stopped production rather than silently clipping data.
+Ilyra's `Ability Score Improvement` feat is projected through `classicBaseTraitSummary` into a bounded 136 pt-wide / 70 pt-high ruled area. The existing character-count preview heuristic can still produce a logical preview that needs one more physical row at the frozen 8.2 pt PDF font. The final `14.` therefore reaches the fail-closed overflow guard.
 
-## Generalized repair
+This is the same generalized bounded-field class already established by earlier runtime QA: a bounded base field must use a physically safe compact preview, while the complete semantic text survives in an appropriate continuation/detail destination.
 
-Do **not** special-case Ilyra or the failing string and do **not** truncate semantic content.
+## Repair direction
 
-The repair on the active branch:
+Do **not** special-case Ilyra or truncate away canonical data.
 
-1. preserves the frozen Fantasy typography and reference-panel geometry;
-2. adds a non-drawing font-metric measurement operation to Desktop and Android PDF primitives;
-3. wraps each reference value into **actual physical ruled rows** using the same font, width, padding, line height and one-row constraint used by final rendering;
-4. performs the existing record-aware page padding only after those exact physical rows are known;
-5. keeps the final fail-closed overflow guard;
-6. applies the same behavior to Desktop and Android;
-7. keeps the real Ilyra fixture regression and requires the full Ability Score Improvement text plus Memorize Spell to survive PDF extraction.
+The next implementation must:
 
-The earlier experimental trait-column pagination change was removed after the regression proved that it targeted the wrong surface.
+1. constrain the Fantasy base **DOTES** preview by actual physical rendered-row capacity;
+2. ensure a feat clipped for the base preview is promoted to the existing Traits/Features continuation path so its complete description survives;
+3. preserve the frozen base-page geometry and typography;
+4. retain the final fail-closed overflow guard;
+5. cover Desktop and Android consistently;
+6. keep the real Ilyra fixture regression requiring the full `Ability Score Improvement` semantics and `Memorize Spell` to survive the complete PDF;
+7. prove no regression in existing Fantasy pagination/content tests.
+
+Two branch Scaffold attempts are historical failed diagnostics:
+- #3840: Ilyra regression still reproduced the exact overflow;
+- #3845: Ilyra still overflowed and two unrelated renderer tests regressed, proving the reference-panel approach was wrong/too invasive.
+
+No APK from those failed runs is valid for owner QA.
 
 ## Manual boundary
 
