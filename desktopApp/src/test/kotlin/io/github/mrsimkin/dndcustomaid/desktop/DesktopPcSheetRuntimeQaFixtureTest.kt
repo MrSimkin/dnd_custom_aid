@@ -143,6 +143,49 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun ilyraCustomV2FamiliesWrapCombatReferenceRowsWithoutExcessiveCompression() {
+        val document = fixture("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val families = listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+
+        families.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = true,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+
+            val bytes = ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+
+            assertTrue(bytes.size > 20_000)
+            Loader.loadPDF(bytes).use { pdf ->
+                val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                assertTrue(normalized.contains("Fire Bolt"))
+                assertTrue(normalized.contains("Potent Cantrip de Evoker"))
+                assertTrue(normalized.contains("SRD 5.2.1"))
+                assertTrue(normalized.contains("Memorize Spell"))
+                assertTrue(normalized.contains("Libro de 100 páginas"))
+                assertTrue(normalized.contains("incluidos los añadidos por Evocation Savant"))
+                assertTrue(normalized.contains("Contiene la selección legal de conjuros de Ilyra hasta nivel 5"))
+            }
+        }
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(

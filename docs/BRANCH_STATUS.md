@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #105 is integrated on `main`; `0.5.0-preqa.6` / build `50600` is repository-green and ready for owner Ilyra Fantasy repair-verification, followed by the staged Ilyra Custom-v2 + Spellbook persistence smoke.
+**Current normal work:** PC Sheet PDF Export — Ilyra Fantasy repair is OWNER PASS; Ilyra Custom-v2 staged smoke successfully reached/selected `Exportar sin guardar`, then post-confirmation Extended combat rendering failed on the Potent Cantrip compression guard. Active branch `fix/pc-sheet-ilyra-customv2-combat-row-wrap` repairs that blocker; PDF-draft projection and non-persistence verification remain pending.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -104,7 +104,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** none as continuation authority; the merged PR #105 source ref may remain as inert historical Git state.
 
-**Sole active implementation PR:** none. PR #105 — `fix: bound Fantasy feat previews by physical rows` — is MERGED / INTEGRATED as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`; merged-main Scaffold #3861 is SUCCESS.
+**Sole active implementation PR:** PR #106 — `fix: preserve Ilyra Custom-v2 continuation content`; branch/versioned validation is green and PR-head validation is pending.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;

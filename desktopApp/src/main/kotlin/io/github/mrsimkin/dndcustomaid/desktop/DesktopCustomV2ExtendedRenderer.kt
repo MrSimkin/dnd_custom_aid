@@ -802,7 +802,7 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val rows = combatReferenceRows(plan)
+        val rows = combatReferenceRows(plan).flatMap(::expandCombatReferenceRow)
         if (rows.isEmpty()) return
 
         val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
@@ -853,6 +853,52 @@ internal class DesktopCustomV2ExtendedRenderer(
                     )
                 }
             }
+    }
+
+    private fun expandCombatReferenceRow(row: CombatReferenceRow): List<CombatReferenceRow> {
+        val nameLines = combatCellLines(resources.fira, Rule(18f, 196f, 0f), row.name)
+        val rangeLines = combatCellLines(resources.fira, Rule(204f, 278f, 0f), row.range)
+        val bonusLines = combatCellLines(resources.firaSemibold, Rule(286f, 330f, 0f), row.bonus)
+        val effectLines = combatCellLines(resources.fira, Rule(338f, 458f, 0f), row.effect)
+        val noteLines = combatCellLines(resources.fira, Rule(466f, 594f, 0f), row.notes)
+        val physicalRows = maxOf(
+            1,
+            nameLines.size,
+            rangeLines.size,
+            bonusLines.size,
+            effectLines.size,
+            noteLines.size,
+        )
+
+        return (0 until physicalRows).map { index ->
+            CombatReferenceRow(
+                name = nameLines.getOrElse(index) { "" },
+                range = rangeLines.getOrElse(index) { "" },
+                bonus = bonusLines.getOrElse(index) { "" },
+                effect = effectLines.getOrElse(index) { "" },
+                notes = noteLines.getOrElse(index) { "" },
+            )
+        }
+    }
+
+    private fun combatCellLines(
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        leftPadding: Float = 2f,
+    ): List<String> {
+        val clean = value.trim()
+        if (clean.isEmpty()) return emptyList()
+
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        val maximumRawWidthAtReadableScale =
+            available / (COMBAT_MINIMUM_HORIZONTAL_SCALE / 100f)
+        return wrapByWidth(
+            font,
+            clean,
+            COMBAT_MINIMUM_BODY_SIZE,
+            maximumRawWidthAtReadableScale,
+        )
     }
 
     private fun renderCombatPage(
@@ -1283,6 +1329,9 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
 
+        val specialDetailLines = specialContinuation.flatMap(::inventoryDetailContinuationLines)
+        val equipmentContinuationLines = ordinaryLines + specialDetailLines
+
         val nativeV2Kinds = setOf(
             StandardCurrencyKind.PLATINUM,
             StandardCurrencyKind.GOLD,
@@ -1314,13 +1363,13 @@ internal class DesktopCustomV2ExtendedRenderer(
             wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
         }
 
-        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
+        if (equipmentContinuationLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
 
         val ordinaryCapacity =
             if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
             else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
         val pages = maxOf(
-            pageCount(ordinaryLines.size, ordinaryCapacity),
+            pageCount(equipmentContinuationLines.size, ordinaryCapacity),
             pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
             pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
         )
@@ -1329,7 +1378,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             document.addPage(page)
             renderInventory(
                 page = page,
-                ordinary = ordinaryLines
+                ordinary = equipmentContinuationLines
                     .drop(pageIndex * ordinaryCapacity)
                     .take(ordinaryCapacity),
                 treasure = treasureLines
@@ -1443,8 +1492,6 @@ internal class DesktopCustomV2ExtendedRenderer(
                     item.weightLb?.let { add(formatInventoryWeight(it)) }
                     if (item.attuned) add("Sintonizado")
                     addAll(inventoryUsageLabels(usageByItem[item.id]))
-                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
                 if (detail.isNotEmpty()) {
                     textAboveRule(s, resources.fira, Rule(307f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
@@ -1472,23 +1519,19 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun inventoryDetailContinuationLines(
         item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
     ): List<String> {
-        val lines = mutableListOf<String>()
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            addAll(inventoryUsageLabels(usage))
+        val descriptiveDetail = buildList {
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
         }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(
-                resources.condensed,
-                item.name + " — Estado: " + operationalStatus,
-                8.2f,
-                V2_EQUIPMENT_COLUMN_WIDTH,
-            )
-        }
+        if (descriptiveDetail.isEmpty()) return emptyList()
 
-        return lines
+        return wrapByWidth(
+            resources.condensed,
+            inventoryContinuationLabel(item) + " — Detalle: " + descriptiveDetail,
+            8.2f,
+            V2_EQUIPMENT_COLUMN_WIDTH,
+        )
     }
 
     private fun inventoryContinuationLines(
