@@ -156,6 +156,33 @@ The real Ilyra regression passes in both Custom-v2 variants with Spellbook descr
 
 The remaining boundary is owner runtime evidence for successful **post-`Exportar sin guardar`** rendering, draft projection into the PDF, and non-persistence back into Ilyra.
 
+## Owner runtime completion — preqa.7
+
+Owner reran Ilyra staged Step 2 on **`0.5.0-preqa.7` / build `50700`**.
+
+Observed runtime evidence:
+
+- unsaved character changes were present;
+- owner used **Custom v2 · Atributo**;
+- owner chose **`Exportar sin guardar`**;
+- post-confirmation rendering completed successfully; the former Potent Cantrip combat-compression failure did not recur;
+- the generated PDF opened/readable;
+- the generated PDF **did reflect the unsaved draft**;
+- two explicit unsaved edits were confirmed in the PDF:
+  - character name: **`Ilyra Quill - QA TEST`**;
+  - Strength / **FUE: 25**.
+
+Therefore the staged Step-2 evidence is now:
+
+- unsaved changes detected — PASS;
+- `Exportar sin guardar` presented — PASS;
+- owner selected `Exportar sin guardar` — PASS;
+- post-confirmation PDF generation — PASS;
+- PDF reflects unsaved draft — **PASS**;
+- persisted Ilyra data remains unchanged after reload — **PENDING**.
+
+The only remaining Step-2 assertion is non-persistence after leaving the dirty editor without saving and reopening Ilyra from persisted storage.
+
 ## Owner boundary
 
 Exact next owner action on **`0.5.0-preqa.7` / build `50700`**:
@@ -168,10 +195,9 @@ Exact next owner action on **`0.5.0-preqa.7` / build `50700`**:
 6. turn **Spellbook ON**;
 7. start the export;
 8. when the unsaved-change confirmation appears, choose **`Exportar sin guardar`**;
-9. require PDF generation to complete without the former combat or Spellbook inventory diagnostics;
-10. open the generated PDF and verify the harmless unsaved edit is present;
-11. return to/reload Ilyra and verify the harmless edit is **not** persisted in the character;
-12. report PASS or the exact observed defect.
+9. PDF generation and draft projection are now OWNER PASS;
+10. **remaining action:** leave the dirty Ilyra editor without saving, reopen Ilyra from the character list, and verify persisted values are still the stored baseline: name **`Ilyra Quill`** and **FUE 8**, not `Ilyra Quill - QA TEST` / FUE 25;
+11. report PASS or the exact observed defect.
 
 Already-proven evidence that must not be forgotten or unnecessarily retested as a separate objective:
 
