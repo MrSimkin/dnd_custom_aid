@@ -85,6 +85,34 @@ The active branch now:
   - `Protocolo de paradoja 1`;
   - `Reserva 10: Sello`.
 
+## Branch validation discovery — Scaffold #3915
+
+Scaffold **#3915** / run `36272581858` reached the full Kotlin/rendering suite.
+
+The original owner blocker **`Manipulación de éter` did not recur** in the real-Mara regression, confirming that the bounded source-label micro-fit advanced rendering past that field.
+
+The regression then exposed a second latent Mara blocker:
+
+`Text does not fit: Rasgo extenso 01 — Umbral: recursos y anota el resultado. La segunda frase existe para forzar salto de línea`
+
+Root cause:
+
+- featured trait descriptions are first wrapped to fit their feature block;
+- overflow lines beyond the first three are routed to the Traits continuation area;
+- the old `featureOverflowLines` implementation prepended `trait.name + ": "` to the first already-wrapped overflow line **without re-wrapping after adding that prefix**;
+- the resulting continuation line can therefore exceed the actual continuation-rule width even though the original overflow line was valid.
+
+Generalized correction now active:
+
+1. preserve the same feature-block preview and overflow semantics;
+2. join only the already-routed overflow content;
+3. prepend the trait name once;
+4. **re-wrap the complete prefixed continuation text** at the actual 281-pt continuation width and 7.7 pt continuation font;
+5. preserve all semantic content; do not truncate or add compression;
+6. apply identically to Desktop and Android.
+
+The real-Mara two-family regression remains the acceptance test. A fresh Scaffold on the corrected head is required.
+
 ## Owner boundary
 
 No owner action is required on the current preqa.7 APK.
