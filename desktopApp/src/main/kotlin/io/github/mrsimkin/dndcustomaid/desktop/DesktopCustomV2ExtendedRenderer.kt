@@ -2254,15 +2254,21 @@ internal class DesktopCustomV2ExtendedRenderer(
         horizontalScale: Float,
     ) {
         val available = rule.endX - rule.startX - 2f
-        val scaledWidth = textWidth(font, text, size) * horizontalScale / 100f
-        require(scaledWidth <= available + 0.05f) {
-            "Source-matched text does not fit: $text ($scaledWidth > $available)"
+        val rawWidth = textWidth(font, text, size)
+        val nominalWidth = rawWidth * horizontalScale / 100f
+        val effectiveScale = if (nominalWidth <= available + 0.05f || rawWidth <= 0f) {
+            horizontalScale
+        } else {
+            (available / rawWidth * 100f).coerceAtMost(horizontalScale)
+        }
+        require(effectiveScale >= horizontalScale - SOURCE_MATCHED_MICRO_FIT_DELTA) {
+            "Source-matched text does not fit: $text ($nominalWidth > $available; requiredScale=$effectiveScale)"
         }
         val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
         val baseline = H - rule.topY + clearance - descent
         s.beginText()
         s.setFont(font, size)
-        s.setHorizontalScaling(horizontalScale)
+        s.setHorizontalScaling(effectiveScale)
         s.newLineAtOffset(rule.startX + 1f, baseline)
         s.showText(text)
         s.setHorizontalScaling(100f)
@@ -2687,6 +2693,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_COMPACT_SCALE = 78f
         const val SOURCE_CORBEL_HEADING_SCALE = 81f
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
+        const val SOURCE_MATCHED_MICRO_FIT_DELTA = 2f
         const val BASE_V2_TRAIT_CAPACITY = 18
         const val ATTRIBUTE_COLUMNS_PER_PAGE = 3
         const val ATTRIBUTE_LINKED_SKILLS_PER_COLUMN = 6
