@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — PR #104 integrated the owner-passed `0.5.0-preqa.5` Aldren/Permanente cross-family repair into `main`; one Custom v1/v2 continuation-page layout residual (header/first-row overlap plus excessive row height) remains explicitly accepted as minor/non-blocking; staged Android runtime smoke is the current boundary
+**Current active package:** PC Sheet PDF Export — Aldren Share runtime smoke PASS; Ilyra exposed a new Fantasy Sheet trait-continuation physical-row overflow before the intended Custom-v2 + Spellbook persistence check; generalized measured-row pagination repair is active on `fix/pc-sheet-ilyra-fantasy-trait-pagination`
 
 ### Superseding PDF visual state — 2026-09-20
 
