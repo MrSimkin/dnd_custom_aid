@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Ilyra Fantasy repair OWNER PASS; PR #106 fixes the post-`Exportar sin guardar` Custom-v2 combat and special-Spellbook continuation blockers and is integrated on `main` with Scaffold #3895 SUCCESS. Android QA `0.5.0-preqa.7` / build `50700` is ready for owner runtime completion of Ilyra Step 2. Remaining assertions: generated PDF reflects the unsaved draft and persisted Ilyra data remains unchanged after reload.
+**Current active package:** PC Sheet PDF Export — Aldren Share OWNER PASS; Ilyra Fantasy repair OWNER PASS; Ilyra Custom-v2 staged Step 2 OWNER PASS including `Exportar sin guardar`, draft projection into PDF, and reload proving non-persistence. Current manual runtime target is Mara: first Custom v2 · Atributo + Permanente, then Custom v2 · Habilidad + Permanente, inspecting high-volume Extended/custom-stat/overflow continuation behavior.
 
 ### Superseding PDF visual state — 2026-09-20
 
