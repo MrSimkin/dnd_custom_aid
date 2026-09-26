@@ -1329,9 +1329,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
 
-        val specialDetailLines = specialContinuation.flatMap { item ->
-            inventoryDetailContinuationLines(item, usageByItem[item.id])
-        }
+        val specialDetailLines = specialContinuation.flatMap(::inventoryDetailContinuationLines)
         val equipmentContinuationLines = ordinaryLines + specialDetailLines
 
         val nativeV2Kinds = setOf(
@@ -1521,7 +1519,6 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun inventoryDetailContinuationLines(
         item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
     ): List<String> {
         val descriptiveDetail = buildList {
             item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
