@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — staged runtime smoke exposed a Mara 3A Custom-v2 Attribute Extended source-label fit blocker; repair branch `fix/pc-sheet-mara-source-microfit` is active.
+**Current normal work:** PC Sheet PDF Export — Mara 3A generalized repair is implemented and branch-green on `0.5.0-preqa.8` / build `50800` (Scaffold #3926 SUCCESS). PR creation/PR-head validation is the next lifecycle step; owner rerun remains blocked until merged-main is green.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -104,15 +104,15 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** `fix/pc-sheet-mara-source-microfit`.
 
-**Sole active implementation PR:** none yet; Mara source-label micro-fit repair validation is pending before PR creation.
+**Sole active implementation PR:** none yet; `preqa.8` exact branch candidate is green and ready to enter PR validation.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;
 - normal continuation branch: `main`;
 - PR #106 post-merge Scaffold #3895 / `36269693233` — SUCCESS;
-- `0.5.0-preqa.7` / `50700` is the current owner-ready runtime candidate;
+- `0.5.0-preqa.8` / `50800` is the current repaired candidate; branch-head Scaffold #3926 is SUCCESS, but owner runtime remains blocked until PR/integration/merged-main validation;
 - Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 Step 2 is OWNER PASS including post-confirmation PDF generation, unsaved-draft projection and reload/non-persistence. Mara both Custom-v2 variants are the current pending runtime target;
+- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 Step 2 is OWNER PASS. Mara 3A exposed three Extended-path blockers; the generalized repair now passes the real Mara fixture for both Custom-v2 families and awaits PR/integration before owner rerun;
 - Media/Handouts remains blocked until that runtime sequence is recorded.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**

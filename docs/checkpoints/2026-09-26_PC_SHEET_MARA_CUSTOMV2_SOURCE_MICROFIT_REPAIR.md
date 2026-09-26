@@ -3,7 +3,7 @@
 **Date:** 2026-09-26 (Chile local time)  
 **Base main:** `4f484cbd30a2e67265dba710c1f2865b035e0082`  
 **Active branch:** `fix/pc-sheet-mara-source-microfit`  
-**Status:** OWNER RUNTIME DEFECT REPRODUCED / BOUNDED SOURCE-LABEL MICRO-FIT REPAIR ACTIVE
+**Status:** REPAIR IMPLEMENTED / REAL-MARA REGRESSION GREEN / PREQA.8 BRANCH CANDIDATE GREEN / PR PENDING
 
 ## Completed staged runtime before Mara
 
@@ -175,11 +175,27 @@ Validated on the real Mara fixture for both Custom-v2 variants:
 
 A distinguishable repaired owner candidate is now being stamped as **`0.5.0-preqa.8` / build `50800`**. It requires its own green Scaffold run before PR/integration.
 
+## Exact versioned candidate validation
+
+The distinguishable Android candidate is now fully stamped and branch-green:
+
+- Android version: **`0.5.0-preqa.8` / build `50800`**;
+- exact current branch head before consolidation: `e8a578587094fbc158beb41b7abed8d787d88c4b`;
+- Scaffold **#3926** / run `36273927426` — **SUCCESS**;
+- full Kotlin/build/rendering suite — PASS;
+- real Mara regression for **both** Custom-v2 variants — PASS;
+- Android renderer-sync and PDF-delivery guards — PASS;
+- backend — PASS;
+- hosted database — PASS;
+- Android debug APK and PC-sheet proof artifacts — PASS.
+
+The implementation/candidate gate is closed. Next repository lifecycle step is PR-head validation, merge, then merged-main Scaffold. Owner runtime remains blocked until those integration gates are green.
+
 ## Owner boundary
 
 No owner action is required on the current preqa.7 APK.
 
-Do not retry Mara 3A until a distinguishable repaired Android QA candidate is repository-green, PR-integrated, and merged-main green.
+Do not retry Mara 3A yet. The distinguishable repaired Android QA candidate is branch-green, but it still requires PR-head validation, integration, and merged-main Scaffold success.
 
 After that, rerun **Mara 3A only**:
 

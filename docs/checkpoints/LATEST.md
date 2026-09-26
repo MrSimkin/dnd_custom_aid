@@ -6,9 +6,9 @@
 **Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`  
-**Current active route:** Mara 3A (**Custom v2 · Atributo + Permanente + Extended**) is BLOCKED on preqa.7 by `Source-matched text does not fit: Manipulación de éter (49.48437 > 49.0)`. Generalized bounded source-label micro-fit repair is active on `fix/pc-sheet-mara-source-microfit`. Do not start Mara 3B or Current Snapshot until a repaired candidate is green and Mara 3A reruns.
+**Current active route:** Mara repair package is repository-green on the real Mara fixture for both Custom-v2 variants. `0.5.0-preqa.8` / build `50800` is stamped and exact branch-head Scaffold #3926 is SUCCESS. **No owner action yet:** open/validate the repair PR, merge it, and require merged-main Scaffold success before rerunning Mara 3A.
 **Current implementation branch:** `fix/pc-sheet-mara-source-microfit` — sole non-main continuation authority
-**Current implementation PR:** none — PR #106 is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`  
+**Current implementation PR:** none yet — exact `preqa.8` branch candidate is green; PR creation/PR-head validation is the next lifecycle step  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
