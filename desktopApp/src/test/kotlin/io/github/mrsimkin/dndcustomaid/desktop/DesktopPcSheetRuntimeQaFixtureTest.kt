@@ -178,6 +178,9 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 assertTrue(normalized.contains("Potent Cantrip de Evoker"))
                 assertTrue(normalized.contains("SRD 5.2.1"))
                 assertTrue(normalized.contains("Memorize Spell"))
+                assertTrue(normalized.contains("Libro de 100 páginas"))
+                assertTrue(normalized.contains("incluidos los añadidos por Evocation Savant"))
+                assertTrue(normalized.contains("Contiene la selección legal de conjuros de Ilyra hasta nivel 5"))
             }
         }
     }
