@@ -1331,6 +1331,11 @@ internal class AndroidCustomV2ExtendedRenderer(
             }
         }
 
+        val specialDetailLines = specialContinuation.flatMap { item ->
+            inventoryDetailContinuationLines(item, usageByItem[item.id])
+        }
+        val equipmentContinuationLines = ordinaryLines + specialDetailLines
+
         val nativeV2Kinds = setOf(
             StandardCurrencyKind.PLATINUM,
             StandardCurrencyKind.GOLD,
@@ -1362,13 +1367,13 @@ internal class AndroidCustomV2ExtendedRenderer(
             wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
         }
 
-        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
+        if (equipmentContinuationLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
 
         val ordinaryCapacity =
             if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
             else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
         val pages = maxOf(
-            pageCount(ordinaryLines.size, ordinaryCapacity),
+            pageCount(equipmentContinuationLines.size, ordinaryCapacity),
             pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
             pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
         )
@@ -1377,7 +1382,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             document.addPage(page)
             renderInventory(
                 page = page,
-                ordinary = ordinaryLines
+                ordinary = equipmentContinuationLines
                     .drop(pageIndex * ordinaryCapacity)
                     .take(ordinaryCapacity),
                 treasure = treasureLines
@@ -1491,8 +1496,6 @@ internal class AndroidCustomV2ExtendedRenderer(
                     item.weightLb?.let { add(formatInventoryWeight(it)) }
                     if (item.attuned) add("Sintonizado")
                     addAll(inventoryUsageLabels(usageByItem[item.id]))
-                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
                 if (detail.isNotEmpty()) {
                     textAboveRule(s, resources.fira, Rule(307f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
@@ -1522,21 +1525,18 @@ internal class AndroidCustomV2ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val lines = mutableListOf<String>()
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            addAll(inventoryUsageLabels(usage))
+        val descriptiveDetail = buildList {
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
         }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(
-                resources.condensed,
-                item.name + " — Estado: " + operationalStatus,
-                8.2f,
-                V2_EQUIPMENT_COLUMN_WIDTH,
-            )
-        }
+        if (descriptiveDetail.isEmpty()) return emptyList()
 
-        return lines
+        return wrapByWidth(
+            resources.condensed,
+            inventoryContinuationLabel(item) + " — Detalle: " + descriptiveDetail,
+            8.2f,
+            V2_EQUIPMENT_COLUMN_WIDTH,
+        )
     }
 
     private fun inventoryContinuationLines(
