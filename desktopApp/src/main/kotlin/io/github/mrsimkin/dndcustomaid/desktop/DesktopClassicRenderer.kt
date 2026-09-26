@@ -45,6 +45,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle
  */
 internal class DesktopClassicRenderer {
     private val overflowDiagnostics = mutableListOf<String>()
+    private val baseClippedTraitIds = mutableSetOf<kotlin.uuid.Uuid>()
 
     fun renderBase(
         plan: PcSheetPdfRenderPlan,
@@ -63,6 +64,7 @@ internal class DesktopClassicRenderer {
         }
 
         overflowDiagnostics.clear()
+        baseClippedTraitIds.clear()
         PDDocument().use { doc ->
             val fonts = DesktopPdfFontRegistry(doc, CLASSIC_THEME)
             val p = DesktopPdfRenderingPrimitives(fonts)
@@ -306,7 +308,11 @@ internal class DesktopClassicRenderer {
         val clippedClassTraitIds = classicBaseClassProjection(classBase).clippedTraitIds
         val referenceTraits = baseDisplayed.filter { trait ->
             !traitHasDedicatedActionOrResource(trait, plan) &&
-                (trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait))
+                (
+                    trait.id in clippedClassTraitIds ||
+                    trait.id in baseClippedTraitIds ||
+                    traitNeedsReferenceContinuation(trait)
+                )
         }
         val traitEntries = (overflowTraits + referenceTraits)
             .distinctBy { it.id }
@@ -1770,10 +1776,15 @@ private fun appendSpellContinuationPages(
             }
 
             titledFrame(s, p, rightX + 164f, 606f, 154f, 112f, "DOTES")
-            ruledTextArea(
-                s, p, rightX + 173f, 638f, 136f, 70f,
-                feats.take(BASE_FEAT_CAPACITY).map(::classicBaseTraitSummary),
-                8.2f,
+            boundedBaseTraitPreview(
+                s = s,
+                p = p,
+                x = rightX + 173f,
+                top = 638f,
+                width = 136f,
+                height = 70f,
+                traits = feats.take(BASE_FEAT_CAPACITY),
+                fontSize = 8.2f,
             )
 
             footer(s, p, 1, "RESUMEN / COMBATE / ATRIBUTOS Y HABILIDADES")
@@ -2693,6 +2704,70 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                         overflowDiagnostics += "continuous-feature value='${physicalLine}' overflow='${remaining}'"
                     }
                 }
+        }
+    }
+
+
+    private fun boundedBaseTraitPreview(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+        fontSize: Float,
+        lineGap: Float = 20f,
+    ) {
+        val physicalRows = (height / lineGap).toInt().coerceAtLeast(1)
+        repeat(physicalRows) { row ->
+            val ruleTop = top + (row + 1) * lineGap
+            if (ruleTop <= top + height + 0.05f) {
+                hairline(s, x, ruleTop, x + width, ruleTop)
+            }
+        }
+
+        var rowIndex = 0
+        traits.forEachIndexed { traitIndex, trait ->
+            val remainingTraits = traits.size - traitIndex - 1
+            val availableForTrait = (physicalRows - rowIndex - remainingTraits)
+                .coerceAtLeast(0)
+                .coerceAtMost(CLASSIC_RULED_ENTRY_LINES)
+            var remaining = traitSummary(trait).trim()
+            var rowsUsed = 0
+
+            while (
+                remaining.isNotBlank() &&
+                rowsUsed < availableForTrait &&
+                rowIndex < physicalRows
+            ) {
+                val rowTop = top + rowIndex * lineGap
+                val result = p.drawTextBox(
+                    s,
+                    PdfTextBoxSpec(
+                        rect = rect(x + 2f, rowTop + 0.5f, width - 4f, lineGap - 1.5f),
+                        text = remaining,
+                        role = PdfTypographyRole.NOTE_TEXT,
+                        preferredSizePt = fontSize,
+                        minimumSizePt = fontSize,
+                        horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                        verticalAlignment = PdfVerticalAlignment.BOTTOM,
+                        wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                        maximumLines = 1,
+                        horizontalPaddingPt = 0f,
+                        verticalPaddingPt = 0.45f,
+                        lineHeightMultiplier = 1f,
+                        fontSizeMode = PdfFontSizeMode.FIXED,
+                    ),
+                )
+                remaining = result.overflowText?.trim().orEmpty()
+                rowIndex += 1
+                rowsUsed += 1
+            }
+
+            if (remaining.isNotBlank()) {
+                baseClippedTraitIds += trait.id
+            }
         }
     }
 

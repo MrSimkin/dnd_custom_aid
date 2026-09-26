@@ -102,17 +102,17 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** none.
+**Sole active non-main branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination`.
 
-**Sole active implementation PR:** none. PR #104 is MERGED / INTEGRATED as `8b1618d56d5483524559f9598bc8862acfe91c9a`; historical stale PRs #36, #37, #49 and #103 are closed/superseded.
+**Sole active implementation PR:** PR #105 — `fix: bound Fantasy feat previews by physical rows`; branch validation is green and PR-head validation is pending. PR #104 remains historical integrated evidence.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md`;
+- canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;
 - normal continuation branch: `main`;
 - PR #104 post-merge Scaffold #3826 / `36203501345` — SUCCESS;
 - `0.5.0-preqa.5` / `50500` remains the owner-tested runtime behavior;
 - Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- current boundary is staged Android runtime smoke: Aldren Share, Ilyra Custom-v2 + Spellbook/unsaved export persistence check, Mara both Custom-v2 Extended variants, and Current Snapshot fallback notice;
+- Aldren Share is PASS; Ilyra exposed a Fantasy Sheet base-page DOTES bounded-preview overflow before completing the intended Custom-v2 + Spellbook persistence check; manual smoke is paused while the active repair branch is validated;
 - Media/Handouts remains blocked until that runtime sequence is recorded.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
