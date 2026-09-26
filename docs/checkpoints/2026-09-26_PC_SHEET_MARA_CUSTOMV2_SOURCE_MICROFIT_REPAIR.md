@@ -136,6 +136,26 @@ Generalized correction now active:
 
 The real-Mara regression remains the acceptance gate. A fresh Scaffold is required.
 
+## Branch validation discovery — Scaffold #3921
+
+Scaffold **#3921** advanced beyond the skill-label, trait-continuation, and first inventory micro-fit edge. The real-Mara regression then exposed a longer ordinary equipment identity that still needed **75.74508%** compression:
+
+`5 x Frasco de tinta que recuerda la última palabra escrita 20 · 3.5 lb`
+
+This proves the ordinary inventory problem is not appropriately solved by repeatedly lowering the compact readability floor.
+
+Generalized correction now active:
+
+1. keep 78% as the compact inventory readability target;
+2. before pagination/rendering, wrap long ordinary equipment identity labels at the 7 pt / 78% boundary;
+3. allow one logical inventory item identity to consume multiple physical continuation rows;
+4. let existing continuation pagination absorb those rows/pages;
+5. preserve all identity text, quantity and weight; no truncation;
+6. keep the compact fail-closed scale guard as a final safety net;
+7. apply identically to Desktop and Android.
+
+The real-Mara two-family regression remains the acceptance gate. A fresh Scaffold is required.
+
 ## Owner boundary
 
 No owner action is required on the current preqa.7 APK.
