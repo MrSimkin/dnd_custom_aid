@@ -1,16 +1,16 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-24 (Chile local time)  
+**Last reconstructed:** 2026-09-26 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified functional `main`:** `8b1618d56d5483524559f9598bc8862acfe91c9a` (PR #104 cross-family runtime repair integrated)  
-**Post-merge Scaffold:** `36203501345` / #3826 — SUCCESS  
+**Last verified functional `main`:** `c8276d8afaec97c704a8e0e0fd4724e870fa43f0` (PR #105 Ilyra Fantasy feat-preview repair integrated)  
+**Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
 **Wave 5:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable/persistent content architecture:** COMPLETE / INTEGRATED  
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Aldren Share runtime smoke PASS; Ilyra exposed a Fantasy Sheet base-page DOTES bounded-preview overflow before the intended Custom-v2 + Spellbook persistence check; physically bounded feat preview + full-detail continuation repair is active on `fix/pc-sheet-ilyra-fantasy-trait-pagination`
+**Current active package:** PC Sheet PDF Export — Aldren Share PASS; Ilyra Fantasy base-page DOTES overflow repaired by PR #105 with merged-main Scaffold #3861 SUCCESS. Android QA `0.5.0-preqa.6` / build `50600` is ready for owner runtime verification. Next owner test: Ilyra Fantasy Sheet + Permanente Save/open; after PASS resume Ilyra Custom-v2 + Spellbook unsaved-export persistence.
 
 ### Superseding PDF visual state — 2026-09-20
 

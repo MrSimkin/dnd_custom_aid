@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-26 (Chile local time)  
 **Base main:** `63a56a5de91b7d77c301918331a26d32f79c5f60`  
-**Active branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination`  
-**Status:** OWNER RUNTIME DEFECT REPRODUCED / BASE-FEAT BOUNDED PREVIEW ROUTING REPAIR ACTIVE
+**Active branch:** none — PR #105 merged; `main` is authoritative  
+**Status:** REPAIR MERGED / MERGED-MAIN GREEN / OWNER PREQA.6 RUNTIME VERIFICATION READY
 
 ## Owner runtime evidence
 
@@ -62,10 +62,30 @@ Corrected minimal repair validation:
 
 The green repair keeps the change narrow: the Fantasy base-page **DOTES** preview consumes at most its physically available ruled rows, and any clipped feat is explicitly promoted to the existing full-detail traits continuation. The failed reference/measurement experiments were removed before this successful run.
 
-The distinguishable owner candidate **`0.5.0-preqa.6` / build `50600`** passed Scaffold #3856. PR **#105** is now the active implementation PR; require PR-head and merged-main Scaffold success before owner installation.
+The distinguishable owner candidate **`0.5.0-preqa.6` / build `50600`** passed Scaffold #3856.
+
+Integration closure:
+
+- PR **#105** — `fix: bound Fantasy feat previews by physical rows`;
+- PR-head Scaffold #3860 — SUCCESS;
+- squash-merged to `main` as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`;
+- merged-main Scaffold **#3861** / run `36266188824` — **SUCCESS**;
+- merged-main Android artifact `dnd-custom-aid-debug-apk` is available from run #3861.
+
+Repository/CI repair acceptance is closed. Remaining evidence is owner runtime verification.
 
 ## Manual boundary
 
-Do not continue the Ilyra Custom-v2 + Spellbook unsaved-export persistence smoke on the currently installed preqa.5 APK. The minimal repair is repository-green; next require the stamped preqa.6 / build 50600 candidate to pass Scaffold, integrate through PR, then install that APK as an update without uninstalling local state. Resume at Ilyra only after that.
+Exact next owner action:
+
+1. install merged-main **`0.5.0-preqa.6` / build `50600`** as an update; **do not uninstall** the existing app;
+2. verify the installed version is `0.5.0-preqa.6` / `50600`;
+3. open **Ilyra Quill -> Hoja de personaje PDF**;
+4. select **Fantasy Sheet + Permanente**; Spellbook is not required for this repair-verification step;
+5. choose **Guardar PDF**;
+6. require: no bounded-routing diagnostic, save completes, PDF opens/readable, and the full **Ability Score Improvement** semantics survive somewhere appropriate in the PDF;
+7. report PASS or the exact observed defect.
+
+Only after this repair-verification PASS resume the original staged Step 2: Ilyra **Custom v2 + Spellbook** with a harmless unsaved edit and `Exportar sin guardar`, verifying the PDF sees the draft while persisted character data remains unchanged.
 
 Mara, Current Snapshot and Media/Handouts remain pending.

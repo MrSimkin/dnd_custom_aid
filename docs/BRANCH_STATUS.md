@@ -1,14 +1,14 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-25 (Chile local time)  
+**Updated:** 2026-09-26 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified functional `main`:** `8b1618d56d5483524559f9598bc8862acfe91c9a` (PR #104 cross-family runtime repair integrated)  
-**Post-merge Scaffold:** `36203501345` / #3826 — SUCCESS  
+**Last verified functional `main`:** `c8276d8afaec97c704a8e0e0fd4724e870fa43f0` (PR #105 Ilyra Fantasy feat-preview repair integrated)  
+**Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #104 is integrated on `main`; preqa.5 Aldren/Permanente four-family owner rerun is PASS with one accepted minor Custom v1/v2 continuation-layout residual; staged Android runtime smoke is the active boundary
+**Current normal work:** PC Sheet PDF Export — PR #105 is integrated on `main`; `0.5.0-preqa.6` / build `50600` is repository-green and ready for owner Ilyra Fantasy repair-verification, followed by the staged Ilyra Custom-v2 + Spellbook persistence smoke.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,9 +102,9 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** `fix/pc-sheet-ilyra-fantasy-trait-pagination`.
+**Sole active non-main branch:** none as continuation authority; the merged PR #105 source ref may remain as inert historical Git state.
 
-**Sole active implementation PR:** PR #105 — `fix: bound Fantasy feat previews by physical rows`; branch validation is green and PR-head validation is pending. PR #104 remains historical integrated evidence.
+**Sole active implementation PR:** none. PR #105 — `fix: bound Fantasy feat previews by physical rows` — is MERGED / INTEGRATED as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`; merged-main Scaffold #3861 is SUCCESS.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`;
