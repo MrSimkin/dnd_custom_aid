@@ -1963,7 +1963,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
         val rawWidth = textWidth(font, text, size)
         val scale = minOf(100f, available / rawWidth * 100f)
-        require(scale >= minimumHorizontalScale) {
+        require(scale >= minimumHorizontalScale - COMPACT_LABEL_MICRO_FIT_DELTA) {
             "Compact v2 label requires excessive compression: $text ($scale%)"
         }
         val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
@@ -2699,6 +2699,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_HEADING_SCALE = 81f
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
         const val SOURCE_MATCHED_MICRO_FIT_DELTA = 2f
+        const val COMPACT_LABEL_MICRO_FIT_DELTA = 2f
         const val BASE_V2_TRAIT_CAPACITY = 18
         const val ATTRIBUTE_COLUMNS_PER_PAGE = 3
         const val ATTRIBUTE_LINKED_SKILLS_PER_COLUMN = 6
