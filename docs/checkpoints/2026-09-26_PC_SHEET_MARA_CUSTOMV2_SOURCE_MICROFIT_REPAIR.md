@@ -156,6 +156,25 @@ Generalized correction now active:
 
 The real-Mara two-family regression remains the acceptance gate. A fresh Scaffold is required.
 
+## Green combined branch validation
+
+Scaffold **#3924** / run `36273568819` — **SUCCESS**.
+
+Validated on the real Mara fixture for both Custom-v2 variants:
+
+- original `Manipulación de éter` source-fit blocker — cleared;
+- featured trait overflow after name prefix — cleared through target-width re-wrap;
+- ordinary equipment compact identity lines — expanded across physical continuation rows at the 7 pt / 78% readability boundary;
+- Mara representative semantics preserved, including custom skill, long trait/inventory content, paradox protocol and resource markers;
+- Android renderer-sync guard — PASS;
+- Android PDF-delivery guard — PASS;
+- full Kotlin/build/rendering tests — PASS;
+- backend — PASS;
+- hosted database — PASS;
+- Android debug APK + PC-sheet proof artifacts — PASS.
+
+A distinguishable repaired owner candidate is now being stamped as **`0.5.0-preqa.8` / build `50800`**. It requires its own green Scaffold run before PR/integration.
+
 ## Owner boundary
 
 No owner action is required on the current preqa.7 APK.
