@@ -206,18 +206,6 @@ internal data class PdfImagePlacementResult(
 internal class DesktopPdfRenderingPrimitives(
     private val fonts: DesktopPdfFontRegistry,
 ) {
-    fun measureTextBox(spec: PdfTextBoxSpec): PdfTextLayoutResult {
-        val cleaned = spec.text.replace("\\r\\n", "\\n").trim()
-        if (cleaned.isEmpty()) {
-            return PdfTextLayoutResult(emptyList(), null, spec.preferredSizePt, spec.preferredSizePt)
-        }
-
-        val font = fonts.font(spec.role)
-        val availableWidth = max(0f, spec.rect.width - spec.horizontalPaddingPt * 2f)
-        val availableHeight = max(0f, spec.rect.height - spec.verticalPaddingPt * 2f)
-        return fitLayout(font, cleaned, spec, availableWidth, availableHeight)
-    }
-
     fun drawTextBox(
         stream: PDPageContentStream,
         spec: PdfTextBoxSpec,
