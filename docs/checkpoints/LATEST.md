@@ -5,9 +5,9 @@
 **Last verified functional main:** `c8276d8afaec97c704a8e0e0fd4724e870fa43f0` (PR #105 Ilyra Fantasy feat-preview repair integrated)  
 **Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`  
-**Current active route:** Ilyra Fantasy/DOTES repair verification is OWNER PASS on `0.5.0-preqa.6` / build `50600` (overflow gone, PDF readable, full Ability Score Improvement semantics preserved). Resume original staged Step 2 now: **Ilyra Custom v2 + Spellbook**, make one harmless unsaved edit, choose `Exportar sin guardar`, verify PDF reflects the draft, then verify persisted Ilyra data remains unchanged.
-**Current implementation branch:** none — PR #105 is merged; `main` is the continuation authority
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md`  
+**Current active route:** Ilyra staged Step 2 is BLOCKED by a Custom-v2 Extended combat-cell readability guard on the Potent Cantrip note. Generalized multi-row combat continuation repair is active on `fix/pc-sheet-ilyra-customv2-combat-row-wrap`; no owner retry until a new green QA candidate is integrated.
+**Current implementation branch:** `fix/pc-sheet-ilyra-customv2-combat-row-wrap` — sole non-main continuation authority
 **Current implementation PR:** none — PR #105 is MERGED / INTEGRATED as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`; prior stale PRs remain historical/superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
