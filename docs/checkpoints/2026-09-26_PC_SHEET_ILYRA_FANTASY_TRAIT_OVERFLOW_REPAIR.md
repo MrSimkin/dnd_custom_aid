@@ -62,7 +62,7 @@ Corrected minimal repair validation:
 
 The green repair keeps the change narrow: the Fantasy base-page **DOTES** preview consumes at most its physically available ruled rows, and any clipped feat is explicitly promoted to the existing full-detail traits continuation. The failed reference/measurement experiments were removed before this successful run.
 
-A distinguishable owner candidate is now being stamped as **`0.5.0-preqa.6` / build `50600`**. It requires its own green Scaffold run before PR/integration and owner installation.
+The distinguishable owner candidate **`0.5.0-preqa.6` / build `50600`** passed Scaffold #3856. PR **#105** is now the active implementation PR; require PR-head and merged-main Scaffold success before owner installation.
 
 ## Manual boundary
 
