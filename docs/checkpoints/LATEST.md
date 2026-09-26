@@ -6,7 +6,7 @@
 **Post-merge Scaffold:** `36266188824` / #3861 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_FANTASY_TRAIT_OVERFLOW_REPAIR.md`  
-**Current active route:** PR #105 is MERGED / INTEGRATED and merged-main Scaffold #3861 is SUCCESS. Owner action is READY: install `0.5.0-preqa.6` / build `50600` as an update without uninstalling local state, verify version, then rerun **Ilyra Fantasy Sheet + Permanente -> Guardar PDF**. Require no bounded-routing diagnostic and a readable PDF with complete Ability Score Improvement semantics preserved. Only after that PASS resume the intended Ilyra Custom-v2 + Spellbook / `Exportar sin guardar` persistence smoke.
+**Current active route:** Ilyra Fantasy/DOTES repair verification is OWNER PASS on `0.5.0-preqa.6` / build `50600` (overflow gone, PDF readable, full Ability Score Improvement semantics preserved). Resume original staged Step 2 now: **Ilyra Custom v2 + Spellbook**, make one harmless unsaved edit, choose `Exportar sin guardar`, verify PDF reflects the draft, then verify persisted Ilyra data remains unchanged.
 **Current implementation branch:** none — PR #105 is merged; `main` is the continuation authority
 **Current implementation PR:** none — PR #105 is MERGED / INTEGRATED as `c8276d8afaec97c704a8e0e0fd4724e870fa43f0`; prior stale PRs remain historical/superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
