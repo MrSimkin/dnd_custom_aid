@@ -1,9 +1,9 @@
-# Checkpoint — Cross-family PC Sheet runtime repair ACTIVE
+# Checkpoint — Cross-family PC Sheet runtime repair — historical integrated record
 
 **Date:** 2026-09-25 (Chile local time)  
 **Branch:** `fix/pc-sheet-cross-family-runtime-repair`  
 **Branch base:** main `3453b2dac88644fd26ccb8b1c6ce47c634d99cef` (PR #102 cross-family QA handoff)  
-**Status:** PREQA.5 OWNER RERUN PASS / ACCEPTED MINOR LAYOUT RESIDUAL / READY FOR INTEGRATION
+**Status:** PREQA.5 OWNER RERUN PASS / ACCEPTED MINOR LAYOUT RESIDUAL / INTEGRATED VIA PR #104
 
 ## Why this branch exists
 
@@ -171,3 +171,11 @@ Do not start Media / Handouts until the resumed manual Android runtime result is
 Fresh sessions resume through:
 
 `RESUME.md -> docs/checkpoints/LATEST.md -> this checkpoint`.
+
+## Integration closure
+
+PR #104 was reconciled with current `main` without rewriting the tested runtime implementation, passed the reconciled-head Scaffold, and merged as `8b1618d56d5483524559f9598bc8862acfe91c9a`.
+
+Post-merge Scaffold #3826 / `36203501345` — SUCCESS.
+
+This file is now historical repair evidence. Current continuation is routed through `docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md` on `main`.

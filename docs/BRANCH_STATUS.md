@@ -3,12 +3,12 @@
 **Updated:** 2026-09-25 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
-**Last verified functional `main`:** `fd781262abfeb47003298562e540721a8515071a` (PR #100 generalized Fantasy bounded-text repair)  
-**Post-merge Scaffold:** `36067012766` — SUCCESS  
+**Last verified functional `main`:** `8b1618d56d5483524559f9598bc8862acfe91c9a` (PR #104 cross-family runtime repair integrated)  
+**Post-merge Scaffold:** `36203501345` / #3826 — SUCCESS  
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — `fix/pc-sheet-cross-family-runtime-repair` has passed the `0.5.0-preqa.5` Aldren/Permanente four-family owner rerun, with one accepted minor Custom v1/v2 continuation-layout residual; reconcile/integrate PR #104, then resume staged Android runtime smoke
+**Current normal work:** PC Sheet PDF Export — PR #104 is integrated on `main`; preqa.5 Aldren/Permanente four-family owner rerun is PASS with one accepted minor Custom v1/v2 continuation-layout residual; staged Android runtime smoke is the active boundary
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,18 +102,18 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** `fix/pc-sheet-cross-family-runtime-repair`.
+**Sole active non-main branch:** none.
 
-**Sole active implementation PR:** draft **#104**. Historical stale PRs #36, #37, #49 and #103 are closed/superseded.
+**Sole active implementation PR:** none. PR #104 is MERGED / INTEGRATED as `8b1618d56d5483524559f9598bc8862acfe91c9a`; historical stale PRs #36, #37, #49 and #103 are closed/superseded.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`;
-- implementation support checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md`;
-- final repaired implementation head `cfaa98f92cecb846babcf83f180783839ccd56c6` is green on push `36196067865` and PR `36196073964`;
-- `0.5.0-preqa.5` / `50500` candidate `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523` is green on push `36196696061` and PR `36196702100`; preferred APK artifact `10890483613`;
-- Aldren/Permanente four-family rerun is OWNER PASS on `0.5.0-preqa.5`; the only accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- reconcile current `main`, take PR #104 out of draft after green CI, and integrate the passed repair;
-- then resume the staged Android runtime sequence: Aldren Share, Ilyra Custom-v2 + Spellbook/unsaved export, Mara Custom-v2 Extended variants, and Current Snapshot fallback notice; Media/Handouts remains blocked until that sequence is recorded.
+- canonical checkpoint: `docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md`;
+- normal continuation branch: `main`;
+- PR #104 post-merge Scaffold #3826 / `36203501345` — SUCCESS;
+- `0.5.0-preqa.5` / `50500` remains the owner-tested runtime behavior;
+- Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
+- current boundary is staged Android runtime smoke: Aldren Share, Ilyra Custom-v2 + Spellbook/unsaved export persistence check, Mara both Custom-v2 Extended variants, and Current Snapshot fallback notice;
+- Media/Handouts remains blocked until that runtime sequence is recorded.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
 
@@ -121,7 +121,7 @@ The prior branches `fix/fantasy-sheet-generalized-bounded-text-routing`, `fix/pc
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md -> fix/pc-sheet-cross-family-runtime-repair`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md -> main`
 
 ## Historical/stale open PRs
 

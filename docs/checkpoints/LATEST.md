@@ -2,13 +2,13 @@
 
 **Updated:** 2026-09-25 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified functional main:** `fd781262abfeb47003298562e540721a8515071a` (PR #100 generalized Fantasy bounded-text repair)  
-**Post-merge Scaffold:** `36067012766` — SUCCESS  
+**Last verified functional main:** `8b1618d56d5483524559f9598bc8862acfe91c9a` (PR #104 cross-family runtime repair integrated)  
+**Post-merge Scaffold:** `36203501345` / #3826 — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`  
-**Current active route:** PC Sheet PDF — `0.5.0-preqa.5` Aldren/Permanente four-family owner rerun PASS with one accepted minor Custom v1/v2 continuation-layout residual; resume staged Android runtime smoke beginning with Aldren Share  
-**Current implementation branch:** `fix/pc-sheet-cross-family-runtime-repair` — the sole non-main continuation authority; ignore all other historical/stale refs unless the canonical checkpoint names them as evidence  
-**Current implementation PR:** draft #104 — the sole active implementation PR; prior stale PRs #36, #37, #49 and #103 are CLOSED / superseded  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md`  
+**Current active route:** PC Sheet PDF — preqa.5 Aldren cross-family repair is OWNER PASS / INTEGRATED; resume staged Android runtime smoke beginning with Aldren Share  
+**Current implementation branch:** none — normal continuation authority is current `main`  
+**Current implementation PR:** none — PR #104 is MERGED / INTEGRATED; prior stale PRs #36, #37, #49 and #103 are CLOSED / superseded  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -17,8 +17,8 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`;
-5. `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md` on the named active branch, only as implementation history/support;
+4. `docs/checkpoints/2026-09-25_PC_SHEET_PREQA5_OWNER_PASS_INTEGRATED.md`;
+5. `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md` and `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md` only as historical acceptance/repair evidence;
 6. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 7. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
 8. `docs/PROJECT_STATE.md`;
@@ -142,6 +142,7 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 20. PR #100 merged the generalized repair as `fd781262abfeb47003298562e540721a8515071a`; merged-main Scaffold `36067012766` is SUCCESS. Owner runtime on `0.5.0-preqa.3` confirms Save/open across Fantasy, Custom v1 and both Custom-v2 variants. The cross-family Aldren survey is now COMPLETE and proves shared defects in Unicode, semantic continuation routing, inventory/currency routing, unnecessary spell/notes pages and page packing, plus family-specific resource and Custom-v2 typography defects. **Current route:** stop later manual QA and implement the repair package specified by the Canonical active checkpoint. Do not proceed to Share, Ilyra, Mara, Current Snapshot or the final physical-device gate until the repaired Aldren cross-family rerun passes.
 
 22. `0.5.0-preqa.4` generated/opened all four Aldren PDFs but **FAILED owner manual QA**. The authoritative defect list is `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md`.
-23. The repair is repository-green at implementation head `cfaa98f92cecb846babcf83f180783839ccd56c6` (push `36196067865` / #3817 SUCCESS; PR `36196073964` / #3818 SUCCESS). The distinguishable Android candidate is `0.5.0-preqa.5` / `50500` at `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523`; candidate push `36196696061` / #3819 and PR `36196702100` / #3820 are both SUCCESS. Preferred APK artifact: `10890483613`. Owner rerun across Aldren/Permanente Fantasy + Custom v1 + both Custom-v2 modes is now **PASS**. Accepted residual: Custom v1/v2 continuation pages may show header/first-row overlap plus excessive vertical row height; owner explicitly classifies it as minor/non-blocking. **Next action:** integrate the passed repair, then resume the staged Android runtime sequence at Aldren Share, followed by Ilyra, Mara and Current Snapshot. Media/Handouts remains blocked until that runtime sequence is recorded.
+23. The repair is repository-green at implementation head `cfaa98f92cecb846babcf83f180783839ccd56c6` (push `36196067865` / #3817 SUCCESS; PR `36196073964` / #3818 SUCCESS). The distinguishable Android candidate is `0.5.0-preqa.5` / `50500` at `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523`; candidate push `36196696061` / #3819 and PR `36196702100` / #3820 are both SUCCESS. Preferred APK artifact: `10890483613`. Owner rerun across Aldren/Permanente Fantasy + Custom v1 + both Custom-v2 modes is **PASS**. Accepted residual: Custom v1/v2 continuation pages may show header/first-row overlap plus excessive vertical row height; owner explicitly classifies it as minor/non-blocking.
+24. PR #104 integrated the passed repair into `main` as `8b1618d56d5483524559f9598bc8862acfe91c9a`; post-merge Scaffold #3826 / `36203501345` is SUCCESS. **Current route:** staged Android runtime smoke at Aldren Share, then Ilyra Custom v2 + Spellbook/unsaved-export persistence check, Mara both Custom-v2 Extended variants, and one Current Snapshot fallback-notice check. Media/Handouts remains blocked until that runtime sequence is recorded.
 
 No external provider action is required for this PDF-renderer stage.
