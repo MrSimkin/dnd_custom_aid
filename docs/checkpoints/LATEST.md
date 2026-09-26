@@ -5,9 +5,9 @@
 **Last verified functional main:** `fb1e831bdb3f9e53374cffafc24a9f34a2174454` (PR #106 Ilyra Custom-v2 continuation repair integrated)  
 **Post-merge Scaffold:** `36269693233` / #3895 — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_RUNTIME_SMOKE_ILYRA_PASS_MARA_ACTIVE.md`  
-**Current active route:** staged Android runtime smoke — **Aldren Share PASS + Ilyra Step 2 PASS**. Ilyra `Exportar sin guardar` now fully proves draft-in-PDF plus non-persistence after reload. **Current owner action: Mara 3A only — Custom v2 · Atributo + Permanente; save/open and inspect Extended/custom-stat/overflow continuation behavior.** After 3A PASS, run Mara 3B Custom v2 · Habilidad. Current Snapshot remains after Mara; Media / Handouts remains blocked.
-**Current implementation branch:** none — PR #106 is merged; `main` is the continuation authority
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`  
+**Current active route:** Mara 3A (**Custom v2 · Atributo + Permanente + Extended**) is BLOCKED on preqa.7 by `Source-matched text does not fit: Manipulación de éter (49.48437 > 49.0)`. Generalized bounded source-label micro-fit repair is active on `fix/pc-sheet-mara-source-microfit`. Do not start Mara 3B or Current Snapshot until a repaired candidate is green and Mara 3A reruns.
+**Current implementation branch:** `fix/pc-sheet-mara-source-microfit` — sole non-main continuation authority
 **Current implementation PR:** none — PR #106 is MERGED / INTEGRATED as `fb1e831bdb3f9e53374cffafc24a9f34a2174454`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
