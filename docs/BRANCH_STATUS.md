@@ -107,7 +107,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 **Sole active implementation PR:** none yet; Mara source-label micro-fit repair validation is pending before PR creation.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_ILYRA_CUSTOMV2_COMBAT_ROW_WRAP_REPAIR.md`;
+- canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;
 - normal continuation branch: `main`;
 - PR #106 post-merge Scaffold #3895 / `36269693233` — SUCCESS;
 - `0.5.0-preqa.7` / `50700` is the current owner-ready runtime candidate;
@@ -121,7 +121,7 @@ The prior branches `fix/fantasy-sheet-generalized-bounded-text-routing`, `fix/pc
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_RUNTIME_SMOKE_ILYRA_PASS_MARA_ACTIVE.md -> main`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md -> fix/pc-sheet-mara-source-microfit`
 
 ## Historical/stale open PRs
 
