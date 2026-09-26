@@ -596,9 +596,14 @@ internal class AndroidCustomV2ExtendedRenderer(
         val lines = featureDescriptionLines(trait, width)
         val overflow = lines.drop(FEATURE_DESCRIPTION_LINES)
         if (overflow.isEmpty()) return emptyList()
-        return overflow.mapIndexed { index, line ->
-            if (index == 0) trait.name + ": " + line else line
-        }
+
+        val continuationText = trait.name + ": " + overflow.joinToString(" ")
+        return wrapByWidth(
+            resources.fira,
+            continuationText,
+            7.7f,
+            TRAIT_CONTINUATION_TEXT_WIDTH,
+        )
     }
 
     private fun traitSupplementLines(plan: PcSheetPdfRenderPlan): List<String> {
@@ -2708,6 +2713,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val FEATURE_DESCRIPTION_LINES = 3
         const val TRAIT_NAME_INDEX_PER_PAGE = 10
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
+        const val TRAIT_CONTINUATION_TEXT_WIDTH = 281f
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val COMBAT_ROWS_PER_PAGE = 14
