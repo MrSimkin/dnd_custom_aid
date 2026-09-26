@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Aldren Share OWNER PASS; Ilyra Fantasy repair OWNER PASS; Ilyra Custom-v2 staged Step 2 OWNER PASS including `Exportar sin guardar`, draft projection into PDF, and reload proving non-persistence. Current manual runtime target is Mara: first Custom v2 · Atributo + Permanente, then Custom v2 · Habilidad + Permanente, inspecting high-volume Extended/custom-stat/overflow continuation behavior.
+**Current active package:** PC Sheet PDF Export — Aldren Share PASS; Ilyra Step 2 PASS; Mara 3A is blocked by a Custom-v2 Attribute Extended source-label fit defect on `Manipulación de éter` (49.48437 pt > 49.0 pt). Bounded source-label micro-fit repair is active on `fix/pc-sheet-mara-source-microfit`.
 
 ### Superseding PDF visual state — 2026-09-20
 
