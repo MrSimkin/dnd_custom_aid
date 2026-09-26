@@ -13,13 +13,23 @@
 
 ## New owner runtime defect
 
-During the original staged Ilyra Step 2, with unsaved character changes present and **Custom v2 · Atributo** selected, PDF export failed before reaching the intended `Exportar sin guardar` prompt.
+During the original staged Ilyra Step 2, with unsaved character changes present and **Custom v2 · Atributo** selected, the app **did reach the unsaved-change confirmation**. The owner explicitly chose **`Exportar sin guardar`**. Rendering then failed immediately afterward, before a PDF could be produced and before the draft-vs-persisted-data assertions could be completed.
 
-Observed diagnostic:
+Observed diagnostic after choosing `Exportar sin guardar`:
 
 `Custom-v2 combat cell requires excessive compression: 'Cantrip; Potent Cantrip de Evoker puede producir daño parcial incluso al fallar según SRD 5.2.1.' (49.974995%)`
 
-The screenshot also showed Spellbook OFF at the moment of failure. This does not invalidate the defect: the renderer already fails in the shared Custom-v2 Extended combat continuation before the intended unsaved-export persistence behavior can be tested.
+The screenshot showed Spellbook OFF on the export screen. The owner clarification supersedes the earlier sequence interpretation: the **`Exportar sin guardar` confirmation path itself was successfully reached and selected**; the blocker occurs after that choice while the shared Custom-v2 Extended combat continuation is rendered.
+
+Therefore the staged Step-2 evidence is now:
+- unsaved changes detected — PASS;
+- `Exportar sin guardar` option presented — PASS;
+- owner selected `Exportar sin guardar` — PASS;
+- PDF generation after that selection — BLOCKED by combat-cell compression;
+- PDF reflects unsaved draft — NOT YET VERIFIED;
+- persisted Ilyra data remains unchanged — NOT YET VERIFIED.
+
+Spellbook still needs to be ON for the final rerun because that remains part of the original staged Step-2 acceptance scope.
 
 ## Root cause
 
@@ -60,12 +70,16 @@ Do not retry Ilyra on the current `preqa.6` APK. Keep the harmless unsaved edit 
 
 No owner action is required until a new distinguishable QA candidate passes branch, PR-head, and merged-main Scaffold validation.
 
-After that, resume at the exact Ilyra staged Step 2:
+After that, resume the exact Ilyra staged Step 2:
 - Custom v2 · Atributo;
 - Spellbook ON;
 - harmless unsaved edit;
-- export and choose `Exportar sin guardar`;
-- verify PDF sees the draft;
+- export;
+- choose `Exportar sin guardar` again;
+- require PDF generation to complete without the combat compression diagnostic;
+- verify the generated PDF reflects the unsaved draft;
 - reload Ilyra and verify persisted data did not change.
+
+Do not repeat the already-established fact that the confirmation path exists merely as a separate test objective; the rerun is required only because successful post-confirmation rendering and persistence semantics are still unproven.
 
 Mara, Current Snapshot and Media / Handouts remain pending.
