@@ -3,7 +3,7 @@
 **Date:** 2026-09-26 (Chile local time)  
 **Base main:** `9fa65392c8e24ec0fa842569d376e9b0ca46b0c1`  
 **Active branch:** none — PR #106 merged; `main` is authoritative  
-**Status:** REPAIR MERGED / MERGED-MAIN GREEN / OWNER PREQA.7 STEP-2 COMPLETION READY
+**Status:** REPAIR MERGED / MERGED-MAIN GREEN / OWNER STEP-2 PASS / CLOSED
 
 ## Prior completed evidence
 
@@ -179,9 +179,9 @@ Therefore the staged Step-2 evidence is now:
 - owner selected `Exportar sin guardar` — PASS;
 - post-confirmation PDF generation — PASS;
 - PDF reflects unsaved draft — **PASS**;
-- persisted Ilyra data remains unchanged after reload — **PENDING**.
+- persisted Ilyra data remains unchanged after reload — **PASS**.
 
-The only remaining Step-2 assertion is non-persistence after leaving the dirty editor without saving and reopening Ilyra from persisted storage.
+Owner then left the dirty editor without saving and reopened Ilyra from the character list. The stored baseline returned as **name `Ilyra Quill` and FUE 8**, proving the unsaved draft was not persisted. **Ilyra staged Step 2 is fully OWNER PASS and closed.**
 
 ## Owner boundary
 
