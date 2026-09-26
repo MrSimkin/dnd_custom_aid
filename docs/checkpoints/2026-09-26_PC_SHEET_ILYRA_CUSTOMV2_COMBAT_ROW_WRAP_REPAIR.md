@@ -114,11 +114,32 @@ No readability floor was lowered. The combat fail-closed compression guard remai
 
 A distinguishable owner candidate is now stamped as **`0.5.0-preqa.7` / build `50700`** and requires its own green Scaffold run before PR/integration.
 
+## Green branch validation
+
+Corrected end-to-end repair validation:
+
+- Scaffold **#3887** / run `36268568144` — **SUCCESS**;
+- canonical resume-route guard — PASS;
+- Android renderer-sync guard — PASS;
+- Android PDF-delivery guard — PASS;
+- full Kotlin build/tests — PASS;
+- real Ilyra Custom-v2 regression — PASS for **per Attribute** and **per Ability**;
+- Spellbook descriptions enabled in regression;
+- Fire Bolt / Potent Cantrip / SRD 5.2.1 semantics preserved;
+- Memorize Spell preserved;
+- full special Spellbook description/notes preserved through inventory continuation routing;
+- Android debug APK artifact upload — PASS;
+- PC-sheet render/proof artifact uploads — PASS;
+- backend — PASS;
+- hosted database — PASS.
+
+The distinguishable owner candidate is now **`0.5.0-preqa.7` / build `50700`**. It requires its own versioned Scaffold success, PR-head success, and merged-main Scaffold success before owner installation.
+
 ## Owner boundary
 
 Do not retry Ilyra on the current `preqa.6` APK. The next candidate is `0.5.0-preqa.7` / build `50700`, but it is not owner-ready until versioned branch, PR-head, and merged-main validation are green. Keep the harmless unsaved edit discarded/not persisted.
 
-No owner action is required until a new distinguishable QA candidate passes branch, PR-head, and merged-main Scaffold validation.
+No owner action is required until the distinguishable **preqa.7 / build 50700** candidate passes versioned branch, PR-head, and merged-main Scaffold validation.
 
 After that, resume the exact Ilyra staged Step 2:
 - Custom v2 · Atributo;
