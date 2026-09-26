@@ -78,21 +78,28 @@ Repository/CI repair acceptance is closed. Remaining evidence is owner runtime v
 
 Owner installed the merged-main **`0.5.0-preqa.6` / build `50600`** candidate and reran Ilyra Fantasy Sheet + Permanente.
 
-Observed result so far:
+Observed result:
 
 - the previous bounded-routing diagnostic is **gone**;
-- specifically, the prior `puntuaciones finales INT 18 y DES 14 ... overflow='14'` failure did not recur.
+- specifically, the prior `puntuaciones finales INT 18 y DES 14 ... overflow='14'` failure did not recur;
+- the generated Fantasy PDF opens normally and is readable;
+- the full **Ability Score Improvement** semantics are preserved, including final **INT 18** and **DES 14**.
 
-This closes the original crash/blocker symptom. Final repair-verification still requires confirming the saved PDF opens/readable and preserves the full **Ability Score Improvement** semantics before Step 2 is resumed.
+**Owner repair-verification: PASS.**
+
+The Ilyra Fantasy/DOTES runtime blocker is closed. Resume the original staged Step 2: Ilyra **Custom v2 + Spellbook** with a harmless unsaved edit and `Exportar sin guardar`, verifying that the PDF sees the draft while persisted character data remains unchanged.
 
 ## Manual boundary
 
-Exact next owner action:
+Exact next owner action — original staged Step 2:
 
-1. open the Fantasy PDF just generated for **Ilyra Quill**;
-2. confirm it opens/readable;
-3. verify the full **Ability Score Improvement** meaning is present somewhere appropriate in the PDF, including the final values **INT 18** and **DES 14**;
-4. report PASS or the exact observed defect.
+1. open **Ilyra Quill**;
+2. select **Custom v2 + Spellbook**;
+3. make one harmless edit but do **not** save the character;
+4. export and choose **`Exportar sin guardar`**;
+5. verify the generated PDF reflects the unsaved edit;
+6. return to/reload Ilyra and verify persisted character data did **not** change;
+7. report PASS or the exact observed defect.
 
 Only after this repair-verification PASS resume the original staged Step 2: Ilyra **Custom v2 + Spellbook** with a harmless unsaved edit and `Exportar sin guardar`, verifying the PDF sees the draft while persisted character data remains unchanged.
 
