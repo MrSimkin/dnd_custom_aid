@@ -19,11 +19,15 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
@@ -67,13 +71,16 @@ internal class AndroidClassicRenderer {
 
             drawMain(doc, p, plan)
             drawCharacterAndEquipment(doc, p, plan)
-            drawSpells(doc, p, plan)
+            if (plan.basePages.any { it.role == PcSheetBasePageRole.SPELL_LIST }) {
+                drawSpells(doc, p, plan)
+            }
             appendCustomStatisticsPages(doc, p, plan)
             appendTraitsPages(doc, p, plan)
+            appendCombatPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
-            appendInventoryPages(doc, p, plan)
+            val packedCampaignNotes = appendInventoryPages(doc, p, plan)
             appendSpellContinuationPages(doc, p, plan)
-            appendNotesPages(doc, p, plan)
+            appendNotesPages(doc, p, plan, packedCampaignNotes)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Fantasy Sheet production encountered content outside its bounded base/continuation routing:\n" +
@@ -280,7 +287,9 @@ internal class AndroidClassicRenderer {
         plan: PcSheetPdfRenderPlan,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+        val orderedTraits = sheet.traits
+            .sortedBy { it.sortOrder }
+            .filterNot { isSpeciesIdentityTrait(it, plan) }
         val classBase = orderedTraits.filter { it.type == CharacterTraitType.CLASS }
             .take(BASE_CLASS_TRAIT_CAPACITY)
         val speciesBase = orderedTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
@@ -293,10 +302,13 @@ internal class AndroidClassicRenderer {
         val baseDisplayed = classBase + speciesBase + featBase + additionalBase
         val baseDisplayedIds = baseDisplayed.mapTo(mutableSetOf()) { it.id }
 
-        val overflowTraits = orderedTraits.filter { it.id !in baseDisplayedIds }
+        val overflowTraits = orderedTraits.filter {
+            it.id !in baseDisplayedIds && !traitHasDedicatedActionOrResource(it, plan)
+        }
         val clippedClassTraitIds = classicBaseClassProjection(classBase).clippedTraitIds
         val referenceTraits = baseDisplayed.filter { trait ->
-            trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait)
+            !traitHasDedicatedActionOrResource(trait, plan) &&
+                (trait.id in clippedClassTraitIds || traitNeedsReferenceContinuation(trait))
         }
         val traitEntries = (overflowTraits + referenceTraits)
             .distinctBy { it.id }
@@ -309,21 +321,7 @@ internal class AndroidClassicRenderer {
             it.type != CharacterTraitType.CLASS && it.type != CharacterTraitType.FEAT
         }
 
-        val orderedProficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
-        val languages = orderedProficiencies
-            .filter { it.type == CharacterProficiencyType.LANGUAGE }
-        val languageOverflow = languages.drop(BASE_LANGUAGE_CAPACITY)
-        val baseLanguageReferences = languages.take(BASE_LANGUAGE_CAPACITY).filter { proficiency ->
-            proficiency.name.length > CLASSIC_BASE_LANGUAGE_NAME_CHARS ||
-                !proficiency.notes.isNullOrBlank()
-        }
-        val otherProficiencies = orderedProficiencies
-            .filter { it.type != CharacterProficiencyType.LANGUAGE }
-        val proficiencyEntries = (languageOverflow + baseLanguageReferences + otherProficiencies)
-            .distinctBy { it.id }
-            .flatMap(::proficiencyFeatureSlices)
-
-        val rightEntries = rightTraitEntries + proficiencyEntries + classicReferenceFeatures(plan)
+        val rightEntries = rightTraitEntries
         if (leftEntries.isEmpty() && rightEntries.isEmpty()) return
 
         val pages = maxOf(
@@ -482,34 +480,6 @@ internal class AndroidClassicRenderer {
             add("Estado", characterStatusLabel(sheet.status))
         }
 
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                val baseDetail = listOfNotNull(
-                    entry.damageEffect.takeIf { it.isNotBlank() },
-                    entry.rangeText?.takeIf { it.isNotBlank() },
-                    entry.notes?.takeIf { it.isNotBlank() },
-                ).joinToString(" · ")
-                if (
-                    index >= BASE_COMBAT_CAPACITY ||
-                    entry.type != CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank() ||
-                    entry.name.length > CLASSIC_COMBAT_NAME_CHARS ||
-                    baseDetail.length > CLASSIC_COMBAT_DETAIL_CHARS
-                ) {
-                    add(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
-
         if (closure.progressMode == CharacterProgressMode.MILESTONE) {
             add("Progreso", closure.milestoneProgress)
         }
@@ -590,20 +560,6 @@ internal class AndroidClassicRenderer {
                     ).filter { it.isNotBlank() }.joinToString(" · "),
                 )
             }
-
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression +
-                    component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                add(
-                    "Daño estructurado",
-                    (combatById[profile.combatEntryId]?.name ?: "Ataque") + ": " + components,
-                )
-            }
-        }
 
         val spellSourceOrder = sheet.spellcastingSources.associate { it.id to it.sortOrder }
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
@@ -703,6 +659,86 @@ internal class AndroidClassicRenderer {
         }
     }
 
+    private fun appendCombatPages(
+        doc: PDDocument,
+        p: AndroidPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val lines = classicCombatReferenceLines(plan)
+        if (lines.isEmpty()) return
+
+        val pages = pageCount(lines.size, CLASSIC_COMBAT_LINES_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "COMBATE / ACCIONES")
+                titledFrame(
+                    s,
+                    p,
+                    24f,
+                    112f,
+                    564f,
+                    606f,
+                    "REFERENCIA DE COMBATE / ACCIÓN / DAÑO",
+                )
+                ruledTextArea(
+                    s,
+                    p,
+                    36f,
+                    148f,
+                    540f,
+                    552f,
+                    lines.pageSlice(pageIndex, CLASSIC_COMBAT_LINES_PER_PAGE),
+                    8.4f,
+                )
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / COMBATE Y ACCIONES")
+            }
+        }
+    }
+
+    private fun classicCombatReferenceLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+
+        return aggregate.sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .mapIndexedNotNull { index, entry ->
+                val baseDetail = listOfNotNull(
+                    entry.damageEffect.takeIf { it.isNotBlank() },
+                    entry.rangeText?.takeIf { it.isNotBlank() },
+                    entry.notes?.takeIf { it.isNotBlank() },
+                ).joinToString(" · ")
+                val structuredDamage = damageByCombatId[entry.id]?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val needsReference =
+                    index >= BASE_COMBAT_CAPACITY ||
+                        entry.type != CharacterCombatEntryType.ATTACK ||
+                        !entry.notes.isNullOrBlank() ||
+                        entry.name.length > CLASSIC_COMBAT_NAME_CHARS ||
+                        baseDetail.length > CLASSIC_COMBAT_DETAIL_CHARS ||
+                        structuredDamage.isNotBlank()
+                if (!needsReference) {
+                    null
+                } else {
+                    buildList {
+                        add(combatTypeLabel(entry.type) + " — " + entry.name)
+                        entry.attackModifier?.let { add("Ataque " + signed(it)) }
+                        entry.damageEffect.takeIf { it.isNotBlank() }?.let { add("Efecto / daño: $it") }
+                        entry.rangeText?.takeIf { it.isNotBlank() }?.let { add("Alcance: $it") }
+                        entry.notes?.takeIf { it.isNotBlank() }?.let { add("Notas: $it") }
+                        structuredDamage.takeIf { it.isNotBlank() }?.let { add("Daño estructurado: $it") }
+                    }.joinToString(" · ")
+                }
+            }
+            .flatMap { value ->
+                wrapForChars(value, CLASSIC_COMBAT_REFERENCE_CHARS)
+            }
+    }
+
     private fun characterStatusLabel(status: CharacterStatus): String = when (status) {
         CharacterStatus.ACTIVE -> "Activo"
         CharacterStatus.INACTIVE -> "Inactivo"
@@ -732,19 +768,45 @@ internal class AndroidClassicRenderer {
         CharacterMovementType.OTHER -> "Otro"
     }
 
+    private fun isSpeciesIdentityTrait(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        if (trait.type != CharacterTraitType.SPECIES_RACE) return false
+        val aggregate = plan.snapshot.aggregate
+        val identityNames = listOfNotNull(
+            aggregate.sheet.background.race.trim().takeIf { it.isNotEmpty() },
+            aggregate.successor.speciesIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+            aggregate.successor.subraceIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+        )
+        return identityNames.any { it.equals(trait.name.trim(), ignoreCase = true) }
+    }
+
+    private fun traitHasDedicatedActionOrResource(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        val name = trait.name.trim()
+        if (name.isEmpty()) return false
+        val sheet = plan.snapshot.aggregate.sheet
+        return sheet.resources.any { it.name.trim().equals(name, ignoreCase = true) } ||
+            sheet.combatEntries.any {
+                it.type != CharacterCombatEntryType.ATTACK &&
+                    it.name.trim().equals(name, ignoreCase = true)
+            }
+    }
+
     private fun traitNeedsReferenceContinuation(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
     ): Boolean =
-        (trait.type == CharacterTraitType.SPECIES_RACE && trait.description.isNotBlank()) ||
-            wrapForChars(traitSummary(trait), CLASSIC_RULED_ENTRY_CHARS).size >
-                CLASSIC_RULED_ENTRY_LINES ||
+        wrapForChars(traitSummary(trait), CLASSIC_RULED_ENTRY_CHARS).size >
+            CLASSIC_RULED_ENTRY_LINES ||
             trait.name.length > CLASSIC_SPECIES_NAME_CHARS ||
-            trait.source.isNotBlank() ||
             !trait.notes.isNullOrBlank() ||
             trait.maxUses != null ||
             trait.spentUses != 0 ||
             !trait.recovery.isNullOrBlank() ||
-            (trait.activation != null && trait.activation != CharacterActivationType.PASSIVE)
+            trait.activation?.let { it != CharacterActivationType.PASSIVE } == true
 
     private fun traitFeatureSlices(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
@@ -865,10 +927,6 @@ internal class AndroidClassicRenderer {
                         resourceTableRow(s, p, 36f, top, row)
                     } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
                 }
-                repeat(2) { index ->
-                    resourceBlankRow(s, p, 36f, 368f + index * 24f)
-                }
-
                 titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
                 val pageOptions = options
                     .drop(pageIndex * CLASSIC_OPTION_ROWS_PER_PAGE)
@@ -900,26 +958,34 @@ internal class AndroidClassicRenderer {
                 CharacterTrackableValueKind.CURRENT_MAX,
                 -> resource.maxValue
             }
+            val oneUse = maximum == 1
             val legacyRecoveryText = resource.recovery.orEmpty().trim()
-            val structuredRecovery = listOf(
-                recovery?.cadence?.let(::recoveryLabel).orEmpty(),
-                recovery?.amountMode?.let {
-                    recoveryAmountLabel(it, recovery.fixedAmount)
-                }.orEmpty(),
-            ).filter { it.isNotEmpty() }
+            val structuredRecovery = buildList {
+                recovery?.cadence?.let(::recoveryLabel)?.takeIf { it.isNotEmpty() }?.let(::add)
+                if (!oneUse || recovery?.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                    recovery?.amountMode
+                        ?.let { recoveryAmountLabel(it, recovery.fixedAmount) }
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.let(::add)
+                }
+            }
             val recoveryText = structuredRecovery
                 .takeIf { it.isNotEmpty() }
                 ?.joinToString(" · ")
                 ?: legacyRecoveryText
             val notes = listOf(
-                legacyRecoveryText.takeIf { structuredRecovery.isNotEmpty() }.orEmpty(),
                 recovery?.notes.orEmpty().trim(),
                 resource.notes.orEmpty().trim(),
             ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
             splitClassicResourceRow(
                 name = resource.name,
-                value = maximum?.let { "${resource.currentValue} / $it" }
-                    ?: resource.currentValue.toString(),
+                value = if (oneUse) {
+                    ""
+                } else {
+                    maximum?.let { "${resource.currentValue} / $it" }
+                        ?: resource.currentValue.toString()
+                },
+                oneUseAvailable = if (oneUse) resource.currentValue > 0 else null,
                 recovery = recoveryText,
                 source = resource.source.orEmpty().trim(),
                 notes = notes,
@@ -933,14 +999,24 @@ internal class AndroidClassicRenderer {
                 CharacterTrackableValueKind.CURRENT_MAX,
                 -> marker.maxValue
             }
+            val oneUse = maximum == 1
             splitClassicResourceRow(
                 name = marker.name,
-                value = maximum?.let { "${marker.currentValue} / $it" }
-                    ?: marker.currentValue.toString(),
-                recovery = listOf(
-                    recoveryLabel(marker.recovery.cadence),
-                    recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
-                ).filter { it.isNotEmpty() }.joinToString(" · "),
+                value = if (oneUse) {
+                    ""
+                } else {
+                    maximum?.let { "${marker.currentValue} / $it" }
+                        ?: marker.currentValue.toString()
+                },
+                oneUseAvailable = if (oneUse) marker.currentValue > 0 else null,
+                recovery = buildList {
+                    recoveryLabel(marker.recovery.cadence).takeIf { it.isNotEmpty() }?.let(::add)
+                    if (!oneUse || marker.recovery.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                        recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount)
+                            .takeIf { it.isNotEmpty() }
+                            ?.let(::add)
+                    }
+                }.joinToString(" · "),
                 source = "",
                 notes = marker.notes.orEmpty().trim(),
             )
@@ -952,6 +1028,7 @@ internal class AndroidClassicRenderer {
     private fun splitClassicResourceRow(
         name: String,
         value: String,
+        oneUseAvailable: Boolean?,
         recovery: String,
         source: String,
         notes: String,
@@ -989,6 +1066,7 @@ internal class AndroidClassicRenderer {
                     classicSingleLineExcerpt("$projectedName (cont.)", CLASSIC_RESOURCE_NAME_CHARS)
                 },
                 value = value.takeIf { index == 0 }.orEmpty(),
+                oneUseAvailable = oneUseAvailable.takeIf { index == 0 },
                 recovery = projectedRecovery.takeIf { index == 0 }.orEmpty(),
                 source = projectedSource.takeIf { index == 0 }.orEmpty(),
                 notes = note,
@@ -1065,7 +1143,7 @@ internal class AndroidClassicRenderer {
         doc: PDDocument,
         p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
-    ) {
+    ): Int {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
@@ -1081,48 +1159,25 @@ internal class AndroidClassicRenderer {
             .filter { it.id !in specialIds }
             .filter { item ->
                 item.id !in baseIds ||
-                    item.weightLb != null ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank() ||
-                    (
-                        usageByItem[item.id]?.carryState == CharacterInventoryCarryState.CARRIED &&
-                            !item.equipped &&
-                            !item.attuned
-                    ) ||
-                    item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS ||
-                    inventoryBaseNote(item, usageByItem[item.id]).length >
-                        CLASSIC_BASE_INVENTORY_NOTE_CHARS
+                    item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
-        val specialRows = specialItems.flatMap { item ->
-            classicSpecialItemRows(item, usageByItem[item.id])
-        }
+        // Special equipment details belong in the dedicated special-equipment block, never in
+        // the Treasure/Notes block. This may repeat the compact item identity intentionally, but
+        // not the item's data across unrelated semantic destinations.
+        val specialRows = specialItems
+            .flatMap { item ->
+                classicSpecialItemRows(
+                    item = item,
+                    usage = usageByItem[item.id],
+                    representedInBase = item.id in baseIds,
+                )
+            }
 
         val noteEntries = buildList {
-            ordered
-                .filter { it.id !in specialIds }
-                .forEach { item ->
-                    val state = inventoryState(item, usageByItem[item.id])
-                    val details = buildList {
-                        if (item.name.length > CLASSIC_INVENTORY_ROW_NAME_CHARS) {
-                            add("Nombre completo: " + item.name)
-                        }
-                        item.location?.trim()?.takeIf {
-                            it.isNotEmpty() && it.length > CLASSIC_INVENTORY_ROW_NOTE_CHARS
-                        }?.let { add("Ubicación: " + it) }
-                        if (state.length > CLASSIC_INVENTORY_ROW_STATE_CHARS) {
-                            add("Estado: " + state)
-                        }
-                        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    }
-                    if (details.isNotEmpty()) {
-                        add(item.name + ": " + details.joinToString(" · "))
-                    }
-                }
             sheet.currencies
-                .filter { it.key.lowercase() !in CLASSIC_BASE_CURRENCY_KEYS }
+                .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
                     add("${currency.name}: ${currency.amount}")
@@ -1141,7 +1196,7 @@ internal class AndroidClassicRenderer {
                 .map { it.joinToString("\n") }
         }
 
-        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return
+        if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return 0
 
         val pages = maxOf(
             1,
@@ -1172,12 +1227,12 @@ internal class AndroidClassicRenderer {
                     .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
                     .forEachIndexed { index, item ->
                         specialItem(
-                            s, p, 36f, 564f + index * 46f, 252f,
+                            s, p, 36f, 558f + index * 39f, 252f,
                             item.name, item.attuned, item.note,
                         )
                     }
 
-                titledFrame(s, p, 312f, 528f, 276f, 190f, "VALOR / UBICACIÓN / NOTAS")
+                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
                 ruledTextArea(
                     s, p, 324f, 564f, 252f, 140f,
                     noteEntries
@@ -1189,11 +1244,13 @@ internal class AndroidClassicRenderer {
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }
         }
+        return 0
     }
 
     private fun classicSpecialItemRows(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+        representedInBase: Boolean,
     ): List<ClassicSpecialItem> {
         val cleanName = item.name.trim()
         val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_SPECIAL_ITEM_NAME_CHARS)
@@ -1201,8 +1258,10 @@ internal class AndroidClassicRenderer {
             if (cleanName.length > CLASSIC_SPECIAL_ITEM_NAME_CHARS) {
                 add("Nombre completo: $cleanName")
             }
-            if (item.quantity != 1) add("Cant. ${item.quantity}")
-            item.weightLb?.let { add("Peso " + formatWeight(it)) }
+            if (!representedInBase) {
+                if (item.quantity != 1) add("Cant. ${item.quantity}")
+                item.weightLb?.let { add("Peso " + formatWeight(it) + " lb") }
+            }
             inventoryState(item, usage).takeIf { it.isNotBlank() }?.let(::add)
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1231,19 +1290,16 @@ internal class AndroidClassicRenderer {
 private fun classicInventoryRows(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
-    ): List<InventoryRow> {
-        val state = inventoryState(item, usage)
-        val location = item.location?.trim().orEmpty()
-        return listOf(
+    ): List<InventoryRow> =
+        listOf(
             InventoryRow(
                 quantity = item.quantity.toString(),
                 name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
                 weight = item.weightLb?.let(::formatWeight).orEmpty(),
-                state = classicSingleLineExcerpt(state, CLASSIC_INVENTORY_ROW_STATE_CHARS),
-                notes = classicSingleLineExcerpt(location, CLASSIC_INVENTORY_ROW_NOTE_CHARS),
+                state = "",
+                notes = "",
             ),
         )
-    }
 
     private fun inventoryState(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
@@ -1407,21 +1463,18 @@ private fun appendSpellContinuationPages(
         doc: PDDocument,
         p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
+        alreadyPackedEntries: Int,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val entries = classicNoteEntries(plan)
-        if (entries.isEmpty()) return
+        val entries = classicNoteEntries(plan).drop(alreadyPackedEntries)
+        val references = classicReferenceNoteLines(plan)
+        if (entries.isEmpty() && references.isEmpty()) return
 
-        val references = buildList {
-            add("Percepción pasiva: ${sheet.passivePerception}.")
-            add("Iniciativa: ${signed(sheet.initiativeModifier)}.")
-            add("Clase de armadura: ${sheet.armorClass}.")
-            add("Nivel total: ${sheet.totalLevel}.")
-            sheet.spellSaveDc?.let { add("CD de conjuros: $it.") }
-            sheet.spellAttackModifier?.let { add("Ataque de conjuros: ${signed(it)}.") }
-        }
-
-        val pages = pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE)
+        val pages = maxOf(
+            1,
+            pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE),
+            pageCount(references.size, CLASSIC_REFERENCE_LINES_PER_PAGE),
+        )
         repeat(pages) { pageIndex ->
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
@@ -1438,11 +1491,87 @@ private fun appendSpellContinuationPages(
                 grid(s, 410f, 148f, 166f, 240f, 10, 14)
 
                 titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
-                ruledTextArea(s, p, 410f, 454f, 166f, 246f, references, 8.1f)
+                ruledTextArea(
+                    s, p, 410f, 454f, 166f, 246f,
+                    references.pageSlice(pageIndex, CLASSIC_REFERENCE_LINES_PER_PAGE),
+                    8.1f,
+                )
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
             }
         }
+    }
+
+    private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val lines = mutableListOf<String>()
+
+        fun addWrapped(label: String, value: String) {
+            val clean = value.trim()
+            if (clean.isEmpty()) return
+            val wrapped = wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
+            if (wrapped.isEmpty()) return
+            val usedOnPage = lines.size % CLASSIC_REFERENCE_LINES_PER_PAGE
+            if (
+                usedOnPage != 0 &&
+                wrapped.size <= CLASSIC_REFERENCE_LINES_PER_PAGE &&
+                usedOnPage + wrapped.size > CLASSIC_REFERENCE_LINES_PER_PAGE
+            ) {
+                repeat(CLASSIC_REFERENCE_LINES_PER_PAGE - usedOnPage) { lines += "" }
+            }
+            lines += wrapped
+        }
+
+        val baseLanguageIds = sheet.proficiencies
+            .filter { it.type == CharacterProficiencyType.LANGUAGE }
+            .sortedBy { it.sortOrder }
+            .take(BASE_LANGUAGE_CAPACITY)
+            .mapTo(mutableSetOf()) { it.id }
+
+        sheet.proficiencies
+            .sortedBy { it.sortOrder }
+            .filter { proficiency ->
+                proficiency.type != CharacterProficiencyType.LANGUAGE ||
+                    proficiency.id !in baseLanguageIds ||
+                    proficiency.name.length > CLASSIC_BASE_LANGUAGE_NAME_CHARS ||
+                    !proficiency.notes.isNullOrBlank()
+            }
+            .forEach { proficiency ->
+                addWrapped(
+                    proficiencyTypeLabel(proficiency.type),
+                    listOf(
+                        proficiency.name,
+                        proficiency.source.orEmpty().trim(),
+                        proficiency.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                )
+            }
+
+        sheet.traits
+            .sortedBy { it.sortOrder }
+            .filter { isSpeciesIdentityTrait(it, plan) }
+            .forEach { trait ->
+                addWrapped(
+                    "Raza",
+                    listOf(
+                        trait.name,
+                        trait.description.trim(),
+                        trait.notes.orEmpty().trim(),
+                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                )
+            }
+
+        classicReferenceFeatures(plan).forEach { feature ->
+            addWrapped(
+                feature.name,
+                listOf(feature.source, feature.description)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · "),
+            )
+        }
+
+        return lines
     }
 
     private fun classicNoteEntries(plan: PcSheetPdfRenderPlan): List<String> {
@@ -1618,7 +1747,9 @@ private fun appendSpellContinuationPages(
 
             val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
             val classTraits = orderedTraits.filter { it.type == CharacterTraitType.CLASS }
-            val speciesTraits = orderedTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
+            val speciesTraits = orderedTraits.filter {
+                it.type == CharacterTraitType.SPECIES_RACE && !isSpeciesIdentityTrait(it, plan)
+            }
             val feats = orderedTraits.filter { it.type == CharacterTraitType.FEAT }
 
             titledFrame(s, p, rightX, 410f, rightW, 184f, "RASGOS DE CLASE")
@@ -1710,10 +1841,10 @@ private fun appendSpellContinuationPages(
             )
 
 titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
-            coinStrip(s, p, 276f, 136f, sheet.currencies.associateBy { it.key.lowercase() })
+            coinStrip(s, p, 276f, 136f, sheet.currencies)
             tableHeader(
                 s, p, 276f, 180f,
-                listOf(36f to "Cant.", 146f to "Objeto", 112f to "Notas"),
+                listOf(36f to "Cant.", 146f to "Objeto", 112f to "Peso"),
             )
             inventory.take(BASE_EQUIPMENT_CAPACITY).forEachIndexed { index, item ->
                 val top = 202f + index * 27f
@@ -1749,15 +1880,16 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             }
 
             val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+            val semanticTraits = orderedTraits.filterNot { isSpeciesIdentityTrait(it, plan) }
             val usedTraitIds = buildSet {
-                orderedTraits.filter { it.type == CharacterTraitType.CLASS }
+                semanticTraits.filter { it.type == CharacterTraitType.CLASS }
                     .take(BASE_CLASS_TRAIT_CAPACITY).forEach { add(it.id) }
-                orderedTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
+                semanticTraits.filter { it.type == CharacterTraitType.SPECIES_RACE }
                     .take(BASE_SPECIES_TRAIT_CAPACITY).forEach { add(it.id) }
-                orderedTraits.filter { it.type == CharacterTraitType.FEAT }
+                semanticTraits.filter { it.type == CharacterTraitType.FEAT }
                     .take(BASE_FEAT_CAPACITY).forEach { add(it.id) }
             }
-            val additionalTraits = orderedTraits.filter { it.id !in usedTraitIds }
+            val additionalTraits = semanticTraits.filter { it.id !in usedTraitIds }
             titledFrame(s, p, 264f, 434f, 324f, 132f, "RASGOS ADICIONALES")
             ruledTextArea(
                 s, p, 276f, 466f, 300f, 88f,
@@ -1951,19 +2083,19 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         p: AndroidPdfRenderingPrimitives,
         x: Float,
         top: Float,
-        currencies: Map<String, io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>,
+        currencies: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency>,
     ) {
         val coins = listOf(
-            "PC" to "pc",
-            "PP" to "pp",
-            "PE" to "pe",
-            "PO" to "po",
-            "PPT" to "pt",
+            "PC" to StandardCurrencyKind.COPPER,
+            "PP" to StandardCurrencyKind.SILVER,
+            "PE" to StandardCurrencyKind.ELECTRUM,
+            "PO" to StandardCurrencyKind.GOLD,
+            "PPT" to StandardCurrencyKind.PLATINUM,
         )
-        coins.forEachIndexed { index, (label, key) ->
+        coins.forEachIndexed { index, (label, kind) ->
             miniRunicStat(
                 s, p, x + index * 58f, top, 52f, 34f,
-                label, currencies[key]?.amount?.toString().orEmpty(),
+                label, currencies.standardCurrency(kind)?.amount?.toString().orEmpty(),
             )
         }
     }
@@ -2067,20 +2199,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
     private fun inventoryBaseNote(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
-    ): String = buildList {
-        when {
-            item.attuned -> add("Sintonizado")
-            item.equipped -> add("Equipado")
-        }
-        when (usage?.kind) {
-            CharacterConsumableKind.CONSUMABLE -> add("Consumible")
-            CharacterConsumableKind.AMMUNITION -> add("Munición")
-            CharacterConsumableKind.NONE, null -> Unit
-        }
-        if (usage?.quickUseAmount != null && usage.quickUseAmount != 1) add("Uso rápido ${usage.quickUseAmount}")
-        if (usage?.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
-        item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-    }.joinToString(" · ")
+    ): String = item.weightLb?.let { formatWeight(it) + " lb" }.orEmpty()
 
     private fun traitSummary(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
@@ -2656,22 +2775,22 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         note: String,
     ) {
         marker(
-            s, p, x + 7f, top + 8f, 8f,
+            s, p, x + 7f, top + 7f, 8f,
             if (attuned) PdfMarkerKind.DIAMOND_FILLED else PdfMarkerKind.DIAMOND_OUTLINE,
         )
         text(
-            s, p, x + 18f, top, width - 18f, 18f,
+            s, p, x + 18f, top, width - 18f, 15f,
             classicSingleLineExcerpt(name, CLASSIC_SPECIAL_ITEM_NAME_CHARS),
-            PdfTypographyRole.SPELL_NAME, 8.6f, 7.4f,
+            PdfTypographyRole.SPELL_NAME, 8.3f, 7.2f,
         )
         text(
-            s, p, x + 18f, top + 19f, width - 18f, 20f,
-            note, PdfTypographyRole.BODY, 7.7f, 6.6f,
+            s, p, x + 18f, top + 15f, width - 18f, 18f,
+            note, PdfTypographyRole.BODY, 7.2f, 6.2f,
             wrap = true,
             maxLines = CLASSIC_SPECIAL_ITEM_NOTE_LINES,
             vertical = PdfVerticalAlignment.TOP,
         )
-        hairline(s, x + 18f, top + 41f, x + width, top + 41f)
+        hairline(s, x + 18f, top + 36f, x + width, top + 36f)
     }
 
     private fun optionEntry(
@@ -2753,6 +2872,16 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                 vertical = PdfVerticalAlignment.TOP,
             )
             cursor += widths[index]
+        }
+        row.oneUseAvailable?.let { available ->
+            marker(
+                s,
+                p,
+                x + 162f + 34f,
+                top + 19f,
+                8f,
+                if (available) PdfMarkerKind.CIRCLE_OUTLINE else PdfMarkerKind.CIRCLE_FILLED,
+            )
         }
         hairline(s, x, top + 42f, x + widths.sum(), top + 42f)
     }
@@ -3111,6 +3240,7 @@ private fun ruledTextArea(
     private data class ClassicResourceRow(
         val name: String,
         val value: String,
+        val oneUseAvailable: Boolean?,
         val recovery: String,
         val source: String,
         val notes: String,
@@ -3155,6 +3285,8 @@ private fun ruledTextArea(
         const val W = 612f
         const val H = 792f
         const val BASE_COMBAT_CAPACITY = 4
+        const val CLASSIC_COMBAT_LINES_PER_PAGE = 27
+        const val CLASSIC_COMBAT_REFERENCE_CHARS = 86
         const val BASE_CLASS_TRAIT_CAPACITY = 4
         const val CLASSIC_BASE_CLASS_RULE_ROWS = 7
         const val BASE_SPECIES_TRAIT_CAPACITY = 3
@@ -3168,8 +3300,8 @@ private fun ruledTextArea(
         const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
         const val CLASSIC_STANDARD_GROUPS_PER_PAGE = 3
         const val CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP = 4
-        const val CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE = 3
-        const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 2
+        const val CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE = 5
+        const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 5
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
         const val CLASSIC_FEATURE_NAME_CHARS = 26
@@ -3180,7 +3312,7 @@ private fun ruledTextArea(
         const val CLASSIC_BACKGROUND_NARRATIVE_LINES = 3
         const val CLASSIC_BACKGROUND_DETAIL_CHARS = 46
         const val CLASSIC_BACKGROUND_DETAIL_LINES = 2
-        const val CLASSIC_RULED_ENTRY_CHARS = 54
+        const val CLASSIC_RULED_ENTRY_CHARS = 64
         const val CLASSIC_RULED_ENTRY_LINES = 2
         const val CLASSIC_SPECIES_NAME_CHARS = 28
         const val CLASSIC_COMBAT_NAME_CHARS = 30
@@ -3199,7 +3331,7 @@ private fun ruledTextArea(
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
         const val CLASSIC_OPTION_DETAIL_LINES = 3
         const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 12
-        const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 3
+        const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 4
         const val CLASSIC_SPECIAL_ITEM_NAME_CHARS = 30
         const val CLASSIC_SPECIAL_ITEM_NOTE_CHARS = 42
         const val CLASSIC_SPECIAL_ITEM_NOTE_LINES = 2
@@ -3219,7 +3351,6 @@ private fun ruledTextArea(
         const val CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS = 26
         const val CLASSIC_CUSTOM_ABBREVIATION_CHARS = 8
         const val CLASSIC_CUSTOM_SKILL_NAME_CHARS = 22
-        val CLASSIC_BASE_CURRENCY_KEYS = setOf("pc", "pp", "pe", "po", "pt")
         const val CLASSIC_BASE_CANTRIP_CAPACITY = 5
         const val CLASSIC_BASE_LEVEL1_CAPACITY = 13
         const val CLASSIC_BASE_LEVEL2_CAPACITY = 9
@@ -3232,6 +3363,8 @@ private fun ruledTextArea(
         const val CLASSIC_NOTES_ENTRIES_PER_PAGE = 13
         const val CLASSIC_NOTES_CHARS_PER_LINE = 58
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
+        const val CLASSIC_REFERENCE_LINES_PER_PAGE = 12
+        const val CLASSIC_REFERENCE_CHARS_PER_LINE = 32
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)

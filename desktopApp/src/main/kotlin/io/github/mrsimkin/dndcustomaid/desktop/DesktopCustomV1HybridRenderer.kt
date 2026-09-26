@@ -9,6 +9,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import java.awt.Color
@@ -149,15 +154,10 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     private fun drawDefense(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
         val sheet = plan.snapshot.aggregate.sheet
         centered(s, fonts.semibold, DEFENSE_AC_RECT, sheet.armorClass.toString(), 22f, -1f)
-        centeredAboveRule(
-            s,
-            fonts.semibold,
-            DEFENSE_DEX_RULE,
-            signed(sheet.abilityModifier(CharacterAbility.DEXTERITY)),
-            10.5f,
-            2.5f,
-        )
-        // Armor / shield / misc AC decomposition is not currently stored; those boxes remain blank.
+        // The product model currently stores final AC but not a trustworthy armor/shield/Dex
+        // decomposition. Leave every decomposition component blank rather than implying that
+        // the raw Dexterity modifier contributes to heavy-armor AC.
+        // Armor / shield / misc AC decomposition remains blank until modeled explicitly.
     }
 
     private fun drawCoreStats(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -324,7 +324,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             s,
             fonts.regular,
             NARRATIVE_NOTES_RULES,
-            notesText(plan),
+            narrativeNotesText(plan),
             9.25f,
             2.8f,
             2f,
@@ -337,24 +337,23 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .filterNot { it.special }
             .take(EQUIPMENT_RULES.size)
             .forEachIndexed { index, item ->
-                val label = buildList {
-                    add(buildString {
-                        if (item.quantity > 1) append(item.quantity).append(" x ")
-                        append(item.name)
-                    })
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.weightLb?.let { weight ->
-                        add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-                    }
-                }.joinToString(" · ")
-                textAboveRule(s, fonts.condensed, EQUIPMENT_RULES[index], label, 9.25f, 7.0f, 2.5f, 1.5f)
+                textAboveRule(
+                    s,
+                    fonts.condensed,
+                    EQUIPMENT_RULES[index],
+                    item.pdfCompactEquipmentLabel(),
+                    9.25f,
+                    7.0f,
+                    2.5f,
+                    1.5f,
+                )
             }
     }
 
     private fun drawCurrencies(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val currencies = plan.snapshot.aggregate.sheet.currencies.associateBy { it.key.lowercase() }
-        CURRENCY_KEYS.forEachIndexed { index, key ->
-            currencies[key]?.let { currency ->
+        val currencies = plan.snapshot.aggregate.sheet.currencies
+        CURRENCY_KINDS.forEachIndexed { index, kind ->
+            currencies.standardCurrency(kind)?.let { currency ->
                 centered(
                     s,
                     fonts.semibold,
@@ -365,69 +364,145 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                 )
             }
         }
+
+        // The frozen v1 source has two intentionally blank currency rows immediately below
+        // Electrum. They are the native custom-currency capacity; do not misuse Gemas/Joyas/Arte.
+        currencies
+            .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
+            .sortedBy { it.sortOrder }
+            .take(CUSTOM_CURRENCY_ROWS)
+            .forEachIndexed { index, currency ->
+                val top = 188f + index * 20f
+                centered(
+                    s,
+                    fonts.regular,
+                    TopRect(403f, top, 129f, 18f),
+                    currency.name,
+                    8.5f,
+                    -0.2f,
+                )
+                centered(
+                    s,
+                    fonts.semibold,
+                    TopRect(535f, top, 55f, 18f),
+                    currency.amount.toString(),
+                    10.5f,
+                    -0.2f,
+                )
+            }
     }
 
     private fun drawValuables(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        plan.snapshot.aggregate.successor.preferences.valuablesText
+        val aggregate = plan.snapshot.aggregate
+        val entries = aggregate.successor.preferences.valuablesText
             .split(Regex("[;\\n]+"))
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-            .take(VALUABLE_RULE_Y.size)
-            .forEachIndexed { index, raw ->
-                val parsed = parseValuable(raw)
-                val y = VALUABLE_RULE_Y[index]
-                textAboveRule(
-                    s,
-                    fonts.regular,
-                    Rule(453.402f, 546.945f, y),
-                    parsed.first,
-                    9.0f,
-                    8.5f,
-                    2.4f,
-                    1.5f,
-                )
-                parsed.second?.let { value ->
-                    centeredAboveRule(s, fonts.semibold, Rule(549.779f, 583.795f, y), value, 9.5f, 2.4f)
-                }
+            .map(::parseValuable)
+
+        entries.take(VALUABLE_RULE_Y.size).forEachIndexed { index, parsed ->
+            val y = VALUABLE_RULE_Y[index]
+            textAboveRule(
+                s,
+                fonts.regular,
+                Rule(453.402f, 546.945f, y),
+                parsed.first,
+                9.0f,
+                8.5f,
+                2.4f,
+                1.5f,
+            )
+            parsed.second?.let { value ->
+                centeredAboveRule(s, fonts.semibold, Rule(549.779f, 583.795f, y), value, 9.5f, 2.4f)
             }
+        }
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        plan.snapshot.aggregate.sheet.inventoryItems
+        val special = plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filter { it.special }
-            .take(SPECIAL_RULE_Y.size)
-            .forEachIndexed { index, item ->
-                val y = SPECIAL_RULE_Y[index]
-                if (item.equipped || item.attuned) {
-                    glyphInRect(
-                        s,
-                        fonts.symbol,
-                        CHECK_CP,
-                        TopRect(113.244f, SPECIAL_CHECK_TOP[index], 9.669f, 12.287f),
-                        0.6f,
-                        0.6f,
-                    )
-                }
-                textAboveRule(
-                    s, fonts.regular, Rule(127.5f, 210f, y),
-                    item.name, 9.0f, 8.5f, 2.4f, 1.5f,
-                )
-                val detail = buildList {
-                    if (item.attuned) add("Sintonizado")
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                }.joinToString(" · ")
-                textAboveRule(
-                    s, fonts.regular, Rule(240.803f, 583.795f, y),
-                    detail, 9.0f, 8.5f, 2.4f, 1.5f,
+
+        positionedSpecialItems(special, SPECIAL_RULE_Y.size).forEach { (rowIndex, item) ->
+            val y = SPECIAL_RULE_Y[rowIndex]
+            if (item.equipped || item.attuned) {
+                glyphInRect(
+                    s,
+                    fonts.symbol,
+                    CHECK_CP,
+                    TopRect(113.244f, SPECIAL_CHECK_TOP[rowIndex], 9.669f, 12.287f),
+                    0.6f,
+                    0.6f,
                 )
             }
+            textAboveRule(
+                s, fonts.regular, Rule(127.5f, 210f, y),
+                item.name, 9.0f, 8.5f, 2.4f, 1.5f,
+            )
+            val detail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { weight ->
+                    add(
+                        "Peso " +
+                            if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
+                            else weight.toString() + " lb",
+                    )
+                }
+                if (item.attuned) add("Sintonizado")
+                if (specialLocationNeedsText(item.location)) {
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: " + it) }
+                }
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            textAboveRule(
+                s, fonts.regular, Rule(240.803f, 583.795f, y),
+                detail, 9.0f, 8.5f, 2.4f, 1.5f,
+            )
+        }
     }
 
+    private fun positionedSpecialItems(
+        items: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>,
+        rowCount: Int,
+    ): List<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>> {
+        val available = (0 until rowCount).toMutableSet()
+        val positioned = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>>()
+        items.take(rowCount).forEach { item ->
+            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
+            val fallback = available
+                .filter { it >= SPECIAL_LOCATION_LABELS.size }
+                .minOrNull()
+                ?: available.minOrNull()
+            val row = preferred ?: fallback ?: return@forEach
+            available.remove(row)
+            positioned += row to item
+        }
+        return positioned.sortedBy { it.first }
+    }
+
+    private fun specialLocationRow(location: String?): Int? =
+        SPECIAL_LOCATION_LABELS.indexOf(normalizedInventoryLocation(location)).takeIf { it >= 0 }
+
+    private fun specialLocationNeedsText(location: String?): Boolean {
+        val normalized = normalizedInventoryLocation(location)
+        return normalized.isNotEmpty() && normalized !in SPECIAL_LOCATION_LABELS
+    }
+
+    private fun normalizedInventoryLocation(location: String?): String =
+        location
+            ?.lowercase()
+            ?.replace('á', 'a')
+            ?.replace('é', 'e')
+            ?.replace('í', 'i')
+            ?.replace('ó', 'o')
+            ?.replace('ú', 'u')
+            ?.replace(Regex("\\s+"), " ")
+            ?.trim()
+            .orEmpty()
+
     private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val text = notesText(plan)
+        val text = dedicatedNotesText(plan)
         if (text.isBlank()) return
         val leftWidth = NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f
         val rightWidth = NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f
@@ -475,16 +550,47 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                card.content.trim().takeIf { it.isNotEmpty() }?.let { body ->
-                    add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Resumen de trasfondo: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
                 }
             }
         }.joinToString(" ")
+    }
+
+    private fun dedicatedNotesText(plan: PcSheetPdfRenderPlan): String =
+        wrapApproxByChars(
+            narrativeNotesText(plan),
+            V1_NARRATIVE_NOTE_APPROX_CHARS,
+        ).drop(NARRATIVE_NOTES_RULES.size).joinToString(" ")
+
+    private fun wrapApproxByChars(text: String, maxChars: Int): List<String> {
+        val clean = text.trim()
+        if (clean.isEmpty()) return emptyList()
+
+        val result = mutableListOf<String>()
+        var current = ""
+        clean.split(Regex("\\s+")).forEach { word ->
+            val candidate = if (current.isEmpty()) word else "$current $word"
+            if (candidate.length <= maxChars || current.isEmpty()) {
+                current = candidate
+            } else {
+                result += current
+                current = word
+            }
+        }
+        if (current.isNotEmpty()) result += current
+        return result
     }
 
     private fun parseValuable(raw: String): Pair<String, String?> {
@@ -849,9 +955,21 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
         val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
-        val CURRENCY_KEYS = listOf("pt", "po", "pp", "pc", "pe")
+        const val CUSTOM_CURRENCY_ROWS = 2
+        const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
+        val CURRENCY_KINDS = listOf(
+            StandardCurrencyKind.PLATINUM,
+            StandardCurrencyKind.GOLD,
+            StandardCurrencyKind.SILVER,
+            StandardCurrencyKind.COPPER,
+            StandardCurrencyKind.ELECTRUM,
+        )
         val VALUABLE_RULE_Y = listOf(307f, 327f, 347f, 366.5f)
         val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
+        val SPECIAL_LOCATION_LABELS = listOf(
+            "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
+            "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
+        )
         val SPECIAL_CHECK_TOP = listOf(
             508.770f, 528.612f, 548.455f, 568.297f, 588.140f, 607.982f,
             627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,

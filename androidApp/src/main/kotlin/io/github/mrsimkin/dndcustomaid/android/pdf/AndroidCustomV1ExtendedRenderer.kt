@@ -18,6 +18,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
@@ -26,6 +28,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import java.io.InputStream
@@ -71,6 +74,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         if (needsTraitsExtendedPage(plan)) {
             appendTraitsExtendedPages(plan)
         }
+        appendCombatExtendedPages(plan)
         if (needsResourcesExtendedPage(plan)) {
             appendResourcesExtendedPages(plan)
         }
@@ -142,13 +146,9 @@ internal class AndroidCustomV1ExtendedRenderer(
         val sheet = plan.snapshot.aggregate.sheet
         val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
         val overflowNames = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
-        val detailLines = traitDescriptionLines(orderedTraits)
-        val metadata = traitMetadataLines(orderedTraits)
-        val supplements = traitSupplementLines(plan)
+        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
         return overflowNames.isNotEmpty() ||
-            detailLines.isNotEmpty() ||
-            metadata.isNotEmpty() ||
-            supplements.isNotEmpty() ||
+            rightLines.isNotEmpty() ||
             sheet.proficiencies.isNotEmpty()
     }
 
@@ -181,8 +181,10 @@ internal class AndroidCustomV1ExtendedRenderer(
             sheet.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE },
         )
 
-        val detailLines = traitDescriptionLines(orderedTraits)
-        val metadataLines = traitMetadataLines(orderedTraits) + traitSupplementLines(plan)
+        // Treat the two right-hand ruled areas as one continuation stream. This avoids
+        // allocating separate mostly-empty pages for "Detalles" and "Notas" when they are
+        // semantically one compact continuation.
+        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
 
         val pages = maxOf(
             1,
@@ -192,13 +194,13 @@ internal class AndroidCustomV1ExtendedRenderer(
             pageCount(proficiencies.size, TRAIT_LEFT_ROWS),
             pageCount(languages.size, TRAIT_LEFT_ROWS),
             pageCount(otherNames.size, TRAIT_OTHER_CAPACITY),
-            pageCount(detailLines.size, TRAIT_DETAIL_ROWS),
-            pageCount(metadataLines.size, TRAIT_NOTE_ROWS),
+            pageCount(rightLines.size, TRAIT_RIGHT_CAPACITY),
         )
 
         repeat(pages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
+            val rightPage = rightLines.pageSlice(pageIndex, TRAIT_RIGHT_CAPACITY)
             renderTraitsPage(
                 page = page,
                 classNames = classNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
@@ -207,8 +209,8 @@ internal class AndroidCustomV1ExtendedRenderer(
                 proficiencies = proficiencies.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
                 languages = languages.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
                 otherNames = otherNames.pageSlice(pageIndex, TRAIT_OTHER_CAPACITY),
-                detailLines = detailLines.pageSlice(pageIndex, TRAIT_DETAIL_ROWS),
-                noteLines = metadataLines.pageSlice(pageIndex, TRAIT_NOTE_ROWS),
+                detailLines = rightPage.take(TRAIT_DETAIL_ROWS),
+                noteLines = rightPage.drop(TRAIT_DETAIL_ROWS).take(TRAIT_NOTE_ROWS),
                 pageIndex = pageIndex,
             )
         }
@@ -287,50 +289,56 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun traitDescriptionLines(
+    private fun traitDetailLines(
+        plan: PcSheetPdfRenderPlan,
         traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-    ): List<String> = traits.flatMap { trait ->
-        val description = trait.description.trim()
-        if (description.isEmpty()) {
-            emptyList()
-        } else {
-            wrapByWidth(
-                trait.name + ": " + description,
-                resources.fira,
-                8.5f,
-                TRAIT_RIGHT_TEXT_WIDTH,
-            )
-        }
-    }
+    ): List<String> {
+        val sheet = plan.snapshot.aggregate.sheet
+        val resourceNames = sheet.resources
+            .map { it.name.trim().lowercase() }
+            .filter { it.isNotEmpty() }
+            .toSet()
+        val actionNames = sheet.combatEntries
+            .filter { it.type != CharacterCombatEntryType.ATTACK }
+            .map { it.name.trim().lowercase() }
+            .filter { it.isNotEmpty() }
+            .toSet()
 
-    private fun traitMetadataLines(
-        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-    ): List<String> = traits.flatMap { trait ->
-        val meaningful = trait.source.trim().isNotEmpty() ||
-            trait.maxUses != null ||
-            !trait.recovery.isNullOrBlank() ||
-            trait.activation != null ||
-            !trait.notes.isNullOrBlank()
-        if (!meaningful) {
-            emptyList()
-        } else {
-            val metadata = buildList {
-                add(traitTypeLabel(trait.type))
-                trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
-                trait.activation?.let { add(activationLabel(it)) }
-                trait.maxUses?.let { maximum ->
-                    val remaining = (maximum - trait.spentUses).coerceIn(0, maximum)
-                    add("Usos $remaining / $maximum")
+        return traits.flatMap { trait ->
+            val normalizedName = trait.name.trim().lowercase()
+            val hasDedicatedActionOrResource =
+                normalizedName in resourceNames || normalizedName in actionNames
+            if (hasDedicatedActionOrResource) {
+                // The name may remain visible on the base trait surface, but detailed use/action
+                // semantics are authoritative in Resources and Combat, not replayed here.
+                emptyList()
+            } else {
+                val detail = buildList {
+                    trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (trait.maxUses != null) {
+                        val maximum = requireNotNull(trait.maxUses)
+                        val remaining = (maximum - trait.spentUses).coerceIn(0, maximum)
+                        add("Usos $remaining / $maximum")
+                        trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    }
+                    trait.activation
+                        ?.takeIf { it != CharacterActivationType.PASSIVE }
+                        ?.let { add(activationLabel(it)) }
+                }.distinct().joinToString(" · ")
+
+                if (detail.isBlank()) {
+                    emptyList()
+                } else {
+                    wrapByWidth(
+                        trait.name + ": " + detail,
+                        resources.fira,
+                        8.4f,
+                        TRAIT_RIGHT_TEXT_WIDTH,
+                    )
                 }
-                trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             }
-            wrapByWidth(
-                trait.name + ": " + metadata.joinToString(" · "),
-                resources.fira,
-                8.4f,
-                TRAIT_RIGHT_TEXT_WIDTH,
-            )
         }
     }
 
@@ -376,10 +384,6 @@ internal class AndroidCustomV1ExtendedRenderer(
             }
         }
 
-        // Base v1 page 3 has no dedicated summary/religion fields.
-        addFull("Resumen de trasfondo", background.summary)
-        addFull("Fe / religión", background.religionFaith)
-
         // Preserve only narrative overflow beyond the exact frozen v1 base capacities.
         addCharOverflow("Rasgos de personalidad", background.personalityTraits, 42, 6)
         addWidthOverflow("Ideales", background.ideals, 9.25f, 153f, 6)
@@ -402,37 +406,10 @@ internal class AndroidCustomV1ExtendedRenderer(
             classLevel.name + " " + classLevel.level
         }
         if (classSummary.length > 32) addFull("Clases", classSummary)
-        orderedClasses.forEach { classLevel ->
-            classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
-                addFull("Subclase", classLevel.name + " - " + subclass)
-            }
-        }
-
         if (sheet.name.length > 36) addFull("Nombre", sheet.name)
         if (sheet.status != io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.ACTIVE) {
             addFull("Estado", characterStatusLabel(sheet.status))
         }
-
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                if (
-                    index >= BASE_V1_COMBAT_CAPACITY ||
-                    entry.type != CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank()
-                ) {
-                    addFull(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
 
         if (closure.progressMode == CharacterProgressMode.MILESTONE) {
             addFull("Progreso", closure.milestoneProgress)
@@ -520,18 +497,6 @@ internal class AndroidCustomV1ExtendedRenderer(
                 )
             }
 
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val entry = combatById[profile.combatEntryId]
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression +
-                    component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                addFull("Daño estructurado", (entry?.name ?: "Ataque") + ": " + components)
-            }
-        }
-
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
         successor.spellcastingProfiles.drop(1).forEach { profile ->
             val sourceName = spellSources[profile.sourceId]?.name ?: "Fuente mágica"
@@ -603,6 +568,117 @@ internal class AndroidCustomV1ExtendedRenderer(
         }
 
         return lines
+    }
+
+    private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val rows = combatReferenceRows(plan)
+        if (rows.isEmpty()) return
+
+        val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderCombatPage(
+                page = page,
+                rows = rows.pageSlice(pageIndex, COMBAT_ROWS_PER_PAGE),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun combatReferenceRows(plan: PcSheetPdfRenderPlan): List<CombatReferenceRow> {
+        val aggregate = plan.snapshot.aggregate
+        val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+
+        return aggregate.sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .mapIndexedNotNull { index, entry ->
+                val structuredDamage = damageByCombatId[entry.id]?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val needsReference =
+                    index >= BASE_V1_COMBAT_CAPACITY ||
+                        entry.type != CharacterCombatEntryType.ATTACK ||
+                        !entry.notes.isNullOrBlank() ||
+                        structuredDamage.isNotBlank()
+                if (!needsReference) {
+                    null
+                } else {
+                    val extraDamage = structuredDamage.takeIf {
+                        it.isNotBlank() && !it.equals(entry.damageEffect.trim(), ignoreCase = true)
+                    }
+                    CombatReferenceRow(
+                        name = combatTypeLabel(entry.type) + " — " + entry.name,
+                        range = entry.rangeText.orEmpty().trim(),
+                        bonus = entry.attackModifier?.let(::signed).orEmpty(),
+                        effect = entry.damageEffect.trim(),
+                        notes = listOf(
+                            entry.notes.orEmpty().trim(),
+                            extraDamage?.let { "Daño: $it" }.orEmpty(),
+                        ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    )
+                }
+            }
+    }
+
+    private fun renderCombatPage(
+        page: PDPage,
+        rows: List<CombatReferenceRow>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X COMBAT P${pageIndex + 1}"
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            sourceBands(
+                s,
+                25f,
+                585f,
+                COMBAT_FIRST_RULE_TOP,
+                COMBAT_ROWS_PER_PAGE,
+                COMBAT_ROW_STEP,
+            )
+            listOf(205f, 285f, 335f, 460f).forEach { x ->
+                verticalRule(s, x, 112f, COMBAT_FIRST_RULE_TOP + COMBAT_ROWS_PER_PAGE * COMBAT_ROW_STEP, 0.45f)
+            }
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Combate / Acciones", 18f)
+            centeredText(s, resources.fira, 27f, 96f, 176f, 14f, "TIPO / NOMBRE", 7.5f)
+            centeredText(s, resources.fira, 207f, 96f, 76f, 14f, "RANGO", 7.5f)
+            centeredText(s, resources.fira, 287f, 96f, 46f, 14f, "BONIF.", 7.5f)
+            centeredText(s, resources.fira, 337f, 96f, 121f, 14f, "DAÑO / EFECTO", 7.5f)
+            centeredText(s, resources.fira, 462f, 96f, 121f, 14f, "NOTAS", 7.5f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            rows.forEachIndexed { index, row ->
+                val top = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
+                combatCellText(s, resources.fira, Rule(27.5f, 201f, top), row.name, 8.0f)
+                combatCellText(s, resources.fira, Rule(207f, 281f, top), row.range, 7.8f)
+                combatCellText(s, resources.firaSemibold, Rule(287f, 331f, top), row.bonus, 8.0f)
+                combatCellText(s, resources.fira, Rule(337f, 456f, top), row.effect, 7.8f)
+                combatCellText(s, resources.fira, Rule(462f, 583.795f, top), row.notes, 7.6f)
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun verticalRule(
+        s: PDFormContentStream,
+        x: Float,
+        top: Float,
+        bottomTop: Float,
+        width: Float,
+    ) {
+        s.saveGraphicsState()
+        s.setLineWidth(width)
+        s.moveTo(x, H - top)
+        s.lineTo(x, H - bottomTop)
+        s.stroke()
+        s.restoreGraphicsState()
     }
 
     private fun characterStatusLabel(
@@ -710,22 +786,35 @@ internal class AndroidCustomV1ExtendedRenderer(
             .map { resource ->
                 val recovery = recoveryByResource[resource.id]
                 val kind = configurationByResource[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
+                val maximum = when (kind) {
+                    CharacterTrackableValueKind.BINARY -> 1
+                    CharacterTrackableValueKind.COUNTER,
+                    CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
+                }
+                val oneUse = maximum == 1
+                val structuredRecovery = buildList {
+                    recovery?.cadence?.let(::recoveryLabel)?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (!oneUse || recovery?.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                        recovery?.amountMode
+                            ?.let { recoveryAmountLabel(it, recovery.fixedAmount) }
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let(::add)
+                    }
+                    recovery?.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                }
                 ResourceRenderRow(
                     name = resource.name,
                     currentValue = resource.currentValue,
-                    maximum = when (kind) {
-                        CharacterTrackableValueKind.BINARY -> 1
-                        CharacterTrackableValueKind.COUNTER,
-                        CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
-                    },
-                    recoveryAndDetail = listOf(
-                        resource.recovery.orEmpty().trim(),
-                        recovery?.cadence?.let(::recoveryLabel).orEmpty(),
-                        recovery?.amountMode?.let { recoveryAmountLabel(it, recovery.fixedAmount) }.orEmpty(),
-                        recovery?.notes.orEmpty().trim(),
-                        resource.source.orEmpty().trim(),
-                        resource.notes.orEmpty().trim(),
-                    ).filter { it.isNotEmpty() }.distinct().joinToString(" · "),
+                    maximum = maximum,
+                    recoveryAndDetail = buildList {
+                        val recoveryText = structuredRecovery
+                            .takeIf { it.isNotEmpty() }
+                            ?.joinToString(" · ")
+                            ?: resource.recovery.orEmpty().trim()
+                        recoveryText.takeIf { it.isNotEmpty() }?.let(::add)
+                        resource.source.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                        resource.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    }.distinct().joinToString(" · "),
                     sortOrder = resource.sortOrder,
                     sourceRank = 0,
                 )
@@ -734,19 +823,25 @@ internal class AndroidCustomV1ExtendedRenderer(
         val markers = aggregate.successor.customMarkers
             .sortedBy { it.sortOrder }
             .map { marker ->
+                val maximum = when (marker.valueKind) {
+                    CharacterTrackableValueKind.BINARY -> 1
+                    CharacterTrackableValueKind.COUNTER,
+                    CharacterTrackableValueKind.CURRENT_MAX -> marker.maxValue
+                }
+                val oneUse = maximum == 1
                 ResourceRenderRow(
                     name = marker.name,
                     currentValue = marker.currentValue,
-                    maximum = when (marker.valueKind) {
-                        CharacterTrackableValueKind.BINARY -> 1
-                        CharacterTrackableValueKind.COUNTER,
-                        CharacterTrackableValueKind.CURRENT_MAX -> marker.maxValue
-                    },
-                    recoveryAndDetail = listOf(
-                        recoveryLabel(marker.recovery.cadence),
-                        recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount),
-                        marker.notes.orEmpty().trim(),
-                    ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    maximum = maximum,
+                    recoveryAndDetail = buildList {
+                        recoveryLabel(marker.recovery.cadence).takeIf { it.isNotEmpty() }?.let(::add)
+                        if (!oneUse || marker.recovery.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                            recoveryAmountLabel(marker.recovery.amountMode, marker.recovery.fixedAmount)
+                                .takeIf { it.isNotEmpty() }
+                                ?.let(::add)
+                        }
+                        marker.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                    }.joinToString(" · "),
                     sortOrder = marker.sortOrder,
                     sourceRank = 1,
                 )
@@ -980,44 +1075,56 @@ internal class AndroidCustomV1ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
+        val ordinaryLines = ordinary.flatMapIndexed { index, item ->
             val usage = usageByItem[item.id]
-            item.takeIf {
+            val baseLabel = inventoryBaseLabel(item)
+            val needsFullContinuation =
                 index >= BASE_V1_EQUIPMENT_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    item.equipped ||
-                    item.attuned ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank()
+                    wrapByWidth(
+                        baseLabel,
+                        resources.condensed,
+                        7.0f,
+                        INVENTORY_ORDINARY_TEXT_WIDTH,
+                    ).size > 1
+            if (needsFullContinuation) {
+                inventoryContinuationLines(item, usage)
+            } else {
+                emptyList()
             }
-        }
-        val ordinaryLines = ordinaryContinuation.flatMap { item ->
-            inventoryContinuationLines(item, usageByItem[item.id])
         }
 
         val special = ordered.filter { it.special }
         val specialContinuation = special.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
+            val baseDetail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { add(formatInventoryWeight(it)) }
+                if (item.attuned) add("Sintonizado")
+                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            val baseDetailOverflows =
+                baseDetail.isNotBlank() &&
+                    textWidth(resources.fira, baseDetail, 8.5f) > V1_BASE_SPECIAL_DETAIL_WIDTH
+            val baseNameOverflows =
+                textWidth(resources.fira, item.name, 8.5f) > V1_BASE_SPECIAL_NAME_WIDTH
             item.takeIf {
                 index >= BASE_V1_SPECIAL_CAPACITY ||
-                    item.attuned ||
                     usageMeaningful(usage) ||
-                    item.quantity != 1 ||
-                    item.weightLb != null ||
-                    specialLocationNeedsText(item.location)
+                    baseNameOverflows ||
+                    baseDetailOverflows
             }
         }
 
         val treasure = buildList {
             sheet.currencies
-                .filter { it.key.lowercase() !in BASE_V1_CURRENCY_KEYS }
+                .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
                 .sortedBy { it.sortOrder }
+                .drop(BASE_V1_CUSTOM_CURRENCY_CAPACITY)
                 .forEach { currency ->
-                    // A custom currency is not a gp-valued treasure row. Keep its amount
-                    // in the object label so the native VALOR PO column cannot misstate its unit.
                     add(TreasureEntry("${currency.name}: ${currency.amount}", null))
                 }
-
             aggregate.successor.preferences.valuablesText
                 .split(';')
                 .map { it.trim() }
@@ -1160,34 +1267,39 @@ internal class AndroidCustomV1ExtendedRenderer(
         append(item.name)
     }
 
-    private fun inventoryContinuationLines(
+    private fun inventoryBaseLabel(item: CharacterInventoryItem): String =
+        item.pdfCompactEquipmentLabel()
+
+    private fun inventoryDetailContinuationLines(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val status = buildList {
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(
-                    if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
-                    else weight.toString() + " lb",
-                )
-            }
+        val lines = mutableListOf<String>()
+        val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
             if (item.attuned) add("Sintonizado")
             addAll(inventoryUsageLabels(usage))
         }.joinToString(" · ")
+        if (operationalStatus.isNotEmpty()) {
+            lines += wrapByWidth(
+                item.name + " — Estado: " + operationalStatus,
+                resources.condensed,
+                8.2f,
+                INVENTORY_ORDINARY_TEXT_WIDTH,
+            )
+        }
 
+        return lines
+    }
+
+    private fun inventoryContinuationLines(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<String> {
         val lines = mutableListOf<String>()
-        // Keep the logical item identity on one ruled line. ruleText() may reduce the condensed
-        // type slightly to fit, but it must not turn "5 lb" into an orphaned second item-looking row.
-        val primary = buildList {
-            add(inventoryContinuationLabel(item))
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
-            }
-        }.joinToString(" · ")
-        lines += primary
+        // Full continuation is only for an item whose compact identity itself did not fit the
+        // native Equipment capacity. Location/description/notes remain Notes semantics.
+        lines += item.pdfCompactEquipmentLabel()
 
         val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
@@ -1203,18 +1315,6 @@ internal class AndroidCustomV1ExtendedRenderer(
             )
         }
 
-        val description = listOfNotNull(
-            item.description?.trim()?.takeIf { it.isNotEmpty() },
-            item.notes?.trim()?.takeIf { it.isNotEmpty() },
-        ).joinToString(" · ")
-        if (description.isNotEmpty()) {
-            lines += wrapByWidth(
-                "Nota: $description",
-                resources.condensed,
-                8.2f,
-                INVENTORY_ORDINARY_TEXT_WIDTH,
-            )
-        }
         return lines
     }
 
@@ -1481,14 +1581,32 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
+    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Resumen de trasfondo: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
+        }.joinToString(" ")
+    }
+
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                val body = card.content.trim()
-                if (body.isNotEmpty()) add("${card.title}: $body")
-            }
+            val narrativeOverflow = wrapForRulesByChars(
+                narrativeNotesText(plan),
+                V1_NARRATIVE_NOTE_APPROX_CHARS,
+            ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
+            narrativeOverflow.takeIf { it.isNotBlank() }?.let(::add)
         }.joinToString("\n\n")
     }
 
@@ -1872,6 +1990,39 @@ internal class AndroidCustomV1ExtendedRenderer(
         s.endText()
     }
 
+    private fun combatCellText(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        preferredSize: Float,
+        leftPadding: Float = 2f,
+    ) {
+        if (value.isBlank()) return
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        var size = preferredSize
+        while (size > MINIMUM_BODY_SIZE && textWidth(font, value, size) > available) {
+            size -= 0.2f
+        }
+        val rawWidth = textWidth(font, value, size)
+        val horizontalScale = if (rawWidth <= available) {
+            100f
+        } else {
+            (available / rawWidth * 100f).coerceAtMost(100f)
+        }
+        require(horizontalScale >= COMBAT_MINIMUM_HORIZONTAL_SCALE) {
+            "Custom-v1 combat cell requires excessive compression: '$value' ($horizontalScale%)"
+        }
+        s.beginText()
+        s.setNonStrokingColor(Color.BLACK)
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(rule.startX + leftPadding, H - rule.topY + 3.2f)
+        s.showText(value)
+        s.setHorizontalScaling(100f)
+        s.endText()
+    }
+
     private fun ruleText(
         s: PDFormContentStream,
         font: PDFont,
@@ -2113,6 +2264,14 @@ internal class AndroidCustomV1ExtendedRenderer(
         val slotRule: Rule?,
     )
 
+    private data class CombatReferenceRow(
+        val name: String,
+        val range: String,
+        val bonus: String,
+        val effect: String,
+        val notes: String,
+    )
+
     private data class TreasureEntry(
         val label: String,
         val value: String?,
@@ -2262,6 +2421,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val TRAIT_OTHER_CAPACITY = 12
         const val TRAIT_DETAIL_ROWS = 4
         const val TRAIT_NOTE_ROWS = 5
+        const val TRAIT_RIGHT_CAPACITY = TRAIT_DETAIL_ROWS + TRAIT_NOTE_ROWS
         const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
 
@@ -2313,6 +2473,8 @@ internal class AndroidCustomV1ExtendedRenderer(
             slotRule = slotY?.let { Rule(x + 39f, x + 79f, it) },
         )
 
+        const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
+        const val BASE_V1_NARRATIVE_NOTE_CAPACITY = 9
         const val BASE_V1_NOTES_WRAP_CHARS = 68
         const val NOTES_COLUMN_CAPACITY = 17
         const val BASE_V1_NOTES_CAPACITY = NOTES_COLUMN_CAPACITY * 2
@@ -2323,14 +2485,20 @@ internal class AndroidCustomV1ExtendedRenderer(
         )
 
         const val BASE_V1_COMBAT_CAPACITY = 5
+        const val COMBAT_ROWS_PER_PAGE = 14
+        const val COMBAT_FIRST_RULE_TOP = 128f
+        const val COMBAT_ROW_STEP = 42f
+        const val COMBAT_TEXT_WIDTH = 556f
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
-        const val BASE_V1_SPECIAL_CAPACITY = 13
-        const val BASE_V1_VALUABLE_CAPACITY = 8
+        const val BASE_V1_SPECIAL_CAPACITY = 12
+        const val BASE_V1_VALUABLE_CAPACITY = 4
+        const val BASE_V1_CUSTOM_CURRENCY_CAPACITY = 2
         const val INVENTORY_ORDINARY_CAPACITY = 54
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
         const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
-        val BASE_V1_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc", "pe")
+        const val V1_BASE_SPECIAL_NAME_WIDTH = 82.5f
+        const val V1_BASE_SPECIAL_DETAIL_WIDTH = 343f
         val INVENTORY_ORDINARY_COLUMNS = listOf(
             27.5f to 137.5f,
             169.937f to 300.331f,
@@ -2388,6 +2556,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val MINIMUM_LABEL_HORIZONTAL_SCALE = 50f
         const val SOURCE_LABEL_BASELINE_OFFSET = 3.0f
         const val MINIMUM_BODY_SIZE = 5.8f
+        const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 55f
 
         val SOURCE_GRAY = Color(211, 210, 210)
 

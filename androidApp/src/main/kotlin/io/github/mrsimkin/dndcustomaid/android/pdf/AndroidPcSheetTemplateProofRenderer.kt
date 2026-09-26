@@ -11,6 +11,9 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrency
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import java.io.InputStream
@@ -504,10 +507,14 @@ private fun drawCustomV2Common(
         plan: PcSheetPdfRenderPlan,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val currencies = sheet.currencies.associateBy { it.key.lowercase() }
-        val treasureKeys = listOf("pt", "po", "pp", "pc")
-        treasureKeys.forEachIndexed { index, key ->
-            currencies[key]?.let { currency ->
+        val nativeKinds = listOf(
+            StandardCurrencyKind.PLATINUM,
+            StandardCurrencyKind.GOLD,
+            StandardCurrencyKind.SILVER,
+            StandardCurrencyKind.COPPER,
+        )
+        nativeKinds.forEachIndexed { index, kind ->
+            sheet.currencies.standardCurrency(kind)?.let { currency ->
                 fillCenteredTextPx(
                     stream, primitives,
                     579f, V2_TREASURE_RULE_Y[index] - 17f,
@@ -516,18 +523,28 @@ private fun drawCustomV2Common(
             }
         }
 
-        sheet.inventoryItems.filterNot { it.special }
-            .take(V2_OBJECT_RULE_Y.size)
-            .forEachIndexed { index, item ->
-                fillOnRulePx(stream, primitives, 370f, 300f, V2_OBJECT_RULE_Y[index], item.name, 7.2f)
+        // The source family's adjacent OTROS rows are the native escape hatch for currency
+        // units not represented by the four fixed coin slots: Electrum and user-defined currency.
+        // Currency has priority here; special equipment is fully represented on the shared
+        // Equipment/Narrative page and must not displace money back into Equipment continuation.
+        sheet.currencies
+            .filter { currency ->
+                val kind = currency.standardCurrencyKindOrNull()
+                (kind != null && kind !in nativeKinds) ||
+                    (!currency.isDefault && kind == null)
             }
-
-        // Preserve the source ammunition grid blank for paper use. Real ammunition records are
-        // character data and are carried through the Inventory continuation when configured.
-        sheet.inventoryItems.filter { it.special }
+            .sortedBy { it.sortOrder }
             .take(V2_OTHER_RULE_Y.size)
-            .forEachIndexed { index, item ->
-                fillOnRulePx(stream, primitives, 700f, 355f, V2_OTHER_RULE_Y[index], item.name, 7.2f)
+            .forEachIndexed { index, currency ->
+                fillOnRulePx(
+                    stream,
+                    primitives,
+                    700f,
+                    355f,
+                    V2_OTHER_RULE_Y[index],
+                    currency.name + ": " + currency.amount,
+                    7.2f,
+                )
             }
     }
 

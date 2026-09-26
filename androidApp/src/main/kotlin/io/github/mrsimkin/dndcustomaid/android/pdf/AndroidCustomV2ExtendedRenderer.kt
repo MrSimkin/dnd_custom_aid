@@ -6,6 +6,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbilityReference
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOptionKind
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
@@ -26,6 +27,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
+import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import android.graphics.Bitmap
@@ -84,6 +89,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
 
         appendTraitsExtendedPages(plan)
+        appendCombatExtendedPages(plan)
 
         appendResourcesExtendedPages(plan)
 
@@ -94,7 +100,10 @@ internal class AndroidCustomV2ExtendedRenderer(
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
         val sheet = plan.snapshot.aggregate.sheet
-        return sheet.traits.isNotEmpty() ||
+        val semanticTraits = sheet.traits.any {
+            !isSpeciesIdentityTrait(it, plan) && !traitHasDedicatedActionOrResource(it, plan)
+        }
+        return semanticTraits ||
             sheet.proficiencies.isNotEmpty() ||
             traitSupplementLines(plan).isNotEmpty()
     }
@@ -445,7 +454,9 @@ internal class AndroidCustomV2ExtendedRenderer(
         if (!needsTraitsExtendedPage(plan)) return
 
         val sheet = plan.snapshot.aggregate.sheet
-        val traits = sheet.traits.sortedBy { it.sortOrder }
+        val traits = sheet.traits
+            .sortedBy { it.sortOrder }
+            .filterNot { isSpeciesIdentityTrait(it, plan) || traitHasDedicatedActionOrResource(it, plan) }
         fun featurePriority(trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait): Int =
             if (
                 trait.maxUses != null ||
@@ -626,54 +637,15 @@ internal class AndroidCustomV2ExtendedRenderer(
         addOverflow("Vínculos", background.bonds, 76, 3)
         addOverflow("Ideales", background.ideals, 76, 3)
         addOverflow("Historia", background.story, 76, 12)
-        addFull("Rasgos de personalidad", background.personalityTraits)
-        addFull("Defectos", background.flaws)
-        addFull("Fe / religión", background.religionFaith)
-
-        successor.speciesIdentity?.name?.trim()?.takeIf {
-            it.isNotEmpty() && !it.equals(background.race.trim(), ignoreCase = true)
-        }?.let { addFull("Raza canónica", it) }
-        successor.subraceIdentity?.name?.trim()?.takeIf { it.isNotEmpty() }?.let { addFull("Subraza", it) }
-        successor.backgroundIdentity?.name?.trim()?.takeIf {
-            it.isNotEmpty() && !it.equals(background.name.trim(), ignoreCase = true)
-        }?.let { addFull("Trasfondo canónico", it) }
-
         val orderedClasses = sheet.classes.sortedBy { it.sortOrder }
         val classSummary = orderedClasses.joinToString(" / ") { classLevel ->
             classLevel.name + " " + classLevel.level
         }
         if (classSummary.length > 32) addFull("Clases", classSummary)
-        orderedClasses.forEach { classLevel ->
-            classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
-                addFull("Subclase", classLevel.name + " - " + subclass)
-            }
-        }
-
         if (sheet.name.length > 36) addFull("Nombre", sheet.name)
         if (sheet.status != io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus.ACTIVE) {
             addFull("Estado", characterStatusLabel(sheet.status))
         }
-
-        sheet.combatEntries
-            .sortedBy { it.sortOrder }
-            .forEachIndexed { index, entry ->
-                if (
-                    index >= BASE_V2_COMBAT_CAPACITY ||
-                    entry.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK ||
-                    !entry.notes.isNullOrBlank()
-                ) {
-                    addFull(
-                        "Acción / ataque",
-                        buildList {
-                            add(combatTypeLabel(entry.type) + " - " + entry.name)
-                            entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.rangeText?.takeIf { it.isNotBlank() }?.let(::add)
-                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
-                        }.joinToString(" · "),
-                    )
-                }
-            }
 
         when (closure.progressMode) {
             CharacterProgressMode.EXPERIENCE -> addFull("Experiencia", closure.experiencePoints.toString())
@@ -761,17 +733,6 @@ internal class AndroidCustomV2ExtendedRenderer(
                 )
             }
 
-        val combatById = sheet.combatEntries.associateBy { it.id }
-        successor.combatDamage.forEach { profile ->
-            val entry = combatById[profile.combatEntryId]
-            val components = profile.components.joinToString(" + ") { component ->
-                component.expression + component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
-            }
-            if (components.isNotBlank()) {
-                addFull("Daño estructurado", (entry?.name ?: "Ataque") + ": " + components)
-            }
-        }
-
         val spellSources = sheet.spellcastingSources.associateBy { it.id }
         successor.spellcastingProfiles.forEach { profile ->
             val sourceName = spellSources[profile.sourceId]?.name ?: "Fuente mágica"
@@ -842,6 +803,96 @@ internal class AndroidCustomV2ExtendedRenderer(
         return lines
     }
 
+    private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val rows = combatReferenceRows(plan)
+        if (rows.isEmpty()) return
+
+        val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderCombatPage(
+                page = page,
+                rows = rows.drop(pageIndex * COMBAT_ROWS_PER_PAGE).take(COMBAT_ROWS_PER_PAGE),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun combatReferenceRows(plan: PcSheetPdfRenderPlan): List<CombatReferenceRow> {
+        val aggregate = plan.snapshot.aggregate
+        val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
+
+        return aggregate.sheet.combatEntries
+            .sortedBy { it.sortOrder }
+            .mapIndexedNotNull { index, entry ->
+                val structuredDamage = damageByCombatId[entry.id]?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val needsReference =
+                    index >= BASE_V2_COMBAT_CAPACITY ||
+                        entry.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK ||
+                        !entry.notes.isNullOrBlank() ||
+                        structuredDamage.isNotBlank()
+                if (!needsReference) {
+                    null
+                } else {
+                    val extraDamage = structuredDamage.takeIf {
+                        it.isNotBlank() && !it.equals(entry.damageEffect.trim(), ignoreCase = true)
+                    }
+                    CombatReferenceRow(
+                        name = combatTypeLabel(entry.type) + " — " + entry.name,
+                        range = entry.rangeText.orEmpty().trim(),
+                        bonus = entry.attackModifier?.let(::signed).orEmpty(),
+                        effect = entry.damageEffect.trim(),
+                        notes = listOf(
+                            entry.notes.orEmpty().trim(),
+                            extraDamage?.let { "Daño: $it" }.orEmpty(),
+                        ).filter { it.isNotEmpty() }.joinToString(" · "),
+                    )
+                }
+            }
+    }
+
+    private fun renderCombatPage(
+        page: PDPage,
+        rows: List<CombatReferenceRow>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = if (pageIndex == 0) "V2X COMBAT" else "V2X COMBAT ${pageIndex + 1}"
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            pageHeaderStructure(s)
+            fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
+            bandedRows(s, 14f, 598f, COMBAT_FIRST_RULE_TOP, COMBAT_ROWS_PER_PAGE, COMBAT_ROW_STEP, 0)
+            listOf(200f, 282f, 334f, 462f).forEach { x ->
+                verticalRule(s, x, 120f, COMBAT_FIRST_RULE_TOP + COMBAT_ROWS_PER_PAGE * COMBAT_ROW_STEP, 0.45f)
+            }
+        }
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            pageTitle(s, "COMBATE / ACCIONES")
+            tableLabel(s, 18f, 121f, 178f, "TIPO / NOMBRE")
+            tableLabel(s, 204f, 121f, 74f, "RANGO")
+            tableLabel(s, 286f, 121f, 44f, "BONIF.")
+            tableLabel(s, 338f, 121f, 120f, "DAÑO / EFECTO")
+            tableLabel(s, 466f, 121f, 128f, "NOTAS")
+        }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            rows.forEachIndexed { index, row ->
+                val y = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
+                combatCellText(s, resources.fira, Rule(18f, 196f, y), row.name, 7.8f)
+                combatCellText(s, resources.fira, Rule(204f, 278f, y), row.range, 7.6f)
+                combatCellText(s, resources.firaSemibold, Rule(286f, 330f, y), row.bonus, 7.8f)
+                combatCellText(s, resources.fira, Rule(338f, 458f, y), row.effect, 7.6f)
+                combatCellText(s, resources.fira, Rule(466f, 594f, y), row.notes, 7.4f)
+            }
+        }
+        appendLayer(page, "$layerPrefix - MARKERS") { }
+    }
+
     private fun characterStatusLabel(
         status: io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus,
     ): String = when (status) {
@@ -873,6 +924,34 @@ internal class AndroidCustomV2ExtendedRenderer(
         CharacterMovementType.CLIMB -> "Trepar"
         CharacterMovementType.BURROW -> "Excavar"
         CharacterMovementType.OTHER -> "Otro"
+    }
+
+    private fun isSpeciesIdentityTrait(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        if (trait.type != CharacterTraitType.SPECIES_RACE) return false
+        val aggregate = plan.snapshot.aggregate
+        val identityNames = listOfNotNull(
+            aggregate.sheet.background.race.trim().takeIf { it.isNotEmpty() },
+            aggregate.successor.speciesIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+            aggregate.successor.subraceIdentity?.name?.trim()?.takeIf { it.isNotEmpty() },
+        )
+        return identityNames.any { it.equals(trait.name.trim(), ignoreCase = true) }
+    }
+
+    private fun traitHasDedicatedActionOrResource(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        plan: PcSheetPdfRenderPlan,
+    ): Boolean {
+        val name = trait.name.trim()
+        if (name.isEmpty()) return false
+        val sheet = plan.snapshot.aggregate.sheet
+        return sheet.resources.any { it.name.trim().equals(name, ignoreCase = true) } ||
+            sheet.combatEntries.any {
+                it.type != CharacterCombatEntryType.ATTACK &&
+                    it.name.trim().equals(name, ignoreCase = true)
+            }
     }
 
     private fun fullTraitDetailLines(
@@ -930,21 +1009,31 @@ internal class AndroidCustomV2ExtendedRenderer(
             .map { resource ->
                 val recovery = recoveryByResource[resource.id]
                 val kind = configurationByResource[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
+                val maximum = when (kind) {
+                    CharacterTrackableValueKind.BINARY -> 1
+                    CharacterTrackableValueKind.COUNTER,
+                    CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
+                }
+                val oneUse = maximum == 1
+                val structuredRecovery = buildList {
+                    recovery?.cadence?.let(::recoveryLabel)?.takeIf { it.isNotEmpty() }?.let(::add)
+                    if (!oneUse || recovery?.amountMode != CharacterRecoveryAmountMode.TO_MAX) {
+                        recovery?.amountMode
+                            ?.let { recoveryAmountLabel(it, recovery.fixedAmount) }
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let(::add)
+                    }
+                    recovery?.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let(::add)
+                }
                 ResourceRenderRow(
                     name = resource.name,
                     currentValue = resource.currentValue,
-                    maximum = when (kind) {
-                        CharacterTrackableValueKind.BINARY -> 1
-                        CharacterTrackableValueKind.COUNTER,
-                        CharacterTrackableValueKind.CURRENT_MAX -> resource.maxValue
-                    },
+                    maximum = maximum,
                     valueKind = kind,
-                    recovery = listOf(
-                        resource.recovery.orEmpty().trim(),
-                        recovery?.cadence?.let(::recoveryLabel).orEmpty(),
-                        recovery?.amountMode?.let { recoveryAmountLabel(it, recovery.fixedAmount) }.orEmpty(),
-                        recovery?.notes.orEmpty().trim(),
-                    ).filter { it.isNotEmpty() }.distinct().joinToString(" · "),
+                    recovery = structuredRecovery
+                        .takeIf { it.isNotEmpty() }
+                        ?.joinToString(" · ")
+                        ?: resource.recovery.orEmpty().trim(),
                     detail = listOf(
                         resource.source.orEmpty().trim(),
                         resource.notes.orEmpty().trim(),
@@ -991,6 +1080,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     name = nameLines.getOrNull(index).orEmpty(),
                     currentValue = row.currentValue.takeIf { index == 0 },
                     maximum = row.maximum.takeIf { index == 0 },
+                    oneUse = row.maximum == 1 && index == 0,
                     recovery = recoveryLines.getOrNull(index).orEmpty(),
                     detail = detailLines.getOrNull(index).orEmpty(),
                 )
@@ -1063,12 +1153,23 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val current = row.currentValue
                 val maximum = row.maximum
                 if (current != null) {
-                    val canUseSymbols = maximum != null &&
-                        maximum in 1..9 &&
-                        current in 0..maximum
-                    if (!canUseSymbols) {
-                        val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
-                        centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                    if (row.oneUse) {
+                        centeredAboveRule(
+                            s,
+                            resources.firaSemibold,
+                            Rule(226f, 348f, y),
+                            current.coerceIn(0, 1).toString() + " / 1",
+                            8.0f,
+                            2.2f,
+                        )
+                    } else {
+                        val canUseSymbols = maximum != null &&
+                            maximum in 1..9 &&
+                            current in 0..maximum
+                        if (!canUseSymbols) {
+                            val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
+                            centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                        }
                     }
                 }
 
@@ -1098,6 +1199,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val current = row.currentValue
                 val maximum = row.maximum
                 if (
+                    !row.oneUse &&
                     current != null &&
                     maximum != null &&
                     maximum in 1..9 &&
@@ -1139,35 +1241,68 @@ internal class AndroidCustomV2ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryContinuation = ordinary.mapIndexedNotNull { index, item ->
+        val ordinaryLines = ordinary.flatMapIndexed { index, item ->
             val usage = usageByItem[item.id]
-            item.takeIf {
+            val needsFullContinuation =
                 index >= BASE_V2_EQUIPMENT_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    item.equipped ||
-                    !item.description.isNullOrBlank() ||
-                    !item.notes.isNullOrBlank()
+                    wrapByWidth(
+                        resources.condensed,
+                        inventoryBaseLabel(item),
+                        7.0f,
+                        V2_BASE_EQUIPMENT_TEXT_WIDTH,
+                    ).size > 1
+            if (needsFullContinuation) {
+                inventoryContinuationLines(item, usage)
+            } else {
+                emptyList()
             }
         }
-        val ordinaryLines = ordinaryContinuation.flatMap { item ->
-            inventoryContinuationLines(item, usageByItem[item.id])
-        }
+
         val special = ordered.filter { it.special }
         val specialContinuation = special.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
+            val baseDetail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { add(formatInventoryWeight(it)) }
+                if (item.attuned) add("Sintonizado")
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            val baseDetailOverflows =
+                baseDetail.isNotBlank() &&
+                    textWidth(resources.fira, baseDetail, 8.5f) > V2_BASE_SPECIAL_DETAIL_WIDTH
+            val baseNameOverflows =
+                textWidth(resources.fira, item.name, 8.5f) > V2_BASE_SPECIAL_NAME_WIDTH
+            val locationOverflows = item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                textWidth(resources.fira, it, 7.5f) > V2_BASE_SPECIAL_LOCATION_WIDTH
+            } ?: false
             item.takeIf {
                 index >= BASE_V2_SPECIAL_CAPACITY ||
-                    item.attuned ||
                     usageMeaningful(usage) ||
-                    item.quantity != 1 ||
-                    item.weightLb != null ||
-                    specialLocationNeedsText(item.location)
+                    baseNameOverflows ||
+                    baseDetailOverflows ||
+                    locationOverflows
             }
         }
+
+        val nativeV2Kinds = setOf(
+            StandardCurrencyKind.PLATINUM,
+            StandardCurrencyKind.GOLD,
+            StandardCurrencyKind.SILVER,
+            StandardCurrencyKind.COPPER,
+        )
+        val nonNativeCurrencies = sheet.currencies
+            .filter { currency ->
+                val kind = currency.standardCurrencyKindOrNull()
+                (kind != null && kind !in nativeV2Kinds) ||
+                    (!currency.isDefault && kind == null)
+            }
+            .sortedBy { it.sortOrder }
+
         val treasureLines = buildList {
-            sheet.currencies
-                .filter { it.key.lowercase() !in BASE_V2_CURRENCY_KEYS }
-                .sortedBy { it.sortOrder }
+            // The first adjacent OTROS rows are already consumed on the base page.
+            nonNativeCurrencies
+                .drop(BASE_V2_OTHER_CURRENCY_CAPACITY)
                 .forEach { currency ->
                     add(currency.name + ": " + currency.amount)
                 }
@@ -1177,13 +1312,18 @@ internal class AndroidCustomV2ExtendedRenderer(
                     .map { it.trim() }
                     .filter { it.isNotEmpty() },
             )
+        }.flatMap { value ->
+            wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
         }
 
         if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
 
+        val ordinaryCapacity =
+            if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
+            else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
         val pages = maxOf(
-            pageCount(ordinaryLines.size, INVENTORY_CONTINUATION_CAPACITY),
-            pageCount(treasureLines.size, INVENTORY_VALUABLES_CAPACITY),
+            pageCount(ordinaryLines.size, ordinaryCapacity),
+            pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
             pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
         )
         repeat(pages) { pageIndex ->
@@ -1192,11 +1332,11 @@ internal class AndroidCustomV2ExtendedRenderer(
             renderInventory(
                 page = page,
                 ordinary = ordinaryLines
-                    .drop(pageIndex * INVENTORY_CONTINUATION_CAPACITY)
-                    .take(INVENTORY_CONTINUATION_CAPACITY),
-                valuables = treasureLines
-                    .drop(pageIndex * INVENTORY_VALUABLES_CAPACITY)
-                    .take(INVENTORY_VALUABLES_CAPACITY),
+                    .drop(pageIndex * ordinaryCapacity)
+                    .take(ordinaryCapacity),
+                treasure = treasureLines
+                    .drop(pageIndex * INVENTORY_TREASURE_CAPACITY)
+                    .take(INVENTORY_TREASURE_CAPACITY),
                 special = specialContinuation
                     .drop(pageIndex * INVENTORY_SPECIAL_CAPACITY)
                     .take(INVENTORY_SPECIAL_CAPACITY),
@@ -1209,7 +1349,7 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun renderInventory(
         page: PDPage,
         ordinary: List<String>,
-        valuables: List<String>,
+        treasure: List<String>,
         special: List<CharacterInventoryItem>,
         usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
         pageIndex: Int,
@@ -1236,50 +1376,61 @@ internal class AndroidCustomV2ExtendedRenderer(
         appendLayer(page, "$prefix - LABELS") { s ->
             pageTitle(s, "INVENTARIO / EQUIPO")
             centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "EQUIPO", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 99f, 291f, 22f), "EQUIPO", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(
+                s,
+                resources.corbelBold,
+                TopRect(307f, 99f, 291f, 22f),
+                if (treasure.isEmpty()) "EQUIPO" else "TESORO / MONEDAS",
+                12.12f,
+                SOURCE_CORBEL_HEADING_SCALE,
+            )
 
             centeredFixedScale(s, resources.corbelBold, TopRect(14f, 489f, 584f, 22f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
             tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
             tableLabel(s, 99f, 514f, 204f, "NOMBRE")
             tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
             SPECIAL_LOCATION_LABELS_DISPLAY.forEachIndexed { row, label ->
-                textAboveRule(s, resources.corbel, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
+                textAboveRule(s, resources.fira, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
             }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            val mergedEquipment = buildList {
-                addAll(ordinary)
-                valuables.forEach { value ->
-                    addAll(wrapByWidth(resources.condensed, value, 8.4f, V2_EQUIPMENT_COLUMN_WIDTH))
+            ordinary.forEachIndexed { index, line ->
+                // When treasure exists, preserve the right block for its own semantic domain.
+                val block = index / INVENTORY_BLOCK_CAPACITY
+                val withinBlock = index % INVENTORY_BLOCK_CAPACITY
+                val column = withinBlock / INVENTORY_ROWS_PER_COLUMN
+                val row = withinBlock % INVENTORY_ROWS_PER_COLUMN
+                val blockX = if (block == 0) 14f else 307f
+                val x1 = blockX + if (column == 0) 4f else 143f
+                val x2 = blockX + if (column == 0) 135f else 273f
+                if (line.contains("— Nota:") || line.contains("— Estado:") ||
+                    line.startsWith("Nota:") || line.startsWith("Estado:")
+                ) {
+                    textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.0f, 6.6f, 2.3f)
+                } else {
+                    textAboveRuleScaled(
+                        s,
+                        resources.condensed,
+                        Rule(x1, x2, 139f + row * 17f),
+                        line,
+                        preferredSize = 8.4f,
+                        minimumSize = 7.0f,
+                        clearance = 2.3f,
+                        minimumHorizontalScale = 78f,
+                    )
                 }
             }
-            mergedEquipment.forEachIndexed { index, line ->
-                // Fill top-to-bottom inside a column before moving right. Wrapped/status/note lines
-                // therefore remain visually attached to the item above instead of masquerading as
-                // a second item in the neighboring cell.
-                val block = index / 38
-                val withinBlock = index % 38
-                val column = withinBlock / 19
-                val row = withinBlock % 19
-                if (block < 2) {
-                    val blockX = if (block == 0) 14f else 307f
-                    val x1 = blockX + if (column == 0) 4f else 143f
-                    val x2 = blockX + if (column == 0) 135f else 273f
-                    if (line.startsWith("Nota:") || line.startsWith("Estado:")) {
-                        textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.0f, 6.6f, 2.3f)
-                    } else {
-                        textAboveRuleScaled(
-                            s,
-                            resources.condensed,
-                            Rule(x1, x2, 139f + row * 17f),
-                            line,
-                            preferredSize = 8.4f,
-                            minimumSize = 7.0f,
-                            clearance = 2.3f,
-                            minimumHorizontalScale = 78f,
-                        )
-                    }
-                }
+
+            treasure.forEachIndexed { index, value ->
+                textAboveRule(
+                    s,
+                    resources.fira,
+                    Rule(311f, 594f, 139f + index * 17f),
+                    value,
+                    8.0f,
+                    6.8f,
+                    2.3f,
+                )
             }
 
             positionedSpecial.forEach { (row, item) ->
@@ -1318,31 +1469,38 @@ internal class AndroidCustomV2ExtendedRenderer(
         append(item.name)
     }
 
+    private fun inventoryBaseLabel(item: CharacterInventoryItem): String =
+        item.pdfCompactEquipmentLabel()
+
+    private fun inventoryDetailContinuationLines(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<String> {
+        val lines = mutableListOf<String>()
+        val operationalStatus = buildList {
+            if (item.equipped) add("Equipado")
+            addAll(inventoryUsageLabels(usage))
+        }.joinToString(" · ")
+        if (operationalStatus.isNotEmpty()) {
+            lines += wrapByWidth(
+                resources.condensed,
+                item.name + " — Estado: " + operationalStatus,
+                8.2f,
+                V2_EQUIPMENT_COLUMN_WIDTH,
+            )
+        }
+
+        return lines
+    }
+
     private fun inventoryContinuationLines(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): List<String> {
-        val status = buildList {
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(
-                    if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
-                    else weight.toString() + " lb",
-                )
-            }
-            if (item.equipped) add("Equipado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-
         val lines = mutableListOf<String>()
-        val primary = buildList {
-            add(inventoryContinuationLabel(item))
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb" else weight.toString() + " lb")
-            }
-        }.joinToString(" · ")
-        lines += primary
+        // True Equipment overflow carries only compact identity; descriptive metadata is routed
+        // to Notes instead of becoming apparent duplicate equipment rows.
+        lines += item.pdfCompactEquipmentLabel()
 
         val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
@@ -1352,13 +1510,6 @@ internal class AndroidCustomV2ExtendedRenderer(
             lines += wrapByWidth(resources.condensed, "Estado: $operationalStatus", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
         }
 
-        val description = listOfNotNull(
-            item.description?.trim()?.takeIf { it.isNotEmpty() },
-            item.notes?.trim()?.takeIf { it.isNotEmpty() },
-        ).joinToString(" · ")
-        if (description.isNotEmpty()) {
-            lines += wrapByWidth(resources.condensed, "Nota: $description", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
-        }
         return lines
     }
 
@@ -1581,10 +1732,20 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                val body = card.content.trim()
-                if (body.isNotEmpty()) add("${card.title}: $body")
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Rasgos de personalidad: $it")
+            }
+            sheet.background.flaws.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Defectos: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
             }
         }.joinToString("\n\n")
     }
@@ -1703,6 +1864,40 @@ internal class AndroidCustomV2ExtendedRenderer(
         s.lineTo(x, H - bottomTop)
         s.stroke()
         s.restoreGraphicsState()
+    }
+
+    private fun combatCellText(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        preferredSize: Float,
+        leftPadding: Float = 2f,
+    ) {
+        if (value.isBlank()) return
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        var size = preferredSize
+        while (size > COMBAT_MINIMUM_BODY_SIZE && textWidth(font, value, size) > available) {
+            size -= 0.2f
+        }
+        val rawWidth = textWidth(font, value, size)
+        val horizontalScale = if (rawWidth <= available) {
+            100f
+        } else {
+            (available / rawWidth * 100f).coerceAtMost(100f)
+        }
+        require(horizontalScale >= COMBAT_MINIMUM_HORIZONTAL_SCALE) {
+            "Custom-v2 combat cell requires excessive compression: '$value' ($horizontalScale%)"
+        }
+        val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
+        val baseline = H - rule.topY + 2.3f - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(rule.startX + leftPadding, baseline)
+        s.showText(value)
+        s.setHorizontalScaling(100f)
+        s.endText()
     }
 
     private fun textAboveRuleScaled(
@@ -2253,6 +2448,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         val name: String,
         val currentValue: Int?,
         val maximum: Int?,
+        val oneUse: Boolean,
         val recovery: String,
         val detail: String,
     )
@@ -2262,6 +2458,14 @@ internal class AndroidCustomV2ExtendedRenderer(
         val name: String,
         val detail: String,
         val active: Boolean,
+    )
+
+    private data class CombatReferenceRow(
+        val name: String,
+        val range: String,
+        val bonus: String,
+        val effect: String,
+        val notes: String,
     )
 
     private data class ResourceRenderRow(
@@ -2456,12 +2660,26 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_COMBAT_CAPACITY = 8
+        const val COMBAT_ROWS_PER_PAGE = 14
+        const val COMBAT_MINIMUM_BODY_SIZE = 6.0f
+        const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 72f
+        const val COMBAT_FIRST_RULE_TOP = 137f
+        const val COMBAT_ROW_STEP = 42f
+        const val COMBAT_TEXT_WIDTH = 576f
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
-        val BASE_V2_CURRENCY_KEYS = setOf("pt", "po", "pp", "pc")
+        const val V2_BASE_EQUIPMENT_TEXT_WIDTH = 132f
+        const val V2_BASE_SPECIAL_LOCATION_WIDTH = 79f
+        const val V2_BASE_SPECIAL_NAME_WIDTH = 196f
+        const val V2_BASE_SPECIAL_DETAIL_WIDTH = 291f
         const val BASE_V2_SPECIAL_CAPACITY = 14
-        const val INVENTORY_CONTINUATION_CAPACITY = 57
-        const val INVENTORY_VALUABLES_CAPACITY = 19
+        const val INVENTORY_ROWS_PER_COLUMN = 19
+        const val INVENTORY_BLOCK_CAPACITY = 38
+        const val INVENTORY_CONTINUATION_CAPACITY = 76
+        const val INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY = INVENTORY_BLOCK_CAPACITY
+        const val INVENTORY_TREASURE_CAPACITY = INVENTORY_ROWS_PER_COLUMN
+        const val BASE_V2_OTHER_CURRENCY_CAPACITY = 4
+        const val V2_TREASURE_COLUMN_WIDTH = 283f
         const val INVENTORY_SPECIAL_CAPACITY = 12
         val SPECIAL_LOCATION_LABELS = listOf(
             "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",

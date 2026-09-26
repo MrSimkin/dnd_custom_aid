@@ -228,7 +228,11 @@ object PcSheetPdfExportPlanner {
             }
         }
 
-        val portraitRef = selectedAggregate.closure.portraitRef?.trim()?.takeIf { it.isNotEmpty() }
+        // PDF export is read-only: repair recognizable legacy mojibake in the selected
+        // projection without mutating repository/database state.
+        val exportAggregate = selectedAggregate.repairTextForPdfExport()
+
+        val portraitRef = exportAggregate.closure.portraitRef?.trim()?.takeIf { it.isNotEmpty() }
         val portraitAvailable = portraitRef != null && portraitRef in sources.locallyAvailablePortraitRefs
         if (portraitRef != null && !portraitAvailable) {
             notices += PcSheetExportNotice(
@@ -237,7 +241,7 @@ object PcSheetPdfExportPlanner {
             )
         }
 
-        val customStatistics = customStatisticsProjection(selectedAggregate)
+        val customStatistics = customStatisticsProjection(exportAggregate)
         val hasCustomStatistics = !customStatistics.isEmpty
         val baseLayoutMode = when {
             !hasCustomStatistics -> PcSheetBaseLayoutMode.FAITHFUL
@@ -252,10 +256,10 @@ object PcSheetPdfExportPlanner {
             else -> listOf(PcSheetExtendedPageKind.CUSTOM_STATISTICS)
         }
 
-        val spellbook = if (request.includeSpellDescriptions && selectedAggregate.sheet.spells.isNotEmpty()) {
-            spellbookPlan(selectedAggregate)
+        val spellbook = if (request.includeSpellDescriptions && exportAggregate.sheet.spells.isNotEmpty()) {
+            spellbookPlan(exportAggregate)
         } else {
-            if (request.includeSpellDescriptions && selectedAggregate.sheet.spells.isEmpty()) {
+            if (request.includeSpellDescriptions && exportAggregate.sheet.spells.isEmpty()) {
                 notices += PcSheetExportNotice(
                     code = PcSheetExportNoticeCode.SPELLBOOK_REQUESTED_WITHOUT_ATTACHED_SPELLS,
                     message = "Se solicitaron descripciones de conjuros, pero el personaje no tiene conjuros asociados.",
@@ -268,7 +272,7 @@ object PcSheetPdfExportPlanner {
             request = request,
             snapshot = PcSheetExportSnapshot(
                 selectedState = effectiveState,
-                aggregate = selectedAggregate,
+                aggregate = exportAggregate,
                 customStatistics = customStatistics,
                 portrait = PcSheetPortraitPlan(
                     portraitRef = portraitRef,
@@ -278,12 +282,66 @@ object PcSheetPdfExportPlanner {
                 spellbook = spellbook,
             ),
             baseLayoutMode = baseLayoutMode,
-            basePages = basePages(request.visualFamily),
+            basePages = contentAwareBasePages(
+                family = request.visualFamily,
+                aggregate = exportAggregate,
+            ),
             mandatoryExtendedPages = mandatoryExtendedPages,
             overflowRoutes = overflowRoutes(),
             notices = notices.toList(),
         )
     }
+
+    private fun contentAwareBasePages(
+        family: PcSheetVisualFamily,
+        aggregate: PcSheetExportAggregate,
+    ): List<PcSheetTemplatePage> {
+        val hasSpellPageContent =
+            aggregate.sheet.spellcasterEnabled ||
+                aggregate.sheet.spells.isNotEmpty() ||
+                aggregate.sheet.spellSlots.any { it.totalSlots > 0 } ||
+                aggregate.sheet.spellcastingSources.isNotEmpty()
+
+        val v1CampaignNoteLines = approximateWrappedLineCount(
+            aggregate.sheet.pdfCampaignNoteParagraphs(),
+            V1_NARRATIVE_NOTE_APPROX_CHARS,
+        )
+        val v1NeedsDedicatedNotesPage =
+            v1CampaignNoteLines > V1_NARRATIVE_NOTE_CAPACITY
+
+        return basePages(family).filter { page ->
+            when {
+                page.role == PcSheetBasePageRole.SPELL_LIST -> hasSpellPageContent
+                family == PcSheetVisualFamily.CUSTOM_V1 &&
+                    page.role == PcSheetBasePageRole.NOTES -> v1NeedsDedicatedNotesPage
+                else -> true
+            }
+        }
+    }
+
+    private fun approximateWrappedLineCount(
+        paragraphs: List<String>,
+        maxChars: Int,
+    ): Int {
+        var lines = 0
+        paragraphs.forEach { paragraph ->
+            var currentLength = 0
+            paragraph.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.forEach { word ->
+                val candidate = if (currentLength == 0) word.length else currentLength + 1 + word.length
+                if (candidate <= maxChars || currentLength == 0) {
+                    currentLength = candidate
+                } else {
+                    lines += 1
+                    currentLength = word.length
+                }
+            }
+            if (currentLength > 0) lines += 1
+        }
+        return lines
+    }
+
+    private const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
+    private const val V1_NARRATIVE_NOTE_CAPACITY = 9
 
     fun basePages(family: PcSheetVisualFamily): List<PcSheetTemplatePage> = when (family) {
         PcSheetVisualFamily.CLASSIC_DND_STYLE -> listOf(

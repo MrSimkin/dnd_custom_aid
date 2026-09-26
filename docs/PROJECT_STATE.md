@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Aldren/Permanente cross-family Android survey is COMPLETE on `0.5.0-preqa.3`; Save/open PASS across all four formats, but shared Unicode/semantic-routing/page-packing/inventory-currency defects and family-specific resource/Custom-v2 typography defects require a coherent repair before Share/Ilyra/Mara/Current Snapshot QA resumes
+**Current active package:** PC Sheet PDF Export — the repaired `0.5.0-preqa.5` Aldren/Permanente four-family owner rerun is PASS; one Custom v1/v2 continuation-page layout residual (header/first-row overlap plus excessive row height) is explicitly accepted as minor/non-blocking; integrate the repair, then resume staged Android runtime smoke at Aldren Share
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -300,6 +300,12 @@ Green CI does not prove provider/deployment behavior. Do not repeat completed pr
 Object-storage provider selection remains deferred until Media/Handouts/assets concretely require it.
 
 Known residual: owner-local backend install reported 3 high-severity npm vulnerabilities. Do not run `npm audit fix --force` blindly; inspect package reachability and available fixed versions when a relevant hardening package is scheduled.
+
+### PC Sheet post-preqa.4 repair / preqa.5 candidate — 2026-09-25
+
+The owner-observed `0.5.0-preqa.4` cross-family failure remains the acceptance authority, but the repair package is now repository-green. Final implementation head `cfaa98f92cecb846babcf83f180783839ccd56c6` passed push Scaffold `36196067865` and PR Scaffold `36196073964`. The distinguishable Android candidate is `0.5.0-preqa.5` / `50500` at `62eb4b474b1b55d3e3875ca45a41b30c4f7a4523`; push `36196696061` and PR `36196702100` both passed, with preferred debug-APK artifact `10890483613`.
+
+Owner manual QA for **Aldren Vale / Permanente** across Fantasy Sheet, Custom v1, Custom v2 per Attribute and Custom v2 per Ability is now **PASS** on `0.5.0-preqa.5`. The owner reported only a minor Custom v1/v2 continuation-page visual issue—header/first-row overlap and excessive vertical row height—and explicitly authorized continuing while fixing it opportunistically. This residual is non-blocking. After PR #104 is reconciled/integrated, resume the hosted-player Android runtime sequence with Aldren Share, then Ilyra, Mara and Current Snapshot. Media/Handouts remains blocked until that runtime sequence is recorded.
 
 ## 8. Resume rule
 

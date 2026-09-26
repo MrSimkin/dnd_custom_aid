@@ -21,7 +21,7 @@ class HostedWireJsonTest {
         try {
             val database = AppDatabase(driver)
             val campaign = CampaignRepository(database).createCampaign("Wire Contract")
-            val character = CharacterRepository(database).createCharacter(campaign.id, "Wire PC")
+            val character = CharacterRepository(database).createCharacter(campaign.id, "Acólito — acción versátil · Élfico")
             val snapshot = CharacterBackupRepository(database).exportCharacter(
                 characterId = character.id,
                 exportedAtEpochSeconds = 100,
@@ -33,6 +33,10 @@ class HostedWireJsonTest {
 
             assertEquals(CHARACTER_BACKUP_FORMAT, root.getValue("format").jsonPrimitive.content)
             assertEquals(CHARACTER_BACKUP_VERSION.toString(), root.getValue("version").jsonPrimitive.content)
+            assertEquals(
+                "Acólito — acción versátil · Élfico",
+                root.getValue("character").jsonObject.getValue("name").jsonPrimitive.content,
+            )
         } finally {
             driver.close()
         }

@@ -4,6 +4,8 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import java.io.InputStream
@@ -120,19 +122,45 @@ internal class AndroidCustomV2SharedBaseRenderer(
                     opticalY = -0.7f,
                 )
             }
-            if (specialLocationRow(item.location) != rowIndex) {
+            // Native rows already contain the approved body-location label. Preserve that
+            // source typography instead of drawing a second label on top of it. Only fallback
+            // blank rows need an explicit location value.
+            if (rowIndex >= SPECIAL_LOCATION_LABELS.size) {
                 item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
                     textAboveRule(s, fonts.regular, Rule(14f, 94f, y), location, 8.5f, 7.5f, 2.5f, 1f)
                 }
             }
             textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
             val detail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                item.weightLb?.let { weight ->
+                    add(
+                        "Peso " +
+                            if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
+                            else weight.toString() + " lb",
+                    )
+                }
                 if (item.attuned) add("Sintonizado")
                 item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
             }.joinToString(" · ")
             textAboveRule(s, fonts.regular, Rule(303f, 596f, y), detail, 9.25f, 8.5f, 2.5f, 2f)
         }
+    }
+
+    private fun clearLocationValueCell(s: PDFormContentStream, ruleTop: Float) {
+        val ruleBottom = H - ruleTop
+        s.saveGraphicsState()
+        s.setNonStrokingColor(Color.WHITE)
+        // Leave the table's vertical borders intact while covering the decorative source value.
+        s.addRect(15f, ruleBottom + 0.7f, 78f, 14.8f)
+        s.fill()
+        s.setStrokingColor(Color.BLACK)
+        s.setLineWidth(0.45f)
+        s.moveTo(14f, ruleBottom)
+        s.lineTo(94f, ruleBottom)
+        s.stroke()
+        s.restoreGraphicsState()
     }
 
     private fun drawSpellBlock(s: PDFormContentStream, plan: PcSheetPdfRenderPlan, block: SpellBlock) {
@@ -288,16 +316,7 @@ internal class AndroidCustomV2SharedBaseRenderer(
         font.getStringWidth(text) / 1000f * size
 
     private fun inventoryLabel(item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem): String =
-        buildList {
-            add(buildString {
-                if (item.quantity > 1) append(item.quantity).append(" x ")
-                append(item.name)
-            })
-            item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.weightLb?.let { weight ->
-                add(if (weight % 1.0 == 0.0) "${weight.toInt()} lb" else "$weight lb")
-            }
-        }.joinToString(" · ")
+        item.pdfCompactEquipmentLabel()
 
     private fun positionedSpecialItems(
         items: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>,
@@ -332,10 +351,19 @@ internal class AndroidCustomV2SharedBaseRenderer(
     private fun notesText(plan: PcSheetPdfRenderPlan): String {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            sheet.noteCards.sortedBy { it.sortOrder }.forEach { card ->
-                card.content.trim().takeIf { it.isNotEmpty() }?.let { body ->
-                    add(card.title.trim().takeIf { it.isNotEmpty() }?.let { "$it: $body" } ?: body)
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Rasgos de personalidad: $it")
+            }
+            sheet.background.flaws.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Defectos: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
                 }
             }
         }.joinToString(" ")
