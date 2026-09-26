@@ -324,9 +324,11 @@ internal class AndroidClassicRenderer {
         val rightEntries = rightTraitEntries
         if (leftEntries.isEmpty() && rightEntries.isEmpty()) return
 
-        val leftPages = paginateContinuousFeatures(p, leftEntries, width = 252f, height = 552f)
-        val rightPages = paginateContinuousFeatures(p, rightEntries, width = 252f, height = 552f)
-        val pages = maxOf(1, leftPages.size, rightPages.size)
+        val pages = maxOf(
+            1,
+            pageCount(leftEntries.size, CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE),
+            pageCount(rightEntries.size, CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE),
+        )
         repeat(pages) { pageIndex ->
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
@@ -346,7 +348,9 @@ internal class AndroidClassicRenderer {
                     top = 148f,
                     width = 252f,
                     height = 552f,
-                    entries = leftPages.getOrElse(pageIndex) { emptyList() },
+                    entries = leftEntries
+                        .drop(pageIndex * CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
+                        .take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE),
                 )
 
                 titledFrame(
@@ -360,7 +364,9 @@ internal class AndroidClassicRenderer {
                     top = 148f,
                     width = 252f,
                     height = 552f,
-                    entries = rightPages.getOrElse(pageIndex) { emptyList() },
+                    entries = rightEntries
+                        .drop(pageIndex * CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                        .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE),
                 )
 
                 footer(
@@ -369,69 +375,6 @@ internal class AndroidClassicRenderer {
                 )
             }
         }
-    }
-
-
-    private fun paginateContinuousFeatures(
-        p: AndroidPdfRenderingPrimitives,
-        entries: List<ClassicFeature>,
-        width: Float,
-        height: Float,
-    ): List<List<ClassicFeature>> {
-        if (entries.isEmpty()) return emptyList()
-
-        val physicalRows = (height / CLASSIC_TRAIT_ROW_GAP).toInt().coerceAtLeast(1)
-        val pages = mutableListOf<List<ClassicFeature>>()
-        var current = mutableListOf<ClassicFeature>()
-        var usedRows = 0
-
-        fun rowsFor(entry: ClassicFeature): Int {
-            val descriptionRows = entry.description
-                .replace("\\r\\n", "\\n")
-                .split("\\n")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .sumOf { physicalLine ->
-                    val layout = p.measureTextBox(
-                        PdfTextBoxSpec(
-                            rect = rect(0f, 0f, width - 4f, CLASSIC_TRAIT_MEASURE_HEIGHT),
-                            text = physicalLine,
-                            role = PdfTypographyRole.BODY,
-                            preferredSizePt = 8.1f,
-                            minimumSizePt = 8.1f,
-                            horizontalAlignment = PdfHorizontalAlignment.LEFT,
-                            verticalAlignment = PdfVerticalAlignment.BOTTOM,
-                            wrapPolicy = PdfWrapPolicy.WORD_WRAP,
-                            maximumLines = Int.MAX_VALUE,
-                            horizontalPaddingPt = 0f,
-                            verticalPaddingPt = 0f,
-                            lineHeightMultiplier = 1f,
-                            fontSizeMode = PdfFontSizeMode.FIXED,
-                        ),
-                    )
-                    layout.renderedLines.size.coerceAtLeast(1)
-                }
-            return 1 + descriptionRows
-        }
-
-        entries.forEach { entry ->
-            val requiredRows = rowsFor(entry)
-            check(requiredRows <= physicalRows) {
-                "Fantasy Sheet trait/reference record cannot fit on one continuation page: ${entry.name}"
-            }
-            if (
-                current.isNotEmpty() &&
-                (current.size >= CLASSIC_TRAITS_MAX_ENTRIES_PER_PAGE || usedRows + requiredRows > physicalRows)
-            ) {
-                pages += current.toList()
-                current = mutableListOf()
-                usedRows = 0
-            }
-            current += entry
-            usedRows += requiredRows
-        }
-        if (current.isNotEmpty()) pages += current.toList()
-        return pages
     }
 
 
@@ -1524,7 +1467,7 @@ private fun appendSpellContinuationPages(
     ) {
         val sheet = plan.snapshot.aggregate.sheet
         val entries = classicNoteEntries(plan).drop(alreadyPackedEntries)
-        val references = classicReferenceNoteLines(plan)
+        val references = classicReferenceNoteLines(p, plan)
         if (entries.isEmpty() && references.isEmpty()) return
 
         val pages = maxOf(
@@ -1559,15 +1502,55 @@ private fun appendSpellContinuationPages(
         }
     }
 
-    private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun classicReferenceNoteLines(
+        p: AndroidPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ): List<String> {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
         val lines = mutableListOf<String>()
 
+        fun exactRuledRows(value: String): List<String> {
+            var remaining = value.trim()
+            if (remaining.isEmpty()) return emptyList()
+            val rows = mutableListOf<String>()
+            while (remaining.isNotBlank()) {
+                val layout = p.measureTextBox(
+                    PdfTextBoxSpec(
+                        rect = rect(
+                            0f,
+                            0f,
+                            CLASSIC_REFERENCE_RULED_WIDTH - 4f,
+                            CLASSIC_REFERENCE_ROW_GAP - 1.5f,
+                        ),
+                        text = remaining,
+                        role = PdfTypographyRole.NOTE_TEXT,
+                        preferredSizePt = 8.1f,
+                        minimumSizePt = 8.1f,
+                        horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                        verticalAlignment = PdfVerticalAlignment.BOTTOM,
+                        wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                        maximumLines = 1,
+                        horizontalPaddingPt = 0f,
+                        verticalPaddingPt = 0.45f,
+                        lineHeightMultiplier = 1f,
+                        fontSizeMode = PdfFontSizeMode.FIXED,
+                    ),
+                )
+                val rendered = layout.renderedLines.singleOrNull().orEmpty()
+                check(rendered.isNotBlank()) {
+                    "Fantasy Sheet reference row could not render content: '$remaining'"
+                }
+                rows += rendered
+                remaining = layout.overflowText?.trim().orEmpty()
+            }
+            return rows
+        }
+
         fun addWrapped(label: String, value: String) {
             val clean = value.trim()
             if (clean.isEmpty()) return
-            val wrapped = wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
+            val wrapped = exactRuledRows("$label: $clean")
             if (wrapped.isEmpty()) return
             val usedOnPage = lines.size % CLASSIC_REFERENCE_LINES_PER_PAGE
             if (
@@ -2691,7 +2674,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         height: Float,
         entries: List<ClassicFeature>,
     ) {
-        val lineGap = CLASSIC_TRAIT_ROW_GAP
+        val lineGap = 20f
         val physicalRows = (height / lineGap).toInt().coerceAtLeast(1)
 
         repeat(physicalRows) { row ->
@@ -2700,10 +2683,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
 
         var rowIndex = 0
         entries.forEach { entry ->
-            if (rowIndex >= physicalRows) {
-                overflowDiagnostics += "continuous-feature record='${entry.name}' has no remaining physical row"
-                return@forEach
-            }
+            if (rowIndex >= physicalRows) return@forEach
 
             val headerTop = top + rowIndex * lineGap
             text(
@@ -3360,9 +3340,8 @@ private fun ruledTextArea(
         const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
         const val CLASSIC_STANDARD_GROUPS_PER_PAGE = 3
         const val CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP = 4
-        const val CLASSIC_TRAITS_MAX_ENTRIES_PER_PAGE = 5
-        const val CLASSIC_TRAIT_ROW_GAP = 20f
-        const val CLASSIC_TRAIT_MEASURE_HEIGHT = 200f
+        const val CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE = 5
+        const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 5
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
         const val CLASSIC_FEATURE_NAME_CHARS = 26
@@ -3426,6 +3405,8 @@ private fun ruledTextArea(
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
         const val CLASSIC_REFERENCE_LINES_PER_PAGE = 12
         const val CLASSIC_REFERENCE_CHARS_PER_LINE = 32
+        const val CLASSIC_REFERENCE_RULED_WIDTH = 166f
+        const val CLASSIC_REFERENCE_ROW_GAP = 20f
 
         val INk = Color(42, 42, 42)
         val PAPER_TINT = Color(248, 247, 243)
