@@ -3219,9 +3219,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val width = (ATTRIBUTE_ORNAMENT_WIDTH * scale).roundToInt()
                 val height = (ATTRIBUTE_ORNAMENT_HEIGHT * scale).roundToInt()
 
-                return (0 until ATTRIBUTE_ORNAMENT_SOURCE_VARIANTS).map { variantIndex ->
-                    val sourceTop = ATTRIBUTE_ORNAMENT_SOURCE_TOP +
-                        variantIndex * ATTRIBUTE_ORNAMENT_SOURCE_ROW_STEP
+                return ATTRIBUTE_ORNAMENT_SOURCE_TOPS.map { sourceTop ->
                     val y0 = (sourceTop * scale).roundToInt()
                     val fragment = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                     for (y in 0 until height) {
@@ -3257,8 +3255,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val V2_LOGO_WIDTH = 108.68f
         const val V2_LOGO_HEIGHT = 40.89f
         const val ATTRIBUTE_ORNAMENT_SOURCE_X = 14.32f
-        const val ATTRIBUTE_ORNAMENT_SOURCE_TOP = 164.68f
-        const val ATTRIBUTE_ORNAMENT_SOURCE_ROW_STEP = 96f
+        val ATTRIBUTE_ORNAMENT_SOURCE_TOPS = listOf(164.68f, 236.0f)
         const val ATTRIBUTE_ORNAMENT_SOURCE_VARIANTS = 2
         const val ATTRIBUTE_ORNAMENT_WIDTH = 80.40f
         const val ATTRIBUTE_ORNAMENT_HEIGHT = 47.76f
