@@ -2045,8 +2045,8 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
             NOTES_RULES.forEach { y ->
-                drawRule(s, 25f, 267.5f, y, 0.45f)
-                drawRule(s, 311.669f, 583.795f, y, 0.45f)
+                drawRule(s, 25f, 267.5f, y)
+                drawRule(s, 311.669f, 583.795f, y)
             }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
