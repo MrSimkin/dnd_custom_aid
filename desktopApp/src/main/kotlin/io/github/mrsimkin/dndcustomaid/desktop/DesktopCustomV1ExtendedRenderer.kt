@@ -409,16 +409,19 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X TRAITS P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            s.drawForm(resources.forms[2])
+            drawSourceLogo(s)
+            sourceBandsForRules(s, 25f, 181f, TRAIT_CLASS_RULES)
+            sourceBandsForRules(s, 25f, 181f, TRAIT_RACE_RULES)
+            sourceBandsForRules(s, 25f, 181f, TRAIT_FEAT_RULES)
+            sourceBandsForRules(s, 25f, 181f, TRAIT_PROF_RULES)
+            sourceBandsForRules(s, 25f, 181f, TRAIT_LANGUAGE_RULES)
+            TRAIT_OTHER_COLUMNS.forEach { (startX, endX) ->
+                sourceBandsForRules(s, startX, endX, TRAIT_OTHER_RULES)
+            }
+            sourceBandsForRules(s, 215.291f, 583.795f, TRAIT_DETAIL_RULES)
+            sourceBandsForRules(s, 215.291f, 583.795f, TRAIT_NOTE_RULES)
         }
-        appendLayer(page, "$prefix - CLEANUP") { s ->
-            headingInteriorMask(s, 24f, 66f, 156f, 35f)
-            headingInteriorMask(s, 24f, 205f, 156f, 35f)
-            headingInteriorMask(s, 24f, 344f, 156f, 35f)
-            headingInteriorMask(s, 24f, 483f, 156f, 35f)
-            headingInteriorMask(s, 24f, 621f, 156f, 35f)
-            headingInteriorMask(s, 215f, 344f, 369f, 35f)
-        }
+        appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             centeredText(s, resources.heading, 24f, 66f, 156f, 35f, "Rasgos de Clase", 18f)
             centeredText(s, resources.heading, 24f, 205f, 156f, 35f, "Rasgos de Raza", 18f)
@@ -2918,6 +2921,25 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
         if (current.isNotEmpty()) output += current
         return output
+    }
+
+    private fun sourceBandsForRules(
+        s: PDFormContentStream,
+        x1: Float,
+        x2: Float,
+        rules: List<Float>,
+    ) {
+        rules.forEachIndexed { index, rowTop ->
+            val step = when {
+                index > 0 -> rowTop - rules[index - 1]
+                rules.size > 1 -> rules[1] - rowTop
+                else -> 20f
+            }
+            if (index % 2 == 0) {
+                fill(s, x1, rowTop - step + 1f, x2 - x1, step - 1f, SOURCE_GRAY)
+            }
+            drawRule(s, x1, x2, rowTop)
+        }
     }
 
     private fun sourceBands(
