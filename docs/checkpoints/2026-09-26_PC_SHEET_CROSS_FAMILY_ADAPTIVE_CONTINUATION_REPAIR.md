@@ -433,3 +433,106 @@ No owner PDF generation or manual comparison is requested while this package is 
 Mara 3B, Current Snapshot and Media / Handouts remain blocked.
 
 The next owner request should occur only after a repository-green candidate has passed cross-family Mara artifact review.
+
+
+## Pause consolidation — 2026-09-27
+
+Work is intentionally **paused cleanly** at the owner's request.
+
+### Exact repository state
+
+- active branch: `repair/pc-sheet-adaptive-continuations-cross-family`;
+- exact implementation head before this documentation-only consolidation: `4f0776020632b0b66a11f4f8382db5d3d2141b8d`;
+- exact-head Scaffold **#4039** / run `36292102114` — **SUCCESS**;
+- backend — PASS;
+- hosted database — PASS;
+- Kotlin/build/rendering suite — PASS;
+- Android renderer-sync / PDF-delivery guards — PASS.
+
+### #4039 proof artifacts
+
+- `pc-sheet-populated-template-proofs` — artifact **10922353525**;
+- `pc-sheet-source-renders` — artifact **10923305030**;
+- debug APK — artifact **10922348453**.
+
+The debug APK is **not an owner handoff candidate**. The repair is not PR-integrated and the fresh cross-family artifact review is not closed.
+
+The #4039 Mara stress proof reports:
+
+- Fantasy Sheet: **35 pages**;
+- Custom v1: **21 pages**;
+- Custom v2 · Atributo: **17 pages**;
+- Custom v2 · Habilidad: **16 pages**;
+- `mara-cross-family-failures.txt` is empty.
+
+Reference baseline from the earlier #4016 internal review was:
+
+- Fantasy: 35;
+- Custom v1: 20;
+- Custom v2 · Atributo: 17;
+- Custom v2 · Habilidad: 16.
+
+The Custom-v1 increase to 21 pages is not automatically a regression: subsequent work deliberately preserved previously lost/ambiguous custom-stat and Notes continuation semantics. It must be judged from the fresh artifact, not from page count alone.
+
+### Implemented cross-family work now present on the branch
+
+The branch already contains the major continuation architecture work and semantic fixes, including:
+
+- CI emission of Mara stress PDFs for all four PDF families;
+- cross-family semantic completeness assertions;
+- Fantasy long inventory identities preserved across continuation rows;
+- Fantasy Traits able to reclaim both continuation columns when one sibling trait stream is exhausted;
+- Fantasy Resources/Options able to switch from mixed layout to survivor-only continuation layouts;
+- Custom v1 adaptive continuation work across statistics, Traits, Resources/Options, Inventory and Notes;
+- Custom-v1 long ordinary and special inventory identities preserved without unreadable compression;
+- one record-aware Custom-v1 Notes flow across Narrative -> dedicated Notes -> Extended continuation;
+- Custom-v1 explicit custom-attribute identities (`KEY · Full Name`);
+- Custom-v1 dense custom-stat definition/note continuation instead of empty module scaffolds;
+- Custom-v1 custom-stat continuation geometry now explicitly defined in Desktop and Android;
+- Custom-v2 phantom/empty custom-stat shells suppressed;
+- Custom-v2 explicit custom-attribute identities;
+- Custom-v2 artifact-bearing stat ornament replaced with clean programmatic score/modifier boxes;
+- Custom-v2 Combat header/data separation and denser row cadence;
+- Custom-v2 adaptive Traits continuation-only pages;
+- Custom-v2 adaptive Resources/Options survivor-only pages;
+- Custom-v2 record-based adaptive Inventory continuation with custom locations rendered as data rather than overprinted fixed labels;
+- Custom-v2 record-aware Notes flow with aligned base/continuation wrapping and programmatic continuation pages;
+- ordinary equipment descriptive metadata routed into the PDF Notes semantic flow rather than silently discarded.
+
+Earlier failing Scaffolds remain useful regression evidence; their tests were not weakened to obtain the current green head.
+
+### Exact resume point after the break
+
+Do **not** restart implementation from diagnosis, Mara owner screenshots, preqa.8, or PR #107.
+
+Resume from this checkpoint and the active branch, then:
+
+1. download/open the **#4039** four-family Mara proof PDFs;
+2. perform the fresh internal visual review, focusing especially on:
+   - Custom-v1 custom-stat continuation/card geometry after the latest fixes;
+   - Custom-v2 stat cards/labels after ornament replacement;
+   - Notes record boundaries/continuation identity;
+   - Inventory item association and special/custom locations;
+   - Combat header/row cadence;
+   - empty/repeated sibling scaffolds;
+3. inspect Fantasy carefully: it remains **35 pages** and is the largest unresolved layout-efficiency risk even though semantic/build gates are green;
+4. decide from the #4039 artifact—not from page count alone—whether additional Fantasy or Custom-v1 packing changes are still required;
+5. add/strengthen automated structural packing gates for any defect still found;
+6. rerun exact-head Scaffold and re-review generated Mara artifacts until internally green;
+7. only after internal cross-family artifact review is green:
+   - stamp a new distinguishable Android QA candidate;
+   - validate versioned branch;
+   - create/validate PR;
+   - merge;
+   - require merged-main Scaffold;
+   - then ask the owner for **one final real-app acceptance pass**.
+
+### Owner boundary at pause
+
+**No owner action.**
+
+The owner is not to generate or compare more PDFs during this repair package.
+
+Mara 3B, Current Snapshot and Media / Handouts remain blocked.
+
+The next owner involvement should be a final acceptance of a candidate that has already passed repository gates and internal four-family Mara artifact review.

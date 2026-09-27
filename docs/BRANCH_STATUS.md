@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-26 (Chile local time)  
+**Updated:** 2026-09-27 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — cross-family adaptive continuation/layout repair active on `repair/pc-sheet-adaptive-continuations-cross-family`; no owner rerun until automated cross-family Mara validation and internal artifact review are green.
+**Current normal work:** PC Sheet PDF Export — cross-family adaptive continuation/layout repair **PAUSED CLEANLY** on `repair/pc-sheet-adaptive-continuations-cross-family`. Exact implementation head `4f0776020632b0b66a11f4f8382db5d3d2141b8d` passed Scaffold #4039. Next action after the break is internal review of the #4039 four-family Mara proofs; no owner rerun.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -104,16 +104,18 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** `repair/pc-sheet-adaptive-continuations-cross-family`.
 
-**Sole active implementation PR:** none yet; implementation/validation active.
+**Sole active implementation PR:** none; branch code is green at #4039 but artifact review must close before PR/version promotion.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;
-- normal continuation branch: `main`;
-- PR #107 post-merge Scaffold #3929 / `36276643170` — SUCCESS;
-- `0.5.0-preqa.8` / `50800` is OWNER READY; consolidated #3927, PR-head #3928 and merged-main #3929 are SUCCESS;
-- Aldren/Permanente four-family rerun is OWNER PASS; accepted residual is Custom v1/v2 continuation-page header/first-row overlap plus excessive vertical row height, explicitly non-blocking;
-- Aldren Share is PASS; Ilyra Fantasy/DOTES repair is OWNER PASS; Ilyra Custom-v2 Step 2 is OWNER PASS. Mara 3A exposed three Extended-path blockers; PR #107 generalized and integrated the repair, and the current pending runtime action is the Mara 3A owner rerun on preqa.8;
-- Media/Handouts remains blocked until that runtime sequence is recorded.
+- canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_CROSS_FAMILY_ADAPTIVE_CONTINUATION_REPAIR.md`;
+- normal continuation branch: `repair/pc-sheet-adaptive-continuations-cross-family`;
+- exact implementation head before pause consolidation: `4f0776020632b0b66a11f4f8382db5d3d2141b8d`;
+- exact-head Scaffold #4039 / `36292102114` — **SUCCESS**;
+- #4039 Mara stress proofs: Fantasy **35**, Custom v1 **21**, Custom v2 · Atributo **17**, Custom v2 · Habilidad **16** pages; semantic-failure report empty;
+- #4039 proof artifact: `pc-sheet-populated-template-proofs` / **10922353525**;
+- preqa.8 / PR #107 are historical runtime/repair evidence, **not** the continuation point for this package;
+- owner-led PDF discovery is suspended; **no owner action** until internal artifact review, versioned candidate, PR integration and merged-main validation are green;
+- Mara 3B, Current Snapshot and Media / Handouts remain blocked.
 
 Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
 
@@ -121,7 +123,7 @@ The prior branches `fix/fantasy-sheet-generalized-bounded-text-routing`, `fix/pc
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md -> main`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-26_PC_SHEET_CROSS_FAMILY_ADAPTIVE_CONTINUATION_REPAIR.md -> repair/pc-sheet-adaptive-continuations-cross-family`
 
 ## Historical/stale open PRs
 

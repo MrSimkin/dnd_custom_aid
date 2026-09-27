@@ -1,14 +1,14 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-26 (Chile local time)  
+**Updated:** 2026-09-27 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
 **Post-merge Scaffold:** `36276643170` / #3929 — SUCCESS  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_CROSS_FAMILY_ADAPTIVE_CONTINUATION_REPAIR.md`  
-**Current active route:** cross-family adaptive continuation repair is active on `repair/pc-sheet-adaptive-continuations-cross-family`. Mara preqa.8 visual QA established a product-level continuation/pagination defect across all PDF families. Owner-led repeated PDF discovery is suspended; CI Mara artifacts + automated structural/semantic gates are now the primary validation route.
+**Current active route:** **PAUSED CLEANLY** on `repair/pc-sheet-adaptive-continuations-cross-family`. Exact implementation head `4f0776020632b0b66a11f4f8382db5d3d2141b8d` passed Scaffold #4039 / `36292102114`. Four-family Mara proofs are generated with no semantic-failure report; fresh internal visual review is the next step. **No owner action.** Do not resume from preqa.8/main/PR #107 or ask the owner to generate more PDFs.
 **Current implementation branch:** `repair/pc-sheet-adaptive-continuations-cross-family` — sole non-main continuation authority
-**Current implementation PR:** none yet — cross-family adaptive continuation repair is in implementation/validation  
+**Current implementation PR:** none — branch implementation is green at #4039 but internal artifact review is still pending before version/PR promotion  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
