@@ -58,20 +58,18 @@ internal class AndroidCustomV2SharedBaseRenderer(
 
     private fun renderNotes(page: PDPage, plan: PcSheetPdfRenderPlan) {
         append(page, "CustomV2 BASE - Notes") { s ->
-            val text = notesText(plan)
-            if (text.isBlank()) return@append
-            val leftWidth = NOTES_LEFT.first().endX - NOTES_LEFT.first().startX - 3f
-            val rightWidth = NOTES_RIGHT.first().endX - NOTES_RIGHT.first().startX - 3f
-            val words = text.trim().split(Regex("\\s+"))
-            val leftLines = wrapWords(fonts.regular, words, 9.25f, leftWidth)
-            val left = leftLines.take(NOTES_LEFT.size)
-            left.forEachIndexed { index, line ->
-                textAboveRule(s, fonts.regular, NOTES_LEFT[index], line, 9.25f, 8.5f, 2.8f, 2f)
+            val lines = noteFlowLines(plan).take(NOTES_LEFT.size + NOTES_RIGHT.size)
+            if (lines.isEmpty()) return@append
+
+            lines.take(NOTES_LEFT.size).forEachIndexed { index, line ->
+                if (line.isNotEmpty()) {
+                    textAboveRule(s, fonts.regular, NOTES_LEFT[index], line, 9.25f, 8.5f, 2.8f, 2f)
+                }
             }
-            val consumedWords = left.sumOf { it.split(Regex("\\s+")).size }
-            val rightLines = wrapWords(fonts.regular, words.drop(consumedWords), 9.25f, rightWidth)
-            rightLines.take(NOTES_RIGHT.size).forEachIndexed { index, line ->
-                textAboveRule(s, fonts.regular, NOTES_RIGHT[index], line, 9.25f, 8.5f, 2.8f, 2f)
+            lines.drop(NOTES_LEFT.size).take(NOTES_RIGHT.size).forEachIndexed { index, line ->
+                if (line.isNotEmpty()) {
+                    textAboveRule(s, fonts.regular, NOTES_RIGHT[index], line, 9.25f, 8.5f, 2.8f, 2f)
+                }
             }
         }
     }
@@ -296,6 +294,42 @@ internal class AndroidCustomV2SharedBaseRenderer(
         s.endText()
     }
 
+    private fun wrapByWidth(font: PDFont, text: String, size: Float, maxWidth: Float): List<String> {
+        val out = mutableListOf<String>()
+        var current = ""
+
+        fun splitOnlyWhenTokenCannotFit(word: String): List<String> {
+            if (textWidth(font, word, size) <= maxWidth) return listOf(word)
+            val pieces = mutableListOf<String>()
+            var piece = ""
+            word.forEach { char ->
+                val candidate = piece + char
+                if (piece.isNotEmpty() && textWidth(font, candidate, size) > maxWidth) {
+                    pieces += piece
+                    piece = char.toString()
+                } else {
+                    piece = candidate
+                }
+            }
+            if (piece.isNotEmpty()) pieces += piece
+            return pieces
+        }
+
+        text.trim().split(Regex("\\s+")).forEach { word ->
+            splitOnlyWhenTokenCannotFit(word).forEach { piece ->
+                val candidate = if (current.isBlank()) piece else "$current $piece"
+                if (textWidth(font, candidate, size) <= maxWidth) {
+                    current = candidate
+                } else {
+                    if (current.isNotBlank()) out += current
+                    current = piece
+                }
+            }
+        }
+        if (current.isNotBlank()) out += current
+        return out
+    }
+
     private fun wrapWords(font: PDFont, words: List<String>, size: Float, maxWidth: Float): List<String> {
         val out = mutableListOf<String>()
         var current = ""
@@ -348,7 +382,7 @@ internal class AndroidCustomV2SharedBaseRenderer(
         return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+    private fun noteParagraphs(plan: PcSheetPdfRenderPlan): List<String> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
             addAll(sheet.pdfCampaignNoteParagraphs())
@@ -366,7 +400,62 @@ internal class AndroidCustomV2SharedBaseRenderer(
                     add("Subclase: " + classLevel.name + " - " + subclass)
                 }
             }
-        }.joinToString(" ")
+        }
+    }
+
+    private fun noteFlowLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val width = NOTES_LEFT.first().endX - NOTES_LEFT.first().startX - 3f
+        val capacity = NOTES_LEFT.size
+        val output = mutableListOf<String>()
+        var rowInColumn = 0
+
+        fun advanceColumn() {
+            while (rowInColumn in 1 until capacity) {
+                output += ""
+                rowInColumn += 1
+            }
+            if (rowInColumn >= capacity) rowInColumn = 0
+        }
+
+        noteParagraphs(plan).forEach { paragraph ->
+            val wrapped = wrapByWidth(fonts.regular, paragraph, 9.25f, width)
+            if (wrapped.isEmpty()) return@forEach
+            val label = paragraph.substringBefore(":", "").trim().takeIf { it.isNotEmpty() }
+            val separatorRows = if (rowInColumn == 0) 0 else 1
+            val remaining = capacity - rowInColumn
+
+            if (wrapped.size <= capacity && wrapped.size + separatorRows > remaining) {
+                advanceColumn()
+            } else if (rowInColumn > 0) {
+                output += ""
+                rowInColumn += 1
+                if (rowInColumn >= capacity) rowInColumn = 0
+            }
+
+            var offset = 0
+            var continuation = false
+            while (offset < wrapped.size) {
+                if (rowInColumn == 0 && continuation && label != null) {
+                    output += "$label (continuación)"
+                    rowInColumn += 1
+                }
+                val available = capacity - rowInColumn
+                if (available <= 0) {
+                    rowInColumn = 0
+                    continuation = true
+                    continue
+                }
+                val take = minOf(available, wrapped.size - offset)
+                output.addAll(wrapped.subList(offset, offset + take))
+                rowInColumn += take
+                offset += take
+                if (offset < wrapped.size) {
+                    if (rowInColumn < capacity) advanceColumn() else rowInColumn = 0
+                    continuation = true
+                }
+            }
+        }
+        return output
     }
 
     private class Fonts(document: PDDocument, loader: (String) -> InputStream?) {
