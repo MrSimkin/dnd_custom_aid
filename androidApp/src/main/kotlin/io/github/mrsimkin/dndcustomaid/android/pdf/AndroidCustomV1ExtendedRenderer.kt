@@ -1536,7 +1536,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         rows: List<SpecialInventoryFlowRow>,
         pageIndex: Int,
     ) {
-        val prefix = "V1X INVENTORY SPECIAL P${pageIndex + 1}"
+        val prefix = if (pageIndex == 0) "V1X INVENTORY P1" else "V1X INVENTORY SPECIAL P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
@@ -1590,7 +1590,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         treasure: List<TreasureEntry>,
         pageIndex: Int,
     ) {
-        val prefix = "V1X INVENTORY TREASURE P${pageIndex + 1}"
+        val prefix = if (pageIndex == 0) "V1X INVENTORY P1" else "V1X INVENTORY TREASURE P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
@@ -1763,7 +1763,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             resources.fira,
             8.2f,
             INVENTORY_SPECIAL_NAME_TEXT_WIDTH,
-        )
+        ).ifEmpty { listOf(inventoryContinuationLabel(item)) }
 
         val detailText = buildList {
             item.weightLb?.let { add(formatInventoryWeight(it)) }
@@ -1780,13 +1780,44 @@ internal class AndroidCustomV1ExtendedRenderer(
             INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH,
         )
 
-        val rows = maxOf(1, locationLines.size, nameLines.size, detailLines.size)
-        return (0 until rows).map { index ->
-            SpecialInventoryFlowRow(
+        val output = mutableListOf<SpecialInventoryFlowRow>()
+        nameLines.forEachIndexed { index, name ->
+            output += SpecialInventoryFlowRow(
                 location = locationLines.getOrNull(index).orEmpty(),
-                name = nameLines.getOrNull(index).orEmpty(),
-                detail = detailLines.getOrNull(index).orEmpty(),
+                name = name,
+                detail = "",
                 marker = index == 0 && (item.equipped || item.attuned),
+            )
+        }
+
+        // Preserve any extra wrapped location lines before detail so they remain associated
+        // with the same logical record without interleaving the item's name.
+        locationLines.drop(nameLines.size).forEach { location ->
+            output += SpecialInventoryFlowRow(
+                location = location,
+                name = "",
+                detail = "",
+                marker = false,
+            )
+        }
+
+        detailLines.forEach { detail ->
+            output += SpecialInventoryFlowRow(
+                location = "",
+                name = "",
+                detail = detail,
+                marker = false,
+            )
+        }
+
+        return output.ifEmpty {
+            listOf(
+                SpecialInventoryFlowRow(
+                    location = item.location.orEmpty(),
+                    name = inventoryContinuationLabel(item),
+                    detail = "",
+                    marker = item.equipped || item.attuned,
+                ),
             )
         }
     }
