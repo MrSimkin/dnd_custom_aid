@@ -1702,34 +1702,99 @@ private fun appendSpellContinuationPages(
                 extendedHeader(s, p, sheet.name, "NOTAS")
 
                 if (entryRemaining > 0 && referenceRemaining > 0) {
-                    titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
                     val pageEntries = takeClassicNotePage(
                         entries,
                         entryOffset,
                         CLASSIC_NOTES_ENTRIES_PER_PAGE,
                     )
-                    ruledTextArea(
-                        s, p, 36f, 148f, 336f, 552f,
-                        pageEntries.map { it.text },
-                        8.7f,
-                    )
-                    entryOffset += pageEntries.size
+                    val adaptiveReferences =
+                        referenceRemaining > CLASSIC_REFERENCE_LINES_PER_PAGE
 
-                    titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
-                    grid(s, 410f, 148f, 166f, 240f, 10, 14)
+                    if (adaptiveReferences) {
+                        val notePhysicalRows = pageEntries.sumOf { entry ->
+                            entry.text
+                                .replace("\r\n", "\n")
+                                .split("\n")
+                                .count { it.isNotBlank() }
+                        }.coerceAtLeast(1)
+                        val noteFrameHeight =
+                            (54f + notePhysicalRows * 20f).coerceAtMost(606f)
+                        val noteContentHeight = noteFrameHeight - 54f
 
-                    titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
-                    val pageReferences = takeClassicReferencePage(
-                        references,
-                        referenceOffset,
-                        CLASSIC_REFERENCE_LINES_PER_PAGE,
-                    )
-                    ruledTextArea(
-                        s, p, 410f, 454f, 166f, 246f,
-                        pageReferences.map { it.text },
-                        8.1f,
-                    )
-                    referenceOffset += pageReferences.size
+                        titledFrame(s, p, 24f, 112f, 360f, noteFrameHeight, "NOTAS DE CAMPAÑA")
+                        ruledTextArea(
+                            s, p, 36f, 148f, 336f, noteContentHeight,
+                            pageEntries.map { it.text },
+                            8.7f,
+                        )
+                        entryOffset += pageEntries.size
+
+                        titledFrame(
+                            s, p, 398f, 112f, 190f, 606f,
+                            "REFERENCIAS Y RECORDATORIOS",
+                        )
+                        val rightReferences = takeClassicReferencePage(
+                            references,
+                            referenceOffset,
+                            CLASSIC_REFERENCE_ONLY_LINES_PER_PAGE,
+                        )
+                        ruledTextArea(
+                            s, p, 410f, 148f, 166f, 552f,
+                            rightReferences.map { it.text },
+                            8.1f,
+                        )
+                        referenceOffset += rightReferences.size
+
+                        val reclaimedTop = 112f + noteFrameHeight + 12f
+                        val reclaimedFrameHeight = 718f - reclaimedTop
+                        val reclaimedContentHeight = reclaimedFrameHeight - 54f
+                        val reclaimedCapacity =
+                            (reclaimedContentHeight / 20f).toInt().coerceAtLeast(0)
+                        if (
+                            referenceOffset < references.size &&
+                            reclaimedCapacity > 0
+                        ) {
+                            titledFrame(
+                                s, p, 24f, reclaimedTop, 360f, reclaimedFrameHeight,
+                                "REFERENCIAS Y RECORDATORIOS · CONT.",
+                            )
+                            val reclaimedReferences = takeClassicReferencePage(
+                                references,
+                                referenceOffset,
+                                reclaimedCapacity,
+                            )
+                            ruledTextArea(
+                                s, p, 36f, reclaimedTop + 36f, 336f, reclaimedContentHeight,
+                                reclaimedReferences.map { it.text },
+                                8.1f,
+                            )
+                            referenceOffset += reclaimedReferences.size
+                        }
+                    } else {
+                        titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
+                        ruledTextArea(
+                            s, p, 36f, 148f, 336f, 552f,
+                            pageEntries.map { it.text },
+                            8.7f,
+                        )
+                        entryOffset += pageEntries.size
+
+                        titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
+                        grid(s, 410f, 148f, 166f, 240f, 10, 14)
+
+                        titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
+                        val pageReferences = takeClassicReferencePage(
+                            references,
+                            referenceOffset,
+                            CLASSIC_REFERENCE_LINES_PER_PAGE,
+                        )
+                        ruledTextArea(
+                            s, p, 410f, 454f, 166f, 246f,
+                            pageReferences.map { it.text },
+                            8.1f,
+                        )
+                        referenceOffset += pageReferences.size
+                    }
                 } else if (entryRemaining > 0) {
                     titledFrame(s, p, 24f, 112f, 564f, 606f, "NOTAS DE CAMPAÑA - CONTINUACIÓN")
                     val pageEntries = takeClassicNotePage(
