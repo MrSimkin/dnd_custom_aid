@@ -2118,21 +2118,14 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
 
         noteParagraphs(plan).forEach { paragraph ->
-            val wrapped = wrapForRulesByChars(paragraph, V1_NARRATIVE_NOTE_APPROX_CHARS)
+            val marked = "• " + paragraph
+            val wrapped = wrapForRulesByChars(marked, V1_NARRATIVE_NOTE_APPROX_CHARS)
             if (wrapped.isEmpty()) return@forEach
             val label = paragraph.substringBefore(":", "").trim().takeIf { it.isNotEmpty() }
-            val separatorRows = if (rowInSegment == 0) 0 else 1
             val remaining = capacity() - rowInSegment
 
-            if (wrapped.size <= capacity() && wrapped.size + separatorRows > remaining) {
+            if (wrapped.size <= capacity() && wrapped.size > remaining) {
                 advanceSegment()
-            } else if (rowInSegment > 0) {
-                output += ""
-                rowInSegment += 1
-                if (rowInSegment >= capacity()) {
-                    segmentIndex += 1
-                    rowInSegment = 0
-                }
             }
 
             var offset = 0
@@ -2144,7 +2137,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     continuation = true
                 }
                 if (rowInSegment == 0 && continuation && label != null) {
-                    output += "$label (continuación)"
+                    output += "— " + label + " (continuación)"
                     rowInSegment += 1
                 }
                 val available = capacity() - rowInSegment
@@ -2159,12 +2152,8 @@ internal class DesktopCustomV1ExtendedRenderer(
                 rowInSegment += take
                 offset += take
                 if (offset < wrapped.size) {
-                    if (rowInSegment < capacity()) {
-                        advanceSegment()
-                    } else {
-                        segmentIndex += 1
-                        rowInSegment = 0
-                    }
+                    segmentIndex += 1
+                    rowInSegment = 0
                     continuation = true
                 }
             }
