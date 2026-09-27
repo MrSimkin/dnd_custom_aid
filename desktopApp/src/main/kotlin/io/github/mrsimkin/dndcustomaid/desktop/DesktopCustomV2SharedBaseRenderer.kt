@@ -2,7 +2,7 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import java.awt.Color
 import java.awt.geom.AffineTransform
@@ -383,7 +383,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
     private fun noteParagraphs(plan: PcSheetPdfRenderPlan): List<String> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            addAll(sheet.pdfNoteParagraphs())
+            addAll(sheet.pdfCampaignNoteParagraphs())
             sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
                 add("Rasgos de personalidad: $it")
             }
