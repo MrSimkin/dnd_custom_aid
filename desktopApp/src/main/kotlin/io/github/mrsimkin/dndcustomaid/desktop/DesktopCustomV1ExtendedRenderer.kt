@@ -183,13 +183,6 @@ internal class DesktopCustomV1ExtendedRenderer(
         pageIndex: Int,
     ) {
         val prefix = "V1X STATS P${pageIndex + 1}"
-        val hasDefinitions = definitions.any { it.isNotBlank() }
-        val hasNotes = notes.any { it.isNotBlank() }
-        val effectiveNotesHeadingTop =
-            if (hasDefinitions) NOTES_HEADING_TOP else DEFINITIONS_HEADING_TOP
-        val effectiveNotesFirstRuleTop =
-            if (hasDefinitions) NOTES_FIRST_RULE_TOP else DEFINITIONS_FIRST_RULE_TOP
-
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceLogo(s)
             sourceBands(
@@ -2495,6 +2488,13 @@ internal class DesktopCustomV1ExtendedRenderer(
         pageIndex: Int,
     ) {
         val prefix = "V1X STATS P${pageIndex + 1}"
+        val hasDefinitions = definitions.any { it.isNotBlank() }
+        val hasNotes = notes.any { it.isNotBlank() }
+        val effectiveNotesHeadingTop =
+            if (hasDefinitions) NOTES_HEADING_TOP else DEFINITIONS_HEADING_TOP
+        val effectiveNotesFirstRuleTop =
+            if (hasDefinitions) NOTES_FIRST_RULE_TOP else DEFINITIONS_FIRST_RULE_TOP
+
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceLogo(s)
