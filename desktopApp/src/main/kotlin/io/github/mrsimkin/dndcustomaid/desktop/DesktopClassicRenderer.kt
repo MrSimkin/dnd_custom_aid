@@ -1294,16 +1294,19 @@ internal class DesktopClassicRenderer {
 private fun classicInventoryRows(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
-    ): List<InventoryRow> =
-        listOf(
+    ): List<InventoryRow> {
+        val nameLines = wrapForChars(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS)
+            .ifEmpty { listOf(item.name) }
+        return nameLines.mapIndexed { index, nameLine ->
             InventoryRow(
-                quantity = item.quantity.toString(),
-                name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
-                weight = item.weightLb?.let(::formatWeight).orEmpty(),
+                quantity = item.quantity.toString().takeIf { index == 0 }.orEmpty(),
+                name = nameLine,
+                weight = item.weightLb?.let(::formatWeight).takeIf { index == 0 }.orEmpty(),
                 state = "",
                 notes = "",
-            ),
-        )
+            )
+        }
+    }
 
     private fun inventoryState(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
