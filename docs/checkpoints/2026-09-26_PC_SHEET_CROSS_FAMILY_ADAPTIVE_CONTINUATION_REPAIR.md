@@ -359,6 +359,73 @@ Correction:
 
 The semantic-completeness assertions remain unchanged.
 
+## Internal artifact review — Scaffold #4016 proofs
+
+The `pc-sheet-populated-template-proofs` artifact from Scaffold **#4016** was downloaded and reviewed internally. The owner was not asked to inspect these intermediate PDFs.
+
+Observed page counts in that proof set:
+
+- Fantasy: **35** pages;
+- Custom v1: **20** pages;
+- Custom v2 · Atributo: **17** pages;
+- Custom v2 · Habilidad: **16** pages.
+
+### Custom v2 visual findings
+
+The adaptive continuation refactor materially improved the Mara stress artifact:
+
+- Combat header/first-row collision is no longer visible;
+- Inventory continuation is grouped/readable and custom locations no longer overprint fixed body-location labels;
+- Notes continuation uses both columns and preserves visible record boundaries;
+- the prior 28-page Custom-v2 Attribute owner artifact is reduced to 17 pages in the #4016 proof.
+
+Remaining visual defect found internally:
+
+- custom-stat labels still showed merged identities such as `FORtuna`, `CORdura`, `ETE ter`;
+- the score/modifier card chrome itself still carried broken-looking tabs/line artifacts.
+
+Corrections now active:
+
+- custom-attribute labels use explicit **`KEY · Full Name`**;
+- the artifact-bearing source-PDF raster ornament is no longer drawn;
+- clean score/modifier boxes are generated programmatically at the same value coordinates.
+
+### Custom v1 visual findings
+
+The #4016 proof showed:
+
+- the same merged custom-attribute identity problem;
+- a final Custom Statistics page containing **no statistic modules**, only a few definition/note lines in the lower scaffold;
+- this was a direct example of the owner's fixed-scaffold complaint.
+
+Corrections now active:
+
+- explicit **`KEY · Full Name`** identities;
+- module pages are driven only by actual modules;
+- leftover definitions/skill metadata move to a dense two-column **Custom Statistics · Continuation** page instead of creating an empty module scaffold;
+- Custom-v1 Notes use one record-aware flow across Narrative -> dedicated Notes -> Extended continuation;
+- short note records use an in-row bullet marker rather than consuming blank separator rows, preserving the valid native capacity of 9 + 17 + 17 rows.
+
+### Fantasy visual findings
+
+The #4016 Fantasy proof remains the largest at 35 pages.
+
+Semantic completeness fixes and adaptive family work are already active, but internal review still shows long mixed-layout runs where both sibling streams technically remain but one side uses substantially less physical space.
+
+This is retained as a **layout-efficiency review item** even if semantic tests pass. A final candidate must be reviewed from a newer proof after current refactors before deciding whether stronger Fantasy stream separation is still required.
+
+## Validation boundary after internal proof review
+
+The next green decision requires a fresh exact-head Scaffold after the corrections above.
+
+If semantic/build gates pass:
+
+1. download the new four-family Mara proofs;
+2. compare page counts against #4016;
+3. visually inspect all continuation families internally;
+4. only then decide whether any remaining Fantasy/Custom-v1 layout refinement is required;
+5. do not prepare an owner APK until this artifact review is green.
+
 ## Owner boundary
 
 No owner PDF generation or manual comparison is requested while this package is active.
