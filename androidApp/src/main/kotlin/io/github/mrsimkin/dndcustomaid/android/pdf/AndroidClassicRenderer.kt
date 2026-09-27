@@ -285,7 +285,7 @@ internal class AndroidClassicRenderer {
 
     private fun appendTraitsPages(
         doc: PDDocument,
-        p: DesktopPdfRenderingPrimitives,
+        p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
@@ -929,7 +929,7 @@ internal class AndroidClassicRenderer {
 
     private fun appendResourcesPages(
         doc: PDDocument,
-        p: DesktopPdfRenderingPrimitives,
+        p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
         val resources = classicResourceRows(plan)
@@ -1206,7 +1206,7 @@ internal class AndroidClassicRenderer {
 
     private fun appendInventoryPages(
         doc: PDDocument,
-        p: DesktopPdfRenderingPrimitives,
+        p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ): Int {
         val aggregate = plan.snapshot.aggregate
@@ -1609,7 +1609,7 @@ private fun appendSpellContinuationPages(
 
     private fun appendNotesPages(
         doc: PDDocument,
-        p: DesktopPdfRenderingPrimitives,
+        p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
         alreadyPackedEntries: Int,
     ) {
