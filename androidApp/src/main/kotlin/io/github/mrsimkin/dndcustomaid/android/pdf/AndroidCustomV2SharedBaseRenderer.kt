@@ -4,7 +4,7 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
@@ -385,7 +385,7 @@ internal class AndroidCustomV2SharedBaseRenderer(
     private fun noteParagraphs(plan: PcSheetPdfRenderPlan): List<String> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            addAll(sheet.pdfCampaignNoteParagraphs())
+            addAll(sheet.pdfNoteParagraphs())
             sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
                 add("Rasgos de personalidad: $it")
             }
