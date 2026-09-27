@@ -2854,13 +2854,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         val cleanName = name.trim()
         val cleanKey = abbreviation.trim().uppercase().take(3)
         if (cleanKey.isEmpty()) return cleanName
-        return if (cleanName.length >= cleanKey.length &&
-            cleanName.substring(0, cleanKey.length).equals(cleanKey, ignoreCase = true)
-        ) {
-            cleanKey + cleanName.substring(cleanKey.length)
-        } else {
-            "$cleanKey · $cleanName"
-        }
+        return "$cleanKey · $cleanName"
     }
 
     private fun builtInKeyedName(ability: CharacterAbility): String = when (ability) {
