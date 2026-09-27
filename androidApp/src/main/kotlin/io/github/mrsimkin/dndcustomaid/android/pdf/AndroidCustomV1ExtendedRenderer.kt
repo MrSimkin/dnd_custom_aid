@@ -3111,6 +3111,10 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val MODULES_PER_PAGE = 6
         const val SKILLS_PER_MODULE = 5
         const val BOTTOM_LINES_PER_PAGE = 15
+        const val STATS_CONTINUATION_ROWS_PER_COLUMN = 29
+        const val STATS_CONTINUATION_CAPACITY = STATS_CONTINUATION_ROWS_PER_COLUMN * 2
+        const val STATS_CONTINUATION_FIRST_RULE_TOP = 150f
+        const val STATS_CONTINUATION_STEP = 20f
         const val BOTTOM_TEXT_WIDTH = 150f
 
         const val BASE_V1_TRAIT_NAME_CAPACITY = 6
