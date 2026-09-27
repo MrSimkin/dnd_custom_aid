@@ -377,7 +377,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             fill(s, 202f, 104f, 150f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 366f, 104f, 232f, 30f, SOURCE_GRAY_LIGHT)
 
-            repeat(ABILITY_ATTRIBUTES_PER_PAGE) { index ->
+            repeat(attributes.size) { index ->
                 val top = 136f + index * 96f
                 fill(s, 14f, top, 174f, 94f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
                 drawAttributeOrnament(s, 14.3f, top + 24f)
