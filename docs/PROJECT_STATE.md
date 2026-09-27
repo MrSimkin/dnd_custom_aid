@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-26 (Chile local time)  
+**Last reconstructed:** 2026-09-27 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Mara 3A export-generation PASS on preqa.8, but owner PDF visual QA FAIL. A consolidated visual-layout/continuation repair is required across Custom Statistics, Traits continuation packing, Combat headers/rows, Resources/Options packing, Inventory/Special Equipment, Notes, and stale template-underlay text. Mara 3B and Current Snapshot remain blocked.
+**Current active package:** PC Sheet PDF Export — cross-family adaptive continuation repair is implemented and validated on `repair/pc-sheet-adaptive-continuations-cross-family`. Code/test head `ce695c40782e1847ed70a2256885b5b07113feae` passed Scaffold #4088 / `36354213574`; Mara proofs are Fantasy 29 / Custom v1 18 / Custom v2 Atributo 16 / Custom v2 Habilidad 15 pages. Worker visual preflight PASS. **Owner re-QA is the next boundary; no further fixes, Mara 3B, Current Snapshot, PR promotion or merge until the owner resumes QA or supplies new defect evidence.**
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -38,9 +38,9 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 
 ### Current active PDF route / renderer state
 
-No historical PR #85 renderer-proof branch is current continuation authority. The visual renderer is owner-approved/frozen subject only to concrete owner-observed runtime defects.
+The sole current non-main continuation authority is `repair/pc-sheet-adaptive-continuations-cross-family`, as routed by `docs/checkpoints/LATEST.md`. Historical PR #85 renderer-proof refs and preqa.8/main are evidence only for this pending repair QA.
 
-The active runtime route is the owner-ready Mara 3A rerun on `0.5.0-preqa.8` / build `50800`, recorded by the Canonical active checkpoint in `docs/checkpoints/LATEST.md`. The first populated MAIN-page proof remains **owner-rejected historical evidence**. The approved continuation remains whole-export-first architecture with structured incremental QA rather than coordinate nudging.
+The preqa.8 Mara 3A visual/structural failure has been repaired across all four PDF families. The validated code/test head is `ce695c40782e1847ed70a2256885b5b07113feae`; Scaffold #4088 / `36354213574` is SUCCESS and populated-proof artifact `10942589698` passed Worker visual preflight. The repair remains **OWNER RE-QA PENDING**, not owner-approved and not integrated into `main`. Resume from `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 

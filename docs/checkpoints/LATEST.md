@@ -1,14 +1,14 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-26 (Chile local time)  
+**Updated:** 2026-09-27 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
 **Post-merge Scaffold:** `36276643170` / #3929 — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`  
-**Current active route:** Mara 3A on `0.5.0-preqa.8` exports successfully but the uploaded 28-page PDF fails visual/structural QA. Independent review confirmed systemic template-underlay contamination, corrupted partial Custom Statistics rendering, highly wasteful Traits continuation packing, combat header/first-row collision, inefficient Resources/Options pagination, Inventory grouping/custom-location artifacts, and broken Notes boundaries/continuation packing. `Marcador custom 2 = 1` is fixture-correct. **Mara 3A = NOT PASS; do not start Mara 3B or Current Snapshot.**
-**Current implementation branch:** none — PR #107 is merged; `main` is continuation authority
-**Current implementation PR:** none — PR #107 is MERGED / INTEGRATED as `15f86ec8285e69969054d40defaa2c16259b8dce`  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`  
+**Current active route:** Cross-family adaptive continuation repair is **IMPLEMENTED + FINAL REGRESSION GREEN + WORKER VISUAL PREFLIGHT PASS** on `repair/pc-sheet-adaptive-continuations-cross-family`. Validated code/test head `ce695c40782e1847ed70a2256885b5b07113feae` passed Scaffold #4088 / `36354213574`; final Mara proof artifact `10942589698`. **Next boundary: OWNER RE-QA PENDING.** Do not resume automatic repair, Mara 3B, Current Snapshot, PR promotion or merge unless the owner explicitly resumes QA or reports a new defect.  
+**Current implementation branch:** `repair/pc-sheet-adaptive-continuations-cross-family` — sole non-main continuation authority until owner re-QA disposition  
+**Current implementation PR:** none — do not promote/merge the repair before owner re-QA disposition  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
 **PR #91:** MERGED / INTEGRATED as `5e778ced3b85fc66d4ca449727a3451e91c50d7e`; closure PR #92 merged as `026dc8ca00967e5ca3d932562e2a49d97e6eaaad`; post-merge #3367 PASS
 
@@ -17,14 +17,24 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;
-5. `docs/checkpoints/2026-09-25_PC_SHEET_ALDREN_PREQA4_CROSS_FAMILY_REVIEW.md` and `docs/checkpoints/2026-09-25_PC_SHEET_CROSS_FAMILY_RUNTIME_REPAIR_ACTIVE.md` only as historical acceptance/repair evidence;
+4. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`;
+5. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` only as the owner/independent QA source that triggered the repair;
 6. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 7. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
 8. `docs/PROJECT_STATE.md`;
 9. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** after this pointer is read, do not inspect or switch to any other historical repair/docs branch to infer current work.
+**Branch rule:** after this pointer is read, use only `repair/pc-sheet-adaptive-continuations-cross-family` for the pending re-QA candidate. Do not infer current work from branch recency, historical PRs or older checkpoint `next` instructions.
+
+## Active Mara re-QA candidate
+
+- validated implementation/test head: `ce695c40782e1847ed70a2256885b5b07113feae`;
+- final regression: Scaffold #4088 / `36354213574` — **SUCCESS**;
+- populated-proof artifact: `10942589698`;
+- Mara fixture ceilings/result: Fantasy **29**, Custom v1 **18**, Custom v2 · Atributo **16**, Custom v2 · Habilidad **15** pages;
+- Custom-v2 attribute score/modifier ornament preserves measured source light/dark variants; the rejected intermediate crop that leaked `Constitución` is not the candidate;
+- owner approval is **not** recorded;
+- when the owner asks to resume, continue directly with owner re-QA from the closure checkpoint. Do not restart defect discovery or make further layout changes absent new QA evidence.
 
 ## Current PDF visual truth
 
