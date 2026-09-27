@@ -193,6 +193,23 @@ The latest combined code includes the Custom-v2 adaptive work above plus the Cus
 - any remaining family-specific packing defects are repaired;
 - a versioned candidate passes PR-head and merged-main validation.
 
+## Validation discoveries after Scaffold #3974
+
+Scaffold **#3974** reached the cross-family Mara semantic gate and exposed two real regressions:
+
+1. **Fantasy long inventory identity truncation**
+   - Full Mara identity `Frasco de tinta que recuerda la última palabra escrita 2` was not recoverable from the PDF.
+   - The item existed, but both base and continuation surfaces truncated the same long name.
+   - The Fantasy continuation now wraps long ordinary-item names across physical rows, keeping quantity/weight only on the first row and preserving the complete semantic identity.
+
+2. **Custom-v2 Notes base/continuation handoff mismatch**
+   - Existing regression lost `Nota de continuación 45`.
+   - Root cause: the base Notes page and Extended Notes continuation used slightly different physical wrap widths, then Extended dropped a fixed first 40 flow rows.
+   - Because wrapping differed, the logical handoff could skip content at the boundary.
+   - Base and continuation now use the same 280.5-pt flow width so the 40-row handoff is exact.
+
+These failures are retained as regression evidence. The tests are not weakened.
+
 ## Owner boundary
 
 No owner PDF generation or manual comparison is requested while this package is active.
