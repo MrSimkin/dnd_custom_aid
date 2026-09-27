@@ -822,8 +822,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(Regex("Nota\\s+canónica\\s+1").containsMatchIn(extracted))
             assertTrue(Regex("Nota\\s+canónica\\s+30").containsMatchIn(extracted))
             assertTrue(extracted.contains("Recordatorio general canónico"))
-            assertTrue(extracted.contains("CROQUIS / MAPA"))
-            assertTrue(extracted.contains("REFERENCIAS Y RECORDATORIOS"))
+            // Notes-only overflow must reclaim the full page rather than reproducing empty
+            // map/reference scaffolds.
+            assertFalse(extracted.contains("CROQUIS / MAPA"))
+            assertFalse(extracted.contains("REFERENCIAS Y RECORDATORIOS"))
 
             val page4 = PDFTextStripper().apply {
                 startPage = 4
@@ -1681,7 +1683,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - STRUCTURE") })
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
-            assertTrue(layers.any { it.startsWith("V1X TRAITS P2 - STRUCTURE") })
+            assertTrue(layers.any { it.startsWith("V1X TRAITS CONT P2 - STRUCTURE") })
             assertFalse(layers.any { it.startsWith("V1X STATS") })
 
             val extracted = PDFTextStripper().getText(document)
@@ -3279,7 +3281,12 @@ class DesktopPcSheetWholeDraftRendererTest {
                         audit("HISTORIA Y PERSONALIDAD", 137f, 434f, 458f)
                         audit("IDIOMAS", 342f, 578f, 602f)
                         audit("ALIADOS Y TESORO", 510f, 578f, 602f)
-                        audit("RASGOS DE RAZA / TRASFONDO / OTROS", 450f, 110f, 136f)
+                        // The right-hand Fantasy trait heading is now content-adaptive. Preserve
+                        // the historical XY contract when that category actually has remaining content;
+                        // do not require an empty sibling panel.
+                        if (allText.contains("RASGOS DE RAZA / TRASFONDO / OTROS")) {
+                            audit("RASGOS DE RAZA / TRASFONDO / OTROS", 450f, 110f, 136f)
+                        }
                         // The standalone Fantasy Notes page is now content-aware. Keep its XY
                         // contract when present, but do not require a redundant page to exist.
                         if (allText.contains("NOTAS DE CAMPAÑA")) {
