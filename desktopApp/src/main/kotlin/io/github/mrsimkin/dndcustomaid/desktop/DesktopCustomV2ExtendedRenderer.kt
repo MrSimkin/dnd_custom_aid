@@ -1128,19 +1128,41 @@ internal class DesktopCustomV2ExtendedRenderer(
 
         val rows = resourceRenderLines(resourceRenderRows(plan))
         val options = optionRenderLines(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
-        val pages = maxOf(
-            pageCount(rows.size, RESOURCE_ROWS_PER_PAGE),
-            pageCount(options.size, RESOURCE_OPTIONS_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+
+        var rowOffset = 0
+        var optionOffset = 0
+        var pageIndex = 0
+        while (rowOffset < rows.size || optionOffset < options.size) {
+            val remainingRows = rows.size - rowOffset
+            val remainingOptions = options.size - optionOffset
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
-            renderResources(
-                page = page,
-                rows = rows.drop(pageIndex * RESOURCE_ROWS_PER_PAGE).take(RESOURCE_ROWS_PER_PAGE),
-                options = options.drop(pageIndex * RESOURCE_OPTIONS_PER_PAGE).take(RESOURCE_OPTIONS_PER_PAGE),
-                pageIndex = pageIndex,
-            )
+
+            if (remainingRows > 0 && remainingOptions > 0) {
+                renderResources(
+                    page = page,
+                    rows = rows.drop(rowOffset).take(RESOURCE_ROWS_PER_PAGE),
+                    options = options.drop(optionOffset).take(RESOURCE_OPTIONS_PER_PAGE),
+                    pageIndex = pageIndex,
+                )
+                rowOffset += minOf(remainingRows, RESOURCE_ROWS_PER_PAGE)
+                optionOffset += minOf(remainingOptions, RESOURCE_OPTIONS_PER_PAGE)
+            } else if (remainingRows > 0) {
+                renderResourcesOnlyPage(
+                    page = page,
+                    rows = rows.drop(rowOffset).take(RESOURCE_ONLY_ROWS_PER_PAGE),
+                    pageIndex = pageIndex,
+                )
+                rowOffset += minOf(remainingRows, RESOURCE_ONLY_ROWS_PER_PAGE)
+            } else {
+                renderOptionsOnlyPage(
+                    page = page,
+                    options = options.drop(optionOffset).take(OPTION_ONLY_ROWS_PER_PAGE),
+                    pageIndex = pageIndex,
+                )
+                optionOffset += minOf(remainingOptions, OPTION_ONLY_ROWS_PER_PAGE)
+            }
+            pageIndex += 1
         }
     }
 
@@ -1366,6 +1388,169 @@ internal class DesktopCustomV2ExtendedRenderer(
                     s,
                     TopRect(16f, 386f + row * 17f, 8.5f, 9f),
                     if (option?.active == true) Training.PROFICIENT else Training.NONE,
+                )
+            }
+        }
+    }
+
+    private fun renderResourcesOnlyPage(
+        page: PDPage,
+        rows: List<ResourceRenderLine>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = "V2X RESOURCES ONLY ${pageIndex + 1}"
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            pageHeaderStructure(s)
+            fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
+            bandedRows(
+                s,
+                14f,
+                598f,
+                RESOURCE_ONLY_FIRST_RULE_TOP,
+                RESOURCE_ONLY_ROWS_PER_PAGE,
+                RESOURCE_ONLY_ROW_STEP,
+                0,
+            )
+            listOf(222f, 352f, 475f).forEach { x ->
+                verticalRule(
+                    s,
+                    x,
+                    120f,
+                    RESOURCE_ONLY_FIRST_RULE_TOP + RESOURCE_ONLY_ROWS_PER_PAGE * RESOURCE_ONLY_ROW_STEP,
+                    0.45f,
+                )
+            }
+        }
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            pageTitle(s, "RECURSOS · CONTINUACIÓN")
+            centeredFixedScale(
+                s,
+                resources.corbelBold,
+                TopRect(14f, 97f, 584f, 20f),
+                "RECURSOS",
+                12.12f,
+                SOURCE_CORBEL_HEADING_SCALE,
+            )
+            tableLabel(s, 14f, 121f, 208f, "RECURSO")
+            tableLabel(s, 222f, 121f, 130f, "ACTUAL / MÁX.")
+            tableLabel(s, 352f, 121f, 123f, "RESTABLECE")
+            tableLabel(s, 475f, 121f, 123f, "ORIGEN / NOTAS")
+        }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            rows.forEachIndexed { index, row ->
+                val y = RESOURCE_ONLY_FIRST_RULE_TOP + index * RESOURCE_ONLY_ROW_STEP
+                if (row.name.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(18f, 218f, y), row.name, 7.6f, 6.6f, 2.3f)
+                }
+                val current = row.currentValue
+                val maximum = row.maximum
+                if (current != null) {
+                    if (row.oneUse) {
+                        centeredAboveRule(
+                            s,
+                            resources.firaSemibold,
+                            Rule(226f, 348f, y),
+                            current.coerceIn(0, 1).toString() + " / 1",
+                            8.0f,
+                            2.2f,
+                        )
+                    } else {
+                        val canUseSymbols = maximum != null && maximum in 1..9 && current in 0..maximum
+                        if (!canUseSymbols) {
+                            val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
+                            centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                        }
+                    }
+                }
+                if (row.recovery.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(356f, 471f, y), row.recovery, 7.0f, 6.2f, 2.3f)
+                }
+                if (row.detail.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(479f, 594f, y), row.detail, 7.0f, 6.2f, 2.3f)
+                }
+            }
+        }
+        appendLayer(page, "$layerPrefix - MARKERS") { s ->
+            rows.forEachIndexed { index, row ->
+                val current = row.currentValue
+                val maximum = row.maximum
+                if (!row.oneUse && current != null && maximum != null && maximum in 1..9 && current in 0..maximum) {
+                    drawSquareCounter(
+                        s,
+                        236f,
+                        RESOURCE_ONLY_FIRST_RULE_TOP - 8.5f + index * RESOURCE_ONLY_ROW_STEP,
+                        current,
+                        maximum,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun renderOptionsOnlyPage(
+        page: PDPage,
+        options: List<OptionRenderLine>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = "V2X OPTIONS ONLY ${pageIndex + 1}"
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            pageHeaderStructure(s)
+            fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
+            bandedRows(
+                s,
+                14f,
+                598f,
+                OPTION_ONLY_FIRST_RULE_TOP,
+                OPTION_ONLY_ROWS_PER_PAGE,
+                OPTION_ONLY_ROW_STEP,
+                1,
+            )
+            listOf(30f, 118f, 258f).forEach { x ->
+                verticalRule(
+                    s,
+                    x,
+                    120f,
+                    OPTION_ONLY_FIRST_RULE_TOP + OPTION_ONLY_ROWS_PER_PAGE * OPTION_ONLY_ROW_STEP,
+                    0.45f,
+                )
+            }
+        }
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            pageTitle(s, "OPCIONES · CONTINUACIÓN")
+            centeredFixedScale(
+                s,
+                resources.corbelBold,
+                TopRect(14f, 97f, 584f, 20f),
+                "OPCIONES",
+                12.12f,
+                SOURCE_CORBEL_HEADING_SCALE,
+            )
+            tableLabel(s, 30f, 121f, 88f, "TIPO")
+            tableLabel(s, 118f, 121f, 140f, "OPCIÓN")
+            tableLabel(s, 258f, 121f, 340f, "DESCRIPCIÓN / COSTE / ORIGEN")
+        }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            options.forEachIndexed { index, option ->
+                val y = OPTION_ONLY_FIRST_RULE_TOP + index * OPTION_ONLY_ROW_STEP
+                if (option.kind.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(34f, 114f, y), option.kind, 7.0f, 6.2f, 2.3f)
+                }
+                if (option.name.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(122f, 254f, y), option.name, 7.2f, 6.2f, 2.3f)
+                }
+                if (option.detail.isNotEmpty()) {
+                    textAboveRule(s, resources.fira, Rule(262f, 594f, y), option.detail, 7.0f, 6.2f, 2.3f)
+                }
+            }
+        }
+        appendLayer(page, "$layerPrefix - MARKERS") { s ->
+            options.forEachIndexed { index, option ->
+                drawV2TrainingBox(
+                    s,
+                    TopRect(16f, OPTION_ONLY_FIRST_RULE_TOP - 12f + index * OPTION_ONLY_ROW_STEP, 8.5f, 9f),
+                    if (option.active) Training.PROFICIENT else Training.NONE,
                 )
             }
         }
@@ -2856,6 +3041,12 @@ internal class DesktopCustomV2ExtendedRenderer(
         )
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_OPTIONS_PER_PAGE = 18
+        const val RESOURCE_ONLY_ROWS_PER_PAGE = 34
+        const val RESOURCE_ONLY_FIRST_RULE_TOP = 150f
+        const val RESOURCE_ONLY_ROW_STEP = 17f
+        const val OPTION_ONLY_ROWS_PER_PAGE = 34
+        const val OPTION_ONLY_FIRST_RULE_TOP = 150f
+        const val OPTION_ONLY_ROW_STEP = 17f
         const val BASE_V2_NOTES_CAPACITY = 40
         const val NOTES_COLUMN_CAPACITY = 20
         const val NOTES_CONTINUATION_CAPACITY = 40
