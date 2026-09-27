@@ -320,15 +320,22 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawNarrativeNotes(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        drawRuledParagraph(
-            s,
-            fonts.regular,
-            NARRATIVE_NOTES_RULES,
-            narrativeNotesText(plan),
-            9.25f,
-            2.8f,
-            2f,
-        )
+        noteFlowLines(plan)
+            .take(NARRATIVE_NOTES_RULES.size)
+            .forEachIndexed { index, line ->
+                if (line.isNotEmpty()) {
+                    textAboveRule(
+                        s,
+                        fonts.regular,
+                        NARRATIVE_NOTES_RULES[index],
+                        line,
+                        9.25f,
+                        8.5f,
+                        2.8f,
+                        2f,
+                    )
+                }
+            }
     }
 
     private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -502,26 +509,23 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .orEmpty()
 
     private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val text = dedicatedNotesText(plan)
-        if (text.isBlank()) return
-        val leftWidth = NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f
-        val rightWidth = NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f
-        val leftLines = wrapByWidth(fonts.regular, text, 9.25f, leftWidth)
-        val left = leftLines.take(NOTES_LEFT_RULES.size)
-        left.forEachIndexed { index, line ->
-            textAboveRule(s, fonts.regular, NOTES_LEFT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+        val lines = noteFlowLines(plan)
+            .drop(NARRATIVE_NOTES_RULES.size)
+            .take(NOTES_LEFT_RULES.size + NOTES_RIGHT_RULES.size)
+        if (lines.isEmpty()) return
+
+        lines.take(NOTES_LEFT_RULES.size).forEachIndexed { index, line ->
+            if (line.isNotEmpty()) {
+                textAboveRule(s, fonts.regular, NOTES_LEFT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+            }
         }
-        val consumedText = left.joinToString(" ")
-        val remaining = if (left.size < NOTES_LEFT_RULES.size) {
-            emptyList()
-        } else {
-            val words = text.trim().split(Regex("\\s+"))
-            val consumedWords = consumedText.split(Regex("\\s+")).size
-            wrapByWidth(fonts.regular, words.drop(consumedWords).joinToString(" "), 9.25f, rightWidth)
-        }
-        remaining.take(NOTES_RIGHT_RULES.size).forEachIndexed { index, line ->
-            textAboveRule(s, fonts.regular, NOTES_RIGHT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
-        }
+        lines.drop(NOTES_LEFT_RULES.size)
+            .take(NOTES_RIGHT_RULES.size)
+            .forEachIndexed { index, line ->
+                if (line.isNotEmpty()) {
+                    textAboveRule(s, fonts.regular, NOTES_RIGHT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+                }
+            }
     }
 
     private fun drawSpellLevel(
@@ -548,6 +552,96 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                 2f,
             )
         }
+    }
+
+    private fun noteParagraphs(plan: PcSheetPdfRenderPlan): List<String> {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Resumen de trasfondo: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
+        }
+    }
+
+    private fun noteFlowLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val output = mutableListOf<String>()
+        var segmentIndex = 0
+        var rowInSegment = 0
+
+        fun capacity(): Int =
+            if (segmentIndex == 0) NARRATIVE_NOTES_RULES.size else NOTES_LEFT_RULES.size
+
+        fun advanceSegment() {
+            while (rowInSegment < capacity()) {
+                output += ""
+                rowInSegment += 1
+            }
+            segmentIndex += 1
+            rowInSegment = 0
+        }
+
+        noteParagraphs(plan).forEach { paragraph ->
+            val wrapped = wrapApproxByChars(paragraph, V1_NARRATIVE_NOTE_APPROX_CHARS)
+            if (wrapped.isEmpty()) return@forEach
+            val label = paragraph.substringBefore(":", "").trim().takeIf { it.isNotEmpty() }
+            val separatorRows = if (rowInSegment == 0) 0 else 1
+            val remaining = capacity() - rowInSegment
+
+            if (wrapped.size <= capacity() && wrapped.size + separatorRows > remaining) {
+                advanceSegment()
+            } else if (rowInSegment > 0) {
+                output += ""
+                rowInSegment += 1
+                if (rowInSegment >= capacity()) {
+                    segmentIndex += 1
+                    rowInSegment = 0
+                }
+            }
+
+            var offset = 0
+            var continuation = false
+            while (offset < wrapped.size) {
+                if (rowInSegment >= capacity()) {
+                    segmentIndex += 1
+                    rowInSegment = 0
+                    continuation = true
+                }
+                if (rowInSegment == 0 && continuation && label != null) {
+                    output += "$label (continuación)"
+                    rowInSegment += 1
+                }
+                val available = capacity() - rowInSegment
+                if (available <= 0) {
+                    segmentIndex += 1
+                    rowInSegment = 0
+                    continuation = true
+                    continue
+                }
+                val take = minOf(available, wrapped.size - offset)
+                output.addAll(wrapped.subList(offset, offset + take))
+                rowInSegment += take
+                offset += take
+                if (offset < wrapped.size) {
+                    if (rowInSegment < capacity()) {
+                        advanceSegment()
+                    } else {
+                        segmentIndex += 1
+                        rowInSegment = 0
+                    }
+                    continuation = true
+                }
+            }
+        }
+        return output
     }
 
     private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
