@@ -1247,7 +1247,7 @@ internal class DesktopClassicRenderer {
                 .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
-                    add("\${currency.name}: \${currency.amount}")
+                    add("${currency.name}: ${currency.amount}")
                 }
             val valuables = aggregate.successor.preferences.valuablesText
                 .split(';')
