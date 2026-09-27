@@ -122,6 +122,77 @@ Therefore:
 - do not preserve a fixed scaffold merely to match historical continuation pages when it produces unusable PDFs;
 - frozen base-page visual authorities remain frozen unless a concrete base-page defect is part of this package.
 
+## Implementation progress — cross-family automated repair
+
+### CI stress-proof harness
+
+`DesktopPcSheetRuntimeQaFixtureTest.maraCrossFamilyStressProofsAreEmittedForInternalReview` now attempts to render Mara through all four families and writes the resulting PDFs plus a page-count report into the existing `pc-sheet-populated-template-proofs` artifact channel.
+
+The first diagnostic run, Scaffold **#3942**, failed before artifact upload on **Custom v1**, with:
+
+`Custom-v1 source-matched label requires excessive compression: 'Lectura de presagios' (49.175125%)`
+
+This independently confirmed the owner's cross-family deduction without requiring another manual export.
+
+Custom v1 now wraps long skill names into multiple physical rows at the approved **60% source-matched scale** instead of allowing ~49% compression. Only the first physical row retains the logical skill's total/proficiency marker. Partially filled Custom-v1 custom-stat pages also stop painting unused module shells.
+
+### Custom v2 repairs already implemented in Desktop + Android
+
+The active branch now includes:
+
+1. **Custom Statistics**
+   - suppress phantom attribute/module shells on partially filled pages;
+   - suppress unused standard-skill and note structures;
+   - preserve real card/marker structure only for actual projected content.
+
+2. **Combat**
+   - separate header band from first data row;
+   - tighten physical row cadence from the wasteful historical layout while preserving multi-row readable wrapping;
+   - retain fail-closed readability floors.
+
+3. **Traits / Features**
+   - preserve one familiar overview/orientation page;
+   - subsequent overflow uses dedicated two-column continuation-only pages;
+   - exhausted category/index panels no longer repeat for every detail page;
+   - remaining proficiency overflow is routed into continuation text instead of forcing empty sibling panels.
+
+4. **Resources / Options**
+   - while both streams remain, use the mixed overview page;
+   - once one stream is exhausted, the surviving stream gets a full-page continuation table;
+   - no repeated empty Options or Resources half-page solely because the sibling still overflows.
+
+5. **Notes**
+   - base Notes flow is record-aware rather than a single flattened string;
+   - note records receive explicit visual separation;
+   - records move intact to the next column when possible;
+   - genuine cross-column records receive a `(continuación)` identity;
+   - continuation Notes pages are programmatic rather than imported source-form underlays, removing stale searchable/visible template content from that surface.
+
+6. **Inventory**
+   - Extended continuation is now record-based and two-column adaptive;
+   - ordinary equipment, treasure and special equipment share available page space dynamically;
+   - logical item identity/status/detail remains grouped;
+   - long records move intact to the next column when possible;
+   - cross-column records identify continuation;
+   - custom/noncanonical locations render as item data rather than overprinting fixed body-location labels;
+   - empty Special Equipment scaffolds are no longer repeated simply because ordinary Equipment continues.
+
+### Semantic regression correction
+
+An intermediate experiment routed every ordinary-equipment description into Notes. Existing tests correctly rejected that because compact ordinary equipment metadata—especially ammunition metadata—must not be replayed elsewhere merely because it exists.
+
+That broad routing was reverted. The adaptive repair keeps the existing semantic contract: ordinary Equipment identity remains compact and metadata does not create duplicated PDF representations by itself.
+
+### Current validation boundary
+
+The latest combined code includes the Custom-v2 adaptive work above plus the Custom-v1 readable skill-row repair. Scaffold validation is active on the exact combined branch head. No owner artifact should be requested until:
+
+- the full Kotlin/rendering suite is green;
+- the four-family Mara stress PDFs are successfully uploaded;
+- those artifacts are internally inspected;
+- any remaining family-specific packing defects are repaired;
+- a versioned candidate passes PR-head and merged-main validation.
+
 ## Owner boundary
 
 No owner PDF generation or manual comparison is requested while this package is active.
