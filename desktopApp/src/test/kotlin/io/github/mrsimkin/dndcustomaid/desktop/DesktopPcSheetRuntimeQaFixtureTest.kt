@@ -226,6 +226,59 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCrossFamilyStressProofsAreEmittedForInternalReview() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val cases = listOf(
+            "mara-fantasy" to PcSheetVisualFamily.CLASSIC_DND_STYLE,
+            "mara-custom-v1" to PcSheetVisualFamily.CUSTOM_V1,
+            "mara-custom-v2-attribute" to PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            "mara-custom-v2-ability" to PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+        val pageCounts = mutableListOf<String>()
+
+        cases.forEach { (slug, family) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+            val bytes = ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+            assertTrue(bytes.size > 20_000)
+
+            val output = File(proofDir, "$slug-stress-baseline.pdf")
+            output.writeBytes(bytes)
+            Loader.loadPDF(bytes).use { pdf ->
+                val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                assertTrue(normalized.contains("Mara de los Siete Umbrales"))
+                assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
+                assertTrue(normalized.contains("Protocolo de paradoja 1"))
+                assertTrue(normalized.contains("Reserva 10: Sello"))
+                if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
+                ) {
+                    assertTrue(normalized.contains("Manipulación de éter"))
+                }
+                pageCounts += "$slug=${pdf.numberOfPages}"
+            }
+        }
+
+        File(proofDir, "mara-cross-family-page-counts.txt")
+            .writeText(pageCounts.joinToString("\n", postfix = "\n"))
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(
