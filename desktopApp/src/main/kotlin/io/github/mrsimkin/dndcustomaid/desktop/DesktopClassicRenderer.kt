@@ -1226,9 +1226,6 @@ internal class DesktopClassicRenderer {
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
-        // Special equipment details belong in the dedicated special-equipment block, never in
-        // the Treasure/Notes block. This may repeat the compact item identity intentionally, but
-        // not the item's data across unrelated semantic destinations.
         val specialRows = specialItems
             .flatMap { item ->
                 classicSpecialItemRows(
@@ -1261,48 +1258,131 @@ internal class DesktopClassicRenderer {
 
         if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return 0
 
-        val pages = maxOf(
-            1,
-            pageCount(ordinaryRows.size, CLASSIC_INVENTORY_ROWS_PER_PAGE),
-            pageCount(specialRows.size, CLASSIC_SPECIAL_ITEMS_PER_PAGE),
-            pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        var ordinaryOffset = 0
+        var specialOffset = 0
+        var noteOffset = 0
+
+        while (
+            ordinaryOffset < ordinaryRows.size ||
+            specialOffset < specialRows.size ||
+            noteOffset < noteEntries.size
+        ) {
+            val ordinaryRemaining = ordinaryRows.size - ordinaryOffset
+            val specialRemaining = specialRows.size - specialOffset
+            val noteRemaining = noteEntries.size - noteOffset
+            val activeStreams = listOf(
+                ordinaryRemaining > 0,
+                specialRemaining > 0,
+                noteRemaining > 0,
+            ).count { it }
+
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, sheet.name, "INVENTARIO / EQUIPO")
 
-                titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
-                inventoryHeader(s, p, 36f, 148f)
-                val pageRows = ordinaryRows
-                    .drop(pageIndex * CLASSIC_INVENTORY_ROWS_PER_PAGE)
-                    .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
-                pageRows.forEachIndexed { index, row ->
-                    inventoryRow(s, p, 36f, 176f + index * 27f, row)
-                }
-                repeat((CLASSIC_INVENTORY_ROWS_PER_PAGE - pageRows.size).coerceAtLeast(0)) { index ->
-                    inventoryBlankRow(s, 36f, 176f + (pageRows.size + index) * 27f)
-                }
-
-                titledFrame(s, p, 24f, 528f, 276f, 190f, "OBJETOS ESPECIALES / SINTONIZADOS")
-                specialRows
-                    .drop(pageIndex * CLASSIC_SPECIAL_ITEMS_PER_PAGE)
-                    .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
-                    .forEachIndexed { index, item ->
-                        specialItem(
-                            s, p, 36f, 558f + index * 39f, 252f,
-                            item.name, item.attuned, item.note,
-                        )
+                when {
+                    activeStreams == 1 && ordinaryRemaining > 0 -> {
+                        titledFrame(s, p, 24f, 112f, 564f, 606f, "INVENTARIO - CONTINUACIÓN")
+                        inventoryHeader(s, p, 36f, 148f)
+                        val pageRows = ordinaryRows
+                            .drop(ordinaryOffset)
+                            .take(CLASSIC_INVENTORY_ONLY_ROWS_PER_PAGE)
+                        pageRows.forEachIndexed { index, row ->
+                            inventoryRow(s, p, 36f, 176f + index * 27f, row)
+                        }
+                        ordinaryOffset += pageRows.size
                     }
 
-                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
-                ruledTextArea(
-                    s, p, 324f, 564f, 252f, 140f,
-                    noteEntries
-                        .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
-                        .take(CLASSIC_INVENTORY_NOTES_PER_PAGE),
-                    8.3f,
-                )
+                    activeStreams == 1 && specialRemaining > 0 -> {
+                        titledFrame(s, p, 24f, 112f, 564f, 606f, "OBJETOS ESPECIALES / SINTONIZADOS")
+                        val pageSpecial = specialRows
+                            .drop(specialOffset)
+                            .take(CLASSIC_SPECIAL_ONLY_ITEMS_PER_PAGE)
+                        pageSpecial.forEachIndexed { index, item ->
+                            specialItem(
+                                s, p, 36f, 148f + index * 39f, 540f,
+                                item.name, item.attuned, item.note,
+                            )
+                        }
+                        specialOffset += pageSpecial.size
+                    }
+
+                    activeStreams == 1 && noteRemaining > 0 -> {
+                        titledFrame(s, p, 24f, 112f, 564f, 606f, "TESORO / VALORES")
+                        val pageNotes = noteEntries
+                            .drop(noteOffset)
+                            .take(CLASSIC_INVENTORY_NOTES_ONLY_PER_PAGE)
+                        ruledTextArea(
+                            s, p, 36f, 148f, 540f, 552f,
+                            pageNotes,
+                            8.3f,
+                        )
+                        noteOffset += pageNotes.size
+                    }
+
+                    ordinaryRemaining == 0 && specialRemaining > 0 && noteRemaining > 0 -> {
+                        titledFrame(s, p, 24f, 112f, 276f, 606f, "OBJETOS ESPECIALES / SINTONIZADOS")
+                        val pageSpecial = specialRows
+                            .drop(specialOffset)
+                            .take(CLASSIC_SPECIAL_ONLY_ITEMS_PER_PAGE)
+                        pageSpecial.forEachIndexed { index, item ->
+                            specialItem(
+                                s, p, 36f, 148f + index * 39f, 252f,
+                                item.name, item.attuned, item.note,
+                            )
+                        }
+                        specialOffset += pageSpecial.size
+
+                        titledFrame(s, p, 312f, 112f, 276f, 606f, "TESORO / VALORES")
+                        val pageNotes = noteEntries
+                            .drop(noteOffset)
+                            .take(CLASSIC_INVENTORY_NOTES_ONLY_PER_PAGE)
+                        ruledTextArea(
+                            s, p, 324f, 148f, 252f, 552f,
+                            pageNotes,
+                            8.3f,
+                        )
+                        noteOffset += pageNotes.size
+                    }
+
+                    else -> {
+                        titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
+                        inventoryHeader(s, p, 36f, 148f)
+                        val pageRows = ordinaryRows
+                            .drop(ordinaryOffset)
+                            .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
+                        pageRows.forEachIndexed { index, row ->
+                            inventoryRow(s, p, 36f, 176f + index * 27f, row)
+                        }
+                        repeat((CLASSIC_INVENTORY_ROWS_PER_PAGE - pageRows.size).coerceAtLeast(0)) { index ->
+                            inventoryBlankRow(s, 36f, 176f + (pageRows.size + index) * 27f)
+                        }
+                        ordinaryOffset += pageRows.size
+
+                        titledFrame(s, p, 24f, 528f, 276f, 190f, "OBJETOS ESPECIALES / SINTONIZADOS")
+                        val pageSpecial = specialRows
+                            .drop(specialOffset)
+                            .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+                        pageSpecial.forEachIndexed { index, item ->
+                            specialItem(
+                                s, p, 36f, 558f + index * 39f, 252f,
+                                item.name, item.attuned, item.note,
+                            )
+                        }
+                        specialOffset += pageSpecial.size
+
+                        titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
+                        val pageNotes = noteEntries
+                            .drop(noteOffset)
+                            .take(CLASSIC_INVENTORY_NOTES_PER_PAGE)
+                        ruledTextArea(
+                            s, p, 324f, 564f, 252f, 140f,
+                            pageNotes,
+                            8.3f,
+                        )
+                        noteOffset += pageNotes.size
+                    }
+                }
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }
@@ -3473,6 +3553,9 @@ private fun ruledTextArea(
         const val CLASSIC_SPECIAL_ITEM_NOTE_CHARS = 42
         const val CLASSIC_SPECIAL_ITEM_NOTE_LINES = 2
         const val CLASSIC_INVENTORY_NOTES_PER_PAGE = 3
+        const val CLASSIC_INVENTORY_ONLY_ROWS_PER_PAGE = 19
+        const val CLASSIC_SPECIAL_ONLY_ITEMS_PER_PAGE = 14
+        const val CLASSIC_INVENTORY_NOTES_ONLY_PER_PAGE = 13
         const val CLASSIC_BASE_INVENTORY_NAME_CHARS = 30
         const val CLASSIC_BASE_INVENTORY_NOTE_CHARS = 24
         const val CLASSIC_INVENTORY_ROW_NAME_CHARS = 34
