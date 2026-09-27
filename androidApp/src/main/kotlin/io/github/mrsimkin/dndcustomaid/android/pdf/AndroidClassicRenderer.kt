@@ -1756,21 +1756,24 @@ private fun appendSpellContinuationPages(
                             referenceOffset < references.size &&
                             reclaimedCapacity > 0
                         ) {
-                            titledFrame(
-                                s, p, 24f, reclaimedTop, 360f, reclaimedFrameHeight,
-                                "REFERENCIAS Y RECORDATORIOS · CONT.",
-                            )
                             val reclaimedReferences = takeClassicReferencePage(
                                 references,
                                 referenceOffset,
                                 reclaimedCapacity,
+                                allowPartialOversizedRecord = false,
                             )
-                            ruledTextArea(
-                                s, p, 36f, reclaimedTop + 36f, 336f, reclaimedContentHeight,
-                                reclaimedReferences.map { it.text },
-                                8.1f,
-                            )
-                            referenceOffset += reclaimedReferences.size
+                            if (reclaimedReferences.isNotEmpty()) {
+                                titledFrame(
+                                    s, p, 24f, reclaimedTop, 360f, reclaimedFrameHeight,
+                                    "REFERENCIAS Y RECORDATORIOS · CONT.",
+                                )
+                                ruledTextArea(
+                                    s, p, 36f, reclaimedTop + 36f, 336f, reclaimedContentHeight,
+                                    reclaimedReferences.map { it.text },
+                                    8.1f,
+                                )
+                                referenceOffset += reclaimedReferences.size
+                            }
                         }
                     } else {
                         titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
@@ -1850,6 +1853,7 @@ private fun appendSpellContinuationPages(
         lines: List<ClassicReferenceLine>,
         offset: Int,
         capacity: Int,
+        allowPartialOversizedRecord: Boolean = true,
     ): List<ClassicReferenceLine> {
         val candidate = lines.drop(offset).take(capacity)
         if (candidate.isEmpty()) return candidate
@@ -1859,7 +1863,8 @@ private fun appendSpellContinuationPages(
         if (next.recordIndex != lastRecordIndex) return candidate
 
         val completePrefix = candidate.dropLastWhile { it.recordIndex == lastRecordIndex }
-        return if (completePrefix.isNotEmpty()) completePrefix else candidate
+        if (completePrefix.isNotEmpty()) return completePrefix
+        return if (allowPartialOversizedRecord) candidate else emptyList()
     }
 
     private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<ClassicReferenceLine> {
