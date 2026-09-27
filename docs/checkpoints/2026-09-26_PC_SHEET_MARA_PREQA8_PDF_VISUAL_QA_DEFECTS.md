@@ -39,15 +39,20 @@ These stale text objects remain searchable/copyable even when visually covered. 
 
 This is a **systemic PDF structure/accessibility defect**, not just cosmetic noise.
 
-### B. Custom Statistics page 5 — Éter heading corruption
+### B. Custom Statistics pages 5–6 — attribute-card graphical corruption
 
-The third custom-attribute card visually renders as approximately:
+The owner correctly identified that the **custom-attribute boxes/cards themselves are visually corrupted with artifacts**. This is broader than a text-label defect.
 
-`ETE ter`
+Observed symptoms include:
 
-instead of preserving the intended `ETE · Éter` / unambiguous Éter label.
+- malformed/overprinted card chrome and internal black/white score-modifier shapes;
+- visually corrupted empty/partial attribute shells;
+- the third custom-attribute card rendering approximately as `ETE ter` instead of preserving the intended `ETE · Éter` / unambiguous Éter label;
+- graphical artifacts that make the cards look broken even where the underlying source data is correct.
 
-The source data is correct. This is a rendering/stylization defect around the abbreviation/name composition and accented initial character.
+Therefore this must be treated as a **card-rendering/layout artifact defect**, not merely an Éter typography issue.
+
+The source custom-attribute data is correct.
 
 ### C. Custom Statistics page 6 — phantom empty attribute cards
 
@@ -231,9 +236,23 @@ Examples already visible in Mara:
 
 This must be treated as a **general pagination/layout architecture defect**, not as four isolated page bugs.
 
+It is also **cross-format**, not Custom-v2-specific.
+
+The owner correctly clarified that we do **not** need to manually reproduce the same pathological high-volume case in Fantasy, Custom v1, Custom v2 · Atributo, and Custom v2 · Habilidad before treating it as a product requirement. A PDF family that supports overflow/continuation must not solve that overflow by repeatedly emitting mostly-empty fixed scaffolds.
+
+Mara is the concrete stress fixture that exposed the architecture failure; the repair requirement applies to **all export families**. Family-specific visual grammars may differ, but continuation behavior must share the same product-level invariants:
+
+- consume available physical space efficiently;
+- allow surviving content streams to reclaim space from exhausted siblings;
+- avoid empty repeated scaffolds;
+- preserve semantic order and record boundaries;
+- create additional pages only when actual remaining content requires them.
+
+Automated regression should cover the invariant across all PDF families so we do not need four separate manual owner reproductions.
+
 ### Required design principle
 
-Extended pages must become **content-adaptive**:
+Extended/continuation pages in **every PDF family** must become **content-adaptive**:
 
 1. preserve the approved base-sheet visual language and section identity;
 2. on continuation pages, allocate space according to the content streams that actually remain;
