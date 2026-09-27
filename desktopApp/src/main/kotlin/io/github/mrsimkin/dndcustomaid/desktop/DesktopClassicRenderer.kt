@@ -1703,12 +1703,14 @@ private fun appendSpellContinuationPages(
 
                 if (entryRemaining > 0 && referenceRemaining > 0) {
                     titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
-                    val pageEntries = entries
-                        .drop(entryOffset)
-                        .take(CLASSIC_NOTES_ENTRIES_PER_PAGE)
+                    val pageEntries = takeClassicNotePage(
+                        entries,
+                        entryOffset,
+                        CLASSIC_NOTES_ENTRIES_PER_PAGE,
+                    )
                     ruledTextArea(
                         s, p, 36f, 148f, 336f, 552f,
-                        pageEntries,
+                        pageEntries.map { it.text },
                         8.7f,
                     )
                     entryOffset += pageEntries.size
@@ -1728,12 +1730,14 @@ private fun appendSpellContinuationPages(
                     referenceOffset += pageReferences.size
                 } else if (entryRemaining > 0) {
                     titledFrame(s, p, 24f, 112f, 564f, 606f, "NOTAS DE CAMPAÑA - CONTINUACIÓN")
-                    val pageEntries = entries
-                        .drop(entryOffset)
-                        .take(CLASSIC_NOTES_ENTRIES_PER_PAGE)
+                    val pageEntries = takeClassicNotePage(
+                        entries,
+                        entryOffset,
+                        CLASSIC_NOTES_ENTRIES_PER_PAGE,
+                    )
                     ruledTextArea(
                         s, p, 36f, 148f, 540f, 552f,
-                        pageEntries,
+                        pageEntries.map { it.text },
                         8.7f,
                     )
                     entryOffset += pageEntries.size
@@ -1753,6 +1757,22 @@ private fun appendSpellContinuationPages(
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
             }
         }
+    }
+
+    private fun takeClassicNotePage(
+        entries: List<ClassicNoteEntry>,
+        offset: Int,
+        capacity: Int,
+    ): List<ClassicNoteEntry> {
+        val candidate = entries.drop(offset).take(capacity)
+        if (candidate.isEmpty()) return candidate
+
+        val next = entries.getOrNull(offset + candidate.size) ?: return candidate
+        val lastRecordIndex = candidate.last().recordIndex
+        if (next.recordIndex != lastRecordIndex) return candidate
+
+        val completePrefix = candidate.dropLastWhile { it.recordIndex == lastRecordIndex }
+        return if (completePrefix.isNotEmpty()) completePrefix else candidate
     }
 
     private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<String> {
@@ -1827,7 +1847,7 @@ private fun appendSpellContinuationPages(
         return lines
     }
 
-    private fun classicNoteEntries(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun classicNoteEntries(plan: PcSheetPdfRenderPlan): List<ClassicNoteEntry> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
             sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
@@ -1841,10 +1861,15 @@ private fun appendSpellContinuationPages(
                 }
                 if (value.isNotEmpty()) add(value)
             }
-        }.flatMap { note ->
+        }.flatMapIndexed { recordIndex, note ->
             wrapForChars(note, CLASSIC_NOTES_CHARS_PER_LINE)
                 .chunked(CLASSIC_NOTES_LINES_PER_ENTRY)
-                .map { it.joinToString("\n") }
+                .map { lines ->
+                    ClassicNoteEntry(
+                        text = lines.joinToString("\n"),
+                        recordIndex = recordIndex,
+                    )
+                }
         }
     }
 
@@ -3587,6 +3612,11 @@ private fun ruledTextArea(
         val name: String,
         val attuned: Boolean,
         val note: String,
+    )
+
+    private data class ClassicNoteEntry(
+        val text: String,
+        val recordIndex: Int,
     )
 
     private data class ClassicResourceRow(
