@@ -190,23 +190,27 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
             val columns = listOf(14f, 207f, 400f)
-            columns.forEach { x ->
+            columns.take(attributes.size).forEach { x ->
                 fill(s, x, 104f, 184f, 244f, SOURCE_GRAY_LIGHT)
                 attributeBandStructure(s, x, 104f, 184f, ATTRIBUTE_LINKED_SKILLS_PER_COLUMN)
             }
 
-            drawRule(s, 14f, 598f, 365f, 0.8f)
-            columns.forEachIndexed { index, x ->
-                fill(s, x, 392f, 184f, 110f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
-                drawRule(s, x + 16f, x + 174f, 430f, 0.55f)
-                repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
-                    drawRule(s, x + 16f, x + 174f, 447f + row * 17f, 0.55f)
+            if (standardGroups.isNotEmpty()) {
+                drawRule(s, 14f, 598f, 365f, 0.8f)
+                columns.take(standardGroups.size).forEachIndexed { index, x ->
+                    fill(s, x, 392f, 184f, 110f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
+                    drawRule(s, x + 16f, x + 174f, 430f, 0.55f)
+                    repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
+                        drawRule(s, x + 16f, x + 174f, 447f + row * 17f, 0.55f)
+                    }
                 }
             }
 
-            drawRule(s, 14f, 598f, 522f, 0.8f)
-            columns.forEachIndexed { col, x ->
-                bandedRows(s, x, x + 184f, 562f, ATTRIBUTE_NOTE_LINES_PER_COLUMN, 17f, col)
+            if (attributes.any { it.noteLines.isNotEmpty() }) {
+                drawRule(s, 14f, 598f, 522f, 0.8f)
+                columns.take(attributes.size).forEachIndexed { col, x ->
+                    bandedRows(s, x, x + 184f, 562f, ATTRIBUTE_NOTE_LINES_PER_COLUMN, 17f, col)
+                }
             }
         }
         appendLayer(page, "$layerPrefix - CLEANUP") { }
@@ -226,11 +230,13 @@ internal class DesktopCustomV2ExtendedRenderer(
                     "Tirada de Salvación", 7.75f, 2.0f, SOURCE_CORBEL_COMPACT_SCALE,
                 )
             }
-            centeredSource(
-                s, resources.corbelBold, resources.firaSemibold,
-                TopRect(14f, 367f, 584f, 22f),
-                "HABILIDADES VINCULADAS A ATRIBUTOS ESTÁNDAR", 10.2f, SOURCE_CORBEL_HEADING_SCALE,
-            )
+            if (standardGroups.isNotEmpty()) {
+                centeredSource(
+                    s, resources.corbelBold, resources.firaSemibold,
+                    TopRect(14f, 367f, 584f, 22f),
+                    "HABILIDADES VINCULADAS A ATRIBUTOS ESTÁNDAR", 10.2f, SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
             standardGroups.forEachIndexed { index, group ->
                 centeredSource(
                     s, resources.corbelBold, resources.firaSemibold,
@@ -238,11 +244,13 @@ internal class DesktopCustomV2ExtendedRenderer(
                     builtInKeyedName(group.ability), 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
                 )
             }
-            centeredSource(
-                s, resources.corbelBold, resources.firaSemibold,
-                TopRect(14f, 524f, 584f, 22f),
-                "DEFINICIONES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE,
-            )
+            if (attributes.any { it.noteLines.isNotEmpty() }) {
+                centeredSource(
+                    s, resources.corbelBold, resources.firaSemibold,
+                    TopRect(14f, 524f, 584f, 22f),
+                    "DEFINICIONES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             attributes.forEachIndexed { index, slice ->
@@ -286,9 +294,9 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
         appendLayer(page, "$layerPrefix - MARKERS") { s ->
-            repeat(ATTRIBUTE_COLUMNS_PER_PAGE) { col ->
-                val slice = attributes.getOrNull(col)
-                val projection = slice?.projection
+            repeat(attributes.size) { col ->
+                val slice = attributes[col]
+                val projection = slice.projection
                 val saveTraining = if (
                     projection?.attribute?.savingThrowEnabled == true &&
                     projection.attribute.savingThrowProficient
@@ -303,18 +311,18 @@ internal class DesktopCustomV2ExtendedRenderer(
                     drawV2TrainingBox(
                         s,
                         TopRect(98.5f + col * 193f, 157f + row * 17f, 8.5f, 9f),
-                        slice?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        slice.skills.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
                     )
                 }
             }
 
-            repeat(STANDARD_COLUMNS_PER_PAGE) { col ->
-                val group = standardGroups.getOrNull(col)
+            repeat(standardGroups.size) { col ->
+                val group = standardGroups[col]
                 repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
                     drawV2TrainingBox(
                         s,
                         TopRect(18f + col * 193f, 434f + row * 17f, 8.5f, 9f),
-                        group?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        group.skills.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
                     )
                 }
             }
