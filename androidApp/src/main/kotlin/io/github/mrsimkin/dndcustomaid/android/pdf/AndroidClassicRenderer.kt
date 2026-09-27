@@ -340,25 +340,21 @@ internal class AndroidClassicRenderer {
             val rightTitle: String
 
             if (leftRemaining > 0 && rightRemaining > 0) {
-                leftPage = leftEntries.drop(leftOffset).take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
-                rightPage = rightEntries.drop(rightOffset).take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                leftPage = takeClassicFeatureColumn(leftEntries, leftOffset)
+                rightPage = takeClassicFeatureColumn(rightEntries, rightOffset)
                 leftOffset += leftPage.size
                 rightOffset += rightPage.size
                 leftTitle = "RASGOS Y CARACTERÍSTICAS - CONTINUACIÓN"
                 rightTitle = "RASGOS DE RAZA / TRASFONDO / OTROS"
             } else if (leftRemaining > 0) {
-                leftPage = leftEntries.drop(leftOffset).take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
-                rightPage = leftEntries
-                    .drop(leftOffset + leftPage.size)
-                    .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                leftPage = takeClassicFeatureColumn(leftEntries, leftOffset)
+                rightPage = takeClassicFeatureColumn(leftEntries, leftOffset + leftPage.size)
                 leftOffset += leftPage.size + rightPage.size
                 leftTitle = "RASGOS / DOTES - CONTINUACIÓN"
                 rightTitle = "RASGOS / DOTES - CONTINUACIÓN"
             } else {
-                leftPage = rightEntries.drop(rightOffset).take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
-                rightPage = rightEntries
-                    .drop(rightOffset + leftPage.size)
-                    .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                leftPage = takeClassicFeatureColumn(rightEntries, rightOffset)
+                rightPage = takeClassicFeatureColumn(rightEntries, rightOffset + leftPage.size)
                 rightOffset += leftPage.size + rightPage.size
                 leftTitle = "RAZA / TRASFONDO / OTROS - CONTINUACIÓN"
                 rightTitle = "RAZA / TRASFONDO / OTROS - CONTINUACIÓN"
@@ -2811,6 +2807,35 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             align = PdfHorizontalAlignment.CENTER)
     }
 
+    private fun classicFeaturePhysicalRows(entry: ClassicFeature): Int {
+        val bodyRows = entry.description
+            .replace("\r\n", "\n")
+            .split("\n")
+            .map { it.trim() }
+            .count { it.isNotEmpty() }
+        return 1 + bodyRows
+    }
+
+    private fun takeClassicFeatureColumn(
+        entries: List<ClassicFeature>,
+        offset: Int,
+    ): List<ClassicFeature> {
+        if (offset >= entries.size) return emptyList()
+        val result = mutableListOf<ClassicFeature>()
+        var usedRows = 0
+
+        entries.drop(offset).forEach { entry ->
+            val rows = classicFeaturePhysicalRows(entry)
+            require(rows <= CLASSIC_TRAITS_COLUMN_ROWS) {
+                "Fantasy trait slice exceeds one continuation column: ${entry.name} ($rows rows)"
+            }
+            if (usedRows + rows > CLASSIC_TRAITS_COLUMN_ROWS) return result
+            result += entry
+            usedRows += rows
+        }
+        return result
+    }
+
     private fun continuousFeatureEntries(
         s: PDPageContentStream,
         p: AndroidPdfRenderingPrimitives,
@@ -3550,8 +3575,7 @@ private fun ruledTextArea(
         const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
         const val CLASSIC_STANDARD_GROUPS_PER_PAGE = 3
         const val CLASSIC_STANDARD_CUSTOM_SKILLS_PER_GROUP = 4
-        const val CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE = 5
-        const val CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE = 5
+        const val CLASSIC_TRAITS_COLUMN_ROWS = 27
         const val CLASSIC_TRAIT_BODY_CHARS = 58
         const val CLASSIC_TRAIT_BODY_LINES = 4
         const val CLASSIC_FEATURE_NAME_CHARS = 26

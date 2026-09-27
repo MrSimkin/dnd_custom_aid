@@ -331,7 +331,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     }
 
                     val pageCeiling = when (family) {
-                        PcSheetVisualFamily.CLASSIC_DND_STYLE -> 35
+                        PcSheetVisualFamily.CLASSIC_DND_STYLE -> 34
                         PcSheetVisualFamily.CUSTOM_V1 -> 20
                         PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> 16
                         PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> 15
