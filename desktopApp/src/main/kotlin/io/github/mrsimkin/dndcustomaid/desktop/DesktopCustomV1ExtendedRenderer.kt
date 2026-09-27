@@ -1569,7 +1569,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     s,
                     resources.fira,
                     Rule(126f, 238f, y),
-                    inventoryContinuationLabel(item),
+                    specialInventoryDisplayName(item),
                     8.2f,
                 )
                 val detail = specialInventoryDetail(item, usageByItem[item.id])
@@ -1708,7 +1708,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     s,
                     resources.fira,
                     Rule(126f, 238f, y),
-                    inventoryContinuationLabel(item),
+                    specialInventoryDisplayName(item),
                     8.2f,
                 )
                 val detail = specialInventoryDetail(item, usageByItem[item.id])
@@ -1804,10 +1804,24 @@ internal class DesktopCustomV1ExtendedRenderer(
         return lines
     }
 
+    private fun specialInventoryDisplayName(item: CharacterInventoryItem): String {
+        val label = inventoryContinuationLabel(item)
+        return wrapByWidth(
+            label,
+            resources.fira,
+            8.2f,
+            INVENTORY_SPECIAL_NAME_TEXT_WIDTH,
+        ).firstOrNull().orEmpty()
+    }
+
     private fun specialInventoryDetail(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): String = buildList {
+        val fullLabel = inventoryContinuationLabel(item)
+        if (textWidth(resources.fira, fullLabel, 8.2f) > INVENTORY_SPECIAL_NAME_TEXT_WIDTH) {
+            add("Nombre completo: $fullLabel")
+        }
         item.weightLb?.let { add(formatInventoryWeight(it)) }
         if (item.equipped) add("Equipado")
         if (item.attuned) add("Sintonizado")
