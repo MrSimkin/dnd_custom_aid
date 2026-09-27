@@ -210,6 +210,65 @@ Scaffold **#3974** reached the cross-family Mara semantic gate and exposed two r
 
 These failures are retained as regression evidence. The tests are not weakened.
 
+## Cross-family implementation expansion — Fantasy + Custom v1
+
+### Fantasy Sheet
+
+Desktop and generated Android Fantasy renderers now also obey adaptive continuation rules:
+
+1. **Traits**
+   - left/right category streams share their original two-column layout while both remain;
+   - once one stream is exhausted, the surviving stream reclaims **both columns** before another page is created;
+   - long ordinary inventory identities are wrapped across continuation rows rather than being truncated on both base and continuation surfaces.
+
+2. **Resources / Options**
+   - mixed layout is retained only while both streams remain;
+   - Resources-only continuation pages use the full page;
+   - Options-only continuation pages use the full page.
+
+3. **Inventory**
+   - mixed Inventory/Special/Treasure layout is used only while multiple streams remain;
+   - ordinary Equipment-only overflow receives a dense full-page table;
+   - Special-only overflow receives a dense full-page list;
+   - Treasure-only overflow receives a dense full-page ruled area;
+   - when ordinary Equipment is exhausted but Special + Treasure both remain, those two streams reclaim tall left/right columns.
+
+4. **Notes / References**
+   - mixed Notes + Map/References layout is retained while both content streams remain;
+   - Notes-only overflow reclaims the full page instead of repeating an empty map/reference side;
+   - References-only overflow reclaims the full page.
+
+The Android Fantasy renderer is regenerated from the Desktop authority through the canonical generator contract, rather than maintained manually.
+
+### Custom v1
+
+Desktop Custom-v1 authority and generated Android counterpart now include:
+
+1. **Custom Statistics stress repair**
+   - long source-matched skill labels wrap at the approved source scale rather than requiring ~49% compression;
+   - partially populated statistics pages do not paint unused module shells.
+
+2. **Traits**
+   - one native source-led overview page remains;
+   - later overflow is converted to dense two-column programmatic continuation pages;
+   - exhausted category panels no longer force repeated source-template scaffolds.
+
+3. **Resources / Options**
+   - mixed source-led layout remains while both streams have data;
+   - Resources-only and Options-only overflow each reclaim a full programmatic page.
+
+4. **Inventory**
+   - a native mixed page is used only when at least two continuation streams are active;
+   - remaining ordinary Equipment, Special Equipment, and Treasure each move to their own dense programmatic continuation page type;
+   - custom special-item locations are rendered as explicit data on those continuation pages rather than relying on fixed body-location rows.
+
+### Current validation gate
+
+The exact combined branch head is under Scaffold **#3994**. The next decision is test-driven:
+
+- if semantic/renderer gates fail, repair the failing invariant without weakening coverage;
+- if green, download the four Mara stress PDFs from CI and perform internal artifact review before any owner APK is prepared.
+
 ## Owner boundary
 
 No owner PDF generation or manual comparison is requested while this package is active.
