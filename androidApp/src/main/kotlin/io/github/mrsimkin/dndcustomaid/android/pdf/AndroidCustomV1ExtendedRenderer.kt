@@ -1404,6 +1404,9 @@ internal class AndroidCustomV1ExtendedRenderer(
                     specialLocationNeedsText(item.location)
             }
         }
+        val specialRows = specialContinuation.flatMap { item ->
+            specialInventoryFlowRows(item, usageByItem[item.id])
+        }
 
         val treasure = buildList {
             sheet.currencies
@@ -1422,36 +1425,30 @@ internal class AndroidCustomV1ExtendedRenderer(
                 .forEach(::add)
         }
 
-        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasure.isEmpty()) return
+        if (ordinaryLines.isEmpty() && specialRows.isEmpty() && treasure.isEmpty()) return
 
         var ordinaryOffset = 0
         var treasureOffset = 0
-        var specialOffset = 0
         var pageIndex = 0
 
-        val activeStreams = listOf(
-            ordinaryLines.isNotEmpty(),
-            treasure.isNotEmpty(),
-            specialContinuation.isNotEmpty(),
-        ).count { it }
-
-        if (activeStreams >= 2) {
+        // Use the native mixed Equipment/Treasure page only when both of those streams have data.
+        // Special Equipment always uses the programmatic physical-row flow so custom locations,
+        // long identities and long detail never collide with the source template's fixed rows.
+        if (ordinaryLines.isNotEmpty() && treasure.isNotEmpty()) {
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             val pageOrdinary = ordinaryLines.take(INVENTORY_ORDINARY_CAPACITY)
             val pageTreasure = treasure.take(INVENTORY_TREASURE_CAPACITY)
-            val pageSpecial = specialContinuation.take(INVENTORY_SPECIAL_CAPACITY)
             renderInventoryPage(
                 page = page,
                 ordinary = pageOrdinary,
                 treasure = pageTreasure,
-                special = pageSpecial,
+                special = emptyList(),
                 usageByItem = usageByItem,
                 pageIndex = pageIndex,
             )
             ordinaryOffset += pageOrdinary.size
             treasureOffset += pageTreasure.size
-            specialOffset += pageSpecial.size
             pageIndex += 1
         }
 
@@ -1464,15 +1461,14 @@ internal class AndroidCustomV1ExtendedRenderer(
                 pageIndex += 1
             }
 
-        specialContinuation.drop(specialOffset)
+        specialRows
             .chunked(INVENTORY_SPECIAL_ONLY_CAPACITY)
-            .forEach { pageItems ->
+            .forEach { pageRows ->
                 val page = PDPage(PDRectangle(W, H))
                 document.addPage(page)
                 renderInventorySpecialOnlyPage(
                     page = page,
-                    special = pageItems,
-                    usageByItem = usageByItem,
+                    rows = pageRows,
                     pageIndex = pageIndex,
                 )
                 pageIndex += 1
@@ -1537,8 +1533,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
     private fun renderInventorySpecialOnlyPage(
         page: PDPage,
-        special: List<CharacterInventoryItem>,
-        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        rows: List<SpecialInventoryFlowRow>,
         pageIndex: Int,
     ) {
         val prefix = "V1X INVENTORY SPECIAL P${pageIndex + 1}"
@@ -1562,33 +1557,22 @@ internal class AndroidCustomV1ExtendedRenderer(
             centeredText(s, resources.fira, 240.803f, 96f, 342.992f, 14f, "DESCRIPCIÓN / ESTADO", 7.5f)
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            special.forEachIndexed { index, item ->
+            rows.forEachIndexed { index, row ->
                 val y = INVENTORY_ONLY_FIRST_RULE_TOP + index * INVENTORY_ONLY_STEP
-                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
-                    ruleText(s, resources.fira, Rule(27.5f, 120f, y), location, 8.0f)
+                if (row.location.isNotEmpty()) {
+                    ruleText(s, resources.fira, Rule(27.5f, 120f, y), row.location, 8.0f)
                 }
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(126f, 238f, y),
-                    specialInventoryDisplayName(item),
-                    8.2f,
-                )
-                val detail = specialInventoryDetail(item, usageByItem[item.id])
-                if (detail.isNotEmpty()) {
-                    ruleText(
-                        s,
-                        resources.fira,
-                        Rule(240.803f, 583.795f, y),
-                        detail,
-                        8.0f,
-                    )
+                if (row.name.isNotEmpty()) {
+                    ruleText(s, resources.fira, Rule(126f, 238f, y), row.name, 8.2f)
+                }
+                if (row.detail.isNotEmpty()) {
+                    ruleText(s, resources.fira, Rule(240.803f, 583.795f, y), row.detail, 8.0f)
                 }
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            special.forEachIndexed { index, item ->
-                if (item.equipped || item.attuned) {
+            rows.forEachIndexed { index, row ->
+                if (row.marker) {
                     approvedV8Marker(
                         s = s,
                         font = resources.symbol,
@@ -1806,31 +1790,55 @@ internal class AndroidCustomV1ExtendedRenderer(
         return lines
     }
 
-    private fun specialInventoryDisplayName(item: CharacterInventoryItem): String {
-        val label = inventoryContinuationLabel(item)
-        return wrapByWidth(
-            label,
+    private fun specialInventoryFlowRows(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<SpecialInventoryFlowRow> {
+        val locationLines = item.location
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                wrapByWidth(
+                    it,
+                    resources.fira,
+                    8.0f,
+                    INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH,
+                )
+            }
+            .orEmpty()
+
+        val nameLines = wrapByWidth(
+            inventoryContinuationLabel(item),
             resources.fira,
             8.2f,
             INVENTORY_SPECIAL_NAME_TEXT_WIDTH,
-        ).firstOrNull().orEmpty()
-    }
+        )
 
-    private fun specialInventoryDetail(
-        item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
-    ): String = buildList {
-        val fullLabel = inventoryContinuationLabel(item)
-        if (textWidth(resources.fira, fullLabel, 8.2f) > INVENTORY_SPECIAL_NAME_TEXT_WIDTH) {
-            add("Nombre completo: $fullLabel")
+        val detailText = buildList {
+            item.weightLb?.let { add(formatInventoryWeight(it)) }
+            if (item.equipped) add("Equipado")
+            if (item.attuned) add("Sintonizado")
+            addAll(inventoryUsageLabels(usage))
+            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        }.joinToString(" · ")
+        val detailLines = wrapByWidth(
+            detailText,
+            resources.fira,
+            8.0f,
+            INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH,
+        )
+
+        val rows = maxOf(1, locationLines.size, nameLines.size, detailLines.size)
+        return (0 until rows).map { index ->
+            SpecialInventoryFlowRow(
+                location = locationLines.getOrNull(index).orEmpty(),
+                name = nameLines.getOrNull(index).orEmpty(),
+                detail = detailLines.getOrNull(index).orEmpty(),
+                marker = index == 0 && (item.equipped || item.attuned),
+            )
         }
-        item.weightLb?.let { add(formatInventoryWeight(it)) }
-        if (item.equipped) add("Equipado")
-        if (item.attuned) add("Sintonizado")
-        addAll(inventoryUsageLabels(usage))
-        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-    }.joinToString(" · ")
+    }
 
     private fun positionedSpecialItems(
         items: List<CharacterInventoryItem>,
@@ -2798,6 +2806,13 @@ internal class AndroidCustomV1ExtendedRenderer(
         val value: String?,
     )
 
+    private data class SpecialInventoryFlowRow(
+        val location: String,
+        val name: String,
+        val detail: String,
+        val marker: Boolean,
+    )
+
     private data class ResourceRenderRow(
         val name: String,
         val currentValue: Int,
@@ -3028,6 +3043,8 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val INVENTORY_ORDINARY_ONLY_CAPACITY = INVENTORY_ONLY_ROWS_PER_COLUMN * 4
         const val INVENTORY_SPECIAL_ONLY_CAPACITY = 29
         const val INVENTORY_SPECIAL_NAME_TEXT_WIDTH = 109f
+        const val INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH = 90f
+        const val INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH = 340f
         const val INVENTORY_TREASURE_ONLY_CAPACITY = 29
         const val INVENTORY_ONLY_FIRST_RULE_TOP = 128.5f
         const val INVENTORY_ONLY_STEP = 20f
