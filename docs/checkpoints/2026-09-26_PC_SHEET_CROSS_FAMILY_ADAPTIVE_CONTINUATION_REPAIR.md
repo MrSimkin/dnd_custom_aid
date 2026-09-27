@@ -291,6 +291,22 @@ Correction:
 
 The next exact-head gate is Scaffold **#4002**.
 
+## Validation discovery — Scaffold #4003
+
+Scaffold **#4003** advanced beyond the ordinary Custom-v1 equipment identity fix and then failed on a long **special-item** identity:
+
+`Custom-v1 Extended text does not fit: 4 x Cuaderno de fórmulas personales y mapas plegables 29`
+
+Correction:
+
+- the narrow Custom-v1 special-item name column now uses a readable short projection;
+- when the complete identity cannot fit that narrow column, the wide detail column explicitly includes `Nombre completo: <full identity>`;
+- the complete logical identity therefore remains visible/searchable without compressing the native name column below the readability floor;
+- Desktop and Android are synchronized;
+- the semantic-completeness gate remains unchanged.
+
+The next exact-code gate is Scaffold **#4007**.
+
 ## Owner boundary
 
 No owner PDF generation or manual comparison is requested while this package is active.
