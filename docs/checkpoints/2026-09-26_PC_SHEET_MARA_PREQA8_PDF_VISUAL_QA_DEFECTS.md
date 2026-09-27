@@ -208,6 +208,44 @@ Therefore the current Mara 3A failure is primarily **presentation, layout, packi
 
 This does **not** prove every descriptive sentence is perfectly associated with the right visual row; Inventory and Notes specifically remain structurally suspect.
 
+## Core architectural defect — fixed scaffolds instead of adaptive continuation packing
+
+The owner explicitly clarified the central product problem:
+
+**A character having many Notes, many Traits, many Resources, many Inventory items, or any other one-sided content load must not cause a long sequence of mostly-empty PDF pages.**
+
+The Mara artifact demonstrates that the current Extended renderer is too template-centric:
+
+- it allocates continuation pages by repeated fixed multi-panel scaffolds;
+- when only one section still has overflow, unrelated empty panels are still reproduced;
+- the overflowing section is constrained to its original small region instead of gaining the freed page area;
+- this inflates page count and simultaneously reduces readability;
+- the same failure mode can occur for any content family, not only Traits or Notes.
+
+Examples already visible in Mara:
+
+- Traits continuation keeps repeating the full four-panel Traits scaffold while mostly only Detail/Continuation is used;
+- Resources/Options keeps repeating a large empty Options region after options are exhausted;
+- Inventory repeats empty Equipment/Special Equipment structures after one stream is exhausted;
+- Notes continuation uses only part of the available Notes page while the other column remains empty.
+
+This must be treated as a **general pagination/layout architecture defect**, not as four isolated page bugs.
+
+### Required design principle
+
+Extended pages must become **content-adaptive**:
+
+1. preserve the approved base-sheet visual language and section identity;
+2. on continuation pages, allocate space according to the content streams that actually remain;
+3. when one sibling section is exhausted, allow the surviving section to reclaim that physical space;
+4. pack content vertically and across available columns before creating another page;
+5. preserve semantic record boundaries and ordering while repacking;
+6. avoid rendering empty section scaffolds unless they carry useful orientation/context;
+7. use dedicated full-width/full-page continuation layouts when a single content family dominates;
+8. page count should be driven by actual remaining content height/rows, not by fixed template repetition.
+
+The intended result is a **good character sheet first**, with efficient, readable continuation pages even for extreme custom characters. Mara is the stress fixture proving whether this adaptive behavior works.
+
 ## Runtime verdict
 
 Mara 3A:
