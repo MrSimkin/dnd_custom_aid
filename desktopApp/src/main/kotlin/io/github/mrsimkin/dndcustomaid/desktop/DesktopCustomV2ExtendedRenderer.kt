@@ -380,7 +380,12 @@ internal class DesktopCustomV2ExtendedRenderer(
             repeat(attributes.size) { index ->
                 val top = 136f + index * 96f
                 fill(s, 14f, top, 174f, 94f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
-                drawAttributeOrnament(s, 14.3f, top + 24f)
+                drawAttributeOrnament(
+                    s,
+                    14.3f,
+                    top + 24f,
+                    sourceVariantIndex = index % ATTRIBUTE_ORNAMENT_SOURCE_VARIANTS,
+                )
                 drawRule(s, 22f, 180f, top + 94f, 0.55f)
             }
             bandedRows(s, 202f, 352f, 154f, ABILITY_SAVES_PER_PAGE, 17f, 1)
@@ -2610,7 +2615,12 @@ internal class DesktopCustomV2ExtendedRenderer(
         width: Float,
         rows: Int,
     ) {
-        drawAttributeOrnament(s, x + 0.3f, top + 34f)
+        drawAttributeOrnament(
+            s,
+            x + 0.3f,
+            top + 34f,
+            sourceVariantIndex = 0,
+        )
         drawRule(s, x + 94f, x + width - 9f, top + 47f, 0.65f)
         repeat(rows) { row -> drawRule(s, x + 94f, x + width - 9f, top + 64f + row * 17f, 0.55f) }
     }
@@ -2638,9 +2648,14 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
     }
 
-    private fun drawAttributeOrnament(s: PDFormContentStream, targetX: Float, targetTop: Float) {
+    private fun drawAttributeOrnament(
+        s: PDFormContentStream,
+        targetX: Float,
+        targetTop: Float,
+        sourceVariantIndex: Int,
+    ) {
         s.drawImage(
-            resources.attributeOrnament,
+            resources.attributeOrnaments[sourceVariantIndex],
             targetX,
             H - targetTop - ATTRIBUTE_ORNAMENT_HEIGHT,
             ATTRIBUTE_ORNAMENT_WIDTH,
@@ -3104,7 +3119,7 @@ internal class DesktopCustomV2ExtendedRenderer(
     private data class Resources(
         val forms: List<PDFormXObject>,
         val logo: PDImageXObject,
-        val attributeOrnament: PDImageXObject,
+        val attributeOrnaments: List<PDImageXObject>,
         val corbel: PDFont,
         val corbelBold: PDFont,
         val fira: PDFont,
@@ -3131,7 +3146,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                     logo = findImportedImage(forms) { image ->
                         image.width == V2_LOGO_SOURCE_WIDTH && image.height == V2_LOGO_SOURCE_HEIGHT
                     },
-                    attributeOrnament = buildSourceAttributeOrnament(doc, source),
+                    attributeOrnaments = buildSourceAttributeOrnaments(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
                     fira = resourceFont(doc, resourceLoader, FIRA_REGULAR),
@@ -3191,25 +3206,29 @@ internal class DesktopCustomV2ExtendedRenderer(
                 error("Requested imported Custom-v2 source image not found.")
             }
 
-            private fun buildSourceAttributeOrnament(
+            private fun buildSourceAttributeOrnaments(
                 doc: PDDocument,
                 source: PDDocument,
-            ): PDImageXObject {
+            ): List<PDImageXObject> {
                 val dpi = 288f
                 val scale = dpi / 72f
                 val sourceImage = PDFRenderer(source).renderImageWithDPI(1, dpi, ImageType.RGB)
                 val x0 = (ATTRIBUTE_ORNAMENT_SOURCE_X * scale).roundToInt()
-                val y0 = (ATTRIBUTE_ORNAMENT_SOURCE_TOP * scale).roundToInt()
                 val width = (ATTRIBUTE_ORNAMENT_WIDTH * scale).roundToInt()
                 val height = (ATTRIBUTE_ORNAMENT_HEIGHT * scale).roundToInt()
-                val fragment = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
 
-                for (y in 0 until height) {
-                    for (x in 0 until width) {
-                        fragment.setRGB(x, y, sourceImage.getRGB(x0 + x, y0 + y))
+                return (0 until ATTRIBUTE_ORNAMENT_SOURCE_VARIANTS).map { variantIndex ->
+                    val sourceTop = ATTRIBUTE_ORNAMENT_SOURCE_TOP +
+                        variantIndex * ATTRIBUTE_ORNAMENT_SOURCE_ROW_STEP
+                    val y0 = (sourceTop * scale).roundToInt()
+                    val fragment = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+                    for (y in 0 until height) {
+                        for (x in 0 until width) {
+                            fragment.setRGB(x, y, sourceImage.getRGB(x0 + x, y0 + y))
+                        }
                     }
+                    LosslessFactory.createFromImage(doc, fragment)
                 }
-                return LosslessFactory.createFromImage(doc, fragment)
             }
 
             private fun resourceFont(
@@ -3237,6 +3256,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val V2_LOGO_HEIGHT = 40.89f
         const val ATTRIBUTE_ORNAMENT_SOURCE_X = 14.32f
         const val ATTRIBUTE_ORNAMENT_SOURCE_TOP = 164.68f
+        const val ATTRIBUTE_ORNAMENT_SOURCE_ROW_STEP = 96f
+        const val ATTRIBUTE_ORNAMENT_SOURCE_VARIANTS = 2
         const val ATTRIBUTE_ORNAMENT_WIDTH = 80.40f
         const val ATTRIBUTE_ORNAMENT_HEIGHT = 47.76f
         const val SOURCE_CORBEL_ATTRIBUTE_SCALE = 79f
