@@ -1580,8 +1580,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                         inventoryBaseLabel(item),
                         7.0f,
                         V2_BASE_EQUIPMENT_TEXT_WIDTH,
-                    ).size > 1 ||
-                    usageMeaningful(usage)
+                    ).size > 1
             if (!needsContinuation) {
                 null
             } else {
