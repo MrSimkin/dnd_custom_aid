@@ -410,7 +410,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         val prefix = "V1X TRAITS P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceLogo(s)
+            drawTraitsSourceLogo(s)
             sourceBandsForRules(s, 25f, 181f, TRAIT_CLASS_RULES)
             sourceBandsForRules(s, 25f, 181f, TRAIT_RACE_RULES)
             sourceBandsForRules(s, 25f, 181f, TRAIT_FEAT_RULES)
@@ -425,6 +425,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             centeredText(s, resources.heading, 24f, 66f, 156f, 35f, "Rasgos de Clase", 18f)
+            centeredText(s, resources.heading, 215f, 66f, 369f, 35f, "Otros Rasgos y Atributos", 18f)
             centeredText(s, resources.heading, 24f, 205f, 156f, 35f, "Rasgos de Raza", 18f)
             centeredText(s, resources.heading, 24f, 344f, 156f, 35f, "Dotes", 18f)
             centeredText(s, resources.heading, 24f, 483f, 156f, 35f, "Competencias", 18f)
@@ -2991,6 +2992,16 @@ internal class AndroidCustomV1ExtendedRenderer(
         )
     }
 
+    private fun drawTraitsSourceLogo(s: PDFormContentStream) {
+        s.drawImage(
+            resources.logo,
+            V1_TRAITS_LOGO_X,
+            H - V1_TRAITS_LOGO_TOP - V1_TRAITS_LOGO_HEIGHT,
+            V1_TRAITS_LOGO_WIDTH,
+            V1_TRAITS_LOGO_HEIGHT,
+        )
+    }
+
     private fun drawStatScoreFragment(
         s: PDFormContentStream,
         sourceVariantIndex: Int,
@@ -3484,6 +3495,10 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val V1_LOGO_TOP = 27.50f
         const val V1_LOGO_WIDTH = 169.22f
         const val V1_LOGO_HEIGHT = 60.25f
+        const val V1_TRAITS_LOGO_X = 28.2047f
+        const val V1_TRAITS_LOGO_TOP = 27.4961f
+        const val V1_TRAITS_LOGO_WIDTH = 113.3799f
+        const val V1_TRAITS_LOGO_HEIGHT = 40.3698f
         const val V1_STAT_FRAGMENT_WIDTH = 96.4f
 
         const val SOURCE_SCORE_FRAGMENT_TOP = 268.5f
