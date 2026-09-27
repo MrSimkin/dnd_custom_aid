@@ -1399,7 +1399,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     usageMeaningful(usage) ||
                     baseNameOverflows ||
                     baseDetailOverflows ||
-                    isCustomInventoryLocation(item.location)
+                    specialLocationNeedsText(item.location)
             }
         }
 
