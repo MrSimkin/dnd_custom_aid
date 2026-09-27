@@ -1233,7 +1233,9 @@ internal class AndroidClassicRenderer {
                 item.id !in baseIds ||
                     item.name.length > CLASSIC_BASE_INVENTORY_NAME_CHARS
             }
-            .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
+            .flatMapIndexed { recordIndex, item ->
+                classicInventoryRows(item, usageByItem[item.id], recordIndex)
+            }
 
         val specialRows = specialItems
             .flatMap { item ->
@@ -1320,9 +1322,11 @@ internal class AndroidClassicRenderer {
                     renderMixedOverview -> {
                         titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
                         inventoryHeader(s, p, 36f, 148f)
-                        val pageRows = ordinaryRows
-                            .drop(ordinaryOffset)
-                            .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
+                        val pageRows = takeClassicInventoryPage(
+                            ordinaryRows,
+                            ordinaryOffset,
+                            CLASSIC_INVENTORY_ROWS_PER_PAGE,
+                        )
                         pageRows.forEachIndexed { index, row ->
                             inventoryRow(s, p, 36f, 176f + index * 27f, row)
                         }
@@ -1395,9 +1399,11 @@ internal class AndroidClassicRenderer {
                     ordinaryRemaining > 0 -> {
                         titledFrame(s, p, 24f, 112f, 564f, 606f, "INVENTARIO - CONTINUACIÓN")
                         inventoryHeader(s, p, 36f, 148f)
-                        val pageRows = ordinaryRows
-                            .drop(ordinaryOffset)
-                            .take(CLASSIC_INVENTORY_ONLY_ROWS_PER_PAGE)
+                        val pageRows = takeClassicInventoryPage(
+                            ordinaryRows,
+                            ordinaryOffset,
+                            CLASSIC_INVENTORY_ONLY_ROWS_PER_PAGE,
+                        )
                         pageRows.forEachIndexed { index, row ->
                             inventoryRow(s, p, 36f, 176f + index * 27f, row)
                         }
@@ -1485,6 +1491,7 @@ internal class AndroidClassicRenderer {
 private fun classicInventoryRows(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
+        recordIndex: Int,
     ): List<InventoryRow> {
         val nameLines = wrapForChars(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS)
             .ifEmpty { listOf(item.name) }
@@ -1495,8 +1502,25 @@ private fun classicInventoryRows(
                 weight = item.weightLb?.let(::formatWeight).takeIf { index == nameLines.lastIndex }.orEmpty(),
                 state = "",
                 notes = "",
+                recordIndex = recordIndex,
             )
         }
+    }
+
+    private fun takeClassicInventoryPage(
+        rows: List<InventoryRow>,
+        offset: Int,
+        capacity: Int,
+    ): List<InventoryRow> {
+        val candidate = rows.drop(offset).take(capacity)
+        if (candidate.isEmpty()) return candidate
+
+        val next = rows.getOrNull(offset + candidate.size) ?: return candidate
+        val lastRecordIndex = candidate.last().recordIndex
+        if (next.recordIndex != lastRecordIndex) return candidate
+
+        val completePrefix = candidate.dropLastWhile { it.recordIndex == lastRecordIndex }
+        return if (completePrefix.isNotEmpty()) completePrefix else candidate
     }
 
     private fun inventoryState(
@@ -3558,6 +3582,7 @@ private fun ruledTextArea(
         val weight: String,
         val state: String,
         val notes: String,
+        val recordIndex: Int,
     )
 
     private data class ClassicSpecialItem(
