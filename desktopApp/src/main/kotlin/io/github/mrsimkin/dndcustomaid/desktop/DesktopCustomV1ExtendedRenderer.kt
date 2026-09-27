@@ -183,6 +183,12 @@ internal class DesktopCustomV1ExtendedRenderer(
         pageIndex: Int,
     ) {
         val prefix = "V1X STATS P${pageIndex + 1}"
+        val hasDefinitions = definitions.any { it.isNotBlank() }
+        val hasNotes = notes.any { it.isNotBlank() }
+        val effectiveNotesHeadingTop =
+            if (hasDefinitions) NOTES_HEADING_TOP else DEFINITIONS_HEADING_TOP
+        val effectiveNotesFirstRuleTop =
+            if (hasDefinitions) NOTES_FIRST_RULE_TOP else DEFINITIONS_FIRST_RULE_TOP
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceLogo(s)
@@ -2506,9 +2512,15 @@ internal class DesktopCustomV1ExtendedRenderer(
                     drawRule(s, column.x + 16f, column.x + column.width - 5f, top)
                 }
             }
-            STAT_SECTION_COLUMNS.forEach { (a, b) ->
-                sourceBands(s, a, b, DEFINITIONS_FIRST_RULE_TOP, STAT_SECTION_ROWS, STAT_SECTION_STEP)
-                sourceBands(s, a, b, NOTES_FIRST_RULE_TOP, STAT_SECTION_ROWS, STAT_SECTION_STEP)
+            if (hasDefinitions) {
+                STAT_SECTION_COLUMNS.forEach { (a, b) ->
+                    sourceBands(s, a, b, DEFINITIONS_FIRST_RULE_TOP, STAT_SECTION_ROWS, STAT_SECTION_STEP)
+                }
+            }
+            if (hasNotes) {
+                STAT_SECTION_COLUMNS.forEach { (a, b) ->
+                    sourceBands(s, a, b, effectiveNotesFirstRuleTop, STAT_SECTION_ROWS, STAT_SECTION_STEP)
+                }
             }
             if (sideContinuationLines.isNotEmpty() && modules.size < MODULES_PER_PAGE) {
                 val sideX = COLUMNS[modules.size].x
@@ -2555,16 +2567,20 @@ internal class DesktopCustomV1ExtendedRenderer(
                     )
                 }
             }
-            centeredText(
-                s, resources.heading,
-                24f, DEFINITIONS_HEADING_TOP, 564f, 26f,
-                "Definiciones", 17f,
-            )
-            centeredText(
-                s, resources.heading,
-                24f, NOTES_HEADING_TOP, 564f, 26f,
-                "Notas de Estadísticas Personalizadas", 17f,
-            )
+            if (hasDefinitions) {
+                centeredText(
+                    s, resources.heading,
+                    24f, DEFINITIONS_HEADING_TOP, 564f, 26f,
+                    "Definiciones", 17f,
+                )
+            }
+            if (hasNotes) {
+                centeredText(
+                    s, resources.heading,
+                    24f, effectiveNotesHeadingTop, 564f, 26f,
+                    "Notas de Estadísticas Personalizadas", 17f,
+                )
+            }
             if (sideContinuationLines.isNotEmpty() && modules.size < MODULES_PER_PAGE) {
                 val sideX = COLUMNS[modules.size].x
                 val sideEnd = COLUMNS.last().x + COLUMNS.last().width
@@ -2629,8 +2645,12 @@ internal class DesktopCustomV1ExtendedRenderer(
                 }
             }
 
-            drawBottomLines(s, definitions, DEFINITIONS_FIRST_RULE_TOP)
-            drawBottomLines(s, notes, NOTES_FIRST_RULE_TOP)
+            if (hasDefinitions) {
+                drawBottomLines(s, definitions, DEFINITIONS_FIRST_RULE_TOP)
+            }
+            if (hasNotes) {
+                drawBottomLines(s, notes, effectiveNotesFirstRuleTop)
+            }
             if (sideContinuationLines.isNotEmpty() && modules.size < MODULES_PER_PAGE) {
                 val sideX = COLUMNS[modules.size].x
                 val sideEnd = COLUMNS.last().x + COLUMNS.last().width
