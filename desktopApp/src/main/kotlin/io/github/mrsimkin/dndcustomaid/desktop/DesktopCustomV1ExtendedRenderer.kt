@@ -1398,7 +1398,8 @@ internal class DesktopCustomV1ExtendedRenderer(
                 index >= BASE_V1_SPECIAL_CAPACITY ||
                     usageMeaningful(usage) ||
                     baseNameOverflows ||
-                    baseDetailOverflows
+                    baseDetailOverflows ||
+                    isCustomInventoryLocation(item.location)
             }
         }
 
@@ -1421,23 +1422,217 @@ internal class DesktopCustomV1ExtendedRenderer(
 
         if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasure.isEmpty()) return
 
-        val pages = maxOf(
-            pageCount(ordinaryLines.size, INVENTORY_ORDINARY_CAPACITY),
-            pageCount(treasure.size, INVENTORY_TREASURE_CAPACITY),
-            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
-        )
-        repeat(pages) { pageIndex ->
+        var ordinaryOffset = 0
+        var treasureOffset = 0
+        var specialOffset = 0
+        var pageIndex = 0
+
+        val activeStreams = listOf(
+            ordinaryLines.isNotEmpty(),
+            treasure.isNotEmpty(),
+            specialContinuation.isNotEmpty(),
+        ).count { it }
+
+        if (activeStreams >= 2) {
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
+            val pageOrdinary = ordinaryLines.take(INVENTORY_ORDINARY_CAPACITY)
+            val pageTreasure = treasure.take(INVENTORY_TREASURE_CAPACITY)
+            val pageSpecial = specialContinuation.take(INVENTORY_SPECIAL_CAPACITY)
             renderInventoryPage(
                 page = page,
-                ordinary = ordinaryLines.pageSlice(pageIndex, INVENTORY_ORDINARY_CAPACITY),
-                treasure = treasure.pageSlice(pageIndex, INVENTORY_TREASURE_CAPACITY),
-                special = specialContinuation.pageSlice(pageIndex, INVENTORY_SPECIAL_CAPACITY),
+                ordinary = pageOrdinary,
+                treasure = pageTreasure,
+                special = pageSpecial,
                 usageByItem = usageByItem,
                 pageIndex = pageIndex,
             )
+            ordinaryOffset += pageOrdinary.size
+            treasureOffset += pageTreasure.size
+            specialOffset += pageSpecial.size
+            pageIndex += 1
         }
+
+        ordinaryLines.drop(ordinaryOffset)
+            .chunked(INVENTORY_ORDINARY_ONLY_CAPACITY)
+            .forEach { pageLines ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderInventoryOrdinaryOnlyPage(page, pageLines, pageIndex)
+                pageIndex += 1
+            }
+
+        specialContinuation.drop(specialOffset)
+            .chunked(INVENTORY_SPECIAL_ONLY_CAPACITY)
+            .forEach { pageItems ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderInventorySpecialOnlyPage(
+                    page = page,
+                    special = pageItems,
+                    usageByItem = usageByItem,
+                    pageIndex = pageIndex,
+                )
+                pageIndex += 1
+            }
+
+        treasure.drop(treasureOffset)
+            .chunked(INVENTORY_TREASURE_ONLY_CAPACITY)
+            .forEach { pageEntries ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderInventoryTreasureOnlyPage(page, pageEntries, pageIndex)
+                pageIndex += 1
+            }
+    }
+
+    private fun renderInventoryOrdinaryOnlyPage(
+        page: PDPage,
+        ordinary: List<String>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X INVENTORY EQUIPMENT P${pageIndex + 1}"
+        val columns = listOf(
+            27.5f to 153.5f,
+            169.5f to 295.5f,
+            311.5f to 437.5f,
+            453.5f to 583.795f,
+        )
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            columns.forEach { (startX, endX) ->
+                sourceBands(
+                    s,
+                    startX,
+                    endX,
+                    INVENTORY_ONLY_FIRST_RULE_TOP,
+                    INVENTORY_ONLY_ROWS_PER_COLUMN,
+                    INVENTORY_ONLY_STEP,
+                )
+            }
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Equipo · Continuación", 18f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            ordinary.forEachIndexed { index, value ->
+                val column = index / INVENTORY_ONLY_ROWS_PER_COLUMN
+                val row = index % INVENTORY_ONLY_ROWS_PER_COLUMN
+                val (startX, endX) = columns[column]
+                ruleText(
+                    s,
+                    resources.condensed,
+                    Rule(startX + 2f, endX - 2f, INVENTORY_ONLY_FIRST_RULE_TOP + row * INVENTORY_ONLY_STEP),
+                    value,
+                    8.4f,
+                )
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun renderInventorySpecialOnlyPage(
+        page: PDPage,
+        special: List<CharacterInventoryItem>,
+        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X INVENTORY SPECIAL P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            sourceBands(
+                s,
+                25f,
+                585f,
+                INVENTORY_ONLY_FIRST_RULE_TOP,
+                INVENTORY_SPECIAL_ONLY_CAPACITY,
+                INVENTORY_ONLY_STEP,
+            )
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Equipo especial · Continuación", 18f)
+            centeredText(s, resources.fira, 27.5f, 96f, 95f, 14f, "UBICACIÓN", 7.5f)
+            centeredText(s, resources.fira, 126f, 96f, 112f, 14f, "NOMBRE", 7.5f)
+            centeredText(s, resources.fira, 240.803f, 96f, 342.992f, 14f, "DESCRIPCIÓN / ESTADO", 7.5f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            special.forEachIndexed { index, item ->
+                val y = INVENTORY_ONLY_FIRST_RULE_TOP + index * INVENTORY_ONLY_STEP
+                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
+                    ruleText(s, resources.fira, Rule(27.5f, 120f, y), location, 8.0f)
+                }
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(126f, 238f, y),
+                    inventoryContinuationLabel(item),
+                    8.2f,
+                )
+                val detail = specialInventoryDetail(item, usageByItem[item.id])
+                if (detail.isNotEmpty()) {
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(240.803f, 583.795f, y),
+                        detail,
+                        8.0f,
+                    )
+                }
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            special.forEachIndexed { index, item ->
+                if (item.equipped || item.attuned) {
+                    approvedV8Marker(
+                        s = s,
+                        font = resources.symbol,
+                        centerX = 116f,
+                        centerTop = INVENTORY_ONLY_FIRST_RULE_TOP + index * INVENTORY_ONLY_STEP - INVENTORY_ONLY_STEP / 2f,
+                        size = 5.6f,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun renderInventoryTreasureOnlyPage(
+        page: PDPage,
+        treasure: List<TreasureEntry>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X INVENTORY TREASURE P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            sourceBands(
+                s,
+                25f,
+                585f,
+                INVENTORY_ONLY_FIRST_RULE_TOP,
+                INVENTORY_TREASURE_ONLY_CAPACITY,
+                INVENTORY_ONLY_STEP,
+            )
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Tesoro / Valores · Continuación", 18f)
+            centeredText(s, resources.fira, 27.5f, 96f, 430f, 14f, "DESCRIPCIÓN", 7.5f)
+            centeredText(s, resources.fira, 465f, 96f, 118f, 14f, "VALOR", 7.5f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            treasure.forEachIndexed { index, entry ->
+                val y = INVENTORY_ONLY_FIRST_RULE_TOP + index * INVENTORY_ONLY_STEP
+                ruleText(s, resources.fira, Rule(27.5f, 457f, y), entry.label, 8.2f)
+                entry.value?.let { value ->
+                    ruleText(s, resources.fira, Rule(465f, 583.795f, y), value, 8.2f)
+                }
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun renderInventoryPage(
@@ -2807,6 +3002,12 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val INVENTORY_ORDINARY_CAPACITY = 54
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
+        const val INVENTORY_ONLY_ROWS_PER_COLUMN = 29
+        const val INVENTORY_ORDINARY_ONLY_CAPACITY = INVENTORY_ONLY_ROWS_PER_COLUMN * 4
+        const val INVENTORY_SPECIAL_ONLY_CAPACITY = 29
+        const val INVENTORY_TREASURE_ONLY_CAPACITY = 29
+        const val INVENTORY_ONLY_FIRST_RULE_TOP = 128.5f
+        const val INVENTORY_ONLY_STEP = 20f
         const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
         const val V1_BASE_SPECIAL_NAME_WIDTH = 82.5f
         const val V1_BASE_SPECIAL_DETAIL_WIDTH = 343f
