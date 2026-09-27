@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — Mara 3A preqa.8 PDF visual QA FAIL after successful export. Next work is a consolidated Custom-v2 Extended visual-layout/continuation repair; no owner rerun until that package is implemented and validated.
+**Current normal work:** PC Sheet PDF Export — cross-family adaptive continuation/layout repair active on `repair/pc-sheet-adaptive-continuations-cross-family`; no owner rerun until automated cross-family Mara validation and internal artifact review are green.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,9 +102,9 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** none as continuation authority; merged repair refs are historical evidence only.
+**Sole active non-main branch:** `repair/pc-sheet-adaptive-continuations-cross-family`.
 
-**Sole active implementation PR:** none yet; visual-QA repair package not yet branched.
+**Sole active implementation PR:** none yet; implementation/validation active.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;
