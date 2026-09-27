@@ -994,7 +994,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             document.addPage(page)
 
             if (rowRemaining > 0 && optionRemaining > 0) {
-                val pageRows = rows.drop(rowOffset).take(RESOURCE_ROWS_PER_PAGE)
+                val pageRows = takeResourcePage(rows, rowOffset, RESOURCE_ROWS_PER_PAGE)
                 val pageOptions = options.drop(optionOffset).take(OPTION_ROWS_PER_PAGE)
                 renderResourcesPage(
                     page = page,
@@ -1005,7 +1005,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 rowOffset += pageRows.size
                 optionOffset += pageOptions.size
             } else if (rowRemaining > 0) {
-                val pageRows = rows.drop(rowOffset).take(RESOURCE_ONLY_ROWS_PER_PAGE)
+                val pageRows = takeResourcePage(rows, rowOffset, RESOURCE_ONLY_ROWS_PER_PAGE)
                 renderResourceOnlyPage(
                     page = page,
                     rows = pageRows,
@@ -1105,7 +1105,7 @@ internal class DesktopCustomV1ExtendedRenderer(
     }
 
     private fun resourceRenderLines(rows: List<ResourceRenderRow>): List<ResourceRenderLine> =
-        rows.flatMap { row ->
+        rows.flatMapIndexed { recordIndex, row ->
             val nameLines = wrapByWidth(
                 row.name,
                 resources.fira,
@@ -1136,9 +1136,26 @@ internal class DesktopCustomV1ExtendedRenderer(
                         null
                     },
                     recoveryAndDetail = detailLines.getOrNull(index).orEmpty(),
+                    recordIndex = recordIndex,
                 )
             }
         }
+
+    private fun takeResourcePage(
+        rows: List<ResourceRenderLine>,
+        offset: Int,
+        capacity: Int,
+    ): List<ResourceRenderLine> {
+        val candidate = rows.drop(offset).take(capacity)
+        if (candidate.isEmpty()) return candidate
+
+        val next = rows.getOrNull(offset + candidate.size) ?: return candidate
+        val lastRecordIndex = candidate.last().recordIndex
+        if (next.recordIndex != lastRecordIndex) return candidate
+
+        val completePrefix = candidate.dropLastWhile { it.recordIndex == lastRecordIndex }
+        return if (completePrefix.isNotEmpty()) completePrefix else candidate
+    }
 
     private fun optionRenderLines(
         options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
@@ -3095,6 +3112,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val maximum: Int?,
         val numericValue: String?,
         val recoveryAndDetail: String,
+        val recordIndex: Int,
     )
 
     private data class OptionRenderLine(
