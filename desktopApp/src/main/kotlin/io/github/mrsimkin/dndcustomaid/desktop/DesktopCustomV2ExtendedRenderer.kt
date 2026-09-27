@@ -2517,22 +2517,13 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun drawAttributeOrnament(s: PDFormContentStream, targetX: Float, targetTop: Float) {
-        fun cleanBox(x: Float, top: Float, width: Float, height: Float, lineWidth: Float) {
-            s.saveGraphicsState()
-            s.setNonStrokingColor(Color.WHITE)
-            s.addRect(x, H - top - height, width, height)
-            s.fill()
-            s.setStrokingColor(Color.BLACK)
-            s.setLineWidth(lineWidth)
-            s.addRect(x, H - top - height, width, height)
-            s.stroke()
-            s.restoreGraphicsState()
-        }
-
-        // Programmatic score/modifier chrome replaces the source-PDF raster crop.
-        // The old crop carried visible tabs/line artifacts into every custom-stat card.
-        cleanBox(targetX + 12f, targetTop + 4f, 36f, 27f, 1.0f)
-        cleanBox(targetX + 44f, targetTop + 22f, 33f, 23f, 0.9f)
+        s.drawImage(
+            resources.attributeOrnament,
+            targetX,
+            H - targetTop - ATTRIBUTE_ORNAMENT_HEIGHT,
+            ATTRIBUTE_ORNAMENT_WIDTH,
+            ATTRIBUTE_ORNAMENT_HEIGHT,
+        )
     }
 
     private fun drawV2TrainingBox(s: PDFormContentStream, rect: TopRect, training: Training) {
@@ -3014,7 +3005,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                     logo = findImportedImage(forms) { image ->
                         image.width == V2_LOGO_SOURCE_WIDTH && image.height == V2_LOGO_SOURCE_HEIGHT
                     },
-                    attributeOrnament = buildTransparentAttributeOrnament(doc, source),
+                    attributeOrnament = buildSourceAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
                     fira = resourceFont(doc, resourceLoader, FIRA_REGULAR),
@@ -3074,7 +3065,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 error("Requested imported Custom-v2 source image not found.")
             }
 
-            private fun buildTransparentAttributeOrnament(
+            private fun buildSourceAttributeOrnament(
                 doc: PDDocument,
                 source: PDDocument,
             ): PDImageXObject {
@@ -3085,36 +3076,14 @@ internal class DesktopCustomV2ExtendedRenderer(
                 val y0 = (ATTRIBUTE_ORNAMENT_SOURCE_TOP * scale).roundToInt()
                 val width = (ATTRIBUTE_ORNAMENT_WIDTH * scale).roundToInt()
                 val height = (ATTRIBUTE_ORNAMENT_HEIGHT * scale).roundToInt()
-                val transparent = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-
-                fun insideValueMask(px: Int, py: Int): Boolean {
-                    val x = px / scale
-                    val y = py / scale
-                    val score = x in 17.5f..43.0f && y in 8.0f..26.0f
-                    val modifier = x in 48.0f..71.0f && y in 27.0f..43.5f
-                    return score || modifier
-                }
+                val fragment = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
 
                 for (y in 0 until height) {
                     for (x in 0 until width) {
-                        if (insideValueMask(x, y)) {
-                            transparent.setRGB(x, y, 0)
-                            continue
-                        }
-                        val rgb = sourceImage.getRGB(x0 + x, y0 + y)
-                        val red = rgb shr 16 and 0xFF
-                        val green = rgb shr 8 and 0xFF
-                        val blue = rgb and 0xFF
-                        val luma = (red * 299 + green * 587 + blue * 114) / 1000
-                        val alpha = when {
-                            luma >= 190 -> 0
-                            luma <= 120 -> 255
-                            else -> ((190 - luma) * 255 / 70).coerceIn(0, 255)
-                        }
-                        transparent.setRGB(x, y, alpha shl 24)
+                        fragment.setRGB(x, y, sourceImage.getRGB(x0 + x, y0 + y))
                     }
                 }
-                return LosslessFactory.createFromImage(doc, transparent)
+                return LosslessFactory.createFromImage(doc, fragment)
             }
 
             private fun resourceFont(
