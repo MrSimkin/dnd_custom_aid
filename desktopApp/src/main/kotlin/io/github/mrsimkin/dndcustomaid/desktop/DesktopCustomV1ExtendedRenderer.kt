@@ -1513,7 +1513,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     specialLocationNeedsText(item.location)
             }
         }
-        val specialRows = specialContinuation.flatMap { item ->
+        val specialRowGroups = specialContinuation.map { item ->
             specialInventoryFlowRows(item, usageByItem[item.id])
         }
 
@@ -1534,7 +1534,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 .forEach(::add)
         }
 
-        if (ordinaryLines.isEmpty() && specialRows.isEmpty() && treasure.isEmpty()) return
+        if (ordinaryLines.isEmpty() && specialRowGroups.isEmpty() && treasure.isEmpty()) return
 
         var ordinaryOffset = 0
         var treasureOffset = 0
@@ -1570,8 +1570,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 pageIndex += 1
             }
 
-        specialRows
-            .chunked(INVENTORY_SPECIAL_ONLY_CAPACITY)
+        packSpecialInventoryRowGroups(specialRowGroups)
             .forEach { pageRows ->
                 val page = PDPage(PDRectangle(W, H))
                 document.addPage(page)
@@ -1638,6 +1637,28 @@ internal class DesktopCustomV1ExtendedRenderer(
             }
         }
         appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun packSpecialInventoryRowGroups(
+        groups: List<List<SpecialInventoryFlowRow>>,
+    ): List<List<SpecialInventoryFlowRow>> {
+        val pages = mutableListOf<List<SpecialInventoryFlowRow>>()
+        var current = mutableListOf<SpecialInventoryFlowRow>()
+
+        groups.forEach { group ->
+            require(group.size <= INVENTORY_SPECIAL_ONLY_CAPACITY) {
+                "Custom-v1 special inventory record exceeds one continuation page: " + group.size
+            }
+            if (current.isNotEmpty() && current.size + group.size > INVENTORY_SPECIAL_ONLY_CAPACITY) {
+                pages += current.toList()
+                current = mutableListOf()
+            }
+            current.addAll(group)
+        }
+        if (current.isNotEmpty()) {
+            pages += current.toList()
+        }
+        return pages
     }
 
     private fun renderInventorySpecialOnlyPage(
@@ -3348,7 +3369,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val INVENTORY_SPECIAL_CAPACITY = 13
         const val INVENTORY_ONLY_ROWS_PER_COLUMN = 29
         const val INVENTORY_ORDINARY_ONLY_CAPACITY = INVENTORY_ONLY_ROWS_PER_COLUMN * 4
-        const val INVENTORY_SPECIAL_ONLY_CAPACITY = 29
+        const val INVENTORY_SPECIAL_ONLY_CAPACITY = 32
         const val INVENTORY_SPECIAL_NAME_TEXT_WIDTH = 109f
         const val INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH = 90f
         const val INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH = 340f
