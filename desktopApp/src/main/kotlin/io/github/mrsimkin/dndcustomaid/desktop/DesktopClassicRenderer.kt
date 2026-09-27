@@ -1719,12 +1719,14 @@ private fun appendSpellContinuationPages(
                     grid(s, 410f, 148f, 166f, 240f, 10, 14)
 
                     titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
-                    val pageReferences = references
-                        .drop(referenceOffset)
-                        .take(CLASSIC_REFERENCE_LINES_PER_PAGE)
+                    val pageReferences = takeClassicReferencePage(
+                        references,
+                        referenceOffset,
+                        CLASSIC_REFERENCE_LINES_PER_PAGE,
+                    )
                     ruledTextArea(
                         s, p, 410f, 454f, 166f, 246f,
-                        pageReferences,
+                        pageReferences.map { it.text },
                         8.1f,
                     )
                     referenceOffset += pageReferences.size
@@ -1743,12 +1745,14 @@ private fun appendSpellContinuationPages(
                     entryOffset += pageEntries.size
                 } else {
                     titledFrame(s, p, 24f, 112f, 564f, 606f, "REFERENCIAS Y RECORDATORIOS - CONTINUACIÓN")
-                    val pageReferences = references
-                        .drop(referenceOffset)
-                        .take(CLASSIC_REFERENCE_ONLY_LINES_PER_PAGE)
+                    val pageReferences = takeClassicReferencePage(
+                        references,
+                        referenceOffset,
+                        CLASSIC_REFERENCE_ONLY_LINES_PER_PAGE,
+                    )
                     ruledTextArea(
                         s, p, 36f, 148f, 540f, 552f,
-                        pageReferences,
+                        pageReferences.map { it.text },
                         8.1f,
                     )
                     referenceOffset += pageReferences.size
@@ -1775,25 +1779,40 @@ private fun appendSpellContinuationPages(
         return if (completePrefix.isNotEmpty()) completePrefix else candidate
     }
 
-    private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun takeClassicReferencePage(
+        lines: List<ClassicReferenceLine>,
+        offset: Int,
+        capacity: Int,
+    ): List<ClassicReferenceLine> {
+        val candidate = lines.drop(offset).take(capacity)
+        if (candidate.isEmpty()) return candidate
+
+        val next = lines.getOrNull(offset + candidate.size) ?: return candidate
+        val lastRecordIndex = candidate.last().recordIndex
+        if (next.recordIndex != lastRecordIndex) return candidate
+
+        val completePrefix = candidate.dropLastWhile { it.recordIndex == lastRecordIndex }
+        return if (completePrefix.isNotEmpty()) completePrefix else candidate
+    }
+
+    private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<ClassicReferenceLine> {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
-        val lines = mutableListOf<String>()
+        val lines = mutableListOf<ClassicReferenceLine>()
+        var recordIndex = 0
 
         fun addWrapped(label: String, value: String) {
             val clean = value.trim()
             if (clean.isEmpty()) return
             val wrapped = wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
             if (wrapped.isEmpty()) return
-            val usedOnPage = lines.size % CLASSIC_REFERENCE_LINES_PER_PAGE
-            if (
-                usedOnPage != 0 &&
-                wrapped.size <= CLASSIC_REFERENCE_LINES_PER_PAGE &&
-                usedOnPage + wrapped.size > CLASSIC_REFERENCE_LINES_PER_PAGE
-            ) {
-                repeat(CLASSIC_REFERENCE_LINES_PER_PAGE - usedOnPage) { lines += "" }
+            wrapped.forEach { line ->
+                lines += ClassicReferenceLine(
+                    text = line,
+                    recordIndex = recordIndex,
+                )
             }
-            lines += wrapped
+            recordIndex += 1
         }
 
         val baseLanguageIds = sheet.proficiencies
@@ -3615,6 +3634,11 @@ private fun ruledTextArea(
     )
 
     private data class ClassicNoteEntry(
+        val text: String,
+        val recordIndex: Int,
+    )
+
+    private data class ClassicReferenceLine(
         val text: String,
         val recordIndex: Int,
     )
