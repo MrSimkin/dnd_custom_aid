@@ -59,6 +59,7 @@ def transform(source: str, source_name: str) -> str:
         "Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)",
     )
     rendered = rendered.replace("transparent.setRGB(", "transparent.setPixel(")
+    rendered = rendered.replace("fragment.setRGB(", "fragment.setPixel(")
     rendered = rendered.replace("sourceImage.getRGB(", "sourceImage.getPixel(")
 
     forbidden = [
