@@ -307,6 +307,58 @@ Correction:
 
 The next exact-code gate is Scaffold **#4007**.
 
+## Validation discovery — Scaffold #4016
+
+Scaffold **#4016** reached the cross-family Mara semantic gate and failed on three exact identities:
+
+- Custom v1: lost note-card identity `Nota 8 — Lugar`;
+- Custom v2 · Atributo: lost custom-attribute identity `Cordura`;
+- Custom v2 · Habilidad: lost custom-attribute identity `Cordura`.
+
+Root causes and corrections:
+
+### Custom-v2 custom-attribute identity
+
+The old `keyedName` helper merged a three-letter key into a matching name prefix. For example:
+
+- key = `COR`;
+- name = `Cordura`;
+- rendered identity became effectively `CORdura`.
+
+That is visually ambiguous and destroys exact semantic identity in PDF extraction.
+
+Correction:
+
+- custom attributes now render explicit key + full name, e.g. **`COR · Cordura`**;
+- the full user-facing attribute name remains searchable/readable;
+- applied identically to Desktop and Android.
+
+### Custom-v1 Notes identity/handoff
+
+Custom v1 previously recalculated Notes wrapping independently on:
+
+1. the Narrative page;
+2. the dedicated Notes page;
+3. Extended Notes continuation.
+
+The different wrapping/handoff calculations could split a note record at one surface and resume only its anonymous tail on another, losing titles such as `Nota 8 — Lugar`.
+
+Correction:
+
+- one record-aware linear Notes flow now drives all three surfaces;
+- segment capacities are exact and explicit:
+  - Narrative: 9 rows;
+  - dedicated Notes left column: 17 rows;
+  - dedicated Notes right column: 17 rows;
+  - Extended continuation: repeating 17 + 17 rows;
+- note records receive a blank boundary when space permits;
+- records move intact to the next segment when possible;
+- genuinely split records receive an explicit `(continuación)` identity;
+- Extended Custom-v1 Notes are now programmatic rather than a full imported page-form underlay;
+- Desktop and Android are synchronized.
+
+The semantic-completeness assertions remain unchanged.
+
 ## Owner boundary
 
 No owner PDF generation or manual comparison is requested while this package is active.
