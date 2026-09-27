@@ -269,6 +269,28 @@ The exact combined branch head is under Scaffold **#3994**. The next decision is
 - if semantic/renderer gates fail, repair the failing invariant without weakening coverage;
 - if green, download the four Mara stress PDFs from CI and perform internal artifact review before any owner APK is prepared.
 
+## Validation discovery — Scaffold #4000
+
+Scaffold **#4000** reached Mara's Custom-v1 Inventory continuation and failed on:
+
+`Custom-v1 Extended text does not fit: 2 x Frasco de tinta que recuerda la última palabra escrita 2 · 0.5 lb`
+
+Root cause:
+
+- Custom-v1 adaptive pagination was already active;
+- however, `inventoryContinuationLines` still emitted the full compact equipment identity as one physical row;
+- the row therefore remained a fail-closed width blocker even though the page architecture itself had been repaired.
+
+Correction:
+
+- the compact logical equipment identity now wraps at the actual Custom-v1 continuation width;
+- wrapping stays at the existing readable 8.4 pt continuation typography;
+- operational status follows on subsequent rows;
+- Desktop and Android are synchronized;
+- the semantic-completeness gate remains unchanged.
+
+The next exact-head gate is Scaffold **#4002**.
+
 ## Owner boundary
 
 No owner PDF generation or manual comparison is requested while this package is active.
